@@ -152,6 +152,11 @@ public class InterpreterTest {
 		assertValid("let x = {let y = 5; y}; x", "5");
 	}
 
+	@Test
+	void letBindingWithBlockExpression() {
+		assertValid("let x = 10; {x}", "10");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

@@ -17,7 +17,7 @@ public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
-		String trimmed = input.trim();
+	String trimmed = input.trim();
 		// block literal: { ... }
 		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
 			String inner = trimmed.substring(1, trimmed.length() - 1).trim();
@@ -563,9 +563,12 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> handleMultipleLets(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
-		if (!isSingleIdentifier(finalPart))
+		// final part may be either a single identifier (to return) or a block
+		// literal (to evaluate with the current let environment). Reject other
+		// forms.
+		if (!(isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))))
 			return Optional.empty();
-		java.util.Map<String, String> env = new java.util.HashMap<>();
+	java.util.Map<String, String> env = new java.util.LinkedHashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, stmts.get(i));
 			if (perr.isEmpty())
@@ -573,6 +576,20 @@ public class Interpreter {
 			if (perr.get().isPresent())
 				return Optional.of(new Err<>(perr.get().get()));
 		}
+		// If the final part is a block literal, evaluate the inner expression with
+		// the current let environment by reconstructing let declarations in order
+		// and delegating to interpret. This allows blocks to reference earlier
+		// let-bound identifiers, e.g. `let x = 10; {x}`.
+		if (finalPart.startsWith("{") && finalPart.endsWith("}")) {
+			String inner = finalPart.substring(1, finalPart.length() - 1).trim();
+			StringBuilder sb = new StringBuilder();
+			for (java.util.Map.Entry<String, String> e : env.entrySet()) {
+				sb.append("let ").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+			}
+			sb.append(inner);
+			return Optional.of(interpret(sb.toString()));
+		}
+
 		String finalName = finalPart;
 		if (!env.containsKey(finalName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalName)));
