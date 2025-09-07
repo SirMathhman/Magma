@@ -10,7 +10,7 @@
 	<description>Basic Maven project scaffold (Java 22)</description>
 
 	<properties>
-		<!-- Default target Java version set to 24 as requested. -->
+		<!-- Default target Java version (use JDK 24 preview features). -->
 		<java.version>24</java.version>
 		<maven.compiler.plugin.version>3.11.0</maven.compiler.plugin.version>
 		<junit.jupiter.version>5.10.0</junit.jupiter.version>
@@ -47,9 +47,76 @@
 				<artifactId>maven-surefire-plugin</artifactId>
 				<version>3.1.2</version>
 				<configuration>
-					<argLine>--enable-preview</argLine>
+					<!-- Include JaCoCo agent arg line when present, keep preview flag for JDK 24. -->
+					<argLine>${argLine} --enable-preview</argLine>
 					<useModulePath>false</useModulePath>
 				</configuration>
+			</plugin>
+
+			<!-- JaCoCo plugin for code coverage and enforcing thresholds -->
+			<plugin>
+				<groupId>org.jacoco</groupId>
+				<artifactId>jacoco-maven-plugin</artifactId>
+				<version>0.8.13</version>
+				<executions>
+					<!-- prepare-agent sets ${jacocoArgLine} used by Surefire -->
+					<execution>
+						<id>prepare-agent</id>
+						<goals>
+							<goal>prepare-agent</goal>
+						</goals>
+					</execution>
+					<!-- generate coverage report after tests -->
+					<execution>
+						<id>report</id>
+						<phase>test</phase>
+						<goals>
+							<goal>report</goal>
+						</goals>
+					</execution>
+					<!-- enforce 100% coverage on verify -->
+					<execution>
+						<id>check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+						<configuration>
+							<rules>
+								<rule>
+									<element>BUNDLE</element>
+									<limits>
+										<limit>
+											<counter>INSTRUCTION</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.0</minimum>
+										</limit>
+										<limit>
+											<counter>BRANCH</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.0</minimum>
+										</limit>
+										<limit>
+											<counter>LINE</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.0</minimum>
+										</limit>
+										<limit>
+											<counter>METHOD</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.0</minimum>
+										</limit>
+										<limit>
+											<counter>CLASS</counter>
+											<value>COVEREDRATIO</value>
+											<minimum>1.0</minimum>
+										</limit>
+									</limits>
+								</rule>
+							</rules>
+						</configuration>
+					</execution>
+				</executions>
 			</plugin>
 
 			<!-- Exec plugin to run the main class: mvn exec:java -Dexec.mainClass=magma.App -->

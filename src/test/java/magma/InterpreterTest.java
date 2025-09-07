@@ -116,20 +116,34 @@ public class InterpreterTest {
 		assertInvalid("foo");
 	}
 
+	@Test
+	public void invalidOperandLeadingOperator() {
+		// Input with missing left operand
+		assertInvalidOperand("+ 1");
+	}
+
+	@Test
+	public void invalidOperandTrailingOperator() {
+		// Input with missing right operand
+		assertInvalidOperand("1 + ");
+	}
+
+	@Test
+	public void invalidNonDigitOperand() {
+		// Non-digit operand mixed with number
+		assertInvalidOperand("a + 1");
+	}
+
+	@Test
+	public void invalidMultiplicationOperand() {
+		// Missing operand in multiplication
+		assertInvalidOperand("* 3");
+	}
+
 	private void assertInvalid(String input) {
-		Interpreter interpreter = new Interpreter();
-		Result<String, InterpretError> result = interpreter.interpret(input);
-		if (result instanceof Err rawErr) {
-			var e = rawErr.error();
-			if (e instanceof InterpretError iie) {
-				String expected = "Undefined variable." + "\n\n" + "1) " + input + "\n   " + "^".repeat(input.length());
-				assertEquals(expected, iie.display());
-			} else {
-				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
-			}
-		} else {
-			fail("Expected Err but got: " + result.getClass().getSimpleName());
-		}
+		String display = getErrorDisplay(input);
+		String expected = "Undefined variable." + "\n\n" + "1) " + input + "\n   " + "^".repeat(input.length());
+		assertEquals(expected, display);
 	}
 
 	private void assertErrDisplay(String input, String expectedDisplay) {
@@ -155,5 +169,27 @@ public class InterpreterTest {
 		} else {
 			fail("Expected Ok but got: " + result.getClass().getSimpleName());
 		}
+	}
+
+	private void assertInvalidOperand(String input) {
+		String display = getErrorDisplay(input);
+		assertEquals("Invalid operand", display);
+	}
+
+	private String getErrorDisplay(String input) {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InterpretError> result = interpreter.interpret(input);
+		if (result instanceof Err rawErr) {
+			var e = rawErr.error();
+			if (e instanceof InterpretError iie) {
+				return iie.display();
+			} else {
+				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
+			}
+		} else {
+			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
+		fail("Unreachable: expected to return or fail earlier");
+		return "";
 	}
 }
