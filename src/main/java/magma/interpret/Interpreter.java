@@ -179,7 +179,8 @@ public class Interpreter {
 		java.util.List<String> stmts = splitStatements(s);
 		if (stmts.isEmpty())
 			return Optional.empty();
-		// If there is any fn declaration present, handle as declarations; else fall back to let
+		// If there is any fn declaration present, handle as declarations; else fall
+		// back to let
 		boolean hasFn = stmts.stream().anyMatch(p -> p.startsWith("fn "));
 		if (!hasFn)
 			return tryParseLet(input);
@@ -223,14 +224,23 @@ public class Interpreter {
 		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
-			Optional<Tuple2<String, Tuple2<String, String>>> fnOpt = parseFnPart(stmt);
-			if (fnOpt.isEmpty())
+			if (stmt.startsWith("fn ")) {
+				Optional<Tuple2<String, Tuple2<String, String>>> fnOpt = parseFnPart(stmt);
+				if (fnOpt.isEmpty())
+					return Optional.empty();
+				Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
+				String name = fn.first();
+				if (fns.containsKey(name))
+					return Optional.of(new Err<>(new InterpretError("Duplicate function declaration: " + name)));
+				fns.put(name, fn.second());
+			} else if (stmt.startsWith("let ")) {
+				// validate let statements but ignore bindings here
+				Optional<Tuple2<String, String>> kv = parseLetPart(stmt);
+				if (kv.isEmpty())
+					return Optional.empty();
+			} else {
 				return Optional.empty();
-			Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
-			String name = fn.first();
-			if (fns.containsKey(name))
-				return Optional.of(new Err<>(new InterpretError("Duplicate function declaration: " + name)));
-			fns.put(name, fn.second());
+			}
 		}
 		if (!fns.containsKey(callName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
@@ -238,8 +248,14 @@ public class Interpreter {
 		String paramName = fn.first();
 		String retExpr = fn.second();
 		if (paramName.isEmpty()) {
-			// no param, return literal directly
-			return Optional.of(new Ok<>(retExpr));
+			// no param
+			if (retExpr.startsWith("CALL:")) {
+				String target = retExpr.substring(5);
+				return Optional.of(resolveFunctionValue(fns, target, new java.util.HashSet<>()));
+			}
+			if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
+				return Optional.of(new Ok<>(retExpr));
+			return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
 		}
 		// param present: if return expression equals the param name, return the callArg
 		if (retExpr.equals(paramName)) {
@@ -247,10 +263,35 @@ public class Interpreter {
 				return Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)));
 			return Optional.of(new Ok<>(callArg));
 		}
+		// param present but body is a call to other function returning literal
+		if (retExpr.startsWith("CALL:")) {
+			String target = retExpr.substring(5);
+			// cannot forward call to a function that expects a parameter in this simplistic
+			// model
+			return Optional.of(resolveFunctionValue(fns, target, new java.util.HashSet<>()));
+		}
 		// otherwise if retExpr is numeric literal, return it
 		if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
 			return Optional.of(new Ok<>(retExpr));
 		return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
+	}
+
+	private Result<String, InterpretError> resolveFunctionValue(java.util.Map<String, Tuple2<String, String>> fns,
+			String name, java.util.Set<String> visited) {
+		if (!fns.containsKey(name))
+			return new Err<>(new InterpretError("Unbound identifier: " + name));
+		if (!visited.add(name))
+			return new Err<>(new InterpretError("Recursive function call: " + name));
+		Tuple2<String, String> fn = fns.get(name);
+		String param = fn.first();
+		String ret = fn.second();
+		if (!param.isEmpty())
+			return new Err<>(new InterpretError("Missing argument for call: " + name));
+		if (ret.startsWith("CALL:"))
+			return resolveFunctionValue(fns, ret.substring(5), visited);
+		if (!ret.isEmpty() && Character.isDigit(ret.charAt(0)))
+			return new Ok<>(ret);
+		return new Err<>(new InterpretError("Unsupported function body: " + ret));
 	}
 
 	/**
@@ -298,7 +339,7 @@ public class Interpreter {
 		pos = skipWhitespace(stmt, pos + 2);
 		if (pos >= stmt.length())
 			return Optional.empty();
-		// rhs may be numeric literal or identifier (e.g., param)
+		// rhs may be numeric literal, identifier (e.g., param), or a call name()
 		String retExpr;
 		if (Character.isDigit(stmt.charAt(pos))) {
 			int vEnd = parseDigitsEnd(stmt, pos);
@@ -310,12 +351,23 @@ public class Interpreter {
 			int rEnd = parseIdentifierEnd(stmt, pos);
 			if (rEnd < 0)
 				return Optional.empty();
-			retExpr = stmt.substring(pos, rEnd);
+			String ident = stmt.substring(pos, rEnd);
 			pos = skipWhitespace(stmt, rEnd);
+			// optional call form ident()
+			if (pos < stmt.length() && stmt.charAt(pos) == '(') {
+				int pp = skipWhitespace(stmt, pos + 1);
+				if (pp >= stmt.length() || stmt.charAt(pp) != ')')
+					return Optional.empty();
+				pos = skipWhitespace(stmt, pp + 1);
+				retExpr = "CALL:" + ident;
+			} else {
+				retExpr = ident;
+			}
 		}
 		if (pos != stmt.length())
 			return Optional.empty();
-		// if declared return type is Bool and retExpr is numeric, that's a mismatch; return empty body to signal later
+		// if declared return type is Bool and retExpr is numeric, that's a mismatch;
+		// return empty body to signal later
 		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B' && !retExpr.isEmpty()
 				&& Character.isDigit(retExpr.charAt(0))) {
 			return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, "")));

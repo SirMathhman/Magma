@@ -132,6 +132,11 @@ public class InterpreterTest {
 		assertInvalid("fn get() => 0; fn get() => 0;");
 	}
 
+	@Test
+	void functionCallOtherFunctionWithLetsMixed() {
+		assertValid("fn get() => 100; let x = 0; fn next() => get(); next();", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
