@@ -107,6 +107,11 @@ public class InterpreterTest {
 		assertValid("true", "true");
 	}
 
+	@Test
+	void letBoolAssignedNumberShouldBeInvalid() {
+		assertInvalid("let x : Bool = 0;");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

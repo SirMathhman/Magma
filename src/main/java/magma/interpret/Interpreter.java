@@ -207,6 +207,9 @@ public class Interpreter {
 		// literal's suffix
 		if (Character.isDigit(rhs.charAt(0))) {
 			Optional<Character> declared = parseLetDeclaredSignedness(stmt);
+			// If the declared type is Bool (leading 'B'), numeric RHS is invalid
+			if (declared.isPresent() && Character.toUpperCase(declared.get()) == 'B')
+				return Optional.of(new Err<>(new InterpretError("Type mismatch in let: " + stmt)));
 			Optional<Character> rhsSuffix = parseLetRhsSignedness(stmt);
 			if (declared.isPresent() && rhsSuffix.isPresent()) {
 				char d = declared.get();
