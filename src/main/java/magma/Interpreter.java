@@ -16,9 +16,9 @@ public class Interpreter {
 		}
 
 		// try simple addition parsing
-		Optional<String> add = tryParseAddition(input);
+		Optional<Result<String, InterpretError>> add = tryParseAddition(input);
 		if (add.isPresent()) {
-			return new Ok<>(add.get());
+			return add.get();
 		}
 		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
 		Optional<String> stripped = tryStripSuffix(input);
@@ -48,7 +48,7 @@ public class Interpreter {
 		return new Ok<>(input);
 	}
 
-	private Optional<String> tryParseAddition(String input) {
+	private Optional<Result<String, InterpretError>> tryParseAddition(String input) {
 		int plusIdx = -1;
 		for (int i = 0; i < input.length(); i++) {
 			if (input.charAt(i) == '+') {
@@ -61,31 +61,52 @@ public class Interpreter {
 		}
 		String left = input.substring(0, plusIdx).trim();
 		String right = input.substring(plusIdx + 1).trim();
-		// allow operands to carry known type suffixes like I8/I16/I32/I64/U8/U16/U32/U64
-		Optional<String> leftStripped = tryStripSuffix(left);
-		if (leftStripped.isPresent()) {
-			left = leftStripped.get();
+		// detect suffixes on operands
+		Optional<String> leftSuffixOpt = findSuffix(left);
+		Optional<String> rightSuffixOpt = findSuffix(right);
+		String leftCore = left;
+		String rightCore = right;
+		if (leftSuffixOpt.isPresent()) {
+			String leftSuffix = leftSuffixOpt.get();
+			leftCore = left.substring(0, left.length() - leftSuffix.length()).trim();
 		}
-		Optional<String> rightStripped = tryStripSuffix(right);
-		if (rightStripped.isPresent()) {
-			right = rightStripped.get();
+		if (rightSuffixOpt.isPresent()) {
+			String rightSuffix = rightSuffixOpt.get();
+			rightCore = right.substring(0, right.length() - rightSuffix.length()).trim();
 		}
 		if (left.isEmpty() || right.isEmpty()) {
 			return Optional.empty();
 		}
-		for (int i = 0; i < left.length(); i++) {
-			if (!Character.isDigit(left.charAt(i))) {
-				return Optional.empty();
+		for (int i = 0; i < leftCore.length(); i++) {
+			if (!Character.isDigit(leftCore.charAt(i))) {
+				return Optional.of(new Err<>(new InterpretError("Invalid left operand")));
 			}
 		}
-		for (int i = 0; i < right.length(); i++) {
-			if (!Character.isDigit(right.charAt(i))) {
-				return Optional.empty();
+		for (int i = 0; i < rightCore.length(); i++) {
+			if (!Character.isDigit(rightCore.charAt(i))) {
+				return Optional.of(new Err<>(new InterpretError("Invalid right operand")));
 			}
 		}
-		int a = Integer.parseInt(left);
-		int b = Integer.parseInt(right);
-		return Optional.of(String.valueOf(a + b));
+
+		// If both operands specify a suffix and they differ, it's a type mismatch ->
+		// error
+		if (leftSuffixOpt.isPresent() && rightSuffixOpt.isPresent() && !leftSuffixOpt.get().equals(rightSuffixOpt.get())) {
+			return Optional.of(new Err<>(new InterpretError("Mismatched operand types")));
+		}
+
+		int a = Integer.parseInt(leftCore);
+		int b = Integer.parseInt(rightCore);
+		return Optional.of(new Ok<>(String.valueOf(a + b)));
+	}
+
+	private Optional<String> findSuffix(String s) {
+		String[] suffixes = new String[] { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+		for (String sfx : suffixes) {
+			if (s.endsWith(sfx)) {
+				return Optional.of(sfx);
+			}
+		}
+		return Optional.empty();
 	}
 
 	private Optional<String> tryStripSuffix(String input) {

@@ -70,6 +70,22 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretAdditionMismatchedSuffixes() {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InterpretError> result = interpreter.interpret("2U8 + 10I32");
+		if (result instanceof Err rawErr) {
+			var e = rawErr.error();
+			if (e instanceof InterpretError iie) {
+				assertEquals("Mismatched operand types", iie.display());
+			} else {
+				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
+			}
+		} else {
+			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
+	}
+
+	@Test
 	public void undefined() {
 		assertInvalid("test");
 	}
