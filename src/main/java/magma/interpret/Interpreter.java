@@ -52,16 +52,7 @@ public class Interpreter {
 	}
 
 	private static java.util.List<String> splitByOp(String s, char op) {
-		java.util.List<String> parts = new java.util.ArrayList<>();
-		int start = 0;
-		for (int i = 0; i < s.length(); i++) {
-			if (s.charAt(i) == op) {
-				parts.add(s.substring(start, i));
-				start = i + 1;
-			}
-		}
-		parts.add(s.substring(start));
-		return parts;
+		return splitRaw(s, op);
 	}
 
 	private Optional<Result<String, InterpretError>> handleAdditionChain(java.util.List<String> parts, String input) {
@@ -161,28 +152,55 @@ public class Interpreter {
 		String s = input.trim();
 		if (!s.startsWith("let "))
 			return Optional.empty();
-		// split by ';' into statements
+		java.util.List<String> stmts = splitStatements(s);
+		if (stmts.isEmpty())
+			return Optional.empty();
+		if (stmts.size() == 1)
+			return handleSingleLet(stmts.get(0));
+		return handleMultipleLets(stmts);
+	}
+
+	private static java.util.List<String> splitStatements(String s) {
+		java.util.List<String> raw = splitRaw(s, ';');
+		java.util.List<String> stmts = new java.util.ArrayList<>();
+		for (String p : raw) {
+			String t = p.trim();
+			if (!t.isEmpty())
+				stmts.add(t);
+		}
+		return stmts;
+	}
+
+	private static java.util.List<String> splitRaw(String s, char delim) {
 		java.util.List<String> parts = new java.util.ArrayList<>();
-		int st = 0;
+		int start = 0;
 		for (int i = 0; i < s.length(); i++) {
-			if (s.charAt(i) == ';') {
-				parts.add(s.substring(st, i).trim());
-				st = i + 1;
+			if (s.charAt(i) == delim) {
+				parts.add(s.substring(start, i));
+				start = i + 1;
 			}
 		}
-		parts.add(s.substring(st).trim());
-		// filter empty parts
-		java.util.List<String> stmts = new java.util.ArrayList<>();
-		for (String p : parts)
-			if (!p.isEmpty())
-				stmts.add(p);
-		if (stmts.size() < 2)
+		parts.add(s.substring(start));
+		return parts;
+	}
+
+	private Optional<Result<String, InterpretError>> handleSingleLet(String stmt) {
+		Optional<String> rhsOpt = parseLetRhs(stmt);
+		if (rhsOpt.isEmpty())
 			return Optional.empty();
+		String rhs = rhsOpt.get();
+		if (rhs.isEmpty())
+			return Optional.empty();
+		if (Character.isDigit(rhs.charAt(0)))
+			return Optional.of(new Ok<>(""));
+		return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + rhs)));
+	}
+
+	private Optional<Result<String, InterpretError>> handleMultipleLets(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
 		int fend = parseIdentifierEnd(finalPart, 0);
 		if (fend < 0 || skipWhitespace(finalPart, fend) != finalPart.length())
 			return Optional.empty();
-
 		java.util.Map<String, String> env = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
@@ -192,7 +210,6 @@ public class Interpreter {
 			java.util.Map.Entry<String, String> kv = kvOpt.get();
 			String name = kv.getKey();
 			String rhs = kv.getValue();
-			// rhs may be digits or identifier
 			if (rhs.isEmpty())
 				return Optional.empty();
 			if (Character.isDigit(rhs.charAt(0))) {
@@ -251,6 +268,17 @@ public class Interpreter {
 				return Optional.empty();
 			return Optional.of(new java.util.AbstractMap.SimpleEntry<>(name, rhs));
 		}
+	}
+
+	/**
+	 * Convenience helper that returns only the RHS string for a let-part if
+	 * present.
+	 */
+	private Optional<String> parseLetRhs(String stmt) {
+		Optional<java.util.Map.Entry<String, String>> kvOpt = parseLetPart(stmt);
+		if (kvOpt.isEmpty())
+			return Optional.empty();
+		return Optional.of(kvOpt.get().getValue());
 	}
 
 	private static int skipWhitespace(String s, int pos) {
