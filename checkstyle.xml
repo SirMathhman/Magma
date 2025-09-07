@@ -15,7 +15,14 @@
 
 		<!-- Forbid explicit casts; prefer pattern matching or polymorphism -->
 		<module name="IllegalToken">
-			<property name="tokens" value="TYPECAST"/>
+			<property name="tokens" value="TYPECAST" />
+		</module>
+
+		<!-- Ban wildcard generics like List<?> or Map<? extends T> -->
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="&lt;\s*\?|\?\s+extends|\?\s+super" />
+			<property name="message"
+				value="Avoid wildcard generics ('?'); prefer explicit type parameters or bounded types." />
 		</module>
 	</module>
 </module>
