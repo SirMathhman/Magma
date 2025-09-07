@@ -32,8 +32,6 @@ public class Interpreter {
 			return interpret(inner);
 		}
 
-        
-
 		Optional<Result<String, InterpretError>> ifRes = handleIfExpression(trimmed);
 		if (ifRes.isPresent())
 			return ifRes.get();
@@ -311,7 +309,7 @@ public class Interpreter {
 			return evaluateZeroArgFunctionBody(fns, retExpr);
 		if (retExpr.equals(paramName))
 			return callArg.isEmpty() ? Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)))
-				: Optional.of(new Ok<>(callArg));
+					: Optional.of(new Ok<>(callArg));
 		return evaluateReturnExprAsOptional(fns, retExpr);
 	}
 
@@ -324,7 +322,8 @@ public class Interpreter {
 		Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
 		String name = fn.first();
 		if (fns.containsKey(name))
-			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name)));
+			return java.util.Optional
+					.of(java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name)));
 		fns.put(name, fn.second());
 		return java.util.Optional.of(java.util.Optional.empty());
 	}
@@ -461,8 +460,7 @@ public class Interpreter {
 			String stmt = stmts.get(i);
 			// Map of statement prefix -> handler function. Handlers capture
 			// local fns/classes/structs maps as needed.
-			java.util.Map<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> handlers =
-					new java.util.LinkedHashMap<>();
+			java.util.Map<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> handlers = new java.util.LinkedHashMap<>();
 			handlers.put("fn ", s -> handleFnStmt(s, fns));
 			handlers.put("class ", s -> handleClassStmt(s, fns, classes));
 			handlers.put("struct ", s -> handleStructStmt(s, structs));
@@ -507,11 +505,59 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> evaluateReturnExprAsOptional(
 			java.util.Map<String, Tuple2<String, String>> fns, String retExpr) {
-		if (retExpr.startsWith("CALL:"))
-			return Optional.of(resolveFunctionValue(fns, retExpr.substring(5), new java.util.HashSet<>()));
+		if (retExpr.startsWith("CALL:")) {
+			String payload = retExpr.substring(5);
+			int comma = payload.indexOf(',');
+			if (comma < 0) {
+				return Optional.of(resolveFunctionValue(fns, payload, new java.util.HashSet<>()));
+			} else {
+				// pass the raw payload (name,arg) to helper to avoid too many params
+				return Optional.of(resolveFunctionWithArg(fns, payload, new java.util.HashSet<>()));
+			}
+		}
 		if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
 			return Optional.of(new Ok<>(retExpr));
 		return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
+	}
+
+	private Result<String, InterpretError> resolveFunctionWithArg(java.util.Map<String, Tuple2<String, String>> fns,
+			String payload, java.util.Set<String> visited) {
+		Tuple2<String, String> nameArg = splitNameArg(payload);
+		String name = nameArg.first();
+		String arg = nameArg.second();
+		if (!fns.containsKey(name))
+			return new Err<>(new InterpretError("Unbound identifier: " + name));
+		if (!visited.add(name))
+			return new Err<>(new InterpretError("Recursive function call: " + name));
+		Tuple2<String, String> fn = fns.get(name);
+		String param = fn.first();
+		String ret = fn.second();
+		// If function expects a parameter and returns that parameter, return the passed
+		// arg
+		if (!param.isEmpty() && ret.equals(param))
+			return new Ok<>(arg);
+		// If return is another CALL, propagate with substitution if needed
+		if (ret.startsWith("CALL:")) {
+			String innerPayload = ret.substring(5);
+			Tuple2<String, String> inner = splitNameArg(innerPayload);
+			String innerName = inner.first();
+			String innerArg = inner.second();
+			if (!innerArg.isEmpty() && innerArg.equals(param))
+				innerArg = arg;
+			String toPass = innerName + (innerArg.isEmpty() ? "" : "," + innerArg);
+			return innerArg.isEmpty() ? resolveFunctionValue(fns, innerName, visited)
+					: resolveFunctionWithArg(fns, toPass, visited);
+		}
+		if (!ret.isEmpty() && Character.isDigit(ret.charAt(0)))
+			return new Ok<>(ret);
+		return new Err<>(new InterpretError("Unsupported function body: " + ret));
+	}
+
+	private Tuple2<String, String> splitNameArg(String payload) {
+		int comma = payload.indexOf(',');
+		if (comma < 0)
+			return new Tuple2<>(payload, "");
+		return new Tuple2<>(payload.substring(0, comma), payload.substring(comma + 1));
 	}
 
 	private Result<String, InterpretError> resolveFunctionValue(java.util.Map<String, Tuple2<String, String>> fns,
@@ -591,14 +637,14 @@ public class Interpreter {
 		int end = findMatchingBrace(stmt, npos);
 		if (end < 0)
 			return Optional.empty();
-		
+
 		// Parse any inner function declarations in the class body
 		String classBody = stmt.substring(npos + 1, end).trim();
 		if (!classBody.isEmpty()) {
 			// For now, store the body content in the type token for later parsing
 			typeToken = classBody;
 		}
-		
+
 		npos = skipWhitespace(stmt, end + 1);
 		if (npos != stmt.length())
 			return Optional.empty();
@@ -702,7 +748,7 @@ public class Interpreter {
 		if (pos < stmt.length() && stmt.charAt(pos) == expectedClose) {
 			return Optional.of(new FieldInfo("", "", pos));
 		}
-		
+
 		int fldEnd = parseIdentifierEnd(stmt, pos);
 		if (fldEnd < 0)
 			return Optional.empty();
@@ -868,9 +914,25 @@ public class Interpreter {
 		int npos = skipWhitespace(stmt, rEnd);
 		if (npos < stmt.length() && stmt.charAt(npos) == '(') {
 			int pp = skipWhitespace(stmt, npos + 1);
-			if (pp >= stmt.length() || stmt.charAt(pp) != ')')
+			// no-arg call form: ident()
+			if (pp < stmt.length() && stmt.charAt(pp) == ')') {
+				return Optional.of(new Tuple2<>("CALL:" + ident, skipWhitespace(stmt, pp + 1)));
+			}
+			// call with single token argument (digits or identifier)
+			int argEnd = -1;
+			if (pp < stmt.length() && Character.isDigit(stmt.charAt(pp))) {
+				argEnd = parseDigitsEnd(stmt, pp);
+			} else {
+				argEnd = parseIdentifierEnd(stmt, pp);
+			}
+			if (argEnd < 0)
 				return Optional.empty();
-			return Optional.of(new Tuple2<>("CALL:" + ident, skipWhitespace(stmt, pp + 1)));
+			String arg = stmt.substring(pp, argEnd);
+			int afterArg = skipWhitespace(stmt, argEnd);
+			if (afterArg >= stmt.length() || stmt.charAt(afterArg) != ')')
+				return Optional.empty();
+			// encode call with argument as CALL:name,arg
+			return Optional.of(new Tuple2<>("CALL:" + ident + "," + arg, skipWhitespace(stmt, afterArg + 1)));
 		}
 		return Optional.of(new Tuple2<>(ident, npos));
 	}
@@ -932,7 +994,7 @@ public class Interpreter {
 				return Optional.empty();
 			return splitAfterTopLevelBrace(s, bracePos);
 		}
-		
+
 		// Fallback: if we couldn't match with stricter parsing, try a permissive
 		// split based on the first '{' and its first '}' thereafter. This handles
 		// simple declarations followed by an expression.
