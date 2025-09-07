@@ -2,17 +2,20 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
 	@Test
 	public void empty() {
-		final var interpreter = new Interpreter();
-		final var result = interpreter.interpret("");
-		switch (result) {
+		switch (new Interpreter().interpret("")) {
 			case Ok<String, InterpretError>(String value) -> assertEquals("", value);
 			case Err<String, InterpretError>(InterpretError error) -> fail(error.display());
 		}
+	}
+
+	@Test
+	void undefined() {
+		final var interpreter = new Interpreter();
+		assertInstanceOf(Err.class, interpreter.interpret("test"));
 	}
 }
