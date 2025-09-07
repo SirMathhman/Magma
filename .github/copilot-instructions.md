@@ -45,4 +45,5 @@ When contributing code or generating changes, follow these repository-specific c
 Practical notes for assistants and contributors
   - Avoid using `null`, `java.util.regex`, raw `Object`, wildcard generics, casts, and explicit throw/throws.
   - Keep methods small/simple to satisfy cyclomatic complexity and parameter count rules; if logic grows, extract helpers (but keep helpers simple as well).
-  - Run `mvn test` locally with JDK 24 to verify Checkstyle, CPD, and JaCoCo checks before opening PRs.
+    - Run `mvn test` locally with JDK 24 to verify Checkstyle, CPD, and JaCoCo checks before opening PRs.
+    - Always run `mvn clean test -q` at the start and at the end of your changes to ensure tests and static checks are green and to minimize feedback loops.
