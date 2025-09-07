@@ -195,14 +195,21 @@ public class Interpreter {
 		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct "))
 			return Optional.empty();
 		java.util.List<String> stmts = splitStatements(s);
-		// If user omitted semicolon between a leading declaration and the final
-		// expression (e.g. "class fn X(...) => {} expr"), split them here so
-		// the existing declaration handling can work. The heavy splitting logic
-		// is delegated to a helper to keep cyclomatic complexity low.
-		if (stmts.size() == 1) {
-			Optional<java.util.List<String>> maybe = attemptSplitDeclarationAndRemainder(s, stmts);
-			if (maybe.isPresent())
-				stmts = maybe.get();
+		// Try to split a leading declaration and remainder when present. This
+		// handles both the single-statement case and cases where the first
+		// semicolon-separated part still contains a declaration + trailing
+		// expression (for example: "struct S { ... } let x = ...; x").
+		Optional<java.util.List<String>> maybe = attemptSplitDeclarationAndRemainder(s, stmts);
+		if (maybe.isPresent()) {
+			java.util.List<String> parts = maybe.get();
+			// parts is expected to be [declaration, remainder]. Split the remainder
+			// into top-level statements and reconstruct the statements list so
+			// declarations come first and the final expression(s) follow.
+			java.util.List<String> rebuilt = new java.util.ArrayList<>();
+			rebuilt.add(parts.get(0));
+			java.util.List<String> tail = splitStatements(parts.get(1));
+			rebuilt.addAll(tail);
+			stmts = rebuilt;
 		}
 		if (stmts.isEmpty())
 			return Optional.empty();
@@ -241,15 +248,16 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> maybeLit = tryFinalLiteralInDeclarations(finalPart);
 		if (maybeLit.isPresent())
 			return maybeLit;
-		// final part may be a function call like name(arg) or a constructor.field like
-		// Name(arg).field
-		Optional<Tuple2<String, String>> callOpt = parseFunctionCall(finalPart);
-		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = Optional.empty();
-		if (callOpt.isEmpty()) {
-			ctorOpt = parseConstructorFieldPattern(finalPart);
-			if (ctorOpt.isEmpty())
-				return Optional.empty();
-		}
+		// final part may be a numeric literal (handled), a single identifier
+		// (return that binding), a function call like name(arg), or a
+		// constructor.field like Name(arg).field. If it's a single identifier,
+		// proceed to collect functions/lets so it can be resolved later.
+		Optional<FinalParse> finalParseOpt = parseFinalPart(finalPart);
+		if (finalParseOpt.isEmpty())
+			return Optional.empty();
+	FinalParse finalParse = finalParseOpt.get();
+	Optional<Tuple2<String, String>> callOpt = finalParse.callOpt();
+	Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = finalParse.ctorOpt();
 
 		Optional<FnCollectResult> coll = collectFunctions(stmts);
 		if (coll.isEmpty())
@@ -259,39 +267,144 @@ public class Interpreter {
 			return Optional.of(new Err<>(collRes.error().get()));
 		java.util.Map<String, Tuple2<String, String>> fns = collRes.fns();
 
-		// if this was a constructor.field form, handle via helper
+		// If there are any let statements among the leading statements, handle
+		// them as a let-block so that a trailing identifier (like `x`) can be
+		// resolved from the let environment. Build a list of the let stmts plus
+		// the final part and delegate to existing let handling.
+		boolean hasLet = stmts.subList(0, stmts.size() - 1).stream().anyMatch(p -> p.startsWith("let "));
+		if (hasLet) {
+			// collect only the leading let statements
+			java.util.List<String> lets = new java.util.ArrayList<>();
+			for (int i = 0; i < stmts.size() - 1; i++) {
+				if (stmts.get(i).startsWith("let "))
+					lets.add(stmts.get(i));
+			}
+			// If the final part is an identifier or a block, we can reuse existing
+			// multiple-let handling which reconstructs a let environment and
+			// evaluates the final expression.
+			if (isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))) {
+				lets.add(finalPart);
+				return handleMultipleLets(lets);
+			}
+			// Otherwise (final part is a call or constructor.field), validate the
+			// let statements for correctness, but then dispatch to the normal
+			// function/constructor handling using the previously collected fns.
+			java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
+			for (String l : lets) {
+				java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, l);
+				if (perr.isEmpty())
+					return Optional.empty();
+				if (perr.get().isPresent())
+					return Optional.of(new Err<>(perr.get().get()));
+			}
+			// validated lets; fall through to function/constructor dispatch below
+		}
+
+		// Delegate final dispatch (constructor.field vs normal call) to helper
+		return dispatchAfterCollection(new DispatchContext(ctorOpt, callOpt, fns, finalPart));
+	}
+
+	private static record DispatchContext(
+			Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt,
+			Optional<Tuple2<String, String>> callOpt,
+			java.util.Map<String, Tuple2<String, String>> fns,
+			String finalPart) {
+	}
+
+	private static record FinalParse(Optional<Tuple2<String, String>> callOpt,
+			Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt, boolean finalIsIdentifier) {
+	}
+
+	private Optional<FinalParse> parseFinalPart(String finalPart) {
+		Optional<Tuple2<String, String>> callOpt = Optional.empty();
+		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = Optional.empty();
+		boolean finalIsIdentifier = isSingleIdentifier(finalPart);
+		if (!finalIsIdentifier) {
+			callOpt = parseFunctionCall(finalPart);
+			if (callOpt.isEmpty()) {
+				ctorOpt = parseConstructorFieldPattern(finalPart);
+				if (ctorOpt.isEmpty())
+					return Optional.empty();
+			}
+		}
+		return Optional.of(new FinalParse(callOpt, ctorOpt, finalIsIdentifier));
+	}
+
+	private Optional<Result<String, InterpretError>> dispatchAfterCollection(DispatchContext ctx) {
+		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = ctx.ctorOpt();
+		Optional<Tuple2<String, String>> callOpt = ctx.callOpt();
+		java.util.Map<String, Tuple2<String, String>> fns = ctx.fns();
+		String finalPart = ctx.finalPart();
 		if (ctorOpt.isPresent())
 			return handleConstructorOrFieldCall(ctorOpt.get(), fns);
-
-		// otherwise this was a normal function call; delegate to helper
-		return handleNormalFunctionCall(callOpt.get(), fns);
+		if (callOpt.isPresent())
+			return handleNormalFunctionCall(callOpt.get(), fns);
+		return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalPart)));
 	}
 
 	private Optional<Result<String, InterpretError>> handleConstructorOrFieldCall(
+			Tuple2<Tuple2<String, String>, String> ctorCall, java.util.Map<String, Tuple2<String, String>> fns) {
+		Tuple2<String, String> starter = extractCtorCallParts(ctorCall);
+		String callName = starter.first();
+		String callArg = starter.second();
+		String methodOrField = ctorCall.second();
+
+		boolean hasClass = fns.containsKey("CLASS:" + callName);
+		boolean hasStruct = fns.containsKey("STRUCT:" + callName);
+		if (!hasClass && !hasStruct)
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+
+		// try method resolution first
+		Optional<Result<String, InterpretError>> maybeMethod = tryResolveInnerMethod(methodOrField, fns);
+		if (maybeMethod.isPresent())
+			return maybeMethod;
+
+		if (hasStruct)
+			return handleStructConstructorField(new Tuple2<>(new Tuple2<>(callName, callArg), methodOrField), fns);
+
+		if (hasClass)
+			return handleClassConstructorField(callArg, methodOrField, fns);
+
+		return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
+	}
+
+	private Tuple2<String, String> extractCtorCallParts(Tuple2<Tuple2<String, String>, String> ctorCall) {
+		Tuple2<String, String> call = ctorCall.first();
+		return new Tuple2<>(call.first(), call.second());
+	}
+
+	private Optional<Result<String, InterpretError>> tryResolveInnerMethod(String methodOrField,
+			java.util.Map<String, Tuple2<String, String>> fns) {
+		if (!fns.containsKey(methodOrField))
+			return Optional.empty();
+		Tuple2<String, String> innerFn = fns.get(methodOrField);
+		String innerParam = innerFn.first();
+		String innerRet = innerFn.second();
+		if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
+			return Optional.of(new Ok<>(innerRet));
+		return Optional.empty();
+	}
+
+	private Optional<Result<String, InterpretError>> handleStructConstructorField(
 			Tuple2<Tuple2<String, String>, String> ctorCall, java.util.Map<String, Tuple2<String, String>> fns) {
 		Tuple2<String, String> call = ctorCall.first();
 		String callName = call.first();
 		String callArg = call.second();
 		String methodOrField = ctorCall.second();
-
-		if (!fns.containsKey("CLASS:" + callName) && !fns.containsKey("STRUCT:" + callName))
-			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
-
-		// Check if this is a method call (look for inner function)
-		if (fns.containsKey(methodOrField)) {
-			Tuple2<String, String> innerFn = fns.get(methodOrField);
-			String innerParam = innerFn.first();
-			String innerRet = innerFn.second();
-			if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
-				return Optional.of(new Ok<>(innerRet));
-		}
-
-		// Fall back to field access
-		if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
+		Tuple2<String, String> st = fns.get("STRUCT:" + callName);
+		String fieldName = st.first();
+		if (callArg.isEmpty())
+			return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
+		if (methodOrField.equals(fieldName))
 			return Optional.of(new Ok<>(callArg));
+		return Optional.of(new Err<>(new InterpretError("Unknown field: " + methodOrField)));
+	}
+
+	private Optional<Result<String, InterpretError>> handleClassConstructorField(String callArg, String methodOrField,
+			java.util.Map<String, Tuple2<String, String>> fns) {
+		// For classes: fall back to field access (allow empty arg)
 		if (!callArg.isEmpty())
 			return Optional.of(new Ok<>(callArg));
-		// Handle empty constructor arguments (e.g., Empty())
 		if (callArg.isEmpty())
 			return Optional.of(new Ok<>(""));
 		return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
@@ -525,11 +638,13 @@ public class Interpreter {
 		Tuple2<String, String> nameArg = splitNameArg(payload);
 		String name = nameArg.first();
 		String arg = nameArg.second();
-		if (!fns.containsKey(name))
-			return new Err<>(new InterpretError("Unbound identifier: " + name));
-		if (!visited.add(name))
-			return new Err<>(new InterpretError("Recursive function call: " + name));
-		Tuple2<String, String> fn = fns.get(name);
+		Result<Tuple2<String, String>, InterpretError> fetched = precheckAndGetFn(
+				new PrecheckContext(fns, name, visited, true, arg));
+		if (fetched instanceof Err<Tuple2<String, String>, InterpretError> e)
+			return new Err<>(e.error());
+		if (!(fetched instanceof Ok<Tuple2<String, String>, InterpretError> ok))
+			return new Err<>(new InterpretError("Unexpected result while resolving function: " + name));
+		Tuple2<String, String> fn = ok.value();
 		String param = fn.first();
 		String ret = fn.second();
 		// If function expects a parameter and returns that parameter, return the passed
@@ -560,22 +675,68 @@ public class Interpreter {
 		return new Tuple2<>(payload.substring(0, comma), payload.substring(comma + 1));
 	}
 
+	/**
+	 * Consolidated pre-check for resolve flows. If isWithArg is true, the
+	 * provided arg is considered; this helper returns Optional.of(Err) when an
+	 * early error should be returned, otherwise Optional.empty() to continue.
+	 */
+	private static record PrecheckContext(java.util.Map<String, Tuple2<String, String>> fns, String name,
+			java.util.Set<String> visited, boolean isWithArg, String arg) {
+	}
+
+	private Optional<Result<String, InterpretError>> precheckForResolve(PrecheckContext ctx) {
+		var fns = ctx.fns();
+		var name = ctx.name();
+		var visited = ctx.visited();
+		var isWithArg = ctx.isWithArg();
+		if (!fns.containsKey(name))
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + name)));
+		if (!visited.add(name))
+			return Optional.of(new Err<>(new InterpretError("Recursive function call: " + name)));
+		if (!isWithArg) {
+			Tuple2<String, String> fn = fns.get(name);
+			String param = fn.first();
+			if (!param.isEmpty())
+				return Optional.of(new Err<>(new InterpretError("Missing argument for call: " + name)));
+		}
+		return Optional.empty();
+	}
+
 	private Result<String, InterpretError> resolveFunctionValue(java.util.Map<String, Tuple2<String, String>> fns,
 			String name, java.util.Set<String> visited) {
-		if (!fns.containsKey(name))
-			return new Err<>(new InterpretError("Unbound identifier: " + name));
-		if (!visited.add(name))
-			return new Err<>(new InterpretError("Recursive function call: " + name));
-		Tuple2<String, String> fn = fns.get(name);
-		String param = fn.first();
-		String ret = fn.second();
-		if (!param.isEmpty())
-			return new Err<>(new InterpretError("Missing argument for call: " + name));
-		if (ret.startsWith("CALL:"))
-			return resolveFunctionValue(fns, ret.substring(5), visited);
-		if (!ret.isEmpty() && Character.isDigit(ret.charAt(0)))
-			return new Ok<>(ret);
-		return new Err<>(new InterpretError("Unsupported function body: " + ret));
+		Result<Tuple2<String, String>, InterpretError> fetched = precheckAndGetFn(
+				new PrecheckContext(fns, name, visited, false, ""));
+		if (fetched instanceof Ok<Tuple2<String, String>, InterpretError> ok) {
+			Tuple2<String, String> fn = ok.value();
+			String param = fn.first();
+			String ret = fn.second();
+			if (!param.isEmpty())
+				return new Err<>(new InterpretError("Missing argument for call: " + name));
+			if (ret.startsWith("CALL:"))
+				return resolveFunctionValue(fns, ret.substring(5), visited);
+			if (!ret.isEmpty() && Character.isDigit(ret.charAt(0)))
+				return new Ok<>(ret);
+			return new Err<>(new InterpretError("Unsupported function body: " + ret));
+		} else if (fetched instanceof Err<Tuple2<String, String>, InterpretError> e) {
+			return new Err<>(e.error());
+		} else {
+			return new Err<>(new InterpretError("Unexpected result while resolving function: " + name));
+		}
+	}
+
+	/**
+	 * Perform precheck and fetch function tuple in a single helper to avoid
+	 * duplicated code. Returns Ok(tuple) on success or Err(InterpretError) on
+	 * failure. Uses Optional.ofNullable internally instead of null checks.
+	 */
+	private Result<Tuple2<String, String>, InterpretError> precheckAndGetFn(PrecheckContext ctx) {
+		Optional<Result<String, InterpretError>> pre = precheckForResolve(ctx);
+		if (pre.isPresent())
+			return new Err<>(new InterpretError(pre.get().toString()));
+		Optional<Tuple2<String, String>> fnOpt = Optional.ofNullable(ctx.fns().get(ctx.name()));
+		if (fnOpt.isEmpty())
+			return new Err<>(new InterpretError("Unbound identifier: " + ctx.name()));
+		return new Ok<>(fnOpt.get());
 	}
 
 	/**
@@ -1276,39 +1437,62 @@ public class Interpreter {
 	private Optional<String> parseSimpleRhsValue(String stmt, int pos) {
 		if (pos >= stmt.length())
 			return Optional.empty();
-		if (stmt.charAt(pos) == '{') {
-			Optional<String> blockVal = parseBlockRhs(stmt, pos);
-			if (blockVal.isEmpty())
-				return Optional.empty();
-			String val = blockVal.get();
-			int end = findMatchingBrace(stmt, pos);
-			if (end < 0)
-				return Optional.empty();
-			int npos = skipWhitespace(stmt, end + 1);
-			if (npos != stmt.length())
-				return Optional.empty();
-			return Optional.of(val);
-		}
+		// Delegate constructor.field parsing to helper
+		Optional<String> ctorField = parseConstructorFieldRhsValue(stmt, pos);
+		if (ctorField.isPresent())
+			return ctorField;
+		Optional<String> block = parseBlockRhsValue(stmt, pos);
+		if (block.isPresent())
+			return block;
+		Optional<String> num = parseNumericRhsValue(stmt, pos);
+		if (num.isPresent())
+			return num;
+		Optional<String> bool = parseBooleanRhsValue(stmt, pos);
+		if (bool.isPresent())
+			return bool;
+		return parseIdentifierRhsValue(stmt, pos);
+	}
 
-		if (Character.isDigit(stmt.charAt(pos))) {
-			int vEnd = parseDigitsEnd(stmt, pos);
-			if (vEnd < 0)
-				return Optional.empty();
-			int npos = skipWhitespace(stmt, vEnd);
-			if (npos != stmt.length())
-				return Optional.empty();
-			return Optional.of(stmt.substring(pos, vEnd));
-		}
+	private Optional<String> parseBlockRhsValue(String stmt, int pos) {
+		if (pos >= stmt.length() || stmt.charAt(pos) != '{')
+			return Optional.empty();
+		Optional<String> blockVal = parseBlockRhs(stmt, pos);
+		if (blockVal.isEmpty())
+			return Optional.empty();
+		String val = blockVal.get();
+		int end = findMatchingBrace(stmt, pos);
+		if (end < 0)
+			return Optional.empty();
+		int npos = skipWhitespace(stmt, end + 1);
+		if (npos != stmt.length())
+			return Optional.empty();
+		return Optional.of(val);
+	}
 
-		if (stmt.startsWith("true", pos) || stmt.startsWith("false", pos)) {
-			int len = stmt.startsWith("true", pos) ? 4 : 5;
-			int vEnd = pos + len;
-			int npos = skipWhitespace(stmt, vEnd);
-			if (npos != stmt.length())
-				return Optional.empty();
-			return Optional.of(stmt.substring(pos, vEnd));
-		}
+	private Optional<String> parseNumericRhsValue(String stmt, int pos) {
+		if (pos >= stmt.length() || !Character.isDigit(stmt.charAt(pos)))
+			return Optional.empty();
+		int vEnd = parseDigitsEnd(stmt, pos);
+		if (vEnd < 0)
+			return Optional.empty();
+		int npos = skipWhitespace(stmt, vEnd);
+		if (npos != stmt.length())
+			return Optional.empty();
+		return Optional.of(stmt.substring(pos, vEnd));
+	}
 
+	private Optional<String> parseBooleanRhsValue(String stmt, int pos) {
+		if (!(stmt.startsWith("true", pos) || stmt.startsWith("false", pos)))
+			return Optional.empty();
+		int len = stmt.startsWith("true", pos) ? 4 : 5;
+		int vEnd = pos + len;
+		int npos = skipWhitespace(stmt, vEnd);
+		if (npos != stmt.length())
+			return Optional.empty();
+		return Optional.of(stmt.substring(pos, vEnd));
+	}
+
+	private Optional<String> parseIdentifierRhsValue(String stmt, int pos) {
 		int rEnd = parseIdentifierEnd(stmt, pos);
 		if (rEnd < 0)
 			return Optional.empty();
@@ -1316,6 +1500,35 @@ public class Interpreter {
 		if (npos != stmt.length())
 			return Optional.empty();
 		return Optional.of(stmt.substring(pos, rEnd));
+	}
+
+	/**
+	 * Extracts a constructor.field RHS when present at pos. Returns the
+	 * inner constructor arg string (the token inside braces) on success.
+	 */
+	private Optional<String> parseConstructorFieldRhsValue(String stmt, int pos) {
+		int idEndStart = parseIdentifierEnd(stmt, pos);
+		if (idEndStart <= 0)
+			return Optional.empty();
+		int wsAfterId = skipWhitespace(stmt, idEndStart);
+		if (wsAfterId >= stmt.length() || stmt.charAt(wsAfterId) != '{')
+			return Optional.empty();
+		int startArg = skipWhitespace(stmt, wsAfterId + 1);
+		Optional<Tuple2<String, Integer>> argOpt = parseTokenArgAndExpectClosing(stmt, startArg, '}');
+		if (argOpt.isEmpty())
+			return Optional.empty();
+		String arg = argOpt.get().first();
+		int afterBrace = skipWhitespace(stmt, argOpt.get().second() + 1);
+		// expect .field following
+		if (afterBrace < stmt.length() && stmt.charAt(afterBrace) == '.') {
+			int fend = parseIdentifierEnd(stmt, afterBrace + 1);
+			if (fend > 0) {
+				int npos = skipWhitespace(stmt, fend);
+				if (npos == stmt.length())
+					return Optional.of(arg);
+			}
+		}
+		return Optional.empty();
 	}
 
 	private Optional<String> parseIfRhsValue(String stmt, int pos) {

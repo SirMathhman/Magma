@@ -1,10 +1,8 @@
 package magma;
 
-import magma.interpret.InterpretError;
-import magma.interpret.Interpreter;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static magma.TestHelpers.*;
 
 public class InterpreterTest {
 	@Test
@@ -216,17 +214,5 @@ public class InterpreterTest {
 		assertValid("class fn Empty() => {fn get() => 100;} Empty().get()", "100");
 	}
 
-	private static void assertValid(String input, String expected) {
-		switch (new Interpreter().interpret(input)) {
-			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
-			case Err<String, InterpretError>(InterpretError error) -> fail(error.display());
-		}
-	}
-
-	private static void assertInvalid(String input) {
-		switch (new Interpreter().interpret(input)) {
-			case Err<String, InterpretError>(InterpretError error) -> assertNotNull(error);
-			case Ok<String, InterpretError>(String value) -> fail("Expected error but got: " + value);
-		}
-	}
+	// helpers delegated to TestHelpers
 }
