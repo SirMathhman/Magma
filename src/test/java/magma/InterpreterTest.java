@@ -71,18 +71,12 @@ public class InterpreterTest {
 
 	@Test
 	public void interpretAdditionMismatchedSuffixes() {
-		Interpreter interpreter = new Interpreter();
-		Result<String, InterpretError> result = interpreter.interpret("2U8 + 10I32");
-		if (result instanceof Err rawErr) {
-			var e = rawErr.error();
-			if (e instanceof InterpretError iie) {
-				assertEquals("Mismatched operand types", iie.display());
-			} else {
-				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
-			}
-		} else {
-			fail("Expected Err but got: " + result.getClass().getSimpleName());
-		}
+		assertErrDisplay("2U8 + 10I32", """
+				Mismatched operand types.
+
+				1) 2U8 + 10I32
+				    ^^     ^^^
+				""");
 	}
 
 	@Test
@@ -103,6 +97,21 @@ public class InterpreterTest {
 			if (e instanceof InterpretError iie) {
 				String expected = "Undefined variable." + "\n\n" + "1) " + input + "\n   " + "^".repeat(input.length());
 				assertEquals(expected, iie.display());
+			} else {
+				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
+			}
+		} else {
+			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
+	}
+
+	private void assertErrDisplay(String input, String expectedDisplay) {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InterpretError> result = interpreter.interpret(input);
+		if (result instanceof Err rawErr) {
+			var e = rawErr.error();
+			if (e instanceof InterpretError iie) {
+				assertEquals(expectedDisplay, iie.display());
 			} else {
 				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
 			}

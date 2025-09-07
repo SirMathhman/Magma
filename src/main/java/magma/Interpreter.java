@@ -57,16 +57,8 @@ public class Interpreter {
 			return Optional.empty();
 		}
 
-		// split on '+' manually to avoid regex
-		java.util.List<String> parts = new java.util.ArrayList<>();
-		int start = 0;
-		for (int idx = 0; idx < input.length(); idx++) {
-			if (input.charAt(idx) == '+') {
-				parts.add(input.substring(start, idx).trim());
-				start = idx + 1;
-			}
-		}
-		parts.add(input.substring(start).trim());
+		java.util.List<String> parts = splitParts(input);
+		java.util.List<Integer> partStarts = splitPartStarts(input);
 
 		if (parts.size() < 2) {
 			return Optional.empty();
@@ -74,7 +66,8 @@ public class Interpreter {
 
 		long sum = 0L;
 		Optional<String> commonSuffix = Optional.empty();
-		for (String part : parts) {
+		for (int idx = 0; idx < parts.size(); idx++) {
+			String part = parts.get(idx);
 			if (part.isEmpty()) {
 				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
 			}
@@ -87,22 +80,108 @@ public class Interpreter {
 					return Optional.of(new Err<>(new InterpretError("Invalid operand")));
 				}
 				if (commonSuffix.isPresent() && !commonSuffix.get().equals(sfx)) {
-					return Optional.of(new Err<>(new InterpretError("Mismatched operand types")));
+					Optional<String> msg = buildMismatchedSuffixMessage(input, parts, partStarts, idx, sfx, commonSuffix.get());
+					if (msg.isPresent()) {
+						return Optional.of(new Err<>(new InterpretError(msg.get())));
+					}
 				}
 				if (!commonSuffix.isPresent()) {
 					commonSuffix = sfxOpt;
 				}
 			}
-			for (int j = 0; j < core.length(); j++) {
-				if (!Character.isDigit(core.charAt(j))) {
-					return Optional.of(new Err<>(new InterpretError("Invalid operand")));
-				}
+			if (!isDigits(core)) {
+				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
 			}
 			long v = Long.parseLong(core);
 			sum += v;
 		}
 
 		return Optional.of(new Ok<>(String.valueOf(sum)));
+	}
+
+	private java.util.List<String> splitParts(String input) {
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		int start = 0;
+		for (int idx = 0; idx < input.length(); idx++) {
+			if (input.charAt(idx) == '+') {
+				parts.add(input.substring(start, idx).trim());
+				start = idx + 1;
+			}
+		}
+		parts.add(input.substring(start).trim());
+		return parts;
+	}
+
+	private java.util.List<Integer> splitPartStarts(String input) {
+		java.util.List<Integer> starts = new java.util.ArrayList<>();
+		int start = 0;
+		for (int idx = 0; idx < input.length(); idx++) {
+			if (input.charAt(idx) == '+') {
+				starts.add(start);
+				start = idx + 1;
+			}
+		}
+		starts.add(start);
+		return starts;
+	}
+
+	private boolean isDigits(String s) {
+		if (s.isEmpty())
+			return false;
+		for (int i = 0; i < s.length(); i++) {
+			if (!Character.isDigit(s.charAt(i)))
+				return false;
+		}
+		return true;
+	}
+
+	private Optional<String> buildMismatchedSuffixMessage(String input, java.util.List<String> parts,
+			java.util.List<Integer> partStarts, int idx, String sfx, String other) {
+		String header = "Mismatched operand types.";
+		StringBuilder sb = new StringBuilder();
+		sb.append(header).append("\n\n");
+		sb.append("1) ").append(input).append('\n');
+
+		int lineLen = 3 + input.length(); // length of "1) " + input
+		char[] caretLine = new char[lineLen];
+		for (int ci = 0; ci < lineLen; ci++) {
+			caretLine[ci] = ' ';
+		}
+
+		String part = parts.get(idx);
+		int partStart = partStarts.get(idx);
+		int leadingSpaces = 0;
+		while (partStart + leadingSpaces < input.length()
+				&& Character.isWhitespace(input.charAt(partStart + leadingSpaces))) {
+			leadingSpaces++;
+		}
+		int suffixPosInPart = part.indexOf(sfx);
+		int suffixStartInInput = partStart + leadingSpaces + suffixPosInPart;
+		for (int k = 0; k < sfx.length(); k++) {
+			int pos = 3 + suffixStartInInput + k;
+			if (pos >= 0 && pos < caretLine.length)
+				caretLine[pos] = '^';
+		}
+
+		int otherSearchFrom = 0;
+		int foundAt = -1;
+		while (true) {
+			foundAt = input.indexOf(other, otherSearchFrom);
+			if (foundAt < 0)
+				break;
+			if (foundAt != suffixStartInInput) {
+				for (int k = 0; k < other.length(); k++) {
+					int pos = 3 + foundAt + k;
+					if (pos >= 0 && pos < caretLine.length)
+						caretLine[pos] = '^';
+				}
+				break;
+			}
+			otherSearchFrom = foundAt + 1;
+		}
+
+		sb.append(new String(caretLine)).append('\n');
+		return Optional.of(sb.toString());
 	}
 
 	private Optional<String> findSuffix(String s) {
