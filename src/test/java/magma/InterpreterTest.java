@@ -137,6 +137,16 @@ public class InterpreterTest {
 		assertValid("fn get() => 100; let x = 0; fn next() => get(); next();", "100");
 	}
 
+	@Test
+	void blockLiteralSimple() {
+		assertValid("{5}", "5");
+	}
+
+	@Test
+	void letBlockRhs() {
+		assertValid("let x = {5}; x", "5");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

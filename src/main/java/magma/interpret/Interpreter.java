@@ -17,8 +17,14 @@ public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
+		String trimmed = input.trim();
+		// block literal: { ... }
+		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
+			String inner = trimmed.substring(1, trimmed.length() - 1).trim();
+			return interpret(inner);
+		}
 		// try let-binding like "let x : I32 = 10; x"
-		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(input);
+		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(trimmed);
 		if (declRes.isPresent())
 			return declRes.get();
 		// try simple addition like "2 + 3" (with optional spaces)
@@ -34,17 +40,17 @@ public class Interpreter {
 
 		// integer literal (decimal)
 		// boolean literals
-		if (input.equals("true") || input.equals("false"))
-			return new Ok<>(input);
+		if (trimmed.equals("true") || trimmed.equals("false"))
+			return new Ok<>(trimmed);
 
 		// accept a leading decimal integer even if followed by other characters,
 		// e.g. "5I32" should be interpreted as the integer literal "5".
 		int i = 0;
-		while (i < input.length() && Character.isDigit(input.charAt(i)))
+		while (i < trimmed.length() && Character.isDigit(trimmed.charAt(i)))
 			i++;
 		if (i > 0)
-			return new Ok<>(input.substring(0, i));
-		return new Err<>(new InterpretError("Unbound identifier: " + input));
+			return new Ok<>(trimmed.substring(0, i));
+		return new Err<>(new InterpretError("Unbound identifier: " + trimmed));
 	}
 
 	private Optional<Result<String, InterpretError>> tryParseBinary(String input, char op) {
@@ -482,7 +488,29 @@ public class Interpreter {
 		pos = skipWhitespace(stmt, pos + 1);
 		if (pos >= stmt.length())
 			return Optional.empty();
-		// rhs is either digits or identifier
+		// rhs is either digits, a block, boolean, or identifier
+		if (stmt.charAt(pos) == '{') {
+			// find matching '}' at end
+			int end = stmt.indexOf('}', pos + 1);
+			if (end < 0)
+				return Optional.empty();
+			String inner = stmt.substring(pos + 1, end).trim();
+			// evaluate inner
+			Result<String, InterpretError> r = interpret(inner);
+			String val;
+			if (r instanceof Ok<String, InterpretError> ok) {
+				val = ok.value();
+			} else if (r instanceof Err<String, InterpretError> err) {
+				return Optional.of(new Tuple2<>(stmt.substring(4, 4), "ERR:" + err.error().display()));
+			} else {
+				return Optional.empty();
+			}
+			pos = skipWhitespace(stmt, end + 1);
+			if (pos != stmt.length())
+				return Optional.empty();
+			return Optional.of(new Tuple2<>(name, val));
+		}
+
 		if (Character.isDigit(stmt.charAt(pos))) {
 			int vEnd = parseDigitsEnd(stmt, pos);
 			if (vEnd < 0)
