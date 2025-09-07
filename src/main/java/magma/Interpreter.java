@@ -16,6 +16,12 @@ public class Interpreter {
 		}
 
 		// try parsing addition expressions first
+		// try parsing multiplication expressions first (higher precedence)
+		Optional<Result<String, InterpretError>> mul = tryParseMultiplication(input);
+		if (mul.isPresent()) {
+			return mul.get();
+		}
+
 		// if the input mixes '+' and '-' handle left-to-right evaluation
 		Optional<Result<String, InterpretError>> mixed = tryParseMixedExpression(input);
 		if (mixed.isPresent()) {
@@ -362,6 +368,27 @@ public class Interpreter {
 			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
 		}
 
+		return Optional.of(new Ok<>(String.valueOf(acc)));
+	}
+
+	private Optional<Result<String, InterpretError>> tryParseMultiplication(String input) {
+		if (input.indexOf('*') < 0)
+			return Optional.empty();
+
+		java.util.List<String> parts = splitParts(input, '*');
+		java.util.List<Integer> partStarts = splitPartStarts(input, '*');
+		if (parts.size() < 2)
+			return Optional.empty();
+
+		OperationContext ctx = new OperationContext(parts, partStarts, Optional.empty());
+		long acc = 1L;
+		for (int i = 0; i < parts.size(); i++) {
+			ProcessResult pr = processPartForOp(input, ctx, i);
+			if (pr.error().isPresent())
+				return pr.error();
+			acc *= pr.value().get();
+			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
+		}
 		return Optional.of(new Ok<>(String.valueOf(acc)));
 	}
 

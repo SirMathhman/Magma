@@ -86,6 +86,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretMultiplication() {
+		assertValid("3 * 7", "21");
+	}
+
+	@Test
 	public void interpretAdditionMismatchedSuffixes() {
 		assertErrDisplay("2U8 + 10I32", """
 				Mismatched operand types.
