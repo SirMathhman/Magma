@@ -16,6 +16,13 @@ public class Interpreter {
 		}
 
 		// try parsing addition expressions first
+		// if the input mixes '+' and '-' handle left-to-right evaluation
+		Optional<Result<String, InterpretError>> mixed = tryParseMixedExpression(input);
+		if (mixed.isPresent()) {
+			return mixed.get();
+		}
+
+		// try parsing addition expressions first
 		Optional<Result<String, InterpretError>> add = tryParseAddition(input);
 		if (add.isPresent()) {
 			return add.get();
@@ -309,5 +316,82 @@ public class Interpreter {
 			acc -= values.get(i);
 		}
 		return Optional.of(new Ok<>(String.valueOf(acc)));
+	}
+
+	private Optional<Result<String, InterpretError>> tryParseMixedExpression(String input) {
+		// quickly reject non-mixed inputs
+		if (input.indexOf('+') < 0 && input.indexOf('-') < 0) {
+			return Optional.empty();
+		}
+
+		// Determine if both operators are present; we only handle true mixed forms here
+		boolean hasPlus = input.indexOf('+') >= 0;
+		boolean hasMinus = input.indexOf('-') >= 0;
+		if (!(hasPlus && hasMinus)) {
+			return Optional.empty();
+		}
+
+		Optional<MixedParts> mpOpt = buildMixedParts(input);
+		if (mpOpt.isEmpty())
+			return Optional.empty();
+		MixedParts mp = mpOpt.get();
+		java.util.List<String> parts = mp.parts();
+		java.util.List<Character> ops = mp.ops();
+		java.util.List<Integer> partStarts = mp.partStarts();
+
+		Optional<String> commonSuffix = Optional.empty();
+		OperationContext ctx = new OperationContext(parts, partStarts, commonSuffix);
+		// first operand
+		ProcessResult p0 = processPartForOp(input, ctx, 0);
+		if (p0.error().isPresent())
+			return p0.error();
+		long acc = p0.value().get();
+		ctx = new OperationContext(parts, partStarts, p0.commonSuffix());
+
+		for (int i = 0; i < ops.size(); i++) {
+			char op = ops.get(i);
+			ProcessResult pr = processPartForOp(input, ctx, i + 1);
+			if (pr.error().isPresent())
+				return pr.error();
+			long v = pr.value().get();
+			if (op == '+') {
+				acc += v;
+			} else {
+				acc -= v;
+			}
+			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
+		}
+
+		return Optional.of(new Ok<>(String.valueOf(acc)));
+	}
+
+	private static record MixedParts(java.util.List<String> parts, java.util.List<Character> ops,
+			java.util.List<Integer> partStarts) {
+	}
+
+	private Optional<MixedParts> buildMixedParts(String input) {
+		boolean hasPlus = input.indexOf('+') >= 0;
+		boolean hasMinus = input.indexOf('-') >= 0;
+		if (!(hasPlus && hasMinus)) {
+			return Optional.empty();
+		}
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		java.util.List<Character> ops = new java.util.ArrayList<>();
+		java.util.List<Integer> partStarts = new java.util.ArrayList<>();
+		int start = 0;
+		for (int i = 0; i < input.length(); i++) {
+			char c = input.charAt(i);
+			if (c == '+' || c == '-') {
+				parts.add(input.substring(start, i).trim());
+				ops.add(c);
+				partStarts.add(start);
+				start = i + 1;
+			}
+		}
+		parts.add(input.substring(start).trim());
+		partStarts.add(start);
+		if (parts.size() < 2)
+			return Optional.empty();
+		return Optional.of(new MixedParts(parts, ops, partStarts));
 	}
 }

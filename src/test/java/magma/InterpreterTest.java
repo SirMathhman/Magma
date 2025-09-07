@@ -80,6 +80,12 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretMixedOperators() {
+		// left-to-right evaluation: (8 - 4) + 1 => 5
+		assertValid("8 - 4 + 1", "5");
+	}
+
+	@Test
 	public void interpretAdditionMismatchedSuffixes() {
 		assertErrDisplay("2U8 + 10I32", """
 				Mismatched operand types.
