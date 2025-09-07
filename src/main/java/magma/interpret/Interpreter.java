@@ -32,6 +32,8 @@ public class Interpreter {
 			return interpret(inner);
 		}
 
+        
+
 		Optional<Result<String, InterpretError>> ifRes = handleIfExpression(trimmed);
 		if (ifRes.isPresent())
 			return ifRes.get();
@@ -259,38 +261,46 @@ public class Interpreter {
 			return Optional.of(new Err<>(collRes.error().get()));
 		java.util.Map<String, Tuple2<String, String>> fns = collRes.fns();
 
-		// if this was a constructor.field form, get the extracted values
-		if (ctorOpt.isPresent()) {
-			Tuple2<String, String> call = ctorOpt.get().first();
-			String callName = call.first();
-			String callArg = call.second();
-			String methodOrField = ctorOpt.get().second();
+		// if this was a constructor.field form, handle via helper
+		if (ctorOpt.isPresent())
+			return handleConstructorOrFieldCall(ctorOpt.get(), fns);
 
-			if (!fns.containsKey("CLASS:" + callName) && !fns.containsKey("STRUCT:" + callName))
-				return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
-			
-			// Check if this is a method call (look for inner function)
-			if (fns.containsKey(methodOrField)) {
-				Tuple2<String, String> innerFn = fns.get(methodOrField);
-				String innerParam = innerFn.first();
-				String innerRet = innerFn.second();
-				if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
-					return Optional.of(new Ok<>(innerRet));
-			}
-			
-			// Fall back to field access
-			if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
-				return Optional.of(new Ok<>(callArg));
-			if (!callArg.isEmpty())
-				return Optional.of(new Ok<>(callArg));
-			// Handle empty constructor arguments (e.g., Empty())
-			if (callArg.isEmpty())
-				return Optional.of(new Ok<>(""));
-			return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
+		// otherwise this was a normal function call; delegate to helper
+		return handleNormalFunctionCall(callOpt.get(), fns);
+	}
+
+	private Optional<Result<String, InterpretError>> handleConstructorOrFieldCall(
+			Tuple2<Tuple2<String, String>, String> ctorCall, java.util.Map<String, Tuple2<String, String>> fns) {
+		Tuple2<String, String> call = ctorCall.first();
+		String callName = call.first();
+		String callArg = call.second();
+		String methodOrField = ctorCall.second();
+
+		if (!fns.containsKey("CLASS:" + callName) && !fns.containsKey("STRUCT:" + callName))
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+
+		// Check if this is a method call (look for inner function)
+		if (fns.containsKey(methodOrField)) {
+			Tuple2<String, String> innerFn = fns.get(methodOrField);
+			String innerParam = innerFn.first();
+			String innerRet = innerFn.second();
+			if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
+				return Optional.of(new Ok<>(innerRet));
 		}
 
-		// otherwise this was a normal function call
-		Tuple2<String, String> call = callOpt.get();
+		// Fall back to field access
+		if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
+			return Optional.of(new Ok<>(callArg));
+		if (!callArg.isEmpty())
+			return Optional.of(new Ok<>(callArg));
+		// Handle empty constructor arguments (e.g., Empty())
+		if (callArg.isEmpty())
+			return Optional.of(new Ok<>(""));
+		return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
+	}
+
+	private Optional<Result<String, InterpretError>> handleNormalFunctionCall(Tuple2<String, String> call,
+			java.util.Map<String, Tuple2<String, String>> fns) {
 		String callName = call.first();
 		String callArg = call.second();
 		Tuple2<String, String> fn = fns.get(callName);
@@ -301,8 +311,68 @@ public class Interpreter {
 			return evaluateZeroArgFunctionBody(fns, retExpr);
 		if (retExpr.equals(paramName))
 			return callArg.isEmpty() ? Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)))
-					: Optional.of(new Ok<>(callArg));
+				: Optional.of(new Ok<>(callArg));
 		return evaluateReturnExprAsOptional(fns, retExpr);
+	}
+
+	// Handlers extracted to reduce cyclomatic complexity
+	private java.util.Optional<java.util.Optional<InterpretError>> handleFnStmt(String stmt,
+			java.util.Map<String, Tuple2<String, String>> fns) {
+		Optional<Tuple2<String, Tuple2<String, String>>> fnOpt = parseFnPart(stmt);
+		if (fnOpt.isEmpty())
+			return java.util.Optional.empty();
+		Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
+		String name = fn.first();
+		if (fns.containsKey(name))
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name)));
+		fns.put(name, fn.second());
+		return java.util.Optional.of(java.util.Optional.empty());
+	}
+
+	private java.util.Optional<java.util.Optional<InterpretError>> handleClassStmt(String stmt,
+			java.util.Map<String, Tuple2<String, String>> fns,
+			java.util.Map<String, Tuple2<String, String>> classes) {
+		Optional<Tuple2<String, Tuple2<String, String>>> clsOpt = parseClassPart(stmt);
+		if (clsOpt.isEmpty())
+			return java.util.Optional.empty();
+		Tuple2<String, Tuple2<String, String>> cls = clsOpt.get();
+		String name = cls.first();
+		if (classes.containsKey(name))
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Duplicate class declaration: " + name)));
+		classes.put(name, cls.second());
+
+		// Parse inner functions from class body if present
+		String classBody = cls.second().second();
+		if (classBody.startsWith("fn ")) {
+			// Remove trailing semicolon if present before parsing
+			String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
+			Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = parseFnPart(fnDecl);
+			if (innerFnOpt.isPresent()) {
+				Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
+				String innerName = innerFn.first();
+				if (!fns.containsKey(innerName))
+					fns.put(innerName, innerFn.second());
+			}
+		}
+		return java.util.Optional.of(java.util.Optional.empty());
+	}
+
+	private java.util.Optional<java.util.Optional<InterpretError>> handleStructStmt(String stmt,
+			java.util.Map<String, Tuple2<String, String>> structs) {
+		Optional<Tuple2<String, Tuple2<String, String>>> stOpt = parseStructPart(stmt);
+		if (stOpt.isEmpty())
+			return java.util.Optional.empty();
+		Tuple2<String, Tuple2<String, String>> st = stOpt.get();
+		String name = st.first();
+		if (structs.containsKey(name))
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Duplicate struct declaration: " + name)));
+		structs.put(name, st.second());
+		return java.util.Optional.of(java.util.Optional.empty());
+	}
+
+	private boolean handleLetStmt(String stmt) {
+		Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
+		return kv.isPresent();
 	}
 
 	/**
@@ -389,57 +459,36 @@ public class Interpreter {
 		java.util.Map<String, Tuple2<String, String>> structs = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
-			if (stmt.startsWith("fn ")) {
-				Optional<Tuple2<String, Tuple2<String, String>>> fnOpt = parseFnPart(stmt);
-				if (fnOpt.isEmpty())
-					return Optional.empty();
-				Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
-				String name = fn.first();
-				if (fns.containsKey(name))
-					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
-							java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name))));
-				fns.put(name, fn.second());
-			} else if (stmt.startsWith("class ")) {
-				Optional<Tuple2<String, Tuple2<String, String>>> clsOpt = parseClassPart(stmt);
-				if (clsOpt.isEmpty())
-					return Optional.empty();
-				Tuple2<String, Tuple2<String, String>> cls = clsOpt.get();
-				String name = cls.first();
-				if (classes.containsKey(name))
-					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
-							java.util.Optional.of(new InterpretError("Duplicate class declaration: " + name))));
-				classes.put(name, cls.second());
-				
-				// Parse inner functions from class body if present
-				String classBody = cls.second().second();
-				if (classBody.startsWith("fn ")) {
-					// Remove trailing semicolon if present before parsing
-					String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
-					Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = parseFnPart(fnDecl);
-					if (innerFnOpt.isPresent()) {
-						Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
-						String innerName = innerFn.first();
-						if (!fns.containsKey(innerName))
-							fns.put(innerName, innerFn.second());
-					}
+			// Map of statement prefix -> handler function. Handlers capture
+			// local fns/classes/structs maps as needed.
+			java.util.Map<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> handlers =
+					new java.util.LinkedHashMap<>();
+			handlers.put("fn ", s -> handleFnStmt(s, fns));
+			handlers.put("class ", s -> handleClassStmt(s, fns, classes));
+			handlers.put("struct ", s -> handleStructStmt(s, structs));
+
+			boolean matched = false;
+			for (java.util.Map.Entry<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> e : handlers
+					.entrySet()) {
+				String prefix = e.getKey();
+				if (stmt.startsWith(prefix)) {
+					java.util.Optional<java.util.Optional<InterpretError>> perr = e.getValue().apply(stmt);
+					if (perr.isEmpty())
+						return Optional.empty();
+					if (perr.get().isPresent())
+						return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(), perr.get()));
+					matched = true;
+					break;
 				}
-			} else if (stmt.startsWith("struct ")) {
-				Optional<Tuple2<String, Tuple2<String, String>>> stOpt = parseStructPart(stmt);
-				if (stOpt.isEmpty())
-					return Optional.empty();
-				Tuple2<String, Tuple2<String, String>> st = stOpt.get();
-				String name = st.first();
-				if (structs.containsKey(name))
-					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
-							java.util.Optional.of(new InterpretError("Duplicate struct declaration: " + name))));
-				structs.put(name, st.second());
-			} else if (stmt.startsWith("let ")) {
-				Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
-				if (kv.isEmpty())
-					return Optional.empty();
-			} else {
-				return Optional.empty();
 			}
+			if (matched)
+				continue;
+			if (stmt.startsWith("let ")) {
+				if (!handleLetStmt(stmt))
+					return Optional.empty();
+				continue;
+			}
+			return Optional.empty();
 		}
 		// encode collected classes and structs into function map for later lookup
 		// prefix class entries with "CLASS:" and struct entries with "STRUCT:"
