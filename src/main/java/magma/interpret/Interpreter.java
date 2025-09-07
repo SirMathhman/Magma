@@ -6,6 +6,14 @@ import magma.Result;
 import java.util.Optional;
 
 public class Interpreter {
+
+	/**
+	 * Small generic tuple used instead of AbstractMap.SimpleEntry to avoid
+	 * duplication and make code more expressive.
+	 */
+	private static record Tuple2<A, B>(A first, B second) {
+	}
+
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
@@ -191,8 +199,19 @@ public class Interpreter {
 		String rhs = rhsOpt.get();
 		if (rhs.isEmpty())
 			return Optional.empty();
-		if (Character.isDigit(rhs.charAt(0)))
+		// If rhs is a numeric literal, check declared type (if any) against the
+		// literal's suffix
+		if (Character.isDigit(rhs.charAt(0))) {
+			Optional<Character> declared = parseLetDeclaredSignedness(stmt);
+			Optional<Character> rhsSuffix = parseLetRhsSignedness(stmt);
+			if (declared.isPresent() && rhsSuffix.isPresent()) {
+				char d = declared.get();
+				char r = rhsSuffix.get();
+				if (isSignednessChar(d) && isSignednessChar(r) && d != r)
+					return Optional.of(new Err<>(new InterpretError("Signedness mismatch in let: " + stmt)));
+			}
 			return Optional.of(new Ok<>(""));
+		}
 		return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + rhs)));
 	}
 
@@ -204,12 +223,12 @@ public class Interpreter {
 		java.util.Map<String, String> env = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
-			Optional<java.util.Map.Entry<String, String>> kvOpt = parseLetPart(stmt);
+			Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
 			if (kvOpt.isEmpty())
 				return Optional.empty();
-			java.util.Map.Entry<String, String> kv = kvOpt.get();
-			String name = kv.getKey();
-			String rhs = kv.getValue();
+			Tuple2<String, String> kv = kvOpt.get();
+			String name = kv.first();
+			String rhs = kv.second();
 			if (rhs.isEmpty())
 				return Optional.empty();
 			if (Character.isDigit(rhs.charAt(0))) {
@@ -226,23 +245,17 @@ public class Interpreter {
 		return Optional.of(new Ok<>(env.get(finalName)));
 	}
 
-	private Optional<java.util.Map.Entry<String, String>> parseLetPart(String stmt) {
+	private Optional<Tuple2<String, String>> parseLetPart(String stmt) {
 		// stmt should start with "let "
 		if (!stmt.startsWith("let "))
 			return Optional.empty();
 		int pos = 4;
-		int idEnd = parseIdentifierEnd(stmt, pos);
-		if (idEnd < 0)
+		java.util.Optional<Tuple2<String, Tuple2<String, Integer>>> nameTypeOpt = parseLetNameAndOptionalType(stmt, pos);
+		if (nameTypeOpt.isEmpty())
 			return Optional.empty();
-		String name = stmt.substring(pos, idEnd);
-		pos = skipWhitespace(stmt, idEnd);
-		if (pos < stmt.length() && stmt.charAt(pos) == ':') {
-			pos = skipWhitespace(stmt, pos + 1);
-			int typeEnd = parseAlnumEnd(stmt, pos);
-			if (typeEnd < 0)
-				return Optional.empty();
-			pos = skipWhitespace(stmt, typeEnd);
-		}
+		Tuple2<String, Tuple2<String, Integer>> nameType = nameTypeOpt.get();
+		String name = nameType.first();
+		pos = nameType.second().second();
 		if (pos >= stmt.length() || stmt.charAt(pos) != '=')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
@@ -257,7 +270,7 @@ public class Interpreter {
 			pos = skipWhitespace(stmt, vEnd);
 			if (pos != stmt.length())
 				return Optional.empty();
-			return Optional.of(new java.util.AbstractMap.SimpleEntry<>(name, val));
+			return Optional.of(new Tuple2<>(name, val));
 		} else {
 			int rEnd = parseIdentifierEnd(stmt, pos);
 			if (rEnd < 0)
@@ -266,8 +279,27 @@ public class Interpreter {
 			pos = skipWhitespace(stmt, rEnd);
 			if (pos != stmt.length())
 				return Optional.empty();
-			return Optional.of(new java.util.AbstractMap.SimpleEntry<>(name, rhs));
+			return Optional.of(new Tuple2<>(name, rhs));
 		}
+	}
+
+	/**
+	 * Parse identifier name at startPos and any optional type token. Returns
+	 * pair (name, (typeToken, posAfterType)). typeToken is empty string if no
+	 * type was present.
+	 */
+	private java.util.Optional<Tuple2<String, Tuple2<String, Integer>>> parseLetNameAndOptionalType(String stmt,
+			int startPos) {
+		int idEnd = parseIdentifierEnd(stmt, startPos);
+		if (idEnd < 0)
+			return java.util.Optional.empty();
+		String name = stmt.substring(startPos, idEnd);
+		int pos = skipWhitespace(stmt, idEnd);
+		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
+		if (typeOpt.isEmpty())
+			return java.util.Optional.empty();
+		Tuple2<String, Integer> te = typeOpt.get();
+		return java.util.Optional.of(new Tuple2<>(name, te));
 	}
 
 	/**
@@ -275,10 +307,75 @@ public class Interpreter {
 	 * present.
 	 */
 	private Optional<String> parseLetRhs(String stmt) {
-		Optional<java.util.Map.Entry<String, String>> kvOpt = parseLetPart(stmt);
+		Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
 		if (kvOpt.isEmpty())
 			return Optional.empty();
-		return Optional.of(kvOpt.get().getValue());
+		return Optional.of(kvOpt.get().second());
+	}
+
+	/**
+	 * Returns the signedness character (first letter) of the declared type if
+	 * present,
+	 * for example for "let x : U8 = ..." returns Optional.of('U').
+	 */
+	private Optional<Character> parseLetDeclaredSignedness(String stmt) {
+		if (!stmt.startsWith("let "))
+			return Optional.empty();
+		int pos = 4;
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd < 0)
+			return Optional.empty();
+		pos = skipWhitespace(stmt, idEnd);
+		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
+		if (typeOpt.isEmpty())
+			return Optional.empty();
+		String typeToken = typeOpt.get().first();
+		if (!typeToken.isEmpty())
+			return Optional.of(Character.toUpperCase(typeToken.charAt(0)));
+		return Optional.empty();
+	}
+
+	/**
+	 * Parse an optional type token following whitespace at pos. If there's no
+	 * type (no ':' present) returns a present entry with null key and the
+	 * returned pos. If ':' is present but malformed returns empty.
+	 */
+	private java.util.Optional<Tuple2<String, Integer>> parseOptionalType(String stmt, int pos) {
+		pos = skipWhitespace(stmt, pos);
+		if (pos < stmt.length() && stmt.charAt(pos) == ':') {
+			pos = skipWhitespace(stmt, pos + 1);
+			int typeEnd = parseAlnumEnd(stmt, pos);
+			if (typeEnd < 0)
+				return java.util.Optional.empty();
+			String typeToken = stmt.substring(pos, typeEnd).trim();
+			pos = skipWhitespace(stmt, typeEnd);
+			return java.util.Optional.of(new Tuple2<>(typeToken, pos));
+		}
+		return java.util.Optional.of(new Tuple2<>("", pos));
+	}
+
+	/**
+	 * If the RHS is a numeric literal with a suffix (e.g. "10I32"), return the
+	 * leading char of the suffix (e.g. 'I'), otherwise empty.
+	 */
+	private Optional<Character> parseLetRhsSignedness(String stmt) {
+		int eq = stmt.indexOf('=');
+		if (eq < 0)
+			return Optional.empty();
+		int pos = skipWhitespace(stmt, eq + 1);
+		if (pos >= stmt.length())
+			return Optional.empty();
+		if (!Character.isDigit(stmt.charAt(pos)))
+			return Optional.empty();
+		int vEnd = parseDigitsEnd(stmt, pos);
+		if (vEnd < 0)
+			return Optional.empty();
+		if (vEnd >= stmt.length())
+			return Optional.empty();
+		String suffix = stmt.substring(vEnd).trim();
+		if (suffix.isEmpty())
+			return Optional.empty();
+		return Optional.of(Character.toUpperCase(suffix.charAt(0)));
 	}
 
 	private static int skipWhitespace(String s, int pos) {

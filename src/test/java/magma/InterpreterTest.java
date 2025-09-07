@@ -83,6 +83,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	void letTypeMismatch() {
+		assertInvalid("let x : U8 = 10I32;");
+	}
+
+	@Test
 	void additionMixedUnsignedAndSigned() {
 		assertInvalid("2U8 + 3I32");
 	}
