@@ -92,6 +92,8 @@
 				<configuration>
 					<!-- Minimum token count for CPD duplication detection -->
 					<minimumTokens>50</minimumTokens>
+					<!-- Ignore string/number literals when detecting duplication -->
+					<ignoreLiterals>true</ignoreLiterals>
 					<!-- Also analyze test sources -->
 					<includeTests>true</includeTests>
 					<!-- Do not fail the build by default on CPD findings -->
