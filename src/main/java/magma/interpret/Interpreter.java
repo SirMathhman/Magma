@@ -3,15 +3,16 @@ package magma.interpret;
 import magma.Err;
 import magma.Ok;
 import magma.Result;
+import java.util.Optional;
 
 public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
 		// try simple addition like "2 + 3" (with optional spaces)
-		String[] addOut = new String[1];
-		if (tryParseAddition(input, addOut))
-			return new Ok<>(addOut[0]);
+		Optional<Result<String, InterpretError>> addRes = tryParseAddition(input);
+		if (addRes.isPresent())
+			return addRes.get();
 
 		// integer literal (decimal)
 		// accept a leading decimal integer even if followed by other characters,
@@ -24,42 +25,51 @@ public class Interpreter {
 		return new Err<>(new InterpretError("Undefined identifier: " + input));
 	}
 
-	private boolean tryParseAddition(String input, String[] out) {
+	private Optional<Result<String, InterpretError>> tryParseAddition(String input) {
 		String trimmed = input.trim();
-		int plusIndex = -1;
-		for (int idx = 0; idx < trimmed.length(); idx++) {
-			if (trimmed.charAt(idx) == '+') {
-				plusIndex = idx;
-				break;
-			}
-		}
+		int plusIndex = trimmed.indexOf('+');
 		if (plusIndex < 0)
-			return false;
+			return Optional.empty();
 		String left = trimmed.substring(0, plusIndex).trim();
 		String right = trimmed.substring(plusIndex + 1).trim();
 		if (left.isEmpty() || right.isEmpty())
-			return false;
-		// accept a leading decimal integer on each side even if followed by other
-		// characters
-		int li = 0;
-		while (li < left.length() && Character.isDigit(left.charAt(li)))
-			li++;
+			return Optional.empty();
+
+		int li = leadingDigits(left);
 		if (li == 0)
-			return false;
-		int ri = 0;
-		while (ri < right.length() && Character.isDigit(right.charAt(ri)))
-			ri++;
+			return Optional.empty();
+		int ri = leadingDigits(right);
 		if (ri == 0)
-			return false;
+			return Optional.empty();
 
 		try {
 			long a = Long.parseLong(left.substring(0, li));
 			long b = Long.parseLong(right.substring(0, ri));
-			out[0] = Long.toString(a + b);
-			return true;
+			String leftSuffix = left.substring(li).trim();
+			String rightSuffix = right.substring(ri).trim();
+			if (hasSuffix(leftSuffix) && hasSuffix(rightSuffix) && isMixedSignedness(leftSuffix, rightSuffix))
+				return Optional.of(new Err<>(new InterpretError("Mixed signedness in addition: " + input)));
+			return Optional.of(new Ok<>(Long.toString(a + b)));
 		} catch (NumberFormatException e) {
 			// treat overflow as not-a-match so other rules can apply
-			return false;
+			return Optional.empty();
 		}
+	}
+
+	private static int leadingDigits(String s) {
+		int i = 0;
+		while (i < s.length() && Character.isDigit(s.charAt(i)))
+			i++;
+		return i;
+	}
+
+	private static boolean hasSuffix(String s) {
+		return !s.isEmpty();
+	}
+
+	private static boolean isMixedSignedness(String a, String b) {
+		char la = Character.toUpperCase(a.charAt(0));
+		char lb = Character.toUpperCase(b.charAt(0));
+		return (la == 'U' && lb == 'I') || (la == 'I' && lb == 'U');
 	}
 }

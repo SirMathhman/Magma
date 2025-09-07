@@ -14,8 +14,7 @@ public class InterpreterTest {
 
 	@Test
 	void undefined() {
-		final var interpreter = new Interpreter();
-		assertInstanceOf(Err.class, interpreter.interpret("test"));
+		assertInstanceOf(Err.class, new Interpreter().interpret("test"));
 	}
 
 	@Test
@@ -36,6 +35,12 @@ public class InterpreterTest {
 	@Test
 	void additionWithTrailingType() {
 		assertInterpretsTo("2 + 3I32", "5");
+	}
+
+	@Test
+	void additionMixedUnsignedAndSigned() {
+		final var interpreter = new Interpreter();
+		assertInstanceOf(Err.class, interpreter.interpret("2U8 + 3I32"));
 	}
 
 	private static void assertInterpretsTo(String input, String expected) {
