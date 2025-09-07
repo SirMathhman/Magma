@@ -25,6 +25,26 @@ public class Interpreter {
 		if (stripped.isPresent()) {
 			return new Ok<>(stripped.get());
 		}
+		String trimmed = input.trim();
+		// If the input looks like an identifier (letters only), treat it as undefined
+		// variable
+		if (!trimmed.isEmpty()) {
+			boolean allLetters = true;
+			for (int i = 0; i < trimmed.length(); i++) {
+				if (!Character.isLetter(trimmed.charAt(i))) {
+					allLetters = false;
+					break;
+				}
+			}
+			if (allLetters) {
+				String caret = "";
+				for (int i = 0; i < trimmed.length(); i++) {
+					caret += "^";
+				}
+				String msg = "Undefined variable." + "\n\n" + "1) " + trimmed + "\n   " + caret;
+				return new Err<>(new InterpretError(msg));
+			}
+		}
 		return new Ok<>(input);
 	}
 

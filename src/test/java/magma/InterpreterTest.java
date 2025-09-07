@@ -65,17 +65,37 @@ public class InterpreterTest {
 	}
 
 	@Test
-	public void interpretTestThrows() {
+	public void undefined() {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InterpretError> result = interpreter.interpret("test");
 		if (result instanceof Err rawErr) {
 			var e = rawErr.error();
 			if (e instanceof InterpretError iie) {
 				assertEquals("""
-					Undefined variable.
-					
-					1) test
-					   ^^^^""", iie.display());
+						Undefined variable.
+
+						1) test
+						   ^^^^""", iie.display());
+			} else {
+				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
+			}
+		} else {
+			fail("Expected Err but got: " + result.getClass().getSimpleName());
+		}
+	}
+
+	@Test
+	public void undefinedOther() {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InterpretError> result = interpreter.interpret("foo");
+		if (result instanceof Err rawErr) {
+			var e = rawErr.error();
+			if (e instanceof InterpretError iie) {
+				assertEquals("""
+						Undefined variable.
+
+						1) foo
+						   ^^^""", iie.display());
 			} else {
 				fail("Expected InterpretError inside Err, got: " + e.getClass().getSimpleName());
 			}
