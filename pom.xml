@@ -47,6 +47,15 @@
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
+			<!-- Exec plugin to run the Main class with mvn exec:java -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<mainClass>com.example.magma.tools.Main</mainClass>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

@@ -1,4 +1,18 @@
-/* Generated from com/example/magma/App.java */
+/* Generated C for com.example.magma.App */
 #include "App.h"
 
-/* TODO: implement translated functions for Java class 'App' */
+/* Original Java source:
+    package com.example.magma;
+    
+    public class App {
+    	public static String message() {
+    		return "Hello, Magma!";
+    	}
+    
+    	public static void main(String[] args) {
+    		System.out.println(message());
+    	}
+    }
+    
+
+*/

@@ -1,7 +1,21 @@
-/* Generated from com/example/magma/App.java */
-#ifndef COM_EXAMPLE_MAGMA_APP_JAVA_H
-#define COM_EXAMPLE_MAGMA_APP_JAVA_H
+/* Generated header for com.example.magma.App */
+#ifndef COM_EXAMPLE_MAGMA_APP_H
+#define COM_EXAMPLE_MAGMA_APP_H
 
-/* TODO: translate Java class 'App' to C declarations */
+/* Original Java source:
+    package com.example.magma;
+    
+    public class App {
+    	public static String message() {
+    		return "Hello, Magma!";
+    	}
+    
+    	public static void main(String[] args) {
+    		System.out.println(message());
+    	}
+    }
+    
 
-#endif /* COM_EXAMPLE_MAGMA_APP_JAVA_H */
+*/
+
+#endif /* COM_EXAMPLE_MAGMA_APP_H */
