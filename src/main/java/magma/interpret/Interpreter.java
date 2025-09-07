@@ -232,20 +232,6 @@ public class Interpreter {
 				if (alt.isPresent())
 					return alt;
 			}
-			// permissive fallback: first literal '{' then its first '}'
-			int fb = s.indexOf('{');
-			if (fb >= 0) {
-				int fc = s.indexOf('}', fb + 1);
-				if (fc > fb) {
-					int after = skipWhitespace(s, fc + 1);
-					if (after < s.length()) {
-						java.util.List<String> parts = new java.util.ArrayList<>();
-						parts.add(s.substring(0, after).trim());
-						parts.add(s.substring(after).trim());
-						return Optional.of(parts);
-					}
-				}
-			}
 		}
 		return Optional.empty();
 	}
@@ -278,13 +264,28 @@ public class Interpreter {
 			Tuple2<String, String> call = ctorOpt.get().first();
 			String callName = call.first();
 			String callArg = call.second();
+			String methodOrField = ctorOpt.get().second();
 
 			if (!fns.containsKey("CLASS:" + callName) && !fns.containsKey("STRUCT:" + callName))
 				return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+			
+			// Check if this is a method call (look for inner function)
+			if (fns.containsKey(methodOrField)) {
+				Tuple2<String, String> innerFn = fns.get(methodOrField);
+				String innerParam = innerFn.first();
+				String innerRet = innerFn.second();
+				if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
+					return Optional.of(new Ok<>(innerRet));
+			}
+			
+			// Fall back to field access
 			if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
 				return Optional.of(new Ok<>(callArg));
 			if (!callArg.isEmpty())
 				return Optional.of(new Ok<>(callArg));
+			// Handle empty constructor arguments (e.g., Empty())
+			if (callArg.isEmpty())
+				return Optional.of(new Ok<>(""));
 			return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
 		}
 
@@ -307,6 +308,7 @@ public class Interpreter {
 	/**
 	 * Parse a constructor.field pattern like Name(arg).field and return
 	 * Optional.of(( (Name,arg), fieldName )) or Optional.empty() if malformed.
+	 * Also handles constructor.method() pattern like Empty().get().
 	 */
 	private Optional<Tuple2<Tuple2<String, String>, String>> parseConstructorFieldPattern(String finalPart) {
 		int dot = finalPart.indexOf('.');
@@ -319,7 +321,16 @@ public class Interpreter {
 		Optional<Tuple2<String, String>> leftCall = parseCallOrStructLeft(left, p);
 		if (leftCall.isEmpty())
 			return Optional.empty();
-		String ctorField = finalPart.substring(dot + 1).trim();
+		String rightPart = finalPart.substring(dot + 1).trim();
+		// Handle method call pattern like get()
+		if (rightPart.endsWith(")")) {
+			int parenIdx = rightPart.indexOf('(');
+			if (parenIdx > 0) {
+				String methodName = rightPart.substring(0, parenIdx).trim();
+				return Optional.of(new Tuple2<>(leftCall.get(), methodName));
+			}
+		}
+		String ctorField = rightPart;
 		return Optional.of(new Tuple2<>(leftCall.get(), ctorField));
 	}
 
@@ -398,6 +409,20 @@ public class Interpreter {
 					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
 							java.util.Optional.of(new InterpretError("Duplicate class declaration: " + name))));
 				classes.put(name, cls.second());
+				
+				// Parse inner functions from class body if present
+				String classBody = cls.second().second();
+				if (classBody.startsWith("fn ")) {
+					// Remove trailing semicolon if present before parsing
+					String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
+					Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = parseFnPart(fnDecl);
+					if (innerFnOpt.isPresent()) {
+						Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
+						String innerName = innerFn.first();
+						if (!fns.containsKey(innerName))
+							fns.put(innerName, innerFn.second());
+					}
+				}
 			} else if (stmt.startsWith("struct ")) {
 				Optional<Tuple2<String, Tuple2<String, String>>> stOpt = parseStructPart(stmt);
 				if (stOpt.isEmpty())
@@ -511,12 +536,20 @@ public class Interpreter {
 		if (afterArrow < 0)
 			return Optional.empty();
 		npos = afterArrow;
-		// allow empty body braces
+		// allow body braces (may contain inner functions)
 		if (npos >= stmt.length() || stmt.charAt(npos) != '{')
 			return Optional.empty();
 		int end = findMatchingBrace(stmt, npos);
 		if (end < 0)
 			return Optional.empty();
+		
+		// Parse any inner function declarations in the class body
+		String classBody = stmt.substring(npos + 1, end).trim();
+		if (!classBody.isEmpty()) {
+			// For now, store the body content in the type token for later parsing
+			typeToken = classBody;
+		}
+		
 		npos = skipWhitespace(stmt, end + 1);
 		if (npos != stmt.length())
 			return Optional.empty();
@@ -616,6 +649,11 @@ public class Interpreter {
 	}
 
 	private Optional<FieldInfo> parseFieldInfo(String stmt, int pos, char expectedClose) {
+		// Handle empty parameter list case (e.g., "Empty()")
+		if (pos < stmt.length() && stmt.charAt(pos) == expectedClose) {
+			return Optional.of(new FieldInfo("", "", pos));
+		}
+		
 		int fldEnd = parseIdentifierEnd(stmt, pos);
 		if (fldEnd < 0)
 			return Optional.empty();
@@ -844,6 +882,23 @@ public class Interpreter {
 			if (bracePos >= s.length() || s.charAt(bracePos) != '{')
 				return Optional.empty();
 			return splitAfterTopLevelBrace(s, bracePos);
+		}
+		
+		// Fallback: if we couldn't match with stricter parsing, try a permissive
+		// split based on the first '{' and its first '}' thereafter. This handles
+		// simple declarations followed by an expression.
+		int fb = s.indexOf('{');
+		if (fb >= 0) {
+			int fc = findMatchingBrace(s, fb);
+			if (fc > fb) {
+				int after = skipWhitespace(s, fc + 1);
+				if (after < s.length()) {
+					java.util.List<String> parts = new java.util.ArrayList<>();
+					parts.add(s.substring(0, after).trim());
+					parts.add(s.substring(after).trim());
+					return Optional.of(parts);
+				}
+			}
 		}
 		return Optional.empty();
 	}

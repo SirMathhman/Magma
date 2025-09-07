@@ -210,6 +210,12 @@ public class InterpreterTest {
 		assertValid(input, "5");
 	}
 
+	@Test
+	void classWithInnerFunctionCall() {
+		// ensure a class with inner function declaration can be called
+		assertValid("class fn Empty() => {fn get() => 100;} Empty().get()", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

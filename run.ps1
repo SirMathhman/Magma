@@ -9,7 +9,7 @@ Param(
 Push-Location -Path $PSScriptRoot
 try {
     mvn -q compile
-    & java -cp "target/classes" magma.Main $ScriptPath
+        & java --enable-preview -cp "target/classes" magma.Main $ScriptPath
 } finally {
     Pop-Location
 }

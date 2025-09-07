@@ -3,4 +3,4 @@
 SCRIPT_PATH=${1:-src/main/magma/magma/Main.mgs}
 
 mvn -q compile || exit 1
-java -cp "target/classes" magma.Main "$SCRIPT_PATH"
+java --enable-preview -cp "target/classes" magma.Main "$SCRIPT_PATH"
