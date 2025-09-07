@@ -5,12 +5,12 @@ import java.util.Objects;
 public class Interpreter {
 	// Interpret input and strip a trailing "I32" suffix if present.
 	// Returns a Result: Ok(value) on success or Err(error) on invalid input.
-	public Result<String, InvalidInputException> interpret(String input) {
+	public Result<String, InterpretError> interpret(String input) {
 		if (Objects.isNull(input)) {
 			return new Ok<>("");
 		}
 		if ("test".equals(input)) {
-			return new Err<>(new InvalidInputException("'test' is not a valid input"));
+			return new Err<>(new InterpretError("'test' is not a valid input"));
 		}
 
 		// simple addition expressions like "2 + 3" (optional spaces)
