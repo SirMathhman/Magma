@@ -63,6 +63,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	void letChain() {
+		assertValid("let x = 10; let y = x; y", "10");
+	}
+
+	@Test
 	void additionMixedUnsignedAndSigned() {
 		assertInvalid("2U8 + 3I32");
 	}

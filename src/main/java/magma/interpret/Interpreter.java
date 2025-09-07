@@ -161,42 +161,96 @@ public class Interpreter {
 		String s = input.trim();
 		if (!s.startsWith("let "))
 			return Optional.empty();
-		// expected form: let <ident> : <type> = <int> ; <ident>
-		int pos = 4; // after "let "
-		int idEnd = parseIdentifierEnd(s, pos);
+		// split by ';' into statements
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		int st = 0;
+		for (int i = 0; i < s.length(); i++) {
+			if (s.charAt(i) == ';') {
+				parts.add(s.substring(st, i).trim());
+				st = i + 1;
+			}
+		}
+		parts.add(s.substring(st).trim());
+		// filter empty parts
+		java.util.List<String> stmts = new java.util.ArrayList<>();
+		for (String p : parts)
+			if (!p.isEmpty())
+				stmts.add(p);
+		if (stmts.size() < 2)
+			return Optional.empty();
+		String finalPart = stmts.get(stmts.size() - 1);
+		int fend = parseIdentifierEnd(finalPart, 0);
+		if (fend < 0 || skipWhitespace(finalPart, fend) != finalPart.length())
+			return Optional.empty();
+
+		java.util.Map<String, String> env = new java.util.HashMap<>();
+		for (int i = 0; i < stmts.size() - 1; i++) {
+			String stmt = stmts.get(i);
+			Optional<java.util.Map.Entry<String, String>> kvOpt = parseLetPart(stmt);
+			if (kvOpt.isEmpty())
+				return Optional.empty();
+			java.util.Map.Entry<String, String> kv = kvOpt.get();
+			String name = kv.getKey();
+			String rhs = kv.getValue();
+			// rhs may be digits or identifier
+			if (rhs.isEmpty())
+				return Optional.empty();
+			if (Character.isDigit(rhs.charAt(0))) {
+				env.put(name, rhs);
+			} else {
+				if (!env.containsKey(rhs))
+					return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + rhs)));
+				env.put(name, env.get(rhs));
+			}
+		}
+		String finalName = finalPart;
+		if (!env.containsKey(finalName))
+			return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + finalName)));
+		return Optional.of(new Ok<>(env.get(finalName)));
+	}
+
+	private Optional<java.util.Map.Entry<String, String>> parseLetPart(String stmt) {
+		// stmt should start with "let "
+		if (!stmt.startsWith("let "))
+			return Optional.empty();
+		int pos = 4;
+		int idEnd = parseIdentifierEnd(stmt, pos);
 		if (idEnd < 0)
 			return Optional.empty();
-		String name1 = s.substring(pos, idEnd);
-		pos = skipWhitespace(s, idEnd);
-		// optional type annotation: ": <type>"
-		if (pos < s.length() && s.charAt(pos) == ':') {
-			pos = skipWhitespace(s, pos + 1);
-			int typeEnd = parseAlnumEnd(s, pos);
+		String name = stmt.substring(pos, idEnd);
+		pos = skipWhitespace(stmt, idEnd);
+		if (pos < stmt.length() && stmt.charAt(pos) == ':') {
+			pos = skipWhitespace(stmt, pos + 1);
+			int typeEnd = parseAlnumEnd(stmt, pos);
 			if (typeEnd < 0)
 				return Optional.empty();
-			pos = skipWhitespace(s, typeEnd);
+			pos = skipWhitespace(stmt, typeEnd);
 		}
-		if (pos >= s.length() || s.charAt(pos) != '=')
+		if (pos >= stmt.length() || stmt.charAt(pos) != '=')
 			return Optional.empty();
-		pos = skipWhitespace(s, pos + 1);
-		int valEnd = parseDigitsEnd(s, pos);
-		if (valEnd < 0)
+		pos = skipWhitespace(stmt, pos + 1);
+		if (pos >= stmt.length())
 			return Optional.empty();
-		String valTok = s.substring(pos, valEnd);
-		pos = skipWhitespace(s, valEnd);
-		if (pos >= s.length() || s.charAt(pos) != ';')
-			return Optional.empty();
-		pos = skipWhitespace(s, pos + 1);
-		int id2End = parseIdentifierEnd(s, pos);
-		if (id2End < 0)
-			return Optional.empty();
-		String name2 = s.substring(pos, id2End);
-		pos = skipWhitespace(s, id2End);
-		if (pos != s.length())
-			return Optional.empty();
-		if (!name1.equals(name2))
-			return Optional.of(new Err<>(new InterpretError("Identifier mismatch in let: " + input)));
-		return Optional.of(new Ok<>(valTok));
+		// rhs is either digits or identifier
+		if (Character.isDigit(stmt.charAt(pos))) {
+			int vEnd = parseDigitsEnd(stmt, pos);
+			if (vEnd < 0)
+				return Optional.empty();
+			String val = stmt.substring(pos, vEnd);
+			pos = skipWhitespace(stmt, vEnd);
+			if (pos != stmt.length())
+				return Optional.empty();
+			return Optional.of(new java.util.AbstractMap.SimpleEntry<>(name, val));
+		} else {
+			int rEnd = parseIdentifierEnd(stmt, pos);
+			if (rEnd < 0)
+				return Optional.empty();
+			String rhs = stmt.substring(pos, rEnd);
+			pos = skipWhitespace(stmt, rEnd);
+			if (pos != stmt.length())
+				return Optional.empty();
+			return Optional.of(new java.util.AbstractMap.SimpleEntry<>(name, rhs));
+		}
 	}
 
 	private static int skipWhitespace(String s, int pos) {
