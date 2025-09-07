@@ -80,7 +80,8 @@ public class Interpreter {
 					return Optional.of(new Err<>(new InterpretError("Invalid operand")));
 				}
 				if (commonSuffix.isPresent() && !commonSuffix.get().equals(sfx)) {
-					Optional<String> msg = buildMismatchedSuffixMessage(input, parts, partStarts, idx, sfx, commonSuffix.get());
+					MismatchContext ctx = new MismatchContext(parts, partStarts, idx, sfx, commonSuffix.get());
+					Optional<String> msg = buildMismatchedSuffixMessage(input, ctx);
 					if (msg.isPresent()) {
 						return Optional.of(new Err<>(new InterpretError(msg.get())));
 					}
@@ -135,8 +136,7 @@ public class Interpreter {
 		return true;
 	}
 
-	private Optional<String> buildMismatchedSuffixMessage(String input, java.util.List<String> parts,
-			java.util.List<Integer> partStarts, int idx, String sfx, String other) {
+	private Optional<String> buildMismatchedSuffixMessage(String input, MismatchContext ctx) {
 		String header = "Mismatched operand types.";
 		StringBuilder sb = new StringBuilder();
 		sb.append(header).append("\n\n");
@@ -148,16 +148,16 @@ public class Interpreter {
 			caretLine[ci] = ' ';
 		}
 
-		String part = parts.get(idx);
-		int partStart = partStarts.get(idx);
+		String part = ctx.parts().get(ctx.idx());
+		int partStart = ctx.partStarts().get(ctx.idx());
 		int leadingSpaces = 0;
 		while (partStart + leadingSpaces < input.length()
 				&& Character.isWhitespace(input.charAt(partStart + leadingSpaces))) {
 			leadingSpaces++;
 		}
-		int suffixPosInPart = part.indexOf(sfx);
+		int suffixPosInPart = part.indexOf(ctx.sfx());
 		int suffixStartInInput = partStart + leadingSpaces + suffixPosInPart;
-		for (int k = 0; k < sfx.length(); k++) {
+		for (int k = 0; k < ctx.sfx().length(); k++) {
 			int pos = 3 + suffixStartInInput + k;
 			if (pos >= 0 && pos < caretLine.length)
 				caretLine[pos] = '^';
@@ -166,11 +166,11 @@ public class Interpreter {
 		int otherSearchFrom = 0;
 		int foundAt = -1;
 		while (true) {
-			foundAt = input.indexOf(other, otherSearchFrom);
+			foundAt = input.indexOf(ctx.other(), otherSearchFrom);
 			if (foundAt < 0)
 				break;
 			if (foundAt != suffixStartInInput) {
-				for (int k = 0; k < other.length(); k++) {
+				for (int k = 0; k < ctx.other().length(); k++) {
 					int pos = 3 + foundAt + k;
 					if (pos >= 0 && pos < caretLine.length)
 						caretLine[pos] = '^';
@@ -182,6 +182,11 @@ public class Interpreter {
 
 		sb.append(new String(caretLine)).append('\n');
 		return Optional.of(sb.toString());
+	}
+
+	private static record MismatchContext(java.util.List<String> parts, java.util.List<Integer> partStarts, int idx,
+			String sfx,
+			String other) {
 	}
 
 	private Optional<String> findSuffix(String s) {

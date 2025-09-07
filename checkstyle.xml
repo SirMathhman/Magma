@@ -42,5 +42,10 @@
 		<module name="CyclomaticComplexity">
 			<property name="max" value="15" />
 		</module>
+
+		<!-- Limit number of parameters per method to 3 -->
+		<module name="ParameterNumber">
+			<property name="max" value="3" />
+		</module>
 	</module>
 </module>
