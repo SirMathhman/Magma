@@ -12,7 +12,7 @@ mvn -B clean test
 Generating .c and .h stubs from Java sources
 -------------------------------------------
 
-This project includes a small utility `JavaToCGenerator` which scans Java
+This project includes a small utility `Main` (previously JavaToCGenerator) which scans Java
 source files under `src/main/java` and creates corresponding `.h` and `.c`
 stub files while preserving the relative directory structure under
 `src/main/windows`.
@@ -21,13 +21,13 @@ Default usage (from project root):
 
 ```powershell
 mvn -B package
-java -cp target/classes com.example.magma.tools.JavaToCGenerator
+java -cp target/classes com.example.magma.tools.Main
 ```
 
 You can also pass custom paths:
 
 ```powershell
-java -cp target/classes com.example.magma.tools.JavaToCGenerator src/main/java src/main/windows
+java -cp target/classes com.example.magma.tools.Main src/main/java src/main/windows
 ```
 
 The generated files contain simple TODO comments for manual translation.
