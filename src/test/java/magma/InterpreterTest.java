@@ -20,6 +20,46 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretI8() {
+		assertValid("5I8", "5");
+	}
+
+	@Test
+	public void interpretI16() {
+		assertValid("5I16", "5");
+	}
+
+	@Test
+	public void interpretI32_again() {
+		assertValid("5I32", "5");
+	}
+
+	@Test
+	public void interpretI64() {
+		assertValid("5I64", "5");
+	}
+
+	@Test
+	public void interpretU8() {
+		assertValid("5U8", "5");
+	}
+
+	@Test
+	public void interpretU16() {
+		assertValid("5U16", "5");
+	}
+
+	@Test
+	public void interpretU32() {
+		assertValid("5U32", "5");
+	}
+
+	@Test
+	public void interpretU64() {
+		assertValid("5U64", "5");
+	}
+
+	@Test
 	public void interpretTestThrows() {
 		Interpreter interpreter = new Interpreter();
 		Result<String, InvalidInputException> result = interpreter.interpret("test");

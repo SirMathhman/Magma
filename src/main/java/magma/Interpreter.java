@@ -12,8 +12,12 @@ public class Interpreter {
 		if ("test".equals(input)) {
 			return new Err<>(new InvalidInputException("'test' is not a valid input"));
 		}
-		if (input.endsWith("I32")) {
-			return new Ok<>(input.substring(0, input.length() - 3));
+		// strip known integer-suffix annotations like I8/I16/I32/I64 and U8/U16/U32/U64
+		String[] suffixes = new String[] { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
+		for (String sfx : suffixes) {
+			if (input.endsWith(sfx)) {
+				return new Ok<>(input.substring(0, input.length() - sfx.length()));
+			}
 		}
 		return new Ok<>(input);
 	}
