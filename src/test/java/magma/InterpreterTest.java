@@ -112,6 +112,16 @@ public class InterpreterTest {
 		assertInvalid("let x : Bool = 0;");
 	}
 
+	@Test
+	void functionDeclarationAndCallSimple() {
+		assertValid("fn get() : I32 => 100; get()", "100");
+	}
+
+	@Test
+	void functionDeclarationWithoutTypeAndCall() {
+		assertValid("fn get() => 100; get()", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

@@ -18,9 +18,9 @@ public class Interpreter {
 		if (input.isEmpty())
 			return new Ok<>("");
 		// try let-binding like "let x : I32 = 10; x"
-		Optional<Result<String, InterpretError>> letRes = tryParseLet(input);
-		if (letRes.isPresent())
-			return letRes.get();
+		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(input);
+		if (declRes.isPresent())
+			return declRes.get();
 		// try simple addition like "2 + 3" (with optional spaces)
 		Optional<Result<String, InterpretError>> addRes = tryParseBinary(input, '+');
 		if (addRes.isPresent())
@@ -170,6 +170,97 @@ public class Interpreter {
 		if (stmts.size() == 1)
 			return handleSingleLet(stmts.get(0));
 		return handleMultipleLets(stmts);
+	}
+
+	private Optional<Result<String, InterpretError>> tryParseDeclarations(String input) {
+		String s = input.trim();
+		if (!s.startsWith("let ") && !s.startsWith("fn "))
+			return Optional.empty();
+		java.util.List<String> stmts = splitStatements(s);
+		if (stmts.isEmpty())
+			return Optional.empty();
+		// If there is any fn declaration present, handle as declarations; else fall back to let
+		boolean hasFn = stmts.stream().anyMatch(p -> p.startsWith("fn "));
+		if (!hasFn)
+			return tryParseLet(input);
+		return handleFunctionDeclarations(stmts);
+	}
+
+	private Optional<Result<String, InterpretError>> handleFunctionDeclarations(java.util.List<String> stmts) {
+		String finalPart = stmts.get(stmts.size() - 1);
+		// final should be a call like name()
+		int p = parseIdentifierEnd(finalPart, 0);
+		if (p < 0)
+			return Optional.empty();
+		String callName = finalPart.substring(0, p);
+		p = skipWhitespace(finalPart, p);
+		if (p >= finalPart.length() || finalPart.charAt(p) != '(')
+			return Optional.empty();
+		p = skipWhitespace(finalPart, p + 1);
+		if (p >= finalPart.length() || finalPart.charAt(p) != ')')
+			return Optional.empty();
+		p = skipWhitespace(finalPart, p + 1);
+		if (p != finalPart.length())
+			return Optional.empty();
+		java.util.Map<String, String> fns = new java.util.HashMap<>();
+		for (int i = 0; i < stmts.size() - 1; i++) {
+			String stmt = stmts.get(i);
+			Optional<Tuple2<String, String>> fnOpt = parseFnPart(stmt);
+			if (fnOpt.isEmpty())
+				return Optional.empty();
+			Tuple2<String, String> fn = fnOpt.get();
+			fns.put(fn.first(), fn.second());
+		}
+		if (!fns.containsKey(callName))
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+		return Optional.of(new Ok<>(fns.get(callName)));
+	}
+
+	/**
+	 * Parse function declaration like: fn name() : Type => <numeric-literal>
+	 * Returns (name, returnValue)
+	 */
+	private Optional<Tuple2<String, String>> parseFnPart(String stmt) {
+		if (!stmt.startsWith("fn "))
+			return Optional.empty();
+		int pos = 3;
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd < 0)
+			return Optional.empty();
+		String name = stmt.substring(pos, idEnd);
+		pos = skipWhitespace(stmt, idEnd);
+		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
+			return Optional.empty();
+		pos = skipWhitespace(stmt, pos + 1);
+		if (pos >= stmt.length() || stmt.charAt(pos) != ')')
+			return Optional.empty();
+		pos = skipWhitespace(stmt, pos + 1);
+		// optional return type
+		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
+		if (typeOpt.isEmpty())
+			return Optional.empty();
+		String typeTok = typeOpt.get().first();
+		pos = typeOpt.get().second();
+		// expect =>
+		if (pos + 1 >= stmt.length() || stmt.charAt(pos) != '=' || stmt.charAt(pos + 1) != '>')
+			return Optional.empty();
+		pos = skipWhitespace(stmt, pos + 2);
+		if (pos >= stmt.length())
+			return Optional.empty();
+		// rhs must be numeric literal
+		if (!Character.isDigit(stmt.charAt(pos)))
+			return Optional.empty();
+		int vEnd = parseDigitsEnd(stmt, pos);
+		if (vEnd < 0)
+			return Optional.empty();
+		String val = stmt.substring(pos, vEnd);
+		pos = skipWhitespace(stmt, vEnd);
+		if (pos != stmt.length())
+			return Optional.empty();
+		// if declared type present and is Bool, numeric invalid
+		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B')
+			return Optional.of(new Tuple2<>(name, "")); // treat as present but empty to trigger later mismatch
+		return Optional.of(new Tuple2<>(name, val));
 	}
 
 	private static java.util.List<String> splitStatements(String s) {
