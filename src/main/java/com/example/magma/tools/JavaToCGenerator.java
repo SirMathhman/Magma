@@ -1,18 +1,25 @@
 package com.example.magma.tools;
 
-import java.io.File;
+import com.example.magma.compiler.Compiler;
+import com.example.magma.model.Location;
+import com.example.magma.util.Tuple;
+
 import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardOpenOption;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 /**
- * Small utility that reads all .java files under a source root and generates
- * corresponding .h and .c stub files under a destination root while
- * preserving the relative folder structure.
+ * Utility that reads all .java files under a source root, delegates to
+ * {@link com.example.magma.compiler.Compiler} to produce C/H contents, and
+ * writes the generated files under a destination root while preserving the
+ * package-relative folder structure.
  *
  * Usage:
  * java -cp target/classes com.example.magma.tools.JavaToCGenerator [srcDir]
@@ -31,58 +38,59 @@ public class JavaToCGenerator {
 
 		Files.createDirectories(dst);
 
+		Map<Location, String> sources = new HashMap<>();
+
 		try (Stream<Path> stream = Files.walk(src)) {
 			stream.filter(p -> Files.isRegularFile(p) && p.toString().endsWith(".java"))
 					.forEach(p -> {
 						try {
-							process(p, src, dst);
-						} catch (IOException e) {
-							throw new UncheckedIOException(e);
+							Path rel = src.relativize(p);
+							Path relParent = rel.getParent();
+
+							List<String> pkgParts = new ArrayList<>();
+							if (relParent != null) {
+								for (Path part : relParent) {
+									pkgParts.add(part.toString());
+								}
+							}
+
+							String fileName = p.getFileName().toString();
+							String base = fileName.replaceFirst("\\.java$", "");
+							String content = Files.readString(p);
+
+							Location loc = new Location(pkgParts, base);
+							sources.put(loc, content);
+						} catch (IOException ex) {
+							throw new RuntimeException(ex);
 						}
 					});
 		}
 
-		System.out.println("Generation complete.");
-	}
+		// Delegate to Compiler
+		Compiler compiler = new Compiler();
+		Map<Location, Tuple<String, String>> compiled = compiler.compile(sources);
 
-	private static void process(Path javaFile, Path srcRoot, Path dstRoot) throws IOException {
-		Path rel = srcRoot.relativize(javaFile);
-		Path relParent = rel.getParent();
-		Path outDir = (relParent == null) ? dstRoot : dstRoot.resolve(relParent.toString());
-		Files.createDirectories(outDir);
+		// Write outputs
+		for (Map.Entry<Location, Tuple<String, String>> e : compiled.entrySet()) {
+			Location loc = e.getKey();
+			Tuple<String, String> out = e.getValue();
 
-		String fileName = javaFile.getFileName().toString();
-		// replaceFirst regex: literal dot is escaped as "\\." in Java string
-		String base = fileName.replaceFirst("\\.java$", "");
+			Path outDir = dst;
+			for (String part : loc.packageParts()) {
+				outDir = outDir.resolve(part);
+			}
+			Files.createDirectories(outDir);
 
-		Path header = outDir.resolve(base + ".h");
-		Path cfile = outDir.resolve(base + ".c");
+			String base = loc.className();
+			Path cPath = outDir.resolve(base + ".c");
+			Path hPath = outDir.resolve(base + ".h");
 
-		String guard = makeGuard(rel);
+			Files.writeString(cPath, out.left(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
+			Files.writeString(hPath, out.right(), StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
 
-		String headerContent = "/* Generated from " + rel.toString().replace('\\', '/') + " */\n"
-				+ "#ifndef " + guard + "\n"
-				+ "#define " + guard + "\n\n"
-				+ "/* TODO: translate Java class '" + base + "' to C declarations */\n\n"
-				+ "#endif /* " + guard + " */\n";
-
-		String cContent = "/* Generated from " + rel.toString().replace('\\', '/') + " */\n"
-				+ "#include \"" + base + ".h\"\n\n"
-				+ "/* TODO: implement translated functions for Java class '" + base + "' */\n";
-
-		Files.writeString(header, headerContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-		Files.writeString(cfile, cContent, StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING);
-
-		System.out.println("Wrote: " + dstRoot.relativize(header) + " and " + dstRoot.relativize(cfile));
-	}
-
-	private static String makeGuard(Path rel) {
-		String s = rel.toString().replace(File.separatorChar, '_').replace('.', '_').replace('-', '_');
-		s = s.replaceAll("[^A-Za-z0-9_]", "_");
-		s = s.toUpperCase();
-		if (!s.endsWith("_H")) {
-			s = s + "_H";
+			System.out.println("Wrote: " + dst.relativize(hPath) + " and " + dst.relativize(cPath));
 		}
-		return s;
+
+		System.out.println("Generation complete.");
 	}
 }
