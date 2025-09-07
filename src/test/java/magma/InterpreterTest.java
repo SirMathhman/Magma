@@ -127,6 +127,11 @@ public class InterpreterTest {
 		assertValid("fn get(param : I32) => param; get(100)", "100");
 	}
 
+	@Test
+	void duplicateFunctionDeclarationShouldBeInvalid() {
+		assertInvalid("fn get() => 0; fn get() => 0;");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

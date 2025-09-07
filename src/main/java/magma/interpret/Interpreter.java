@@ -227,7 +227,10 @@ public class Interpreter {
 			if (fnOpt.isEmpty())
 				return Optional.empty();
 			Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
-			fns.put(fn.first(), fn.second());
+			String name = fn.first();
+			if (fns.containsKey(name))
+				return Optional.of(new Err<>(new InterpretError("Duplicate function declaration: " + name)));
+			fns.put(name, fn.second());
 		}
 		if (!fns.containsKey(callName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
