@@ -53,13 +53,13 @@ public class InterpreterTest {
 	}
 
 	@Test
-	void chainedAdditionMixedSignedness() {
-		assertInvalid("0 + 0I8 + 0U32");
+	void additionMixedUnsignedAndSigned() {
+		assertInvalid("2U8 + 3I32");
 	}
 
 	@Test
-	void additionMixedUnsignedAndSigned() {
-		assertInvalid("2U8 + 3I32");
+	void mixedSuffixesInChain() {
+		assertInvalid("0I8 + 0 + 0U32");
 	}
 
 	private static void assertValid(String input, String expected) {
