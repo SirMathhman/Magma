@@ -6,27 +6,17 @@ import static org.junit.jupiter.api.Assertions.*;
 public class InterpreterTest {
 	@Test
 	public void empty() {
-		Interpreter interpreter = new Interpreter();
-		String input = "";
-		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertOkEquals(result, input);
+		assertValid("", "");
 	}
 
 	@Test
 	public void interpretFive() {
-		Interpreter interpreter = new Interpreter();
-		String input = "5";
-		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertOkEquals(result, input);
+		assertValid("5", "5");
 	}
 
 	@Test
 	public void interpretI32() {
-		Interpreter interpreter = new Interpreter();
-		String input = "5I32";
-		String expected = "5";
-		Result<String, InvalidInputException> result = interpreter.interpret(input);
-		assertOkEquals(result, expected);
+		assertValid("5I32", "5");
 	}
 
 	@Test
@@ -45,7 +35,9 @@ public class InterpreterTest {
 		}
 	}
 
-	private void assertOkEquals(Result<String, InvalidInputException> result, String expected) {
+	private void assertValid(String input, String expected) {
+		Interpreter interpreter = new Interpreter();
+		Result<String, InvalidInputException> result = interpreter.interpret(input);
 		if (result instanceof Ok ok) {
 			assertEquals(expected, ok.value());
 		} else {
