@@ -56,6 +56,28 @@
 					<mainClass>magma.Main</mainClass>
 				</configuration>
 			</plugin>
+			<!-- Checkstyle plugin -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.6.0</version>
+				<configuration>
+					<!-- Use the Google style ruleset by default -->
+					<configLocation>google_checks.xml</configLocation>
+					<charset>${project.build.sourceEncoding}</charset>
+					<consoleOutput>true</consoleOutput>
+					<failOnViolation>true</failOnViolation>
+				</configuration>
+				<executions>
+					<execution>
+						<id>checkstyle</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
