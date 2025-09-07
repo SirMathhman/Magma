@@ -216,6 +216,17 @@ public class Interpreter {
 			}
 			return Optional.of(new Ok<>(""));
 		}
+		// boolean literal
+		if (rhs.equals("true") || rhs.equals("false")) {
+			Optional<Character> declared = parseLetDeclaredSignedness(stmt);
+			if (declared.isPresent()) {
+				char d = declared.get();
+				// treat types starting with 'B' as Bool
+				if (Character.toUpperCase(d) != 'B')
+					return Optional.of(new Err<>(new InterpretError("Type mismatch in let: " + stmt)));
+			}
+			return Optional.of(new Ok<>(""));
+		}
 		return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + rhs)));
 	}
 
@@ -270,6 +281,14 @@ public class Interpreter {
 			int vEnd = parseDigitsEnd(stmt, pos);
 			if (vEnd < 0)
 				return Optional.empty();
+			String val = stmt.substring(pos, vEnd);
+			pos = skipWhitespace(stmt, vEnd);
+			if (pos != stmt.length())
+				return Optional.empty();
+			return Optional.of(new Tuple2<>(name, val));
+		} else if (stmt.startsWith("true", pos) || stmt.startsWith("false", pos)) {
+			int len = stmt.startsWith("true", pos) ? 4 : 5;
+			int vEnd = pos + len;
 			String val = stmt.substring(pos, vEnd);
 			pos = skipWhitespace(stmt, vEnd);
 			if (pos != stmt.length())
