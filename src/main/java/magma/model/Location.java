@@ -1,4 +1,4 @@
-package com.example.magma.model;
+package magma.model;
 
 import java.util.List;
 import java.util.Objects;

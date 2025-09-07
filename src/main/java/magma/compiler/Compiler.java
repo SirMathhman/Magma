@@ -1,7 +1,7 @@
-package com.example.magma.compiler;
+package magma.compiler;
 
-import com.example.magma.model.Location;
-import com.example.magma.util.Tuple;
+import magma.model.Location;
+import magma.util.Tuple;
 
 import java.util.HashMap;
 import java.util.Map;

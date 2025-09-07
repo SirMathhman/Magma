@@ -21,13 +21,13 @@ Default usage (from project root):
 
 ```powershell
 mvn -B package
-java -cp target/classes com.example.magma.tools.Main
+java -cp target/classes tools.magma.Main
 ```
 
 You can also pass custom paths:
 
 ```powershell
-java -cp target/classes com.example.magma.tools.Main src/main/java src/main/windows
+java -cp target/classes tools.magma.Main src/main/java src/main/windows
 ```
 
 The generated files contain simple TODO comments for manual translation.

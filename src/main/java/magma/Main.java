@@ -1,8 +1,8 @@
-package com.example.magma.tools;
+package magma;
 
-import com.example.magma.compiler.Compiler;
-import com.example.magma.model.Location;
-import com.example.magma.util.Tuple;
+import magma.compiler.Compiler;
+import magma.model.Location;
+import magma.util.Tuple;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,12 +17,12 @@ import java.util.stream.Stream;
 
 /**
  * Main entrypoint that reads all .java files under a source root, delegates to
- * {@link com.example.magma.compiler.Compiler} to produce C/H contents, and
+ * {@link Compiler} to produce C/H contents, and
  * writes the generated files under a destination root while preserving the
  * package-relative folder structure.
  *
  * Usage:
- * java -cp target/classes com.example.magma.tools.Main [srcDir] [destDir]
+ * java -cp target/classes com.example.magma.Main [srcDir] [destDir]
  * Defaults: srcDir=src/main/java, destDir=src/main/windows
  */
 public class Main {

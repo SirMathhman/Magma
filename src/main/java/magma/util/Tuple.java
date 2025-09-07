@@ -1,4 +1,4 @@
-package com.example.magma.util;
+package magma.util;
 
 import java.util.Objects;
 
