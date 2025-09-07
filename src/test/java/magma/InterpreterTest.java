@@ -65,6 +65,11 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretAdditionWithSuffix() {
+		assertValid("2 + 3U8", "5");
+	}
+
+	@Test
 	public void undefined() {
 		assertInvalid("test");
 	}

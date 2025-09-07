@@ -61,6 +61,15 @@ public class Interpreter {
 		}
 		String left = input.substring(0, plusIdx).trim();
 		String right = input.substring(plusIdx + 1).trim();
+		// allow operands to carry known type suffixes like I8/I16/I32/I64/U8/U16/U32/U64
+		Optional<String> leftStripped = tryStripSuffix(left);
+		if (leftStripped.isPresent()) {
+			left = leftStripped.get();
+		}
+		Optional<String> rightStripped = tryStripSuffix(right);
+		if (rightStripped.isPresent()) {
+			right = rightStripped.get();
+		}
 		if (left.isEmpty() || right.isEmpty()) {
 			return Optional.empty();
 		}
