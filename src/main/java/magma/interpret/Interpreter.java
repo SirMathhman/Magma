@@ -16,6 +16,9 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> subRes = tryParseBinary(input, '-');
 		if (subRes.isPresent())
 			return subRes.get();
+		Optional<Result<String, InterpretError>> mulRes = tryParseBinary(input, '*');
+		if (mulRes.isPresent())
+			return mulRes.get();
 
 		// integer literal (decimal)
 		// accept a leading decimal integer even if followed by other characters,
@@ -52,7 +55,20 @@ public class Interpreter {
 			String rightSuffix = right.substring(ri).trim();
 			if (hasSuffix(leftSuffix) && hasSuffix(rightSuffix) && isMixedSignedness(leftSuffix, rightSuffix))
 				return Optional.of(new Err<>(new InterpretError("Mixed signedness in operation: " + input)));
-			long res = op == '+' ? a + b : a - b;
+			long res;
+			switch (op) {
+				case '+':
+					res = a + b;
+					break;
+				case '-':
+					res = a - b;
+					break;
+				case '*':
+					res = a * b;
+					break;
+				default:
+					return Optional.empty();
+			}
 			return Optional.of(new Ok<>(Long.toString(res)));
 		} catch (NumberFormatException e) {
 			// treat overflow as not-a-match so other rules can apply
