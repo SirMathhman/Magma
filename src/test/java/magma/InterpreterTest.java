@@ -187,6 +187,11 @@ public class InterpreterTest {
 		assertInvalid("let x = 0; x = 100; x");
 	}
 
+	@Test
+	void classConstructorFieldAccess() {
+		assertValid("class fn Wrapper(field : I32) => {} Wrapper(100).field", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

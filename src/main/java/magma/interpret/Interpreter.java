@@ -184,26 +184,38 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> tryParseDeclarations(String input) {
 		String s = input.trim();
-		if (!s.startsWith("let ") && !s.startsWith("fn "))
+		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class "))
 			return Optional.empty();
 		java.util.List<String> stmts = splitStatements(s);
+		// If user omitted semicolon between a leading declaration and the final
+		// expression (e.g. "class fn X(...) => {} expr"), split them here so
+		// the existing declaration handling can work.
+		if (stmts.size() == 1) {
+			Optional<java.util.List<String>> maybe = splitFirstDeclarationAndRemainder(s);
+			if (maybe.isPresent())
+				stmts = maybe.get();
+		}
 		if (stmts.isEmpty())
 			return Optional.empty();
-		// If there is any fn declaration present, handle as declarations; else fall
-		// back to let
-		boolean hasFn = stmts.stream().anyMatch(p -> p.startsWith("fn "));
-		if (!hasFn)
+		// If there is any fn or class declaration present, handle as declarations;
+		// else fall back to let
+		boolean hasDecl = stmts.stream().anyMatch(p -> p.startsWith("fn ") || p.startsWith("class "));
+		if (!hasDecl)
 			return tryParseLet(input);
 		return handleFunctionDeclarations(stmts);
 	}
 
 	private Optional<Result<String, InterpretError>> handleFunctionDeclarations(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
+		// final part may be a function call like name(arg) or a constructor.field like
+		// Name(arg).field
 		Optional<Tuple2<String, String>> callOpt = parseFunctionCall(finalPart);
-		if (callOpt.isEmpty())
-			return Optional.empty();
-		String callName = callOpt.get().first();
-		String callArg = callOpt.get().second();
+		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = Optional.empty();
+		if (callOpt.isEmpty()) {
+			ctorOpt = parseConstructorFieldPattern(finalPart);
+			if (ctorOpt.isEmpty())
+				return Optional.empty();
+		}
 
 		Optional<FnCollectResult> coll = collectFunctions(stmts);
 		if (coll.isEmpty())
@@ -213,8 +225,25 @@ public class Interpreter {
 			return Optional.of(new Err<>(collRes.error().get()));
 		java.util.Map<String, Tuple2<String, String>> fns = collRes.fns();
 
-		if (!fns.containsKey(callName))
-			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+		// if this was a constructor.field form, get the extracted values
+		if (ctorOpt.isPresent()) {
+			Tuple2<String, String> call = ctorOpt.get().first();
+			String callName = call.first();
+			String callArg = call.second();
+
+			if (!fns.containsKey("CLASS:" + callName))
+				return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+			if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
+				return Optional.of(new Ok<>(callArg));
+			if (!callArg.isEmpty())
+				return Optional.of(new Ok<>(callArg));
+			return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
+		}
+
+		// otherwise this was a normal function call
+		Tuple2<String, String> call = callOpt.get();
+		String callName = call.first();
+		String callArg = call.second();
 		Tuple2<String, String> fn = fns.get(callName);
 		String paramName = fn.first();
 		String retExpr = fn.second();
@@ -225,6 +254,28 @@ public class Interpreter {
 			return callArg.isEmpty() ? Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)))
 					: Optional.of(new Ok<>(callArg));
 		return evaluateReturnExprAsOptional(fns, retExpr);
+	}
+
+	/**
+	 * Parse a constructor.field pattern like Name(arg).field and return
+	 * Optional.of(( (Name,arg), fieldName )) or Optional.empty() if malformed.
+	 */
+	private Optional<Tuple2<Tuple2<String, String>, String>> parseConstructorFieldPattern(String finalPart) {
+		int dot = finalPart.indexOf('.');
+		if (dot <= 0)
+			return Optional.empty();
+		String left = finalPart.substring(0, dot).trim();
+		int p = parseIdentifierEnd(left, 0);
+		if (p <= 0)
+			return Optional.empty();
+		int ws = skipWhitespace(left, p);
+		if (ws >= left.length() || left.charAt(ws) != '(')
+			return Optional.empty();
+		Optional<Tuple2<String, String>> leftCall = parseFunctionCall(left);
+		if (leftCall.isEmpty())
+			return Optional.empty();
+		String ctorField = finalPart.substring(dot + 1).trim();
+		return Optional.of(new Tuple2<>(leftCall.get(), ctorField));
 	}
 
 	private Optional<Tuple2<String, String>> parseFunctionCall(String finalPart) {
@@ -269,6 +320,7 @@ public class Interpreter {
 
 	private Optional<FnCollectResult> collectFunctions(java.util.List<String> stmts) {
 		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
+		java.util.Map<String, Tuple2<String, String>> classes = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
 			if (stmt.startsWith("fn ")) {
@@ -281,6 +333,16 @@ public class Interpreter {
 					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
 							java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name))));
 				fns.put(name, fn.second());
+			} else if (stmt.startsWith("class ")) {
+				Optional<Tuple2<String, Tuple2<String, String>>> clsOpt = parseClassPart(stmt);
+				if (clsOpt.isEmpty())
+					return Optional.empty();
+				Tuple2<String, Tuple2<String, String>> cls = clsOpt.get();
+				String name = cls.first();
+				if (classes.containsKey(name))
+					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
+							java.util.Optional.of(new InterpretError("Duplicate class declaration: " + name))));
+				classes.put(name, cls.second());
 			} else if (stmt.startsWith("let ")) {
 				Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
 				if (kv.isEmpty())
@@ -289,6 +351,10 @@ public class Interpreter {
 				return Optional.empty();
 			}
 		}
+		// encode collected classes into function map for later lookup by naming
+		// prefix class entries with "CLASS:" marker to avoid collision
+		for (var e : classes.entrySet())
+			fns.put("CLASS:" + e.getKey(), e.getValue());
 		return Optional.of(new FnCollectResult(fns, java.util.Optional.empty()));
 	}
 
@@ -351,15 +417,72 @@ public class Interpreter {
 		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, retExpr)));
 	}
 
+	/**
+	 * Parse class declaration like: class Name(field : Type) => {}
+	 * Returns (name, (fieldName, typeToken))
+	 */
+	private Optional<Tuple2<String, Tuple2<String, String>>> parseClassPart(String stmt) {
+		// accept either "class fn Name(...)" or "class Name(...)"
+		Optional<Tuple2<String, Integer>> h = parseNameAndOpenParen(stmt, "class fn ");
+		if (h.isEmpty())
+			h = parseNameAndOpenParen(stmt, "class ");
+		if (h.isEmpty())
+			return Optional.empty();
+		String cname = h.get().first();
+		int p = h.get().second();
+		Optional<Tuple2<Tuple2<String, String>, Integer>> fieldOpt = parseClassField(stmt, p);
+		if (fieldOpt.isEmpty())
+			return Optional.empty();
+		Tuple2<Tuple2<String, String>, Integer> f = fieldOpt.get();
+		String fieldName = f.first().first();
+		String typeToken = f.first().second();
+		int npos = f.second();
+		if (npos >= stmt.length() || stmt.charAt(npos) != ')')
+			return Optional.empty();
+		npos = skipWhitespace(stmt, npos + 1);
+		int afterArrow = consumeArrowAndSkip(stmt, npos);
+		if (afterArrow < 0)
+			return Optional.empty();
+		npos = afterArrow;
+		// allow empty body braces
+		if (npos >= stmt.length() || stmt.charAt(npos) != '{')
+			return Optional.empty();
+		int end = findMatchingBrace(stmt, npos);
+		if (end < 0)
+			return Optional.empty();
+		npos = skipWhitespace(stmt, end + 1);
+		if (npos != stmt.length())
+			return Optional.empty();
+		return Optional.of(new Tuple2<>(cname, new Tuple2<>(fieldName, typeToken)));
+	}
+
+	private Optional<Tuple2<Tuple2<String, String>, Integer>> parseClassField(String stmt, int pos) {
+		int fldEnd = parseIdentifierEnd(stmt, pos);
+		if (fldEnd < 0)
+			return Optional.empty();
+		String fieldName = stmt.substring(pos, fldEnd);
+		int npos = skipWhitespace(stmt, fldEnd);
+		if (npos >= stmt.length() || stmt.charAt(npos) != ':')
+			return Optional.empty();
+		npos = skipWhitespace(stmt, npos + 1);
+		int typeEnd = parseAlnumEnd(stmt, npos);
+		if (typeEnd < 0)
+			return Optional.empty();
+		String typeToken = stmt.substring(npos, typeEnd).trim();
+		npos = skipWhitespace(stmt, typeEnd);
+		return Optional.of(new Tuple2<>(new Tuple2<>(fieldName, typeToken), npos));
+	}
+
 	private Optional<Tuple2<String, Tuple2<String, Integer>>> parseFnTail(String stmt, int pos) {
 		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
 		if (typeOpt.isEmpty())
 			return Optional.empty();
 		String typeTok = typeOpt.get().first();
 		int npos = typeOpt.get().second();
-		if (npos + 1 >= stmt.length() || stmt.charAt(npos) != '=' || stmt.charAt(npos + 1) != '>')
+		int afterArrow = consumeArrowAndSkip(stmt, npos);
+		if (afterArrow < 0)
 			return Optional.empty();
-		npos = skipWhitespace(stmt, npos + 2);
+		npos = afterArrow;
 		if (npos >= stmt.length())
 			return Optional.empty();
 		var rhsRes = parseFnRhs(stmt, npos);
@@ -433,17 +556,11 @@ public class Interpreter {
 	 * (name,(paramName,posAfterParen))
 	 */
 	private Optional<Tuple2<String, Tuple2<String, Integer>>> parseFnHeader(String stmt) {
-		if (!stmt.startsWith("fn "))
+		Optional<Tuple2<String, Integer>> header = parseNameAndOpenParen(stmt, "fn ");
+		if (header.isEmpty())
 			return Optional.empty();
-		int pos = 3;
-		int idEnd = parseIdentifierEnd(stmt, pos);
-		if (idEnd < 0)
-			return Optional.empty();
-		String name = stmt.substring(pos, idEnd);
-		pos = skipWhitespace(stmt, idEnd);
-		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
-			return Optional.empty();
-		pos = skipWhitespace(stmt, pos + 1);
+		String name = header.get().first();
+		int pos = header.get().second();
 		String paramName = "";
 		if (pos < stmt.length() && stmt.charAt(pos) != ')') {
 			Optional<Tuple2<String, Integer>> p = parseFnParam(stmt, pos);
@@ -456,6 +573,21 @@ public class Interpreter {
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
 		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, pos)));
+	}
+
+	private Optional<Tuple2<String, Integer>> parseNameAndOpenParen(String stmt, String prefix) {
+		if (!stmt.startsWith(prefix))
+			return Optional.empty();
+		int pos = prefix.length();
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd < 0)
+			return Optional.empty();
+		String name = stmt.substring(pos, idEnd);
+		pos = skipWhitespace(stmt, idEnd);
+		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
+			return Optional.empty();
+		pos = skipWhitespace(stmt, pos + 1);
+		return Optional.of(new Tuple2<>(name, pos));
 	}
 
 	/**
@@ -525,6 +657,41 @@ public class Interpreter {
 		}
 		parts.add(s.substring(start));
 		return parts;
+	}
+
+	/**
+	 * If input contains a single top-level declaration followed by an expression
+	 * without a separating semicolon, split into [declaration, remainder]. For
+	 * example: "class fn X(...) => {} X(1).f" -> ["class fn X(...) => {}",
+	 * "X(1).f"]
+	 */
+	private Optional<java.util.List<String>> splitFirstDeclarationAndRemainder(String s) {
+		// try to parse a leading 'fn ' or 'class ' declaration and find the end
+		if (s.startsWith("fn ") || s.startsWith("class ") || s.startsWith("class fn ")) {
+			// find the top-level position after the declaration body: look for '=>' then
+			// body
+			int arrow = s.indexOf("=>");
+			if (arrow < 0)
+				return Optional.empty();
+			int pos = skipWhitespace(s, arrow + 2);
+			if (pos >= s.length())
+				return Optional.empty();
+			if (s.charAt(pos) == '{') {
+				int end = findMatchingBrace(s, pos);
+				if (end < 0)
+					return Optional.empty();
+				int after = skipWhitespace(s, end + 1);
+				if (after >= s.length())
+					return Optional.empty();
+				String decl = s.substring(0, after).trim();
+				String rest = s.substring(after).trim();
+				java.util.List<String> parts = new java.util.ArrayList<>();
+				parts.add(decl);
+				parts.add(rest);
+				return Optional.of(parts);
+			}
+		}
+		return Optional.empty();
 	}
 
 	/**
@@ -988,6 +1155,18 @@ public class Interpreter {
 		while (pos < s.length() && Character.isDigit(s.charAt(pos)))
 			pos++;
 		return pos == start ? -1 : pos;
+	}
+
+	/**
+	 * Consume a '=>' arrow starting at or after pos (skip whitespace first).
+	 * Returns the position after the arrow, skipping any whitespace, or -1 if
+	 * the arrow is not present.
+	 */
+	private int consumeArrowAndSkip(String stmt, int pos) {
+		int p = skipWhitespace(stmt, pos);
+		if (p + 1 >= stmt.length() || stmt.charAt(p) != '=' || stmt.charAt(p + 1) != '>')
+			return -1;
+		return skipWhitespace(stmt, p + 2);
 	}
 
 	/**
