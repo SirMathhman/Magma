@@ -395,8 +395,19 @@ public class Interpreter {
 	private static java.util.List<String> splitRaw(String s, char delim) {
 		java.util.List<String> parts = new java.util.ArrayList<>();
 		int start = 0;
+		int paren = 0;
+		int brace = 0;
 		for (int i = 0; i < s.length(); i++) {
-			if (s.charAt(i) == delim) {
+			char c = s.charAt(i);
+			if (c == '(')
+				paren++;
+			else if (c == ')')
+				paren = Math.max(0, paren - 1);
+			else if (c == '{')
+				brace++;
+			else if (c == '}')
+				brace = Math.max(0, brace - 1);
+			if (c == delim && paren == 0 && brace == 0) {
 				parts.add(s.substring(start, i));
 				start = i + 1;
 			}
@@ -490,9 +501,20 @@ public class Interpreter {
 			return Optional.empty();
 		// rhs is either digits, a block, boolean, or identifier
 		if (stmt.charAt(pos) == '{') {
-			// find matching '}' at end
-			int end = stmt.indexOf('}', pos + 1);
-			if (end < 0)
+			// find matching '}' accounting for nested braces
+			int depth = 1;
+			int end = pos + 1;
+			for (; end < stmt.length(); end++) {
+				char cc = stmt.charAt(end);
+				if (cc == '{')
+					depth++;
+				else if (cc == '}') {
+					depth--;
+					if (depth == 0)
+						break;
+				}
+			}
+			if (end >= stmt.length() || stmt.charAt(end) != '}')
 				return Optional.empty();
 			String inner = stmt.substring(pos + 1, end).trim();
 			// evaluate inner

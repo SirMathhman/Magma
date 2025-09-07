@@ -147,6 +147,11 @@ public class InterpreterTest {
 		assertValid("let x = {5}; x", "5");
 	}
 
+	@Test
+	void letBlockWithInnerLet() {
+		assertValid("let x = {let y = 5; y}; x", "5");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
