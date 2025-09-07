@@ -26,6 +26,11 @@ public class InterpreterTest {
 		assertInterpretsTo("5I32", "5");
 	}
 
+	@Test
+	void additionSimple() {
+		assertInterpretsTo("2 + 3", "5");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
