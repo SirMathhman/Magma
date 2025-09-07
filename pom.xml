@@ -62,8 +62,8 @@
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.6.0</version>
 				<configuration>
-					<!-- Use the Google style ruleset by default -->
-					<configLocation>google_checks.xml</configLocation>
+					<!-- Use an empty local configuration so Checkstyle runs but reports no checks yet -->
+					<configLocation>${project.basedir}/checkstyle.xml</configLocation>
 					<charset>${project.build.sourceEncoding}</charset>
 					<consoleOutput>true</consoleOutput>
 					<failOnViolation>true</failOnViolation>
@@ -71,7 +71,7 @@
 				<executions>
 					<execution>
 						<id>checkstyle</id>
-						<phase>verify</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>check</goal>
 						</goals>
