@@ -177,6 +177,16 @@ public class InterpreterTest {
 		assertValid("let x = if (true) {3} else {5}; x", "3");
 	}
 
+	@Test
+	void bareAssignmentIsInvalid() {
+		assertInvalid("x = 10;");
+	}
+
+	@Test
+	void assignToImmutableShouldBeInvalid() {
+		assertInvalid("let x = 0; x = 100; x");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

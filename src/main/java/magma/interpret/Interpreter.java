@@ -282,7 +282,7 @@ public class Interpreter {
 							java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name))));
 				fns.put(name, fn.second());
 			} else if (stmt.startsWith("let ")) {
-				Optional<Tuple2<String, String>> kv = parseLetPart(stmt);
+				Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
 				if (kv.isEmpty())
 					return Optional.empty();
 			} else {
@@ -372,17 +372,60 @@ public class Interpreter {
 		return Optional.of(new Tuple2<>(typeTok, new Tuple2<>(retExpr, end)));
 	}
 
-	private Optional<InterpretError> applyLetToEnv(java.util.Map<String, String> env, String name, String rhs) {
+	/**
+	 * Apply a let declaration into the env map that stores (isMut, value).
+	 */
+	private java.util.Optional<InterpretError> applyLetToEnv(java.util.Map<String, Tuple2<Boolean, String>> env,
+			Tuple2<Boolean, String> nm, String rhs) {
 		if (rhs.isEmpty())
 			return java.util.Optional.of(new InterpretError("Empty RHS"));
-		if (Character.isDigit(rhs.charAt(0))) {
-			env.put(name, rhs);
-			return java.util.Optional.empty();
-		}
-		if (!env.containsKey(rhs))
+		return bindResolved(env, nm, rhs);
+	}
+
+	private java.util.Optional<InterpretError> applyAssignmentToEnv(java.util.Map<String, Tuple2<Boolean, String>> env,
+			String name,
+			String rhs) {
+		if (!env.containsKey(name))
+			return java.util.Optional.of(new InterpretError("Unbound identifier: " + name));
+		Tuple2<Boolean, String> entry = env.get(name);
+		if (!entry.first())
+			return java.util.Optional.of(new InterpretError("Cannot assign to immutable binding: " + name));
+		if (rhs.isEmpty())
+			return java.util.Optional.of(new InterpretError("Empty RHS"));
+		return bindResolved(env, new Tuple2<>(entry.first(), name), rhs);
+	}
+
+	private java.util.Optional<InterpretError> bindResolved(java.util.Map<String, Tuple2<Boolean, String>> env,
+			Tuple2<Boolean, String> nm, String rhs) {
+		String name = nm.second();
+		Boolean isMut = nm.first();
+		java.util.Optional<String> resolved = resolveRhsForEnv(env, rhs);
+		if (resolved.isEmpty())
 			return java.util.Optional.of(new InterpretError("Unbound identifier: " + rhs));
-		env.put(name, env.get(rhs));
+		insertBinding(env, name, new Tuple2<>(isMut, resolved.get()));
 		return java.util.Optional.empty();
+	}
+
+	private void insertBinding(java.util.Map<String, Tuple2<Boolean, String>> env, String name,
+			Tuple2<Boolean, String> binding) {
+		env.put(name, binding);
+	}
+
+	/**
+	 * Resolve rhs string into a stored value using env. If rhs is digits or
+	 * boolean token it returns that token, else looks up in env. Returns
+	 * Optional.empty() when lookup fails (unbound identifier).
+	 */
+	private java.util.Optional<String> resolveRhsForEnv(java.util.Map<String, Tuple2<Boolean, String>> env, String rhs) {
+		if (rhs.isEmpty())
+			return java.util.Optional.empty();
+		if (Character.isDigit(rhs.charAt(0)))
+			return java.util.Optional.of(rhs);
+		if (rhs.equals("true") || rhs.equals("false"))
+			return java.util.Optional.of(rhs);
+		if (!env.containsKey(rhs))
+			return java.util.Optional.empty();
+		return java.util.Optional.of(env.get(rhs).second());
 	}
 
 	/**
@@ -637,7 +680,7 @@ public class Interpreter {
 		// forms.
 		if (!(isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))))
 			return Optional.empty();
-		java.util.Map<String, String> env = new java.util.LinkedHashMap<>();
+		java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, stmts.get(i));
 			if (perr.isEmpty())
@@ -652,8 +695,12 @@ public class Interpreter {
 		if (finalPart.startsWith("{") && finalPart.endsWith("}")) {
 			String inner = finalPart.substring(1, finalPart.length() - 1).trim();
 			StringBuilder sb = new StringBuilder();
-			for (java.util.Map.Entry<String, String> e : env.entrySet()) {
-				sb.append("let ").append(e.getKey()).append(" = ").append(e.getValue()).append("; ");
+			for (java.util.Map.Entry<String, Tuple2<Boolean, String>> e : env.entrySet()) {
+				Tuple2<Boolean, String> val = e.getValue();
+				if (val.first())
+					sb.append("let mut ").append(e.getKey()).append(" = ").append(val.second()).append("; ");
+				else
+					sb.append("let ").append(e.getKey()).append(" = ").append(val.second()).append("; ");
 			}
 			sb.append(inner);
 			return Optional.of(interpret(sb.toString()));
@@ -662,7 +709,7 @@ public class Interpreter {
 		String finalName = finalPart;
 		if (!env.containsKey(finalName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalName)));
-		return Optional.of(new Ok<>(env.get(finalName)));
+		return Optional.of(new Ok<>(env.get(finalName).second()));
 	}
 
 	private static boolean isSingleIdentifier(String s) {
@@ -670,22 +717,48 @@ public class Interpreter {
 		return fend > 0 && skipWhitespace(s, fend) == s.length();
 	}
 
-	private java.util.Optional<java.util.Optional<InterpretError>> processLetStmt(java.util.Map<String, String> env,
+	private java.util.Optional<java.util.Optional<InterpretError>> processLetStmt(
+			java.util.Map<String, Tuple2<Boolean, String>> env,
 			String stmt) {
-		Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
-		if (kvOpt.isEmpty())
-			return java.util.Optional.empty(); // signal parse failure
-		Tuple2<String, String> kv = kvOpt.get();
-		String name = kv.first();
-		String rhs = kv.second();
-		return java.util.Optional.of(applyLetToEnv(env, name, rhs));
+		// stmt may be a let declaration or an assignment like `x = 100`.
+		if (stmt.startsWith("let ")) {
+			Optional<Tuple2<Tuple2<Boolean, String>, String>> kvOpt = parseLetPart(stmt);
+			if (kvOpt.isEmpty())
+				return java.util.Optional.empty();
+			Tuple2<Boolean, String> nm = kvOpt.get().first();
+			String rhs = kvOpt.get().second();
+			return java.util.Optional.of(applyLetToEnv(env, nm, rhs));
+		}
+		// assignment statement
+		int eq = stmt.indexOf('=');
+		if (eq <= 0)
+			return java.util.Optional.empty();
+		int idEnd = parseIdentifierEnd(stmt, 0);
+		if (idEnd <= 0 || skipWhitespace(stmt, idEnd) != eq)
+			return java.util.Optional.empty();
+		String name = stmt.substring(0, idEnd).trim();
+		int pos = skipWhitespace(stmt, eq + 1);
+		Optional<String> rhsOpt = extractLetRhsValue(stmt, pos);
+		if (rhsOpt.isEmpty())
+			return java.util.Optional.empty();
+		String rhs = rhsOpt.get();
+		return java.util.Optional.of(applyAssignmentToEnv(env, name, rhs));
 	}
 
-	private Optional<Tuple2<String, String>> parseLetPart(String stmt) {
-		// stmt should start with "let "
+	/**
+	 * Parse let part and return ((isMut,name), rhs)
+	 */
+	private Optional<Tuple2<Tuple2<Boolean, String>, String>> parseLetPart(String stmt) {
+		// stmt should start with "let " or "let mut "
 		if (!stmt.startsWith("let "))
 			return Optional.empty();
 		int pos = 4;
+		boolean isMut = false;
+		if (stmt.startsWith("mut", pos) && pos + 3 <= stmt.length()
+				&& (pos + 3 == stmt.length() || Character.isWhitespace(stmt.charAt(pos + 3)))) {
+			isMut = true;
+			pos = skipWhitespace(stmt, pos + 3);
+		}
 		java.util.Optional<Tuple2<String, Tuple2<String, Integer>>> nameTypeOpt = parseLetNameAndOptionalType(stmt, pos);
 		if (nameTypeOpt.isEmpty())
 			return Optional.empty();
@@ -700,7 +773,7 @@ public class Interpreter {
 		Optional<String> valOpt = extractLetRhsValue(stmt, pos);
 		if (valOpt.isEmpty())
 			return Optional.empty();
-		return Optional.of(new Tuple2<>(name, valOpt.get()));
+		return Optional.of(new Tuple2<>(new Tuple2<>(isMut, name), valOpt.get()));
 	}
 
 	private Optional<String> extractLetRhsValue(String stmt, int pos) {
@@ -759,7 +832,8 @@ public class Interpreter {
 	}
 
 	private Optional<String> parseIfRhsValue(String stmt, int pos) {
-		if (!(stmt.startsWith("if", pos) && (pos + 2 == stmt.length() || Character.isWhitespace(stmt.charAt(pos + 2)) || stmt.charAt(pos + 2) == '(')))
+		if (!(stmt.startsWith("if", pos)
+				&& (pos + 2 == stmt.length() || Character.isWhitespace(stmt.charAt(pos + 2)) || stmt.charAt(pos + 2) == '(')))
 			return Optional.empty();
 		int p = skipWhitespace(stmt, pos + 2);
 		if (p >= stmt.length() || stmt.charAt(p) != '(')
@@ -818,7 +892,7 @@ public class Interpreter {
 	 * present.
 	 */
 	private Optional<String> parseLetRhs(String stmt) {
-		Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
+		Optional<Tuple2<Tuple2<Boolean, String>, String>> kvOpt = parseLetPart(stmt);
 		if (kvOpt.isEmpty())
 			return Optional.empty();
 		return Optional.of(kvOpt.get().second());
