@@ -17,12 +17,16 @@ public class Interpreter {
 	public Result<String, InterpretError> interpret(String input) {
 		if (input.isEmpty())
 			return new Ok<>("");
-	String trimmed = input.trim();
+		String trimmed = input.trim();
 		// block literal: { ... }
 		if (trimmed.startsWith("{") && trimmed.endsWith("}")) {
 			String inner = trimmed.substring(1, trimmed.length() - 1).trim();
 			return interpret(inner);
 		}
+
+		Optional<Result<String, InterpretError>> ifRes = handleIfExpression(trimmed);
+		if (ifRes.isPresent())
+			return ifRes.get();
 		// try let-binding like "let x : I32 = 10; x"
 		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(trimmed);
 		if (declRes.isPresent())
@@ -469,9 +473,26 @@ public class Interpreter {
 	private static java.util.List<String> splitRaw(String s, char delim) {
 		java.util.List<String> parts = new java.util.ArrayList<>();
 		int start = 0;
+		while (true) {
+			int idx = findTopLevelIndex(s, start, ch -> s.charAt(ch) == delim);
+			if (idx < 0)
+				break;
+			parts.add(s.substring(start, idx));
+			start = idx + 1;
+		}
+		parts.add(s.substring(start));
+		return parts;
+	}
+
+	/**
+	 * Find index at or after 'from' where the provided matcher holds and the
+	 * location is at top-level (not nested inside parentheses or braces). The
+	 * matcher receives the index to test. Returns -1 if none found.
+	 */
+	private static int findTopLevelIndex(String s, int from, java.util.function.IntPredicate matcher) {
 		int paren = 0;
 		int brace = 0;
-		for (int i = 0; i < s.length(); i++) {
+		for (int i = from; i < s.length(); i++) {
 			char c = s.charAt(i);
 			if (c == '(')
 				paren++;
@@ -481,13 +502,10 @@ public class Interpreter {
 				brace++;
 			else if (c == '}')
 				brace = Math.max(0, brace - 1);
-			if (c == delim && paren == 0 && brace == 0) {
-				parts.add(s.substring(start, i));
-				start = i + 1;
-			}
+			if (paren == 0 && brace == 0 && matcher.test(i))
+				return i;
 		}
-		parts.add(s.substring(start));
-		return parts;
+		return -1;
 	}
 
 	/**
@@ -522,6 +540,57 @@ public class Interpreter {
 			return Optional.of("ERR:" + er.error().display());
 		}
 		return Optional.empty();
+	}
+
+	/**
+	 * Find matching ')' starting at pos (where stmt.charAt(pos) == '(')
+	 */
+	private int findMatchingParen(String stmt, int pos) {
+		int depth = 1;
+		int i = pos + 1;
+		for (; i < stmt.length(); i++) {
+			char c = stmt.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	/**
+	 * Find the index of the 'else' keyword that is not nested inside parens or
+	 * braces, starting search from pos. Returns -1 if not found.
+	 */
+	private int findElseIndex(String s, int pos) {
+		return findTopLevelIndex(s, pos, i -> i + 4 <= s.length() && s.startsWith("else", i));
+	}
+
+	private Optional<Result<String, InterpretError>> handleIfExpression(String trimmed) {
+		if (!trimmed.startsWith("if "))
+			return Optional.empty();
+		int p = skipWhitespace(trimmed, 2);
+		if (p >= trimmed.length() || trimmed.charAt(p) != '(')
+			return Optional.empty();
+		int close = findMatchingParen(trimmed, p);
+		if (close <= p)
+			return Optional.empty();
+		String cond = trimmed.substring(p + 1, close).trim();
+		int after = skipWhitespace(trimmed, close + 1);
+		int elseIdx = findElseIndex(trimmed, after);
+		if (elseIdx <= after)
+			return Optional.empty();
+		String thenPart = trimmed.substring(after, elseIdx).trim();
+		int afterElse = skipWhitespace(trimmed, elseIdx + 4);
+		String elsePart = trimmed.substring(afterElse).trim();
+		if (cond.equals("true"))
+			return Optional.of(interpret(thenPart));
+		if (cond.equals("false"))
+			return Optional.of(interpret(elsePart));
+		return Optional.of(new Err<>(new InterpretError("Unsupported condition: " + cond)));
 	}
 
 	private Optional<Result<String, InterpretError>> handleSingleLet(String stmt) {
@@ -568,7 +637,7 @@ public class Interpreter {
 		// forms.
 		if (!(isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))))
 			return Optional.empty();
-	java.util.Map<String, String> env = new java.util.LinkedHashMap<>();
+		java.util.Map<String, String> env = new java.util.LinkedHashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, stmts.get(i));
 			if (perr.isEmpty())

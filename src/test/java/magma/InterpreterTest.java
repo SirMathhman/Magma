@@ -162,6 +162,11 @@ public class InterpreterTest {
 		assertInvalid("{let x = 0;} x");
 	}
 
+	@Test
+	void ifExpressionSimple() {
+		assertValid("if (true) 3 else 5", "3");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);
