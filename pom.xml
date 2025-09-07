@@ -62,9 +62,14 @@
 					<!-- prepare-agent sets ${jacocoArgLine} used by Surefire -->
 					<execution>
 						<id>prepare-agent</id>
+						<phase>initialize</phase>
 						<goals>
 							<goal>prepare-agent</goal>
 						</goals>
+						<configuration>
+							<!-- expose the agent JVM arg into the standard ${argLine} property so Surefire picks it up -->
+							<propertyName>argLine</propertyName>
+						</configuration>
 					</execution>
 					<!-- generate coverage report after tests -->
 					<execution>

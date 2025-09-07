@@ -47,6 +47,7 @@ public class Interpreter {
 			ri++;
 		if (ri == 0)
 			return false;
+
 		try {
 			long a = Long.parseLong(left.substring(0, li));
 			long b = Long.parseLong(right.substring(0, ri));
