@@ -11,4 +11,6 @@ Please follow these guidelines when making changes in this repository.
 
 - If a change affects behavior or migrations, add upgrade notes and backwards-compatibility considerations.
 
+- Do not add new tests unless explicitly instructed to do so. This project aims for 100% test coverage, which requires tests to cover all branches; only add tests when requested so contributors avoid introducing excessive or narrowly-scoped tests and instead focus on generalizable, well-covered implementations.
+
 Thank you for helping keep the project well-documented.
