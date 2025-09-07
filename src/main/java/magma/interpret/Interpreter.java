@@ -168,13 +168,14 @@ public class Interpreter {
 			return Optional.empty();
 		String name1 = s.substring(pos, idEnd);
 		pos = skipWhitespace(s, idEnd);
-		if (pos >= s.length() || s.charAt(pos) != ':')
-			return Optional.empty();
-		pos = skipWhitespace(s, pos + 1);
-		int typeEnd = parseAlnumEnd(s, pos);
-		if (typeEnd < 0)
-			return Optional.empty();
-		pos = skipWhitespace(s, typeEnd);
+		// optional type annotation: ": <type>"
+		if (pos < s.length() && s.charAt(pos) == ':') {
+			pos = skipWhitespace(s, pos + 1);
+			int typeEnd = parseAlnumEnd(s, pos);
+			if (typeEnd < 0)
+				return Optional.empty();
+			pos = skipWhitespace(s, typeEnd);
+		}
 		if (pos >= s.length() || s.charAt(pos) != '=')
 			return Optional.empty();
 		pos = skipWhitespace(s, pos + 1);
