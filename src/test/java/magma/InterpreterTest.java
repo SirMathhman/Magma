@@ -19,4 +19,13 @@ public class InterpreterTest {
 		String result = interpreter.interpret(input);
 		assertEquals(input, result);
 	}
+
+	@Test
+	public void interpretI32() {
+		Interpreter interpreter = new Interpreter();
+		String input = "5I32";
+		String expected = "5";
+		String result = interpreter.interpret(input);
+		assertEquals(expected, result);
+	}
 }
