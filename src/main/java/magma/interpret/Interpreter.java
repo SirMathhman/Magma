@@ -195,7 +195,35 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> handleFunctionDeclarations(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
-		// final should be a call like name(arg)
+		Optional<Tuple2<String, String>> callOpt = parseFunctionCall(finalPart);
+		if (callOpt.isEmpty())
+			return Optional.empty();
+		String callName = callOpt.get().first();
+		String callArg = callOpt.get().second();
+
+		Optional<FnCollectResult> coll = collectFunctions(stmts);
+		if (coll.isEmpty())
+			return Optional.empty();
+		FnCollectResult collRes = coll.get();
+		if (collRes.error().isPresent())
+			return Optional.of(new Err<>(collRes.error().get()));
+		java.util.Map<String, Tuple2<String, String>> fns = collRes.fns();
+
+		if (!fns.containsKey(callName))
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
+		Tuple2<String, String> fn = fns.get(callName);
+		String paramName = fn.first();
+		String retExpr = fn.second();
+		// delegate evaluation cases
+		if (paramName.isEmpty())
+			return evaluateZeroArgFunctionBody(fns, retExpr);
+		if (retExpr.equals(paramName))
+			return callArg.isEmpty() ? Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)))
+					: Optional.of(new Ok<>(callArg));
+		return evaluateReturnExprAsOptional(fns, retExpr);
+	}
+
+	private Optional<Tuple2<String, String>> parseFunctionCall(String finalPart) {
 		int p = parseIdentifierEnd(finalPart, 0);
 		if (p < 0)
 			return Optional.empty();
@@ -204,7 +232,6 @@ public class Interpreter {
 		if (p >= finalPart.length() || finalPart.charAt(p) != '(')
 			return Optional.empty();
 		p = skipWhitespace(finalPart, p + 1);
-		// parse single argument (either digits or identifier) or empty
 		String callArg = "";
 		if (p < finalPart.length() && finalPart.charAt(p) != ')') {
 			if (Character.isDigit(finalPart.charAt(p))) {
@@ -226,7 +253,17 @@ public class Interpreter {
 		p = skipWhitespace(finalPart, p + 1);
 		if (p != finalPart.length())
 			return Optional.empty();
+		return Optional.of(new Tuple2<>(callName, callArg));
+	}
 
+	/**
+	 * Helper result for collectFunctions to avoid exposing wildcard generics.
+	 */
+	private static record FnCollectResult(java.util.Map<String, Tuple2<String, String>> fns,
+			java.util.Optional<InterpretError> error) {
+	}
+
+	private Optional<FnCollectResult> collectFunctions(java.util.List<String> stmts) {
 		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
@@ -237,10 +274,10 @@ public class Interpreter {
 				Tuple2<String, Tuple2<String, String>> fn = fnOpt.get();
 				String name = fn.first();
 				if (fns.containsKey(name))
-					return Optional.of(new Err<>(new InterpretError("Duplicate function declaration: " + name)));
+					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
+							java.util.Optional.of(new InterpretError("Duplicate function declaration: " + name))));
 				fns.put(name, fn.second());
 			} else if (stmt.startsWith("let ")) {
-				// validate let statements but ignore bindings here
 				Optional<Tuple2<String, String>> kv = parseLetPart(stmt);
 				if (kv.isEmpty())
 					return Optional.empty();
@@ -248,35 +285,19 @@ public class Interpreter {
 				return Optional.empty();
 			}
 		}
-		if (!fns.containsKey(callName))
-			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
-		Tuple2<String, String> fn = fns.get(callName);
-		String paramName = fn.first();
-		String retExpr = fn.second();
-		if (paramName.isEmpty()) {
-			// no param
-			if (retExpr.startsWith("CALL:")) {
-				String target = retExpr.substring(5);
-				return Optional.of(resolveFunctionValue(fns, target, new java.util.HashSet<>()));
-			}
-			if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
-				return Optional.of(new Ok<>(retExpr));
-			return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
-		}
-		// param present: if return expression equals the param name, return the callArg
-		if (retExpr.equals(paramName)) {
-			if (callArg.isEmpty())
-				return Optional.of(new Err<>(new InterpretError("Missing argument for call: " + callName)));
-			return Optional.of(new Ok<>(callArg));
-		}
-		// param present but body is a call to other function returning literal
-		if (retExpr.startsWith("CALL:")) {
-			String target = retExpr.substring(5);
-			// cannot forward call to a function that expects a parameter in this simplistic
-			// model
-			return Optional.of(resolveFunctionValue(fns, target, new java.util.HashSet<>()));
-		}
-		// otherwise if retExpr is numeric literal, return it
+		return Optional.of(new FnCollectResult(fns, java.util.Optional.empty()));
+	}
+
+	private Optional<Result<String, InterpretError>> evaluateZeroArgFunctionBody(
+			java.util.Map<String, Tuple2<String, String>> fns,
+			String retExpr) {
+		return evaluateReturnExprAsOptional(fns, retExpr);
+	}
+
+	private Optional<Result<String, InterpretError>> evaluateReturnExprAsOptional(
+			java.util.Map<String, Tuple2<String, String>> fns, String retExpr) {
+		if (retExpr.startsWith("CALL:"))
+			return Optional.of(resolveFunctionValue(fns, retExpr.substring(5), new java.util.HashSet<>()));
 		if (!retExpr.isEmpty() && Character.isDigit(retExpr.charAt(0)))
 			return Optional.of(new Ok<>(retExpr));
 		return Optional.of(new Err<>(new InterpretError("Unsupported function body: " + retExpr)));
@@ -305,6 +326,66 @@ public class Interpreter {
 	 * Returns (name, returnValue)
 	 */
 	private Optional<Tuple2<String, Tuple2<String, String>>> parseFnPart(String stmt) {
+		var header = parseFnHeader(stmt);
+		if (header.isEmpty())
+			return Optional.empty();
+		String name = header.get().first();
+		int pos = header.get().second().second();
+		String paramName = header.get().second().first();
+
+		var tail = parseFnTail(stmt, pos);
+		if (tail.isEmpty())
+			return Optional.empty();
+		String typeTok = tail.get().first();
+		String retExpr = tail.get().second().first();
+		// if declared return type is Bool and retExpr is numeric, that's a mismatch;
+		// return empty body to signal later
+		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B' && !retExpr.isEmpty()
+				&& Character.isDigit(retExpr.charAt(0))) {
+			return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, "")));
+		}
+		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, retExpr)));
+	}
+
+	private Optional<Tuple2<String, Tuple2<String, Integer>>> parseFnTail(String stmt, int pos) {
+		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
+		if (typeOpt.isEmpty())
+			return Optional.empty();
+		String typeTok = typeOpt.get().first();
+		int npos = typeOpt.get().second();
+		if (npos + 1 >= stmt.length() || stmt.charAt(npos) != '=' || stmt.charAt(npos + 1) != '>')
+			return Optional.empty();
+		npos = skipWhitespace(stmt, npos + 2);
+		if (npos >= stmt.length())
+			return Optional.empty();
+		var rhsRes = parseFnRhs(stmt, npos);
+		if (rhsRes.isEmpty())
+			return Optional.empty();
+		String retExpr = rhsRes.get().first();
+		int end = rhsRes.get().second();
+		if (end != stmt.length())
+			return Optional.empty();
+		return Optional.of(new Tuple2<>(typeTok, new Tuple2<>(retExpr, end)));
+	}
+
+	private Optional<InterpretError> applyLetToEnv(java.util.Map<String, String> env, String name, String rhs) {
+		if (rhs.isEmpty())
+			return java.util.Optional.of(new InterpretError("Empty RHS"));
+		if (Character.isDigit(rhs.charAt(0))) {
+			env.put(name, rhs);
+			return java.util.Optional.empty();
+		}
+		if (!env.containsKey(rhs))
+			return java.util.Optional.of(new InterpretError("Unbound identifier: " + rhs));
+		env.put(name, env.get(rhs));
+		return java.util.Optional.empty();
+	}
+
+	/**
+	 * Parse function header "fn name(param : Type)" and return
+	 * (name,(paramName,posAfterParen))
+	 */
+	private Optional<Tuple2<String, Tuple2<String, Integer>>> parseFnHeader(String stmt) {
 		if (!stmt.startsWith("fn "))
 			return Optional.empty();
 		int pos = 3;
@@ -316,69 +397,62 @@ public class Interpreter {
 		if (pos >= stmt.length() || stmt.charAt(pos) != '(')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
-		// optional single parameter: parse identifier and optional type
 		String paramName = "";
 		if (pos < stmt.length() && stmt.charAt(pos) != ')') {
-			int pend = parseIdentifierEnd(stmt, pos);
-			if (pend < 0)
+			Optional<Tuple2<String, Integer>> p = parseFnParam(stmt, pos);
+			if (p.isEmpty())
 				return Optional.empty();
-			paramName = stmt.substring(pos, pend);
-			pos = skipWhitespace(stmt, pend);
-			// optional parameter type
-			java.util.Optional<Tuple2<String, Integer>> pTypeOpt = parseOptionalType(stmt, pos);
-			if (pTypeOpt.isEmpty())
-				return Optional.empty();
-			pos = pTypeOpt.get().second();
+			paramName = p.get().first();
+			pos = p.get().second();
 		}
 		if (pos >= stmt.length() || stmt.charAt(pos) != ')')
 			return Optional.empty();
 		pos = skipWhitespace(stmt, pos + 1);
-		// optional return type
-		java.util.Optional<Tuple2<String, Integer>> typeOpt = parseOptionalType(stmt, pos);
-		if (typeOpt.isEmpty())
+		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, pos)));
+	}
+
+	/**
+	 * Parse optional fn parameter name and return pair (name, posAfter)
+	 */
+	private Optional<Tuple2<String, Integer>> parseFnParam(String stmt, int pos) {
+		if (pos >= stmt.length() || stmt.charAt(pos) == ')')
+			return Optional.of(new Tuple2<>("", pos));
+		int pend = parseIdentifierEnd(stmt, pos);
+		if (pend < 0)
 			return Optional.empty();
-		String typeTok = typeOpt.get().first();
-		pos = typeOpt.get().second();
-		// expect =>
-		if (pos + 1 >= stmt.length() || stmt.charAt(pos) != '=' || stmt.charAt(pos + 1) != '>')
+		String name = stmt.substring(pos, pend);
+		int npos = skipWhitespace(stmt, pend);
+		java.util.Optional<Tuple2<String, Integer>> pTypeOpt = parseOptionalType(stmt, npos);
+		if (pTypeOpt.isEmpty())
 			return Optional.empty();
-		pos = skipWhitespace(stmt, pos + 2);
+		return Optional.of(new Tuple2<>(name, pTypeOpt.get().second()));
+	}
+
+	/**
+	 * Parse fn RHS: numeric literal or identifier/call. Returns (expr, posAfter)
+	 */
+	private Optional<Tuple2<String, Integer>> parseFnRhs(String stmt, int pos) {
 		if (pos >= stmt.length())
 			return Optional.empty();
-		// rhs may be numeric literal, identifier (e.g., param), or a call name()
-		String retExpr;
 		if (Character.isDigit(stmt.charAt(pos))) {
 			int vEnd = parseDigitsEnd(stmt, pos);
 			if (vEnd < 0)
 				return Optional.empty();
-			retExpr = stmt.substring(pos, vEnd);
-			pos = skipWhitespace(stmt, vEnd);
-		} else {
-			int rEnd = parseIdentifierEnd(stmt, pos);
-			if (rEnd < 0)
-				return Optional.empty();
-			String ident = stmt.substring(pos, rEnd);
-			pos = skipWhitespace(stmt, rEnd);
-			// optional call form ident()
-			if (pos < stmt.length() && stmt.charAt(pos) == '(') {
-				int pp = skipWhitespace(stmt, pos + 1);
-				if (pp >= stmt.length() || stmt.charAt(pp) != ')')
-					return Optional.empty();
-				pos = skipWhitespace(stmt, pp + 1);
-				retExpr = "CALL:" + ident;
-			} else {
-				retExpr = ident;
-			}
+			String ret = stmt.substring(pos, vEnd);
+			return Optional.of(new Tuple2<>(ret, skipWhitespace(stmt, vEnd)));
 		}
-		if (pos != stmt.length())
+		int rEnd = parseIdentifierEnd(stmt, pos);
+		if (rEnd < 0)
 			return Optional.empty();
-		// if declared return type is Bool and retExpr is numeric, that's a mismatch;
-		// return empty body to signal later
-		if (!typeTok.isEmpty() && Character.toUpperCase(typeTok.charAt(0)) == 'B' && !retExpr.isEmpty()
-				&& Character.isDigit(retExpr.charAt(0))) {
-			return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, "")));
+		String ident = stmt.substring(pos, rEnd);
+		int npos = skipWhitespace(stmt, rEnd);
+		if (npos < stmt.length() && stmt.charAt(npos) == '(') {
+			int pp = skipWhitespace(stmt, npos + 1);
+			if (pp >= stmt.length() || stmt.charAt(pp) != ')')
+				return Optional.empty();
+			return Optional.of(new Tuple2<>("CALL:" + ident, skipWhitespace(stmt, pp + 1)));
 		}
-		return Optional.of(new Tuple2<>(name, new Tuple2<>(paramName, retExpr)));
+		return Optional.of(new Tuple2<>(ident, npos));
 	}
 
 	private static java.util.List<String> splitStatements(String s) {
@@ -414,6 +488,40 @@ public class Interpreter {
 		}
 		parts.add(s.substring(start));
 		return parts;
+	}
+
+	/**
+	 * Find index of matching '}' starting at pos (where stmt.charAt(pos) == '{')
+	 */
+	private int findMatchingBrace(String stmt, int pos) {
+		int depth = 1;
+		int i = pos + 1;
+		for (; i < stmt.length(); i++) {
+			char cc = stmt.charAt(i);
+			if (cc == '{')
+				depth++;
+			else if (cc == '}') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	private Optional<String> parseBlockRhs(String stmt, int pos) {
+		int end = findMatchingBrace(stmt, pos);
+		if (end < 0)
+			return Optional.empty();
+		String inner = stmt.substring(pos + 1, end).trim();
+		Result<String, InterpretError> r = interpret(inner);
+		if (r instanceof Ok<String, InterpretError> ok) {
+			return Optional.of(ok.value());
+		}
+		if (r instanceof Err<String, InterpretError> er) {
+			return Optional.of("ERR:" + er.error().display());
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Result<String, InterpretError>> handleSingleLet(String stmt) {
@@ -455,32 +563,36 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> handleMultipleLets(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
-		int fend = parseIdentifierEnd(finalPart, 0);
-		if (fend < 0 || skipWhitespace(finalPart, fend) != finalPart.length())
+		if (!isSingleIdentifier(finalPart))
 			return Optional.empty();
 		java.util.Map<String, String> env = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
-			String stmt = stmts.get(i);
-			Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
-			if (kvOpt.isEmpty())
+			java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, stmts.get(i));
+			if (perr.isEmpty())
 				return Optional.empty();
-			Tuple2<String, String> kv = kvOpt.get();
-			String name = kv.first();
-			String rhs = kv.second();
-			if (rhs.isEmpty())
-				return Optional.empty();
-			if (Character.isDigit(rhs.charAt(0))) {
-				env.put(name, rhs);
-			} else {
-				if (!env.containsKey(rhs))
-					return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + rhs)));
-				env.put(name, env.get(rhs));
-			}
+			if (perr.get().isPresent())
+				return Optional.of(new Err<>(perr.get().get()));
 		}
 		String finalName = finalPart;
 		if (!env.containsKey(finalName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalName)));
 		return Optional.of(new Ok<>(env.get(finalName)));
+	}
+
+	private static boolean isSingleIdentifier(String s) {
+		int fend = parseIdentifierEnd(s, 0);
+		return fend > 0 && skipWhitespace(s, fend) == s.length();
+	}
+
+	private java.util.Optional<java.util.Optional<InterpretError>> processLetStmt(java.util.Map<String, String> env,
+			String stmt) {
+		Optional<Tuple2<String, String>> kvOpt = parseLetPart(stmt);
+		if (kvOpt.isEmpty())
+			return java.util.Optional.empty(); // signal parse failure
+		Tuple2<String, String> kv = kvOpt.get();
+		String name = kv.first();
+		String rhs = kv.second();
+		return java.util.Optional.of(applyLetToEnv(env, name, rhs));
 	}
 
 	private Optional<Tuple2<String, String>> parseLetPart(String stmt) {
@@ -499,67 +611,56 @@ public class Interpreter {
 		pos = skipWhitespace(stmt, pos + 1);
 		if (pos >= stmt.length())
 			return Optional.empty();
+		Optional<String> valOpt = extractLetRhsValue(stmt, pos);
+		if (valOpt.isEmpty())
+			return Optional.empty();
+		return Optional.of(new Tuple2<>(name, valOpt.get()));
+	}
+
+	private Optional<String> extractLetRhsValue(String stmt, int pos) {
+		if (pos >= stmt.length())
+			return Optional.empty();
 		// rhs is either digits, a block, boolean, or identifier
 		if (stmt.charAt(pos) == '{') {
-			// find matching '}' accounting for nested braces
-			int depth = 1;
-			int end = pos + 1;
-			for (; end < stmt.length(); end++) {
-				char cc = stmt.charAt(end);
-				if (cc == '{')
-					depth++;
-				else if (cc == '}') {
-					depth--;
-					if (depth == 0)
-						break;
-				}
-			}
-			if (end >= stmt.length() || stmt.charAt(end) != '}')
+			Optional<String> blockVal = parseBlockRhs(stmt, pos);
+			if (blockVal.isEmpty())
 				return Optional.empty();
-			String inner = stmt.substring(pos + 1, end).trim();
-			// evaluate inner
-			Result<String, InterpretError> r = interpret(inner);
-			String val;
-			if (r instanceof Ok<String, InterpretError> ok) {
-				val = ok.value();
-			} else if (r instanceof Err<String, InterpretError> err) {
-				return Optional.of(new Tuple2<>(stmt.substring(4, 4), "ERR:" + err.error().display()));
-			} else {
+			String val = blockVal.get();
+			int end = findMatchingBrace(stmt, pos);
+			if (end < 0)
 				return Optional.empty();
-			}
-			pos = skipWhitespace(stmt, end + 1);
-			if (pos != stmt.length())
+			int npos = skipWhitespace(stmt, end + 1);
+			if (npos != stmt.length())
 				return Optional.empty();
-			return Optional.of(new Tuple2<>(name, val));
+			return Optional.of(val);
 		}
 
 		if (Character.isDigit(stmt.charAt(pos))) {
 			int vEnd = parseDigitsEnd(stmt, pos);
 			if (vEnd < 0)
 				return Optional.empty();
-			String val = stmt.substring(pos, vEnd);
-			pos = skipWhitespace(stmt, vEnd);
-			if (pos != stmt.length())
+			int npos = skipWhitespace(stmt, vEnd);
+			if (npos != stmt.length())
 				return Optional.empty();
-			return Optional.of(new Tuple2<>(name, val));
-		} else if (stmt.startsWith("true", pos) || stmt.startsWith("false", pos)) {
+			return Optional.of(stmt.substring(pos, vEnd));
+		}
+
+		if (stmt.startsWith("true", pos) || stmt.startsWith("false", pos)) {
 			int len = stmt.startsWith("true", pos) ? 4 : 5;
 			int vEnd = pos + len;
-			String val = stmt.substring(pos, vEnd);
-			pos = skipWhitespace(stmt, vEnd);
-			if (pos != stmt.length())
+			int npos = skipWhitespace(stmt, vEnd);
+			if (npos != stmt.length())
 				return Optional.empty();
-			return Optional.of(new Tuple2<>(name, val));
-		} else {
-			int rEnd = parseIdentifierEnd(stmt, pos);
-			if (rEnd < 0)
-				return Optional.empty();
-			String rhs = stmt.substring(pos, rEnd);
-			pos = skipWhitespace(stmt, rEnd);
-			if (pos != stmt.length())
-				return Optional.empty();
-			return Optional.of(new Tuple2<>(name, rhs));
+			return Optional.of(stmt.substring(pos, vEnd));
 		}
+
+		int rEnd = parseIdentifierEnd(stmt, pos);
+		if (rEnd < 0)
+			return Optional.empty();
+		int npos = skipWhitespace(stmt, rEnd);
+		if (npos != stmt.length())
+			return Optional.empty();
+		return Optional.of(stmt.substring(pos, rEnd));
 	}
 
 	/**
