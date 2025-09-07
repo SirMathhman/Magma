@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 
 import magma.compiler.Compiler;
+import magma.compiler.CompileError;
 import magma.model.Location;
 import magma.util.Tuple;
 import magma.util.Result;
@@ -52,7 +53,13 @@ public class Main {
 
 		// Delegate to Compiler
 		Compiler compiler = new Compiler();
-		Map<Location, Tuple<String, String>> compiled = compiler.compile(sources);
+		var compileResult = compiler.compile(sources);
+		if (compileResult.isErr()) {
+			CompileError ce = compileResult.getErrOrElse(new CompileError("absent", ""));
+			System.err.println("Compilation failed: " + ce.message());
+			System.exit(1);
+		}
+		Map<Location, Tuple<String, String>> compiled = compileResult.getOrElse(new HashMap<>());
 
 		Result<Path, String> wrote = writeOutputs(compiled, dst);
 		if (wrote.isErr()) {

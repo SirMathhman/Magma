@@ -2,6 +2,7 @@ package magma.compiler;
 
 import magma.model.Location;
 import magma.util.Tuple;
+import magma.util.Result;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -20,7 +21,7 @@ public class Compiler {
 	 * hContent).
 	 * The Tuple contains (cContent, hContent) in that order.
 	 */
-	public Map<Location, Tuple<String, String>> compile(Map<Location, String> sources) {
+	public Result<Map<Location, Tuple<String, String>>, CompileError> compile(Map<Location, String> sources) {
 		Map<Location, Tuple<String, String>> out = new HashMap<>();
 
 		for (Map.Entry<Location, String> e : sources.entrySet()) {
@@ -42,7 +43,7 @@ public class Compiler {
 			out.put(loc, Tuple.of(c, header));
 		}
 
-		return out;
+		return new Result.Ok<>(out);
 	}
 
 	private static String makeGuard(Location loc) {
