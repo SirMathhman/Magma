@@ -330,14 +330,13 @@ public class Interpreter {
 			return Optional.empty();
 		}
 
-		// Determine if both operators are present; we only handle true mixed forms here
-		boolean hasPlus = input.indexOf('+') >= 0;
-		boolean hasMinus = input.indexOf('-') >= 0;
-		if (!(hasPlus && hasMinus)) {
+		// Determine if we have at least two different operator kinds (+, -, *)
+		int kinds = countOperatorKinds(input);
+		if (kinds < 2) {
 			return Optional.empty();
 		}
 
-		Optional<MixedParts> mpOpt = buildMixedParts(input);
+		Optional<MixedParts> mpOpt = tokenizeMixedParts(input);
 		if (mpOpt.isEmpty())
 			return Optional.empty();
 		MixedParts mp = mpOpt.get();
@@ -345,34 +344,81 @@ public class Interpreter {
 		java.util.List<Character> ops = mp.ops();
 		java.util.List<Integer> partStarts = mp.partStarts();
 
-		Optional<String> commonSuffix = Optional.empty();
-		OperationContext ctx = new OperationContext(parts, partStarts, commonSuffix);
-		// first operand
-		ProcessResult p0 = processPartForOp(input, ctx, 0);
-		if (p0.error().isPresent())
-			return p0.error();
-		long acc = p0.value().get();
-		ctx = new OperationContext(parts, partStarts, p0.commonSuffix());
-
-		for (int i = 0; i < ops.size(); i++) {
-			char op = ops.get(i);
-			ProcessResult pr = processPartForOp(input, ctx, i + 1);
-			if (pr.error().isPresent())
-				return pr.error();
-			long v = pr.value().get();
-			if (op == '+') {
-				acc += v;
-			} else {
-				acc -= v;
-			}
-			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
+		ParseOperandsResult por = parseOperands(input, parts, partStarts);
+		if (por.error().isPresent()) {
+			return por.error();
 		}
+		java.util.List<Long> values = por.operands().get().values();
+
+		// Apply '*' precedence: collapse multiplications first into a new values/ops
+		// list
+		long acc = evaluateWithPrecedence(values, ops);
 
 		return Optional.of(new Ok<>(String.valueOf(acc)));
 	}
 
+	private static record Operands(java.util.List<Long> values, java.util.List<Optional<String>> suffixes,
+			Optional<String> commonSuffix) {
+	}
+
+	private static record ParseOperandsResult(java.util.Optional<Operands> operands,
+			Optional<Result<String, InterpretError>> error) {
+	}
+
+	private ParseOperandsResult parseOperands(String input, java.util.List<String> parts,
+			java.util.List<Integer> partStarts) {
+		java.util.List<Long> values = new java.util.ArrayList<>();
+		java.util.List<Optional<String>> suffixes = new java.util.ArrayList<>();
+		Optional<String> commonSuffix = Optional.empty();
+		OperationContext ctx = new OperationContext(parts, partStarts, commonSuffix);
+		for (int i = 0; i < parts.size(); i++) {
+			ProcessResult pr = processPartForOp(input, ctx, i);
+			if (pr.error().isPresent()) {
+				return new ParseOperandsResult(Optional.empty(), pr.error());
+			}
+			values.add(pr.value().get());
+			suffixes.add(pr.commonSuffix());
+			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
+		}
+		Operands ops = new Operands(values, suffixes, ctx.commonSuffix());
+		return new ParseOperandsResult(Optional.of(ops), Optional.empty());
+	}
+
+	private long evaluateWithPrecedence(java.util.List<Long> values, java.util.List<Character> ops) {
+		java.util.List<Long> collapsedValues = new java.util.ArrayList<>();
+		java.util.List<Character> remainingOps = new java.util.ArrayList<>();
+		long cur = values.get(0);
+		for (int i = 0; i < ops.size(); i++) {
+			char op = ops.get(i);
+			long nextVal = values.get(i + 1);
+			if (op == '*') {
+				cur = cur * nextVal;
+			} else {
+				collapsedValues.add(cur);
+				remainingOps.add(op);
+				cur = nextVal;
+			}
+		}
+		collapsedValues.add(cur);
+
+		long acc = collapsedValues.get(0);
+		for (int i = 0; i < remainingOps.size(); i++) {
+			char op = remainingOps.get(i);
+			long v = collapsedValues.get(i + 1);
+			if (op == '+')
+				acc += v;
+			else
+				acc -= v;
+		}
+		return acc;
+	}
+
 	private Optional<Result<String, InterpretError>> tryParseMultiplication(String input) {
+		// only handle pure multiplication (no + or -); mixed cases handled by mixed
+		// parser
 		if (input.indexOf('*') < 0)
+			return Optional.empty();
+		if (input.indexOf('+') >= 0 || input.indexOf('-') >= 0)
 			return Optional.empty();
 
 		java.util.List<String> parts = splitParts(input, '*');
@@ -396,29 +442,77 @@ public class Interpreter {
 			java.util.List<Integer> partStarts) {
 	}
 
-	private Optional<MixedParts> buildMixedParts(String input) {
-		boolean hasPlus = input.indexOf('+') >= 0;
-		boolean hasMinus = input.indexOf('-') >= 0;
-		if (!(hasPlus && hasMinus)) {
+	// Tokenize input into parts (operands), operators, and part start indices.
+	// Simpler implementation that finds operator indices and slices the input
+	// to reduce branching and keep cyclomatic complexity low.
+	private Optional<MixedParts> tokenizeMixedParts(String input) {
+		int len = input.length();
+		int kinds = countOperatorKinds(input);
+		if (kinds < 2)
 			return Optional.empty();
-		}
+
 		java.util.List<String> parts = new java.util.ArrayList<>();
 		java.util.List<Character> ops = new java.util.ArrayList<>();
 		java.util.List<Integer> partStarts = new java.util.ArrayList<>();
-		int start = 0;
-		for (int i = 0; i < input.length(); i++) {
-			char c = input.charAt(i);
-			if (c == '+' || c == '-') {
-				parts.add(input.substring(start, i).trim());
-				ops.add(c);
-				partStarts.add(start);
-				start = i + 1;
+
+		int pos = 0;
+		while (pos < len) {
+			int nextOp = findNextOperatorFrom(input, pos);
+			if (nextOp < 0) {
+				// last part
+				String token = input.substring(pos).trim();
+				if (!token.isEmpty()) {
+					int firstNonSpace = firstNonSpaceIndex(input, pos);
+					parts.add(token);
+					partStarts.add(firstNonSpace);
+				}
+				break;
+			} else {
+				String token = input.substring(pos, nextOp).trim();
+				if (!token.isEmpty()) {
+					int firstNonSpace = firstNonSpaceIndex(input, pos);
+					parts.add(token);
+					partStarts.add(firstNonSpace);
+				}
+				ops.add(input.charAt(nextOp));
+				pos = nextOp + 1;
 			}
 		}
-		parts.add(input.substring(start).trim());
-		partStarts.add(start);
+
 		if (parts.size() < 2)
 			return Optional.empty();
 		return Optional.of(new MixedParts(parts, ops, partStarts));
+	}
+
+	private int countOperatorKinds(String input) {
+		int kinds = 0;
+		if (input.indexOf('+') >= 0)
+			kinds++;
+		if (input.indexOf('-') >= 0)
+			kinds++;
+		if (input.indexOf('*') >= 0)
+			kinds++;
+		return kinds;
+	}
+
+	private int findNextOperatorFrom(String input, int from) {
+		int p = input.indexOf('+', from);
+		int m = input.indexOf('-', from);
+		int s = input.indexOf('*', from);
+		int best = -1;
+		if (p >= 0)
+			best = p;
+		if (m >= 0 && (best < 0 || m < best))
+			best = m;
+		if (s >= 0 && (best < 0 || s < best))
+			best = s;
+		return best;
+	}
+
+	private int firstNonSpaceIndex(String input, int from) {
+		int i = from;
+		while (i < input.length() && Character.isWhitespace(input.charAt(i)))
+			i++;
+		return i;
 	}
 }

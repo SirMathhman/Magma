@@ -91,6 +91,12 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpretMultiplicationThenAdd() {
+		// multiplication has higher precedence: (3 * 7) + 1 => 22
+		assertValid("3 * 7 + 1", "22");
+	}
+
+	@Test
 	public void interpretAdditionMismatchedSuffixes() {
 		assertErrDisplay("2U8 + 10I32", """
 				Mismatched operand types.
