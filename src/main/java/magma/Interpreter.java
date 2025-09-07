@@ -72,45 +72,28 @@ public class Interpreter {
 
 		long sum = 0L;
 		Optional<String> commonSuffix = Optional.empty();
+		OperationContext ctx = new OperationContext(parts, partStarts, commonSuffix);
 		for (int idx = 0; idx < parts.size(); idx++) {
-			String part = parts.get(idx);
-			if (part.isEmpty()) {
-				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+			ProcessResult pr = processPartForOp(input, ctx, idx);
+			if (pr.error().isPresent()) {
+				return pr.error();
 			}
-			Optional<String> sfxOpt = findSuffix(part);
-			String core = part;
-			if (sfxOpt.isPresent()) {
-				String sfx = sfxOpt.get();
-				core = part.substring(0, part.length() - sfx.length()).trim();
-				if (core.isEmpty()) {
-					return Optional.of(new Err<>(new InterpretError("Invalid operand")));
-				}
-				if (commonSuffix.isPresent() && !commonSuffix.get().equals(sfx)) {
-					MismatchContext ctx = new MismatchContext(parts, partStarts, idx, sfx, commonSuffix.get());
-					Optional<String> msg = buildMismatchedSuffixMessage(input, ctx);
-					if (msg.isPresent()) {
-						return Optional.of(new Err<>(new InterpretError(msg.get())));
-					}
-				}
-				if (!commonSuffix.isPresent()) {
-					commonSuffix = sfxOpt;
-				}
-			}
-			if (!isDigits(core)) {
-				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
-			}
-			long v = Long.parseLong(core);
-			sum += v;
+			sum += pr.value().get();
+			ctx = new OperationContext(parts, partStarts, pr.commonSuffix());
 		}
 
 		return Optional.of(new Ok<>(String.valueOf(sum)));
 	}
 
 	private java.util.List<String> splitParts(String input) {
+		return splitParts(input, '+');
+	}
+
+	private java.util.List<String> splitParts(String input, char delimiter) {
 		java.util.List<String> parts = new java.util.ArrayList<>();
 		int start = 0;
 		for (int idx = 0; idx < input.length(); idx++) {
-			if (input.charAt(idx) == '+') {
+			if (input.charAt(idx) == delimiter) {
 				parts.add(input.substring(start, idx).trim());
 				start = idx + 1;
 			}
@@ -120,16 +103,72 @@ public class Interpreter {
 	}
 
 	private java.util.List<Integer> splitPartStarts(String input) {
+		return splitPartStarts(input, '+');
+	}
+
+	private java.util.List<Integer> splitPartStarts(String input, char delimiter) {
 		java.util.List<Integer> starts = new java.util.ArrayList<>();
 		int start = 0;
 		for (int idx = 0; idx < input.length(); idx++) {
-			if (input.charAt(idx) == '+') {
+			if (input.charAt(idx) == delimiter) {
 				starts.add(start);
 				start = idx + 1;
 			}
 		}
 		starts.add(start);
 		return starts;
+	}
+
+	private static record PartInfo(String core, Optional<String> suffix) {
+	}
+
+	private PartInfo parsePart(String part) {
+		Optional<String> sfxOpt = findSuffix(part);
+		String core = part;
+		if (sfxOpt.isPresent()) {
+			String sfx = sfxOpt.get();
+			core = part.substring(0, part.length() - sfx.length()).trim();
+		}
+		return new PartInfo(core, sfxOpt);
+	}
+
+	private static record OperationContext(java.util.List<String> parts, java.util.List<Integer> partStarts,
+			Optional<String> commonSuffix) {
+	}
+
+	private static record ProcessResult(Optional<Long> value, Optional<String> commonSuffix,
+			Optional<Result<String, InterpretError>> error) {
+	}
+
+	private ProcessResult processPartForOp(String input, OperationContext ctx, int idx) {
+		String part = ctx.parts().get(idx);
+		if (part.isEmpty())
+			return new ProcessResult(Optional.empty(), ctx.commonSuffix(),
+					Optional.of(new Err<>(new InterpretError("Invalid operand"))));
+		PartInfo info = parsePart(part);
+		String core = info.core();
+		Optional<String> sfxOpt = info.suffix();
+		Optional<String> newCommon = ctx.commonSuffix();
+		if (sfxOpt.isPresent()) {
+			String sfx = sfxOpt.get();
+			if (core.isEmpty())
+				return new ProcessResult(Optional.empty(), newCommon,
+						Optional.of(new Err<>(new InterpretError("Invalid operand"))));
+			if (newCommon.isPresent() && !newCommon.get().equals(sfx)) {
+				MismatchContext mctx = new MismatchContext(ctx.parts(), ctx.partStarts(), idx, sfx, newCommon.get());
+				Optional<Result<String, InterpretError>> maybe = handleSuffixMismatch(input, mctx);
+				if (maybe.isPresent()) {
+					return new ProcessResult(Optional.empty(), newCommon, maybe);
+				}
+			}
+			if (!newCommon.isPresent())
+				newCommon = sfxOpt;
+		}
+		if (!isDigits(core))
+			return new ProcessResult(Optional.empty(), newCommon,
+					Optional.of(new Err<>(new InterpretError("Invalid operand"))));
+		long v = Long.parseLong(core);
+		return new ProcessResult(Optional.of(v), newCommon, Optional.empty());
 	}
 
 	private boolean isDigits(String s) {
@@ -205,6 +244,19 @@ public class Interpreter {
 		return Optional.empty();
 	}
 
+	private Optional<Result<String, InterpretError>> handleSuffixMismatch(String input, MismatchContext ctx) {
+		// If there's no existing common suffix, nothing to do.
+		if (ctx.other().isEmpty()) {
+			return Optional.empty();
+		}
+		// If the other suffix is present and different, build the detailed message
+		Optional<String> msg = buildMismatchedSuffixMessage(input, ctx);
+		if (msg.isPresent()) {
+			return Optional.of(new Err<>(new InterpretError(msg.get())));
+		}
+		return Optional.empty();
+	}
+
 	private Optional<String> tryStripSuffix(String input) {
 		String[] suffixes = new String[] { "I8", "I16", "I32", "I64", "U8", "U16", "U32", "U64" };
 		for (String sfx : suffixes) {
@@ -216,32 +268,46 @@ public class Interpreter {
 	}
 
 	private Optional<Result<String, InterpretError>> tryParseSubtraction(String input) {
-		int dash = input.indexOf('-');
-		if (dash < 0)
+		// split on '-' to support chained subtraction
+		java.util.List<String> parts = splitParts(input, '-');
+		java.util.List<Integer> partStarts = splitPartStarts(input, '-');
+
+		if (parts.size() < 2)
 			return Optional.empty();
 
-		String left = input.substring(0, dash).trim();
-		String right = input.substring(dash + 1).trim();
-		if (left.isEmpty() || right.isEmpty())
-			return Optional.of(new Err<>(new InterpretError("Invalid operand")));
-
-		Optional<String> leftSfx = findSuffix(left);
-		Optional<String> rightSfx = findSuffix(right);
-		if (leftSfx.isPresent() && rightSfx.isPresent() && !leftSfx.get().equals(rightSfx.get())) {
-			return Optional.of(new Err<>(new InterpretError("Mismatched operand types")));
+		Optional<String> commonSuffix = Optional.empty();
+		java.util.List<Long> values = new java.util.ArrayList<>();
+		for (int idx = 0; idx < parts.size(); idx++) {
+			String part = parts.get(idx);
+			if (part.isEmpty())
+				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+			PartInfo info = parsePart(part);
+			String core = info.core();
+			Optional<String> sfxOpt = info.suffix();
+			if (sfxOpt.isPresent()) {
+				String sfx = sfxOpt.get();
+				if (core.isEmpty())
+					return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+				if (commonSuffix.isPresent() && !commonSuffix.get().equals(sfx)) {
+					MismatchContext ctx = new MismatchContext(parts, partStarts, idx, sfx, commonSuffix.get());
+					Optional<String> msg = buildMismatchedSuffixMessage(input, ctx);
+					if (msg.isPresent()) {
+						return Optional.of(new Err<>(new InterpretError(msg.get())));
+					}
+				}
+				if (!commonSuffix.isPresent())
+					commonSuffix = sfxOpt;
+			}
+			if (!isDigits(core))
+				return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+			values.add(Long.parseLong(core));
 		}
 
-		String leftCore = leftSfx.isPresent() ? left.substring(0, left.length() - leftSfx.get().length()).trim() : left;
-		String rightCore = rightSfx.isPresent() ? right.substring(0, right.length() - rightSfx.get().length()).trim()
-				: right;
-
-		if (!isDigits(leftCore) || !isDigits(rightCore)) {
-			return Optional.of(new Err<>(new InterpretError("Invalid operand")));
+		// left-associative subtraction
+		long acc = values.get(0);
+		for (int i = 1; i < values.size(); i++) {
+			acc -= values.get(i);
 		}
-
-		long lv = Long.parseLong(leftCore);
-		long rv = Long.parseLong(rightCore);
-		long res = lv - rv;
-		return Optional.of(new Ok<>(String.valueOf(res)));
+		return Optional.of(new Ok<>(String.valueOf(acc)));
 	}
 }
