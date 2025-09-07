@@ -197,6 +197,11 @@ public class InterpreterTest {
 		assertValid("class fn Wrapper<T>(field : T) => {} Wrapper(100).field", "100");
 	}
 
+	@Test
+	void structLiteralConstructorFieldAccess() {
+		assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (new Interpreter().interpret(input)) {
 			case Ok<String, InterpretError>(String value) -> assertEquals(expected, value);

@@ -184,7 +184,7 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> tryParseDeclarations(String input) {
 		String s = input.trim();
-		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class "))
+		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct "))
 			return Optional.empty();
 		java.util.List<String> stmts = splitStatements(s);
 		// If user omitted semicolon between a leading declaration and the final
@@ -199,7 +199,8 @@ public class Interpreter {
 			return Optional.empty();
 		// If there is any fn or class declaration present, handle as declarations;
 		// else fall back to let
-		boolean hasDecl = stmts.stream().anyMatch(p -> p.startsWith("fn ") || p.startsWith("class "));
+		boolean hasDecl = stmts.stream()
+				.anyMatch(p -> p.startsWith("fn ") || p.startsWith("class ") || p.startsWith("struct "));
 		if (!hasDecl)
 			return tryParseLet(input);
 		return handleFunctionDeclarations(stmts);
@@ -231,7 +232,7 @@ public class Interpreter {
 			String callName = call.first();
 			String callArg = call.second();
 
-			if (!fns.containsKey("CLASS:" + callName))
+			if (!fns.containsKey("CLASS:" + callName) && !fns.containsKey("STRUCT:" + callName))
 				return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + callName)));
 			if (!callArg.isEmpty() && Character.isDigit(callArg.charAt(0)))
 				return Optional.of(new Ok<>(callArg));
@@ -268,14 +269,28 @@ public class Interpreter {
 		int p = parseIdentifierEnd(left, 0);
 		if (p <= 0)
 			return Optional.empty();
-		int ws = skipWhitespace(left, p);
-		if (ws >= left.length() || left.charAt(ws) != '(')
-			return Optional.empty();
-		Optional<Tuple2<String, String>> leftCall = parseFunctionCall(left);
+		Optional<Tuple2<String, String>> leftCall = parseCallOrStructLeft(left, p);
 		if (leftCall.isEmpty())
 			return Optional.empty();
 		String ctorField = finalPart.substring(dot + 1).trim();
 		return Optional.of(new Tuple2<>(leftCall.get(), ctorField));
+	}
+
+	private Optional<Tuple2<String, String>> parseCallOrStructLeft(String left, int idEnd) {
+		int ws = skipWhitespace(left, idEnd);
+		if (ws < left.length() && left.charAt(ws) == '(') {
+			return parseFunctionCall(left);
+		}
+		if (ws < left.length() && left.charAt(ws) == '{') {
+			int start = skipWhitespace(left, ws + 1);
+			if (start >= left.length())
+				return Optional.empty();
+			Optional<Tuple2<String, Integer>> arg = parseTokenArgAndExpectClosing(left, start, '}');
+			if (arg.isEmpty())
+				return Optional.empty();
+			return Optional.of(new Tuple2<>(left.substring(0, idEnd), arg.get().first()));
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Tuple2<String, String>> parseFunctionCall(String finalPart) {
@@ -289,23 +304,15 @@ public class Interpreter {
 		p = skipWhitespace(finalPart, p + 1);
 		String callArg = "";
 		if (p < finalPart.length() && finalPart.charAt(p) != ')') {
-			if (Character.isDigit(finalPart.charAt(p))) {
-				int ae = parseDigitsEnd(finalPart, p);
-				if (ae < 0)
-					return Optional.empty();
-				callArg = finalPart.substring(p, ae);
-				p = skipWhitespace(finalPart, ae);
-			} else {
-				int ae = parseIdentifierEnd(finalPart, p);
-				if (ae < 0)
-					return Optional.empty();
-				callArg = finalPart.substring(p, ae);
-				p = skipWhitespace(finalPart, ae);
-			}
+			Optional<Tuple2<String, Integer>> arg = parseTokenArgAndExpectClosing(finalPart, p, ')');
+			if (arg.isEmpty())
+				return Optional.empty();
+			callArg = arg.get().first();
+			p = skipWhitespace(finalPart, arg.get().second() + 1);
+		} else {
+			// no-arg form: advance past ')'
+			p = skipWhitespace(finalPart, p + 1);
 		}
-		if (p >= finalPart.length() || finalPart.charAt(p) != ')')
-			return Optional.empty();
-		p = skipWhitespace(finalPart, p + 1);
 		if (p != finalPart.length())
 			return Optional.empty();
 		return Optional.of(new Tuple2<>(callName, callArg));
@@ -321,6 +328,7 @@ public class Interpreter {
 	private Optional<FnCollectResult> collectFunctions(java.util.List<String> stmts) {
 		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
 		java.util.Map<String, Tuple2<String, String>> classes = new java.util.HashMap<>();
+		java.util.Map<String, Tuple2<String, String>> structs = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
 			if (stmt.startsWith("fn ")) {
@@ -343,6 +351,16 @@ public class Interpreter {
 					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
 							java.util.Optional.of(new InterpretError("Duplicate class declaration: " + name))));
 				classes.put(name, cls.second());
+			} else if (stmt.startsWith("struct ")) {
+				Optional<Tuple2<String, Tuple2<String, String>>> stOpt = parseStructPart(stmt);
+				if (stOpt.isEmpty())
+					return Optional.empty();
+				Tuple2<String, Tuple2<String, String>> st = stOpt.get();
+				String name = st.first();
+				if (structs.containsKey(name))
+					return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(),
+							java.util.Optional.of(new InterpretError("Duplicate struct declaration: " + name))));
+				structs.put(name, st.second());
 			} else if (stmt.startsWith("let ")) {
 				Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
 				if (kv.isEmpty())
@@ -351,10 +369,12 @@ public class Interpreter {
 				return Optional.empty();
 			}
 		}
-		// encode collected classes into function map for later lookup by naming
-		// prefix class entries with "CLASS:" marker to avoid collision
+		// encode collected classes and structs into function map for later lookup
+		// prefix class entries with "CLASS:" and struct entries with "STRUCT:"
 		for (var e : classes.entrySet())
 			fns.put("CLASS:" + e.getKey(), e.getValue());
+		for (var e : structs.entrySet())
+			fns.put("STRUCT:" + e.getKey(), e.getValue());
 		return Optional.of(new FnCollectResult(fns, java.util.Optional.empty()));
 	}
 
@@ -430,13 +450,13 @@ public class Interpreter {
 			return Optional.empty();
 		String cname = h.get().first();
 		int p = h.get().second();
-		Optional<Tuple2<Tuple2<String, String>, Integer>> fieldOpt = parseClassField(stmt, p);
-		if (fieldOpt.isEmpty())
+		Optional<FieldInfo> fiOpt = parseFieldInfo(stmt, p, ')');
+		if (fiOpt.isEmpty())
 			return Optional.empty();
-		Tuple2<Tuple2<String, String>, Integer> f = fieldOpt.get();
-		String fieldName = f.first().first();
-		String typeToken = f.first().second();
-		int npos = f.second();
+		FieldInfo fi = fiOpt.get();
+		String fieldName = fi.name();
+		String typeToken = fi.type();
+		int npos = fi.pos();
 		if (npos >= stmt.length() || stmt.charAt(npos) != ')')
 			return Optional.empty();
 		npos = skipWhitespace(stmt, npos + 1);
@@ -456,21 +476,33 @@ public class Interpreter {
 		return Optional.of(new Tuple2<>(cname, new Tuple2<>(fieldName, typeToken)));
 	}
 
-	private Optional<Tuple2<Tuple2<String, String>, Integer>> parseClassField(String stmt, int pos) {
-		int fldEnd = parseIdentifierEnd(stmt, pos);
-		if (fldEnd < 0)
+	/**
+	 * Parse struct declaration like: struct Name { field : Type }
+	 * Returns (name, (fieldName, typeToken))
+	 */
+	private Optional<Tuple2<String, Tuple2<String, String>>> parseStructPart(String stmt) {
+		if (!stmt.startsWith("struct "))
 			return Optional.empty();
-		String fieldName = stmt.substring(pos, fldEnd);
-		int npos = skipWhitespace(stmt, fldEnd);
-		if (npos >= stmt.length() || stmt.charAt(npos) != ':')
+		int pos = 7;
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd < 0)
 			return Optional.empty();
+		String name = stmt.substring(pos, idEnd);
+		pos = skipWhitespace(stmt, idEnd);
+		if (pos >= stmt.length() || stmt.charAt(pos) != '{')
+			return Optional.empty();
+		int fieldStart = skipWhitespace(stmt, pos + 1);
+		Optional<FieldInfo> fiOpt = parseFieldInfo(stmt, fieldStart, '}');
+		if (fiOpt.isEmpty())
+			return Optional.empty();
+		FieldInfo fi = fiOpt.get();
+		String fieldName = fi.name();
+		String typeToken = fi.type();
+		int npos = fi.pos();
 		npos = skipWhitespace(stmt, npos + 1);
-		int typeEnd = parseAlnumEnd(stmt, npos);
-		if (typeEnd < 0)
+		if (npos != stmt.length())
 			return Optional.empty();
-		String typeToken = stmt.substring(npos, typeEnd).trim();
-		npos = skipWhitespace(stmt, typeEnd);
-		return Optional.of(new Tuple2<>(new Tuple2<>(fieldName, typeToken), npos));
+		return Optional.of(new Tuple2<>(name, new Tuple2<>(fieldName, typeToken)));
 	}
 
 	private Optional<Tuple2<String, Tuple2<String, Integer>>> parseFnTail(String stmt, int pos) {
@@ -494,6 +526,72 @@ public class Interpreter {
 			return Optional.empty();
 		return Optional.of(new Tuple2<>(typeTok, new Tuple2<>(retExpr, end)));
 	}
+
+	/**
+	 * Split the string after a top-level brace starting at pos: returns
+	 * Optional.of([prefix, remainder])
+	 */
+	private Optional<java.util.List<String>> splitAfterTopLevelBrace(String s, int pos) {
+		int end = findMatchingBrace(s, pos);
+		if (end < 0)
+			return Optional.empty();
+		int after = skipWhitespace(s, end + 1);
+		if (after >= s.length())
+			return Optional.empty();
+		String decl = s.substring(0, after).trim();
+		String rest = s.substring(after).trim();
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		parts.add(decl);
+		parts.add(rest);
+		return Optional.of(parts);
+	}
+
+	/**
+	 * Parse an argument token (either digits or identifier) starting at pos and
+	 * ensure
+	 * the following char after the token (after whitespace) equals expectedClose.
+	 * Returns Optional.of(tokenEndPosTuple(token, posAfterClose)) or empty.
+	 */
+	private Optional<Tuple2<String, Integer>> parseTokenArgAndExpectClosing(String s, int pos, char expectedClose) {
+		if (pos >= s.length())
+			return Optional.empty();
+		int ae = Character.isDigit(s.charAt(pos)) ? parseDigitsEnd(s, pos) : parseIdentifierEnd(s, pos);
+		if (ae < 0)
+			return Optional.empty();
+		String arg = s.substring(pos, ae);
+		int end = skipWhitespace(s, ae);
+		if (end < s.length() && s.charAt(end) == expectedClose)
+			return Optional.of(new Tuple2<>(arg, end));
+		return Optional.empty();
+	}
+
+	private static record FieldInfo(String name, String type, int pos) {
+	}
+
+	private Optional<FieldInfo> parseFieldInfo(String stmt, int pos, char expectedClose) {
+		int fldEnd = parseIdentifierEnd(stmt, pos);
+		if (fldEnd < 0)
+			return Optional.empty();
+		String fieldName = stmt.substring(pos, fldEnd);
+		int npos = skipWhitespace(stmt, fldEnd);
+		if (npos >= stmt.length() || stmt.charAt(npos) != ':')
+			return Optional.empty();
+		npos = skipWhitespace(stmt, npos + 1);
+		int typeEnd = parseAlnumEnd(stmt, npos);
+		if (typeEnd < 0)
+			return Optional.empty();
+		String typeToken = stmt.substring(npos, typeEnd).trim();
+		npos = skipWhitespace(stmt, typeEnd);
+		if (npos >= stmt.length() || stmt.charAt(npos) != expectedClose)
+			return Optional.empty();
+		return Optional.of(new FieldInfo(fieldName, typeToken, npos));
+	}
+
+	/**
+	 * Parse a field declaration (name : Type) starting at pos and ensure the next
+	 * character equals expectedClose after skipping whitespace. Returns
+	 * Optional.of((fieldName,type), posAfterClose)
+	 */
 
 	/**
 	 * Apply a let declaration into the env map that stores (isMut, value).
@@ -686,19 +784,19 @@ public class Interpreter {
 			if (pos >= s.length())
 				return Optional.empty();
 			if (s.charAt(pos) == '{') {
-				int end = findMatchingBrace(s, pos);
-				if (end < 0)
-					return Optional.empty();
-				int after = skipWhitespace(s, end + 1);
-				if (after >= s.length())
-					return Optional.empty();
-				String decl = s.substring(0, after).trim();
-				String rest = s.substring(after).trim();
-				java.util.List<String> parts = new java.util.ArrayList<>();
-				parts.add(decl);
-				parts.add(rest);
-				return Optional.of(parts);
+				return splitAfterTopLevelBrace(s, pos);
 			}
+		}
+		// try to parse a leading struct declaration like: struct Name { ... }
+		if (s.startsWith("struct ")) {
+			int pos = 7;
+			int idEnd = parseIdentifierEnd(s, pos);
+			if (idEnd < 0)
+				return Optional.empty();
+			int bracePos = skipWhitespace(s, idEnd);
+			if (bracePos >= s.length() || s.charAt(bracePos) != '{')
+				return Optional.empty();
+			return splitAfterTopLevelBrace(s, bracePos);
 		}
 		return Optional.empty();
 	}
