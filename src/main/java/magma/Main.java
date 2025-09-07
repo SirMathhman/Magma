@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 import magma.compiler.Compiler;
@@ -47,11 +48,11 @@ public class Main {
 							Path relParent = rel.getParent();
 
 							List<String> pkgParts = new ArrayList<>();
-							if (relParent != null) {
-								for (Path part : relParent) {
+							Optional.ofNullable(relParent).ifPresent(rp -> {
+								for (Path part : rp) {
 									pkgParts.add(part.toString());
 								}
-							}
+							});
 
 							String fileName = p.getFileName().toString();
 							String base = fileName.replaceFirst("\\.java$", "");
