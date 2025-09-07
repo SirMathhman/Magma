@@ -32,7 +32,7 @@ public class Interpreter {
 			i++;
 		if (i > 0)
 			return new Ok<>(input.substring(0, i));
-		return new Err<>(new InterpretError("Undefined identifier: " + input));
+		return new Err<>(new InterpretError("Unbound identifier: " + input));
 	}
 
 	private Optional<Result<String, InterpretError>> tryParseBinary(String input, char op) {
@@ -73,7 +73,7 @@ public class Interpreter {
 					if (firstSuffixKind.isEmpty())
 						firstSuffixKind = Optional.of(kind);
 					else if (isSignednessChar(firstSuffixKind.get()) && isSignednessChar(kind) && firstSuffixKind.get() != kind)
-						return Optional.of(new Err<>(new InterpretError("Mixed signedness in addition: " + input)));
+						return Optional.of(new Err<>(new InterpretError("Signedness mismatch in addition: " + input)));
 				}
 				sum = Math.addExact(sum, v);
 			} catch (NumberFormatException | ArithmeticException e) {
@@ -105,7 +105,7 @@ public class Interpreter {
 			String leftSuffix = left.substring(li).trim();
 			String rightSuffix = right.substring(ri).trim();
 			if (hasSuffix(leftSuffix) && hasSuffix(rightSuffix) && isMixedSignedness(leftSuffix, rightSuffix))
-				return Optional.of(new Err<>(new InterpretError("Mixed signedness in operation: " + input)));
+				return Optional.of(new Err<>(new InterpretError("Signedness mismatch in operation: " + input)));
 			long res;
 			switch (op) {
 				case '+':
@@ -216,13 +216,13 @@ public class Interpreter {
 				env.put(name, rhs);
 			} else {
 				if (!env.containsKey(rhs))
-					return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + rhs)));
+					return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + rhs)));
 				env.put(name, env.get(rhs));
 			}
 		}
 		String finalName = finalPart;
 		if (!env.containsKey(finalName))
-			return Optional.of(new Err<>(new InterpretError("Undefined identifier: " + finalName)));
+			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalName)));
 		return Optional.of(new Ok<>(env.get(finalName)));
 	}
 
