@@ -162,6 +162,18 @@ Top-level expression programs:
 
 - The backend shall enforce representability checks for initializers (for example, warn or error if an initializer value does not fit in the annotated width or signedness). The implementation guide shall document whether these checks occur at parse-time or during type-checking and the exact diagnostic messages produced.
 
+## Default integer literal and initializer semantics
+
+- By default, unannotated integer literals and inferred integer locals shall be treated as 32-bit signed integers. The C reference backend shall lower such unannotated integers to `int32_t`. For example, `let x = 0;` shall lower to `int32_t x = 0;` in generated C unless context requires a different type.
+
+- If a `let` binding includes an explicit integer width annotation (for example `let x : U8 = 0;`), the initializer shall be interpreted in the context of that annotated type and lowered to the corresponding fixed-width C type (for example `uint8_t`). That is, `0` in `let x : U8 = 0;` becomes a `U8` initializer rather than being treated first as `I32` and then converted.
+
+- The backend shall perform representability checking for annotated initializers and shall emit diagnostics when initializers are out-of-range for the annotated type (for example, assigning `-1` to `U8` or `256` to `U8`). The implementation guide shall document whether the compiler performs implicit conversions or reports precise errors for mixed-signedness cases.
+
+## Revision history
+
+- 2025-09-08  Specify default unannotated integer literals and inferred locals as `I32` and clarify annotated-initializer lowering semantics  user
+
 ## Revision history
 
 - 2025-09-08  Add support for integer width annotations `U8|U16|U32|U64|I8|I16|I32|I64` and map them to C fixed-width types in the C reference backend  user

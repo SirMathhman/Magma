@@ -157,7 +157,7 @@ Function example with types:
 Local inference example:
 
     fn main() -> int {
-      let x = 10; // x shall be inferred as int
+      let x = 10; // x shall be inferred as I32 by default
       let y: int = 20;
       return add(x, y);
     }
@@ -186,7 +186,8 @@ Local `let` statement example (explicit width annotation):
 
   Notes:
   - An annotation such as `I32` shall indicate a 32-bit signed integer; `U32` shall indicate a 32-bit unsigned integer, and similarly for other widths. Implementations shall map these annotations to the platform-specific fixed-width integer types (for example `int32_t` / `uint32_t` in the C reference backend).
-  - If a `let` binding includes an initializer and no explicit type annotation is present, the compiler shall infer the type from the initializer expression.
+  - The default integer type for unannotated integer literals and inferred locals shall be `I32`. For example, `let x = 0;` shall infer `x` as `I32` unless another type is required by context.
+  - If a `let` binding includes an explicit annotation (for example `let x : U8 = 0;`), the initializer shall be interpreted in the context of the annotated type: `0` becomes `U8` in that example (not `I32`).
   - If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's value is representable in the annotated width and signedness and shall produce a type error on mismatch (for example, assigning `-1` to `U8` or assigning `256` to `U8` shall be an error).
   - Implementations shall document the precise semantics for out-of-range integer literals (for example, whether such cases are reported as parse-time errors or type-check errors).
 

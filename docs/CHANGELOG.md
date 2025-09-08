@@ -10,6 +10,8 @@ All notable changes to this project will be documented in this file.
  - IMPLEMENTATION: Documented how the C reference backend lowers `let x : I32 = 0;` to an `int32_t` local and the requirement to type-check the initializer for `I32` compatibility.
  - LANGUAGE: Expanded integer width support to `U8|U16|U32|U64|I8|I16|I32|I64` and added rules for representability and type-checking.
  - IMPLEMENTATION: Documented mapping of the new annotations to C fixed-width types (`uintN_t`/`intN_t`) and lowering examples.
+ - LANGUAGE: Specify the default integer type is `I32` for unannotated literals and inferred locals (for example `let x = 0;`).
+ - IMPLEMENTATION: Clarified that unannotated integers lower to `int32_t` by default and that annotated initializers (for example `let x : U8 = 0;`) are interpreted in the annotated type and lowered to the corresponding `uintN_t`/`intN_t` with representability checks.
 
 ## 2025-09-08 — Assistant tooling
 
