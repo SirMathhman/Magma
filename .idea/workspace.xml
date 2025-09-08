@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: enhance compilation logic by adding function segment handling and improving compile function structure">
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: enhance compilation logic by adding compileExpression function and refining parameter handling">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
@@ -280,7 +280,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757302765406</updated>
     </task>
-    <option name="localTasksCounter" value="24" />
+    <task id="LOCAL-00024" summary="feat: enhance compilation logic by adding compileExpression function and refining parameter handling">
+      <option name="closed" value="true" />
+      <created>1757302891264</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1757302891264</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -305,6 +313,7 @@
     <MESSAGE value="feat: update type handling in compilation logic to support char* and improve parameter types" />
     <MESSAGE value="feat: enhance compilation logic by refining type handling and improving parameter management" />
     <MESSAGE value="feat: enhance compilation logic by adding function segment handling and improving compile function structure" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance compilation logic by adding function segment handling and improving compile function structure" />
+    <MESSAGE value="feat: enhance compilation logic by adding compileExpression function and refining parameter handling" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance compilation logic by adding compileExpression function and refining parameter handling" />
   </component>
 </project>

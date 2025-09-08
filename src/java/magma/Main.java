@@ -155,7 +155,16 @@ public class Main {
 			return compileType(slice) + "*";
 		}
 
+		if (isIdentifier(stripped)) return stripped;
 		return wrap(stripped);
+	}
+
+	private static boolean isIdentifier(String input) {
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			if (!Character.isLetter(c)) return false;
+		}
+		return true;
 	}
 
 	private static String compileFunctionSegment(String input) {
@@ -188,10 +197,18 @@ public class Main {
 			if (i >= 0) {
 				final String caller = slice.substring(0, i);
 				final String arguments = slice.substring(i + "(".length());
-				return wrap(caller) + "(" + wrap(arguments) + ")";
+				return compileExpression(caller) + "(" + wrap(arguments) + ")";
 			}
 		}
 
+		final int i = stripped.lastIndexOf(".");
+		if (i >= 0) {
+			final String parent = stripped.substring(0, i);
+			final String property = stripped.substring(i + ".".length());
+			return compileExpression(parent) + "." + property;
+		}
+
+		if (isIdentifier(stripped)) return stripped;
 		return wrap(stripped);
 	}
 }
