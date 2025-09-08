@@ -162,6 +162,22 @@ Local inference example:
       return add(x, y);
     }
 
+Top-level expression programs (convenience form):
+
+    Magma implementations may accept a source file that consists of a single top-level expression followed by an optional type annotation suffix that indicates the intended integer width. For the MVP the supported integer suffix is `I32` which denotes a 32-bit signed integer literal result. When a source file is a single expression, it is semantically equivalent to providing an explicit `main` function that returns the value of that expression. Concretely:
+
+    Source file:
+
+        5I32
+
+    Is equivalent to:
+
+        fn main() -> int {
+          return 5;
+        }
+
+    The returned integer value becomes the program's process exit code when targeting native executables or a corresponding platform-specific return value for other backends. Implementations shall document backend-specific limits for mapping integer return values to process exit codes (for example, truncation or sign behavior) but shall, by default, treat the `int` return value as a 32-bit signed value and use its low-order 8 bits as the POSIX exit code when producing native executables, unless the backend documents a different mapping.
+
 ## 13. Future work (non-normative)
 
 - Generics / parametric polymorphism

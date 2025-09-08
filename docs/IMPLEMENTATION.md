@@ -75,6 +75,31 @@ This document describes one concrete implementation strategy for the Magma langu
 
 - Hello World: generator emits `main` that calls `magma_io_println("Hello, Magma!")` implemented in the runtime.
 
+Top-level expression programs:
+
+  The reference C backend may accept a Magma source file that is a single top-level expression with an optional integer width suffix (MVP: `I32`). Such a source file shall be lowered to a generated `main` function that returns the expression's value as an `int32_t`.
+
+  Example source and generated C:
+
+  Magma source:
+
+    5I32
+
+  Generated C (sketch):
+
+    #include "magma_runtime.h"
+    int32_t magma_main(void) {
+      return 5;
+    }
+
+    int main(int argc, char** argv) {
+      int32_t r = magma_main();
+      /* Map to process exit code: use low-order 8 bits by default */
+      return (int)(r & 0xff);
+    }
+
+  Implementations targeting other backends should document how `int` return values are mapped to the platform's process exit mechanism. The C reference uses the low-order 8 bits of the returned `int32_t` to produce a POSIX-compatible exit code.
+
 ## Testing and conformance
 
 - The implementation should include a test harness that compiles Magma test programs, generates C, compiles the generated C, and verifies runtime behavior.
