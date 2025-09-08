@@ -1,161 +1,193 @@
 # Magma Language Specification (Draft)
 
-This document is a living draft of the Magma language specification. It contains the current assumptions, syntax sketches (EBNF), core types, semantics, examples, and notes for future extension. This is a stubbed, pragmatic starting point to make design and implementation decisions.
+Status: Draft
 
-## Overview
+This document specifies the Magma language at a level sufficient for implementing a compiler frontend and a reference code generator to C. Sections may be expanded as the language design matures. The wording uses normative language: "shall" for requirements, "should" for recommendations, and "will" for expected behaviors.
 
-Magma is a small, statically-typed language designed to be compiled into portable C (C11). It aims to combine imperative and functional features, with an emphasis on clarity of code generation and predictable runtime behavior.
+## 1. Goals and Design Principles
 
-Key characteristics:
-- Statically typed with local type inference (let-bindings)
-- Functions are first-class (support for higher-order functions)
-- Algebraic data types (ADTs) / sum types (optional MVP feature)
-- Records (struct-like types) and arrays
-- Simple module system (one file = one module)
+- Magma shall be a small, expressive language designed to be compiled to portable C.
+- Magma shall prioritize clarity and predictable semantics over syntactic brevity.
+- The compiler shall aim to generate readable C that mirrors the structure of the original Magma source for debugging.
 
-This document defines a minimal core suitable for an MVP compiler. Optional features are marked.
+## 2. File & Module Model
 
-## Lexical structure
+- A Magma source file shall have the extension `.mg` or `.magma`.
+- One source file shall correspond to one top-level module unless the module system is explicitly declared.
+- Importing another module shall be done with an `import` declaration at file scope.
 
-- Line comments start with `//` and continue to end of line
-- Block comments `/* ... */` allowed and nestable (implementation note)
-- Identifiers: `[A-Za-z_][A-Za-z0-9_]*`
-- Keywords (non-exhaustive): `let`, `fn`, `if`, `else`, `match`, `return`, `type`, `import`, `module`
+Example:
 
-## Grammar (EBNF - draft)
+    import io
 
-Note: This is a compact EBNF for the core; whitespace and precedence rules are described after.
+## 3. Lexical grammar
 
-program        ::= { top_level }
-top_level      ::= function_decl | type_decl | import_decl | stmt
-import_decl    ::= 'import' string_literal
-type_decl      ::= 'type' Identifier '=' type_expr
-function_decl  ::= 'fn' Identifier '(' [ param_list ] ')' [ '->' type_expr ] block
-param_list     ::= param { ',' param }
-param          ::= Identifier ':' type_expr
-type_expr      ::= Identifier | 'fn' '(' [ type_list ] ')' '->' type_expr | record_type | array_type
-type_list      ::= type_expr { ',' type_expr }
-record_type    ::= '{' field_list '}'
-field_list     ::= field { ',' field }
-field          ::= Identifier ':' type_expr
-array_type     ::= type_expr '[' ']'
+- Magma shall use UTF-8 encoded source text.
+- Identifiers shall begin with an ASCII letter or underscore and may contain letters, digits, or underscores. Identifiers are case-sensitive.
+- Numeric literals shall include integer and floating-point forms. Integer literals shall be decimal only in the MVP.
+- String literals shall be enclosed in double quotes and shall support C-style escape sequences (e.g., `\n`, `\t`, `\\`, `\"`).
+- Comments shall be supported in two forms:
+  - Line comments starting with `//` until end-of-line.
+  - Block comments enclosed between `/*` and `*/`, which shall not be nestable in the MVP.
 
-stmt           ::= let_stmt | expr_stmt | return_stmt | if_stmt | while_stmt | block
-let_stmt       ::= 'let' Identifier [ ':' type_expr ] '=' expr
-return_stmt    ::= 'return' [ expr ]
-if_stmt        ::= 'if' '(' expr ')' stmt [ 'else' stmt ]
-while_stmt     ::= 'while' '(' expr ')' stmt
-block          ::= '{' { stmt } '}'
+## 4. Syntax (EBNF, draft)
 
-expr           ::= assignment
-assignment     ::= logical_or [ '=' assignment ]
-logical_or     ::= logical_and { '||' logical_and }
-logical_and    ::= equality { '&&' equality }
-equality       ::= comparison { ( '==' | '!=' ) comparison }
-comparison     ::= term { ( '<' | '>' | '<=' | '>=' ) term }
-term           ::= factor { ( '+' | '-' ) factor }
-factor         ::= unary { ( '*' | '/' | '%' ) unary }
-unary          ::= ( '!' | '-' ) unary | primary
-primary        ::= literal | Identifier | fn_literal | '(' expr ')' | call | array_literal | record_literal
-call           ::= primary '(' [ arg_list ] ')'
-arg_list       ::= expr { ',' expr }
-fn_literal     ::= 'fn' '(' [ param_list_no_names ] ')' [ '->' type_expr ] block
-param_list_no_names ::= type_expr { ',' type_expr }
+The grammar below is a simplified EBNF sketch for the initial language surface. This grammar shall be refined into a full ANTLR grammar or equivalent.
 
-literal        ::= integer_literal | float_literal | string_literal | boolean_literal
+    program        ::= { declaration }
+    declaration    ::= function_decl | type_decl | import_decl | global_var_decl
+    import_decl    ::= 'import' identifier ';'
+    type_decl      ::= 'type' identifier '{' field_list '}'
+    field_list     ::= [ field { ',' field } ]
+    field          ::= identifier ':' type
+    global_var_decl::= 'var' identifier ':' type [ '=' expression ] ';'
 
-Identifier     ::= /* as above */
+    function_decl  ::= 'fn' identifier '(' [ param_list ] ')' [ '->' type ] block
+    param_list     ::= param { ',' param }
+    param          ::= identifier ':' type
 
-This grammar intentionally avoids complex precedence features like pattern matching in expressions — `match` or `switch` can be added as top-level or expression-level forms.
+    block          ::= '{' { statement } '}'
+    statement      ::= local_var_decl | expression_stmt | return_stmt | if_stmt | while_stmt
+    local_var_decl ::= 'let' identifier [ ':' type ] [ '=' expression ] ';'
+    expression_stmt::= expression ';'
+    return_stmt    ::= 'return' [ expression ] ';'
+    if_stmt        ::= 'if' '(' expression ')' block [ 'else' block ]
+    while_stmt     ::= 'while' '(' expression ')' block
 
-## Types
+    expression     ::= assignment
+    assignment     ::= logical_or [ '=' assignment ]
+    logical_or     ::= logical_and { '||' logical_and }
+    logical_and    ::= equality { '&&' equality }
+    equality       ::= relational { ( '==' | '!=' ) relational }
+    relational     ::= additive { ( '<' | '>' | '<=' | '>=' ) additive }
+    additive       ::= multiplicative { ( '+' | '-' ) multiplicative }
+    multiplicative ::= unary { ( '*' | '/' | '%' ) unary }
+    unary          ::= ( '!' | '-' ) unary | primary
+    primary        ::= literal | identifier | '(' expression ')' | function_literal
 
-Core types:
-- i32, i64 (signed integers)
-- f32, f64 (floating point)
-- bool
-- char
-- string (immutable reference to UTF-8 data)
-- arrays (T[])
-- records (struct-like)
-- function types (fn(...)->T)
+    function_literal ::= 'fn' '(' [ param_list ] ')' [ '->' type ] block
 
-Type system rules (draft):
+    literal        ::= integer | float | string | 'true' | 'false' | 'null'
 
-- Variables declared with `let` have either explicit annotation or inferred from initializer.
-- Functions must declare return types for clarity in codegen (inferred return may be allowed later).
-- Subtyping is minimal / structural for records (MVP: no subtyping).
+Notes:
+- The assignment operator `=` shall be right-associative for chained assignments.
+- The grammar shall be designed to produce meaningful parse errors with source locations.
 
-## Semantics (high-level)
+## 5. Types and Type System
 
-- Evaluation order: eager, left-to-right for function arguments
-- Integer overflow: defined as wrap-around for i32/i64 (matches C behavior unless we add sanitizer)
-- Memory: heap allocations via runtime helpers (malloc/wrapped alloc) for arrays and records. Manual free or runtime-managed via reference counting depending on runtime choice.
+- Magma shall have the following builtin types at MVP:
+  - `int` — 32-bit signed integer
+  - `float` — double-precision floating point
+  - `bool` — boolean
+  - `string` — UTF-8 string (heap-allocated)
+  - `void` — used for functions that return no value
+  - Struct types defined via `type` declarations
 
-## Standard library (stub)
+- Type inference shall be supported for local `let` bindings where an initializer is present (the compiler shall infer the declared type from the initializer expression).
+- Function parameter and return types shall be explicitly declared in the MVP (type annotations shall be required for public APIs).
+- The type system shall be statically checked at compile time and shall produce clear diagnostics for mismatches.
 
-Add as `magma.runtime` (implemented in C for the target runtime):
-- print, println
-- memory allocation helpers: mg_alloc(size), mg_free(ptr)
-- basic I/O and runtime asserts
+Type equivalence rules:
+- Structural typing for record/struct types shall not be supported in the initial release; user-defined types shall be nominal.
 
-## Examples
+Generics:
+- Generics shall be considered future work and shall not be required for the MVP. If generics are added, they will be documented in a later revision.
 
-Hello world
+## 6. Functions and calling conventions
 
-```
-fn main() {
-  print("Hello, Magma\n");
-}
-```
+- Functions shall be declared with `fn name(params) -> type { ... }`.
+- Closures and first-class functions shall be supported in a limited form in the MVP: function literals shall be allowed, but capturing closures that capture mutable environments shall be lowered to helper structs in the generated C and shall be explicitly documented.
+- The compiler shall map Magma function calls to C functions. When closures are used, the compiler shall generate wrapper structs and function pointers as needed.
 
-Factorial (recursive)
+ABI and calling convention:
+- The generated C shall use the platform default calling convention for the target C compiler.
 
-```
-fn fact(n: i32) -> i32 {
-  if (n <= 1) {
-    return 1;
-  }
-  return n * fact(n - 1);
-}
+## 7. Memory model and runtime
 
-fn main() {
-  let x: i32 = fact(10);
-  println(x);
-}
-```
+- The Magma runtime shall provide allocation primitives for heap-allocated objects (strings, structs, arrays) and shall be provided as C source packaged with the compiler.
+- Initially, the runtime shall rely on manual allocation and deallocation functions (malloc/free wrappers). The runtime should provide helper functions such as `magma_alloc`, `magma_free`, `magma_string_new`, and `magma_string_free`.
+- Automatic memory management (reference counting or GC) will be evaluated after the MVP; the specification does not mandate a GC for the initial release.
 
-Higher-order function
+## 8. Standard library (initial)
 
-```
-fn applyTwice(f: fn(i32) -> i32, x: i32) -> i32 {
-  return f(f(x));
-}
+- The standard library shall include a small set of modules for:
+  - `io` — printing and basic I/O
+  - `math` — numeric helpers
+  - `strings` — string utilities
 
-fn inc(a: i32) -> i32 { return a + 1; }
+- The standard library shall be implemented in portable C and shipped with the compiler as source files and headers.
 
-fn main() { println(applyTwice(inc, 3)); }
-```
+## 9. Error handling
 
-## Error reporting
+- Magma shall use explicit error returns or a `Result<T, E>` style in a future revision; for the MVP, error handling shall be done via returned status codes and optional `Option`-like patterns implemented in the standard library.
+- Compiler diagnostics shall include:
+  - file path, line, and column
+  - a short error code or label
+  - a human-readable message
+  - a code snippet with an arrow indicating the error position
 
-- Compiler will report errors with file/line/column and a short message.
-- Diagnostics will include a snippet and an arrow pointing to the relevant code (MVP: best-effort).
+## 10. Interoperability with C
 
-## Interop and C generation considerations
+- Generated C shall be valid ISO C11 (or a widely-supported subset) and shall compile with `gcc` and `clang`.
+- The compiler shall provide a way to declare `extern` C functions and types to call into hand-written C libraries.
 
-- Name Mangling: Map Magma identifiers to C-safe identifiers; avoid collisions for generated symbols.
-- Calling convention: Use C calling conventions; functions without closures map to direct C functions.
-- Closures: Lower closures to structs capturing environment + function pointer (MVP: limit closure capture to values; no GC assumptions).
+Example extern declaration (draft syntax):
 
-## Future work / optional features
+    extern c: {
+      fn printf(format: string, ...) -> int;
+    }
 
-- Pattern matching (`match`) with exhaustiveness checking
-- Algebraic Data Types (ADTs) and tagged unions
-- Macros or compile-time functions
-- Optimization passes and an SSA IR
-- Better memory management (refcounting or GC)
+The exact syntax shall be defined in a later revision.
+
+## 11. Tooling and build
+
+- The Magma compiler shall be implemented as a Maven Java project and shall provide a CLI JAR.
+- The CLI shall provide commands to compile Magma to C source files and optionally to invoke the system C compiler to produce an executable.
+
+CLI semantics:
+- `magma compile -o outdir src1.mg src2.mg` shall produce `outdir` containing generated `.c` and `.h` files and a small build manifest.
+
+## 12. Examples
+
+Hello World (Magma source):
+
+    fn main() -> int {
+      io::println("Hello, Magma!");
+      return 0;
+    }
+
+This shall generate a C program that, when compiled and executed, prints "Hello, Magma!".
+
+Function example with types:
+
+    fn add(a: int, b: int) -> int {
+      return a + b;
+    }
+
+Local inference example:
+
+    fn main() -> int {
+      let x = 10; // x shall be inferred as int
+      let y: int = 20;
+      return add(x, y);
+    }
+
+## 13. Future work (non-normative)
+
+- Generics / parametric polymorphism
+- Pattern matching
+- Advanced optimizer and SSA-based IR
+- Native interop improvements and safer FFI
+
+## 14. Conformance and testing
+
+- The compiler shall include a suite of conformance tests derived from examples in this specification.
+- The test harness shall compile Magma programs and shall verify that generated C compiles and the produced executables behave as specified.
+
+## 15. Revision history
+
+- Draft created: 2025-09-08 — initial structure and normative language
 
 ---
 
-This file is intentionally pragmatic and minimal to accelerate the compiler MVP. The next step is to stabilize the syntax choices, pick a parser strategy (ANTLR vs hand-rolled), and expand the type system and runtime model in detail.
+This specification is a working draft. Sections marked as future work shall be revised into normative requirements when implemented.
