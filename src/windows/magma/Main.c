@@ -1,12 +1,4 @@
-/*package magma;*//*
-
-import java.io.IOException;*//*
-import java.nio.file.Files;*//*
-import java.nio.file.Paths;*//*
-import java.util.ArrayList;*//*
-import java.util.stream.Collectors;*//*
-
-public class Main {
+/*public class Main {
 	public static void main(String[] args) {
 		final var sourceDirectory = Paths.get(".", "src", "java");
 		try (var stream = Files.walk(sourceDirectory)) {
@@ -67,7 +59,9 @@ public class Main {
 	}
 
 	private static String compileRootSegment(String input) {
-		return wrap(input);
+		final var stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		return wrap(stripped);
 	}
-}
-*/
+}*/

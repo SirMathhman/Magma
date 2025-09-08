@@ -67,6 +67,9 @@ public class Main {
 	}
 
 	private static String compileRootSegment(String input) {
-		return wrap(input);
+		final var stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		return wrap(stripped);
 	}
 }
