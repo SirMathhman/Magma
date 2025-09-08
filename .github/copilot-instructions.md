@@ -1,54 +1,116 @@
 <!-- GitHub Copilot / Assistant instructions for contributors -->
 # Copilot / Assistant Instructions
 
-These guidelines help contributors make changes that keep the repository build and QA checks green.
+These instructions are written for automated assistants (GitHub Copilot and similar tools). They are prescriptive and enforceable: generated or modified code must follow them exactly.
 
-High-level rules
+High-level intent
 
-- After changing or adding functionality, update relevant documentation (README, CHANGELOG, docs/, or inline comments). Explain what changed, why, and how to use it.
-- Keep changes small and focused. Run tests and linters locally before opening a pull request.
-- When adding public APIs or commands, include usage examples and any required configuration.
-- If behavior or migrations change, add upgrade notes and compatibility guidance.
-- Do not add tests unless asked. This project enforces 100% coverage; contributors should avoid adding narrowly-scoped tests that complicate maintenance.
+- Primary audience: automated code generators (Copilot) and automated maintainers. Human maintainers read this for reference.
+- Scope: All application/business logic must live under the `magma.app` package. Do not place domain logic elsewhere.
+- Goal: The codebase must remain translatable toward native/C output. Avoid language features and runtime behaviors that cannot be reliably converted.
 
-Thanks for helping keep the project well-documented.
+Rules (absolute — do not violate)
 
-## Build and static-analysis constraints (summary)
+- No use of the literal `null`. Use `Optional<T>` or the repository `Result<T, E>` pattern for absent values or errors.
+- Do not import or use `java.util.regex` anywhere.
+- Do not use `throw` or `throws`. Use `Result`-style error returns.
+- Do not use wildcard generics (`?`, `? extends`, `? super`). Use explicit type parameters or bounded generics.
+- Do not use raw `Object` types. Use concrete types or proper generics.
+- Avoid explicit casts. Prefer pattern matching, polymorphism, or helper converters.
 
-Follow these repository constraints so automated checks (Checkstyle, PMD/CPD, JaCoCo) pass.
+Static-analysis and build constraints
 
-Java build
+- Java target: JDK 24 with preview features enabled (`--enable-preview`). Generated code must compile under JDK 24.
+- Cyclomatic complexity: keep per-method complexity <= 15.
+- Method parameter limit: 3 parameters maximum.
+- CPD (copy/paste detector) token threshold: 50 tokens.
+- JaCoCo coverage: 100% for INSTRUCTION, BRANCH, LINE, METHOD, and CLASS. Tests are centrally managed; do not add tests unless explicitly requested.
 
-- Targets Java 24 and enables preview features (compiler args include `--enable-preview`).
-- Tests and tooling expect JDK 24.
+Code placement and structure
 
-Checkstyle (see `checkstyle.xml`)
+- Business logic: everything representing domain behavior must be inside `magma.app`.
+- Utilities: small, well-specified utilities that are safe for C-translation may live in `magma.util` or `magma.support`. Avoid generic `helpers` or `utils` at the repo root without documentation.
+- Keep packages shallow and cohesive. Prefer clear, explicit package names.
 
-- Avoid the literal `null`. Use `Optional` or the repository `Result<T, E>` pattern.
-- Avoid `throw` / `throws`; prefer returning `Result` error values.
-- Avoid explicit casts; prefer pattern matching or polymorphism.
-- Do not use wildcard generics (e.g., `?`, `? extends`, `? super`); use explicit type parameters or bounded types.
-- Do not use raw `Object` types; prefer proper generics or polymorphism.
-- Do not import or use `java.util.regex`.
-- Keep cyclomatic complexity per method <= 15.
-- Limit method parameter count to 3.
-- Checkstyle runs during the `test` phase and fails the build on violations (including test sources).
+Error handling and data shapes
 
-PMD / CPD (configured in `pom.xml`)
+- Use `Result<T, E>` for operations that can fail. The `Result` type expresses success or a typed error without throwing.
+- Use `Optional<T>` only to represent optional values; prefer `Result` when an error case must be communicated.
 
-- CPD token threshold: minimum 50 tokens.
-- Literal tokens (string/number) are ignored when detecting duplication.
-- CPD checks both main and test sources and fails the build on violations.
+Good vs Bad examples (follow these patterns)
 
-JaCoCo (coverage)
+- Optional vs null
 
-- Enforced coverage: 100% minimum for INSTRUCTION, BRANCH, LINE, METHOD, and CLASS counters (reported during test/verify phases).
+Good:
 
-Practical notes
+    // Good: return Optional
+    public Optional<String> findNameById(int id) {
+        // ...implementation...
+    }
 
-- Avoid `null`, `java.util.regex`, raw `Object`, wildcard generics, explicit casts, and `throw`/`throws`.
-- Keep methods short and simple to meet complexity and parameter limits; extract small helpers when necessary.
-- Run `mvn test` locally with JDK 24 to verify Checkstyle, CPD, and JaCoCo checks before opening PRs.
-- Run `mvn clean test -q` at the start and end of changes to keep feedback loops short.
+Bad:
 
-When in doubt, prefer small, well-documented changes and ask maintainers for guidance.
+    // Bad: returns null
+    public String findNameById(int id) {
+        return null;
+    }
+
+- Result pattern vs throw
+
+Good:
+
+    // Good: return Result
+    public Result<User, Error> loadUser(String id) {
+        // ...implementation...
+    }
+
+Bad:
+
+    // Bad: throws an exception
+    public User loadUser(String id) throws UserNotFoundException {
+        // ...implementation...
+    }
+
+- Avoid regex
+
+Good:
+
+    // Good: explicit checks or simple parsers
+    public boolean isAlpha(String s) {
+        for (int i = 0; i < s.length(); i++) {
+            char c = s.charAt(i);
+            if (!Character.isLetter(c)) return false;
+        }
+        return true;
+    }
+
+Bad:
+
+    // Bad: uses java.util.regex
+    public boolean isAlpha(String s) {
+        return s.matches("^[A-Za-z]+$");
+    }
+
+Developer verification (Windows / PowerShell)
+
+- Development environment: Windows 11 with PowerShell. Local verification commands assume PowerShell.
+- To run checks locally:
+
+```powershell
+mvn test
+mvn clean test -q
+```
+
+- There is no CI; maintainers run local checks before merging.
+
+Maintenance and exceptions
+
+- This document is strict. Any exception to these rules must be documented in this file with rationale and must be approved and recorded by a maintainer.
+- When rules change, add a short changelog entry at the top with the date and author.
+
+Behavior for automated assistants
+
+- Refuse to generate code that violates the bans above. If a requested change conflicts with these rules, surface the conflict clearly and suggest compliant alternatives.
+- Keep generated commit messages and PR descriptions explicit about why code was added and how it complies with these rules.
+
+When in doubt, prefer conservative, simple code patterns that map cleanly to native/C semantics and explicitly document any non-obvious decisions.
