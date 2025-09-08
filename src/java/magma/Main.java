@@ -135,7 +135,14 @@ public class Main {
 		final var type = withType.substring(i1 + " ".length());
 
 		final var name = stripped.substring(i + " ".length());
-		return Optional.of(wrap(modifiers) + " " + wrap(type) + " " + name);
+		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);
+	}
+
+	private static String compileType(String type) {
+		final var stripped = type.strip();
+		if (stripped.equals("void")) return "void";
+
+		return wrap(stripped);
 	}
 
 	private static String compileFunctionSegment(String input) {
