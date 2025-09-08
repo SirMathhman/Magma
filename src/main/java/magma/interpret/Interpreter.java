@@ -255,7 +255,7 @@ public class Interpreter {
 		Optional<FinalParse> finalParseOpt = parseFinalPart(finalPart);
 		if (finalParseOpt.isEmpty())
 			return Optional.empty();
-	FinalParse finalParse = finalParseOpt.get();
+		FinalParse finalParse = finalParseOpt.get();
 	Optional<Tuple2<String, String>> callOpt = finalParse.callOpt();
 	Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = finalParse.ctorOpt();
 
@@ -267,40 +267,40 @@ public class Interpreter {
 			return Optional.of(new Err<>(collRes.error().get()));
 		java.util.Map<String, Tuple2<String, String>> fns = collRes.fns();
 
-		// If there are any let statements among the leading statements, handle
-		// them as a let-block so that a trailing identifier (like `x`) can be
-		// resolved from the let environment. Build a list of the let stmts plus
-		// the final part and delegate to existing let handling.
+		// Prepare let environment if needed so trailing identifier or
+		// constructor.field expressions can reference let-bound values.
 		boolean hasLet = stmts.subList(0, stmts.size() - 1).stream().anyMatch(p -> p.startsWith("let "));
+		java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
 		if (hasLet) {
-			// collect only the leading let statements
-			java.util.List<String> lets = new java.util.ArrayList<>();
-			for (int i = 0; i < stmts.size() - 1; i++) {
-				if (stmts.get(i).startsWith("let "))
-					lets.add(stmts.get(i));
-			}
-			// If the final part is an identifier or a block, we can reuse existing
-			// multiple-let handling which reconstructs a let environment and
-			// evaluates the final expression.
+			// If the final part is an identifier or a block, reuse existing multiple-let handling
 			if (isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))) {
+				java.util.List<String> lets = new java.util.ArrayList<>();
+				for (int i = 0; i < stmts.size() - 1; i++)
+					if (stmts.get(i).startsWith("let "))
+						lets.add(stmts.get(i));
 				lets.add(finalPart);
 				return handleMultipleLets(lets);
 			}
-			// Otherwise (final part is a call or constructor.field), validate the
-			// let statements for correctness, but then dispatch to the normal
-			// function/constructor handling using the previously collected fns.
-			java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
-			for (String l : lets) {
-				java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, l);
-				if (perr.isEmpty())
-					return Optional.empty();
-				if (perr.get().isPresent())
-					return Optional.of(new Err<>(perr.get().get()));
-			}
-			// validated lets; fall through to function/constructor dispatch below
+			Result<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> built = buildLetEnv(stmts);
+			if (built instanceof Err<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> e)
+				return Optional.of(new Err<>(e.error()));
+			if (built instanceof Ok<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> ok)
+				env = ok.value();
+			else
+				return Optional.of(new Err<>(new InterpretError("Malformed let environment")));
 		}
 
+		// If final was a constructor.field access where the left was a plain
+		// identifier that refers to a let-bound constructor literal (stored as
+		// CTOR:Type,arg), substitute the ctorOpt accordingly so that
+		// handleConstructorOrFieldCall receives the resolved (Name,arg) pair.
+		finalParse = substituteCtorFromEnv(finalParse, env);
+
 		// Delegate final dispatch (constructor.field vs normal call) to helper
+		// refresh call/ctor optionals from finalParse in case we substituted a
+		// let-bound constructor literal above
+		callOpt = finalParse.callOpt();
+		ctorOpt = finalParse.ctorOpt();
 		return dispatchAfterCollection(new DispatchContext(ctorOpt, callOpt, fns, finalPart));
 	}
 
@@ -328,6 +328,52 @@ public class Interpreter {
 			}
 		}
 		return Optional.of(new FinalParse(callOpt, ctorOpt, finalIsIdentifier));
+	}
+
+	/**
+	 * Build and validate let environment from leading stmts. Returns Ok(env)
+	 * on success or Err(InterpretError) on first validation error.
+	 */
+	private Result<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> buildLetEnv(
+			java.util.List<String> stmts) {
+		java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
+		for (int i = 0; i < stmts.size() - 1; i++) {
+			String s = stmts.get(i);
+			if (!s.startsWith("let "))
+				continue;
+			java.util.Optional<java.util.Optional<InterpretError>> perr = processLetStmt(env, s);
+			if (perr.isEmpty())
+				return new Err<>(new InterpretError("Malformed let statement"));
+			if (perr.get().isPresent())
+				return new Err<>(perr.get().get());
+		}
+		return new Ok<>(env);
+	}
+
+	/**
+	 * Substitute a constructor literal from env into finalParse when left is a
+	 * plain identifier bound to a CTOR:Type,arg value.
+	 */
+	private FinalParse substituteCtorFromEnv(FinalParse finalParse, java.util.Map<String, Tuple2<Boolean, String>> env) {
+		if (finalParse.ctorOpt().isEmpty())
+			return finalParse;
+		Tuple2<Tuple2<String, String>, String> raw = finalParse.ctorOpt().get();
+		Tuple2<String, String> left = raw.first();
+		String leftName = left.first();
+		String leftArg = left.second();
+		if (!leftArg.isEmpty())
+			return finalParse;
+		if (!env.containsKey(leftName))
+			return finalParse;
+		String stored = env.get(leftName).second();
+		if (!stored.startsWith("CTOR:"))
+			return finalParse;
+		int comma = stored.indexOf(',');
+		if (comma <= 5)
+			return finalParse;
+		String type = stored.substring(5, comma);
+		String arg = stored.substring(comma + 1);
+		return new FinalParse(finalParse.callOpt(), Optional.of(new Tuple2<>(new Tuple2<>(type, arg), raw.second())), finalParse.finalIsIdentifier);
 	}
 
 	private Optional<Result<String, InterpretError>> dispatchAfterCollection(DispatchContext ctx) {
@@ -501,8 +547,16 @@ public class Interpreter {
 		if (p <= 0)
 			return Optional.empty();
 		Optional<Tuple2<String, String>> leftCall = parseCallOrStructLeft(left, p);
-		if (leftCall.isEmpty())
-			return Optional.empty();
+		// If left isn't a call or struct literal, allow a plain identifier (variable)
+		// so that `var.field` works (where `var` may be a let-bound constructor
+		// literal). Represent it as (name, "") for the arg.
+		if (leftCall.isEmpty()) {
+			if (p == left.length()) {
+				leftCall = Optional.of(new Tuple2<>(left, ""));
+			} else {
+				return Optional.empty();
+			}
+		}
 		String rightPart = finalPart.substring(dot + 1).trim();
 		// Handle method call pattern like get()
 		if (rightPart.endsWith(")")) {
@@ -981,6 +1035,9 @@ public class Interpreter {
 	private java.util.Optional<String> resolveRhsForEnv(java.util.Map<String, Tuple2<Boolean, String>> env, String rhs) {
 		if (rhs.isEmpty())
 			return java.util.Optional.empty();
+		// Accept constructor-tagged RHS values directly
+		if (rhs.startsWith("CTOR:"))
+			return java.util.Optional.of(rhs);
 		if (Character.isDigit(rhs.charAt(0)))
 			return java.util.Optional.of(rhs);
 		if (rhs.equals("true") || rhs.equals("false"))
@@ -1441,6 +1498,10 @@ public class Interpreter {
 		Optional<String> ctorField = parseConstructorFieldRhsValue(stmt, pos);
 		if (ctorField.isPresent())
 			return ctorField;
+		// Allow constructor literal like Name {100} as an RHS value
+		Optional<String> ctorLiteral = parseConstructorLiteralRhsValue(stmt, pos);
+		if (ctorLiteral.isPresent())
+			return ctorLiteral;
 		Optional<String> block = parseBlockRhsValue(stmt, pos);
 		if (block.isPresent())
 			return block;
@@ -1529,6 +1590,33 @@ public class Interpreter {
 			}
 		}
 		return Optional.empty();
+	}
+
+	/**
+	 * Parse a constructor literal like Name {100} as an RHS value. Returns the
+	 * inner token (e.g., "100") if the literal occupies the remainder of the
+	 * statement. This allows let bindings such as `let empty = Empty {100};` to
+	 * store the constructor content.
+	 */
+	private Optional<String> parseConstructorLiteralRhsValue(String stmt, int pos) {
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd <= 0)
+			return Optional.empty();
+		String typeName = stmt.substring(pos, idEnd);
+		int ws = skipWhitespace(stmt, idEnd);
+		if (ws >= stmt.length() || stmt.charAt(ws) != '{')
+			return Optional.empty();
+		int startArg = skipWhitespace(stmt, ws + 1);
+		Optional<Tuple2<String, Integer>> argOpt = parseTokenArgAndExpectClosing(stmt, startArg, '}');
+		if (argOpt.isEmpty())
+			return Optional.empty();
+		String arg = argOpt.get().first();
+		int after = skipWhitespace(stmt, argOpt.get().second() + 1);
+		if (after != stmt.length())
+			return Optional.empty();
+		// Return a tagged constructor literal so it can be recognized later when
+		// stored in a let environment: CTOR:<Type>,<arg>
+		return Optional.of("CTOR:" + typeName + "," + arg);
 	}
 
 	private Optional<String> parseIfRhsValue(String stmt, int pos) {

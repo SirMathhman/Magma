@@ -43,5 +43,17 @@ public class InterpreterStructRobustnessTest {
 		assertValid("struct Wrapper { field : I32 } Wrapper { 2 }.field", "2");
 	}
 
+	@Test
+	void letBindConstructorLiteralThenAccessField() {
+		// assign a constructor literal to a let and then access its field
+		assertValid("struct Empty { field : I32 } let empty = Empty {100}; empty.field", "100");
+	}
+
+	@Test
+	void letBindConstructorLiteralWithSpacesThenAccess() {
+		// constructor literal may have spaces around braces
+		assertValid("struct Empty { field : I32 } let empty = Empty { 100 }; empty.field", "100");
+	}
+
 	// helpers delegated to TestHelpers
 }
