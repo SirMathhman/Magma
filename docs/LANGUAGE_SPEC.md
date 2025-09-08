@@ -2,13 +2,12 @@
 
 Status: Draft
 
-This document specifies the Magma language at a level sufficient for implementing a compiler frontend and a reference code generator to C. Sections may be expanded as the language design matures. The wording uses normative language: "shall" for requirements, "should" for recommendations, and "will" for expected behaviors.
+This document specifies the Magma language at a level sufficient for implementing a compiler frontend and backends. Sections may be expanded as the language design matures. The wording uses normative language: "shall" for requirements, "should" for recommendations, and "will" for expected behaviors.
 
 ## 1. Goals and Design Principles
 
-- Magma shall be a small, expressive language designed to be compiled to portable C.
-- Magma shall prioritize clarity and predictable semantics over syntactic brevity.
-- The compiler shall aim to generate readable C that mirrors the structure of the original Magma source for debugging.
+- Magma shall be a small, expressive language that prioritizes clarity and predictable semantics over syntactic brevity.
+- The language shall be specified independently of any particular implementation strategy or backend. Implementations shall document backend-specific details (for example, code generation patterns and runtime requirements) in an implementation guide.
 
 ## 2. File & Module Model
 
@@ -96,17 +95,17 @@ Generics:
 ## 6. Functions and calling conventions
 
 - Functions shall be declared with `fn name(params) -> type { ... }`.
-- Closures and first-class functions shall be supported in a limited form in the MVP: function literals shall be allowed, but capturing closures that capture mutable environments shall be lowered to helper structs in the generated C and shall be explicitly documented.
-- The compiler shall map Magma function calls to C functions. When closures are used, the compiler shall generate wrapper structs and function pointers as needed.
+- Closures and first-class functions shall be supported in a limited form in the MVP: function literals shall be allowed. How closures and function values are represented is a backend implementation concern; implementations shall document their chosen lowering and calling conventions.
 
 ABI and calling convention:
-- The generated C shall use the platform default calling convention for the target C compiler.
+- The specification does not mandate a particular ABI or calling convention; these are implementation details. Implementations shall document the conventions they use and any implications for interop.
 
 ## 7. Memory model and runtime
 
-- The Magma runtime shall provide allocation primitives for heap-allocated objects (strings, structs, arrays) and shall be provided as C source packaged with the compiler.
-- Initially, the runtime shall rely on manual allocation and deallocation functions (malloc/free wrappers). The runtime should provide helper functions such as `magma_alloc`, `magma_free`, `magma_string_new`, and `magma_string_free`.
-- Automatic memory management (reference counting or GC) will be evaluated after the MVP; the specification does not mandate a GC for the initial release.
+- The language's memory model shall distinguish between value and reference types. Strings, arrays, and other heap-allocated objects are conceptualized as heap values in the language.
+- The specification does not mandate a particular allocation or memory-management strategy (manual, reference-counting, or garbage-collected). Runtime design choices are left to implementations; implementers shall document the runtime API and semantics for their backend.
+
+Automatic memory management (reference counting or GC) will be evaluated after the MVP; the specification does not require a GC for the initial release.
 
 ## 8. Standard library (initial)
 
@@ -115,7 +114,7 @@ ABI and calling convention:
   - `math` — numeric helpers
   - `strings` — string utilities
 
-- The standard library shall be implemented in portable C and shipped with the compiler as source files and headers.
+The implementation language and packaging of the standard library are implementation concerns. The standard library shall provide a stable, documented API for user programs.
 
 ## 9. Error handling
 
@@ -126,26 +125,17 @@ ABI and calling convention:
   - a human-readable message
   - a code snippet with an arrow indicating the error position
 
-## 10. Interoperability with C
+## 10. Interoperability with foreign code
 
-- Generated C shall be valid ISO C11 (or a widely-supported subset) and shall compile with `gcc` and `clang`.
-- The compiler shall provide a way to declare `extern` C functions and types to call into hand-written C libraries.
+- Programs shall be able to call externally-provided functions and use externally-declared types. The exact foreign-function interface (FFI) syntax and semantics are implementation-defined and shall be documented by each backend.
 
-Example extern declaration (draft syntax):
-
-    extern c: {
-      fn printf(format: string, ...) -> int;
-    }
-
-The exact syntax shall be defined in a later revision.
+Backends that target C or other native ABIs should document how `extern` declarations map to the target ABI.
 
 ## 11. Tooling and build
 
-- The Magma compiler shall be implemented as a Maven Java project and shall provide a CLI JAR.
-- The CLI shall provide commands to compile Magma to C source files and optionally to invoke the system C compiler to produce an executable.
+- The language specification does not mandate a particular implementation technology or build system for the compiler. Implementations may provide a CLI, IDE integrations, and build tooling as appropriate.
 
-CLI semantics:
-- `magma compile -o outdir src1.mg src2.mg` shall produce `outdir` containing generated `.c` and `.h` files and a small build manifest.
+Typical CLI functionality includes specifying input source files, an output location, and options for choosing a backend or target artifact type; exact CLI syntax is implementation-defined.
 
 ## 12. Examples
 
@@ -182,7 +172,8 @@ Local inference example:
 ## 14. Conformance and testing
 
 - The compiler shall include a suite of conformance tests derived from examples in this specification.
-- The test harness shall compile Magma programs and shall verify that generated C compiles and the produced executables behave as specified.
+
+The test harness shall compile Magma programs and shall verify that produced artifacts behave as specified for the chosen backend. Implementations should include end-to-end tests that exercise the frontend, typechecker, codegen, and runtime.
 
 ## 15. Revision history
 

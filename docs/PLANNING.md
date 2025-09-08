@@ -7,6 +7,7 @@ This document outlines the plan to build a cross-compiler written in Java (Maven
 - Build a compiler implemented in Java and packaged via Maven
 - Source language: Magma (a small, statically-typed, imperative/functional hybrid — spec to be defined)
 - Target language: Portable ISO C (C11 as baseline)
+- Implementation guidance: see `docs/IMPLEMENTATION.md` for a reference C backend guide and runtime suggestions. The language spec (`docs/LANGUAGE_SPEC.md`) remains implementation-agnostic.
 - Deliverables: compiler CLI, library artifacts, runtime C support, tests, and documentation
 
 ## High-level architecture
