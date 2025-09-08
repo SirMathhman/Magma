@@ -33,47 +33,53 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}
+	}*//*
 
 	private static String compile(String input) {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		var depth = 0;
-		for (var i = 0; i < input.length(); i++) {
+		return compileSegments(input, Main::compileRootSegment);*//*
+	}
+
+	private static String compileSegments(String input, Function<String, String> mapper) {
+		final var segments = new ArrayList<String>();*//*
+		var buffer = new StringBuilder();*//*
+		var depth = 0;*//*
+		for (var i = 0;*//* i < input.length();*//* i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
 			}
-			if (c == '{') depth++;
+			if (c == '}*//*' & depth == 1) {
+				segments.add(buffer.toString());*//*
+				buffer.setLength(0);*//*
+				depth--;*//*
+			}
+			if (c == '{') depth++;*//*
 			if (c == '}') depth--;
 		}
 		segments.add(buffer.toString());
 
-		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
-	}
-
-	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
+		return segments.stream().map(mapper).collect(Collectors.joining());
+	}*//*private static String wrap(String input) {
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*}
 
 	private static String compileRootSegment(String input) {
-		final var stripped = input.strip();
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
-
-		final var classIndex = stripped.indexOf("class ");
-		if (classIndex >= 0) {
+		final var stripped = input.strip();*//*if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";*//*final var classIndex = stripped.indexOf("class ");*//*if (classIndex >= 0) {
 			final var modifiers = stripped.substring(0, classIndex);
-			final var remainder = stripped.substring(classIndex + "class ".length());
-			final var i = remainder.indexOf("{");
+			final var remainder = stripped.substring(classIndex + "*/struct ".length());
+			final var i = remainder.indexOf(" {}; /*");*//*
 			if (i >= 0) {
 				final var name = remainder.substring(0, i).strip();
 				final var content = remainder.substring(i + "{".length());
-				return wrap(modifiers) + "struct " + name + " {}; " + wrap(content);
+				return wrap(modifiers) + "struct " + name + " {}; " + compileSegments(content, Main::compileClassSegment);
 			}
-		}
+		}*//*
 
 		return wrap(stripped);
 	}
-}*/
+
+	private static String compileClassSegment(String input) {
+		return wrap(input);
+	}
+}*//**/
