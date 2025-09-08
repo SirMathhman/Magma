@@ -225,6 +225,54 @@ Top-level expression programs:
 
 - Definite-assignment checks shall be performed by the frontend: the compiler shall reject lowering to C when a local might be read before being assigned on some control-flow path. Implementations may choose to initialize locals to a default value in generated C as a fallback, but doing so must be documented and the frontend shall still emit a warning if this masks a probable uninitialized-use bug.
 
+## If expressions: parsing, typing, and lowering
+
+- Parsing and AST:
+  - The parser shall accept `if` in expression position where the concrete syntax is `if ( <expression> ) <expression> else <expression>` and shall construct an `IfExpr` AST node with `cond`, `then_expr`, and `else_expr` children.
+  - The parser shall treat `if` followed by a statement or block (without an `else` expression) as a statement-form `IfStmt` (existing behavior) rather than an expression.
+
+  - The parser and typechecker shall treat `if` used in expression position without an `else` as a syntax/type error: `else` is required for the expression form. Implementations shall report a clear diagnostic when an `if` expression lacks an `else` branch.
+
+- Type checking:
+  - The typechecker shall require the condition to be `Bool` for `IfExpr` nodes and shall type-check both branch expressions. Both branches shall have the same type or a documented coercion shall be applied; otherwise the typechecker shall report an incompatible-branch error.
+  - For `let` bindings with an explicit annotation (for example `let x : I32 = if (cond) 3 else 5;`), the compiler shall verify that the branch expressions are representable in the annotated type and shall report an error if not.
+
+- Lowering to C (C reference backend guidance):
+  - The C backend shall lower `IfExpr` nodes into a sequence that evaluates the condition and then assigns the selected branch value to a temporary variable of the appropriate C type, finally using that temporary where the original expression appeared. This avoids duplicating branch side-effects and ensures single evaluation semantics per branch.
+  - Example lowering sketch (Magma -> generated C):
+
+      /* Magma */
+      fn main() -> int {
+        let x : I32 = if (true) 3 else 5;
+        return x;
+      }
+
+      /* Generated C (sketch) */
+      #include <stdint.h>
+      #include <stdbool.h>
+
+      int32_t magma_main(void) {
+        int32_t __tmp_if_0;
+        if (true) {
+          __tmp_if_0 = 3;
+        } else {
+          __tmp_if_0 = 5;
+        }
+        int32_t x = __tmp_if_0;
+        return x;
+      }
+
+  - The backend shall generate unique temporary names for nested or multiple `if` expressions and shall ensure correct scoping so that temporaries do not conflict with user identifiers.
+  - The backend shall preserve evaluation order and side-effects: only the selected branch shall be evaluated, and evaluation of the condition shall occur before any branch expression.
+
+Assumptions:
+
+- The C backend lowers `if` expressions to an explicit temporary and `if`/`else` statement; alternative backends may use other lowering strategies (for example, SSA-based IR or a synthetic conditional operator) as long as semantics are preserved.
+
+Revision history
+
+- 2025-09-08 — Require `else` for `if` when used as an expression and document parser/typechecker diagnostics for missing `else` — user
+
 ## Revision history
 
 - 2025-09-08  Document lowering of `if` statements to C `if`/`else` and require definite-assignment checks for uninitialized locals  user

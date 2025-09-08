@@ -62,7 +62,9 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
     additive       ::= multiplicative { ( '+' | '-' ) multiplicative }
     multiplicative ::= unary { ( '*' | '/' | '%' ) unary }
     unary          ::= ( '!' | '-' ) unary | primary
-    primary        ::= literal | identifier | '(' expression ')' | function_literal
+    primary        ::= literal | identifier | '(' expression ')' | function_literal | if_expression
+
+    if_expression  ::= 'if' '(' expression ')' expression 'else' expression
 
     function_literal ::= 'fn' '(' [ param_list ] ')' [ '->' type ] block
 
@@ -211,18 +213,33 @@ Local `let` statement example (explicit width annotation):
   - If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's value is representable in the annotated width and signedness and shall produce a type error on mismatch (for example, assigning `-1` to `U8` or assigning `256` to `U8` shall be an error).
   - Implementations shall document the precise semantics for out-of-range integer literals (for example, whether such cases are reported as parse-time errors or type-check errors).
 
-If statements
+If statements and expressions
 
-- Magma shall support `if` statements with an optional `else` branch. The concrete syntax is:
+- Magma shall not include a separate ternary conditional operator (for example `cond ? a : b`). Instead, the `if` construct shall also be usable as an expression that yields a value and can appear in initializer expressions, assignments, or anywhere an expression is allowed.
 
+- Concrete syntaxes:
+
+      // statement form (else optional)
       if ( <expression> ) <statement> [ else <statement> ]
 
-- Semantics and typing:
-  - The condition expression inside `if (...)` shall have type `Bool`. If the condition has a different type, the compiler shall produce a type error unless the implementation documents and performs a well-defined conversion.
-  - Both the `then` and `else` branches are statements and may be either a single statement or a block (`{ ... }`).
-  - An `if` without an `else` shall execute the `then` branch when the condition is true and do nothing when false.
+      // expression form (else required)
+      if ( <expression> ) <expression> else <expression>
 
-- Definite assignment and example:
+- Semantics and typing for `if` used as an expression:
+  - The condition expression inside `if (...)` shall have type `Bool`. If the condition has a different type, the compiler shall produce a type error unless the implementation documents and performs a well-defined conversion.
+  - When `if` is used as an expression, the `else` branch shall be present. Implementations shall treat an `if` expression without an `else` as a statement (it does not yield a value).
+  - Both the `then` and `else` expressions shall produce values of the same type, or of types that the implementation documents as safely coercible; the compiler shall perform a type-check and shall report a type error on incompatible branch result types.
+  - The `if` expression shall evaluate the condition first, then evaluate exactly one of the two branch expressions (no implicit evaluation of the other branch), and the selected branch's value shall be the value of the overall expression.
+
+- Usage and examples:
+
+      // initializer form using an `if` expression
+      let x : I32 = if (true) 3 else 5;
+
+      // as part of a larger expression
+      let y : I32 = 1 + (if (b) 2 else 4);
+
+- Definite assignment and example (statement form):
   - The compiler shall enforce definite assignment for local variables declared without an initializer: every possible control-flow path that leads to a use of the local must assign it a value first. For example, the following shall be valid because both branches assign `x` before any use:
 
       fn main() -> int {
@@ -232,6 +249,11 @@ If statements
       }
 
   - If a local may be used on some control-flow path without prior initialization, the compiler shall emit an error.
+
+Assumptions:
+
+- When the `if` construct is used as an expression, an `else` branch is required to avoid undefined expression results; this document assumes that requirement unless the user requests otherwise.
+- The specification does not mandate implicit numeric promotions between branch expressions; implementations shall document any coercion or promotion rules they provide.
 
 Top-level expression programs (convenience form):
 
