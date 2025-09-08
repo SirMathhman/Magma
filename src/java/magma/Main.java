@@ -46,13 +46,16 @@ public class Main {
 	private static String compile(String input) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
+		var depth = 0;
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
-			if (c == ';') {
+			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
-				buffer = new StringBuilder();
+				buffer.setLength(0);
 			}
+			if (c == '{') depth++;
+			if (c == '}') depth--;
 		}
 		segments.add(buffer.toString());
 
