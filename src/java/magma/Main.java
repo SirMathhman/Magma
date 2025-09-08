@@ -58,11 +58,13 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
+				continue;
 			}
 			if (c == '}' & depth == 1) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
 				depth--;
+				continue;
 			}
 			if (c == '{') depth++;
 			if (c == '}') depth--;
@@ -96,6 +98,13 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		final var i = input.indexOf("(");
+		if (i >= 0) {
+			final var definition = input.substring(0, i);
+			final var withParams = input.substring(i + "(".length());
+			return wrap(definition) + "(" + wrap(withParams);
+		}
+
 		return wrap(input);
 	}
 }

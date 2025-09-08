@@ -4,10 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: update string formatting in Java and C conversion logic">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: refactor compilation logic to support segment mapping and class segment handling">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,7 +159,47 @@
       <option name="project" value="LOCAL" />
       <updated>1757300492859</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="Root segments">
+      <option name="closed" value="true" />
+      <created>1757300810212</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1757300810212</updated>
+    </task>
+    <task id="LOCAL-00010" summary="feat: improve parsing logic in Java and C conversion functions">
+      <option name="closed" value="true" />
+      <created>1757300870571</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1757300870571</updated>
+    </task>
+    <task id="LOCAL-00011" summary="feat: enhance root segment compilation by stripping package and import statements">
+      <option name="closed" value="true" />
+      <created>1757300906769</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1757300906769</updated>
+    </task>
+    <task id="LOCAL-00012" summary="feat: add support for converting Java class definitions to C struct syntax">
+      <option name="closed" value="true" />
+      <created>1757300998832</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1757300998832</updated>
+    </task>
+    <task id="LOCAL-00013" summary="feat: refactor compilation logic to support segment mapping and class segment handling">
+      <option name="closed" value="true" />
+      <created>1757301112642</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1757301112642</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -171,6 +209,11 @@
     <MESSAGE value="Reset" />
     <MESSAGE value="feat: refactor project structure and add Java to C conversion functionality" />
     <MESSAGE value="feat: update string formatting in Java and C conversion logic" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: update string formatting in Java and C conversion logic" />
+    <MESSAGE value="Root segments" />
+    <MESSAGE value="feat: improve parsing logic in Java and C conversion functions" />
+    <MESSAGE value="feat: enhance root segment compilation by stripping package and import statements" />
+    <MESSAGE value="feat: add support for converting Java class definitions to C struct syntax" />
+    <MESSAGE value="feat: refactor compilation logic to support segment mapping and class segment handling" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: refactor compilation logic to support segment mapping and class segment handling" />
   </component>
 </project>
