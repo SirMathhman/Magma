@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: refactor compilation logic to support segment mapping and class segment handling">
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: refactor compilation functions to improve segment handling and parsing logic">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -199,7 +199,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757301112642</updated>
     </task>
-    <option name="localTasksCounter" value="14" />
+    <task id="LOCAL-00014" summary="feat: refactor compilation functions to improve segment handling and parsing logic">
+      <option name="closed" value="true" />
+      <created>1757301220317</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1757301220317</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -214,6 +222,7 @@
     <MESSAGE value="feat: enhance root segment compilation by stripping package and import statements" />
     <MESSAGE value="feat: add support for converting Java class definitions to C struct syntax" />
     <MESSAGE value="feat: refactor compilation logic to support segment mapping and class segment handling" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: refactor compilation logic to support segment mapping and class segment handling" />
+    <MESSAGE value="feat: refactor compilation functions to improve segment handling and parsing logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: refactor compilation functions to improve segment handling and parsing logic" />
   </component>
 </project>

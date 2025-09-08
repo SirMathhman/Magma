@@ -102,7 +102,15 @@ public class Main {
 		if (i >= 0) {
 			final var definition = input.substring(0, i);
 			final var withParams = input.substring(i + "(".length());
-			return wrap(definition) + "(" + wrap(withParams);
+			final var i1 = withParams.indexOf(")");
+			if (i1 >= 0) {
+				final var params = withParams.substring(0, i1);
+				final var content = withParams.substring(i1 + ")".length()).strip();
+				if (content.startsWith("{") && content.endsWith("}")) {
+					final var slice = content.substring(1, content.length() - 1);
+					return wrap(definition) + "(" + wrap(params) + "){" + wrap(slice) + "}";
+				}
+			}
 		}
 
 		return wrap(input);
