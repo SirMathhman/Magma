@@ -171,23 +171,24 @@ Local `let` statement example (explicit width annotation):
 
 ## Local `let` statements (explicit width annotation)
 
-- Local `let` statements shall allow an explicit integer width annotation using the `I32` suffix for 32-bit signed integers. For example:
+- Local `let` statements shall allow an explicit integer width annotation. The supported annotations in the MVP are:
 
-    fn main() -> int {
-      let x : I32 = 0;
-      return x;
-    }
+  - Unsigned: `U8`, `U16`, `U32`, `U64`
+  - Signed: `I8`, `I16`, `I32`, `I64`
 
-- Example (explicit width):
+  Example:
 
-    fn main() -> int {
-      let x : I32 = 0;
-      return x;
-    }
+      fn main() -> int {
+        let a: U8 = 0;
+        let b: I32 = 0;
+        return b;
+      }
 
-Notes:
-- The `I32` annotation on a `let` binding shall indicate that the declared variable is a 32-bit signed integer. Implementations shall map `I32` to the platform-specific 32-bit integer representation (for example `int32_t` in the C reference backend).
-- If a `let` binding includes an initializer and no explicit type annotation is present, the compiler shall infer the type from the initializer expression. If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's type is compatible with the annotated type and shall produce a type error on mismatch.
+  Notes:
+  - An annotation such as `I32` shall indicate a 32-bit signed integer; `U32` shall indicate a 32-bit unsigned integer, and similarly for other widths. Implementations shall map these annotations to the platform-specific fixed-width integer types (for example `int32_t` / `uint32_t` in the C reference backend).
+  - If a `let` binding includes an initializer and no explicit type annotation is present, the compiler shall infer the type from the initializer expression.
+  - If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's value is representable in the annotated width and signedness and shall produce a type error on mismatch (for example, assigning `-1` to `U8` or assigning `256` to `U8` shall be an error).
+  - Implementations shall document the precise semantics for out-of-range integer literals (for example, whether such cases are reported as parse-time errors or type-check errors).
 
 Top-level expression programs (convenience form):
 

@@ -127,6 +127,44 @@ Top-level expression programs:
 
 - The backend shall perform a type-check to ensure the initializer's value is compatible with the annotated `I32` type and shall emit a diagnostic if the initializer cannot be represented as a 32-bit signed integer where required.
 
+## Integer width annotations mapping and lowering
+
+- The C reference backend shall support lowering the following integer width annotations to the corresponding C fixed-width types:
+
+  - `U8` -> `uint8_t`
+  - `U16` -> `uint16_t`
+  - `U32` -> `uint32_t`
+  - `U64` -> `uint64_t`
+  - `I8` -> `int8_t`
+  - `I16` -> `int16_t`
+  - `I32` -> `int32_t`
+  - `I64` -> `int64_t`
+
+- Example lowering (Magma -> generated C sketch):
+
+    /* Magma */
+    fn main() -> int {
+      let u: U8 = 10;
+      let i: I32 = -1;
+      return (int) i;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdint.h>
+    uint8_t magma_u = 10; /* example global or lowered local */
+    int32_t magma_i = -1;
+
+    int32_t magma_main(void) {
+      uint8_t u = 10; /* lowered from let u : U8 = 10; */
+      int32_t i = -1; /* lowered from let i : I32 = -1; */
+      return i;
+    }
+
+- The backend shall enforce representability checks for initializers (for example, warn or error if an initializer value does not fit in the annotated width or signedness). The implementation guide shall document whether these checks occur at parse-time or during type-checking and the exact diagnostic messages produced.
+
+## Revision history
+
+- 2025-09-08  Add support for integer width annotations `U8|U16|U32|U64|I8|I16|I32|I64` and map them to C fixed-width types in the C reference backend  user
 ## Revision history
 
 - 2025-09-08  Document lowering of `let x : I32 = 0;` to `int32_t` locals in the C reference backend  assistant

@@ -8,6 +8,8 @@ All notable changes to this project will be documented in this file.
 - IMPLEMENTATION: Documented how the C reference backend lowers top-level expression programs to a generated `main` and maps the returned `int32_t` to the process exit code using the low-order 8 bits.
  - LANGUAGE: Added normative wording for local `let` statements with explicit `I32` annotation and type-checking rules.
  - IMPLEMENTATION: Documented how the C reference backend lowers `let x : I32 = 0;` to an `int32_t` local and the requirement to type-check the initializer for `I32` compatibility.
+ - LANGUAGE: Expanded integer width support to `U8|U16|U32|U64|I8|I16|I32|I64` and added rules for representability and type-checking.
+ - IMPLEMENTATION: Documented mapping of the new annotations to C fixed-width types (`uintN_t`/`intN_t`) and lowering examples.
 
 ## 2025-09-08 — Assistant tooling
 
