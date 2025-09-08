@@ -1,8 +1,0 @@
-magma\Lexer.class
-magma\AstNode.class
-magma\CodeEmitter.class
-magma\IrNode.class
-magma\TypeChecker.class
-magma\Parser.class
-magma\CLI.class
-magma\Token.class

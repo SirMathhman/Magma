@@ -2,6 +2,9 @@
 mode: agent
 ---
 
+The user will usually provide features that will describe the behavior of the program, and will not discuss architecture.
+Architecture is for you to decide.
+
 1. Read the project documentation (start with `README.md` and the files in `docs/`).
 
 2. Design how the requested feature should fit into the existing architecture and codebase.
@@ -17,3 +20,8 @@ mode: agent
 7. Update documentation and examples to show how to use the new feature.
 
 Optional: Keep changes small, add focused unit tests where helpful, and prefer readable, idiomatic C output for the code generator.
+
+Additional guidance for end-to-end codegen tests:
+
+- When the requested feature can be verified by emitting a small C program (for example, a Magma program that is a single numeric literal), prefer emitting a concise C source file, compiling it with `clang` or `cc` (if available on PATH), running the resulting binary, and asserting its exit code or output in the test.
+- If no system C compiler is available on the test runner, the test should gracefully fall back or be skipped; the agent should detect compiler presence and document the fallback in the test or prompt.
