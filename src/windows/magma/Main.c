@@ -1,5 +1,7 @@
 /*public */struct Main {};
 /*
+	private sealed interface Result<T, X> permits Ok, Err {}*//*
+
 	private static class State {
 		private final StringBuilder buffer = new StringBuilder();
 		private final ArrayList<String> segments = new ArrayList<>();
@@ -37,16 +39,48 @@
 			this.depth = depth - 1;
 			return this;
 		}
-	}*//*public static*/ void main(char** args){
+	}*//*
+
+	private record Ok<T, X>(T value) implements Result<T, X> {}*//*
+
+	private record Err<T, X>(X error) implements Result<T, X> {}*//*public static*/ void main(char** args){
+	/*run().ifPresent(Throwable::printStackTrace);*/
+	/**/}
+/*private static*/ /*Optional<IOException>*/ run(/**/){
 	/*final*/ Path sourceDirectory = Paths.get(".", "src", "java");
+	/*return switch (walk(sourceDirectory)) {
+			case Err<Stream<Path>, IOException>(IOException error) -> Optional.of(error);
+			case Ok<Stream<Path>, IOException>(Stream<Path> files) -> {
+				final Set<Path> paths = collectSources(files);
+				yield runWithSources(paths, sourceDirectory);
+			}
+		}*/
+	/*;*/
+	/**/}
+/*private static*/ /*Set<Path>*/ collectSources(/*Stream<Path>*/ sources){
+	/*return sources.filter(Files::isRegularFile)
+									.filter(path -> path.toString().endsWith(".java"))
+									.collect(Collectors.toSet());*/
+	/**/}
+/*private static Result<Stream<Path>,*/ /*IOException>*/ walk(Path sourceDirectory){
 	/*try (Stream<Path> stream = Files.walk(sourceDirectory)) {
-			final Set<Path> sources = stream.filter(Files::isRegularFile)
-																			.filter(path -> path.toString().endsWith(".java"))
-																			.collect(Collectors.toSet());
-
-			for (Path source : sources) {
-				final String input = Files.readString(source);
-
+			return new Ok<>(stream.collect(Collectors.toSet()).stream());
+		}*/
+	/*catch (IOException e) {
+			return new Err<>(e);
+		}*/
+	/**/}
+/*private static*/ /*Optional<IOException>*/ runWithSources(/*Set<Path> sources,*/ Path sourceDirectory){
+	/*for (Path source : sources) {
+			final Optional<IOException> maybeError = runWithSource(sourceDirectory, source);
+			if (maybeError.isPresent()) return maybeError;
+		}*/
+	/*return Optional.empty();*/
+	/**/}
+/*private static*/ /*Optional<IOException>*/ runWithSource(/*Path sourceDirectory,*/ Path source){
+	/*return switch (readString(source)) {
+			case Err(IOException error) -> Optional.of(error);
+			case Ok(String input) -> {
 				final Path relative = sourceDirectory.relativize(source);
 				final Path parent = relative.getParent();
 				final ArrayList<String> segments = new ArrayList<>();
@@ -59,18 +93,42 @@
 					targetDirectory = targetDirectory.resolve(segment);
 				}
 
-				Files.createDirectories(targetDirectory);
+				final Optional<IOException> directoryError = createDirectories(targetDirectory);
+				if (directoryError.isPresent()) yield directoryError;
 
 				final String fileName = relative.getFileName().toString();
 				final int index = fileName.lastIndexOf(".");
 				final String name = fileName.substring(0, index);
 				final Path resolve = targetDirectory.resolve(name + ".c");
-				Files.writeString(resolve, compile(input));
+				yield writeString(resolve, compile(input));
 			}
 		}*/
+	/*;*/
+	/**/}
+/*private static*/ /*Optional<IOException>*/ writeString(/*Path path,*/ char* output){
+	/*try {
+			Files.writeString(path, output);
+			return Optional.empty();
+		}*/
 	/*catch (IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}*/
+	/**/}
+/*private static*/ /*Optional<IOException>*/ createDirectories(Path targetDirectory){
+	/*try {
+			Files.createDirectories(targetDirectory);
+			return Optional.empty();
+		}*/
+	/*catch (IOException e) {
+			return Optional.of(e);
+		}*/
+	/**/}
+/*private static Result<String,*/ /*IOException>*/ readString(Path source){
+	/*try {
+			return new Ok<>(Files.readString(source));
+		}*/
+	/*catch (IOException e) {
+			return new Err<>(e);
 		}*/
 	/**/}
 /*private static*/ char* compile(char* input){
