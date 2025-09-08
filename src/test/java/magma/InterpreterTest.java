@@ -215,6 +215,14 @@ public class InterpreterTest {
 	}
 
 	@Test
+	void multipleClassesWithInnerFunctions() {
+		// declare two classes each with an inner function and use both in one
+		// expression
+		String program = "class fn A() => {fn get() => 1;} class fn B() => {fn get() => 2;} A().get() + B().get()";
+		assertValid(program, "3");
+	}
+
+	@Test
 	void typeAliasAndLetWithAlias() {
 		// ensure a simple type alias can be used in let declarations
 		assertValid("type Temp = I32; let x : Temp = 100; x", "100");
