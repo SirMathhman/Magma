@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: improve compilation logic by adding optional type handling and refining struct generation">
-      <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
-    </list>
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: update type handling in compilation logic to support char* and improve parameter types" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -231,7 +229,39 @@
       <option name="project" value="LOCAL" />
       <updated>1757301867756</updated>
     </task>
-    <option name="localTasksCounter" value="18" />
+    <task id="LOCAL-00018" summary="feat: enhance compilation logic by introducing type compilation and refining function segment handling">
+      <option name="closed" value="true" />
+      <created>1757301902311</created>
+      <option name="number" value="00018" />
+      <option name="presentableId" value="LOCAL-00018" />
+      <option name="project" value="LOCAL" />
+      <updated>1757301902311</updated>
+    </task>
+    <task id="LOCAL-00019" summary="feat: refine compilation logic by improving parameter handling and type compilation">
+      <option name="closed" value="true" />
+      <created>1757301975815</created>
+      <option name="number" value="00019" />
+      <option name="presentableId" value="LOCAL-00019" />
+      <option name="project" value="LOCAL" />
+      <updated>1757301975815</updated>
+    </task>
+    <task id="LOCAL-00020" summary="feat: refine compileType function to improve parameter handling and support array types">
+      <option name="closed" value="true" />
+      <created>1757302107348</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1757302107348</updated>
+    </task>
+    <task id="LOCAL-00021" summary="feat: update type handling in compilation logic to support char* and improve parameter types">
+      <option name="closed" value="true" />
+      <created>1757302128654</created>
+      <option name="number" value="00021" />
+      <option name="presentableId" value="LOCAL-00021" />
+      <option name="project" value="LOCAL" />
+      <updated>1757302128654</updated>
+    </task>
+    <option name="localTasksCounter" value="22" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -250,6 +280,10 @@
     <MESSAGE value="feat: enhance class segment compilation to support parameterized methods and improve wrapping logic" />
     <MESSAGE value="feat: enhance compilation logic to support function segments and improve wrapping" />
     <MESSAGE value="feat: improve compilation logic by adding optional type handling and refining struct generation" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: improve compilation logic by adding optional type handling and refining struct generation" />
+    <MESSAGE value="feat: enhance compilation logic by introducing type compilation and refining function segment handling" />
+    <MESSAGE value="feat: refine compilation logic by improving parameter handling and type compilation" />
+    <MESSAGE value="feat: refine compileType function to improve parameter handling and support array types" />
+    <MESSAGE value="feat: update type handling in compilation logic to support char* and improve parameter types" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: update type handling in compilation logic to support char* and improve parameter types" />
   </component>
 </project>
