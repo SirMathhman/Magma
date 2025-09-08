@@ -107,3 +107,26 @@ Top-level expression programs:
 ## Notes and alternatives
 
 - This document shows one practical approach. Implementers can choose other backends or runtime designs; if so, they should document differences and map language guarantees to their implementation choices.
+
+## Lowering of local `let` statements with `I32`
+
+- For local `let` statements that include an explicit `I32` annotation (for example `let x : I32 = 0;`), the C reference backend shall lower the binding to a local `int32_t` variable in the generated function. Example lowering sketch:
+
+    /* Magma */
+    fn main() -> int {
+      let x : I32 = 0;
+      return x;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdint.h>
+    int32_t magma_main(void) {
+      int32_t x = 0; /* lowered from let x : I32 = 0; */
+      return x;
+    }
+
+- The backend shall perform a type-check to ensure the initializer's value is compatible with the annotated `I32` type and shall emit a diagnostic if the initializer cannot be represented as a 32-bit signed integer where required.
+
+## Revision history
+
+- 2025-09-08  Document lowering of `let x : I32 = 0;` to `int32_t` locals in the C reference backend  assistant

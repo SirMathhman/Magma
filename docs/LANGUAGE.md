@@ -169,6 +169,26 @@ Local `let` statement example (explicit width annotation):
       return x;
     }
 
+## Local `let` statements (explicit width annotation)
+
+- Local `let` statements shall allow an explicit integer width annotation using the `I32` suffix for 32-bit signed integers. For example:
+
+    fn main() -> int {
+      let x : I32 = 0;
+      return x;
+    }
+
+- Example (explicit width):
+
+    fn main() -> int {
+      let x : I32 = 0;
+      return x;
+    }
+
+Notes:
+- The `I32` annotation on a `let` binding shall indicate that the declared variable is a 32-bit signed integer. Implementations shall map `I32` to the platform-specific 32-bit integer representation (for example `int32_t` in the C reference backend).
+- If a `let` binding includes an initializer and no explicit type annotation is present, the compiler shall infer the type from the initializer expression. If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's type is compatible with the annotated type and shall produce a type error on mismatch.
+
 Top-level expression programs (convenience form):
 
     Magma implementations may accept a source file that consists of a single top-level expression followed by an optional type annotation suffix that indicates the intended integer width. For the MVP the supported integer suffix is `I32` which denotes a 32-bit signed integer literal result. When a source file is a single expression, it is semantically equivalent to providing an explicit `main` function that returns the value of that expression. Concretely:
@@ -201,6 +221,10 @@ The test harness shall compile Magma programs and shall verify that produced art
 ## 15. Revision history
 
 - 2025-09-08 — Add normative specification for local `let` statements and example `let x : I32 = 0;` — user
+
+- 2025-09-08 — Add normative wording for `let` with explicit `I32` annotation and type-checking rules — assistant
+
+- Draft created: 2025-09-08 — initial structure and normative language
 
 - Draft created: 2025-09-08 — initial structure and normative language
 

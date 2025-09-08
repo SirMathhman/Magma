@@ -6,6 +6,8 @@ All notable changes to this project will be documented in this file.
 
 - LANGUAGE: Added "Top-level expression programs" convenience form. A file containing a single top-level integer expression with `I32` suffix (for example `5I32`) is equivalent to a `fn main() -> int { return <expr>; }` and the returned `int` is used as the process exit code (backend-dependent mapping documented).
 - IMPLEMENTATION: Documented how the C reference backend lowers top-level expression programs to a generated `main` and maps the returned `int32_t` to the process exit code using the low-order 8 bits.
+ - LANGUAGE: Added normative wording for local `let` statements with explicit `I32` annotation and type-checking rules.
+ - IMPLEMENTATION: Documented how the C reference backend lowers `let x : I32 = 0;` to an `int32_t` local and the requirement to type-check the initializer for `I32` compatibility.
 
 ## 2025-09-08 — Assistant tooling
 
