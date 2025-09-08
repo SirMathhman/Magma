@@ -324,6 +324,77 @@ Revision history
 
 - 2025-09-08 — Require `else` for `if` when used as an expression and document parser/typechecker diagnostics for missing `else` — user
 
+## While statements: parsing, typing, and lowering
+
+- Parser / AST:
+  - The parser shall recognize `while` statements with the concrete syntax `while ( <expression> ) <statement>` and shall construct a `WhileStmt` AST node with `cond` and `body` children.
+
+- Typechecking:
+  - The typechecker shall require the `cond` expression to have type `Bool` for `WhileStmt` nodes.
+  - The typechecker shall run definite-assignment checks conservatively across `while` loops: variables assigned only within the loop body shall not be considered definitely assigned after the loop unless proven otherwise.
+
+- Lowering to C (C reference backend guidance):
+  - The C backend shall lower `while` statements to C `while` loops directly, ensuring the condition is evaluated before each iteration and that semantics for `break`/`continue` (if supported) are preserved.
+  - Example lowering (Magma -> C sketch):
+
+      /* Magma */
+      fn main() -> int {
+        let mut i: I32 = 0;
+        while (i < 10) {
+          i += 1;
+        }
+        return i;
+      }
+
+      /* Generated C (sketch) */
+      #include <stdint.h>
+      #include <stdbool.h>
+
+      int32_t magma_main(void) {
+        int32_t i = 0;
+        while (i < 10) {
+          i = i + 1;
+        }
+        return i;
+      }
+
+Revision history
+
+- 2025-09-08 — Add normative and implementation guidance for `while` statements; include lowering sketch and definite-assignment note — user
+
+## For statements: parsing, typing, and lowering
+
+- Parser / AST:
+  - The parser shall recognize a C-style `for` statement with concrete syntax `for ( <for-init> ; <condition>? ; <post>? ) <statement>` and shall construct a `ForStmt` AST node with `init`, `cond`, `post`, and `body` children. The `init` child may be a `LocalVarDecl` node, an `ExpressionStmt` node, or `null` to indicate an empty initializer.
+  - A `LocalVarDecl` used in a `for` initializer shall introduce local bindings that are scoped to the `ForStmt` node.
+
+- Typechecking / semantic checks:
+  - The typechecker shall require the `cond` expression (when present) to have type `Bool` for `ForStmt` nodes.
+  - The typechecker shall perform definite-assignment analysis conservatively across `for` loops: variables assigned only in the loop body or only in the post expression shall not be considered definitely assigned after the loop unless statically provable.
+  - Assignments to variables declared in the `init` shall be treated as initializing those variables for use within the loop body and post expression; those variables shall not be visible after the `ForStmt` completes.
+
+- Lowering to C (C reference backend guidance):
+  - The C backend may lower a Magma `for` directly to a C `for` loop when the initializer, condition, and post expressions can be represented as C expressions/statements. For example, a Magma `for (let mut i = 0; i < 100; i += 1) { ... }` can lower to `for (int32_t i = 0; i < 100; i = i + 1) { ... }` in generated C. The backend shall ensure scoping of `i` matches Magma semantics by placing the declaration in the C `for` initializer.
+  - Alternatively, if the backend or lowering pipeline prefers a simpler lowering, the `for` may be transformed into an equivalent `while` with an explicit initializer and post expression, taking care to preserve scoping. Example lowering (transform to `while`):
+
+      /* Magma */
+      for (let mut i = 0; i < 100; i += 1) {
+        body();
+      }
+
+      /* Lowered C sketch (while form) */
+      int32_t i = 0; /* scoped to surrounding function - frontend must ensure name uniqueness */
+      while (i < 100) {
+        body();
+        i = i + 1;
+      }
+
+  - When lowering to C `for`, the backend shall generate the initializer as a declaration in the `for` initializer so that the variable's scope is limited to the loop. When lowering to `while` the backend shall generate a unique temporary name or introduce a nested block to contain the initializer to mimic lexical scoping.
+
+Revision history
+
+- 2025-09-08 — Add normative and implementation guidance for C-style `for` statements; include parser/AST, typechecking, scoping notes, and lowering sketches — user
+
 ## Revision history
 
 - 2025-09-08  Document lowering of `if` statements to C `if`/`else` and require definite-assignment checks for uninitialized locals  user

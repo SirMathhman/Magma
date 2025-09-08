@@ -46,12 +46,15 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
     param          ::= identifier ':' type
 
     block          ::= '{' { statement } '}'
-    statement      ::= local_var_decl | expression_stmt | return_stmt | if_stmt | while_stmt
+  statement      ::= local_var_decl | expression_stmt | return_stmt | if_stmt | while_stmt | for_stmt
   local_var_decl ::= 'let' [ 'mut' ] identifier [ ':' type ] [ '=' expression ] ';'
     expression_stmt::= expression ';'
     return_stmt    ::= 'return' [ expression ] ';'
-    if_stmt        ::= 'if' '(' expression ')' block [ 'else' block ]
-    while_stmt     ::= 'while' '(' expression ')' block
+  if_stmt        ::= 'if' '(' expression ')' block [ 'else' block ]
+  while_stmt     ::= 'while' '(' expression ')' block
+  for_stmt       ::= 'for' '(' for_init ';' expression? ';' expression? ')' statement
+
+  for_init       ::= local_var_decl | expression_stmt | /* empty */
 
     expression     ::= assignment
     assignment     ::= logical_or [ '=' assignment ]
@@ -297,6 +300,29 @@ If statements and expressions
       // as part of a larger expression
       let y : I32 = 1 + (if (b) 2 else 4);
 
+While statements
+
+- Syntax:
+
+      while ( <expression> ) <statement>
+
+- Semantics:
+  - The condition expression inside `while (...)` shall have type `Bool`. If the condition has a different type, the compiler shall produce a type error unless the implementation documents and performs a well-defined conversion.
+  - The `while` loop shall repeatedly evaluate the condition and execute the loop body (a single statement or block) as long as the condition evaluates to `true`. Evaluation order: the condition is evaluated before each iteration; if the condition is false initially, the body shall not be executed.
+
+- Definite-assignment and control-flow notes:
+  - Definite-assignment analysis shall conservatively treat variables assigned inside a `while` loop as possibly uninitialized after the loop unless the compiler can statically prove the loop executes at least once on all paths. Implementations shall document any flow-sensitive analyses they perform to refine these guarantees.
+
+- Example:
+
+      fn main() -> int {
+        let mut i: I32 = 0;
+        while (i < 10) {
+          i += 1;
+        }
+        return i;
+      }
+
 - Definite assignment and example (statement form):
   - The compiler shall enforce definite assignment for local variables declared without an initializer: every possible control-flow path that leads to a use of the local must assign it a value first. For example, the following shall be valid because both branches assign `x` before any use:
 
@@ -312,6 +338,36 @@ Assumptions:
 
 - When the `if` construct is used as an expression, an `else` branch is required to avoid undefined expression results; this document assumes that requirement unless the user requests otherwise.
 - The specification does not mandate implicit numeric promotions between branch expressions; implementations shall document any coercion or promotion rules they provide.
+
+
+For statements
+
+- Syntax (concrete):
+
+      for ( <for-init> ; <condition>? ; <post>? ) <statement>
+
+  where `<for-init>` is either a local variable declaration (for example `let mut i = 0;`), an expression statement (for example `x = 0;`), or empty.
+
+- Semantics:
+  - Execution order: the `for` initializer (`for-init`) shall be evaluated once before the first condition check; the condition expression, if present, shall be evaluated before each iteration and must have type `Bool`; if the condition is omitted it shall be treated as `true`. After each iteration body executes, the `post` expression (if present) shall be evaluated, then the condition re-checked.
+  - Scoping: any local variables declared in the `for` initializer (for example `let mut i = 0;`) shall be scoped to the `for` statement: they shall be visible within the loop body and the post expression, but not after the loop completes.
+  - Initialization rules: a `let mut` used in a `for` initializer shall follow the same declaration rules as other `let` declarations (for example a `mut` declaration requires an initializer). A local declared in the initializer shall be considered initialized for the body on each iteration.
+
+- Definite-assignment and control-flow notes:
+  - Definite-assignment analysis shall conservatively treat variables assigned inside a `for` loop as possibly uninitialized after the loop unless the compiler can statically prove the loop executes at least once on all paths. Variables declared in the `for` initializer shall not be considered definitely assigned after the loop completes.
+  - The compiler shall ensure that uses of variables declared outside the loop are definitely assigned on all paths that reach the use; assignments that occur only in the loop body shall not be assumed to execute.
+
+- Examples:
+
+      fn main() -> int {
+        for (let mut i = 0; i < 100; i += 1) {
+          io::println("tick");
+        }
+        return 0;
+      }
+
+- Notes and assumptions:
+  - Implementations shall decide whether the `post` clause accepts only expression forms or any statement; for MVP the `post` clause shall accept an expression (for example a compound-assignment) and shall not accept a block. If you prefer allowing a local declaration in `post` (uncommon), say so and the document will be updated.
 
 Top-level expression programs (convenience form):
 
