@@ -35,11 +35,35 @@ public class Main {
 				final var index = fileName.lastIndexOf(".");
 				final var name = fileName.substring(0, index);
 				final var resolve = targetDirectory.resolve(name + ".c");
-				Files.writeString(resolve, "/*" + input.replace("/*", "start").replace("*/", "end") + "*/");
+				Files.writeString(resolve, compile(input));
 			}
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String compile(String input) {
+		final var segments = new ArrayList<String>();
+		var buffer = new StringBuilder();
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			buffer.append(c);
+			if (c == ';') {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			}
+		}
+		segments.add(buffer.toString());
+
+		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+	}
+
+	private static String wrap(String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+	}
+
+	private static String compileRootSegment(String input) {
+		return wrap(input);
 	}
 }
