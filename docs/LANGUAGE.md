@@ -70,9 +70,34 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
 
     if_expression  ::= 'if' '(' expression ')' expression 'else' expression
 
+  array_type     ::= '[' type ';' integer ']'      // fixed-size array type, e.g. [U8; 3]
+  array_literal  ::= '[' [ expression { ',' expression } ] ']'
+
     function_literal ::= 'fn' '(' [ param_list ] ')' [ '->' type ] block
 
   literal        ::= integer | float | string | 'true' | 'false' | 'null'
+
+  Array types and literals
+
+  - Syntax (concrete):
+
+        type ::= '[' type ';' integer ']'   // fixed-size array type
+        literal ::= '[' expr-list? ']'      // array literal
+
+  - Semantics:
+    - Magma shall support fixed-size array types with the concrete syntax `[T; N]` where `T` is a type and `N` is a positive integer literal known at compile time. For example, `[U8; 3]` denotes an array of three unsigned 8-bit integers.
+    - Array literals shall use the concrete syntax `[e1, e2, ..., eN]` and shall be valid only when the number of elements matches the statically declared size for the target array type (when an explicit annotation is present) or when the context allows type inference from the initializer.
+    - Elements in an array literal shall all be type-checkable to the element type `T` (or coercible under documented rules); otherwise the compiler shall report a type error.
+
+  - Examples:
+
+        fn main() -> int {
+          let x : [U8; 3] = [1, 2, 3];
+          return 0;
+        }
+
+  - Notes and assumptions:
+    - Arrays in the MVP shall be fixed-size and stack/aggregate-allocated in lowering backends like C. Dynamic or heap-resizable arrays are future work and shall be documented separately when introduced.
 
 Notes:
 - The assignment operator `=` shall be right-associative for chained assignments.

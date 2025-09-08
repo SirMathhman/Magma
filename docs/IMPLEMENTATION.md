@@ -324,6 +324,42 @@ Revision history
 
 - 2025-09-08 — Require `else` for `if` when used as an expression and document parser/typechecker diagnostics for missing `else` — user
 
+## Array types and array literals
+
+- Parser / AST:
+  - The parser shall accept fixed-size array type annotations with the concrete syntax `[ type ';' integer ]` and shall represent them in the AST as `ArrayType(element_type, length)` nodes.
+  - The parser shall accept array literals in the form `[ e1, e2, ..., eN ]` and shall construct an `ArrayLiteral` AST node containing the list of element expressions.
+
+- Typechecking / semantic checks:
+  - The typechecker shall verify that an array literal used where a fixed-size array type is expected has exactly the same number of elements as the statically-known length. A mismatch in element count shall be a type error.
+  - When an array literal does not have an explicit target type (for example when used in a `let` binding with inference), the compiler shall attempt to infer an array type `[T; N]` where `T` is the common type of all elements and `N` is the element count; if the elements are not uniformly typed the typechecker shall report an error.
+  - Each element expression shall be type-checked against the array element type `T`, and implicit/explicit coercions shall be applied only if documented by the implementation.
+
+- Lowering to C (C reference backend guidance):
+  - Fixed-size Magma arrays `[T; N]` shall lower to C fixed-size arrays where possible. For example, `[U8; 3]` shall lower to `uint8_t arr[3];` or an initialized form `uint8_t arr[3] = {1, 2, 3};` when an initializer is present.
+  - The C backend shall emit aggregate initializers for array literals when available and shall ensure correct element ordering and representation.
+  - For array types whose element type maps to a runtime-managed heap type (for example `string`), the backend shall lower the array to an array of the runtime pointer type and ensure appropriate runtime initialization is performed (for example calling `magma_string_new` for string literals as part of initialization) or require explicit runtime helper calls in generated code.
+
+- Examples (Magma -> C sketch):
+
+    /* Magma */
+    fn main() -> int {
+      let x : [U8; 3] = [1, 2, 3];
+      return 0;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdint.h>
+
+    int32_t magma_main(void) {
+      uint8_t x[3] = {1, 2, 3};
+      return 0;
+    }
+
+Revision history
+
+- 2025-09-08 — Add fixed-size array types `[T; N]` and array literal syntax with parser/typechecker/lowering guidance; include C-backend lowering sketch — user
+
 ## While statements: parsing, typing, and lowering
 
 - Parser / AST:
