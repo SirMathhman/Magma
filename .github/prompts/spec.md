@@ -4,7 +4,7 @@ When invoked, do the following steps in order:
 
 1. Read the user's message and extract any requested changes to the project plan or language specification. Identify additions, removals, and contradictions.
 
-2. Update `docs/PLANNING.md` and `docs/LANGUAGE_SPEC.md` to reflect the requested changes. All edits shall use the normative wording style: use "shall" for requirements, "should" for recommendations, and "will" for expected behaviors. Preserve existing content unless the user asks for removal or modification.
+2. Update `docs/LANGUAGE.md` and `docs/IMPLEMENTATION.md` to reflect the requested changes. All edits shall use the normative wording style: use "shall" for requirements, "should" for recommendations, and "will" for expected behaviors. Preserve existing content unless the user asks for removal or modification.
 
 3. For every change you make, add a concise changelog entry at the top of each file under a "Revision history" section with the date, a short description of the change, and the author (use the user's name when available, otherwise use "user").
 

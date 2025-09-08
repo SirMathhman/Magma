@@ -7,7 +7,7 @@ This document outlines the plan to build a cross-compiler written in Java (Maven
 - Build a compiler implemented in Java and packaged via Maven
 - Source language: Magma (a small, statically-typed, imperative/functional hybrid — spec to be defined)
 - Target language: Portable ISO C (C11 as baseline)
-- Implementation guidance: see `docs/IMPLEMENTATION.md` for a reference C backend guide and runtime suggestions. The language spec (`docs/LANGUAGE_SPEC.md`) remains implementation-agnostic.
+- Implementation guidance: see `docs/IMPLEMENTATION.md` for a reference C backend guide and runtime suggestions. The language spec (`docs/LANGUAGE.md`) remains implementation-agnostic.
 - Deliverables: compiler CLI, library artifacts, runtime C support, tests, and documentation
 
 ## High-level architecture
@@ -45,7 +45,7 @@ Components:
 - Heap-allocated composite types (records/arrays)
 - Simple module system (one file = one module)
 
-Note: These are assumptions for planning. The definitive language spec will be created as a follow-up document (`docs/LANGUAGE_SPEC.md`).
+Note: These are assumptions for planning. The definitive language spec will be created as a follow-up document (`docs/LANGUAGE.md`).
 
 ## Detailed design decisions (options & recommendation)
 
@@ -158,12 +158,12 @@ Total: ~9-12 weeks for a conservative MVP depending on team size and paralleliza
 - Java-based compiler packaged as Maven artifact
 - CLI jar to compile Magma to C
 - Runtime C sources and headers
-- Documentation: README, PLANNING.md, LANGUAGE_SPEC.md (draft)
+- Documentation: README, PLANNING.md, LANGUAGE.md (draft)
 - Example programs and tests
 
 ## Next steps (immediate)
 
-1. Create `docs/LANGUAGE_SPEC.md` draft (syntax + examples)
+1. Create `docs/LANGUAGE.md` draft (syntax + examples)
 2. Choose parsing approach (ANTLR vs hand-rolled) and add to decision log
 3. Initialize Maven multi-module skeleton
 
@@ -175,4 +175,4 @@ Appendix: Acceptance criteria checklist
 - [ ] CLI can parse a simple "Hello world" Magma program and emit C
 - [ ] CI runs unit tests and one end-to-end example
 
-This document will be iterated as the project progresses. See `docs/LANGUAGE_SPEC.md` for the language details (next task).
+This document will be iterated as the project progresses. See `docs/LANGUAGE.md` for the language details (next task).
