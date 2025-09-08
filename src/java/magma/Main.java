@@ -7,11 +7,51 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+	private static class State {
+		private final StringBuilder buffer = new StringBuilder();
+		private final ArrayList<String> segments = new ArrayList<>();
+		private int depth = 0;
+
+		private Stream<String> stream() {
+			return segments.stream();
+		}
+
+		private State append(char c) {
+			buffer.append(c);
+			return this;
+		}
+
+		private State enter() {
+			this.depth = depth + 1;
+			return this;
+		}
+
+		private boolean isShallow() {
+			return depth == 1;
+		}
+
+		private boolean isLevel() {
+			return depth == 0;
+		}
+
+		private State advance() {
+			segments.add(buffer.toString());
+			buffer.setLength(0);
+			return this;
+		}
+
+		private State exit() {
+			this.depth = depth - 1;
+			return this;
+		}
+	}
+
 	public static void main(String[] args) {
 		final Path sourceDirectory = Paths.get(".", "src", "java");
 		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
@@ -49,33 +89,37 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return compileSegments(input, Main::compileRootSegment);
+		return compileStatements(input, Main::compileRootSegment);
 	}
 
-	private static String compileSegments(String input, Function<String, String> mapper) {
-		final ArrayList<String> segments = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
-		int depth = 0;
+	private static String compileStatements(String input, Function<String, String> mapper) {
+		return compileAll(input, mapper, Main::foldStatement, "");
+	}
+
+	private static String compileAll(String input,
+																	 Function<String, String> mapper,
+																	 BiFunction<State, Character, State> folder,
+																	 String delimiter) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));
+	}
+
+	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
+		State current = new State();
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				continue;
-			}
-			if (c == '}' & depth == 1) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				depth--;
-				continue;
-			}
-			if (c == '{') depth++;
-			if (c == '}') depth--;
+			current = folder.apply(current, c);
 		}
-		segments.add(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return current.advance().stream();
+	}
+
+	private static State foldStatement(State current, char c) {
+		final State appended = current.append(c);
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '}' & appended.isShallow()) return appended.advance().exit();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
+		return appended;
 	}
 
 	private static String wrap(String input) {
@@ -95,7 +139,7 @@ public class Main {
 				final String name = remainder.substring(0, i).strip();
 				final String content = remainder.substring(i + "{".length());
 				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-							 compileSegments(content, Main::compileClassSegment);
+							 compileStatements(content, Main::compileClassSegment);
 			}
 		}
 
@@ -116,7 +160,7 @@ public class Main {
 					final Optional<String> s = compileDefinition(definition);
 					if (s.isPresent()) {
 						return s.get() + "(" + compileDefinition(params).orElseGet(() -> wrap(params)) + "){" +
-									 compileSegments(slice, Main::compileFunctionSegment) + "}" + System.lineSeparator();
+									 compileStatements(slice, Main::compileFunctionSegment) + "}" + System.lineSeparator();
 					}
 				}
 			}
@@ -191,13 +235,16 @@ public class Main {
 
 	private static String compileExpression(String value) {
 		final String stripped = value.strip();
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return stripped;
+
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - ")".length());
 			final int i = slice.indexOf("(");
 			if (i >= 0) {
 				final String caller = slice.substring(0, i);
 				final String arguments = slice.substring(i + "(".length());
-				return compileExpression(caller) + "(" + wrap(arguments) + ")";
+				return compileExpression(caller) + "(" +
+							 compileAll(arguments, Main::compileExpression, Main::foldValues, ", ") + ")";
 			}
 		}
 
@@ -210,5 +257,14 @@ public class Main {
 
 		if (isIdentifier(stripped)) return stripped;
 		return wrap(stripped);
+	}
+
+	private static State foldValues(State state, char c) {
+		if (c == ',' && state.isLevel()) return state.advance();
+
+		final State appended = state.append(c);
+		if (c == '(') return appended.enter();
+		if (c == ')') return appended.exit();
+		return appended;
 	}
 }
