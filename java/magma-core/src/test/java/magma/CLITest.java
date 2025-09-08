@@ -35,4 +35,28 @@ public class CLITest {
 		// implementation).
 		assertEquals(5, code, "CLI should exit with code 5 when given literal '5'");
 	}
+
+	@Test
+	public void numericLiteralWithI32SuffixShouldReturnAsExitCode() throws IOException, InterruptedException {
+		// Run the same JVM classpath so tests are hermetic in this module.
+		String javaBin = System.getProperty("java.home") + File.separator + "bin" + File.separator + "java";
+		String classpath = System.getProperty("java.class.path");
+
+		List<String> cmd = new ArrayList<>();
+		cmd.add(javaBin);
+		cmd.add("-cp");
+		cmd.add(classpath);
+		cmd.add("magma.CLI");
+		cmd.add("5I32");
+
+		ProcessBuilder pb = new ProcessBuilder(cmd);
+		pb.redirectError(Redirect.INHERIT);
+		pb.redirectOutput(Redirect.INHERIT);
+
+		Process p = pb.start();
+		int code = p.waitFor();
+
+		// Expect the process exit code to be 5 when the CLI understands '5I32' as a numeric literal.
+		assertEquals(5, code, "CLI should exit with code 5 when given literal '5I32'");
+	}
 }

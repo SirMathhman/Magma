@@ -6,8 +6,9 @@ package magma;
  * See docs/architecture.md for design.
  */
 public final class CLI {
-	/** Run the CLI with the given arguments and return an appropriate exit code.
-	 *  This is separated out so tests can call it without terminating the JVM.
+	/**
+	 * Run the CLI with the given arguments and return an appropriate exit code.
+	 * This is separated out so tests can call it without terminating the JVM.
 	 */
 	public static int run(String[] args) {
 		if (args.length == 0 || args[0].equals("--help") || args[0].equals("-h")) {
@@ -19,7 +20,13 @@ public final class CLI {
 		// compile a tiny C program that returns that number and run it. This
 		// exercises the emitter+toolchain end-to-end for the simplest case.
 		try {
-			long val = Long.parseLong(args[0]);
+			String raw = args[0];
+			// Accept a trailing I32 suffix (e.g., "5I32") as a 32-bit integer literal.
+			if (raw.endsWith("I32") || raw.endsWith("i32")) {
+				raw = raw.substring(0, raw.length() - 3);
+			}
+
+			long val = Long.parseLong(raw);
 
 			// Generate a temporary C source file.
 			java.nio.file.Path tmpDir = java.nio.file.Files.createTempDirectory("magma-run-");
@@ -31,8 +38,10 @@ public final class CLI {
 
 			// Try to find clang (or cc) on PATH.
 			String compiler = null;
-			if (isExecutableOnPath("clang")) compiler = "clang";
-			else if (isExecutableOnPath("cc")) compiler = "cc";
+			if (isExecutableOnPath("clang"))
+				compiler = "clang";
+			else if (isExecutableOnPath("cc"))
+				compiler = "cc";
 
 			if (compiler == null) {
 				System.err.println("magma: no C compiler found (clang/cc). Falling back to literal exit.");
@@ -50,11 +59,14 @@ public final class CLI {
 				return (int) (val & 0xFF);
 			}
 
-			// Make executable on platforms that need it (Windows will still run .exe; here exeFile has no .exe extension but clang on Windows typically produces exeFile.exe)
+			// Make executable on platforms that need it (Windows will still run .exe; here
+			// exeFile has no .exe extension but clang on Windows typically produces
+			// exeFile.exe)
 			java.nio.file.Path exeToRun = exeFile;
 			if (System.getProperty("os.name").toLowerCase().contains("win")) {
 				java.nio.file.Path exeWin = tmpDir.resolve("prog.exe");
-				if (java.nio.file.Files.exists(exeWin)) exeToRun = exeWin;
+				if (java.nio.file.Files.exists(exeWin))
+					exeToRun = exeWin;
 			}
 
 			// Run the compiled program and return its exit code.
@@ -93,11 +105,14 @@ public final class CLI {
 
 	private static boolean isExecutableOnPath(String exe) {
 		String path = System.getenv("PATH");
-		if (path == null) return false;
+		if (path == null)
+			return false;
 		String[] parts = path.split(java.io.File.pathSeparator);
 		for (String p : parts) {
-			java.io.File f = new java.io.File(p, exe + (System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : ""));
-			if (f.exists() && f.canExecute()) return true;
+			java.io.File f = new java.io.File(p,
+					exe + (System.getProperty("os.name").toLowerCase().contains("win") ? ".exe" : ""));
+			if (f.exists() && f.canExecute())
+				return true;
 		}
 		return false;
 	}
