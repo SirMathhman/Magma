@@ -1,6 +1,6 @@
 /*public */struct Main {};
 /*public static*/ void main(char** args){
-	/*final*/ /*Path*/ sourceDirectory = /* Paths.get(".", "src", "java")*/;
+	/*final*/ /*Path*/ sourceDirectory = /*Paths.get*/(/*".", "src", "java"*/);
 	/*try (Stream<Path> stream = Files.walk(sourceDirectory)) {
 			final Set<Path> sources = stream.filter(Files::isRegularFile)
 																			.filter(path -> path.toString().endsWith(".java"))
@@ -39,10 +39,10 @@
 	/*return compileSegments(input, Main::compileRootSegment);*/
 	/**/}
 /*private static*/ char* compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){
-	/*final*/ /*ArrayList<String>*/ segments = /* new ArrayList<>()*/;
-	/*StringBuilder*/ buffer = /* new StringBuilder()*/;
-	/*int*/ depth = /* 0*/;
-	/*for*/ /*(int*/ i = /* 0*/;
+	/*final*/ /*ArrayList<String>*/ segments = /*new ArrayList<>*/(/**/);
+	/*StringBuilder*/ buffer = /*new StringBuilder*/(/**/);
+	/*int*/ depth = /*0*/;
+	/*for*/ /*(int*/ i = /*0*/;
 	/*i < input.length();*/
 	/*i++) {
 			final char c = input.charAt(i);
@@ -89,7 +89,7 @@
 
 		return wrap(stripped);
 	}*//*private static*/ char* compileClassSegment(char* input){
-	/*final*/ /*int*/ i = /* input.indexOf("(")*/;
+	/*final*/ /*int*/ i = /*input.indexOf*/(/*"("*/);
 	/*if (i >= 0) {
 			final String definition = input.substring(0, i);
 			final String withParams = input.substring(i + "(".length());
@@ -110,21 +110,21 @@
 	/*return wrap(input);*/
 	/**/}
 /*private static*/ /*Optional<String>*/ compileDefinition(char* input){
-	/*final*/ char* stripped = /* input.strip()*/;
-	/*final*/ /*int*/ i = /* stripped.lastIndexOf(" ")*/;
+	/*final*/ char* stripped = /*input.strip*/(/**/);
+	/*final*/ /*int*/ i = /*stripped.lastIndexOf*/(/*" "*/);
 	/*if (i < 0) return Optional.empty();*/
-	/*final*/ char* beforeName = /* stripped.substring(0, i).strip()*/;
-	/*final*/ char* name = /* stripped.substring(i + " ".length())*/;
-	/*final*/ /*int*/ i1 = /* beforeName.lastIndexOf(" ")*/;
+	/*final*/ char* beforeName = /*stripped.substring*/(/*0, i).strip(*/);
+	/*final*/ char* name = /*stripped.substring*/(/*i + " ".length()*/);
+	/*final*/ /*int*/ i1 = /*beforeName.lastIndexOf*/(/*" "*/);
 	/*if (i1 < 0) {
 			return Optional.of(compileType(beforeName) + " " + name);
 		}*/
-	/*final*/ char* modifiers = /* beforeName.substring(0, i1)*/;
-	/*final*/ char* type = /* beforeName.substring(i1 + " ".length())*/;
+	/*final*/ char* modifiers = /*beforeName.substring*/(/*0, i1*/);
+	/*final*/ char* type = /*beforeName.substring*/(/*i1 + " ".length()*/);
 	/*return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*/
 	/**/}
 /*private static*/ char* compileType(char* input){
-	/*final*/ char* stripped = /* input.strip()*/;
+	/*final*/ char* stripped = /*input.strip*/(/**/);
 	/*if (stripped.equals("void")) return "void";*/
 	/*if (stripped.equals("String")) return "char*";*/
 	/*if (stripped.endsWith("[]")) {
@@ -134,7 +134,7 @@
 	/*return wrap(stripped);*/
 	/**/}
 /*private static*/ char* compileFunctionSegment(char* input){
-	/*final*/ char* stripped = /* input.strip()*/;
+	/*final*/ char* stripped = /*input.strip*/(/**/);
 	/*return System.lineSeparator() + "\t" + compileFunctionSegmentValue(stripped);*/
 	/**/}
 /*private static*/ char* compileFunctionSegmentValue(char* input){
@@ -147,11 +147,24 @@
 				final String value = slice.substring(i + "=".length());
 				final Optional<String> s = compileDefinition(definition);
 				if (s.isPresent()) {
-					return s.get() + " = " + wrap(value) + ";";
+					return s.get() + " = " + compileExpression(value) + ";";
 				}
 			}
 		}*/
 	/*return wrap(input);*/
+	/**/}
+/*private static*/ char* compileExpression(char* value){
+	/*final*/ char* stripped = /*value.strip*/(/**/);
+	/*if (stripped.endsWith(")")) {
+			final String slice = stripped.substring(0, stripped.length() - ")".length());
+			final int i = slice.indexOf("(");
+			if (i >= 0) {
+				final String caller = slice.substring(0, i);
+				final String arguments = slice.substring(i + "(".length());
+				return wrap(caller) + "(" + wrap(arguments) + ")";
+			}
+		}*/
+	/*return wrap(stripped);*/
 	/**/}
 /*
 }*/

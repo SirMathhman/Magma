@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: enhance compilation logic by refining type handling and improving parameter management">
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="feat: enhance compilation logic by adding function segment handling and improving compile function structure">
       <change beforePath="$PROJECT_DIR$/src/java/magma/Main.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/java/magma/Main.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/windows/magma/Main.c" beforeDir="false" afterPath="$PROJECT_DIR$/src/windows/magma/Main.c" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -271,7 +272,15 @@
       <option name="project" value="LOCAL" />
       <updated>1757302186689</updated>
     </task>
-    <option name="localTasksCounter" value="23" />
+    <task id="LOCAL-00023" summary="feat: enhance compilation logic by adding function segment handling and improving compile function structure">
+      <option name="closed" value="true" />
+      <created>1757302765406</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1757302765406</updated>
+    </task>
+    <option name="localTasksCounter" value="24" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -295,6 +304,7 @@
     <MESSAGE value="feat: refine compileType function to improve parameter handling and support array types" />
     <MESSAGE value="feat: update type handling in compilation logic to support char* and improve parameter types" />
     <MESSAGE value="feat: enhance compilation logic by refining type handling and improving parameter management" />
-    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance compilation logic by refining type handling and improving parameter management" />
+    <MESSAGE value="feat: enhance compilation logic by adding function segment handling and improving compile function structure" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: enhance compilation logic by adding function segment handling and improving compile function structure" />
   </component>
 </project>

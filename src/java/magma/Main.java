@@ -172,11 +172,26 @@ public class Main {
 				final String value = slice.substring(i + "=".length());
 				final Optional<String> s = compileDefinition(definition);
 				if (s.isPresent()) {
-					return s.get() + " = " + wrap(value) + ";";
+					return s.get() + " = " + compileExpression(value) + ";";
 				}
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String compileExpression(String value) {
+		final String stripped = value.strip();
+		if (stripped.endsWith(")")) {
+			final String slice = stripped.substring(0, stripped.length() - ")".length());
+			final int i = slice.indexOf("(");
+			if (i >= 0) {
+				final String caller = slice.substring(0, i);
+				final String arguments = slice.substring(i + "(".length());
+				return wrap(caller) + "(" + wrap(arguments) + ")";
+			}
+		}
+
+		return wrap(stripped);
 	}
 }
