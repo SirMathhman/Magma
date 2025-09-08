@@ -108,11 +108,16 @@ public class Main {
 				final var content = withParams.substring(i1 + ")".length()).strip();
 				if (content.startsWith("{") && content.endsWith("}")) {
 					final var slice = content.substring(1, content.length() - 1);
-					return wrap(definition) + "(" + wrap(params) + "){" + wrap(slice) + "}";
+					return wrap(definition) + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) +
+								 "}";
 				}
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileFunctionSegment(String input) {
 		return wrap(input);
 	}
 }
