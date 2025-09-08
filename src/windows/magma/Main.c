@@ -1,5 +1,5 @@
-/*public */struct Main {}; /*
-	public static void main*/(/*String[] args*/){/*
+/*public */struct Main {};
+/*public static*/ /*void*/ main(/*String[] args*/){/*
 		final var sourceDirectory = Paths.get(".", "src", "java");*//*
 		try (var stream = Files.walk(sourceDirectory)) {
 			final var sources = stream.filter(Files::isRegularFile)
@@ -33,13 +33,11 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}*//*
-	*/}/*
-
-	private static String compile*/(/*String input*/){/*
+	*/}
+/*private static*/ /*String*/ compile(/*String input*/){/*
 		return compileSegments(input, Main::compileRootSegment);*//*
-	*/}/*
-
-	private static String compileSegments*/(/*String input, Function<String, String> mapper*/){/*
+	*/}
+/*private static*/ /*String*/ compileSegments(/*String input, Function<String, String> mapper*/){/*
 		final var segments = new ArrayList<String>();*//*
 		var buffer = new StringBuilder();*//*
 		var depth = 0;*//*
@@ -59,7 +57,8 @@
 			}*//*
 			if (c == '{') depth++;
 			if (c == '}*//*') depth--;*//*
-		*/}/*
+		*/}
+/*
 		segments.add(buffer.toString());*//*
 
 		return segments.stream().map(mapper).collect(Collectors.joining());*//*
@@ -70,21 +69,21 @@
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
 		final var classIndex = stripped.indexOf("*/struct ");
-		if (classIndex >= 0) {}; /*
+		if (classIndex >= 0) {};
+/*
 			final var modifiers = stripped.substring(0, classIndex);*//*
 			final var remainder = stripped.substring(classIndex + "class ".length());*//*
 			final var i = remainder.indexOf("{");
 			if (i >= 0) {
 				final var name = remainder.substring(0, i).strip();
 				final var content = remainder.substring(i + "{".length());
-				return wrap(modifiers) + "struct " + name + " {}; " + compileSegments(content, Main::compileClassSegment);
+				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+							 compileSegments(content, Main::compileClassSegment);
 			}
 		}
 
 		return wrap(stripped);
-	}*//*
-
-	private static String compileClassSegment*/(/*String input*/){/*
+	}*//*private static*/ /*String*/ compileClassSegment(/*String input*/){/*
 		final var i = input.indexOf("(");*//*
 		if (i >= 0) {
 			final var definition = input.substring(0, i);
@@ -95,16 +94,34 @@
 				final var content = withParams.substring(i1 + ")".length()).strip();
 				if (content.startsWith("{") && content.endsWith("}")) {
 					final var slice = content.substring(1, content.length() - 1);
-					return wrap(definition) + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) +
-								 "}";
+					final var s = compileDefinition(definition);
+					if (s.isPresent()) {
+						return s.get() + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) + "}" +
+									 System.lineSeparator();
+					}
 				}
 			}
 		}*//*
 
 		return wrap(input);*//*
-	*/}/*
+	*/}
+/*private static*/ /*Optional<String>*/ compileDefinition(/*String input*/){/*
+		final var stripped = input.strip();*//*
+		final var i = stripped.lastIndexOf(" ");*//*
+		if (i < 0) return Optional.empty();*//*
 
-	private static String compileFunctionSegment*/(/*String input*/){/*
+		final var withType = stripped.substring(0, i).strip();*//*
+		final var i1 = withType.lastIndexOf(" ");*//*
+		if (i1 < 0) return Optional.empty();*//*
+
+		final var modifiers = withType.substring(0, i1);*//*
+		final var type = withType.substring(i1 + " ".length());*//*
+
+		final var name = stripped.substring(i + " ".length());*//*
+		return Optional.of(wrap(modifiers) + " " + wrap(type) + " " + name);*//*
+	*/}
+/*private static*/ /*String*/ compileFunctionSegment(/*String input*/){/*
 		return wrap(input);*//*
-	*/}/*
+	*/}
+/*
 }*/

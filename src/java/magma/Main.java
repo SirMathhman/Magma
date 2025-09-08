@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -90,7 +91,8 @@ public class Main {
 			if (i >= 0) {
 				final var name = remainder.substring(0, i).strip();
 				final var content = remainder.substring(i + "{".length());
-				return wrap(modifiers) + "struct " + name + " {}; " + compileSegments(content, Main::compileClassSegment);
+				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+							 compileSegments(content, Main::compileClassSegment);
 			}
 		}
 
@@ -108,13 +110,32 @@ public class Main {
 				final var content = withParams.substring(i1 + ")".length()).strip();
 				if (content.startsWith("{") && content.endsWith("}")) {
 					final var slice = content.substring(1, content.length() - 1);
-					return wrap(definition) + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) +
-								 "}";
+					final var s = compileDefinition(definition);
+					if (s.isPresent()) {
+						return s.get() + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) + "}" +
+									 System.lineSeparator();
+					}
 				}
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static Optional<String> compileDefinition(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if (i < 0) return Optional.empty();
+
+		final var withType = stripped.substring(0, i).strip();
+		final var i1 = withType.lastIndexOf(" ");
+		if (i1 < 0) return Optional.empty();
+
+		final var modifiers = withType.substring(0, i1);
+		final var type = withType.substring(i1 + " ".length());
+
+		final var name = stripped.substring(i + " ".length());
+		return Optional.of(wrap(modifiers) + " " + wrap(type) + " " + name);
 	}
 
 	private static String compileFunctionSegment(String input) {
