@@ -8,6 +8,10 @@ public class SimpleTypeChecker implements TypeChecker {
             LiteralAst la = (LiteralAst) ast;
             return "i32".equals(la.typeName);
         }
+        if (ast instanceof BinaryAst) {
+            BinaryAst ba = (BinaryAst) ast;
+            return check(ba.left) && check(ba.right);
+        }
         return false;
     }
 }

@@ -111,6 +111,12 @@ public final class CLI {
 				emitter.emit(ir);
 				return v & 0xFF;
 			}
+			if (ir instanceof IrBinary) {
+				IrBinary bin = (IrBinary) ir;
+				int sum = bin.left.value + bin.right.value;
+				emitter.emit(ir);
+				return sum & 0xFF;
+			}
 			// Fallback generic message
 			System.out.println("magma: received " + args.length + " argument(s)");
 			return 0;

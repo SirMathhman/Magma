@@ -6,6 +6,12 @@ public class SimpleIrBuilder {
         if (ast instanceof LiteralAst) {
             return new IrLiteral(((LiteralAst) ast).value);
         }
+        if (ast instanceof BinaryAst) {
+            BinaryAst ba = (BinaryAst) ast;
+            IrLiteral left = new IrLiteral(ba.left.value);
+            IrLiteral right = new IrLiteral(ba.right.value);
+            return new IrBinary(left, right);
+        }
         return null;
     }
 }

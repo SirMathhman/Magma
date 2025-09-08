@@ -46,3 +46,9 @@ On Windows with MSVC (Developer Command Prompt):
 ## Contributing examples
 
 Add example Magma files to `examples/` and include the expected `.c` in `examples/generated/` to help validate code generation as the compiler is developed.
+
+## Small-expression CLI usage
+
+The repository includes a tiny CLI stub (`magma.CLI`) that can evaluate very small expressions passed as a single argument. For example, running the CLI with the argument `5+3` will cause the tool to parse and evaluate the expression and exit with code `8` (the sum), which is useful for quick end-to-end checks in tests.
+
+Note: this is a lightweight development convenience and not a full REPL.
