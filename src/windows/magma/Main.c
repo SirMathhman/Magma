@@ -1,5 +1,5 @@
 /*public */struct Main {};
-/*public static*/ void main(/*String[] args*/){/*
+/*public static*/ void main(/*String[]*/ args){/*
 		final var sourceDirectory = Paths.get(".", "src", "java");*//*
 		try (var stream = Files.walk(sourceDirectory)) {
 			final var sources = stream.filter(Files::isRegularFile)
@@ -34,10 +34,10 @@
 			e.printStackTrace();
 		}*//*
 	*/}
-/*private static*/ /*String*/ compile(/*String input*/){/*
+/*private static*/ /*String*/ compile(/*String*/ input){/*
 		return compileSegments(input, Main::compileRootSegment);*//*
 	*/}
-/*private static*/ /*String*/ compileSegments(/*String input, Function<String, String> mapper*/){/*
+/*private static*/ /*String*/ compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){/*
 		final var segments = new ArrayList<String>();*//*
 		var buffer = new StringBuilder();*//*
 		var depth = 0;*//*
@@ -83,7 +83,7 @@
 		}
 
 		return wrap(stripped);
-	}*//*private static*/ /*String*/ compileClassSegment(/*String input*/){/*
+	}*//*private static*/ /*String*/ compileClassSegment(/*String*/ input){/*
 		final var i = input.indexOf("(");*//*
 		if (i >= 0) {
 			final var definition = input.substring(0, i);
@@ -96,8 +96,8 @@
 					final var slice = content.substring(1, content.length() - 1);
 					final var s = compileDefinition(definition);
 					if (s.isPresent()) {
-						return s.get() + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) + "}" +
-									 System.lineSeparator();
+						return s.get() + "(" + compileDefinition(params).orElseGet(() -> wrap(params)) + "){" +
+									 compileSegments(slice, Main::compileFunctionSegment) + "}" + System.lineSeparator();
 					}
 				}
 			}
@@ -105,28 +105,31 @@
 
 		return wrap(input);*//*
 	*/}
-/*private static*/ /*Optional<String>*/ compileDefinition(/*String input*/){/*
+/*private static*/ /*Optional<String>*/ compileDefinition(/*String*/ input){/*
 		final var stripped = input.strip();*//*
 		final var i = stripped.lastIndexOf(" ");*//*
 		if (i < 0) return Optional.empty();*//*
 
-		final var withType = stripped.substring(0, i).strip();*//*
-		final var i1 = withType.lastIndexOf(" ");*//*
-		if (i1 < 0) return Optional.empty();*//*
-
-		final var modifiers = withType.substring(0, i1);*//*
-		final var type = withType.substring(i1 + " ".length());*//*
-
+		final var beforeName = stripped.substring(0, i).strip();*//*
 		final var name = stripped.substring(i + " ".length());*//*
+
+		final var i1 = beforeName.lastIndexOf(" ");*//*
+		if (i1 < 0) {
+			return Optional.of(compileType(beforeName) + " " + name);
+		}*//*
+
+		final var modifiers = beforeName.substring(0, i1);*//*
+		final var type = beforeName.substring(i1 + " ".length());*//*
+
 		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*//*
 	*/}
-/*private static*/ /*String*/ compileType(/*String type*/){/*
+/*private static*/ /*String*/ compileType(/*String*/ type){/*
 		final var stripped = type.strip();*//*
 		if (stripped.equals("void")) return "void";*//*
 
 		return wrap(stripped);*//*
 	*/}
-/*private static*/ /*String*/ compileFunctionSegment(/*String input*/){/*
+/*private static*/ /*String*/ compileFunctionSegment(/*String*/ input){/*
 		return wrap(input);*//*
 	*/}
 /*

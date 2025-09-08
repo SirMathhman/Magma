@@ -112,8 +112,8 @@ public class Main {
 					final var slice = content.substring(1, content.length() - 1);
 					final var s = compileDefinition(definition);
 					if (s.isPresent()) {
-						return s.get() + "(" + wrap(params) + "){" + compileSegments(slice, Main::compileFunctionSegment) + "}" +
-									 System.lineSeparator();
+						return s.get() + "(" + compileDefinition(params).orElseGet(() -> wrap(params)) + "){" +
+									 compileSegments(slice, Main::compileFunctionSegment) + "}" + System.lineSeparator();
 					}
 				}
 			}
@@ -127,14 +127,17 @@ public class Main {
 		final var i = stripped.lastIndexOf(" ");
 		if (i < 0) return Optional.empty();
 
-		final var withType = stripped.substring(0, i).strip();
-		final var i1 = withType.lastIndexOf(" ");
-		if (i1 < 0) return Optional.empty();
-
-		final var modifiers = withType.substring(0, i1);
-		final var type = withType.substring(i1 + " ".length());
-
+		final var beforeName = stripped.substring(0, i).strip();
 		final var name = stripped.substring(i + " ".length());
+
+		final var i1 = beforeName.lastIndexOf(" ");
+		if (i1 < 0) {
+			return Optional.of(compileType(beforeName) + " " + name);
+		}
+
+		final var modifiers = beforeName.substring(0, i1);
+		final var type = beforeName.substring(i1 + " ".length());
+
 		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);
 	}
 
