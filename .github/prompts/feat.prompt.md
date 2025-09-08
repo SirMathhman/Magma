@@ -19,6 +19,8 @@ Architecture is for you to decide.
 
 7. Update documentation and examples to show how to use the new feature.
 
+8. Ensure the project builds cleanly: resolve any build errors introduced by your changes before finalizing the feature. Do not modify build configuration files (pom.xml, build scripts, CI configs) unless the user explicitly requests it; if packaging or file placement issues arise, prefer moving files using file-system commands (for example `git mv` or `mv`) then editing them in-place rather than copying files one-by-one.
+
 Optional: Keep changes small, add focused unit tests where helpful, and prefer readable, idiomatic C output for the code generator.
 
 Additional guidance for end-to-end codegen tests:
