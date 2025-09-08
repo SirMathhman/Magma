@@ -72,6 +72,26 @@ Notes:
 - The assignment operator `=` shall be right-associative for chained assignments.
 - The grammar shall be designed to produce meaningful parse errors with source locations.
 
+## Operators and comparisons
+
+- Magma shall support the usual comparison and logical operators with the following symbols and semantics:
+
+  - Equality: `==`, `!=` — test for equality / inequality.
+  - Relational: `<`, `<=`, `>`, `>=` — ordered comparisons for numeric values.
+  - Logical not: `!` — boolean negation.
+
+- Semantics and typing rules:
+  - `==` and `!=` shall be defined for values of the same type for primitive types (`I8..I64`, `U8..U64`, `float`, `Bool`) and shall compare numeric values by value and booleans by truth value.
+  - Equality for `string` values shall compare string contents (implementations shall provide a runtime helper for content equality).
+  - Relational operators `<`, `<=`, `>`, `>=` shall be defined only for numeric types (signed and unsigned integers and floats). Comparing values with incompatible numeric kinds (for example mixing signed and unsigned integer types without an explicit conversion) shall be a type-check error; implementations shall document any implicit promotions they perform.
+  - The unary `!` operator shall accept and return `Bool` and shall evaluate to the boolean negation of its operand; applying `!` to non-boolean values shall be a type error unless the implementation defines a documented conversion.
+
+- Operator precedence (informative):
+  - Unary operators (including `!` and unary `-`) bind tighter than multiplicative/additive operators.
+  - Relational operators bind below additive/multiplicative and above logical `&&` / `||`.
+
+Implementations shall produce clear diagnostics when operators are applied to operands with incompatible types.
+
 ## 5. Types and Type System
 
 - Magma shall have the following builtin types at MVP:

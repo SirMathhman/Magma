@@ -14,6 +14,8 @@ All notable changes to this project will be documented in this file.
  - IMPLEMENTATION: Clarified that unannotated integers lower to `int32_t` by default and that annotated initializers (for example `let x : U8 = 0;`) are interpreted in the annotated type and lowered to the corresponding `uintN_t`/`intN_t` with representability checks.
  - LANGUAGE: Added `Bool` type and boolean literals `true`/`false` with example usage.
  - IMPLEMENTATION: Documented lowering of `Bool` to C `bool`/`_Bool` and noted conversion/interop considerations.
+ - LANGUAGE: Added specification for comparison operators `==, !=, <, <=, >, >=` and unary `!`; included typing and precedence guidance.
+ - IMPLEMENTATION: Documented how comparison/logical operators map to C and noted `string` equality should call a runtime helper.
 
 ## 2025-09-08 — Assistant tooling
 

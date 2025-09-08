@@ -1,4 +1,3 @@
-```markdown
 # Magma Implementation Guide (C reference)
 
 Status: Informative (implementation guidance, not part of the language spec)
@@ -200,6 +199,26 @@ Top-level expression programs:
 ## Revision history
 
 - 2025-09-08  Add `Bool` type and lowering to C `bool`/`_Bool` in the implementation guide  user
+
+## Comparison and logical operator lowering
+
+- The C reference backend shall map Magma comparison and logical operators to the corresponding C operators where possible:
+
+  - `==` -> `==`
+  - `!=` -> `!=`
+  - `<`  -> `<`
+  - `<=` -> `<=`
+  - `>`  -> `>`
+  - `>=` -> `>=`
+  - `!`  -> `!`
+
+- For `string` equality (`==` / `!=`) the backend shall call a runtime helper (for example `magma_string_eq`) that compares contents; generated C shall include the appropriate runtime header.
+- For numeric comparisons, the backend shall emit direct C comparisons. The backend shall ensure operands are of compatible numeric kinds (signed vs unsigned and width); mixing signed and unsigned comparisons without an explicit cast shall be diagnosed or lowered via a documented promotion rule.
+- For boolean negation `!`, the backend shall use the C `!` operator on `bool` values.
+
+## Revision history
+
+- 2025-09-08  Document mapping of Magma comparison and logical operators to C and note string-equality runtime helper  user
 
 ## Revision history
 
