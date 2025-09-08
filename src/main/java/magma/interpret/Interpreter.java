@@ -6,7 +6,6 @@ import magma.Result;
 import java.util.Optional;
 
 public class Interpreter {
-
 	/**
 	 * Small generic tuple used instead of AbstractMap.SimpleEntry to avoid
 	 * duplication and make code more expressive.
@@ -273,59 +272,7 @@ public class Interpreter {
 		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct ")
 				&& !s.startsWith("type "))
 			return Optional.empty();
-		java.util.List<String> stmts = splitStatements(s);
-		// Try to split a leading declaration and remainder when present. This
-		// handles both the single-statement case and cases where the first
-		// semicolon-separated part still contains a declaration + trailing
-		// expression (for example: "struct S { ... } let x = ...; x").
-		Optional<java.util.List<String>> maybe = attemptSplitDeclarationAndRemainder(s, stmts);
-		if (maybe.isPresent()) {
-			java.util.List<String> parts = maybe.get();
-			// parts is expected to be [declaration, remainder]. Repeatedly
-			// extract leading declarations while the remainder begins with a
-			// declaration keyword (class/fn/struct/type). This allows inputs
-			// like "class A() => {..} class B() => {..} expr" to produce
-			// separate declaration entries for A and B.
-			java.util.List<String> rebuilt = new java.util.ArrayList<>();
-			rebuilt.add(parts.get(0));
-			String remaining = parts.get(1).trim();
-			while (remaining.startsWith("class ") || remaining.startsWith("class fn ")
-					|| remaining.startsWith("fn ") || remaining.startsWith("struct ")
-					|| remaining.startsWith("type ")) {
-				Optional<java.util.List<String>> next = splitFirstDeclarationAndRemainder(remaining);
-				if (next.isEmpty())
-					break;
-				java.util.List<String> np = next.get();
-				rebuilt.add(np.get(0));
-				remaining = np.get(1).trim();
-			}
-			java.util.List<String> tail = splitStatements(remaining);
-			rebuilt.addAll(tail);
-			stmts = rebuilt;
-		} else {
-			// If no single-split was found and the input starts with repeated
-			// top-level declarations (e.g., multiple classes/functions without
-			// semicolons between them), perform an iterative split. Be
-			// conservative: only attempt when the original input begins with
-			// a declaration keyword to avoid breaking other forms.
-			if (stmts.size() == 1 && (s.startsWith("class ") || s.startsWith("class fn ") || s.startsWith("fn "))) {
-				java.util.List<String> rebuilt = new java.util.ArrayList<>();
-				String remaining = s;
-				while (true) {
-					Optional<java.util.List<String>> partOpt = splitFirstDeclarationAndRemainder(remaining);
-					if (partOpt.isEmpty())
-						break;
-					java.util.List<String> parts = partOpt.get();
-					rebuilt.add(parts.get(0));
-					remaining = parts.get(1).trim();
-				}
-				if (!rebuilt.isEmpty()) {
-					java.util.List<String> tail = splitStatements(remaining);
-					rebuilt.addAll(tail);
-					stmts = rebuilt;
-				}
-			}
-		}
+		java.util.List<String> stmts = buildDeclarationStatements(s, splitStatements(s));
 		if (stmts.isEmpty())
 			return Optional.empty();
 		// If there is any fn, class, struct, or type declaration present, handle as
@@ -416,40 +363,11 @@ public class Interpreter {
 		finalParse = substituteCtorFromEnv(finalParse, env);
 
 		// Support simple addition chains in the trailing expression where each
-		// operand may be a call or constructor.method. Split at top-level '+' and
-		// evaluate each operand using the collected fns and current env.
-		java.util.List<String> plusParts = splitRaw(finalPart, '+');
-		if (plusParts.size() > 1) {
-			long sum = 0L;
-			for (String rawPart : plusParts) {
-				String part = rawPart.trim();
-				if (part.isEmpty())
-					return Optional.of(new Err<>(new InterpretError("Malformed addition expression: " + finalPart)));
-				Optional<FinalParse> pfp = parseFinalPart(part);
-				if (pfp.isEmpty())
-					return Optional.of(new Err<>(new InterpretError("Unsupported operand in addition: " + part)));
-				FinalParse fp = substituteCtorFromEnv(pfp.get(), env);
-				Optional<Result<String, InterpretError>> pres = dispatchAfterCollection(
-						new DispatchContext(fp.ctorOpt(), fp.callOpt(), fns, part));
-				if (pres.isEmpty())
-					return Optional.of(new Err<>(new InterpretError("Unsupported operand in addition: " + part)));
-				Result<String, InterpretError> r = pres.get();
-				if (r instanceof Err<String, InterpretError> er)
-					return Optional.of(new Err<>(er.error()));
-				if (r instanceof Ok<String, InterpretError> ok) {
-					String v = ok.value();
-					int ld = leadingDigits(v);
-					if (ld == 0)
-						return Optional.of(new Err<>(new InterpretError("Non-numeric operand in addition: " + v)));
-					try {
-						sum = Math.addExact(sum, Long.parseLong(v.substring(0, ld)));
-					} catch (NumberFormatException | ArithmeticException e) {
-						return Optional.of(new Err<>(new InterpretError("Numeric overflow or invalid number: " + v)));
-					}
-				}
-			}
-			return Optional.of(new Ok<>(Long.toString(sum)));
-		}
+		// operand may be a call or constructor.method. Delegate to helper
+		// to reduce cyclomatic complexity and reuse logic.
+		Optional<Result<String, InterpretError>> plusRes = computeAdditionInDeclarations(finalPart, fns, env);
+		if (plusRes.isPresent())
+			return plusRes;
 
 		Optional<Result<String, InterpretError>> idxRes = tryResolveIndexFromEnv(finalParse, finalPart, env);
 		if (idxRes.isPresent())
@@ -691,10 +609,9 @@ public class Interpreter {
 		String namespaced = callName + "#" + methodOrField;
 		if (fns.containsKey(namespaced)) {
 			Tuple2<String, String> innerFn = fns.get(namespaced);
-			String innerParam = innerFn.first();
-			String innerRet = innerFn.second();
-			if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
-				return Optional.of(new Ok<>(innerRet));
+			Optional<Result<String, InterpretError>> nr = numericReturnIfZeroArg(innerFn);
+			if (nr.isPresent())
+				return nr;
 		}
 		// Fallback: try unqualified/global inner method name (for backward compat)
 		Optional<Result<String, InterpretError>> maybeMethod = tryResolveInnerMethod(methodOrField, fns);
@@ -705,7 +622,7 @@ public class Interpreter {
 			return handleStructConstructorField(new Tuple2<>(new Tuple2<>(callName, callArg), methodOrField), fns);
 
 		if (hasClass)
-			return handleClassConstructorField(callName, callArg, methodOrField, fns);
+			return handleClassConstructorField(new Tuple2<>(callName, callArg), methodOrField, fns);
 
 		return Optional.of(new Err<>(new InterpretError("Unsupported constructor arg: " + callArg)));
 	}
@@ -720,11 +637,8 @@ public class Interpreter {
 		if (!fns.containsKey(methodOrField))
 			return Optional.empty();
 		Tuple2<String, String> innerFn = fns.get(methodOrField);
-		String innerParam = innerFn.first();
-		String innerRet = innerFn.second();
-		if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
-			return Optional.of(new Ok<>(innerRet));
-		return Optional.empty();
+		// Delegate numeric-return check to helper to avoid duplication
+		return numericReturnIfZeroArg(innerFn);
 	}
 
 	private Optional<Result<String, InterpretError>> handleStructConstructorField(
@@ -742,31 +656,28 @@ public class Interpreter {
 		return Optional.of(new Err<>(new InterpretError("Unknown field: " + methodOrField)));
 	}
 
-	private Optional<Result<String, InterpretError>> handleClassConstructorField(String callName, String callArg,
+	private Optional<Result<String, InterpretError>> handleClassConstructorField(Tuple2<String, String> call,
 			String methodOrField, java.util.Map<String, Tuple2<String, String>> fns) {
 		// Prefer class-scoped inner method resolution when available. Class
 		// entries are encoded in the fns map with key "CLASS:<Name>" and the
 		// stored second() value contains the class body (possibly an inner
 		// fn declaration). If an inner fn matches methodOrField, return its
 		// evaluated result. Otherwise, fall back to field access behavior.
+		String callName = call.first();
+		String callArg = call.second();
 		String classKey = "CLASS:" + callName;
 		if (fns.containsKey(classKey)) {
 			Tuple2<String, String> classEntry = fns.get(classKey);
 			String classBody = classEntry.second();
-			if (!classBody.isEmpty() && classBody.startsWith("fn ")) {
-				// Remove trailing semicolon if present
-				String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
-				Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = parseFnPart(fnDecl);
-				if (innerFnOpt.isPresent()) {
-					Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
-					String innerName = innerFn.first();
-					Tuple2<String, String> innerDef = innerFn.second();
-					if (innerName.equals(methodOrField)) {
-						String innerParam = innerDef.first();
-						String innerRet = innerDef.second();
-						if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
-							return Optional.of(new Ok<>(innerRet));
-					}
+			Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = getInnerFnFromClassBody(classBody);
+			if (innerFnOpt.isPresent()) {
+				Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
+				String innerName = innerFn.first();
+				Tuple2<String, String> innerDef = innerFn.second();
+				if (innerName.equals(methodOrField)) {
+					Optional<Result<String, InterpretError>> nr = numericReturnIfZeroArg(innerDef);
+					if (nr.isPresent())
+						return nr;
 				}
 			}
 		}
@@ -1004,42 +915,23 @@ public class Interpreter {
 			java.util.Optional<InterpretError> error) {
 	}
 
+	private static record DeclMaps(java.util.Map<String, Tuple2<String, String>> fns,
+			java.util.Map<String, Tuple2<String, String>> classes,
+			java.util.Map<String, Tuple2<String, String>> structs) {
+	}
+
 	private Optional<FnCollectResult> collectFunctions(java.util.List<String> stmts) {
 		java.util.Map<String, Tuple2<String, String>> fns = new java.util.HashMap<>();
 		java.util.Map<String, Tuple2<String, String>> classes = new java.util.HashMap<>();
 		java.util.Map<String, Tuple2<String, String>> structs = new java.util.HashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
 			String stmt = stmts.get(i);
-			// Map of statement prefix -> handler function. Handlers capture
-			// local fns/classes/structs maps as needed.
-			java.util.Map<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> handlers = new java.util.LinkedHashMap<>();
-			handlers.put("fn ", s -> handleFnStmt(s, fns));
-			handlers.put("class ", s -> handleClassStmt(s, fns, classes));
-			handlers.put("struct ", s -> handleStructStmt(s, structs));
-			handlers.put("type ", s -> handleTypeStmt(s));
-
-			boolean matched = false;
-			for (java.util.Map.Entry<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> e : handlers
-					.entrySet()) {
-				String prefix = e.getKey();
-				if (stmt.startsWith(prefix)) {
-					java.util.Optional<java.util.Optional<InterpretError>> perr = e.getValue().apply(stmt);
-					if (perr.isEmpty())
-						return Optional.empty();
-					if (perr.get().isPresent())
-						return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(), perr.get()));
-					matched = true;
-					break;
-				}
-			}
-			if (matched)
-				continue;
-			if (stmt.startsWith("let ")) {
-				if (!handleLetStmt(stmt))
-					return Optional.empty();
-				continue;
-			}
-			return Optional.empty();
+			java.util.Optional<java.util.Optional<InterpretError>> perr = processDeclarationStmt(stmt,
+					new DeclMaps(fns, classes, structs));
+			if (perr.isEmpty())
+				return Optional.empty();
+			if (perr.get().isPresent())
+				return Optional.of(new FnCollectResult(java.util.Collections.emptyMap(), perr.get()));
 		}
 		// encode collected classes and structs into function map for later lookup
 		// prefix class entries with "CLASS:" and struct entries with "STRUCT:"
@@ -1053,20 +945,90 @@ public class Interpreter {
 		for (var e : classes.entrySet()) {
 			String cname = e.getKey();
 			String classBody = e.getValue().second();
-			if (classBody != null && classBody.startsWith("fn ")) {
-				String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
-				Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = parseFnPart(fnDecl);
-				if (innerFnOpt.isPresent()) {
-					Tuple2<String, Tuple2<String, String>> innerFn = innerFnOpt.get();
-					String innerName = innerFn.first();
-					// store under namespaced key Class#name
-					fns.put(cname + "#" + innerName, innerFn.second());
-				}
-			}
+			addNamespacedInnerFn(fns, cname, classBody);
 		}
 		for (var e : structs.entrySet())
 			fns.put("STRUCT:" + e.getKey(), e.getValue());
 		return Optional.of(new FnCollectResult(fns, java.util.Optional.empty()));
+	}
+
+	// Add a helper to extract an inner fn from a class body and store it
+	// under the namespaced key Class#name in the provided fns map.
+	private void addNamespacedInnerFn(java.util.Map<String, Tuple2<String, String>> fns, String cname,
+			String classBody) {
+		Optional<Tuple2<String, Tuple2<String, String>>> innerFnOpt = getInnerFnFromClassBody(classBody);
+		innerFnOpt.ifPresent(innerFn -> fns.put(cname + "#" + innerFn.first(), innerFn.second()));
+	}
+
+	// Build a normalized statements list when input contains declarations
+	// possibly followed by an expression without a separating semicolon.
+	private java.util.List<String> buildDeclarationStatements(String s, java.util.List<String> initial) {
+		java.util.List<String> stmts = initial;
+		Optional<java.util.List<String>> maybe = attemptSplitDeclarationAndRemainder(s, initial);
+		if (maybe.isPresent()) {
+			java.util.List<String> parts = maybe.get();
+			java.util.List<String> rebuilt = new java.util.ArrayList<>();
+			rebuilt.add(parts.get(0));
+			String remaining = parts.get(1).trim();
+			while (remaining.startsWith("class ") || remaining.startsWith("class fn ")
+					|| remaining.startsWith("fn ") || remaining.startsWith("struct ")
+					|| remaining.startsWith("type ")) {
+				Optional<java.util.List<String>> next = splitFirstDeclarationAndRemainder(remaining);
+				if (next.isEmpty())
+					break;
+				java.util.List<String> np = next.get();
+				rebuilt.add(np.get(0));
+				remaining = np.get(1).trim();
+			}
+			java.util.List<String> tail = splitStatements(remaining);
+			rebuilt.addAll(tail);
+			stmts = rebuilt;
+		} else {
+			if (initial.size() == 1 && (s.startsWith("class ") || s.startsWith("class fn ") || s.startsWith("fn "))) {
+				java.util.List<String> rebuilt = new java.util.ArrayList<>();
+				String remaining = s;
+				while (true) {
+					Optional<java.util.List<String>> partOpt = splitFirstDeclarationAndRemainder(remaining);
+					if (partOpt.isEmpty())
+						break;
+					java.util.List<String> parts = partOpt.get();
+					rebuilt.add(parts.get(0));
+					remaining = parts.get(1).trim();
+				}
+				if (!rebuilt.isEmpty()) {
+					java.util.List<String> tail = splitStatements(remaining);
+					rebuilt.addAll(tail);
+					stmts = rebuilt;
+				}
+			}
+		}
+		return stmts;
+	}
+
+	// Process a single declaration-like statement and route to the appropriate
+	// handler.
+	private java.util.Optional<java.util.Optional<InterpretError>> processDeclarationStmt(String stmt, DeclMaps maps) {
+		// Map of statement prefix -> handler function. Handlers capture
+		// local fns/classes/structs maps as needed.
+		java.util.Map<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> handlers = new java.util.LinkedHashMap<>();
+		handlers.put("fn ", s -> handleFnStmt(s, maps.fns()));
+		handlers.put("class ", s -> handleClassStmt(s, maps.fns(), maps.classes()));
+		handlers.put("struct ", s -> handleStructStmt(s, maps.structs()));
+		handlers.put("type ", s -> handleTypeStmt(s));
+
+		for (java.util.Map.Entry<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> e : handlers
+				.entrySet()) {
+			String prefix = e.getKey();
+			if (stmt.startsWith(prefix)) {
+				return e.getValue().apply(stmt);
+			}
+		}
+		if (stmt.startsWith("let ")) {
+			if (!handleLetStmt(stmt))
+				return java.util.Optional.empty();
+			return java.util.Optional.of(java.util.Optional.empty());
+		}
+		return java.util.Optional.empty();
 	}
 
 	private Optional<Result<String, InterpretError>> evaluateZeroArgFunctionBody(
@@ -1320,6 +1282,55 @@ public class Interpreter {
 		if (end != stmt.length())
 			return Optional.empty();
 		return Optional.of(new Tuple2<>(typeTok, new Tuple2<>(retExpr, end)));
+	}
+
+	// Parse an inner "fn ..." declaration stored inside a class body string.
+	// Returns the parsed fn tuple if present.
+	private Optional<Tuple2<String, Tuple2<String, String>>> parseInnerFnDecl(String classBody) {
+		if (java.util.Objects.isNull(classBody) || classBody.isEmpty())
+			return Optional.empty();
+		if (!classBody.startsWith("fn "))
+			return Optional.empty();
+		String fnDecl = classBody.endsWith(";") ? classBody.substring(0, classBody.length() - 1) : classBody;
+		return parseFnPart(fnDecl);
+	}
+
+	// Helper to extract an inner fn from a class body and return its tuple
+	private Optional<Tuple2<String, Tuple2<String, String>>> getInnerFnFromClassBody(String classBody) {
+		return parseInnerFnDecl(classBody);
+	}
+
+	// Execute a consumer when an inner function is present in the given class body
+	private void ifInnerFnPresent(String classBody,
+			java.util.function.Consumer<Tuple2<String, Tuple2<String, String>>> consumer) {
+		Optional<Tuple2<String, Tuple2<String, String>>> inner = getInnerFnFromClassBody(classBody);
+		inner.ifPresent(consumer);
+	}
+
+	// If the class body contains an inner zero-arg fn matching methodName that
+	// returns a numeric literal, return its evaluated Ok(literal). Otherwise
+	// return Optional.empty(). Extracted to avoid duplicated parsing fragments.
+	private Optional<Result<String, InterpretError>> resolveClassInnerNumericIfMatches(String classBody,
+			String methodName) {
+		Optional<Tuple2<String, Tuple2<String, String>>> innerOpt = getInnerFnFromClassBody(classBody);
+		if (innerOpt.isPresent()) {
+			Tuple2<String, Tuple2<String, String>> innerFn = innerOpt.get();
+			if (innerFn.first().equals(methodName))
+				return numericReturnIfZeroArg(innerFn.second());
+		}
+		return Optional.empty();
+	}
+
+	// If the provided fn tuple represents a zero-arg function that returns a
+	// numeric literal, return Optional.of(Ok(literal)), otherwise Optional.empty().
+	private Optional<Result<String, InterpretError>> numericReturnIfZeroArg(Tuple2<String, String> fn) {
+		if (java.util.Objects.isNull(fn))
+			return Optional.empty();
+		String innerParam = fn.first();
+		String innerRet = fn.second();
+		if (innerParam.isEmpty() && !innerRet.isEmpty() && Character.isDigit(innerRet.charAt(0)))
+			return Optional.of(new Ok<>(innerRet));
+		return Optional.empty();
 	}
 
 	/**
@@ -1810,15 +1821,6 @@ public class Interpreter {
 		if (blockRes.isPresent())
 			return blockRes;
 
-		Optional<Result<String, InterpretError>> idxResolved = resolveIndexFromEnv(finalPart, env);
-		if (idxResolved.isPresent())
-			return idxResolved;
-		return returnEnvBindingOrUnbound(env, finalPart);
-	}
-
-	private Optional<Result<String, InterpretError>> resolveFinalFromEnv(
-			java.util.Map<String, Tuple2<Boolean, String>> env,
-			String finalPart) {
 		Optional<Result<String, InterpretError>> idxResolved = resolveIndexFromEnv(finalPart, env);
 		if (idxResolved.isPresent())
 			return idxResolved;
