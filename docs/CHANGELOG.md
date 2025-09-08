@@ -23,3 +23,7 @@ All notable changes to this project will be documented in this file.
 
 - COPILOT-INSTRUCTIONS: Added `/spec` command behaviour — when a user message begins with `/spec ` the assistant will execute the instructions in `.github/prompts/spec.md` and treat that file as the authoritative prompt for `/spec` invocations. Repository editing steps requested by that prompt will follow the normal repo workflow and be documented in the changelog.
 
+## 2025-09-08 — Spec workflow enhancement
+
+- `.github/prompts/spec.md`: Require the agent to propose and critically challenge language feature or design-change proposals at the end of every substantive edit session. Each proposal must include a concise description, rationale, implementation considerations, trade-offs/risks, a minimal example/test, and an explicit accept/modify/reject prompt for the user. This encourages iterative language design and surfaces trade-offs for review.
+

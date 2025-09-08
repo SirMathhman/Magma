@@ -20,6 +20,16 @@ When invoked, do the following steps in order:
 
 6. If the user requests a substantial change (more than a few paragraphs), propose a small, timeboxed plan (2-5 tasks) and ask for confirmation to proceed.
 
+7. At the end of each completed task the agent shall propose and critically challenge language features or design changes related to the edits just made. Each proposal shall include:
+   - A concise feature proposal (one sentence) describing the feature or change.
+   - A brief rationale (1-3 sentences) explaining why the feature is useful or relevant to the current work.
+   - Implementation considerations (2-4 bullet points) outlining where to add the change in `docs/LANGUAGE.md` and `docs/IMPLEMENTATION.md`, approximate complexity, and any needed runtime/back-end work.
+   - Trade-offs and risks (1-3 bullet points) that challenge the proposal (performance, safety, interoperability, developer ergonomics).
+   - A minimal test or example showing expected behavior and a suggested acceptance criterion.
+   - An explicit ask (one-line) inviting the user to accept, modify, or reject the proposal.
+
+   The agent shall present at least one such proposal for every substantive edit session. Proposals should be brief, concrete, and framed as discussion items rather than final decisions. When multiple reasonable alternatives exist, the agent shall present 2-3 variants and the strongest counter-argument for each.
+
 Operational rules and style:
 
 - Always use the present tense and normative wording when editing documents: "The compiler shall...", "The runtime should...", "This feature will...".
