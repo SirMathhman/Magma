@@ -87,7 +87,31 @@ public final class CLI {
 
 			return rc;
 		} catch (NumberFormatException e) {
-			// Not a plain integer; fall back to generic behavior.
+			// Not a plain integer; try the simple pipeline: lex -> parse -> typecheck -> ir -> emit
+			String src = args[0];
+			Lexer lexer = new SimpleLexer();
+			Parser parser = new SimpleParser();
+			TypeChecker tc = new SimpleTypeChecker();
+			SimpleIrBuilder irb = new SimpleIrBuilder();
+			CodeEmitter emitter = new SimpleCodeEmitter();
+
+			Token[] toks = lexer.tokenize(src);
+			AstNode ast = parser.parse(toks);
+			if (ast == null) {
+				System.out.println("magma: received " + args.length + " argument(s)");
+				return 0;
+			}
+			if (!tc.check(ast)) {
+				System.err.println("magma: type check failed");
+				return 1;
+			}
+			IrNode ir = irb.build(ast);
+			if (ir instanceof IrLiteral) {
+				int v = ((IrLiteral) ir).value;
+				emitter.emit(ir);
+				return v & 0xFF;
+			}
+			// Fallback generic message
 			System.out.println("magma: received " + args.length + " argument(s)");
 			return 0;
 		} catch (InterruptedException ie) {
