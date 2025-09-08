@@ -141,9 +141,14 @@ public class Main {
 		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);
 	}
 
-	private static String compileType(String type) {
-		final var stripped = type.strip();
+	private static String compileType(String input) {
+		final var stripped = input.strip();
+
 		if (stripped.equals("void")) return "void";
+		if (stripped.endsWith("[]")) {
+			final var slice = stripped.substring(0, stripped.length() - "[]".length());
+			return compileType(slice) + "*";
+		}
 
 		return wrap(stripped);
 	}

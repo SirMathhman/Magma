@@ -1,5 +1,5 @@
 /*public */struct Main {};
-/*public static*/ void main(/*String[]*/ args){/*
+/*public static*/ void main(/*String*/* args){/*
 		final var sourceDirectory = Paths.get(".", "src", "java");*//*
 		try (var stream = Files.walk(sourceDirectory)) {
 			final var sources = stream.filter(Files::isRegularFile)
@@ -123,9 +123,14 @@
 
 		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*//*
 	*/}
-/*private static*/ /*String*/ compileType(/*String*/ type){/*
-		final var stripped = type.strip();*//*
+/*private static*/ /*String*/ compileType(/*String*/ input){/*
+		final var stripped = input.strip();*//*
+
 		if (stripped.equals("void")) return "void";*//*
+		if (stripped.endsWith("[]")) {
+			final var slice = stripped.substring(0, stripped.length() - "[]".length());
+			return compileType(slice) + "*";
+		}*//*
 
 		return wrap(stripped);*//*
 	*/}
