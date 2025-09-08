@@ -1,4 +1,7 @@
-package magma;
+package magma.simple;
+
+import magma.CodeEmitter;
+import magma.ir.IrNode;
 
 /** Very small emitter used by CLI for the stub pipeline. */
 public class SimpleCodeEmitter implements CodeEmitter {

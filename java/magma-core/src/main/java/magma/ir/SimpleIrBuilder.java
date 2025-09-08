@@ -1,4 +1,8 @@
-package magma;
+package magma.ir;
+
+import magma.AstNode;
+import magma.BinaryAst;
+import magma.LiteralAst;
 
 /** Convert AST to a tiny IR. */
 public class SimpleIrBuilder {

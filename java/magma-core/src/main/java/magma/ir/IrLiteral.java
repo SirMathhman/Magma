@@ -1,4 +1,4 @@
-package magma;
+package magma.ir;
 
 /** IR node representing an integer literal. */
 public class IrLiteral extends IrNode {

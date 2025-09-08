@@ -1,4 +1,7 @@
-package magma;
+package magma.simple;
+
+import magma.Lexer;
+import magma.Token;
 
 /** Minimal lexer implementation for stubbed pipeline. */
 public class SimpleLexer implements Lexer {

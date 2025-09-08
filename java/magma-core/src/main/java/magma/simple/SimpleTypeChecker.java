@@ -1,4 +1,9 @@
-package magma;
+package magma.simple;
+
+import magma.AstNode;
+import magma.BinaryAst;
+import magma.LiteralAst;
+import magma.TypeChecker;
 
 /** Minimal type checker: accepts LiteralAst and returns true if type is i32. */
 public class SimpleTypeChecker implements TypeChecker {

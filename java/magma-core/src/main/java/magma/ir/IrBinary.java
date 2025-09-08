@@ -1,4 +1,4 @@
-package magma;
+package magma.ir;
 
 /** IR node representing a binary addition of two integer literals. */
 public class IrBinary extends IrNode {

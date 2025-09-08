@@ -2,8 +2,9 @@
 mode: agent
 ---
 
-The user will usually provide features that will describe the behavior of the program, and will not discuss architecture.
-Architecture is for you to decide.
+The user will usually provide features that will describe the behavior of the program, and will not discuss architecture. Architecture is for you to decide. Ensure the project builds cleanly: resolve any build errors introduced by your changes before finalizing the feature. Do not modify build configuration files (pom.xml, build scripts, CI configs) unless the user explicitly requests it; if packaging or file placement issues arise, prefer moving files using file-system commands (for example `git mv` or `mv`) then editing them in-place rather than copying files one-by-one.
+
+You MUST follow these steps:
 
 1. Read the project documentation (start with `README.md` and the files in `docs/`).
 
@@ -18,8 +19,6 @@ Architecture is for you to decide.
 6. Run the test suite and verify the new test passes along with existing tests.
 
 7. Update documentation and examples to show how to use the new feature.
-
-8. Ensure the project builds cleanly: resolve any build errors introduced by your changes before finalizing the feature. Do not modify build configuration files (pom.xml, build scripts, CI configs) unless the user explicitly requests it; if packaging or file placement issues arise, prefer moving files using file-system commands (for example `git mv` or `mv`) then editing them in-place rather than copying files one-by-one.
 
 Optional: Keep changes small, add focused unit tests where helpful, and prefer readable, idiomatic C output for the code generator.
 

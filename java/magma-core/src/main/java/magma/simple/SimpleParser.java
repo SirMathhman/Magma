@@ -1,4 +1,10 @@
-package magma;
+package magma.simple;
+
+import magma.AstNode;
+import magma.BinaryAst;
+import magma.LiteralAst;
+import magma.Parser;
+import magma.Token;
 
 /** Minimal parser that recognizes a single integer literal token. */
 public class SimpleParser implements Parser {

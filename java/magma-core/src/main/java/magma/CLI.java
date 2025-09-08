@@ -1,5 +1,14 @@
 package magma;
 
+import magma.simple.SimpleLexer;
+import magma.simple.SimpleParser;
+import magma.simple.SimpleTypeChecker;
+import magma.simple.SimpleCodeEmitter;
+import magma.ir.SimpleIrBuilder;
+import magma.ir.IrNode;
+import magma.ir.IrLiteral;
+import magma.ir.IrBinary;
+
 /**
  * A tiny CLI entrypoint for the stubbed Magma project.
  * Prints help and exits normally.
