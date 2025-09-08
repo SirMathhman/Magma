@@ -35,7 +35,7 @@ public class Main {
 				final var index = fileName.lastIndexOf(".");
 				final var name = fileName.substring(0, index);
 				final var resolve = targetDirectory.resolve(name + ".c");
-				Files.writeString(resolve, "/*" + input + "*/");
+				Files.writeString(resolve, "start" + input.replace("start", "start").replace("end", "end") + "end");
 			}
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
