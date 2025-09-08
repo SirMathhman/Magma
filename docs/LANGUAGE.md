@@ -47,7 +47,7 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
 
     block          ::= '{' { statement } '}'
     statement      ::= local_var_decl | expression_stmt | return_stmt | if_stmt | while_stmt
-    local_var_decl ::= 'let' identifier [ ':' type ] [ '=' expression ] ';'
+  local_var_decl ::= 'let' [ 'mut' ] identifier [ ':' type ] [ '=' expression ] ';'
     expression_stmt::= expression ';'
     return_stmt    ::= 'return' [ expression ] ';'
     if_stmt        ::= 'if' '(' expression ')' block [ 'else' block ]
@@ -212,6 +212,50 @@ Local `let` statement example (explicit width annotation):
   - If a `let` binding includes an explicit annotation (for example `let x : U8 = 0;`), the initializer shall be interpreted in the context of the annotated type: `0` becomes `U8` in that example (not `I32`).
   - If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's value is representable in the annotated width and signedness and shall produce a type error on mismatch (for example, assigning `-1` to `U8` or assigning `256` to `U8` shall be an error).
   - Implementations shall document the precise semantics for out-of-range integer literals (for example, whether such cases are reported as parse-time errors or type-check errors).
+
+Variable mutability (`mut`)
+
+- Declarations:
+  - The `let` syntax shall optionally accept the `mut` modifier to indicate a mutable binding: `let mut x = 0;`.
+  - A `let` binding without the `mut` modifier and with an initializer (for example `let x = 0;`) shall be immutable: subsequent assignments to `x` shall be a compile-time error.
+  - A `let` binding without an initializer (for example `let x : I32;`) shall create a mutable uninitialized local: the programmer may assign to `x` later without using `mut`.
+  - Declarations that include `mut` shall require an initializer. The form `let mut x : I32;` (no initializer) shall be a syntax/time error; the correct form is `let mut x : I32 = <expr>;`.
+
+- Semantics and examples:
+  - Mutable initialized binding (allowed):
+
+        fn main() -> int {
+          let mut x = 0;
+          x = 100; // allowed
+          return x;
+        }
+
+  - Immutable initialized binding (disallowed to assign later):
+
+        fn main() -> int {
+          let x = 0;
+          x = 100; // ERROR: assignment to immutable binding
+          return x;
+        }
+
+  - Uninitialized binding (assignment allowed without `mut`):
+
+        fn main() -> int {
+          let x : I32; // uninitialized
+          x = 100; // allowed
+          return x;
+        }
+
+- Definite-assignment interplay:
+  - The compiler shall enforce definite-assignment rules for reads: a local declared without an initializer must be assigned on every control-flow path before any read.
+  - Assigning to an uninitialized local shall mark it as initialized for subsequent uses in that control-flow path.
+
+Assumptions:
+
+
+- The `mut` modifier is a declaration-time flag and requires an initializer; uninitialized locals intentionally omit `mut` and are permitted to be assigned later to simplify certain patterns (for example, conditional initialization). If you'd prefer `let mut x : I32;` to be permitted, say so and I will update the spec.
+
+
 
 If statements and expressions
 

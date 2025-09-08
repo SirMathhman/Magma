@@ -126,6 +126,30 @@ Top-level expression programs:
 
 - The backend shall perform a type-check to ensure the initializer's value is compatible with the annotated `I32` type and shall emit a diagnostic if the initializer cannot be represented as a 32-bit signed integer where required.
 
+## Variable mutability (`mut`) — parser and typechecker guidance
+
+- Parser / AST:
+  - The parser shall accept an optional `mut` modifier in local `let` declarations and shall record a `mutable` boolean on the `LocalVarDecl` AST node.
+  - Local declarations without `mut` but without an initializer (for example `let x : I32;`) shall be represented with `mutable = true` internally for the purposes of later assignment checks (that is, treated as an assignable but uninitialized local in the frontend's analysis).
+  - The parser shall reject declarations that include `mut` but lack an initializer (for example `let mut x : I32;`) and shall emit a clear diagnostic indicating that `mut` requires an initializer.
+
+- Typechecker / semantic rules:
+  - The typechecker shall enforce that assignments to a variable declared with an initializer are permitted only when the declaration was marked `mut`.
+  - The typechecker shall permit assignments to variables declared without an initializer (uninitialized locals) regardless of whether `mut` was written; these locals shall be tracked for definite-assignment until initialized.
+  - Attempts to assign to an immutable initialized binding (for example `let x = 0; x = 1;`) shall produce a clear diagnostic indicating the binding is immutable and suggest adding `mut` if mutation was intended.
+  - Attempts to read an uninitialized local before it has been assigned on every control-flow path shall produce a definite-assignment error.
+
+- Lowering and runtime:
+  - The lowering pass shall reflect mutability in the generated code by emitting variables as C locals as usual. There is no runtime representation difference between mutable and immutable locals in the C reference backend beyond compile-time enforcement (both lower to C local variables); however, the frontend must ensure that immutability rules are enforced before lowering.
+
+Revision history
+
+- 2025-09-08 — Require initializer when `mut` is present in local declarations; document parser diagnostic for `mut` without initializer — user
+
+Revision history
+
+- 2025-09-08 — Document `mut` declaration semantics: `let mut x = ...` mutable initialized binding, `let x = ...` immutable initialized binding, and `let x : Type;` uninitialized assignable binding; add parser/AST and typechecker guidance — user
+
 ## Integer width annotations mapping and lowering
 
 - The C reference backend shall support lowering the following integer width annotations to the corresponding C fixed-width types:
