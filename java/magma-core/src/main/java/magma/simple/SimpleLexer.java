@@ -7,9 +7,11 @@ import magma.Token;
 public class SimpleLexer implements Lexer {
     @Override
     public Token[] tokenize(String source) {
-        if (source == null) return new Token[0];
+        if (source == null)
+            return new Token[0];
         String s = source.trim();
-        // Recognize a function definition (very small subset) and return as a single FNDEF token.
+        // Recognize a function definition (very small subset) and return as a single
+        // FNDEF token.
         // This lets the SimpleParser decide how to handle functions like:
         // fn main() : I32 => { return 42; }
         if (s.startsWith("fn ")) {

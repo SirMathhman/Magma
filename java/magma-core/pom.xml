@@ -46,6 +46,28 @@
           </execution>
         </executions>
       </plugin>
+      <!-- Add Checkstyle plugin to provide static style reports. Configured to not fail the build by default. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-checkstyle-plugin</artifactId>
+        <version>3.2.2</version>
+        <executions>
+          <execution>
+            <id>checkstyle</id>
+            <!-- Run Checkstyle during the test phase so 'mvn test' triggers it -->
+            <phase>test</phase>
+            <goals>
+              <goal>checkstyle</goal>
+            </goals>
+            <configuration>
+              <!-- Use the repository-local checkstyle rules which bans java.util.regex -->
+              <configLocation>${project.basedir}/checkstyle.xml</configLocation>
+              <!-- Fail the build on violations for this project's rules (strict enforcement). -->
+              <failsOnError>true</failsOnError>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

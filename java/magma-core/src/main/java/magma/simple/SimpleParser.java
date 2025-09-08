@@ -17,20 +17,66 @@ public class SimpleParser implements Parser {
         // literal integer return from main for the stub pipeline tests.
         if (tokens.length == 1 && "FNDEF".equals(tokens[0].type)) {
             String t = tokens[0].text.trim();
-            // Very small regex to capture: fn main() : I32 => { return 42; }
-            java.util.regex.Pattern p = java.util.regex.Pattern.compile(
-                    "^fn\\s+main\\s*\\(\\s*\\)\\s*:\\s*(I32|i32)\\s*=>\\s*\\{\\s*return\\s+([0-9]+)(I32|i32)?\\s*;\\s*}\\s*$");
-            java.util.regex.Matcher m = p.matcher(t);
-            if (m.matches()) {
-                String num = m.group(2);
-                try {
-                    long v = Long.parseLong(num);
-                    return new LiteralAst((int) v, "i32");
-                } catch (NumberFormatException e) {
-                    return null;
-                }
+
+            // Manual, small parser for pattern: fn main() : I32 => { return 42; }
+            // We avoid java.util.regex usage intentionally.
+            String cursor = t;
+            // Expect prefix 'fn'
+            if (!cursor.startsWith("fn"))
+                return null;
+            cursor = cursor.substring(2).trim();
+
+            // Expect 'main'
+            if (!cursor.startsWith("main"))
+                return null;
+            cursor = cursor.substring(4).trim();
+
+            // Expect '()'
+            if (!cursor.startsWith("()"))
+                return null;
+            cursor = cursor.substring(2).trim();
+
+            // Expect ':' then type name (I32 or i32) then '=>'
+            if (!cursor.startsWith(":"))
+                return null;
+            cursor = cursor.substring(1).trim();
+
+            // Read type token
+            String typeToken;
+            if (cursor.toLowerCase().startsWith("i32")) {
+                typeToken = "i32";
+                cursor = cursor.substring(3).trim();
+            } else {
+                return null; // only support i32 for now
             }
-            return null;
+
+            // Expect '=>'
+            if (!cursor.startsWith("=>"))
+                return null;
+            cursor = cursor.substring(2).trim();
+
+            // Expect '{' ... '}' block
+            if (!cursor.startsWith("{"))
+                return null;
+            if (!cursor.endsWith("}"))
+                return null;
+            String body = cursor.substring(1, cursor.length() - 1).trim();
+
+            // Expect 'return <number>;' inside body (allow optional I32 suffix on the
+            // number)
+            if (!body.startsWith("return ") || !body.endsWith(";"))
+                return null;
+            String retExpr = body.substring(7, body.length() - 1).trim();
+            // Strip optional I32/i32 suffix
+            if (retExpr.endsWith("I32") || retExpr.endsWith("i32")) {
+                retExpr = retExpr.substring(0, retExpr.length() - 3).trim();
+            }
+            try {
+                long v = Long.parseLong(retExpr);
+                return new LiteralAst((int) v, typeToken);
+            } catch (NumberFormatException e) {
+                return null;
+            }
         }
         // Handle binary addition: INT PLUS INT
         if (tokens.length == 3 && "INT".equals(tokens[0].type) && "PLUS".equals(tokens[1].type)

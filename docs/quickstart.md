@@ -52,3 +52,19 @@ Add example Magma files to `examples/` and include the expected `.c` in `example
 The repository includes a tiny CLI stub (`magma.CLI`) that can evaluate very small expressions passed as a single argument. For example, running the CLI with the argument `5+3` will cause the tool to parse and evaluate the expression and exit with code `8` (the sum), which is useful for quick end-to-end checks in tests.
 
 Note: this is a lightweight development convenience and not a full REPL.
+
+## Code style checks (Checkstyle)
+
+The `magma-core` module includes a Maven Checkstyle plugin configuration that generates a style report. The plugin is configured to run during the `test` phase, so invoking the standard test lifecycle will execute Checkstyle as well. By default the plugin is configured not to fail the build so contributors can iterate without strict enforcement.
+
+Run Checkstyle explicitly with:
+
+    mvn checkstyle:checkstyle -f java/magma-core/pom.xml
+
+Or simply run the full test lifecycle (recommended):
+
+    mvn -q clean test -f java/magma-core/pom.xml
+
+The Checkstyle report will be generated under `java/magma-core/target/site/checkstyle.html`.
+
+To enforce style violations as build failures, edit the plugin configuration in `java/magma-core/pom.xml` and set `<failsOnError>true</failsOnError>`.
