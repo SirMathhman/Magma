@@ -159,6 +159,24 @@ public class Main {
 	}
 
 	private static String compileFunctionSegment(String input) {
+		final String stripped = input.strip();
+		return System.lineSeparator() + "\t" + compileFunctionSegmentValue(stripped);
+	}
+
+	private static String compileFunctionSegmentValue(String input) {
+		if (input.endsWith(";")) {
+			final String slice = input.substring(0, input.length() - ";".length());
+			final int i = slice.indexOf("=");
+			if (i >= 0) {
+				final String definition = slice.substring(0, i);
+				final String value = slice.substring(i + "=".length());
+				final Optional<String> s = compileDefinition(definition);
+				if (s.isPresent()) {
+					return s.get() + " = " + wrap(value) + ";";
+				}
+			}
+		}
+
 		return wrap(input);
 	}
 }

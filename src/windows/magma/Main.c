@@ -1,7 +1,7 @@
 /*public */struct Main {};
-/*public static*/ void main(char** args){/*
-		final Path sourceDirectory = Paths.get(".", "src", "java");*//*
-		try (Stream<Path> stream = Files.walk(sourceDirectory)) {
+/*public static*/ void main(char** args){
+	/*final*/ /*Path*/ sourceDirectory = /* Paths.get(".", "src", "java")*/;
+	/*try (Stream<Path> stream = Files.walk(sourceDirectory)) {
 			final Set<Path> sources = stream.filter(Files::isRegularFile)
 																			.filter(path -> path.toString().endsWith(".java"))
 																			.collect(Collectors.toSet());
@@ -29,19 +29,22 @@
 				final Path resolve = targetDirectory.resolve(name + ".c");
 				Files.writeString(resolve, compile(input));
 			}
-		}*//* catch (IOException e) {
+		}*/
+	/*catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}*//*
-	*/}
-/*private static*/ char* compile(char* input){/*
-		return compileSegments(input, Main::compileRootSegment);*//*
-	*/}
-/*private static*/ char* compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){/*
-		final ArrayList<String> segments = new ArrayList<>();*//*
-		StringBuilder buffer = new StringBuilder();*//*
-		int depth = 0;*//*
-		for (int i = 0;*//* i < input.length();*//* i++) {
+		}*/
+	/**/}
+/*private static*/ char* compile(char* input){
+	/*return compileSegments(input, Main::compileRootSegment);*/
+	/**/}
+/*private static*/ char* compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){
+	/*final*/ /*ArrayList<String>*/ segments = /* new ArrayList<>()*/;
+	/*StringBuilder*/ buffer = /* new StringBuilder()*/;
+	/*int*/ depth = /* 0*/;
+	/*for*/ /*(int*/ i = /* 0*/;
+	/*i < input.length();*/
+	/*i++) {
 			final char c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
@@ -49,15 +52,17 @@
 				buffer.setLength(0);
 				continue;
 			}
-			if (c == '}*//*' & depth == 1) {
+			if (c == '}*/
+	/*' & depth == 1) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
 				depth--;
 				continue;
-			}*//*
-			if (c == '{') depth++;
-			if (c == '}*//*') depth--;*//*
-		*/}
+			}*/
+	/*if (c == '{') depth++;
+			if (c == '}*/
+	/*') depth--;*/
+	/**/}
 /*
 		segments.add(buffer.toString());*//*
 
@@ -83,9 +88,9 @@
 		}
 
 		return wrap(stripped);
-	}*//*private static*/ char* compileClassSegment(char* input){/*
-		final int i = input.indexOf("(");*//*
-		if (i >= 0) {
+	}*//*private static*/ char* compileClassSegment(char* input){
+	/*final*/ /*int*/ i = /* input.indexOf("(")*/;
+	/*if (i >= 0) {
 			final String definition = input.substring(0, i);
 			final String withParams = input.substring(i + "(".length());
 			final int i1 = withParams.indexOf(")");
@@ -101,43 +106,52 @@
 					}
 				}
 			}
-		}*//*
-
-		return wrap(input);*//*
-	*/}
-/*private static*/ /*Optional<String>*/ compileDefinition(char* input){/*
-		final String stripped = input.strip();*//*
-		final int i = stripped.lastIndexOf(" ");*//*
-		if (i < 0) return Optional.empty();*//*
-
-		final String beforeName = stripped.substring(0, i).strip();*//*
-		final String name = stripped.substring(i + " ".length());*//*
-
-		final int i1 = beforeName.lastIndexOf(" ");*//*
-		if (i1 < 0) {
+		}*/
+	/*return wrap(input);*/
+	/**/}
+/*private static*/ /*Optional<String>*/ compileDefinition(char* input){
+	/*final*/ char* stripped = /* input.strip()*/;
+	/*final*/ /*int*/ i = /* stripped.lastIndexOf(" ")*/;
+	/*if (i < 0) return Optional.empty();*/
+	/*final*/ char* beforeName = /* stripped.substring(0, i).strip()*/;
+	/*final*/ char* name = /* stripped.substring(i + " ".length())*/;
+	/*final*/ /*int*/ i1 = /* beforeName.lastIndexOf(" ")*/;
+	/*if (i1 < 0) {
 			return Optional.of(compileType(beforeName) + " " + name);
-		}*//*
-
-		final String modifiers = beforeName.substring(0, i1);*//*
-		final String type = beforeName.substring(i1 + " ".length());*//*
-
-		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*//*
-	*/}
-/*private static*/ char* compileType(char* input){/*
-		final String stripped = input.strip();*//*
-
-		if (stripped.equals("void")) return "void";*//*
-		if (stripped.equals("String")) return "char*";*//*
-
-		if (stripped.endsWith("[]")) {
+		}*/
+	/*final*/ char* modifiers = /* beforeName.substring(0, i1)*/;
+	/*final*/ char* type = /* beforeName.substring(i1 + " ".length())*/;
+	/*return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*/
+	/**/}
+/*private static*/ char* compileType(char* input){
+	/*final*/ char* stripped = /* input.strip()*/;
+	/*if (stripped.equals("void")) return "void";*/
+	/*if (stripped.equals("String")) return "char*";*/
+	/*if (stripped.endsWith("[]")) {
 			final String slice = stripped.substring(0, stripped.length() - "[]".length());
 			return compileType(slice) + "*";
-		}*//*
-
-		return wrap(stripped);*//*
-	*/}
-/*private static*/ char* compileFunctionSegment(char* input){/*
-		return wrap(input);*//*
-	*/}
+		}*/
+	/*return wrap(stripped);*/
+	/**/}
+/*private static*/ char* compileFunctionSegment(char* input){
+	/*final*/ char* stripped = /* input.strip()*/;
+	/*return System.lineSeparator() + "\t" + compileFunctionSegmentValue(stripped);*/
+	/**/}
+/*private static*/ char* compileFunctionSegmentValue(char* input){
+	/*if (input.endsWith(";*/
+	/*")) {
+			final String slice = input.substring(0, input.length() - ";".length());
+			final int i = slice.indexOf("=");
+			if (i >= 0) {
+				final String definition = slice.substring(0, i);
+				final String value = slice.substring(i + "=".length());
+				final Optional<String> s = compileDefinition(definition);
+				if (s.isPresent()) {
+					return s.get() + " = " + wrap(value) + ";";
+				}
+			}
+		}*/
+	/*return wrap(input);*/
+	/**/}
 /*
 }*/
