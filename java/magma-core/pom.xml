@@ -18,4 +18,34 @@
       <scope>test</scope>
     </dependency>
   </dependencies>
+  <properties>
+    <!-- Allow overriding which python executable to call -->
+    <python.executable>python</python.executable>
+  </properties>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.codehaus.mojo</groupId>
+        <artifactId>exec-maven-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>check-package-sizes</id>
+            <phase>validate</phase>
+            <goals>
+              <goal>exec</goal>
+            </goals>
+            <configuration>
+              <executable>${python.executable}</executable>
+              <arguments>
+                <argument>${project.basedir}/scripts/check_package_sizes.py</argument>
+                <argument>-r</argument>
+                <argument>${project.basedir}</argument>
+              </arguments>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
 </project>
