@@ -270,7 +270,7 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> tryParseDeclarations(String input) {
 		String s = input.trim();
-		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct "))
+		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct ") && !s.startsWith("type "))
 			return Optional.empty();
 		java.util.List<String> stmts = splitStatements(s);
 		// Try to split a leading declaration and remainder when present. This
@@ -291,10 +291,10 @@ public class Interpreter {
 		}
 		if (stmts.isEmpty())
 			return Optional.empty();
-		// If there is any fn or class declaration present, handle as declarations;
-		// else fall back to let
-		boolean hasDecl = stmts.stream()
-				.anyMatch(p -> p.startsWith("fn ") || p.startsWith("class ") || p.startsWith("struct "));
+	// If there is any fn, class, struct, or type declaration present, handle as declarations;
+	// else fall back to let
+	boolean hasDecl = stmts.stream()
+		.anyMatch(p -> p.startsWith("fn ") || p.startsWith("class ") || p.startsWith("struct ") || p.startsWith("type "));
 		if (!hasDecl)
 			return tryParseLet(input);
 		return handleFunctionDeclarations(stmts);
@@ -731,6 +731,28 @@ public class Interpreter {
 		return java.util.Optional.of(java.util.Optional.empty());
 	}
 
+	private java.util.Optional<java.util.Optional<InterpretError>> handleTypeStmt(String stmt) {
+		// Accept simple type alias syntax: type Name = Token
+		if (!stmt.startsWith("type "))
+			return java.util.Optional.empty();
+		int pos = 5;
+		int idEnd = parseIdentifierEnd(stmt, pos);
+		if (idEnd < 0)
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Malformed type declaration: " + stmt)));
+		pos = skipWhitespace(stmt, idEnd);
+		if (pos >= stmt.length() || stmt.charAt(pos) != '=')
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Malformed type declaration: " + stmt)));
+		pos = skipWhitespace(stmt, pos + 1);
+		int tEnd = parseAlnumEnd(stmt, pos);
+		if (tEnd < 0)
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Malformed type declaration: " + stmt)));
+		pos = skipWhitespace(stmt, tEnd);
+		if (pos != stmt.length())
+			return java.util.Optional.of(java.util.Optional.of(new InterpretError("Malformed type declaration: " + stmt)));
+		// no-op: we currently accept the declaration but do not store aliases at runtime
+		return java.util.Optional.of(java.util.Optional.empty());
+	}
+
 	private boolean handleLetStmt(String stmt) {
 		Optional<Tuple2<Tuple2<Boolean, String>, String>> kv = parseLetPart(stmt);
 		return kv.isPresent();
@@ -834,6 +856,7 @@ public class Interpreter {
 			handlers.put("fn ", s -> handleFnStmt(s, fns));
 			handlers.put("class ", s -> handleClassStmt(s, fns, classes));
 			handlers.put("struct ", s -> handleStructStmt(s, structs));
+			handlers.put("type ", s -> handleTypeStmt(s));
 
 			boolean matched = false;
 			for (java.util.Map.Entry<String, java.util.function.Function<String, java.util.Optional<java.util.Optional<InterpretError>>>> e : handlers

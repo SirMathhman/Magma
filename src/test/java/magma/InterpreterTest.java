@@ -214,5 +214,11 @@ public class InterpreterTest {
 		assertValid("class fn Empty() => {fn get() => 100;} Empty().get()", "100");
 	}
 
+	@Test
+	void typeAliasAndLetWithAlias() {
+		// ensure a simple type alias can be used in let declarations
+		assertValid("type Temp = I32; let x : Temp = 100; x", "100");
+	}
+
 	// helpers delegated to TestHelpers
 }
