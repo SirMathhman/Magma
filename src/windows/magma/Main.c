@@ -1,4 +1,4 @@
-/*public class Main {
+/*public */struct Main {}; /*
 	public static void main(String[] args) {
 		final var sourceDirectory = Paths.get(".", "src", "java");
 		try (var stream = Files.walk(sourceDirectory)) {
@@ -61,6 +61,18 @@
 	private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		final var classIndex = stripped.indexOf("class ");
+		if (classIndex >= 0) {
+			final var modifiers = stripped.substring(0, classIndex);
+			final var remainder = stripped.substring(classIndex + "class ".length());
+			final var i = remainder.indexOf("{");
+			if (i >= 0) {
+				final var name = remainder.substring(0, i).strip();
+				final var content = remainder.substring(i + "{".length());
+				return wrap(modifiers) + "struct " + name + " {}; " + wrap(content);
+			}
+		}
 
 		return wrap(stripped);
 	}
