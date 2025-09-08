@@ -4,8 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="Nuke">
-      <change afterPath="$PROJECT_DIR$/src/magma/Main.java" afterDir="false" />
+    <list default="true" id="fe53a748-8945-4066-a009-a63efaa49066" name="Changes" comment="Reset">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -54,7 +54,7 @@
     "RunOnceActivity.git.unshallow": "true",
     "git-widget-placeholder": "master",
     "junie.onboarding.icon.badge.shown": "true",
-    "project.structure.last.edited": "Modules",
+    "project.structure.last.edited": "Project",
     "project.structure.proportion": "0.15044248",
     "project.structure.side.proportion": "0.2",
     "to.speed.mode.migration.done": "true"
@@ -62,8 +62,10 @@
 }]]></component>
   <component name="RunManager">
     <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="24" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
       <option name="MAIN_CLASS_NAME" value="magma.Main" />
-      <module name="magma" />
+      <module name="Magma" />
       <extension name="coverage">
         <pattern>
           <option name="PATTERN" value="magma.*" />
@@ -120,14 +122,22 @@
       <option name="project" value="LOCAL" />
       <updated>1757299684209</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="Reset">
+      <option name="closed" value="true" />
+      <created>1757300126182</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1757300126182</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="Reset" />
     <MESSAGE value="Simplify" />
     <MESSAGE value="feat: handle empty input case in Interpreter and update corresponding test" />
     <MESSAGE value="Nuke" />
-    <option name="LAST_COMMIT_MESSAGE" value="Nuke" />
+    <MESSAGE value="Reset" />
+    <option name="LAST_COMMIT_MESSAGE" value="Reset" />
   </component>
 </project>
