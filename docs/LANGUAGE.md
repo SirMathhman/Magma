@@ -66,7 +66,7 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
 
     function_literal ::= 'fn' '(' [ param_list ] ')' [ '->' type ] block
 
-    literal        ::= integer | float | string | 'true' | 'false' | 'null'
+  literal        ::= integer | float | string | 'true' | 'false' | 'null'
 
 Notes:
 - The assignment operator `=` shall be right-associative for chained assignments.
@@ -77,7 +77,7 @@ Notes:
 - Magma shall have the following builtin types at MVP:
   - `int` — 32-bit signed integer
   - `float` — double-precision floating point
-  - `bool` — boolean
+  - `bool` / `Bool` — boolean (literal forms: `true`, `false`)
   - `string` — UTF-8 string (heap-allocated)
   - `void` — used for functions that return no value
   - Struct types defined via `type` declarations
@@ -207,6 +207,16 @@ Top-level expression programs (convenience form):
 
     The returned integer value becomes the program's process exit code when targeting native executables or a corresponding platform-specific return value for other backends. Implementations shall document backend-specific limits for mapping integer return values to process exit codes (for example, truncation or sign behavior) but shall, by default, treat the `int` return value as a 32-bit signed value and use its low-order 8 bits as the POSIX exit code when producing native executables, unless the backend documents a different mapping.
 
+  Boolean example:
+
+      fn main() -> int {
+        let b: Bool = true;
+        if (b) {
+          return 0;
+        }
+        return 1;
+      }
+
 ## 13. Future work (non-normative)
 
 - Generics / parametric polymorphism
@@ -227,6 +237,8 @@ The test harness shall compile Magma programs and shall verify that produced art
 - 2025-09-08 — Add normative wording for `let` with explicit `I32` annotation and type-checking rules — assistant
 
 - Draft created: 2025-09-08 — initial structure and normative language
+
+- 2025-09-08 — Add `Bool` type and `true`/`false` boolean literals; example and semantics added — user
 
 - Draft created: 2025-09-08 — initial structure and normative language
 

@@ -170,6 +170,37 @@ Top-level expression programs:
 
 - The backend shall perform representability checking for annotated initializers and shall emit diagnostics when initializers are out-of-range for the annotated type (for example, assigning `-1` to `U8` or `256` to `U8`). The implementation guide shall document whether the compiler performs implicit conversions or reports precise errors for mixed-signedness cases.
 
+## Booleans
+
+- Magma boolean literals `true` and `false` shall be supported and shall have the `Bool` type.
+
+- The C reference backend shall lower Magma `Bool` to C's `bool` type from `<stdbool.h>` (or `_Bool` if `<stdbool.h>` is not available). Example lowering sketch:
+
+    /* Magma */
+    fn main() -> int {
+      let b: Bool = true;
+      if (b) {
+        return 0;
+      }
+      return 1;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdbool.h>
+    int32_t magma_main(void) {
+      bool b = true; /* lowered from let b : Bool = true; */
+      if (b) {
+        return 0;
+      }
+      return 1;
+    }
+
+- The backend shall ensure boolean expressions are represented by `bool` in generated function signatures and local variable declarations where applicable. When interoperating with other types, implementations shall define conversion semantics (for example, whether numeric `0` maps to `false` and any non-zero maps to `true`) and document these rules.
+
+## Revision history
+
+- 2025-09-08  Add `Bool` type and lowering to C `bool`/`_Bool` in the implementation guide  user
+
 ## Revision history
 
 - 2025-09-08  Specify default unannotated integer literals and inferred locals as `I32` and clarify annotated-initializer lowering semantics  user

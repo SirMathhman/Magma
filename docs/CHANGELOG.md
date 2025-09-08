@@ -12,6 +12,8 @@ All notable changes to this project will be documented in this file.
  - IMPLEMENTATION: Documented mapping of the new annotations to C fixed-width types (`uintN_t`/`intN_t`) and lowering examples.
  - LANGUAGE: Specify the default integer type is `I32` for unannotated literals and inferred locals (for example `let x = 0;`).
  - IMPLEMENTATION: Clarified that unannotated integers lower to `int32_t` by default and that annotated initializers (for example `let x : U8 = 0;`) are interpreted in the annotated type and lowered to the corresponding `uintN_t`/`intN_t` with representability checks.
+ - LANGUAGE: Added `Bool` type and boolean literals `true`/`false` with example usage.
+ - IMPLEMENTATION: Documented lowering of `Bool` to C `bool`/`_Bool` and noted conversion/interop considerations.
 
 ## 2025-09-08 — Assistant tooling
 
