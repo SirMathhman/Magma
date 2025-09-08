@@ -1,49 +1,54 @@
 <!-- GitHub Copilot / Assistant instructions for contributors -->
 # Copilot / Assistant Instructions
 
-Please follow these guidelines when making changes in this repository.
+These guidelines help contributors make changes that keep the repository build and QA checks green.
 
-- After completing any task that changes or adds functionality, always create or update documentation describing the change (for example: README, CHANGELOG, docs/ files, or inline code comments). Documentation should explain the what, why, and how to use the new or changed behavior.
+High-level rules
 
-- Keep changes minimal and focused. Run tests and linters locally before opening a pull request.
+- After changing or adding functionality, update relevant documentation (README, CHANGELOG, docs/, or inline comments). Explain what changed, why, and how to use it.
+- Keep changes small and focused. Run tests and linters locally before opening a pull request.
+- When adding public APIs or commands, include usage examples and any required configuration.
+- If behavior or migrations change, add upgrade notes and compatibility guidance.
+- Do not add tests unless asked. This project enforces 100% coverage; contributors should avoid adding narrowly-scoped tests that complicate maintenance.
 
-- When adding new public APIs or commands, include usage examples and any required configuration.
+Thanks for helping keep the project well-documented.
 
-- If a change affects behavior or migrations, add upgrade notes and backwards-compatibility considerations.
+## Build and static-analysis constraints (summary)
 
-- Do not add new tests unless explicitly instructed to do so. This project aims for 100% test coverage, which requires tests to cover all branches; only add tests when requested so contributors avoid introducing excessive or narrowly-scoped tests and instead focus on generalizable, well-covered implementations.
+Follow these repository constraints so automated checks (Checkstyle, PMD/CPD, JaCoCo) pass.
 
-Thank you for helping keep the project well-documented.
+Java build
 
-## Repository static-analysis and build constraints (summary)
+- Targets Java 24 and enables preview features (compiler args include `--enable-preview`).
+- Tests and tooling expect JDK 24.
 
-When contributing code or generating changes, follow these repository-specific constraints so automated checks (Checkstyle, PMD/CPD, JaCoCo) pass:
+Checkstyle (see `checkstyle.xml`)
 
-- Java language & build
-  - Project targets Java 24 and enables preview features; compiler args include `--enable-preview`.
-  - Tests and tooling expect a JDK 24 installation.
+- Avoid the literal `null`. Use `Optional` or the repository `Result<T, E>` pattern.
+- Avoid `throw` / `throws`; prefer returning `Result` error values.
+- Avoid explicit casts; prefer pattern matching or polymorphism.
+- Do not use wildcard generics (e.g., `?`, `? extends`, `? super`); use explicit type parameters or bounded types.
+- Do not use raw `Object` types; prefer proper generics or polymorphism.
+- Do not import or use `java.util.regex`.
+- Keep cyclomatic complexity per method <= 15.
+- Limit method parameter count to 3.
+- Checkstyle runs during the `test` phase and fails the build on violations (including test sources).
 
-- Checkstyle (rules in `checkstyle.xml`)
-  - The literal `null` is banned (use `Optional` or the repository `Result<T, E>` pattern instead).
-  - `throw` / `throws` are banned; prefer returning `Result` error values instead of exceptions.
-  - Explicit type casts are disallowed; prefer pattern matching or polymorphism.
-  - Wildcard generics (e.g., `?`, `? extends`, `? super`) are banned; prefer explicit type parameters or bounded types.
-  - Literal uses of `Object` are banned; prefer proper generics/polymorphism.
-  - Use of `java.util.regex` (regex API/imports) is disallowed by policy.
-  - Cyclomatic complexity per method is limited to 15.
-  - Maximum number of parameters per method is 3.
-  - Checkstyle is run during the `test` phase and configured to fail the build on violations; it also checks test sources.
+PMD / CPD (configured in `pom.xml`)
 
-- PMD / CPD (configured in `pom.xml`)
-  - Copy/Paste detection (CPD) token threshold: minimum 50 tokens.
-  - Literal tokens (string/number) are ignored when detecting duplication.
-  - CPD runs on tests and main sources; violations are configured to fail the build.
+- CPD token threshold: minimum 50 tokens.
+- Literal tokens (string/number) are ignored when detecting duplication.
+- CPD checks both main and test sources and fails the build on violations.
 
-- JaCoCo (coverage)
-  - Coverage is enforced: 100% minimum for INSTRUCTION, BRANCH, LINE, METHOD, and CLASS counters (reports generated during test/verify phases).
+JaCoCo (coverage)
 
-Practical notes for assistants and contributors
-  - Avoid using `null`, `java.util.regex`, raw `Object`, wildcard generics, casts, and explicit throw/throws.
-  - Keep methods small/simple to satisfy cyclomatic complexity and parameter count rules; if logic grows, extract helpers (but keep helpers simple as well).
-  - Run `mvn test` locally with JDK 24 to verify Checkstyle, CPD, and JaCoCo checks before opening PRs.
-  - Always run `mvn clean test -q` at the start and at the end of your changes to ensure tests and static checks are green and to minimize feedback loops.
+- Enforced coverage: 100% minimum for INSTRUCTION, BRANCH, LINE, METHOD, and CLASS counters (reported during test/verify phases).
+
+Practical notes
+
+- Avoid `null`, `java.util.regex`, raw `Object`, wildcard generics, explicit casts, and `throw`/`throws`.
+- Keep methods short and simple to meet complexity and parameter limits; extract small helpers when necessary.
+- Run `mvn test` locally with JDK 24 to verify Checkstyle, CPD, and JaCoCo checks before opening PRs.
+- Run `mvn clean test -q` at the start and end of changes to keep feedback loops short.
+
+When in doubt, prefer small, well-documented changes and ask maintainers for guidance.
