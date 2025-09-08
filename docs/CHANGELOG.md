@@ -16,6 +16,8 @@ All notable changes to this project will be documented in this file.
  - IMPLEMENTATION: Documented lowering of `Bool` to C `bool`/`_Bool` and noted conversion/interop considerations.
  - LANGUAGE: Added specification for comparison operators `==, !=, <, <=, >, >=` and unary `!`; included typing and precedence guidance.
  - IMPLEMENTATION: Documented how comparison/logical operators map to C and noted `string` equality should call a runtime helper.
+ - LANGUAGE: Added `if` statement semantics (condition must be `Bool`, optional `else`, definite-assignment rule) and example `let x : I32; if (true) x = 3; else x = 5;`.
+ - IMPLEMENTATION: Documented lowering of `if` to C `if`/`else` and required definite-assignment checks for uninitialized locals.
 
 ## 2025-09-08 — Assistant tooling
 

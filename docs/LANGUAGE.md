@@ -211,6 +211,28 @@ Local `let` statement example (explicit width annotation):
   - If both an explicit annotation and an initializer are present, the compiler shall check that the initializer's value is representable in the annotated width and signedness and shall produce a type error on mismatch (for example, assigning `-1` to `U8` or assigning `256` to `U8` shall be an error).
   - Implementations shall document the precise semantics for out-of-range integer literals (for example, whether such cases are reported as parse-time errors or type-check errors).
 
+If statements
+
+- Magma shall support `if` statements with an optional `else` branch. The concrete syntax is:
+
+      if ( <expression> ) <statement> [ else <statement> ]
+
+- Semantics and typing:
+  - The condition expression inside `if (...)` shall have type `Bool`. If the condition has a different type, the compiler shall produce a type error unless the implementation documents and performs a well-defined conversion.
+  - Both the `then` and `else` branches are statements and may be either a single statement or a block (`{ ... }`).
+  - An `if` without an `else` shall execute the `then` branch when the condition is true and do nothing when false.
+
+- Definite assignment and example:
+  - The compiler shall enforce definite assignment for local variables declared without an initializer: every possible control-flow path that leads to a use of the local must assign it a value first. For example, the following shall be valid because both branches assign `x` before any use:
+
+      fn main() -> int {
+        let x : I32;
+        if (true) x = 3; else x = 5;
+        return x;
+      }
+
+  - If a local may be used on some control-flow path without prior initialization, the compiler shall emit an error.
+
 Top-level expression programs (convenience form):
 
     Magma implementations may accept a source file that consists of a single top-level expression followed by an optional type annotation suffix that indicates the intended integer width. For the MVP the supported integer suffix is `I32` which denotes a 32-bit signed integer literal result. When a source file is a single expression, it is semantically equivalent to providing an explicit `main` function that returns the value of that expression. Concretely:

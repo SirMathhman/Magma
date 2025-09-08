@@ -196,9 +196,38 @@ Top-level expression programs:
 
 - The backend shall ensure boolean expressions are represented by `bool` in generated function signatures and local variable declarations where applicable. When interoperating with other types, implementations shall define conversion semantics (for example, whether numeric `0` maps to `false` and any non-zero maps to `true`) and document these rules.
 
+## If statements: lowering and definite-assignment
+
+- Magma `if` statements shall be lowered directly to C `if`/`else` constructs where possible. The backend shall ensure the condition expression is lowered to a `bool` value (or an expression that produces `bool`) before emitting the C `if`.
+
+- Example lowering (Magma -> generated C sketch):
+
+    /* Magma */
+    fn main() -> int {
+      let x : I32;
+      if (true) x = 3; else x = 5;
+      return x;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdint.h>
+    #include <stdbool.h>
+
+    int32_t magma_main(void) {
+      int32_t x; /* local declared without initializer */
+      if (true) {
+        x = 3;
+      } else {
+        x = 5;
+      }
+      return x;
+    }
+
+- Definite-assignment checks shall be performed by the frontend: the compiler shall reject lowering to C when a local might be read before being assigned on some control-flow path. Implementations may choose to initialize locals to a default value in generated C as a fallback, but doing so must be documented and the frontend shall still emit a warning if this masks a probable uninitialized-use bug.
+
 ## Revision history
 
-- 2025-09-08  Add `Bool` type and lowering to C `bool`/`_Bool` in the implementation guide  user
+- 2025-09-08  Document lowering of `if` statements to C `if`/`else` and require definite-assignment checks for uninitialized locals  user
 
 ## Comparison and logical operator lowering
 
