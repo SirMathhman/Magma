@@ -1,6 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>com.sirmathhman</groupId>
@@ -46,7 +46,32 @@
           </execution>
         </executions>
       </plugin>
-      <!-- Add Checkstyle plugin to provide static style reports. Configured to not fail the build by default. -->
+      <!-- PMD CPD duplication check: run in test phase and include test sources -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>3.20.0</version>
+        <configuration>
+          <!-- Ensure CPD uses these defaults for both direct goals and executions -->
+          <minimumTokens>60</minimumTokens>
+          <includeTests>true</includeTests>
+          <!-- Structural duplication detection: ignore identifier and literal names -->
+          <ignoreIdentifiers>true</ignoreIdentifiers>
+          <ignoreLiterals>true</ignoreLiterals>
+          <failOnViolation>true</failOnViolation>
+        </configuration>
+        <executions>
+          <execution>
+            <id>cpd-check</id>
+            <phase>test</phase>
+            <goals>
+              <goal>cpd-check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Add Checkstyle plugin to provide static style reports. Configured to not fail the build
+      by default. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-checkstyle-plugin</artifactId>

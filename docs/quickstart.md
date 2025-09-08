@@ -68,3 +68,13 @@ Or simply run the full test lifecycle (recommended):
 The Checkstyle report will be generated under `java/magma-core/target/site/checkstyle.html`.
 
 To enforce style violations as build failures, edit the plugin configuration in `java/magma-core/pom.xml` and set `<failsOnError>true</failsOnError>`.
+
+## Duplicate detection (PMD CPD)
+
+The `magma-core` module runs PMD's CPD duplication check during the `test` phase. The current configuration uses a low token threshold (60 tokens) and includes test sources. If CPD finds duplicates above this threshold, the build will fail.
+
+To run duplication checks explicitly:
+
+    mvn pmd:cpd-check -f java/magma-core/pom.xml
+
+The CPD report will be available under `java/magma-core/target/site/cpd.html` if duplicates are found.
