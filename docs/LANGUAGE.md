@@ -55,6 +55,7 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
 
     expression     ::= assignment
     assignment     ::= logical_or [ '=' assignment ]
+  compound_assignment ::= identifier ( '+=' | '-=' | '*=' | '/=' | '%=' ) expression
     logical_or     ::= logical_and { '||' logical_and }
     logical_and    ::= equality { '&&' equality }
     equality       ::= relational { ( '==' | '!=' ) relational }
@@ -87,6 +88,19 @@ Notes:
   - Equality for `string` values shall compare string contents (implementations shall provide a runtime helper for content equality).
   - Relational operators `<`, `<=`, `>`, `>=` shall be defined only for numeric types (signed and unsigned integers and floats). Comparing values with incompatible numeric kinds (for example mixing signed and unsigned integer types without an explicit conversion) shall be a type-check error; implementations shall document any implicit promotions they perform.
   - The unary `!` operator shall accept and return `Bool` and shall evaluate to the boolean negation of its operand; applying `!` to non-boolean values shall be a type error unless the implementation defines a documented conversion.
+
+Compound assignments and ++/--
+
+- Compound-assignment operators:
+  - Magma shall support compound-assignment operators `+=`, `-=`, `*=`, `/=`, and `%=`. These shall be syntactic sugar for `x = x <op> y` but shall require that the left-hand side `x` is assignable (either declared `mut` with an initializer, or an uninitialized local) and that the operation is valid for the operand types.
+  - Example:
+
+        let mut x = 0;
+        x += 30; // allowed
+
+- Prohibition of `++` / `--`:
+  - The increment (`++`) and decrement (`--`) operators shall not be part of the language. Attempting to parse or use `x++` or `++x` (and analogous `--`) shall be a syntax error. This prohibition is deliberate to avoid common abuse patterns and to keep mutation explicit.
+
 
 - Operator precedence (informative):
   - Unary operators (including `!` and unary `-`) bind tighter than multiplicative/additive operators.

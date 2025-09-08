@@ -139,6 +139,33 @@ Top-level expression programs:
   - Attempts to assign to an immutable initialized binding (for example `let x = 0; x = 1;`) shall produce a clear diagnostic indicating the binding is immutable and suggest adding `mut` if mutation was intended.
   - Attempts to read an uninitialized local before it has been assigned on every control-flow path shall produce a definite-assignment error.
 
+  Compound-assignment lowering and enforcement
+
+  - Parser / AST:
+    - The parser shall recognize compound-assignment tokens `+=`, `-=`, `*=`, `/=`, `%=` and construct a `CompoundAssign` AST node with `lhs`, `op`, and `rhs` children.
+    - The parser shall not accept `++` or `--` tokens as valid operators; encountering them shall produce a clear syntax error and a suggestion to use `x += 1` or `x -= 1` instead.
+
+  - Typechecking and semantic checks:
+    - The typechecker shall verify that the `lhs` of a `CompoundAssign` is an assignable variable (either declared `mut` with an initializer, or an uninitialized local tracked as assignable). Assignments to immutable-initialized variables shall be an error.
+    - The typechecker shall ensure the underlying binary operation (`lhs <op> rhs`) is valid for the operand types and shall report a type error if not.
+
+  - Lowering:
+    - The lowering pass shall translate a `CompoundAssign(lhs, op, rhs)` into an explicit sequence equivalent to `lhs = lhs <op> rhs`, taking care to evaluate `lhs` exactly once when `lhs` is an expression with side-effects (for example, array indexing or field access). For simple variable lhs the lowering is straightforward.
+    - Example lowering (simple variable):
+
+        /* Magma */
+        let mut x = 0;
+        x += 30;
+
+        /* Generated C (sketch) */
+        int32_t x = 0;
+        x = x + 30;
+
+    - When `lhs` is a more complex lvalue (for example `arr[i]`), the lowering shall evaluate the address/index expressions once and store temporaries as needed to preserve semantics.
+
+  Revision history
+
+  - 2025-09-08 — Add compound-assignment operators `+=|-=`|`*=`|`/=`|`%=` and forbid `++`/`--`; document parsing, lowering, and diagnostics — user
 - Lowering and runtime:
   - The lowering pass shall reflect mutability in the generated code by emitting variables as C locals as usual. There is no runtime representation difference between mutable and immutable locals in the C reference backend beyond compile-time enforcement (both lower to C local variables); however, the frontend must ensure that immutability rules are enforced before lowering.
 
