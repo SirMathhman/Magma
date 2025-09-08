@@ -71,6 +71,7 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
     if_expression  ::= 'if' '(' expression ')' expression 'else' expression
 
   array_type     ::= '[' type ';' integer ']'      // fixed-size array type, e.g. [U8; 3]
+  pointer_type   ::= '*' type                      // pointer type, e.g. *I32
   array_literal  ::= '[' [ expression { ',' expression } ] ']'
 
     function_literal ::= 'fn' '(' [ param_list ] ')' [ '->' type ] block
@@ -98,6 +99,29 @@ The grammar below is a simplified EBNF sketch for the initial language surface. 
 
   - Notes and assumptions:
     - Arrays in the MVP shall be fixed-size and stack/aggregate-allocated in lowering backends like C. Dynamic or heap-resizable arrays are future work and shall be documented separately when introduced.
+
+  Pointers and address-of / dereference
+
+  - Syntax (concrete):
+
+        type ::= '*' type      // pointer type
+        unary ::= '&' unary    // address-of operator
+        unary ::= '*' unary    // dereference operator
+
+  - Semantics:
+    - Magma shall support raw pointer types in the MVP. The concrete syntax `*T` denotes a pointer to a value of type `T` (for example `*I32`).
+    - The address-of operator `&` shall produce a value of pointer type: for an lvalue `x` of type `T`, the expression `&x` shall have type `*T` and yield the address of `x`.
+    - The dereference operator `*` shall accept a value of pointer type `*T` and shall produce an lvalue of type `T` when used in an lvalue position (for example on the left-hand side of an assignment) or an rvalue of type `T` when used in an rvalue position. For example:
+
+        let x : I32 = 0;
+        let y : *I32 = &x;
+        let z : I32 = *y;
+
+    - The language shall not perform implicit null or bounds checks for pointer dereference in the MVP; attempting to dereference an invalid pointer is undefined behavior unless the implementation documents additional runtime checks.
+
+  - Notes and assumptions:
+    - Pointers are raw and unchecked in the MVP. Safe reference types or borrow-checking semantics are future work and shall be introduced as a separate feature if desired.
+    - Pointer arithmetic (for example `p + 1`) and conversions between integers and pointers are not part of the MVP unless explicitly requested.
 
 Notes:
 - The assignment operator `=` shall be right-associative for chained assignments.

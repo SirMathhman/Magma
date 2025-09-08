@@ -360,6 +360,45 @@ Revision history
 
 - 2025-09-08 — Add fixed-size array types `[T; N]` and array literal syntax with parser/typechecker/lowering guidance; include C-backend lowering sketch — user
 
+## Pointer types, address-of, and dereference
+
+- Parser / AST:
+  - The parser shall accept pointer type annotations using the concrete syntax `* type` and shall represent them in the AST as `PointerType(element_type)` nodes.
+  - The parser shall accept address-of expressions `& lvalue` and dereference expressions `* expression` and shall create `AddressOf` and `Deref` AST nodes respectively.
+
+- Typechecking / semantic checks:
+  - The typechecker shall allow assignment of an address-of expression to a matching pointer type. For example `let y : *I32 = &x;` is valid when `x` is an `I32` lvalue.
+  - The typechecker shall ensure that dereference expressions `*p` are applied only to expressions whose type is a pointer `*T`. The resulting type of `*p` shall be `T`.
+  - The typechecker shall not, in the MVP, attempt to prove pointer validity or detect aliasing; these are runtime/back-end concerns or future static analyses.
+
+- Lowering to C (C reference backend guidance):
+  - The C backend shall map Magma pointer types `*T` to C pointer types corresponding to the lowered element type (for example `*I32` -> `int32_t *`).
+  - The address-of operator `&` shall lower to C `&` when applied to C-addressable lvalues and the dereference operator `*` shall lower to C `*` as expected. Example lowering:
+
+    /* Magma */
+    fn main() -> int {
+      let x : I32 = 0;
+      let y : *I32 = &x;
+      let z : I32 = *y;
+      return z;
+    }
+
+    /* Generated C (sketch) */
+    #include <stdint.h>
+
+    int32_t magma_main(void) {
+      int32_t x = 0;
+      int32_t * y = &x;
+      int32_t z = *y;
+      return z;
+    }
+
+  - The backend shall document that dereferencing invalid or null pointers is undefined behavior unless the implementation inserts runtime checks; such checks are optional in the MVP but may be recommended for debug builds.
+
+Revision history
+
+- 2025-09-08 — Add pointer types `*T`, address-of `&` and dereference `*` semantics and C-backend lowering guidance — user
+
 ## While statements: parsing, typing, and lowering
 
 - Parser / AST:
