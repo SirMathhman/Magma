@@ -14,6 +14,14 @@ public class Interpreter {
 	private static record Tuple2<A, B>(A first, B second) {
 	}
 
+	private Optional<Result<String, InterpretError>> tryResolveIndexFromEnv(FinalParse finalParse, String finalPart,
+			java.util.Map<String, Tuple2<Boolean, String>> env) {
+		if (finalParse.callOpt().isEmpty() && finalParse.ctorOpt().isEmpty()) {
+			return resolveIndexFromEnv(finalPart, env);
+		}
+		return Optional.empty();
+	}
+
 	private Optional<Result<String, InterpretError>> tryFinalLiteralInDeclarations(String finalPart) {
 		String finalTrim = finalPart.trim();
 		int leadDigits = (finalTrim.isEmpty() ? 0 : leadingDigits(finalTrim));
@@ -32,24 +40,16 @@ public class Interpreter {
 			return interpret(inner);
 		}
 
-		Optional<Result<String, InterpretError>> ifRes = handleIfExpression(trimmed);
-		if (ifRes.isPresent())
-			return ifRes.get();
-		// try let-binding like "let x : I32 = 10; x"
-		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(trimmed);
-		if (declRes.isPresent())
-			return declRes.get();
-		// try simple addition like "2 + 3" (with optional spaces)
-		Optional<Result<String, InterpretError>> addRes = tryParseBinary(input, '+');
-		if (addRes.isPresent())
-			return addRes.get();
-		Optional<Result<String, InterpretError>> subRes = tryParseBinary(input, '-');
-		if (subRes.isPresent())
-			return subRes.get();
-		Optional<Result<String, InterpretError>> mulRes = tryParseBinary(input, '*');
-		if (mulRes.isPresent())
-			return mulRes.get();
+		// support top-level inline tuple indexing like "[3,4][0]"
+		Optional<Result<String, InterpretError>> inlineIdx = checkTopLevelInlineTupleIndex(trimmed);
+		if (inlineIdx.isPresent())
+			return inlineIdx.get();
 
+		// run a sequence of small fast checks extracted to reduce method
+		// complexity (keeps interpret() concise for Checkstyle)
+		Optional<Result<String, InterpretError>> quick = interpretTopLevelChecks(input, trimmed);
+		if (quick.isPresent())
+			return quick.get();
 		// integer literal (decimal)
 		// boolean literals
 		if (trimmed.equals("true") || trimmed.equals("false"))
@@ -63,6 +63,63 @@ public class Interpreter {
 		if (i > 0)
 			return new Ok<>(trimmed.substring(0, i));
 		return new Err<>(new InterpretError("Unbound identifier: " + trimmed));
+	}
+
+	private Optional<Result<String, InterpretError>> interpretTopLevelChecks(String input, String trimmed) {
+		Optional<Result<String, InterpretError>> ifRes = handleIfExpression(trimmed);
+		if (ifRes.isPresent())
+			return ifRes;
+		// try let-binding like "let x : I32 = 10; x"
+		Optional<Result<String, InterpretError>> declRes = tryParseDeclarations(trimmed);
+		if (declRes.isPresent())
+			return declRes;
+		// try simple addition like "2 + 3" (with optional spaces)
+		Optional<Result<String, InterpretError>> addRes = tryParseBinary(input, '+');
+		if (addRes.isPresent())
+			return addRes;
+		Optional<Result<String, InterpretError>> subRes = tryParseBinary(input, '-');
+		if (subRes.isPresent())
+			return subRes;
+		Optional<Result<String, InterpretError>> mulRes = tryParseBinary(input, '*');
+		if (mulRes.isPresent())
+			return mulRes;
+		// boolean literals
+		if (trimmed.equals("true") || trimmed.equals("false"))
+			return Optional.of(new Ok<>(trimmed));
+		// accept a leading decimal integer even if followed by other characters,
+		// e.g. "5I32" should be interpreted as the integer literal "5".
+		int i = 0;
+		while (i < trimmed.length() && Character.isDigit(trimmed.charAt(i)))
+			i++;
+		if (i > 0)
+			return Optional.of(new Ok<>(trimmed.substring(0, i)));
+		return Optional.empty();
+	}
+
+	/**
+	 * Extracted helper for top-level inline tuple indexing to reduce
+	 * cyclomatic complexity in interpret(). Returns Optional.of(Ok/Err)
+	 * when it matched, otherwise Optional.empty().
+	 */
+	private Optional<Result<String, InterpretError>> checkTopLevelInlineTupleIndex(String trimmed) {
+		if (!trimmed.startsWith("["))
+			return Optional.empty();
+		int close = findMatchingBracket(trimmed, 0);
+		if (close > 0 && close + 1 < trimmed.length() && trimmed.charAt(close + 1) == '[') {
+			int idxStart = skipWhitespace(trimmed, close + 2);
+			int idxEnd = parseDigitsEnd(trimmed, idxStart);
+			if (idxEnd > 0) {
+				int closing = skipWhitespace(trimmed, idxEnd);
+				if (closing < trimmed.length() && trimmed.charAt(closing) == ']'
+						&& skipWhitespace(trimmed, closing + 1) == trimmed.length()) {
+					Optional<String> v = evaluateTupleIndex(trimmed, trimmed.substring(idxStart, idxEnd));
+					if (v.isPresent())
+						return Optional.of(new Ok<>(v.get()));
+					return Optional.of(new Err<>(new InterpretError("Index out of bounds or malformed tuple")));
+				}
+			}
+		}
+		return Optional.empty();
 	}
 
 	private Optional<Result<String, InterpretError>> tryParseBinary(String input, char op) {
@@ -190,6 +247,27 @@ public class Interpreter {
 		return handleMultipleLets(stmts);
 	}
 
+	/**
+	 * Prepare let environment early handling: if finalPart is an identifier or
+	 * block, delegate to handleMultipleLets right away. Returns Optional.of(Result)
+	 * when early handling produced a result to return, otherwise Optional.empty()
+	 * to indicate normal processing should continue.
+	 */
+	private Optional<Result<String, InterpretError>> prepareEnvAndMaybeHandleMultipleLets(java.util.List<String> stmts,
+			String finalPart) {
+		if (isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))) {
+			java.util.List<String> lets = new java.util.ArrayList<>();
+			for (int i = 0; i < stmts.size() - 1; i++)
+				if (stmts.get(i).startsWith("let "))
+					lets.add(stmts.get(i));
+			lets.add(finalPart);
+			// handleMultipleLets returns Optional<Result<..>> so wrap accordingly
+			return Optional
+					.of(handleMultipleLets(lets).orElseGet(() -> new Err<>(new InterpretError("Malformed multiple lets"))));
+		}
+		return Optional.empty();
+	}
+
 	private Optional<Result<String, InterpretError>> tryParseDeclarations(String input) {
 		String s = input.trim();
 		if (!s.startsWith("let ") && !s.startsWith("fn ") && !s.startsWith("class ") && !s.startsWith("struct "))
@@ -256,8 +334,8 @@ public class Interpreter {
 		if (finalParseOpt.isEmpty())
 			return Optional.empty();
 		FinalParse finalParse = finalParseOpt.get();
-	Optional<Tuple2<String, String>> callOpt = finalParse.callOpt();
-	Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = finalParse.ctorOpt();
+		Optional<Tuple2<String, String>> callOpt = finalParse.callOpt();
+		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = finalParse.ctorOpt();
 
 		Optional<FnCollectResult> coll = collectFunctions(stmts);
 		if (coll.isEmpty())
@@ -272,15 +350,9 @@ public class Interpreter {
 		boolean hasLet = stmts.subList(0, stmts.size() - 1).stream().anyMatch(p -> p.startsWith("let "));
 		java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
 		if (hasLet) {
-			// If the final part is an identifier or a block, reuse existing multiple-let handling
-			if (isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))) {
-				java.util.List<String> lets = new java.util.ArrayList<>();
-				for (int i = 0; i < stmts.size() - 1; i++)
-					if (stmts.get(i).startsWith("let "))
-						lets.add(stmts.get(i));
-				lets.add(finalPart);
-				return handleMultipleLets(lets);
-			}
+			Optional<Result<String, InterpretError>> early = prepareEnvAndMaybeHandleMultipleLets(stmts, finalPart);
+			if (early.isPresent())
+				return early;
 			Result<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> built = buildLetEnv(stmts);
 			if (built instanceof Err<java.util.Map<String, Tuple2<Boolean, String>>, InterpretError> e)
 				return Optional.of(new Err<>(e.error()));
@@ -295,6 +367,10 @@ public class Interpreter {
 		// CTOR:Type,arg), substitute the ctorOpt accordingly so that
 		// handleConstructorOrFieldCall receives the resolved (Name,arg) pair.
 		finalParse = substituteCtorFromEnv(finalParse, env);
+
+		Optional<Result<String, InterpretError>> idxRes = tryResolveIndexFromEnv(finalParse, finalPart, env);
+		if (idxRes.isPresent())
+			return idxRes;
 
 		// Delegate final dispatch (constructor.field vs normal call) to helper
 		// refresh call/ctor optionals from finalParse in case we substituted a
@@ -312,22 +388,82 @@ public class Interpreter {
 	}
 
 	private static record FinalParse(Optional<Tuple2<String, String>> callOpt,
-			Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt, boolean finalIsIdentifier) {
+			Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt, Optional<Tuple2<String, String>> indexOpt,
+			boolean finalIsIdentifier) {
+	}
+
+	/**
+	 * Parse an index expression like "x[0]" or a tuple literal access like
+	 * "[3,4][0]".
+	 * Returns Optional.of((base, indexToken)) where base is either the identifier
+	 * or the
+	 * empty string when the base is an inline tuple literal. For example:
+	 * - "x[0]" -> ("x","0")
+	 * - "[3,4][1]" -> ("", "1")
+	 */
+	private Optional<Tuple2<String, String>> parseIndexPattern(String s) {
+		String trimmed = s.trim();
+		return parseIndexPatternInline(trimmed).or(() -> parseIndexPatternIdentifier(trimmed));
+	}
+
+	private Optional<Tuple2<String, String>> parseIndexPatternInline(String trimmed) {
+		if (!trimmed.startsWith("["))
+			return Optional.empty();
+		int depth = 0;
+		int i = 0;
+		for (; i < trimmed.length(); i++) {
+			char c = trimmed.charAt(i);
+			if (c == '[')
+				depth++;
+			else if (c == ']') {
+				depth--;
+				if (depth == 0)
+					break;
+			}
+		}
+		if (i >= trimmed.length() || trimmed.charAt(i) != ']')
+			return Optional.empty();
+		int after = skipWhitespace(trimmed, i + 1);
+		if (after >= trimmed.length() || trimmed.charAt(after) != '[')
+			return Optional.empty();
+		Optional<String> idxTokOpt = extractIndexToken(trimmed, after);
+		if (idxTokOpt.isEmpty())
+			return Optional.empty();
+		return Optional.of(new Tuple2<>("", idxTokOpt.get()));
+	}
+
+	private Optional<Tuple2<String, String>> parseIndexPatternIdentifier(String trimmed) {
+		int idEnd = parseIdentifierEnd(trimmed, 0);
+		if (idEnd <= 0)
+			return Optional.empty();
+		int ws = skipWhitespace(trimmed, idEnd);
+		if (ws >= trimmed.length() || trimmed.charAt(ws) != '[')
+			return Optional.empty();
+		Optional<String> idxTokOpt = extractIndexToken(trimmed, ws);
+		if (idxTokOpt.isEmpty())
+			return Optional.empty();
+		String idxTok = idxTokOpt.get();
+		String base = trimmed.substring(0, idEnd);
+		return Optional.of(new Tuple2<>(base, idxTok));
 	}
 
 	private Optional<FinalParse> parseFinalPart(String finalPart) {
 		Optional<Tuple2<String, String>> callOpt = Optional.empty();
 		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = Optional.empty();
+		Optional<Tuple2<String, String>> indexOpt = Optional.empty();
 		boolean finalIsIdentifier = isSingleIdentifier(finalPart);
 		if (!finalIsIdentifier) {
 			callOpt = parseFunctionCall(finalPart);
 			if (callOpt.isEmpty()) {
 				ctorOpt = parseConstructorFieldPattern(finalPart);
-				if (ctorOpt.isEmpty())
-					return Optional.empty();
+				if (ctorOpt.isEmpty()) {
+					indexOpt = parseIndexPattern(finalPart);
+					if (indexOpt.isEmpty())
+						return Optional.empty();
+				}
 			}
 		}
-		return Optional.of(new FinalParse(callOpt, ctorOpt, finalIsIdentifier));
+		return Optional.of(new FinalParse(callOpt, ctorOpt, indexOpt, finalIsIdentifier));
 	}
 
 	/**
@@ -373,19 +509,86 @@ public class Interpreter {
 			return finalParse;
 		String type = stored.substring(5, comma);
 		String arg = stored.substring(comma + 1);
-		return new FinalParse(finalParse.callOpt(), Optional.of(new Tuple2<>(new Tuple2<>(type, arg), raw.second())), finalParse.finalIsIdentifier);
+		return new FinalParse(finalParse.callOpt(), Optional.of(new Tuple2<>(new Tuple2<>(type, arg), raw.second())),
+				Optional.empty(), finalParse.finalIsIdentifier);
 	}
 
 	private Optional<Result<String, InterpretError>> dispatchAfterCollection(DispatchContext ctx) {
 		Optional<Tuple2<Tuple2<String, String>, String>> ctorOpt = ctx.ctorOpt();
 		Optional<Tuple2<String, String>> callOpt = ctx.callOpt();
+		Optional<Tuple2<String, String>> indexOpt = Optional.empty();
 		java.util.Map<String, Tuple2<String, String>> fns = ctx.fns();
 		String finalPart = ctx.finalPart();
+		// attempt to parse index pattern if present
+		Optional<Tuple2<String, String>> parsedIndex = parseIndexPattern(finalPart);
+		if (parsedIndex.isPresent())
+			indexOpt = parsedIndex;
+
+		if (indexOpt.isPresent()) {
+			// resolve base (either identifier or inline tuple literal handled earlier)
+			Tuple2<String, String> baseIdx = indexOpt.get();
+			String base = baseIdx.first();
+			String idxTok = baseIdx.second();
+			if (base.isEmpty()) {
+				// inline tuple literal: parse elements and return element at idx
+				Optional<String> maybe = evaluateTupleIndex(finalPart, idxTok);
+				return maybe.isPresent() ? Optional.of(new Ok<>(maybe.get()))
+						: Optional.of(new Err<>(new InterpretError("Index out of bounds or malformed tuple")));
+			} else {
+				// base identifier: look up in env via existing multiple-let pathways
+				// We don't have direct env here; fall back to unbound identifier error
+				return Optional
+						.of(new Err<>(new InterpretError("Indexing on identifier not supported in this context: " + finalPart)));
+			}
+		}
 		if (ctorOpt.isPresent())
 			return handleConstructorOrFieldCall(ctorOpt.get(), fns);
 		if (callOpt.isPresent())
 			return handleNormalFunctionCall(callOpt.get(), fns);
 		return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalPart)));
+	}
+
+	/**
+	 * Evaluate an index into a stored tuple token (TUPLE:a,b,c) or an inline
+	 * string like "[a,b][i]". idxTok is the index token (digits).
+	 */
+	private Optional<String> evaluateTupleIndex(String tupleSource, String idxTok) {
+		int idx;
+		try {
+			idx = Integer.parseInt(idxTok);
+		} catch (NumberFormatException e) {
+			return Optional.empty();
+		}
+		String payload = tupleSource;
+		if (payload.startsWith("TUPLE:"))
+			payload = payload.substring(6);
+		else if (payload.startsWith("[")) {
+			// payload like [3,4][1] or [3,4]
+			int close = findMatchingBracket(payload, 0);
+			if (close < 0)
+				return Optional.empty();
+			payload = payload.substring(1, close);
+		}
+		String[] parts = payload.split(",");
+		if (idx < 0 || idx >= parts.length)
+			return Optional.empty();
+		return Optional.of(parts[idx].trim());
+	}
+
+	private int findMatchingBracket(String s, int pos) {
+		int depth = 1;
+		int i = pos + 1;
+		for (; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '[')
+				depth++;
+			else if (c == ']') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
 	}
 
 	private Optional<Result<String, InterpretError>> handleConstructorOrFieldCall(
@@ -1038,6 +1241,9 @@ public class Interpreter {
 		// Accept constructor-tagged RHS values directly
 		if (rhs.startsWith("CTOR:"))
 			return java.util.Optional.of(rhs);
+		// Accept tuple-tagged RHS values directly
+		if (rhs.startsWith("TUPLE:"))
+			return java.util.Optional.of(rhs);
 		if (Character.isDigit(rhs.charAt(0)))
 			return java.util.Optional.of(rhs);
 		if (rhs.equals("true") || rhs.equals("false"))
@@ -1380,10 +1586,11 @@ public class Interpreter {
 
 	private Optional<Result<String, InterpretError>> handleMultipleLets(java.util.List<String> stmts) {
 		String finalPart = stmts.get(stmts.size() - 1);
-		// final part may be either a single identifier (to return) or a block
-		// literal (to evaluate with the current let environment). Reject other
-		// forms.
-		if (!(isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}"))))
+		// final part may be either a single identifier (to return), a block
+		// literal (to evaluate with the current let environment), or an index
+		// expression (e.g., id[0] or [a,b][0]). Reject other forms.
+		boolean isIndex = parseIndexPattern(finalPart).isPresent();
+		if (!(isSingleIdentifier(finalPart) || (finalPart.startsWith("{") && finalPart.endsWith("}")) || isIndex))
 			return Optional.empty();
 		java.util.Map<String, Tuple2<Boolean, String>> env = new java.util.LinkedHashMap<>();
 		for (int i = 0; i < stmts.size() - 1; i++) {
@@ -1397,24 +1604,113 @@ public class Interpreter {
 		// the current let environment by reconstructing let declarations in order
 		// and delegating to interpret. This allows blocks to reference earlier
 		// let-bound identifiers, e.g. `let x = 10; {x}`.
-		if (finalPart.startsWith("{") && finalPart.endsWith("}")) {
-			String inner = finalPart.substring(1, finalPart.length() - 1).trim();
-			StringBuilder sb = new StringBuilder();
-			for (java.util.Map.Entry<String, Tuple2<Boolean, String>> e : env.entrySet()) {
-				Tuple2<Boolean, String> val = e.getValue();
-				if (val.first())
-					sb.append("let mut ").append(e.getKey()).append(" = ").append(val.second()).append("; ");
-				else
-					sb.append("let ").append(e.getKey()).append(" = ").append(val.second()).append("; ");
-			}
-			sb.append(inner);
-			return Optional.of(interpret(sb.toString()));
-		}
+		Optional<Result<String, InterpretError>> blockRes = tryHandleFinalBlockWithEnv(env, finalPart);
+		if (blockRes.isPresent())
+			return blockRes;
 
+		Optional<Result<String, InterpretError>> idxResolved = resolveIndexFromEnv(finalPart, env);
+		if (idxResolved.isPresent())
+			return idxResolved;
+		return returnEnvBindingOrUnbound(env, finalPart);
+	}
+
+	private Optional<Result<String, InterpretError>> resolveFinalFromEnv(
+			java.util.Map<String, Tuple2<Boolean, String>> env,
+			String finalPart) {
+		Optional<Result<String, InterpretError>> idxResolved = resolveIndexFromEnv(finalPart, env);
+		if (idxResolved.isPresent())
+			return idxResolved;
+		return returnEnvBindingOrUnbound(env, finalPart);
+	}
+
+	private Optional<Result<String, InterpretError>> returnEnvBindingOrUnbound(
+			java.util.Map<String, Tuple2<Boolean, String>> env, String finalPart) {
 		String finalName = finalPart;
 		if (!env.containsKey(finalName))
 			return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + finalName)));
 		return Optional.of(new Ok<>(env.get(finalName).second()));
+	}
+
+	/**
+	 * Resolve an index expression against the provided env. Centralized to
+	 * avoid duplicated logic across multiple call sites.
+	 */
+	private Optional<Result<String, InterpretError>> resolveIndexFromEnv(String finalPart,
+			java.util.Map<String, Tuple2<Boolean, String>> env) {
+		Optional<Tuple2<String, String>> idx = parseIndexPattern(finalPart);
+		if (idx.isPresent()) {
+			Tuple2<String, String> baseIdx = idx.get();
+			String base = baseIdx.first();
+			String idxTok = baseIdx.second();
+			if (base.isEmpty()) {
+				Optional<String> v = evaluateTupleIndex(finalPart, idxTok);
+				if (v.isPresent())
+					return Optional.of(new Ok<>(v.get()));
+				return Optional.of(new Err<>(new InterpretError("Index out of bounds or malformed tuple")));
+			} else {
+				if (!env.containsKey(base))
+					return Optional.of(new Err<>(new InterpretError("Unbound identifier: " + base)));
+				String stored = env.get(base).second();
+				if (!stored.startsWith("TUPLE:"))
+					return Optional.of(new Err<>(new InterpretError("Identifier is not a tuple: " + base)));
+				Optional<String> v = evaluateTupleIndex(stored, idxTok);
+				if (v.isPresent())
+					return Optional.of(new Ok<>(v.get()));
+				return Optional.of(new Err<>(new InterpretError("Index out of bounds or malformed tuple")));
+			}
+		}
+		return Optional.empty();
+	}
+
+	/**
+	 * Extracts an index token when the '[' at bracketPos begins an index like
+	 * "[123]". Expects the rest of the string after the closing ']' to be only
+	 * whitespace. Returns Optional.of(indexToken) when valid, otherwise empty.
+	 */
+	private Optional<String> extractIndexToken(String trimmed, int bracketPos) {
+		if (bracketPos >= trimmed.length() || trimmed.charAt(bracketPos) != '[')
+			return Optional.empty();
+		int idxStart = skipWhitespace(trimmed, bracketPos + 1);
+		int idxEnd = parseDigitsEnd(trimmed, idxStart);
+		if (idxEnd < 0)
+			return Optional.empty();
+		int closing = skipWhitespace(trimmed, idxEnd);
+		if (closing >= trimmed.length() || trimmed.charAt(closing) != ']')
+			return Optional.empty();
+		int end = skipWhitespace(trimmed, closing + 1);
+		if (end != trimmed.length())
+			return Optional.empty();
+		return Optional.of(trimmed.substring(idxStart, idxEnd));
+	}
+
+	private Optional<Result<String, InterpretError>> tryHandleFinalBlockWithEnv(
+			java.util.Map<String, Tuple2<Boolean, String>> env,
+			String finalPart) {
+		if (!(finalPart.startsWith("{") && finalPart.endsWith("}")))
+			return Optional.empty();
+		String inner = finalPart.substring(1, finalPart.length() - 1).trim();
+		StringBuilder sb = new StringBuilder();
+		for (java.util.Map.Entry<String, Tuple2<Boolean, String>> e : env.entrySet()) {
+			Tuple2<Boolean, String> val = e.getValue();
+			String stored = val.second();
+			String literal = stored;
+			if (stored.startsWith("CTOR:")) {
+				int comma = stored.indexOf(',');
+				if (comma > 5) {
+					String type = stored.substring(5, comma);
+					String arg = stored.substring(comma + 1);
+					literal = type + " { " + arg + " }";
+				}
+			} else if (stored.startsWith("TUPLE:")) {
+				literal = "[" + stored.substring(6) + "]";
+			}
+			if (val.first())
+				sb.append("let mut ").append(e.getKey()).append(" = ").append(literal).append("; ");
+			else
+				sb.append("let ").append(e.getKey()).append(" = ").append(literal).append("; ");
+		}
+		sb.append(inner);
+		return Optional.of(interpret(sb.toString()));
 	}
 
 	private static boolean isSingleIdentifier(String s) {
@@ -1502,6 +1798,10 @@ public class Interpreter {
 		Optional<String> ctorLiteral = parseConstructorLiteralRhsValue(stmt, pos);
 		if (ctorLiteral.isPresent())
 			return ctorLiteral;
+		// tuple literal
+		Optional<String> tupleLit = parseTupleLiteralRhsValue(stmt, pos);
+		if (tupleLit.isPresent())
+			return tupleLit;
 		Optional<String> block = parseBlockRhsValue(stmt, pos);
 		if (block.isPresent())
 			return block;
@@ -1617,6 +1917,41 @@ public class Interpreter {
 		// Return a tagged constructor literal so it can be recognized later when
 		// stored in a let environment: CTOR:<Type>,<arg>
 		return Optional.of("CTOR:" + typeName + "," + arg);
+	}
+
+	/**
+	 * Parse a tuple literal like [3,4] as an RHS value and return tagged token
+	 * TUPLE:<elem1>,<elem2>,... so it can be stored in let envs.
+	 */
+	private Optional<String> parseTupleLiteralRhsValue(String stmt, int pos) {
+		if (pos >= stmt.length() || stmt.charAt(pos) != '[')
+			return Optional.empty();
+		int i = pos + 1;
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		while (i < stmt.length()) {
+			i = skipWhitespace(stmt, i);
+			if (i < stmt.length() && stmt.charAt(i) == ']') {
+				int after = skipWhitespace(stmt, i + 1);
+				if (after != stmt.length())
+					return Optional.empty();
+				return Optional.of("TUPLE:" + String.join(",", elems));
+			}
+			if (Character.isDigit(stmt.charAt(i))) {
+				int end = parseDigitsEnd(stmt, i);
+				if (end < 0)
+					return Optional.empty();
+				elems.add(stmt.substring(i, end));
+				i = end;
+			} else {
+				return Optional.empty();
+			}
+			i = skipWhitespace(stmt, i);
+			if (i < stmt.length() && stmt.charAt(i) == ',') {
+				i = i + 1;
+				continue;
+			}
+		}
+		return Optional.empty();
 	}
 
 	private Optional<String> parseIfRhsValue(String stmt, int pos) {
