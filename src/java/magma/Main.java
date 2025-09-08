@@ -145,6 +145,8 @@ public class Main {
 		final var stripped = input.strip();
 
 		if (stripped.equals("void")) return "void";
+		if (stripped.equals("String")) return "char*";
+
 		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - "[]".length());
 			return compileType(slice) + "*";

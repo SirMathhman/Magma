@@ -1,5 +1,5 @@
 /*public */struct Main {};
-/*public static*/ void main(/*String*/* args){/*
+/*public static*/ void main(char** args){/*
 		final var sourceDirectory = Paths.get(".", "src", "java");*//*
 		try (var stream = Files.walk(sourceDirectory)) {
 			final var sources = stream.filter(Files::isRegularFile)
@@ -34,10 +34,10 @@
 			e.printStackTrace();
 		}*//*
 	*/}
-/*private static*/ /*String*/ compile(/*String*/ input){/*
+/*private static*/ char* compile(char* input){/*
 		return compileSegments(input, Main::compileRootSegment);*//*
 	*/}
-/*private static*/ /*String*/ compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){/*
+/*private static*/ char* compileSegments(/*String input, Function<String,*/ /*String>*/ mapper){/*
 		final var segments = new ArrayList<String>();*//*
 		var buffer = new StringBuilder();*//*
 		var depth = 0;*//*
@@ -83,7 +83,7 @@
 		}
 
 		return wrap(stripped);
-	}*//*private static*/ /*String*/ compileClassSegment(/*String*/ input){/*
+	}*//*private static*/ char* compileClassSegment(char* input){/*
 		final var i = input.indexOf("(");*//*
 		if (i >= 0) {
 			final var definition = input.substring(0, i);
@@ -105,7 +105,7 @@
 
 		return wrap(input);*//*
 	*/}
-/*private static*/ /*Optional<String>*/ compileDefinition(/*String*/ input){/*
+/*private static*/ /*Optional<String>*/ compileDefinition(char* input){/*
 		final var stripped = input.strip();*//*
 		final var i = stripped.lastIndexOf(" ");*//*
 		if (i < 0) return Optional.empty();*//*
@@ -123,10 +123,12 @@
 
 		return Optional.of(wrap(modifiers) + " " + compileType(type) + " " + name);*//*
 	*/}
-/*private static*/ /*String*/ compileType(/*String*/ input){/*
+/*private static*/ char* compileType(char* input){/*
 		final var stripped = input.strip();*//*
 
 		if (stripped.equals("void")) return "void";*//*
+		if (stripped.equals("String")) return "char*";*//*
+
 		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - "[]".length());
 			return compileType(slice) + "*";
@@ -134,7 +136,7 @@
 
 		return wrap(stripped);*//*
 	*/}
-/*private static*/ /*String*/ compileFunctionSegment(/*String*/ input){/*
+/*private static*/ char* compileFunctionSegment(char* input){/*
 		return wrap(input);*//*
 	*/}
 /*
