@@ -37,7 +37,7 @@ public class Interpreter {
 			return addRes.get();
 		ParseResult pr = parseSignAndDigits(s);
 		if (!pr.valid)
-			return new Result.Err<>(new InterpretError(source, source));
+			return new Result.Err<>(new InterpretError("invalid literal", source));
 
 		// No suffix -> accept as-is
 		if (pr.suffix.isEmpty())
@@ -66,7 +66,7 @@ public class Interpreter {
 				return evaluateExpression(part, valEnv, typeEnv);
 			}
 		}
-		return new Result.Err<>(new InterpretError(source, source));
+	return new Result.Err<>(new InterpretError("invalid program sequence", source));
 	}
 
 	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt,
@@ -75,7 +75,7 @@ public class Interpreter {
 		String s = stmt.trim();
 		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
 		if (!parsed.isPresent())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", source)));
 		LetDeclaration d = parsed.get();
 		Result<String, InterpretError> rhsVal = evaluateExpression(d.rhs, valEnv, typeEnv);
 		if (rhsVal instanceof Result.Err)
@@ -140,27 +140,27 @@ public class Interpreter {
 			String value,
 			String source) {
 		if (!isValidSuffix(annotatedSuffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", source)));
 		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));
 		int width;
 		try {
 			width = Integer.parseInt(annotatedSuffix.substring(1));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
 		try {
 			java.math.BigInteger val = new java.math.BigInteger(value);
 			if (kind == 'U') {
 				if (val.signum() < 0 || !fitsUnsigned(val, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
 			} else if (kind == 'I') {
 				if (!fitsSigned(val, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
 			} else {
-				return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown type kind", source)));
 			}
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer value", source)));
 		}
 		return java.util.Optional.empty();
 	}
@@ -172,7 +172,7 @@ public class Interpreter {
 		if (isSimpleIdentifier(s)) {
 			if (valEnv.containsKey(s))
 				return new Result.Ok<>(valEnv.get(s));
-			return new Result.Err<>(new InterpretError(expr, expr));
+			return new Result.Err<>(new InterpretError("unknown identifier", expr));
 		}
 		// addition
 		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
@@ -181,7 +181,7 @@ public class Interpreter {
 		// literal/typed-literal
 		ParseResult pr = parseSignAndDigits(s);
 		if (!pr.valid)
-			return new Result.Err<>(new InterpretError(expr, expr));
+			return new Result.Err<>(new InterpretError("invalid literal", expr));
 		if (pr.suffix.isEmpty())
 			return new Result.Ok<>(pr.integerPart);
 		return evaluateTypedSuffix(pr, expr);
@@ -310,11 +310,11 @@ public class Interpreter {
 	private java.util.Optional<Result<String, InterpretError>> validateBothTyped(ParseResult leftPr, ParseResult rightPr,
 			String source) {
 		if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix on operand", source)));
 		String l = leftPr.suffix.toUpperCase();
 		String r = rightPr.suffix.toUpperCase();
 		if (!l.equals(r))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed operand suffixes", source)));
 		return java.util.Optional.empty();
 	}
 
@@ -324,61 +324,61 @@ public class Interpreter {
 		String typedSuffix = leftHas ? leftPr.suffix : rightPr.suffix;
 		String untypedInteger = leftHas ? rightPr.integerPart : leftPr.integerPart;
 		if (!isValidSuffix(typedSuffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix", source)));
 		char kind = Character.toUpperCase(typedSuffix.charAt(0));
 		int width;
 		try {
 			width = Integer.parseInt(typedSuffix.substring(1));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
 		if (!(width == 8 || width == 16 || width == 32 || width == 64))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("unsupported type width", source)));
 		try {
 			java.math.BigInteger untypedVal = new java.math.BigInteger(untypedInteger);
 			if (kind == 'U') {
 				if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
 				return java.util.Optional.empty();
 			}
 			if (kind == 'I') {
 				if (!fitsSigned(untypedVal, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
 				return java.util.Optional.empty();
 			}
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in operand", source)));
 		}
-		return java.util.Optional.of(new Result.Err<>(new InterpretError(source, source)));
+		return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed operand combination", source)));
 	}
 
 	private Result<String, InterpretError> evaluateTypedSuffix(ParseResult pr, String source) {
 		if (!isValidSuffix(pr.suffix))
-			return new Result.Err<>(new InterpretError(source, source));
+			return new Result.Err<>(new InterpretError("invalid typed literal suffix", source));
 
 		char kind = Character.toUpperCase(pr.suffix.charAt(0));
 		String widthStr = pr.suffix.substring(1);
 		try {
 			int width = Integer.parseInt(widthStr);
 			if (!(width == 8 || width == 16 || width == 32 || width == 64))
-				return new Result.Err<>(new InterpretError(source, source));
+				return new Result.Err<>(new InterpretError("unsupported type width", source));
 
 			java.math.BigInteger val = new java.math.BigInteger(pr.integerPart);
 			if (kind == 'U') {
 				if (val.signum() < 0)
-					return new Result.Err<>(new InterpretError(source, source));
+					return new Result.Err<>(new InterpretError("negative value for unsigned literal", source));
 				if (fitsUnsigned(val, width))
 					return new Result.Ok<>(pr.integerPart);
-				return new Result.Err<>(new InterpretError(source, source));
+				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			} else if (kind == 'I') {
 				if (fitsSigned(val, width))
 					return new Result.Ok<>(pr.integerPart);
-				return new Result.Err<>(new InterpretError(source, source));
+				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			}
 		} catch (NumberFormatException | ArithmeticException e) {
-			return new Result.Err<>(new InterpretError(source, source));
+			return new Result.Err<>(new InterpretError("invalid numeric literal", source));
 		}
 
-		return new Result.Err<>(new InterpretError(source, source));
+		return new Result.Err<>(new InterpretError("invalid typed literal", source));
 	}
 }

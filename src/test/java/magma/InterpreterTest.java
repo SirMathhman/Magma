@@ -15,7 +15,9 @@ public class InterpreterTest {
 
 		assertTrue(res instanceof Result.Err);
 		Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) res;
-		// errorReason should contain the offending source
-		assertEquals(source, err.error().errorReason());
+		// InterpretError should provide a human-readable reason and preserve the original source
+		assertNotNull(err.error().errorReason());
+		assertFalse(err.error().errorReason().isEmpty());
+		assertEquals(source, err.error().sourceCode());
 	}
 }
