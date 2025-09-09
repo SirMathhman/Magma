@@ -99,6 +99,20 @@ public class Interpreter {
 			java.util.Map<String, String> typeEnv,
 			java.util.Map<String, Boolean> mutEnv,
 			String source) {
+		// If there's no RHS (declaration only), record the annotation and mark as mutable
+		if (d.rhs.isEmpty()) {
+			if (!d.annotatedSuffix.isEmpty()) {
+				java.util.Optional<Result<String, InterpretError>> wErr = checkAnnotatedSuffix(d.annotatedSuffix, "0",
+						source);
+				if (wErr.isPresent())
+					return wErr;
+				typeEnv.put(d.name, d.annotatedSuffix);
+			}
+			// Declarations without initializer are implicitly mutable to allow later assignment
+			mutEnv.put(d.name, Boolean.TRUE);
+			// Do not place a value in valEnv yet; assignment will set it.
+			return java.util.Optional.empty();
+		}
 		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, valEnv, typeEnv);
 		if (rhsRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsRes);
@@ -158,7 +172,8 @@ public class Interpreter {
 		String rhs = stmt.substring(eqIdx + 1).trim();
 		if (!isSimpleIdentifier(lhs))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid assignment lhs", source)));
-		if (!valEnv.containsKey(lhs))
+		// Unknown in valEnv can be acceptable if declared without initializer (present in typeEnv)
+		if (!valEnv.containsKey(lhs) && !typeEnv.containsKey(lhs))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", source)));
 		Boolean isMut = mutEnv.getOrDefault(lhs, Boolean.FALSE);
 		if (!isMut)
@@ -217,11 +232,12 @@ public class Interpreter {
 		String name = pid.name;
 		idx = skipWs(s, pid.idx, len);
 		String annotatedSuffix = parseAnnotatedSuffix(s, idx, len);
-		// find '=' after annotation (if any)
+		// find '=' after annotation (if any). Allow declarations without initializer
 		int eq = s.indexOf('=', idx);
-		if (eq < 0)
-			return java.util.Optional.empty();
-		String rhs = s.substring(eq + 1).trim();
+		String rhs = "";
+		if (eq >= 0) {
+			rhs = s.substring(eq + 1).trim();
+		}
 		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, mutable, rhs));
 	}
 

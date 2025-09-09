@@ -79,4 +79,10 @@ public class InterpreterFeatureTest {
 		// Even for mutable lets, assigning a typed RHS literal with a different suffix should be invalid
 		TestUtils.assertInvalid("let mut x : U8 = 0; x = 100I32; x");
 	}
+
+	@Test
+	public void declareThenAssign() {
+		// Declaration with annotation but no initializer followed by assignment should be allowed
+		TestUtils.assertValid("let x : I32; x = 100; x", "100");
+	}
 }
