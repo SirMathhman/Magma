@@ -5,7 +5,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public final class TestUtils {
     private TestUtils() {}
 
-    public static void assertOkOutput(String source, String expected) {
+    public static void assertValid(String source, String expected) {
         Interpreter interp = new Interpreter();
         Result<String, String> res = interp.interpret(source, "");
         assertTrue(res instanceof Result.Ok);
@@ -13,7 +13,7 @@ public final class TestUtils {
         assertEquals(expected, ok.value());
     }
 
-    public static void assertErr(String source) {
+    public static void assertInvalid(String source) {
         Interpreter interp = new Interpreter();
         Result<String, String> res = interp.interpret(source, "");
         assertTrue(res instanceof Result.Err);
