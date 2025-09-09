@@ -102,8 +102,8 @@ public class Interpreter {
 			return new AltInfo(
 					java.util.Optional.of(new Result.Err<>(new InterpretError("missing alternative in if", env.source))));
 		String altPart = parts[altIdx].trim();
-		String alt = altPart.startsWith("else") ? altPart.substring(4).trim() : altPart;
-		return new AltInfo(alt, altIdx);
+		String altPartTrimmed = altPart.startsWith("else") ? altPart.substring(4).trim() : altPart;
+		return new AltInfo(altPartTrimmed, altIdx);
 	}
 
 	// Compute inline text following the closing ')' in parts[idx], or empty if
@@ -115,6 +115,53 @@ public class Interpreter {
 		if (close >= 0 && close + 1 < part.length())
 			after = part.substring(close + 1).trim();
 		return after;
+	}
+
+	// Split source into top-level parts separated by semicolons, ignoring
+	// semicolons that appear inside brace-delimited blocks.
+	private String[] splitTopLevel(String source) {
+		java.util.List<String> parts = new java.util.ArrayList<>();
+		StringBuilder sb = new StringBuilder();
+		int depth = 0;
+		int len = source.length();
+		for (int j = 0; j < len; j++) {
+			char c = source.charAt(j);
+			if (c == '{') {
+				depth++;
+				sb.append(c);
+			} else if (c == '}') {
+				// closing a brace
+				depth--;
+				sb.append(c);
+				// If we've returned to depth 0, and the following non-space token is
+				// not 'else' and is not a semicolon or end-of-input, then treat this
+				// as a statement boundary (implicit semicolon) so that trailing
+				// expressions after a block (e.g., "} x") become a separate part.
+				if (depth == 0) {
+					int k = j + 1;
+					while (k < len && Character.isWhitespace(source.charAt(k)))
+						k++;
+					if (k < len) {
+						char nc = source.charAt(k);
+						if (nc != ';') {
+							String rest = source.substring(k);
+							if (!rest.startsWith("else")) {
+								parts.add(sb.toString());
+								sb.setLength(0);
+							}
+						}
+					}
+				}
+			} else if (c == ';' && depth == 0) {
+				parts.add(sb.toString());
+				sb.setLength(0);
+			} else {
+				sb.append(c);
+			}
+		}
+		// add trailing part
+		parts.add(sb.toString());
+		return parts.toArray(new String[0]);
 	}
 
 	// Small holder for runtime environments and program source so we avoid
@@ -179,13 +226,13 @@ public class Interpreter {
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
 	private Result<String, InterpretError> evaluateSequence(String source) {
-		// Use split with negative limit to preserve trailing empty segments
-		// so that a trailing semicolon produces an empty final part.
-		String[] parts = source.split(";", -1);
+		// Split at top-level semicolons only (ignore semicolons inside braces)
+		String[] parts = splitTopLevel(source);
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
 		int i = 0;
+
 		while (i < parts.length) {
 			String part = parts[i].trim();
 			if (part.isEmpty()) {
@@ -223,6 +270,24 @@ public class Interpreter {
 
 	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt, Env env) {
 		String s = stmt.trim();
+		// Support block statements of the form `{ ... }` containing one or more
+		// inner statements separated by semicolons. Execute inner statements in
+		// the same environment. If any inner statement returns a Result (error
+		// or an expression result), surface it immediately.
+		if (s.startsWith("{")) {
+			int close = s.lastIndexOf('}');
+			String body = close > 0 ? s.substring(1, close) : "";
+			String[] inner = body.split(";", -1);
+			for (String part : inner) {
+				String t = part.trim();
+				if (t.isEmpty())
+					continue;
+				java.util.Optional<Result<String, InterpretError>> innerRes = handleStatement(t, env);
+				if (innerRes.isPresent())
+					return innerRes;
+			}
+			return java.util.Optional.empty();
+		}
 		// Support assignment statements: <ident> = <expr>
 		int eqIdx = s.indexOf('=');
 		if (eqIdx > 0 && !s.startsWith("let ")) {
