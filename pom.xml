@@ -80,6 +80,28 @@
 					</archive>
 				</configuration>
 			</plugin>
+			<!-- PMD CPD (copy/paste detector) configured with token threshold 100 -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.21.0</version>
+				<configuration>
+					<minimumTokens>65</minimumTokens>
+					<!-- Run CPD against test sources, too -->
+					<includeTests>true</includeTests>
+					<!-- Ignore literal-only matches (strings/numbers) -->
+					<ignoreLiterals>true</ignoreLiterals>
+				</configuration>
+				<executions>
+					<execution>
+						<id>cpd-check</id>
+						<phase>test</phase>
+						<goals>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
