@@ -5,7 +5,7 @@ This is a minimal Maven project scaffolded to match the installed Java version o
 Files added:
 
 - `pom.xml` - Maven project file targeting Java 24
-- `src/main/java/com/example/App.java` - Simple Hello World application
+- `src/main/java/magma/App.java` - Simple Hello World application
 - `README.md` - This file
 
 Build & run
@@ -20,5 +20,5 @@ Then run the JAR from the `target` directory (artifactId-version.jar):
 
 If Maven is not installed, you can compile and run directly with javac/java:
 
-    javac -d out src/main/java/com/example/App.java
-    java -cp out com.example.App
+    javac -d out src/main/java/magma/App.java
+    java -cp out magma.App

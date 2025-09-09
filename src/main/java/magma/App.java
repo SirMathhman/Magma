@@ -1,4 +1,4 @@
-package com.example;
+package magma;
 
 /**
  * Simple hello-world application to verify Maven/Java setup.

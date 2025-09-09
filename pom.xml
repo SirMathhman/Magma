@@ -39,7 +39,7 @@
 					<archive>
 						<manifest>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<mainClass>com.example.App</mainClass>
+							<mainClass>magma.App</mainClass>
 						</manifest>
 					</archive>
 				</configuration>
