@@ -54,6 +54,8 @@
 				<configuration>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
 					<consoleOutput>true</consoleOutput>
+					<!-- Also run Checkstyle against test sources so test method names are validated -->
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<!-- Fail the build on violations to enforce the ban on throw/throws -->
 					<failOnViolation>true</failOnViolation>
 				</configuration>

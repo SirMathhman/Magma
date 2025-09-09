@@ -82,7 +82,7 @@ public class Interpreter {
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
 		if (!d.annotatedSuffix.isEmpty()) {
-			java.util.Optional<Result<String, InterpretError>> v = validateAnnotatedSuffix(d.annotatedSuffix, value, source);
+			java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, source);
 			if (v.isPresent())
 				return v;
 			typeEnv.put(d.name, d.annotatedSuffix);
@@ -136,7 +136,7 @@ public class Interpreter {
 		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, rhs));
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> validateAnnotatedSuffix(String annotatedSuffix,
+	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix,
 			String value,
 			String source) {
 		if (!isValidSuffix(annotatedSuffix))
@@ -281,7 +281,7 @@ public class Interpreter {
 		// only if its value fits into the typed width/kind of the typed side
 		// 3) mixed kinds/widths (e.g., U vs I or different widths) are invalid
 		// Validate typed/untyped suffixes; if invalid, return Err wrapped in Optional
-		java.util.Optional<Result<String, InterpretError>> suffixCheck = validateTypedOperands(leftPr, rightPr, s);
+		java.util.Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, s);
 		if (suffixCheck.isPresent())
 			return suffixCheck;
 
@@ -295,7 +295,7 @@ public class Interpreter {
 	}
 
 	// Helper to validate typed/untyped operands for addition.
-	private java.util.Optional<Result<String, InterpretError>> validateTypedOperands(ParseResult leftPr,
+	private java.util.Optional<Result<String, InterpretError>> checkTypedOperands(ParseResult leftPr,
 			ParseResult rightPr,
 			String source) {
 		boolean leftHas = !leftPr.suffix.isEmpty();

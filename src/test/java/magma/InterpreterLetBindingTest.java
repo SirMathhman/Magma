@@ -6,7 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterLetBindingTest {
 	@Test
-	public void unannotatedLetBinding_returnsValue() {
+	public void unannotatedLet() {
 		Interpreter interp = new Interpreter();
 		Result<String, InterpretError> res = interp.interpret("let x = 3; x", "");
 		assertTrue(res instanceof Result.Ok);
@@ -15,7 +15,7 @@ public class InterpreterLetBindingTest {
 	}
 
 	@Test
-	public void annotatedLetBinding_withTypedLiteral_returnsValue() {
+	public void annotatedLetTyped() {
 		TestUtils.assertValid("let x : U8 = 3U8; x", "3");
 	}
 }

@@ -25,6 +25,13 @@
 			<property name="max" value="15" />
 			<property name="severity" value="error" />
 		</module>
+
+		<!-- Enforce maximum method name length (20 chars) for method declarations -->
+		<module name="MethodName">
+			<!-- Accept letters/digits but limit total length to 20 characters -->
+			<property name="format" value="^[A-Za-z][A-Za-z0-9]{0,19}$" />
+			<property name="severity" value="error" />
+		</module>
 	</module>
 
 	<!-- Catch fully-qualified references like java.util.regex.Pattern or Matcher in code -->
@@ -37,7 +44,8 @@
 	<!-- Ban literal 'null' usage; recommend java.util.Optional instead -->
 	<module name="RegexpSingleline">
 		<property name="format" value="\bnull\b" />
-		<property name="message" value="Usage of the literal 'null' is banned; prefer java.util.Optional instead." />
+		<property name="message"
+			value="Usage of the literal 'null' is banned; prefer java.util.Optional instead." />
 		<property name="severity" value="error" />
 	</module>
 </module>
