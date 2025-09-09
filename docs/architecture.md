@@ -20,9 +20,10 @@ Migration / Compatibility
 -------------------------
 This change is additive and minimal; existing behavior for non-literal sources stays as Err (preserving backwards compatibility).
 
-Tests to add
+-Tests to add
 ------------
 - `src/test/java/magma/InterpreterFeatureTest.java` — asserts `interpret("5", "")` returns Ok("5").
+- `src/test/java/magma/InterpreterTypedLiteralTest.java` — asserts `interpret("5I32", "")` returns Ok("5") (support typed integer suffixes like `I32`).
 
 Quality gates
 -------------

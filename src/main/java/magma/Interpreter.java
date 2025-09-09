@@ -21,10 +21,14 @@ public class Interpreter {
 		// Minimal implementation: if the source is a simple integer literal,
 		// return it as the program output. Otherwise, keep the previous stub
 		// behavior and return Err with the source.
-		if (source != null && source.matches("\\s*[+-]?\\d+\\s*")) {
-			// normalize: trim whitespace, keep original text representation
-			String out = source.trim();
-			return new Result.Ok<>(out);
+		if (source != null) {
+			String s = source.trim();
+			// match: optional sign, digits, optionally followed by a type suffix like I32 (letters/digits)
+			java.util.regex.Matcher m = java.util.regex.Pattern.compile("^([+-]?\\d+)(?:[A-Za-z0-9]+)?$").matcher(s);
+			if (m.matches()) {
+				String out = m.group(1);
+				return new Result.Ok<>(out);
+			}
 		}
 		return new Result.Err<>(source);
 	}
