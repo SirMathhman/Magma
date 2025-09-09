@@ -2,11 +2,21 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-// ...existing imports...
+// ...existing assertions are provided by TestUtils; no direct static imports needed
 
 public class InterpreterFeatureTest {
 	@Test
+	public void interpretSimpleAddition_returnsSum() {
+		TestUtils.assertOkOutput("1 + 2", "3");
+	}
+
+	@Test
 	public void literalInteger_returnsSameValue() {
 		TestUtils.assertOkOutput("5", "5");
+	}
+
+	@Test
+	public void additionWithTypedOperands_returnsSum() {
+		TestUtils.assertOkOutput("1U8 + 2U8", "3");
 	}
 }

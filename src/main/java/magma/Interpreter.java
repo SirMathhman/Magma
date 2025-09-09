@@ -26,6 +26,11 @@ public class Interpreter {
 			return new Result.Err<>("<missing source>");
 
 		String s = source.trim();
+
+		// Attempt simple addition before falling back to literal parsing
+		java.util.Optional<Result<String, String>> addRes = tryEvaluateAddition(s);
+		if (addRes.isPresent())
+			return addRes.get();
 		ParseResult pr = parseSignAndDigits(s);
 		if (!pr.valid)
 			return new Result.Err<>(source);
@@ -34,33 +39,8 @@ public class Interpreter {
 		if (pr.suffix.isEmpty())
 			return new Result.Ok<>(pr.integerPart);
 
-		if (!isValidSuffix(pr.suffix))
-			return new Result.Err<>(source);
-
-		char kind = Character.toUpperCase(pr.suffix.charAt(0));
-		String widthStr = pr.suffix.substring(1);
-		try {
-			int width = Integer.parseInt(widthStr);
-			if (!(width == 8 || width == 16 || width == 32 || width == 64))
-				return new Result.Err<>(source);
-
-			java.math.BigInteger val = new java.math.BigInteger(pr.integerPart);
-			if (kind == 'U') {
-				if (val.signum() < 0)
-					return new Result.Err<>(source);
-				if (fitsUnsigned(val, width))
-					return new Result.Ok<>(pr.integerPart);
-				return new Result.Err<>(source);
-			} else if (kind == 'I') {
-				if (fitsSigned(val, width))
-					return new Result.Ok<>(pr.integerPart);
-				return new Result.Err<>(source);
-			}
-		} catch (NumberFormatException | ArithmeticException e) {
-			return new Result.Err<>(source);
-		}
-
-		return new Result.Err<>(source);
+		// Delegate typed-suffix handling to a helper to keep complexity low
+		return evaluateTypedSuffix(pr, source);
 	}
 
 	// Small helper struct to hold parse results
@@ -120,5 +100,68 @@ public class Interpreter {
 		java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(width - 1).negate();
 		java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(width - 1).subtract(java.math.BigInteger.ONE);
 		return val.compareTo(min) >= 0 && val.compareTo(max) <= 0;
+	}
+
+	/**
+	 * Try to evaluate a simple addition expression of the form "<int> + <int>".
+	 * Returns an Ok Result on success or an empty Optional if not applicable.
+	 */
+	private java.util.Optional<Result<String, String>> tryEvaluateAddition(String s) {
+		int plusIdx = s.indexOf('+');
+		if (plusIdx <= 0)
+			return java.util.Optional.empty();
+		String leftRaw = s.substring(0, plusIdx).trim();
+		String rightRaw = s.substring(plusIdx + 1).trim();
+
+		// Parse each side for optional sign/digits and optional suffix
+		ParseResult leftPr = parseSignAndDigits(leftRaw);
+		ParseResult rightPr = parseSignAndDigits(rightRaw);
+		if (!leftPr.valid || !rightPr.valid)
+			return java.util.Optional.empty();
+
+		// If suffixes exist, they must be valid typed suffixes (we don't enforce range
+		// here)
+		if (!leftPr.suffix.isEmpty() && !isValidSuffix(leftPr.suffix))
+			return java.util.Optional.empty();
+		if (!rightPr.suffix.isEmpty() && !isValidSuffix(rightPr.suffix))
+			return java.util.Optional.empty();
+
+		try {
+			java.math.BigInteger a = new java.math.BigInteger(leftPr.integerPart);
+			java.math.BigInteger b = new java.math.BigInteger(rightPr.integerPart);
+			return java.util.Optional.of(new Result.Ok<>(a.add(b).toString()));
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.empty();
+		}
+	}
+
+	private Result<String, String> evaluateTypedSuffix(ParseResult pr, String source) {
+		if (!isValidSuffix(pr.suffix))
+			return new Result.Err<>(source);
+
+		char kind = Character.toUpperCase(pr.suffix.charAt(0));
+		String widthStr = pr.suffix.substring(1);
+		try {
+			int width = Integer.parseInt(widthStr);
+			if (!(width == 8 || width == 16 || width == 32 || width == 64))
+				return new Result.Err<>(source);
+
+			java.math.BigInteger val = new java.math.BigInteger(pr.integerPart);
+			if (kind == 'U') {
+				if (val.signum() < 0)
+					return new Result.Err<>(source);
+				if (fitsUnsigned(val, width))
+					return new Result.Ok<>(pr.integerPart);
+				return new Result.Err<>(source);
+			} else if (kind == 'I') {
+				if (fitsSigned(val, width))
+					return new Result.Ok<>(pr.integerPart);
+				return new Result.Err<>(source);
+			}
+		} catch (NumberFormatException | ArithmeticException e) {
+			return new Result.Err<>(source);
+		}
+
+		return new Result.Err<>(source);
 	}
 }

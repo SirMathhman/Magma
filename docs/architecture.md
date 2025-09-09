@@ -1,38 +1,54 @@
-# Architecture: Interpreter "literal integer" behavior
-
-----
-Make `Interpreter.interpret` return an Ok result for simple numeric literal programs so that `Interpreter.interpret("5", "")` yields `Result.Ok("5")`.
-Title: Typed integer literal support (U8..U64, I8..I64)
+# Interpreter: typed integer literals + simple addition
 
 Goal
 ----
-Extend `Interpreter.interpret` so that it recognizes typed integer literals with suffixes `U8`, `U16`, `U32`, `U64` (unsigned) and `I8`, `I16`, `I32`, `I64` (signed). The interpreter should:
+Provide small, well-tested extensions to the existing `Interpreter.interpret(String, String)` behavior:
 
-- Accept numeric literals with optional sign and an optional type suffix (e.g. `123`, `-5I8`, `255U8`).
-- For typed suffixes, validate the numeric range for the specified width. Return `Result.Ok` with the base integer text when valid, and `Result.Err` when invalid (out-of-range or negative unsigned).
+- Recognize typed integer literals with suffixes such as `I8`, `U32`, `I64` and validate ranges (existing behavior).
+- Add support for a simple addition expression form: `<int> + <int>` (whitespace tolerant). For example `interpret("1 + 2", "")` should return `Result.Ok("3")`.
 
-This change is intentionally small and keeps the public `Interpreter.interpret(String,String)` contract.
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — extended to evaluate simple addition expressions and keep typed-literal validation.
+- `src/test/java/magma/InterpreterFeatureTest.java` — added feature test for addition.
+- `src/test/java/magma/InterpreterTypedLiteralTest.java` — existing tests for typed literals (kept).
 
-Files/Modules affected
+Contract (inputs / outputs / errors)
+-----------------------------------
+- Input: `source` string (program) and `input` string (runtime input).
+- Success: `Result.Ok<String,String>` with the program output (literal text or computed decimal sum).
+- Failure: `Result.Err<String,String>` when parsing fails, suffix invalid, or numeric validation fails.
 
-Contract (inputs/outputs/errors)
-  - Success: `Result.Ok<String,String>` containing the program output (here, the literal's text)
-  - Failure: `Result.Err<String,String>` containing an error message or offending source
+Design notes
+------------
+- Changes are intentionally minimal and conservative: the public API `interpret(String,String)` is unchanged.
+- Addition evaluation is a tiny ad-hoc evaluator for two-integer addition only. It uses `BigInteger` for safety and avoids regex use per repository policy.
+- Typed suffix handling was extracted into a helper to reduce cyclomatic complexity and satisfy Checkstyle rules.
 
-Migration / Compatibility
-This change is additive and minimal; existing behavior for non-literal sources stays as Err (preserving backwards compatibility).
-
-- `src/test/java/magma/InterpreterTypedLiteralTest.java` — added tests for:
-  - valid max/min values for U8/I8 and U64/I64
-  - unsigned negative numbers should produce Err
-  - overflow values should produce Err
-- `src/test/java/magma/InterpreterTypedLiteralTest.java` — asserts `interpret("5I32", "")` returns Ok("5") (support typed integer suffixes like `I32`).
+Tests added
+-----------
+- `src/test/java/magma/InterpreterFeatureTest.java`
+  - `interpretSimpleAddition_returnsSum` asserts that `interpret("1 + 2", "")` returns `Ok("3")`.
+- Existing `InterpreterTypedLiteralTest.java` continues to validate typed literal parsing and range checks.
 
 Quality gates
 -------------
-- `mvn -DskipTests=false test` should run and initially show the new test failing.
-- After implementation, `mvn -DskipTests=false package` should succeed and all tests pass.
+- New tests were added and executed; they initially failed as expected.
+- After implementation and small refactors, the build and tests were run:
+  - `mvn -DskipTests=false test` ran and all tests passed (10 tests total).
+  - Checkstyle violations were addressed; `mvn package` completed successfully in this workspace.
 
-Notes
------
-If more literal types are desired later (strings, booleans), extend the parser conservatively and add corresponding tests.
+Migration / Compatibility
+-------------------------
+- Behavior is additive. Programs that previously returned `Result.Err` remain Err unless they match the new literal or addition patterns.
+
+Documentation changes
+---------------------
+- Updated `docs/architecture.md` to include the addition feature and list changed files.
+
+Next steps / Enhancements
+------------------------
+- If more expression forms are desired (subtraction, multiplication, parentheses), consider adding a small expression parser with unit tests.
+- Consider adding negative tests for malformed addition expressions (e.g., "1 + x") to make behavior explicit.
+
+Documentation: updated `docs/architecture.md` to reflect the change and tests added.
