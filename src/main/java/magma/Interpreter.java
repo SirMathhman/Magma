@@ -18,7 +18,14 @@ public class Interpreter {
 	 * @return the result of interpretation wrapped in a Result (Ok or Err)
 	 */
 	public Result<String, String> interpret(String source, String input) {
-		// stub: return Err containing the source as the error value
+		// Minimal implementation: if the source is a simple integer literal,
+		// return it as the program output. Otherwise, keep the previous stub
+		// behavior and return Err with the source.
+		if (source != null && source.matches("\\s*[+-]?\\d+\\s*")) {
+			// normalize: trim whitespace, keep original text representation
+			String out = source.trim();
+			return new Result.Ok<>(out);
+		}
 		return new Result.Err<>(source);
 	}
 }
