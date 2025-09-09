@@ -23,6 +23,7 @@ Tests to add
 ------------
 - `src/test/java/magma/InterpreterFeatureTest.java::letTypedMismatchErr` - asserts `Interpreter.interpret("let x : U8 = 3I32; x")` is invalid.
  - `src/test/java/magma/InterpreterFeatureTest.java::assignImmutableErr` - asserts `Interpreter.interpret("let x = 0; x = 100; x")` is invalid.
+ - `src/test/java/magma/InterpreterFeatureTest.java::declareReadInvalid` - asserts `Interpreter.interpret("let x : I32; x")` is invalid (reading an uninitialized declaration).
 
 Quality gates
 -------------

@@ -22,7 +22,8 @@ public class InterpreterFeatureTest {
 
 	@Test
 	public void typedUntypedAdd() {
-		// New acceptance: untyped literal can be added to a typed literal if it fits the width
+		// New acceptance: untyped literal can be added to a typed literal if it fits
+		// the width
 		TestUtils.assertValid("1U8 + 2", "3");
 	}
 
@@ -46,7 +47,8 @@ public class InterpreterFeatureTest {
 
 	@Test
 	public void letMutAssign100() {
-		// Mutable let should allow assignment and subsequent lookup should reflect the new value
+		// Mutable let should allow assignment and subsequent lookup should reflect the
+		// new value
 		TestUtils.assertValid("let mut x = 0; x = 100; x", "100");
 	}
 
@@ -64,25 +66,36 @@ public class InterpreterFeatureTest {
 
 	@Test
 	public void letTypedMismatchErr() {
-		// Assigning a typed literal with different signedness/width to a typed let should be invalid
+		// Assigning a typed literal with different signedness/width to a typed let
+		// should be invalid
 		TestUtils.assertInvalid("let x : U8 = 3I32; x");
 	}
 
 	@Test
 	public void letOnlyReturnsEmpty() {
-		// A program that contains only a let-binding (no final expression) should return an empty string
+		// A program that contains only a let-binding (no final expression) should
+		// return an empty string
 		TestUtils.assertValid("let x : U8 = 3;", "");
 	}
 
 	@Test
 	public void mutLetTypedMismatch() {
-		// Even for mutable lets, assigning a typed RHS literal with a different suffix should be invalid
+		// Even for mutable lets, assigning a typed RHS literal with a different suffix
+		// should be invalid
 		TestUtils.assertInvalid("let mut x : U8 = 0; x = 100I32; x");
 	}
 
 	@Test
 	public void declareThenAssign() {
-		// Declaration with annotation but no initializer followed by assignment should be allowed
+		// Declaration with annotation but no initializer followed by assignment should
+		// be allowed
 		TestUtils.assertValid("let x : I32; x = 100; x", "100");
+	}
+
+	@Test
+	public void declareReadInvalid() {
+		// Declaration with annotation but no initializer followed by a read should be
+		// invalid
+		TestUtils.assertInvalid("let x : I32; x");
 	}
 }
