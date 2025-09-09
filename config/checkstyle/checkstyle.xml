@@ -33,4 +33,11 @@
 		<property name="message"
 			value="Fully-qualified use of java.util.regex is banned; import of that package is forbidden." />
 	</module>
+
+	<!-- Ban literal 'null' usage; recommend java.util.Optional instead -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\bnull\b" />
+		<property name="message" value="Usage of the literal 'null' is banned; prefer java.util.Optional instead." />
+		<property name="severity" value="error" />
+	</module>
 </module>

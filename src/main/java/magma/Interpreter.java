@@ -1,5 +1,7 @@
 package magma;
 
+import java.util.Objects;
+
 /**
  * Interpreter provides functionality to interpret source code with a given
  * input.
@@ -20,8 +22,8 @@ public class Interpreter {
 	public Result<String, String> interpret(String source, String input) {
 		// Minimal implementation: if the source is a simple integer literal,
 		// return it as the program output. Otherwise return Err with the source.
-		if (source == null)
-			return new Result.Err<>(source);
+		if (Objects.isNull(source))
+			return new Result.Err<>("<missing source>");
 
 		String s = source.trim();
 		ParseResult pr = parseSignAndDigits(s);
@@ -67,10 +69,16 @@ public class Interpreter {
 		final String integerPart;
 		final String suffix;
 
+		private static final ParseResult INVALID = new ParseResult(false, "", "");
+
 		ParseResult(boolean valid, String integerPart, String suffix) {
 			this.valid = valid;
 			this.integerPart = integerPart;
 			this.suffix = suffix;
+		}
+
+		static ParseResult invalid() {
+			return INVALID;
 		}
 	}
 
@@ -84,7 +92,7 @@ public class Interpreter {
 		while (i < len && Character.isDigit(s.charAt(i)))
 			i++;
 		if (i <= digitsStart)
-			return new ParseResult(false, null, null);
+			return ParseResult.invalid();
 		String integerPart = s.substring(0, i);
 		String suffix = s.substring(i).trim();
 		return new ParseResult(true, integerPart, suffix);
