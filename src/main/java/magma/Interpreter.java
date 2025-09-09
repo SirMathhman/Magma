@@ -163,6 +163,18 @@ public class Interpreter {
 		Boolean isMut = mutEnv.getOrDefault(lhs, Boolean.FALSE);
 		if (!isMut)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", source)));
+
+		// If RHS is a typed literal and the variable has an annotated type, ensure
+		// the suffix matches the annotation (same kind and width). Reject if
+		// mismatched.
+		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
+		if (rhsPr.valid && !rhsPr.suffix.isEmpty() && typeEnv.containsKey(lhs)) {
+			String ann = typeEnv.get(lhs).toUpperCase();
+			String rhsSuf = rhsPr.suffix.toUpperCase();
+			if (!ann.equals(rhsSuf))
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
+		}
 		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, valEnv, typeEnv);
 		if (rhsVal instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);

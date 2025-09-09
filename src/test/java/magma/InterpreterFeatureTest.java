@@ -73,4 +73,10 @@ public class InterpreterFeatureTest {
 		// A program that contains only a let-binding (no final expression) should return an empty string
 		TestUtils.assertValid("let x : U8 = 3;", "");
 	}
+
+	@Test
+	public void mutLetTypedMismatch() {
+		// Even for mutable lets, assigning a typed RHS literal with a different suffix should be invalid
+		TestUtils.assertInvalid("let mut x : U8 = 0; x = 100I32; x");
+	}
 }
