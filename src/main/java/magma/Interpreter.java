@@ -10,6 +10,35 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
+	// Small holder for runtime environments and program source so we avoid
+	// passing multiple maps/strings as separate parameters (keeps parameter
+	// counts below the Checkstyle limit).
+	private static final class Env {
+		final java.util.Map<String, String> valEnv;
+		final java.util.Map<String, String> typeEnv;
+		final java.util.Map<String, Boolean> mutEnv;
+		final String source;
+
+		Env(java.util.Map<String, String> valEnv, java.util.Map<String, String> typeEnv, String source) {
+			this.valEnv = valEnv;
+			this.typeEnv = typeEnv;
+			this.mutEnv = new java.util.HashMap<>();
+			this.source = source;
+		}
+	}
+
+	// Helper to represent a parsed type kind and width together so checks can
+	// take a single object rather than separate primitive params.
+	private static final class TypeSpec {
+		final char kind;
+		final int width;
+
+		TypeSpec(char kind, int width) {
+			this.kind = kind;
+			this.width = width;
+		}
+	}
+
 	/**
 	 * Interpret the given source with the provided input and produce a result
 	 * wrapped in a Result (Ok or Err).
@@ -36,7 +65,8 @@ public class Interpreter {
 		// evaluateExpression(...).
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
-		return evaluateExpression(s, valEnv, typeEnv);
+		Env env = new Env(valEnv, typeEnv, source);
+		return evaluateExpression(s, env.valEnv, env.typeEnv);
 	}
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
@@ -46,20 +76,19 @@ public class Interpreter {
 		String[] parts = source.split(";", -1);
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
-		java.util.Map<String, Boolean> mutEnv = new java.util.HashMap<>();
+		Env env = new Env(valEnv, typeEnv, source);
 		for (int i = 0; i < parts.length; i++) {
 			String part = parts[i].trim();
 			if (part.isEmpty())
 				continue;
 			if (i < parts.length - 1) {
 				// Statement position: expect a let-binding or assignment
-				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, valEnv, typeEnv, mutEnv,
-						source);
+				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
 				if (stmtRes.isPresent())
 					return stmtRes.get();
 			} else {
 				// Final expression: evaluate and return
-				return evaluateExpression(part, valEnv, typeEnv);
+				return evaluateExpression(part, env.valEnv, env.typeEnv);
 			}
 		}
 		// If we reached the end without a final expression (e.g., trailing semicolon or
@@ -68,54 +97,47 @@ public class Interpreter {
 		return new Result.Ok<>("");
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt,
-			java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv,
-			java.util.Map<String, Boolean> mutEnv,
-			String source) {
+	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt, Env env) {
 		String s = stmt.trim();
 		// Support assignment statements: <ident> = <expr>
 		int eqIdx = s.indexOf('=');
 		if (eqIdx > 0 && !s.startsWith("let ")) {
-			return handleAssignment(s, eqIdx, valEnv, typeEnv, mutEnv, source);
+			return handleAssignment(s, eqIdx, env);
 		}
 		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
 		if (!parsed.isPresent())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
 		LetDeclaration d = parsed.get();
-		return handleLetDeclaration(d, valEnv, typeEnv, mutEnv, source);
+		return handleLetDeclaration(d, env);
 	}
 
 	// Helper to process let declarations (extracted to reduce complexity)
-	private java.util.Optional<Result<String, InterpretError>> handleLetDeclaration(LetDeclaration d,
-			java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv,
-			java.util.Map<String, Boolean> mutEnv,
-			String source) {
-		// If there's no RHS (declaration only), record the annotation and mark as mutable
+	private java.util.Optional<Result<String, InterpretError>> handleLetDeclaration(LetDeclaration d, Env env) {
+		// If there's no RHS (declaration only), record the annotation and mark as
+		// mutable
 		if (d.rhs.isEmpty()) {
 			if (!d.annotatedSuffix.isEmpty()) {
-				java.util.Optional<Result<String, InterpretError>> wErr = checkAnnotatedSuffix(d.annotatedSuffix, "0",
-						source);
+				java.util.Optional<Result<String, InterpretError>> wErr = checkAnnotatedSuffix(d.annotatedSuffix, "0", env);
 				if (wErr.isPresent())
 					return wErr;
-				typeEnv.put(d.name, d.annotatedSuffix);
+				env.typeEnv.put(d.name, d.annotatedSuffix);
 			}
-			// Declarations without initializer are implicitly mutable to allow later assignment
-			mutEnv.put(d.name, Boolean.TRUE);
+			// Declarations without initializer are implicitly mutable to allow later
+			// assignment
+			env.mutEnv.put(d.name, Boolean.TRUE);
 			// Do not place a value in valEnv yet; assignment will set it.
 			return java.util.Optional.empty();
 		}
-		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, valEnv, typeEnv);
+		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, env.valEnv, env.typeEnv);
 		if (rhsRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsRes);
 		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
-		java.util.Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, typeEnv, source);
+		java.util.Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, env);
 		if (annRes.isPresent())
 			return annRes;
-		valEnv.put(d.name, value);
+		env.valEnv.put(d.name, value);
 		// Record mutability
-		mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
+		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
 		return java.util.Optional.empty();
 	}
 
@@ -127,19 +149,16 @@ public class Interpreter {
 
 	// Validate annotated suffix for a let declaration and record the annotation in
 	// typeEnv
-	private java.util.Optional<Result<String, InterpretError>> recordAnn(LetDeclaration d,
-			String value,
-			java.util.Map<String, String> typeEnv,
-			String source) {
+	private java.util.Optional<Result<String, InterpretError>> recordAnn(LetDeclaration d, String value, Env env) {
 		if (d.annotatedSuffix.isEmpty())
 			return java.util.Optional.empty();
-		java.util.Optional<Result<String, InterpretError>> check = chkRhs(d.annotatedSuffix, d.rhs, source);
+		java.util.Optional<Result<String, InterpretError>> check = chkRhs(d.annotatedSuffix, d.rhs, env.source);
 		if (check.isPresent())
 			return check;
-		java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, source);
+		java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, env);
 		if (v.isPresent())
 			return v;
-		typeEnv.put(d.name, d.annotatedSuffix);
+		env.typeEnv.put(d.name, d.annotatedSuffix);
 		return java.util.Optional.empty();
 	}
 
@@ -156,38 +175,37 @@ public class Interpreter {
 	}
 
 	// Helper to handle assignment statements to reduce complexity
-	private java.util.Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx,
-			java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv,
-			java.util.Map<String, Boolean> mutEnv,
-			String source) {
+	private java.util.Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx, Env env) {
 		String lhs = stmt.substring(0, eqIdx).trim();
 		String rhs = stmt.substring(eqIdx + 1).trim();
 		if (!isSimpleIdentifier(lhs))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid assignment lhs", source)));
-		// Unknown in valEnv can be acceptable if declared without initializer (present in typeEnv)
-		if (!valEnv.containsKey(lhs) && !typeEnv.containsKey(lhs))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", source)));
-		Boolean isMut = mutEnv.getOrDefault(lhs, Boolean.FALSE);
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+		// Unknown in valEnv can be acceptable if declared without initializer (present
+		// in typeEnv)
+		if (!env.valEnv.containsKey(lhs) && !env.typeEnv.containsKey(lhs))
+			return java.util.Optional
+					.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
+		Boolean isMut = env.mutEnv.getOrDefault(lhs, Boolean.FALSE);
 		if (!isMut)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", source)));
+			return java.util.Optional
+					.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
 
 		// If RHS is a typed literal and the variable has an annotated type, ensure
 		// the suffix matches the annotation (same kind and width). Reject if
 		// mismatched.
 		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
-		if (rhsPr.valid && !rhsPr.suffix.isEmpty() && typeEnv.containsKey(lhs)) {
-			String ann = typeEnv.get(lhs).toUpperCase();
+		if (rhsPr.valid && !rhsPr.suffix.isEmpty() && env.typeEnv.containsKey(lhs)) {
+			String ann = env.typeEnv.get(lhs).toUpperCase();
 			String rhsSuf = rhsPr.suffix.toUpperCase();
 			if (!ann.equals(rhsSuf))
 				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
+						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
 		}
-		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, valEnv, typeEnv);
+		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env.valEnv, env.typeEnv);
 		if (rhsVal instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
-		valEnv.put(lhs, value);
+		env.valEnv.put(lhs, value);
 		return java.util.Optional.empty();
 	}
 
@@ -195,14 +213,14 @@ public class Interpreter {
 	private static final class LetDeclaration {
 		final String name;
 		final String annotatedSuffix;
-		final boolean mutable;
+		boolean mutable;
 		final String rhs;
 
-		LetDeclaration(String name, String annotatedSuffix, boolean mutable, String rhs) {
+		LetDeclaration(String name, String annotatedSuffix, String rhs) {
 			this.name = name;
 			this.annotatedSuffix = annotatedSuffix;
-			this.mutable = mutable;
 			this.rhs = rhs;
+			this.mutable = false;
 		}
 	}
 
@@ -231,7 +249,9 @@ public class Interpreter {
 		if (eq >= 0) {
 			rhs = s.substring(eq + 1).trim();
 		}
-		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, mutable, rhs));
+		LetDeclaration d = new LetDeclaration(name, annotatedSuffix, rhs);
+		d.mutable = mutable;
+		return java.util.Optional.of(d);
 	}
 
 	// helper to skip whitespace from index start up to len
@@ -274,18 +294,17 @@ public class Interpreter {
 		return "";
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix,
-			String value,
-			String source) {
+	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value,
+			Env env) {
 		if (!isValidSuffix(annotatedSuffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", source)));
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
 		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));
 		int[] widthHolder = new int[1];
-		java.util.Optional<Result<String, InterpretError>> wErr = parseWidth(annotatedSuffix, widthHolder, source);
+		java.util.Optional<Result<String, InterpretError>> wErr = parseWidth(annotatedSuffix, widthHolder, env.source);
 		if (wErr.isPresent())
 			return wErr;
 		int width = widthHolder[0];
-		return checkFits(kind, width, value, source);
+		return checkFits(new TypeSpec(kind, width), value, env);
 	}
 
 	private java.util.Optional<Result<String, InterpretError>> parseWidth(String annotatedSuffix, int[] outWidth,
@@ -298,22 +317,21 @@ public class Interpreter {
 		return java.util.Optional.empty();
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> checkFits(char kind, int width, String value,
-			String source) {
+	private java.util.Optional<Result<String, InterpretError>> checkFits(TypeSpec ts, String value, Env env) {
 		try {
 			java.math.BigInteger val = new java.math.BigInteger(value);
-			if (kind == 'U') {
-				if (val.signum() < 0 || !fitsUnsigned(val, width))
-					return err("value does not fit annotated type", source);
+			if (ts.kind == 'U') {
+				if (val.signum() < 0 || !fitsUnsigned(val, ts.width))
+					return err("value does not fit annotated type", env.source);
 				return java.util.Optional.empty();
-			} else if (kind == 'I') {
-				if (!fitsSigned(val, width))
-					return err("value does not fit annotated type", source);
+			} else if (ts.kind == 'I') {
+				if (!fitsSigned(val, ts.width))
+					return err("value does not fit annotated type", env.source);
 				return java.util.Optional.empty();
 			}
-			return err("unknown type kind", source);
+			return err("unknown type kind", env.source);
 		} catch (NumberFormatException ex) {
-			return err("invalid integer value", source);
+			return err("invalid integer value", env.source);
 		}
 	}
 
