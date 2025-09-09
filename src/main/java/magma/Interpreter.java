@@ -27,6 +27,10 @@ public class Interpreter {
 
 		String s = source.trim();
 
+		// Support simple sequences with `let` bindings separated by ';'
+		if (s.contains(";"))
+			return evaluateSequence(s);
+
 		// Attempt simple addition before falling back to literal parsing
 		java.util.Optional<Result<String, String>> addRes = tryEvaluateAddition(s);
 		if (addRes.isPresent())
@@ -41,6 +45,156 @@ public class Interpreter {
 
 		// Delegate typed-suffix handling to a helper to keep complexity low
 		return evaluateTypedSuffix(pr, source);
+	}
+
+	// Evaluate a semicolon-separated program supporting `let` declarations.
+	private Result<String, String> evaluateSequence(String source) {
+		String[] parts = source.split(";");
+		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
+		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
+		for (int i = 0; i < parts.length; i++) {
+			String part = parts[i].trim();
+			if (part.isEmpty())
+				continue;
+			if (i < parts.length - 1) {
+				// Statement position: expect a let-binding
+				java.util.Optional<Result<String, String>> stmtRes = handleStatement(part, valEnv, typeEnv, source);
+				if (stmtRes.isPresent())
+					return stmtRes.get();
+			} else {
+				// Final expression: evaluate and return
+				return evaluateExpression(part, valEnv, typeEnv);
+			}
+		}
+		return new Result.Err<>(source);
+	}
+
+	private java.util.Optional<Result<String, String>> handleStatement(String stmt, java.util.Map<String, String> valEnv,
+			java.util.Map<String, String> typeEnv, String source) {
+		String s = stmt.trim();
+		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
+		if (!parsed.isPresent())
+			return java.util.Optional.of(new Result.Err<>(source));
+		LetDeclaration d = parsed.get();
+		Result<String, String> rhsVal = evaluateExpression(d.rhs, valEnv, typeEnv);
+		if (rhsVal instanceof Result.Err)
+			return java.util.Optional.of(rhsVal);
+		String value = ((Result.Ok<String, String>) rhsVal).value();
+		if (!d.annotatedSuffix.isEmpty()) {
+			java.util.Optional<Result<String, String>> v = validateAnnotatedSuffix(d.annotatedSuffix, value, source);
+			if (v.isPresent())
+				return v;
+			typeEnv.put(d.name, d.annotatedSuffix);
+		}
+		valEnv.put(d.name, value);
+		return java.util.Optional.empty();
+	}
+
+	// Small helper to represent a parsed let declaration
+	private static final class LetDeclaration {
+		final String name;
+		final String annotatedSuffix;
+		final String rhs;
+
+		LetDeclaration(String name, String annotatedSuffix, String rhs) {
+			this.name = name;
+			this.annotatedSuffix = annotatedSuffix;
+			this.rhs = rhs;
+		}
+	}
+
+	// Parse a let declaration of the form: let <ident> (':' <suffix>)? '=' <expr>
+	private java.util.Optional<LetDeclaration> parseLetDeclaration(String s) {
+		if (!s.startsWith("let "))
+			return java.util.Optional.empty();
+		int idx = 4; // after 'let '
+		int len = s.length();
+		while (idx < len && Character.isWhitespace(s.charAt(idx)))
+			idx++;
+		int idStart = idx;
+		if (idx >= len || !Character.isJavaIdentifierStart(s.charAt(idx)))
+			return java.util.Optional.empty();
+		idx++;
+		while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx)))
+			idx++;
+		String name = s.substring(idStart, idx);
+		while (idx < len && Character.isWhitespace(s.charAt(idx)))
+			idx++;
+		String annotatedSuffix = "";
+		if (idx < len && s.charAt(idx) == ':') {
+			idx++;
+			int sufStart = idx;
+			while (idx < len && s.charAt(idx) != '=')
+				idx++;
+			annotatedSuffix = s.substring(sufStart, idx).trim();
+		}
+		int eq = s.indexOf('=', idx);
+		if (eq < 0)
+			return java.util.Optional.empty();
+		String rhs = s.substring(eq + 1).trim();
+		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, rhs));
+	}
+
+	private java.util.Optional<Result<String, String>> validateAnnotatedSuffix(String annotatedSuffix, String value,
+			String source) {
+		if (!isValidSuffix(annotatedSuffix))
+			return java.util.Optional.of(new Result.Err<>(source));
+		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));
+		int width;
+		try {
+			width = Integer.parseInt(annotatedSuffix.substring(1));
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(source));
+		}
+		try {
+			java.math.BigInteger val = new java.math.BigInteger(value);
+			if (kind == 'U') {
+				if (val.signum() < 0 || !fitsUnsigned(val, width))
+					return java.util.Optional.of(new Result.Err<>(source));
+			} else if (kind == 'I') {
+				if (!fitsSigned(val, width))
+					return java.util.Optional.of(new Result.Err<>(source));
+			} else {
+				return java.util.Optional.of(new Result.Err<>(source));
+			}
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(source));
+		}
+		return java.util.Optional.empty();
+	}
+
+	private Result<String, String> evaluateExpression(String expr, java.util.Map<String, String> valEnv,
+			java.util.Map<String, String> typeEnv) {
+		String s = expr.trim();
+		// variable reference
+		if (isSimpleIdentifier(s)) {
+			if (valEnv.containsKey(s))
+				return new Result.Ok<>(valEnv.get(s));
+			return new Result.Err<>(expr);
+		}
+		// addition
+		java.util.Optional<Result<String, String>> addRes = tryEvaluateAddition(s);
+		if (addRes.isPresent())
+			return addRes.get();
+		// literal/typed-literal
+		ParseResult pr = parseSignAndDigits(s);
+		if (!pr.valid)
+			return new Result.Err<>(expr);
+		if (pr.suffix.isEmpty())
+			return new Result.Ok<>(pr.integerPart);
+		return evaluateTypedSuffix(pr, expr);
+	}
+
+	private boolean isSimpleIdentifier(String s) {
+		if (Objects.isNull(s) || s.isEmpty())
+			return false;
+		if (!Character.isJavaIdentifierStart(s.charAt(0)))
+			return false;
+		for (int i = 1; i < s.length(); i++) {
+			if (!Character.isJavaIdentifierPart(s.charAt(i)))
+				return false;
+		}
+		return true;
 	}
 
 	// Small helper struct to hold parse results
@@ -122,7 +276,7 @@ public class Interpreter {
 		// If either side has a suffix, we allow three cases:
 		// 1) both have suffixes and they match exactly (same kind and width)
 		// 2) one has a suffix and the other doesn't: the untyped side is accepted
-		//    only if its value fits into the typed width/kind of the typed side
+		// only if its value fits into the typed width/kind of the typed side
 		// 3) mixed kinds/widths (e.g., U vs I or different widths) are invalid
 		// Validate typed/untyped suffixes; if invalid, return Err wrapped in Optional
 		java.util.Optional<Result<String, String>> suffixCheck = validateTypedOperands(leftPr, rightPr, s);
@@ -139,7 +293,8 @@ public class Interpreter {
 	}
 
 	// Helper to validate typed/untyped operands for addition.
-	private java.util.Optional<Result<String, String>> validateTypedOperands(ParseResult leftPr, ParseResult rightPr, String source) {
+	private java.util.Optional<Result<String, String>> validateTypedOperands(ParseResult leftPr, ParseResult rightPr,
+			String source) {
 		boolean leftHas = !leftPr.suffix.isEmpty();
 		boolean rightHas = !rightPr.suffix.isEmpty();
 		if (!leftHas && !rightHas)
@@ -149,7 +304,8 @@ public class Interpreter {
 		return validateOneTyped(leftPr, rightPr, source);
 	}
 
-	private java.util.Optional<Result<String, String>> validateBothTyped(ParseResult leftPr, ParseResult rightPr, String source) {
+	private java.util.Optional<Result<String, String>> validateBothTyped(ParseResult leftPr, ParseResult rightPr,
+			String source) {
 		if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
 			return java.util.Optional.of(new Result.Err<>(source));
 		String l = leftPr.suffix.toUpperCase();
@@ -159,7 +315,8 @@ public class Interpreter {
 		return java.util.Optional.empty();
 	}
 
-	private java.util.Optional<Result<String, String>> validateOneTyped(ParseResult leftPr, ParseResult rightPr, String source) {
+	private java.util.Optional<Result<String, String>> validateOneTyped(ParseResult leftPr, ParseResult rightPr,
+			String source) {
 		boolean leftHas = !leftPr.suffix.isEmpty();
 		String typedSuffix = leftHas ? leftPr.suffix : rightPr.suffix;
 		String untypedInteger = leftHas ? rightPr.integerPart : leftPr.integerPart;

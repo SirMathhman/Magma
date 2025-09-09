@@ -27,6 +27,18 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void interpretUntypedAndTypedAddition_returnsSum() {
+		// Symmetric acceptance: typed operand may be on the right-hand side
+		TestUtils.assertValid("1 + 2U8", "3");
+	}
+
+	@Test
+	public void interpretLetBinding_andVariableLookup_returnsValue() {
+		// New feature: let binding with type annotation and subsequent lookup
+		TestUtils.assertValid("let x : I32 = 3; x", "3");
+	}
+
+	@Test
 	public void additionWithMismatchedTypedOperands_isErr() {
 		// Mixed unsigned/signed width should be invalid per new acceptance criteria
 		TestUtils.assertInvalid("1U8 + 2I32");
