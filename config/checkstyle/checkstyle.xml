@@ -19,6 +19,12 @@
 			<property name="illegalClasses" value="" />
 			<property name="severity" value="error" />
 		</module>
+
+		<!-- Enforce cyclomatic complexity maximum per method -->
+		<module name="CyclomaticComplexity">
+			<property name="max" value="15" />
+			<property name="severity" value="error" />
+		</module>
 	</module>
 
 	<!-- Catch fully-qualified references like java.util.regex.Pattern or Matcher in code -->
