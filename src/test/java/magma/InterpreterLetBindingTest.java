@@ -13,4 +13,9 @@ public class InterpreterLetBindingTest {
 		Result.Ok<String, InterpretError> ok = (Result.Ok<String, InterpretError>) res;
 		assertEquals("3", ok.value());
 	}
+
+	@Test
+	public void annotatedLetBinding_withTypedLiteral_returnsValue() {
+		TestUtils.assertValid("let x : U8 = 3U8; x", "3");
+	}
 }

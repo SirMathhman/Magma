@@ -14,10 +14,14 @@ Additional files:
 
 Interpreter API
 
-- `src/main/java/magma/Interpreter.java` now provides a method `interpret(String source, String input)` that will eventually interpret source code and return a result string. Currently it is a stub and always throws `InterpretException`.
-- As of this change, `Interpreter.interpret` recognizes simple integer literal programs; e.g. `interpret("5", "")` now returns `Result.Ok("5")`.
-- The interpreter also accepts typed integer suffixes. For example `interpret("5I32", "")` will return `Result.Ok("5")` (the suffix is ignored for now).
-- `src/main/java/magma/InterpretException.java` defines `InterpretException` which carries both an error message and the offending source string. The exception message is formatted as `message + ": " + source` and you can retrieve the raw source via `getSource()`.
+- `src/main/java/magma/Interpreter.java` provides `interpret(String source, String input)` which evaluates small programs and returns a `Result<String, InterpretError>`.
+- The interpreter supports:
+    - integer literals (e.g. `"5"` -> `"5"`),
+    - typed integer literals with suffixes like `U8`, `I32` (e.g. `"255U8"` -> `"255"`),
+    - simple addition of two integers (with optional compatible typed suffixes), and
+    - semicolon-separated sequences with `let` bindings. Example: `let x : U8 = 3U8; x` evaluates to `"3"`.
+
+Tests include `src/test/java/magma/InterpreterLetBindingTest.java` which verifies both unannotated and annotated `let` bindings.
 
 Build & run
 
