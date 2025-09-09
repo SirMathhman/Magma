@@ -1,3 +1,37 @@
+# Architecture changes: typed integer literal handling
+
+Goal
+----
+Allow arithmetic between a typed integer literal (e.g. `1U8`) and an untyped integer literal (e.g. `2`). When one operand has a typed suffix and the other doesn't, the untyped operand should be treated as the same type for the purpose of range checking and arithmetic. For example: `Interpreter.interpret("1U8 + 2")` => `"3"`.
+
+Files/Modules affected
+----------------------
+- `src/main/java/magma/Interpreter.java` — change addition evaluation logic to allow mixed typed/untyped operands when compatible.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add new failing test expressing the desired behavior.
+
+Inputs/Outputs/Errors (contract)
+--------------------------------
+- Input: source strings representing simple integer arithmetic, e.g. `"1U8 + 2"`.
+- Output: `Result.Ok` with the decimal sum as a string when evaluation succeeds (e.g. `"3"`).
+- Errors: return `Result.Err` when parsing fails, types are mismatched, or values don't fit the typed width.
+
+Migration / Compatibility notes
+------------------------------
+Existing behavior required both operands to have matching typed suffixes when either had a suffix. This change relaxes that to allow an untyped literal to participate if it fits into the typed width of the other operand. Mixed typed kinds (e.g., `U` vs `I`) remain invalid.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java` — new test `interpretTypedAndUntypedAddition_returnsSum` asserting `TestUtils.assertValid("1U8 + 2", "3")`.
+
+Quality gates
+-------------
+- New test must fail initially (red).
+- After implementation, `mvn -DskipTests=false test` must pass all tests.
+- `mvn package` must build without errors; address checkstyle issues as needed.
+
+Notes
+-----
+If the untyped literal is too large for the typed width (e.g., `1U8 + 300`), behavior should remain `Err` due to overflow constraints.
 # Interpreter: typed integer literals + simple addition
 
 Goal

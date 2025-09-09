@@ -119,22 +119,15 @@ public class Interpreter {
 		if (!leftPr.valid || !rightPr.valid)
 			return java.util.Optional.empty();
 
-		// If either side has a suffix, both must have valid typed suffixes and they
-		// must match exactly (same kind and width). Mixed typed arithmetic is
-		// considered invalid per acceptance criteria (e.g., 1U8 + 2I32 -> Err).
-		boolean leftHas = !leftPr.suffix.isEmpty();
-		boolean rightHas = !rightPr.suffix.isEmpty();
-		if (leftHas || rightHas) {
-			if (!leftHas || !rightHas)
-				return java.util.Optional.of(new Result.Err<>(s));
-			if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
-				return java.util.Optional.of(new Result.Err<>(s));
-			// Normalize to uppercase for comparison
-			String l = leftPr.suffix.toUpperCase();
-			String r = rightPr.suffix.toUpperCase();
-			if (!l.equals(r))
-				return java.util.Optional.of(new Result.Err<>(s));
-		}
+		// If either side has a suffix, we allow three cases:
+		// 1) both have suffixes and they match exactly (same kind and width)
+		// 2) one has a suffix and the other doesn't: the untyped side is accepted
+		//    only if its value fits into the typed width/kind of the typed side
+		// 3) mixed kinds/widths (e.g., U vs I or different widths) are invalid
+		// Validate typed/untyped suffixes; if invalid, return Err wrapped in Optional
+		java.util.Optional<Result<String, String>> suffixCheck = validateTypedOperands(leftPr, rightPr, s);
+		if (suffixCheck.isPresent())
+			return suffixCheck;
 
 		try {
 			java.math.BigInteger a = new java.math.BigInteger(leftPr.integerPart);
@@ -143,6 +136,60 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			return java.util.Optional.empty();
 		}
+	}
+
+	// Helper to validate typed/untyped operands for addition.
+	private java.util.Optional<Result<String, String>> validateTypedOperands(ParseResult leftPr, ParseResult rightPr, String source) {
+		boolean leftHas = !leftPr.suffix.isEmpty();
+		boolean rightHas = !rightPr.suffix.isEmpty();
+		if (!leftHas && !rightHas)
+			return java.util.Optional.empty();
+		if (leftHas && rightHas)
+			return validateBothTyped(leftPr, rightPr, source);
+		return validateOneTyped(leftPr, rightPr, source);
+	}
+
+	private java.util.Optional<Result<String, String>> validateBothTyped(ParseResult leftPr, ParseResult rightPr, String source) {
+		if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
+			return java.util.Optional.of(new Result.Err<>(source));
+		String l = leftPr.suffix.toUpperCase();
+		String r = rightPr.suffix.toUpperCase();
+		if (!l.equals(r))
+			return java.util.Optional.of(new Result.Err<>(source));
+		return java.util.Optional.empty();
+	}
+
+	private java.util.Optional<Result<String, String>> validateOneTyped(ParseResult leftPr, ParseResult rightPr, String source) {
+		boolean leftHas = !leftPr.suffix.isEmpty();
+		String typedSuffix = leftHas ? leftPr.suffix : rightPr.suffix;
+		String untypedInteger = leftHas ? rightPr.integerPart : leftPr.integerPart;
+		if (!isValidSuffix(typedSuffix))
+			return java.util.Optional.of(new Result.Err<>(source));
+		char kind = Character.toUpperCase(typedSuffix.charAt(0));
+		int width;
+		try {
+			width = Integer.parseInt(typedSuffix.substring(1));
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(source));
+		}
+		if (!(width == 8 || width == 16 || width == 32 || width == 64))
+			return java.util.Optional.of(new Result.Err<>(source));
+		try {
+			java.math.BigInteger untypedVal = new java.math.BigInteger(untypedInteger);
+			if (kind == 'U') {
+				if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
+					return java.util.Optional.of(new Result.Err<>(source));
+				return java.util.Optional.empty();
+			}
+			if (kind == 'I') {
+				if (!fitsSigned(untypedVal, width))
+					return java.util.Optional.of(new Result.Err<>(source));
+				return java.util.Optional.empty();
+			}
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(source));
+		}
+		return java.util.Optional.of(new Result.Err<>(source));
 	}
 
 	private Result<String, String> evaluateTypedSuffix(ParseResult pr, String source) {
