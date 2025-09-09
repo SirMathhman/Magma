@@ -119,12 +119,22 @@ public class Interpreter {
 		if (!leftPr.valid || !rightPr.valid)
 			return java.util.Optional.empty();
 
-		// If suffixes exist, they must be valid typed suffixes (we don't enforce range
-		// here)
-		if (!leftPr.suffix.isEmpty() && !isValidSuffix(leftPr.suffix))
-			return java.util.Optional.empty();
-		if (!rightPr.suffix.isEmpty() && !isValidSuffix(rightPr.suffix))
-			return java.util.Optional.empty();
+		// If either side has a suffix, both must have valid typed suffixes and they
+		// must match exactly (same kind and width). Mixed typed arithmetic is
+		// considered invalid per acceptance criteria (e.g., 1U8 + 2I32 -> Err).
+		boolean leftHas = !leftPr.suffix.isEmpty();
+		boolean rightHas = !rightPr.suffix.isEmpty();
+		if (leftHas || rightHas) {
+			if (!leftHas || !rightHas)
+				return java.util.Optional.of(new Result.Err<>(s));
+			if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
+				return java.util.Optional.of(new Result.Err<>(s));
+			// Normalize to uppercase for comparison
+			String l = leftPr.suffix.toUpperCase();
+			String r = rightPr.suffix.toUpperCase();
+			if (!l.equals(r))
+				return java.util.Optional.of(new Result.Err<>(s));
+		}
 
 		try {
 			java.math.BigInteger a = new java.math.BigInteger(leftPr.integerPart);

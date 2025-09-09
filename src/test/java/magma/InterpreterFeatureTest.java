@@ -19,4 +19,10 @@ public class InterpreterFeatureTest {
 	public void additionWithTypedOperands_returnsSum() {
 		TestUtils.assertOkOutput("1U8 + 2U8", "3");
 	}
+
+	@Test
+	public void additionWithMismatchedTypedOperands_isErr() {
+		// Mixed unsigned/signed width should be invalid per new acceptance criteria
+		TestUtils.assertErr("1U8 + 2I32");
+	}
 }

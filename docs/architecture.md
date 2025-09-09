@@ -29,6 +29,7 @@ Tests added
 -----------
 - `src/test/java/magma/InterpreterFeatureTest.java`
   - `interpretSimpleAddition_returnsSum` asserts that `interpret("1 + 2", "")` returns `Ok("3")`.
+  - `additionWithMismatchedTypedOperands_isErr` asserts that `interpret("1U8 + 2I32", "")` returns `Err` per the updated acceptance criteria (mixed typed integer arithmetic is invalid).
 - Existing `InterpreterTypedLiteralTest.java` continues to validate typed literal parsing and range checks.
 
 Quality gates
