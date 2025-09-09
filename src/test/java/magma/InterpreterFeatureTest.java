@@ -107,6 +107,6 @@ public class InterpreterFeatureTest {
 
 	@Test
 	public void ifAssigns() {
-		TestUtils.assertValid("let x : I32; if (true) x = 3; else x = 5; x", "3");
+		TestUtils.assertValid("let x : I32; if (true) x = 3 else x = 5; x", "3");
 	}
 }
