@@ -1,7 +1,14 @@
 <?xml version="1.0"?>
-<!DOCTYPE module PUBLIC
-    "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN"
-    "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
-    <!-- Intentionally no checks defined. This file exists so Checkstyle runs but enforces no rules. -->
+	<!-- Intentionally no checks defined. This file exists so Checkstyle runs but enforces no rules. -->
+	<!-- Ban use of 'throw' and 'throws'; enforce using Result<T,E> instead -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\bthrow\b"/>
+		<property name="message" value="Usage of 'throw' is banned; use Result&lt;T,E&gt; instead."/>
+	</module>
+	<module name="RegexpSingleline">
+		<property name="format" value="\bthrows\b"/>
+		<property name="message" value="Usage of 'throws' is banned; use Result&lt;T,E&gt; instead."/>
+	</module>
 </module>

@@ -10,15 +10,15 @@ public class Interpreter {
 	 * Interpret the given source with the provided input and produce a result
 	 * string.
 	 *
-	 * Currently this method is a stub and will always throw an InterpretException.
+	 * Currently this method is a stub and returns an error Result containing the
+	 * offending source.
 	 *
 	 * @param source the source code to interpret
 	 * @param input  the runtime input for the program
-	 * @return the result of interpretation as a String (not implemented)
-	 * @throws InterpretException always thrown for now with message "Invalid
-	 *                            source"
+	 * @return the result of interpretation wrapped in a Result (Ok or Err)
 	 */
-	public String interpret(String source, String input) throws InterpretException {
-		throw new InterpretException("Invalid source", source);
+	public Result<String, String> interpret(String source, String input) {
+		// stub: return Err containing the source as the error value
+		return new Result.Err<>(source);
 	}
 }

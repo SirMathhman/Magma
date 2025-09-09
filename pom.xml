@@ -53,14 +53,14 @@
 				<version>3.2.2</version>
 				<configuration>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
-					<encoding>${project.build.sourceEncoding}</encoding>
 					<consoleOutput>true</consoleOutput>
-					<failOnViolation>false</failOnViolation>
+					<!-- Fail the build on violations to enforce the ban on throw/throws -->
+					<failOnViolation>true</failOnViolation>
 				</configuration>
 				<executions>
 					<execution>
 						<id>checkstyle</id>
-						<phase>verify</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>check</goal>
 						</goals>
