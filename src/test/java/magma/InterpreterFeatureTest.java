@@ -43,4 +43,16 @@ public class InterpreterFeatureTest {
 		// Mixed unsigned/signed width should be invalid per new acceptance criteria
 		TestUtils.assertInvalid("1U8 + 2I32");
 	}
+
+	@Test
+	public void letTypedMismatchErr() {
+		// Assigning a typed literal with different signedness/width to a typed let should be invalid
+		TestUtils.assertInvalid("let x : U8 = 3I32; x");
+	}
+
+	@Test
+	public void letOnlyReturnsEmpty() {
+		// A program that contains only a let-binding (no final expression) should return an empty string
+		TestUtils.assertValid("let x : U8 = 3;", "");
+	}
 }

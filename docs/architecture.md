@@ -1,3 +1,37 @@
+Title: Enforce typed-literal vs annotated type compatibility
+
+Goal
+----
+Make assignments with an explicit type annotation reject RHS typed literals that have a different kind (U vs I) or width (8/16/32/64), even when the numeric value would fit the annotated type. Example: `let x : U8 = 3I32; x` should be invalid.
+
+Files/Modules affected
+----------------------
+- `src/main/java/magma/Interpreter.java` - add a compatibility check in let-binding handling to reject mismatched typed RHS literals.
+- `src/test/java/magma/InterpreterFeatureTest.java` - add a failing acceptance test `letTypedMismatchErr` that asserts the behavior.
+
+Inputs/Outputs/Errors (contract)
+--------------------------------
+- Input: source code string containing a `let` binding with an annotated type and an RHS expression.
+- Output: Interpretation Result. If RHS is a typed literal (has a suffix like `I32` or `U8`) and the annotated type suffix differs (case-insensitive mismatch in kind or width), interpretation must fail with an interpret error.
+- Error modes: invalid typed literal, mismatched typed literal vs annotated type, value not fitting annotated type.
+
+Migration / Compatibility notes
+------------------------------
+This change tightens type compatibility for let-bindings only when the RHS is a typed literal. Untyped literals and expressions retain existing coercion rules (e.g., untyped literal fits into annotated typed variable if numeric range allows). This is a minor behavioral change that may make previously-accepted programs invalid when they mix explicit type suffixes in RHS with a different annotated type.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::letTypedMismatchErr` - asserts `Interpreter.interpret("let x : U8 = 3I32; x")` is invalid.
+
+Quality gates
+-------------
+- Build: `mvn package` must succeed
+- Tests: new and existing tests must pass
+- Lint: keep changes minimal to avoid checkstyle violations
+
+Notes
+-----
+This is a small, localized change: detect typed suffix on RHS text during let-binding handling and compare to annotation. If RHS is not a literal (has no suffix), existing numeric-range coercion continues to apply.
 ## Interpreter: typed integer literals, addition, and let bindings (compact)
 
 Goal

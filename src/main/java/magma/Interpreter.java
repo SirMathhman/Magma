@@ -49,7 +49,9 @@ public class Interpreter {
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
 	private Result<String, InterpretError> evaluateSequence(String source) {
-		String[] parts = source.split(";");
+		// Use split with negative limit to preserve trailing empty segments
+		// so that a trailing semicolon produces an empty final part.
+		String[] parts = source.split(";", -1);
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
 		for (int i = 0; i < parts.length; i++) {
@@ -66,7 +68,10 @@ public class Interpreter {
 				return evaluateExpression(part, valEnv, typeEnv);
 			}
 		}
-	return new Result.Err<>(new InterpretError("invalid program sequence", source));
+		// If we reached the end without a final expression (e.g., trailing semicolon or
+		// only statements),
+		// return empty string as the program result.
+		return new Result.Ok<>("");
 	}
 
 	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt,
@@ -82,6 +87,17 @@ public class Interpreter {
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
 		if (!d.annotatedSuffix.isEmpty()) {
+			// If the RHS is a typed literal (has a suffix), ensure it matches the annotated
+			// suffix
+			ParseResult rhsPr = parseSignAndDigits(d.rhs.trim());
+			if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
+				// normalized comparison: suffix strings must match exactly in kind and width
+				String ann = d.annotatedSuffix.toUpperCase();
+				String rhsSuf = rhsPr.suffix.toUpperCase();
+				if (!ann.equals(rhsSuf))
+					return java.util.Optional
+							.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
+			}
 			java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, source);
 			if (v.isPresent())
 				return v;
@@ -152,10 +168,12 @@ public class Interpreter {
 			java.math.BigInteger val = new java.math.BigInteger(value);
 			if (kind == 'U') {
 				if (val.signum() < 0 || !fitsUnsigned(val, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
+					return java.util.Optional
+							.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
 			} else if (kind == 'I') {
 				if (!fitsSigned(val, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
+					return java.util.Optional
+							.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
 			} else {
 				return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown type kind", source)));
 			}
@@ -338,12 +356,14 @@ public class Interpreter {
 			java.math.BigInteger untypedVal = new java.math.BigInteger(untypedInteger);
 			if (kind == 'U') {
 				if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
+					return java.util.Optional
+							.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
 				return java.util.Optional.empty();
 			}
 			if (kind == 'I') {
 				if (!fitsSigned(untypedVal, width))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
+					return java.util.Optional
+							.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
 				return java.util.Optional.empty();
 			}
 		} catch (NumberFormatException ex) {
