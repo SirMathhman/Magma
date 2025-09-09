@@ -39,6 +39,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void letExprReturns5() {
+		// let with RHS expression and subsequent lookup should evaluate the expression
+		TestUtils.assertValid("let x = 3 + 2; x", "5");
+	}
+
+	@Test
 	public void mismatchedTypedErr() {
 		// Mixed unsigned/signed width should be invalid per new acceptance criteria
 		TestUtils.assertInvalid("1U8 + 2I32");
