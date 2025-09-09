@@ -44,3 +44,5 @@ Code style and banned APIs
 - Usage of `java.util.regex` (both imports and fully-qualified references such as `java.util.regex.Pattern`) is banned by Checkstyle. This is intentional: prefer the project's parser utilities or a designated regex wrapper library that centralizes pattern usage and avoids ad-hoc regex in business logic.
 
 - New: Checkstyle now enforces a maximum method name length of 20 characters. Long method names (21+ chars) will fail the build. The rule is configured in `config/checkstyle/checkstyle.xml`.
+ 
+- New: Checkstyle now enforces a maximum number of parameters per method or constructor (3 parameters max). Methods or constructors with more than 3 parameters will fail the Checkstyle step. This rule is configured in `config/checkstyle/checkstyle.xml` under the `ParameterNumber` module.

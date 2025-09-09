@@ -32,6 +32,12 @@
 			<property name="format" value="^[A-Za-z][A-Za-z0-9]{0,19}$" />
 			<property name="severity" value="error" />
 		</module>
+
+		<!-- Enforce maximum number of parameters per method/constructor -->
+		<module name="ParameterNumber">
+			<property name="max" value="3" />
+			<property name="severity" value="error" />
+		</module>
 	</module>
 
 	<!-- Catch fully-qualified references like java.util.regex.Pattern or Matcher in code -->

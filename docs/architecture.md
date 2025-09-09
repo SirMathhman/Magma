@@ -61,6 +61,7 @@ Contract (inputs/outputs/errors)
 Acceptance tests added
 -----------------------
 - `src/test/java/magma/InterpreterLetBindingTest.java`: verifies that an unannotated `let` binding followed by a variable lookup evaluates to the RHS value. Example: `let x = 3; x` should produce `"3"`.
+ - `src/test/java/magma/InterpreterFeatureTest.java::literalTrue` - verifies that boolean literal `true` is accepted and returns `"true"`.
 
 Quality gates & status
 ----------------------

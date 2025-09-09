@@ -98,4 +98,10 @@ public class InterpreterFeatureTest {
 		// invalid
 		TestUtils.assertInvalid("let x : I32; x");
 	}
+
+	@Test
+	public void literalTrue() {
+		// Boolean literal true should be accepted and returned as "true"
+		TestUtils.assertValid("true", "true");
+	}
 }

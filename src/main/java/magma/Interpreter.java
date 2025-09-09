@@ -30,20 +30,13 @@ public class Interpreter {
 		if (s.contains(";"))
 			return evaluateSequence(s);
 
-		// Attempt simple addition before falling back to literal parsing
-		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
-		if (addRes.isPresent())
-			return addRes.get();
-		ParseResult pr = parseSignAndDigits(s);
-		if (!pr.valid)
-			return new Result.Err<>(new InterpretError("invalid literal", source));
-
-		// No suffix -> accept as-is
-		if (pr.suffix.isEmpty())
-			return new Result.Ok<>(pr.integerPart);
-
-		// Delegate typed-suffix handling to a helper to keep complexity low
-		return evaluateTypedSuffix(pr, source);
+		// For single-expression programs, evaluate the expression with empty
+		// environments so that expression handling (including literals,
+		// boolean literals, addition, and typed literals) is centralized in
+		// evaluateExpression(...).
+		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
+		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
+		return evaluateExpression(s, valEnv, typeEnv);
 	}
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
@@ -327,6 +320,9 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateExpression(String expr, java.util.Map<String, String> valEnv,
 			java.util.Map<String, String> typeEnv) {
 		String s = expr.trim();
+		// Boolean literals
+		if (s.equals("true") || s.equals("false"))
+			return new Result.Ok<>(s);
 		// variable reference
 		if (isSimpleIdentifier(s)) {
 			if (valEnv.containsKey(s))
