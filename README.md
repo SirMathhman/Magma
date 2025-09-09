@@ -8,6 +8,10 @@ Files added:
 - `src/main/java/magma/App.java` - Simple Hello World application
 - `README.md` - This file
 
+Additional files:
+
+- `src/main/java/magma/Interpreter.java` - Empty placeholder class for future interpreter features
+
 Build & run
 
 If you have Maven installed, build with:
