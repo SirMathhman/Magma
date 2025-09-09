@@ -45,6 +45,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void letMutAssign100() {
+		// Mutable let should allow assignment and subsequent lookup should reflect the new value
+		TestUtils.assertValid("let mut x = 0; x = 100; x", "100");
+	}
+
+	@Test
 	public void mismatchedTypedErr() {
 		// Mixed unsigned/signed width should be invalid per new acceptance criteria
 		TestUtils.assertInvalid("1U8 + 2I32");

@@ -3,17 +3,16 @@ package magma;
 import java.util.Objects;
 
 /**
- * Interpreter provides functionality to interpret source code with a given
- * input.
+ * Interpreter for a tiny language used by the project tests.
  */
 public class Interpreter {
+	private java.util.Optional<Result<String, InterpretError>> err(String msg, String source) {
+		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
+	}
 
 	/**
 	 * Interpret the given source with the provided input and produce a result
-	 * string.
-	 *
-	 * Currently this method is a stub and returns an error Result containing the
-	 * offending source.
+	 * wrapped in a Result (Ok or Err).
 	 *
 	 * @param source the source code to interpret
 	 * @param input  the runtime input for the program
@@ -54,13 +53,15 @@ public class Interpreter {
 		String[] parts = source.split(";", -1);
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
+		java.util.Map<String, Boolean> mutEnv = new java.util.HashMap<>();
 		for (int i = 0; i < parts.length; i++) {
 			String part = parts[i].trim();
 			if (part.isEmpty())
 				continue;
 			if (i < parts.length - 1) {
-				// Statement position: expect a let-binding
-				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, valEnv, typeEnv, source);
+				// Statement position: expect a let-binding or assignment
+				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, valEnv, typeEnv, mutEnv,
+						source);
 				if (stmtRes.isPresent())
 					return stmtRes.get();
 			} else {
@@ -76,34 +77,97 @@ public class Interpreter {
 
 	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt,
 			java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv, String source) {
+			java.util.Map<String, String> typeEnv,
+			java.util.Map<String, Boolean> mutEnv,
+			String source) {
 		String s = stmt.trim();
+		// Support assignment statements: <ident> = <expr>
+		int eqIdx = s.indexOf('=');
+		if (eqIdx > 0 && !s.startsWith("let ")) {
+			return handleAssignment(s, eqIdx, valEnv, typeEnv, mutEnv, source);
+		}
 		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
 		if (!parsed.isPresent())
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", source)));
 		LetDeclaration d = parsed.get();
-		Result<String, InterpretError> rhsVal = evaluateExpression(d.rhs, valEnv, typeEnv);
+		return handleLetDeclaration(d, valEnv, typeEnv, mutEnv, source);
+	}
+
+	// Helper to process let declarations (extracted to reduce complexity)
+	private java.util.Optional<Result<String, InterpretError>> handleLetDeclaration(LetDeclaration d,
+			java.util.Map<String, String> valEnv,
+			java.util.Map<String, String> typeEnv,
+			java.util.Map<String, Boolean> mutEnv,
+			String source) {
+		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, valEnv, typeEnv);
+		if (rhsRes instanceof Result.Err)
+			return java.util.Optional.of((Result<String, InterpretError>) rhsRes);
+		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
+		java.util.Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, typeEnv, source);
+		if (annRes.isPresent())
+			return annRes;
+		valEnv.put(d.name, value);
+		// Record mutability
+		mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
+		return java.util.Optional.empty();
+	}
+
+	private Result<String, InterpretError> getRhsValue(String rhs,
+			java.util.Map<String, String> valEnv,
+			java.util.Map<String, String> typeEnv) {
+		return evaluateExpression(rhs, valEnv, typeEnv);
+	}
+
+	// Validate annotated suffix for a let declaration and record the annotation in
+	// typeEnv
+	private java.util.Optional<Result<String, InterpretError>> recordAnn(LetDeclaration d,
+			String value,
+			java.util.Map<String, String> typeEnv,
+			String source) {
+		if (d.annotatedSuffix.isEmpty())
+			return java.util.Optional.empty();
+		java.util.Optional<Result<String, InterpretError>> check = chkRhs(d.annotatedSuffix, d.rhs, source);
+		if (check.isPresent())
+			return check;
+		java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, source);
+		if (v.isPresent())
+			return v;
+		typeEnv.put(d.name, d.annotatedSuffix);
+		return java.util.Optional.empty();
+	}
+
+	private java.util.Optional<Result<String, InterpretError>> chkRhs(String annSuffix, String rhs, String source) {
+		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
+		if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
+			String ann = annSuffix.toUpperCase();
+			String rhsSuf = rhsPr.suffix.toUpperCase();
+			if (!ann.equals(rhsSuf))
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
+		}
+		return java.util.Optional.empty();
+	}
+
+	// Helper to handle assignment statements to reduce complexity
+	private java.util.Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx,
+			java.util.Map<String, String> valEnv,
+			java.util.Map<String, String> typeEnv,
+			java.util.Map<String, Boolean> mutEnv,
+			String source) {
+		String lhs = stmt.substring(0, eqIdx).trim();
+		String rhs = stmt.substring(eqIdx + 1).trim();
+		if (!isSimpleIdentifier(lhs))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid assignment lhs", source)));
+		if (!valEnv.containsKey(lhs))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", source)));
+		Boolean isMut = mutEnv.getOrDefault(lhs, Boolean.FALSE);
+		if (!isMut)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", source)));
+		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, valEnv, typeEnv);
 		if (rhsVal instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
-		if (!d.annotatedSuffix.isEmpty()) {
-			// If the RHS is a typed literal (has a suffix), ensure it matches the annotated
-			// suffix
-			ParseResult rhsPr = parseSignAndDigits(d.rhs.trim());
-			if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
-				// normalized comparison: suffix strings must match exactly in kind and width
-				String ann = d.annotatedSuffix.toUpperCase();
-				String rhsSuf = rhsPr.suffix.toUpperCase();
-				if (!ann.equals(rhsSuf))
-					return java.util.Optional
-							.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
-			}
-			java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, source);
-			if (v.isPresent())
-				return v;
-			typeEnv.put(d.name, d.annotatedSuffix);
-		}
-		valEnv.put(d.name, value);
+		valEnv.put(lhs, value);
 		return java.util.Optional.empty();
 	}
 
@@ -111,11 +175,13 @@ public class Interpreter {
 	private static final class LetDeclaration {
 		final String name;
 		final String annotatedSuffix;
+		final boolean mutable;
 		final String rhs;
 
-		LetDeclaration(String name, String annotatedSuffix, String rhs) {
+		LetDeclaration(String name, String annotatedSuffix, boolean mutable, String rhs) {
 			this.name = name;
 			this.annotatedSuffix = annotatedSuffix;
+			this.mutable = mutable;
 			this.rhs = rhs;
 		}
 	}
@@ -124,32 +190,67 @@ public class Interpreter {
 	private java.util.Optional<LetDeclaration> parseLetDeclaration(String s) {
 		if (!s.startsWith("let "))
 			return java.util.Optional.empty();
-		int idx = 4; // after 'let '
 		int len = s.length();
-		while (idx < len && Character.isWhitespace(s.charAt(idx)))
-			idx++;
-		int idStart = idx;
+		int idx = skipWs(s, 4, len); // after 'let '
+		boolean mutable = false;
+		// support optional 'mut' keyword: 'let mut x = ...'
+		if (s.startsWith("mut ", idx)) {
+			mutable = true;
+			idx = skipWs(s, idx + 4, len);
+		}
+		java.util.Optional<ParseId> pidOpt = parseId(s, idx, len);
+		if (!pidOpt.isPresent())
+			return java.util.Optional.empty();
+		ParseId pid = pidOpt.get();
+		String name = pid.name;
+		idx = skipWs(s, pid.idx, len);
+		String annotatedSuffix = parseAnnotatedSuffix(s, idx, len);
+		// find '=' after annotation (if any)
+		int eq = s.indexOf('=', idx);
+		if (eq < 0)
+			return java.util.Optional.empty();
+		String rhs = s.substring(eq + 1).trim();
+		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, mutable, rhs));
+	}
+
+	// helper to skip whitespace from index start up to len
+	private int skipWs(String s, int start, int len) {
+		int i = start;
+		while (i < len && Character.isWhitespace(s.charAt(i)))
+			i++;
+		return i;
+	}
+
+	// small helper to return parsed identifier and next index
+	private static final class ParseId {
+		final String name;
+		final int idx;
+
+		ParseId(String name, int idx) {
+			this.name = name;
+			this.idx = idx;
+		}
+	}
+
+	private java.util.Optional<ParseId> parseId(String s, int idx, int len) {
 		if (idx >= len || !Character.isJavaIdentifierStart(s.charAt(idx)))
 			return java.util.Optional.empty();
+		int start = idx;
 		idx++;
 		while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx)))
 			idx++;
-		String name = s.substring(idStart, idx);
-		while (idx < len && Character.isWhitespace(s.charAt(idx)))
-			idx++;
-		String annotatedSuffix = "";
+		return java.util.Optional.of(new ParseId(s.substring(start, idx), idx));
+	}
+
+	private String parseAnnotatedSuffix(String s, int idx, int len) {
 		if (idx < len && s.charAt(idx) == ':') {
 			idx++;
 			int sufStart = idx;
 			while (idx < len && s.charAt(idx) != '=')
 				idx++;
-			annotatedSuffix = s.substring(sufStart, idx).trim();
+			return s.substring(sufStart, idx).trim();
 		}
-		int eq = s.indexOf('=', idx);
-		if (eq < 0)
-			return java.util.Optional.empty();
-		String rhs = s.substring(eq + 1).trim();
-		return java.util.Optional.of(new LetDeclaration(name, annotatedSuffix, rhs));
+		return "";
 	}
 
 	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix,
@@ -158,29 +259,41 @@ public class Interpreter {
 		if (!isValidSuffix(annotatedSuffix))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", source)));
 		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));
-		int width;
+		int[] widthHolder = new int[1];
+		java.util.Optional<Result<String, InterpretError>> wErr = parseWidth(annotatedSuffix, widthHolder, source);
+		if (wErr.isPresent())
+			return wErr;
+		int width = widthHolder[0];
+		return checkFits(kind, width, value, source);
+	}
+
+	private java.util.Optional<Result<String, InterpretError>> parseWidth(String annotatedSuffix, int[] outWidth,
+			String source) {
 		try {
-			width = Integer.parseInt(annotatedSuffix.substring(1));
+			outWidth[0] = Integer.parseInt(annotatedSuffix.substring(1));
 		} catch (NumberFormatException ex) {
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
+		return java.util.Optional.empty();
+	}
+
+	private java.util.Optional<Result<String, InterpretError>> checkFits(char kind, int width, String value,
+			String source) {
 		try {
 			java.math.BigInteger val = new java.math.BigInteger(value);
 			if (kind == 'U') {
 				if (val.signum() < 0 || !fitsUnsigned(val, width))
-					return java.util.Optional
-							.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
+					return err("value does not fit annotated type", source);
+				return java.util.Optional.empty();
 			} else if (kind == 'I') {
 				if (!fitsSigned(val, width))
-					return java.util.Optional
-							.of(new Result.Err<>(new InterpretError("value does not fit annotated type", source)));
-			} else {
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown type kind", source)));
+					return err("value does not fit annotated type", source);
+				return java.util.Optional.empty();
 			}
+			return err("unknown type kind", source);
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer value", source)));
+			return err("invalid integer value", source);
 		}
-		return java.util.Optional.empty();
 	}
 
 	private Result<String, InterpretError> evaluateExpression(String expr, java.util.Map<String, String> valEnv,
@@ -341,6 +454,12 @@ public class Interpreter {
 		boolean leftHas = !leftPr.suffix.isEmpty();
 		String typedSuffix = leftHas ? leftPr.suffix : rightPr.suffix;
 		String untypedInteger = leftHas ? rightPr.integerPart : leftPr.integerPart;
+		return vTyped(typedSuffix, untypedInteger, source);
+	}
+
+	private java.util.Optional<Result<String, InterpretError>> vTyped(String typedSuffix,
+			String untypedInteger,
+			String source) {
 		if (!isValidSuffix(typedSuffix))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix", source)));
 		char kind = Character.toUpperCase(typedSuffix.charAt(0));
@@ -352,24 +471,29 @@ public class Interpreter {
 		}
 		if (!(width == 8 || width == 16 || width == 32 || width == 64))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("unsupported type width", source)));
+		java.math.BigInteger untypedVal;
 		try {
-			java.math.BigInteger untypedVal = new java.math.BigInteger(untypedInteger);
-			if (kind == 'U') {
-				if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
-					return java.util.Optional
-							.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
-				return java.util.Optional.empty();
-			}
-			if (kind == 'I') {
-				if (!fitsSigned(untypedVal, width))
-					return java.util.Optional
-							.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
-				return java.util.Optional.empty();
-			}
+			untypedVal = parseBigInteger(untypedInteger);
 		} catch (NumberFormatException ex) {
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in operand", source)));
 		}
+		if (kind == 'U') {
+			if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
+			return java.util.Optional.empty();
+		}
+		if (kind == 'I') {
+			if (!fitsSigned(untypedVal, width))
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
+			return java.util.Optional.empty();
+		}
 		return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed operand combination", source)));
+	}
+
+	private java.math.BigInteger parseBigInteger(String s) {
+		return new java.math.BigInteger(s);
 	}
 
 	private Result<String, InterpretError> evaluateTypedSuffix(ParseResult pr, String source) {
