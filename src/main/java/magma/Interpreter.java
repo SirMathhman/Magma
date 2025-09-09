@@ -296,6 +296,14 @@ public class Interpreter {
 
 	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value,
 			Env env) {
+		// Special-case Bool annotation which does not follow the <Letter><digits>
+ 		// pattern used by integer typed suffixes (e.g. U8, I32).
+		if (annotatedSuffix.equalsIgnoreCase("Bool")) {
+			// For Bool, the value must be a boolean literal string "true" or "false"
+			if ("true".equals(value) || "false".equals(value))
+				return java.util.Optional.empty();
+			return err("invalid boolean value for Bool annotation", env.source);
+		}
 		if (!isValidSuffix(annotatedSuffix))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
 		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));

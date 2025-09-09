@@ -1,3 +1,50 @@
+# Architecture change: support Bool type annotations in let-declarations
+
+Goal
+----
+Allow let-declarations to be annotated with the `Bool` type and accept boolean
+initializers such as `let x : Bool = true; x` which should evaluate to `true`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — extend type checking for annotated
+  suffixes to accept `Bool` and validate boolean initializers.
+- `src/test/java/magma/InterpreterLetBindingTest.java` — add a failing test for
+  the new behavior.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: source program string containing a semicolon-separated sequence with
+  a `let` declaration annotated with `: Bool` and a boolean initializer.
+- Output: on success, interpreter returns `Result.Ok` with the string
+  representation of the boolean value (`"true"` or `"false"`).
+- Error modes: if the annotated type is `Bool` but the initializer is not a
+  boolean literal, the interpreter should return `Result.Err` with a
+  descriptive `InterpretError`.
+
+Migration / Compatibility
+-------------------------
+This introduces `Bool` as a recognized annotation for variables. Existing
+integer typed suffixes (e.g., `U8`, `I32`) are unchanged and continue to be
+validated as before.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterLetBindingTest.java`
+  - `annotatedLetBoolLiteral_evaluates_true` — asserts
+    `interpret("let x : Bool = true; x", "")` yields `Ok("true")`.
+
+Quality gates
+-------------
+- Add failing test (red)
+- Implement change and run `mvn -DskipTests=false test` until green
+- Ensure `mvn -DskipTests=false package` succeeds
+
+Notes
+-----
+This change is intentionally small: it treats `Bool` as a special case of an
+annotation (no width) and validates that the initializer is `true` or
+`false`. No other language changes are introduced.
 Title: Enforce typed-literal vs annotated type compatibility
 
 Goal
