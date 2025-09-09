@@ -14,12 +14,17 @@ Files touched
 ------------
 - `src/main/java/magma/Interpreter.java` — sequence eval, let parsing, variable env, and helper functions.
 - `src/test/java/magma/InterpreterFeatureTest.java` — added feature tests (let-binding + existing addition tests).
+ - `src/test/java/magma/InterpreterLetBindingTest.java` — new unit test asserting unannotated let binding works: `let x = 3; x` => `"3"`.
 
 Contract (inputs/outputs/errors)
 --------------------------------
 - Input: `source` string and `input` string (unused for these features).
 - Success: `Result.Ok` with the stringified result (literal or computed sum).
 - Failure: `Result.Err` for parse errors, type/width mismatches, unknown identifiers, or overflow.
+
+Acceptance tests added
+-----------------------
+- `src/test/java/magma/InterpreterLetBindingTest.java`: verifies that an unannotated `let` binding followed by a variable lookup evaluates to the RHS value. Example: `let x = 3; x` should produce `"3"`.
 
 Quality gates & status
 ----------------------

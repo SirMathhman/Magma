@@ -11,10 +11,11 @@ public class InterpreterTest {
 		String source = "bad source code";
 		String input = "";
 
-		Result<String, String> res = interp.interpret(source, input);
+		Result<String, InterpretError> res = interp.interpret(source, input);
 
 		assertTrue(res instanceof Result.Err);
-		Result.Err<String, String> err = (Result.Err<String, String>) res;
-		assertEquals(source, err.error());
+		Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) res;
+		// errorReason should contain the offending source
+		assertEquals(source, err.error().errorReason());
 	}
 }
