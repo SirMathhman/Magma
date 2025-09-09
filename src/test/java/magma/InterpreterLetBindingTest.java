@@ -17,4 +17,14 @@ public class InterpreterLetBindingTest {
 	public void annotatedLetBoolTrue() {
 		TestUtils.assertValid("let x : Bool = true; x", "true");
 	}
+
+	@Test
+	public void unannotatedBoolLet() {
+		TestUtils.assertValid("let x = true; x", "true");
+	}
+
+	@Test
+	public void mutBoolAssignInvalid() {
+		TestUtils.assertInvalid("let mut x = true; x = 100; x");
+	}
 }

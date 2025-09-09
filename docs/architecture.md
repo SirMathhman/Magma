@@ -4,6 +4,8 @@ Goal
 ----
 Allow let-declarations to be annotated with the `Bool` type and accept boolean
 initializers such as `let x : Bool = true; x` which should evaluate to `true`.
+Additionally, unannotated let-bindings initialized with boolean literals
+should be accepted, e.g. `let x = true; x` => `"true"`.
 
 Files / Modules affected
 ------------------------

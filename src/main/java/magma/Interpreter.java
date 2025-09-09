@@ -135,6 +135,14 @@ public class Interpreter {
 		java.util.Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, env);
 		if (annRes.isPresent())
 			return annRes;
+		// If there was no explicit annotation but the initializer is a boolean
+		// literal, record an inferred Bool annotation so future assignments are
+		// checked against the boolean type.
+		if (d.annotatedSuffix.isEmpty()) {
+			if ("true".equals(value) || "false".equals(value)) {
+				env.typeEnv.put(d.name, "Bool");
+			}
+		}
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
@@ -190,22 +198,55 @@ public class Interpreter {
 			return java.util.Optional
 					.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
 
-		// If RHS is a typed literal and the variable has an annotated type, ensure
-		// the suffix matches the annotation (same kind and width). Reject if
-		// mismatched.
-		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
-		if (rhsPr.valid && !rhsPr.suffix.isEmpty() && env.typeEnv.containsKey(lhs)) {
-			String ann = env.typeEnv.get(lhs).toUpperCase();
-			String rhsSuf = rhsPr.suffix.toUpperCase();
-			if (!ann.equals(rhsSuf))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
-		}
+		// Validate RHS suffix vs annotated/inferred type (if any) before evaluating
+		java.util.Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhs, rhs, env);
+		if (suffixCheck.isPresent())
+			return java.util.Optional.of(suffixCheck.get());
+
 		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env.valEnv, env.typeEnv);
 		if (rhsVal instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
+		// Enforce assignment value compatibility against annotated/inferred type
+		java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, value, env);
+		if (valCheck.isPresent())
+			return java.util.Optional.of(valCheck.get());
+
 		env.valEnv.put(lhs, value);
+		return java.util.Optional.empty();
+	}
+
+	// Validate RHS textual suffix against the variable's annotated/inferred type
+	private java.util.Optional<Result<String, InterpretError>> vRhsSuffix(String lhs, String rhs,
+								Env env) {
+		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
+		if (!env.typeEnv.containsKey(lhs))
+			return java.util.Optional.empty();
+		String ann = env.typeEnv.get(lhs);
+		if (ann.equalsIgnoreCase("Bool")) {
+			// If RHS is a typed literal (e.g., 3U8) that's incompatible with Bool
+			if (rhsPr.valid && !rhsPr.suffix.isEmpty())
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+			return java.util.Optional.empty();
+		}
+		if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
+			String rhsSuf = rhsPr.suffix.toUpperCase();
+			if (!ann.toUpperCase().equals(rhsSuf))
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+		}
+		return java.util.Optional.empty();
+	}
+
+	// Validate the evaluated RHS value against the variable's annotated/inferred type
+	private java.util.Optional<Result<String, InterpretError>> vAssignValue(String lhs, String value,
+								Env env) {
+		if (!env.typeEnv.containsKey(lhs))
+			return java.util.Optional.empty();
+		String ann = env.typeEnv.get(lhs);
+		if (ann.equalsIgnoreCase("Bool")) {
+			if (!"true".equals(value) && !"false".equals(value))
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched assignment to Bool variable", env.source)));
+		}
 		return java.util.Optional.empty();
 	}
 
