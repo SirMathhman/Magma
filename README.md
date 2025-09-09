@@ -12,6 +12,11 @@ Additional files:
 
 - `src/main/java/magma/Interpreter.java` - Empty placeholder class for future interpreter features
 
+Interpreter API
+
+- `src/main/java/magma/Interpreter.java` now provides a method `interpret(String source, String input)` that will eventually interpret source code and return a result string. Currently it is a stub and always throws `InterpretException`.
+- `src/main/java/magma/InterpretException.java` defines `InterpretException` which carries both an error message and the offending source string. The exception message is formatted as `message + ": " + source` and you can retrieve the raw source via `getSource()`.
+
 Build & run
 
 If you have Maven installed, build with:
