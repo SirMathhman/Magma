@@ -51,6 +51,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void assignImmutableErr() {
+		// Assigning to an immutable let should be invalid
+		TestUtils.assertInvalid("let x = 0; x = 100; x");
+	}
+
+	@Test
 	public void mismatchedTypedErr() {
 		// Mixed unsigned/signed width should be invalid per new acceptance criteria
 		TestUtils.assertInvalid("1U8 + 2I32");
