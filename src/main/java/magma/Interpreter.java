@@ -23,11 +23,35 @@ public class Interpreter {
 		// behavior and return Err with the source.
 		if (source != null) {
 			String s = source.trim();
-			// match: optional sign, digits, optionally followed by a type suffix like I32 (letters/digits)
-			java.util.regex.Matcher m = java.util.regex.Pattern.compile("^([+-]?\\d+)(?:[A-Za-z0-9]+)?$").matcher(s);
-			if (m.matches()) {
-				String out = m.group(1);
-				return new Result.Ok<>(out);
+			// Manual parse to avoid using java.util.regex which is banned by project
+			// Checkstyle rules.
+			// Accept: optional '+' or '-' sign, followed by one or more digits, optionally
+			// followed by an alphanumeric suffix.
+			int i = 0;
+			int len = s.length();
+			if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-')) {
+				i++;
+			}
+			int digitsStart = i;
+			while (i < len && Character.isDigit(s.charAt(i))) {
+				i++;
+			}
+			if (i > digitsStart) {
+				// There is at least one digit. Extract the integer portion.
+				String integerPart = s.substring(0, i);
+				// Remaining chars (if any) are considered a suffix; validate they are
+				// alphanumeric if present.
+				boolean suffixOk = true;
+				for (int j = i; j < len; j++) {
+					char c = s.charAt(j);
+					if (!Character.isLetterOrDigit(c)) {
+						suffixOk = false;
+						break;
+					}
+				}
+				if (suffixOk) {
+					return new Result.Ok<>(integerPart);
+				}
 			}
 		}
 		return new Result.Err<>(source);
