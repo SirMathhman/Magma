@@ -10,6 +10,113 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
+	// Helper to hold consequent/alternative extraction result
+	private static final class ConsAlt {
+		final String cons;
+		final String alt;
+		final int consumedIdx;
+		final java.util.Optional<Result<String, InterpretError>> error;
+
+		ConsAlt(String cons, String alt, int consumedIdx) {
+			this.cons = cons;
+			this.alt = alt;
+			this.consumedIdx = consumedIdx;
+			this.error = java.util.Optional.empty();
+		}
+
+		ConsAlt(java.util.Optional<Result<String, InterpretError>> error) {
+			this.cons = "";
+			this.alt = "";
+			this.consumedIdx = -1;
+			this.error = error;
+		}
+	}
+
+	// Extract consequent and alternative strings for an if starting at parts[idx].
+	// closeParenIdx is the index of ')' within parts[idx] used to find inline text.
+	private ConsAlt findConsAlt(String[] parts, int idx, Env env) {
+		String after = computeAfter(parts, idx);
+		if (!after.isEmpty())
+			return inlineAfter(parts, idx, env);
+		return extractSeparated(parts, idx, env);
+	}
+
+	private ConsAlt inlineAfter(String[] parts, int idx, Env env) {
+		String after = computeAfter(parts, idx);
+		int elseIdx = indexOfElse(after);
+		if (elseIdx >= 0) {
+			String cons = after.substring(0, elseIdx).trim();
+			String alt = after.substring(elseIdx + 4).trim();
+			return new ConsAlt(cons, alt, idx);
+		}
+		String cons = after;
+		AltInfo ai = nextAltInfo(parts, idx + 1, env);
+		if (ai.error.isPresent())
+			return new ConsAlt(ai.error);
+		return new ConsAlt(cons, ai.alt, ai.consumedIdx);
+	}
+
+	private ConsAlt extractSeparated(String[] parts, int idx, Env env) {
+		int consIdx = idx + 1;
+		while (consIdx < parts.length && parts[consIdx].trim().isEmpty())
+			consIdx++;
+		if (consIdx >= parts.length)
+			return new ConsAlt(
+					java.util.Optional.of(new Result.Err<>(new InterpretError("missing consequent in if", env.source))));
+		String consPart = parts[consIdx].trim();
+		int elseIdx = indexOfElse(consPart);
+		if (elseIdx >= 0) {
+			String cons = consPart.substring(0, elseIdx).trim();
+			String alt = consPart.substring(elseIdx + 4).trim();
+			return new ConsAlt(cons, alt, consIdx);
+		}
+		AltInfo ai = nextAltInfo(parts, consIdx + 1, env);
+		if (ai.error.isPresent())
+			return new ConsAlt(ai.error);
+		return new ConsAlt(consPart, ai.alt, ai.consumedIdx);
+	}
+
+	private static final class AltInfo {
+		final String alt;
+		final int consumedIdx;
+		final java.util.Optional<Result<String, InterpretError>> error;
+
+		AltInfo(String alt, int consumedIdx) {
+			this.alt = alt;
+			this.consumedIdx = consumedIdx;
+			this.error = java.util.Optional.empty();
+		}
+
+		AltInfo(java.util.Optional<Result<String, InterpretError>> error) {
+			this.alt = "";
+			this.consumedIdx = -1;
+			this.error = error;
+		}
+	}
+
+	private AltInfo nextAltInfo(String[] parts, int startIdx, Env env) {
+		int altIdx = startIdx;
+		while (altIdx < parts.length && parts[altIdx].trim().isEmpty())
+			altIdx++;
+		if (altIdx >= parts.length)
+			return new AltInfo(
+					java.util.Optional.of(new Result.Err<>(new InterpretError("missing alternative in if", env.source))));
+		String altPart = parts[altIdx].trim();
+		String alt = altPart.startsWith("else") ? altPart.substring(4).trim() : altPart;
+		return new AltInfo(alt, altIdx);
+	}
+
+	// Compute inline text following the closing ')' in parts[idx], or empty if
+	// there's no inline consequent. Extracted to avoid duplicated code paths.
+	private String computeAfter(String[] parts, int idx) {
+		String part = parts[idx].trim();
+		int close = part.indexOf(')');
+		String after = "";
+		if (close >= 0 && close + 1 < part.length())
+			after = part.substring(close + 1).trim();
+		return after;
+	}
+
 	// Small holder for runtime environments and program source so we avoid
 	// passing multiple maps/strings as separate parameters (keeps parameter
 	// counts below the Checkstyle limit).
@@ -25,6 +132,7 @@ public class Interpreter {
 			this.mutEnv = new java.util.HashMap<>();
 			this.source = source;
 		}
+
 	}
 
 	// Helper to represent a parsed type kind and width together so checks can
@@ -77,15 +185,31 @@ public class Interpreter {
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
-		for (int i = 0; i < parts.length; i++) {
+		int i = 0;
+		while (i < parts.length) {
 			String part = parts[i].trim();
-			if (part.isEmpty())
+			if (part.isEmpty()) {
+				i++;
 				continue;
-			if (i < parts.length - 1) {
+			}
+			boolean isLast = (i == parts.length - 1);
+			if (!isLast) {
+				// Statement position
+				// Support a simple if-statement form that uses the next two parts as
+				// consequent and alternative: `if (cond) <stmt>; else <stmt>;`
+				if (part.startsWith("if ") || part.startsWith("if(")) {
+					IfOutcome fo = processIfPart(parts, i, env);
+					if (fo.result.isPresent())
+						return fo.result.get();
+					i = fo.consumedIdx + 1;
+					continue;
+				}
+
 				// Statement position: expect a let-binding or assignment
 				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
 				if (stmtRes.isPresent())
 					return stmtRes.get();
+				i++;
 			} else {
 				// Final expression: evaluate and return
 				return evaluateExpression(part, env.valEnv, env.typeEnv);
@@ -218,7 +342,7 @@ public class Interpreter {
 
 	// Validate RHS textual suffix against the variable's annotated/inferred type
 	private java.util.Optional<Result<String, InterpretError>> vRhsSuffix(String lhs, String rhs,
-								Env env) {
+			Env env) {
 		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
 		if (!env.typeEnv.containsKey(lhs))
 			return java.util.Optional.empty();
@@ -226,26 +350,36 @@ public class Interpreter {
 		if (ann.equalsIgnoreCase("Bool")) {
 			// If RHS is a typed literal (e.g., 3U8) that's incompatible with Bool
 			if (rhsPr.valid && !rhsPr.suffix.isEmpty())
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
 			return java.util.Optional.empty();
 		}
 		if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
 			String rhsSuf = rhsPr.suffix.toUpperCase();
 			if (!ann.toUpperCase().equals(rhsSuf))
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
 		}
 		return java.util.Optional.empty();
 	}
 
-	// Validate the evaluated RHS value against the variable's annotated/inferred type
+	// Validate the evaluated RHS value against the variable's annotated/inferred
+	// type
 	private java.util.Optional<Result<String, InterpretError>> vAssignValue(String lhs, String value,
-								Env env) {
+			Env env) {
 		if (!env.typeEnv.containsKey(lhs))
 			return java.util.Optional.empty();
 		String ann = env.typeEnv.get(lhs);
 		if (ann.equalsIgnoreCase("Bool")) {
 			if (!"true".equals(value) && !"false".equals(value))
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched assignment to Bool variable", env.source)));
+				return java.util.Optional
+						.of(new Result.Err<>(new InterpretError("mismatched assignment to Bool variable", env.source)));
+		} else {
+			// For numeric typed annotations, ensure the evaluated RHS fits the annotated
+			// type
+			java.util.Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, value, env);
+			if (chk.isPresent())
+				return chk;
 		}
 		return java.util.Optional.empty();
 	}
@@ -338,7 +472,7 @@ public class Interpreter {
 	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value,
 			Env env) {
 		// Special-case Bool annotation which does not follow the <Letter><digits>
- 		// pattern used by integer typed suffixes (e.g. U8, I32).
+		// pattern used by integer typed suffixes (e.g. U8, I32).
 		if (annotatedSuffix.equalsIgnoreCase("Bool")) {
 			// For Bool, the value must be a boolean literal string "true" or "false"
 			if ("true".equals(value) || "false".equals(value))
@@ -615,5 +749,67 @@ public class Interpreter {
 		}
 
 		return new Result.Err<>(new InterpretError("invalid typed literal", source));
+	}
+
+	// Return the index of the token "else" in s if it appears as a separate
+	// token or at the start of s; otherwise -1. This is a small helper used by
+	// the inline-if parsing to detect an 'else' following a consequent.
+	private int indexOfElse(String s) {
+		if (Objects.isNull(s))
+			return -1;
+		String trimmed = s.trim();
+		if (trimmed.startsWith("else ") || trimmed.equals("else"))
+			return 0;
+		// find ' else ' with surrounding whitespace
+		int idx = trimmed.indexOf(" else ");
+		return idx;
+	}
+
+	// Outcome of processing an if-part: either a Result to return (if the
+	// branch produced an expression result or an error), or the index of the
+	// last consumed part so the caller can advance the main loop.
+	private static final class IfOutcome {
+		final java.util.Optional<Result<String, InterpretError>> result;
+		final int consumedIdx;
+
+		IfOutcome(java.util.Optional<Result<String, InterpretError>> result, int consumedIdx) {
+			this.result = result;
+			this.consumedIdx = consumedIdx;
+		}
+	}
+
+	// Process an if-statement part starting at parts[idx]. Returns an IfOutcome
+	// containing either a Result to surface to the caller, or the index of the
+	// consumed part when the if completed normally.
+	private IfOutcome processIfPart(String[] parts, int idx, Env env) {
+		String part = parts[idx].trim();
+		int open = part.indexOf('(');
+		int close = part.indexOf(')', open + 1);
+		if (open < 0 || close < 0)
+			return new IfOutcome(java.util.Optional.of(new Result.Err<>(new InterpretError("invalid if syntax", env.source))),
+					idx);
+		String condExpr = part.substring(open + 1, close).trim();
+
+		// Delegate extraction of consequent and alternative to helper
+		ConsAlt ca = findConsAlt(parts, idx, env);
+		if (ca.error.isPresent())
+			return new IfOutcome(ca.error, idx);
+		String cons = ca.cons;
+		String alt = ca.alt;
+		int consumedAltIdx = ca.consumedIdx;
+
+		// Evaluate condition
+		Result<String, InterpretError> condRes = evaluateExpression(condExpr, env.valEnv, env.typeEnv);
+		if (condRes instanceof Result.Err)
+			return new IfOutcome(java.util.Optional.of((Result<String, InterpretError>) condRes), consumedAltIdx);
+		String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
+		boolean condTrue = "true".equals(condVal);
+
+		java.util.Optional<Result<String, InterpretError>> stmtRes = condTrue ? handleStatement(cons, env)
+				: handleStatement(alt, env);
+		if (stmtRes.isPresent())
+			return new IfOutcome(stmtRes, consumedAltIdx);
+
+		return new IfOutcome(java.util.Optional.empty(), consumedAltIdx);
 	}
 }

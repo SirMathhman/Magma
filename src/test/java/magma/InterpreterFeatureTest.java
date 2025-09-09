@@ -104,4 +104,9 @@ public class InterpreterFeatureTest {
 		// Boolean literal true should be accepted and returned as "true"
 		TestUtils.assertValid("true", "true");
 	}
+
+	@Test
+	public void ifAssigns() {
+		TestUtils.assertValid("let x : I32; if (true) x = 3; else x = 5; x", "3");
+	}
 }
