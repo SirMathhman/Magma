@@ -24,12 +24,13 @@ public class Interpreter {
 		if (source != null) {
 			String s = source.trim();
 			// Manual parse to avoid using java.util.regex which is banned by project
-			// Checkstyle rules.
 			// Accept: optional '+' or '-' sign, followed by one or more digits, optionally
-			// followed by an alphanumeric suffix.
+			// followed by an alphabetic suffix like I32 or U8.
 			int i = 0;
 			int len = s.length();
+			boolean negative = false;
 			if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-')) {
+				if (s.charAt(i) == '-') negative = true;
 				i++;
 			}
 			int digitsStart = i;
@@ -37,20 +38,56 @@ public class Interpreter {
 				i++;
 			}
 			if (i > digitsStart) {
-				// There is at least one digit. Extract the integer portion.
 				String integerPart = s.substring(0, i);
-				// Remaining chars (if any) are considered a suffix; validate they are
-				// alphanumeric if present.
-				boolean suffixOk = true;
-				for (int j = i; j < len; j++) {
-					char c = s.charAt(j);
-					if (!Character.isLetterOrDigit(c)) {
-						suffixOk = false;
-						break;
-					}
-				}
-				if (suffixOk) {
+				String suffix = s.substring(i).trim();
+				// If no suffix, accept the integer literal as before
+				if (suffix.isEmpty()) {
 					return new Result.Ok<>(integerPart);
+				}
+				// Validate suffix pattern: one letter (I or U) followed by digits (8/16/32/64)
+				if (suffix.length() >= 2 && Character.isLetter(suffix.charAt(0))) {
+					char kind = Character.toUpperCase(suffix.charAt(0));
+					String widthStr = suffix.substring(1);
+					boolean widthDigits = true;
+					for (int j = 0; j < widthStr.length(); j++) {
+						if (!Character.isDigit(widthStr.charAt(j))) {
+							widthDigits = false;
+							break;
+						}
+					}
+					if (widthDigits) {
+						try {
+							int width = Integer.parseInt(widthStr);
+							// Only support 8,16,32,64
+							if (width == 8 || width == 16 || width == 32 || width == 64) {
+								// Validate range using BigInteger to avoid overflow
+								java.math.BigInteger val = new java.math.BigInteger(integerPart);
+								if (kind == 'U') {
+									// Unsigned must be non-negative
+									if (val.signum() < 0) {
+										return new Result.Err<>(source);
+									}
+									java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(width).subtract(java.math.BigInteger.ONE);
+									if (val.compareTo(max) <= 0) {
+										return new Result.Ok<>(integerPart);
+									} else {
+										return new Result.Err<>(source);
+									}
+								} else if (kind == 'I') {
+									// Signed range: -(2^(width-1)) .. 2^(width-1)-1
+									java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(width - 1).negate();
+									java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(width - 1).subtract(java.math.BigInteger.ONE);
+									if (val.compareTo(min) >= 0 && val.compareTo(max) <= 0) {
+										return new Result.Ok<>(integerPart);
+									} else {
+										return new Result.Err<>(source);
+									}
+								}
+							}
+						} catch (NumberFormatException | ArithmeticException e) {
+							// fall through to Err
+						}
+					}
 				}
 			}
 		}
