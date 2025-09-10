@@ -151,4 +151,10 @@ public class InterpreterFeatureTest {
 		String src = "fn get() : I32 => { return 100; } fn getAnother() : I32 => { return get(); } getAnother()";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnParamCall() {
+		String src = "fn pass(param : I32) : I32 => { return param; } pass(100)";
+		TestUtils.assertValid(src, "100");
+	}
 }

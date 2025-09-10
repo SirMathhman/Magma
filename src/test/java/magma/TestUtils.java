@@ -9,10 +9,6 @@ public final class TestUtils {
     public static void assertValid(String source, String expected) {
         Interpreter interp = new Interpreter();
         Result<String, InterpretError> res = interp.interpret(source, "");
-        if (res instanceof Result.Err err) {
-            // Print the error for debugging so failing tests reveal interpreter errors
-            System.out.println("DEBUG: interpreter returned Err -> " + err.error());
-        }
         assertTrue(res instanceof Result.Ok);
         Result.Ok<String, InterpretError> ok = (Result.Ok<String, InterpretError>) res;
         assertEquals(expected, ok.value());

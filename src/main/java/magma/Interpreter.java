@@ -10,7 +10,72 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
-	// Extracted helper to parse and record a zero-arg function declaration to reduce
+	// Find the index of the matching closing '}' for the opening brace at openIdx.
+	// Returns -1 if no matching brace is found.
+	private int findMatchingBrace(String s, int openIdx) {
+		int len = s.length();
+		int depth = 0;
+		for (int i = openIdx; i < len; i++) {
+			char c = s.charAt(i);
+			if (c == '{')
+				depth++;
+			else if (c == '}') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	// Try to evaluate a function call expression like 'name()' or 'name(arg)'.
+	// Returns Optional.empty() if the expression is not a function call, otherwise
+	// returns the Result (Ok or Err) wrapped in Optional.
+	private java.util.Optional<Result<String, InterpretError>> tryEvalFunctionCall(String s, Env env) {
+		int parenIdx = s.indexOf('(');
+		if (parenIdx <= 0 || !s.endsWith(")"))
+			return java.util.Optional.empty();
+		String name = s.substring(0, parenIdx).trim();
+		String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
+		if (!isSimpleIdentifier(name))
+			return java.util.Optional.empty();
+		if (!env.fnEnv.containsKey(name))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
+		FunctionDecl fd = env.fnEnv.get(name);
+		String paramName = env.fnParamName.getOrDefault(name, "");
+		String paramType = env.fnParamType.getOrDefault(name, "");
+		if (paramName.isEmpty()) {
+			// zero-arg expected
+			if (!inside.isEmpty())
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("only zero-arg calls supported", s)));
+			return java.util.Optional.of(evaluateExpression(fd.bodyExpr, env));
+		}
+		// single param function expected
+		if (inside.isEmpty())
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing argument in call", s)));
+		// evaluate the argument in the caller env
+		Result<String, InterpretError> argRes = evaluateExpression(inside, env);
+		if (argRes instanceof Result.Err)
+			return java.util.Optional.of(argRes);
+		String argVal = ((Result.Ok<String, InterpretError>) argRes).value();
+		// create a temporary env for function body evaluation: copy maps but do not
+		// mutate caller env; bind parameter
+		java.util.Map<String, String> newVals = new java.util.HashMap<>(env.valEnv);
+		java.util.Map<String, String> newTypes = new java.util.HashMap<>(env.typeEnv);
+		Env fnEnv = new Env(newVals, newTypes, env.source);
+		fnEnv.fnEnv.putAll(env.fnEnv);
+		fnEnv.mutEnv.putAll(env.mutEnv);
+		fnEnv.fnParamName.putAll(env.fnParamName);
+		fnEnv.fnParamType.putAll(env.fnParamType);
+		// record parameter value and type if annotated
+		fnEnv.valEnv.put(paramName, argVal);
+		if (!paramType.isEmpty())
+			fnEnv.typeEnv.put(paramName, paramType);
+		return java.util.Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
+	}
+
+	// Extracted helper to parse and record a zero-arg function declaration to
+	// reduce
 	// cyclomatic complexity of handleStatement.
 	private java.util.Optional<Result<String, InterpretError>> handleFnDecl(String s, Env env) {
 		int len = s.length();
@@ -28,8 +93,20 @@ public class Interpreter {
 		if (close < 0)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
 		String params = s.substring(idx + 1, close).trim();
-		if (!params.isEmpty())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("only zero-arg fns supported", env.source)));
+		String paramName = "";
+		String paramType = "";
+		if (!params.isEmpty()) {
+			// allow single parameter of the form: <ident> (':' <suffix>)?
+			int pidx = 0;
+			int plen = params.length();
+			java.util.Optional<ParseId> pPid = parseId(params, pidx, plen);
+			if (!pPid.isPresent())
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn parameter", env.source)));
+			ParseId pp = pPid.get();
+			paramName = pp.name;
+			int after = skipWs(params, pp.idx, plen);
+			paramType = parseAnnotatedSuffix(params, after, plen);
+		}
 		// annotated suffix after ')'
 		String ann = parseAnnotatedSuffix(s, close + 1, len);
 		// find '=>' after annotation
@@ -40,19 +117,8 @@ public class Interpreter {
 		int bodyOpen = s.indexOf('{', arrow + 2);
 		if (bodyOpen < 0)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
-		int j = bodyOpen;
-		int depth = 0;
-		for (; j < len; j++) {
-			char c = s.charAt(j);
-			if (c == '{')
-				depth++;
-			else if (c == '}') {
-				depth--;
-				if (depth == 0)
-					break;
-			}
-		}
-		if (j >= len)
+		int j = findMatchingBrace(s, bodyOpen);
+		if (j < 0)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("unterminated fn body", env.source)));
 		String body = s.substring(bodyOpen + 1, j).trim();
 		// find 'return <expr>;' inside body
@@ -65,6 +131,12 @@ public class Interpreter {
 		String retExpr = body.substring(retIdx + 6, semi).trim();
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
+		if (!paramName.isEmpty()) {
+			env.fnParamName.put(name, paramName);
+		}
+		if (!paramType.isEmpty()) {
+			env.fnParamType.put(name, paramType);
+		}
 		return java.util.Optional.empty();
 	}
 
@@ -260,6 +332,8 @@ public class Interpreter {
 		final java.util.Map<String, String> valEnv;
 		final java.util.Map<String, String> typeEnv;
 		final java.util.Map<String, FunctionDecl> fnEnv;
+		final java.util.Map<String, String> fnParamName;
+		final java.util.Map<String, String> fnParamType;
 		final java.util.Map<String, Boolean> mutEnv;
 		final String source;
 
@@ -267,6 +341,8 @@ public class Interpreter {
 			this.valEnv = valEnv;
 			this.typeEnv = typeEnv;
 			this.fnEnv = new java.util.HashMap<>();
+			this.fnParamName = new java.util.HashMap<>();
+			this.fnParamType = new java.util.HashMap<>();
 			this.mutEnv = new java.util.HashMap<>();
 			this.source = source;
 		}
@@ -286,7 +362,8 @@ public class Interpreter {
 	}
 
 	// Small helper to represent a zero-arg function declaration with a typed
-	// return expression stored as the body string.
+	// Helper to represent a function declaration (supports optional single
+	// parameter). The bodyExpr holds the expression returned by the function.
 	private static final class FunctionDecl {
 		final String name;
 		final String returnType; // e.g., I32 or Bool
@@ -325,7 +402,7 @@ public class Interpreter {
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
-	return evaluateExpression(s, env);
+		return evaluateExpression(s, env);
 	}
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
@@ -549,7 +626,7 @@ public class Interpreter {
 		if (suffixCheck.isPresent())
 			return new AssignPrep(suffixCheck.get());
 
-	Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env);
+		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env);
 		if (rhsVal instanceof Result.Err)
 			return new AssignPrep((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
@@ -776,20 +853,10 @@ public class Interpreter {
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
 
-		// function call: <ident>()  (only zero-arg supported)
-		int parenIdx = s.indexOf('(');
-		if (parenIdx > 0 && s.endsWith(")")) {
-			String name = s.substring(0, parenIdx).trim();
-			String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
-			if (isSimpleIdentifier(name)) {
-				if (!inside.isEmpty())
-					return new Result.Err<>(new InterpretError("only zero-arg calls supported", s));
-				if (!env.fnEnv.containsKey(name))
-					return new Result.Err<>(new InterpretError("unknown identifier", s));
-				FunctionDecl fd = env.fnEnv.get(name);
-				return evaluateExpression(fd.bodyExpr, env);
-			}
-		}
+		// function call: <ident>(...) (supports zero-arg or single-arg calls)
+		java.util.Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
+		if (fnCall.isPresent())
+			return fnCall.get();
 		// variable reference
 		if (isSimpleIdentifier(s)) {
 			if (env.valEnv.containsKey(s))
@@ -801,7 +868,7 @@ public class Interpreter {
 		if (cmpRes.isPresent())
 			return cmpRes.get();
 		// addition
-	java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
+		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
 		if (addRes.isPresent())
 			return addRes.get();
 		// literal/typed-literal
@@ -825,10 +892,10 @@ public class Interpreter {
 		String rightRaw = s.substring(ltIdx + 1).trim();
 
 		// Evaluate both sides as expressions (they may be additions or identifiers)
-	Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, env);
+		Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, env);
 		if (leftRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) leftRes);
-	Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, env);
+		Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, env);
 		if (rightRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rightRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
@@ -1098,7 +1165,7 @@ public class Interpreter {
 		int consumedAltIdx = ca.consumedIdx;
 
 		// Evaluate condition
-	Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
+		Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
 		if (condRes instanceof Result.Err)
 			return new IfOutcome(java.util.Optional.of((Result<String, InterpretError>) condRes), consumedAltIdx);
 		String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
