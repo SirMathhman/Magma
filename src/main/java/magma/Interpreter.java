@@ -652,7 +652,8 @@ public class Interpreter {
 		if (valCheck.isPresent())
 			return java.util.Optional.of(valCheck.get());
 
-		// Handle deref-assignment marker produced by prepAssignOps: DREF_ASSIGN_PREFIX + target + ":" + value
+		// Handle deref-assignment marker produced by prepAssignOps: DREF_ASSIGN_PREFIX
+		// + target + ":" + value
 		if (evaluated.startsWith(DREF_ASSIGN_PREFIX)) {
 			String rest = evaluated.substring(DREF_ASSIGN_PREFIX.length());
 			int colon = rest.indexOf(':');
@@ -695,7 +696,7 @@ public class Interpreter {
 		// support deref-assignment of the form '*<ident> = <expr>' where lhs may
 		// be a dereference of a reference value stored in a variable
 		boolean isDeref = false;
-		String derefTarget = null;
+		String derefTarget = "";
 		if (lhs.startsWith("*")) {
 			isDeref = true;
 			String inner = lhs.substring(1).trim();
@@ -706,18 +707,21 @@ public class Interpreter {
 			if (!isSimpleIdentifier(lhs))
 				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
 		}
-		// Use the actual variable name for validation when LHS is a dereference
-		String lhsName = isDeref ? derefTarget : lhs;
-		// Unknown in valEnv can be acceptable if declared without initializer (present
-		// in typeEnv)
-		if (!env.valEnv.containsKey(lhsName) && !env.typeEnv.containsKey(lhsName))
-			return new AssignPrep(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
-		// If lhs is a deref, validate that the referenced variable is mutable
+		// Determine the actual variable name that will receive the assignment.
+		// If LHS is a dereference like '*y', resolve the variable y's value and
+		// ensure it is a reference; for a mutable reference allow assignment to
+		// the referenced target.
+		String lhsName = lhs;
 		if (isDeref) {
-			Boolean isMutRef = env.mutEnv.getOrDefault(derefTarget, Boolean.FALSE);
-			if (!isMutRef)
-				return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
+			DerefResolve dr = resolveDerefTarget(derefTarget, env);
+			if (dr.error.isPresent())
+				return new AssignPrep(dr.error.get());
+			lhsName = dr.targetName;
 		} else {
+			// Non-deref LHS must exist and be mutable
+			lhsName = lhs;
+			if (!env.valEnv.containsKey(lhsName) && !env.typeEnv.containsKey(lhsName))
+				return new AssignPrep(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
 			Boolean isMut = env.mutEnv.getOrDefault(lhsName, Boolean.FALSE);
 			if (!isMut)
 				return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
@@ -736,10 +740,49 @@ public class Interpreter {
 		// the caller will place the value into the referenced variable.
 		if (isDeref) {
 			// encode a marker so the caller can detect deref assignment and write to
-			// the correct target. Use a distinct prefix for deref-assignments.
-			return new AssignPrep(DREF_ASSIGN_PREFIX + derefTarget + ":" + value);
+			// the correct resolved target. Use the resolved lhsName (the actual
+			// variable that will receive the write) rather than the reference holder
+			// name.
+			return new AssignPrep(DREF_ASSIGN_PREFIX + lhsName + ":" + value);
 		}
 		return new AssignPrep(value);
+	}
+
+	// Helper used to resolve a dereference target variable's referenced target.
+	private static final class DerefResolve {
+		final String targetName;
+		final java.util.Optional<Result<String, InterpretError>> error;
+
+		DerefResolve(String targetName) {
+			this.targetName = targetName;
+			this.error = java.util.Optional.empty();
+		}
+
+		DerefResolve(java.util.Optional<Result<String, InterpretError>> error) {
+			this.targetName = "";
+			this.error = error;
+		}
+	}
+
+	private DerefResolve resolveDerefTarget(String holder, Env env) {
+		if (!env.valEnv.containsKey(holder) && !env.typeEnv.containsKey(holder))
+			return new DerefResolve(
+					java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source))));
+		String refVal = env.valEnv.getOrDefault(holder, "");
+		if (refVal.startsWith(REFMUT_PREFIX)) {
+			String target = refVal.substring(REFMUT_PREFIX.length());
+			Boolean isMutTarget = env.mutEnv.getOrDefault(target, Boolean.FALSE);
+			if (!isMutTarget)
+				return new DerefResolve(java.util.Optional
+						.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
+			return new DerefResolve(target);
+		}
+		if (refVal.startsWith(REF_PREFIX)) {
+			return new DerefResolve(
+					java.util.Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
+		}
+		return new DerefResolve(
+				java.util.Optional.of(new Result.Err<>(new InterpretError("invalid dereference", env.source))));
 	}
 
 	// Handle compound assignment of the form '<ident> += <expr>'
@@ -1033,26 +1076,28 @@ public class Interpreter {
 				return java.util.Optional.of((Result<String, InterpretError>) innerRes);
 			String val = ((Result.Ok<String, InterpretError>) innerRes).value();
 			if (val.startsWith(REF_PREFIX)) {
-				String target = val.substring(REF_PREFIX.length());
-				if (!env.valEnv.containsKey(target))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
-				return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+				return derefRefHolder(val, env, REF_PREFIX);
 			}
 			if (val.startsWith(REFMUT_PREFIX)) {
-				String target = val.substring(REFMUT_PREFIX.length());
-				if (!env.valEnv.containsKey(target))
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
-				return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+				return derefRefHolder(val, env, REFMUT_PREFIX);
 			}
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
 		}
 		return java.util.Optional.empty();
 	}
 
+	// Helper to dereference a reference-holder value like "@REF:target" and
+	// return the referenced variable's value or an Err if unknown.
+	private java.util.Optional<Result<String, InterpretError>> derefRefHolder(String holderVal, Env env, String prefix) {
+		String target = holderVal.substring(prefix.length());
+		if (!env.valEnv.containsKey(target))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
+		return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+	}
+
 	// Strip leading transparent unary prefixes '*' and '&' from the expression
 	// and return the trimmed remainder. Extracted into a helper to keep
 	// evaluateExpression under the cyclomatic complexity threshold.
-
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
 	// each side is an expression that evaluates to an integer. Returns an
