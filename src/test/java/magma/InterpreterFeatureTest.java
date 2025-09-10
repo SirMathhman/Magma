@@ -64,6 +64,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void arrayLiteralIndex() {
+		// Minimal acceptance: array literal `[1]` indexed at 0 yields `1`.
+		TestUtils.assertValid("[1][0]", "1");
+	}
+
+	@Test
 	public void mutRefDerefAssign() {
 		// Mutable reference stored in 'y' should allow writing through '*y'
 		TestUtils.assertValid("let mut x = 0; let y = &mut x; *y = 10; x", "10");

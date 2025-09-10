@@ -1012,6 +1012,11 @@ public class Interpreter {
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
 
+		// array literal / indexing
+		java.util.Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
+		if (arrIdx.isPresent())
+			return arrIdx.get();
+
 		// function call: <ident>(...) (supports zero-arg or single-arg calls)
 		java.util.Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
 		if (fnCall.isPresent())
@@ -1044,7 +1049,79 @@ public class Interpreter {
 	// numeric literal strings.
 	private static final String REF_PREFIX = "@REF:";
 	private static final String REFMUT_PREFIX = "@REFMUT:";
+	// Internal marker for array values stored as strings: "@ARR:elem1|elem2|..."
+	private static final String ARR_PREFIX = "@ARR:";
 	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
+
+	// Try to evaluate either an array literal like `[1,2]` or an indexing expression
+	// like `<expr>[<expr>]`. Returns Optional.empty() if not applicable.
+	private java.util.Optional<Result<String, InterpretError>> tryEvalArrayOrIndex(String s, Env env) {
+		// Try indexing first, then array literal. Extract to smaller helpers for
+		// cyclomatic complexity reduction.
+		java.util.Optional<Result<String, InterpretError>> idx = tryEvalIndexing(s, env);
+		if (idx.isPresent())
+			return idx;
+		java.util.Optional<Result<String, InterpretError>> lit = tryEvalArrayLiteral(s, env);
+		if (lit.isPresent())
+			return lit;
+		return java.util.Optional.empty();
+	}
+
+	// Extracted helper: evaluate indexing expression of the form
+	// <baseExpr>[<idxExpr>] where the trailing ']' matches an earlier '['.
+	private java.util.Optional<Result<String, InterpretError>> tryEvalIndexing(String s, Env env) {
+		int lastBracket = s.lastIndexOf(']');
+		int openBracket = lastBracket > 0 ? s.lastIndexOf('[', lastBracket - 1) : -1;
+		if (!(openBracket > 0 && lastBracket == s.length() - 1))
+			return java.util.Optional.empty();
+		String baseExpr = s.substring(0, openBracket).trim();
+		String idxExpr = s.substring(openBracket + 1, lastBracket).trim();
+		Result<String, InterpretError> baseRes = evaluateExpression(baseExpr, env);
+		if (baseRes instanceof Result.Err)
+			return java.util.Optional.of((Result<String, InterpretError>) baseRes);
+		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
+		if (!baseVal.startsWith(ARR_PREFIX))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid array indexing", s)));
+		String elemsJoined = baseVal.substring(ARR_PREFIX.length());
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		if (!elemsJoined.isEmpty()) {
+			for (String p : elemsJoined.split("\\|"))
+				elems.add(p);
+		}
+		Result<String, InterpretError> idxRes = evaluateExpression(idxExpr, env);
+		if (idxRes instanceof Result.Err)
+			return java.util.Optional.of((Result<String, InterpretError>) idxRes);
+		String idxVal = ((Result.Ok<String, InterpretError>) idxRes).value();
+		try {
+			int idx = Integer.parseInt(idxVal);
+			if (idx < 0 || idx >= elems.size())
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("index out of bounds", s)));
+			return java.util.Optional.of(new Result.Ok<>(elems.get(idx)));
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid index", s)));
+		}
+	}
+
+	// Extracted helper: evaluate array literal like [a,b,c] returning an ARR_PREFIX string
+	private java.util.Optional<Result<String, InterpretError>> tryEvalArrayLiteral(String s, Env env) {
+		if (!(s.startsWith("[") && s.endsWith("]")))
+			return java.util.Optional.empty();
+		String inner = s.substring(1, s.length() - 1).trim();
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		if (!inner.isEmpty()) {
+			for (String p : inner.split(","))
+				elems.add(p.trim());
+		}
+		java.util.List<String> evaluated = new java.util.ArrayList<>();
+		for (String e : elems) {
+			Result<String, InterpretError> r = evaluateExpression(e, env);
+			if (r instanceof Result.Err)
+				return java.util.Optional.of((Result<String, InterpretError>) r);
+			evaluated.add(((Result.Ok<String, InterpretError>) r).value());
+		}
+		String join = String.join("|", evaluated);
+		return java.util.Optional.of(new Result.Ok<>(ARR_PREFIX + join));
+	}
 
 	// Try to evaluate expressions that start with reference/dereference
 	// prefixes. Returns Optional.empty() if the expression does not start with

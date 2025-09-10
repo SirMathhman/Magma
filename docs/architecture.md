@@ -309,3 +309,40 @@ Notes
 -----
 The interpreter now performs annotated-type validation for call arguments before binding them into the callee environment. The validation reuses `checkAnnotatedSuffix` and returns an InterpretError if the argument value is incompatible with the annotated type.
 
+## Architecture change: array literals and indexing
+
+Goal
+----
+Support a minimal form of array literals and indexing so simple expressions like `[1][0]` evaluate to `1`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — add parsing and evaluation for array literals (bracketed comma-separated lists) and indexing expressions of the form `<expr>[<expr>]` where the index evaluates to an integer literal.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add a failing acceptance test asserting `[1][0]` => `1`.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: source string containing an array literal and an indexing expression.
+- Output: on success, return the textual value of the indexed element (e.g., `"1"`).
+- Errors: indexing out of bounds, invalid index expression, or invalid array literal syntax should produce an InterpretError.
+
+Design notes
+------------
+- Representation: array literals will be represented as a comma-separated string wrapped with an internal marker (e.g., `@ARR:<elem1>|<elem2>|...`) in the runtime `valEnv` so the rest of the interpreter that expects string values can remain unchanged for now.
+- Indexing: when evaluating `a[idx]`, evaluate `a` and `idx`; if `a` yields the internal array marker, parse the elements, evaluate `idx` as an integer, and return the requested element's value as a string.
+- Limitations: this is intentionally minimal and suitable for acceptance tests; it is not a full typed array implementation.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::arrayLiteralIndex` — asserts `"[1][0]"` evaluates to `"1"` (tests-first failing test).
+
+Quality gates
+-------------
+- Add failing test.
+- Implement minimal evaluator changes in `Interpreter.java`.
+- Run focused test and full build; fix Checkstyle/PMD as needed.
+
+Migration / Future
+------------------
+This is an incremental step. If arrays are needed elsewhere, consider replacing the ad-hoc marker with a typed runtime value model.
+
