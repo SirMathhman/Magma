@@ -56,6 +56,14 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void refDeref10() {
+		// Storing a reference with '&' into a variable then dereferencing with
+		// '*' should return the referenced value. Prefixes are transparent in
+		// this interpreter model so `let y = &x; *y` behaves like `x`.
+		TestUtils.assertValid("let x = 10; let y = &x; *y", "10");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}
