@@ -10,6 +10,50 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
+	// Helper to extract the return expression for a function body.
+	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
+	// braces).
+	private static final class FnBodyParse {
+		final java.util.Optional<Result<String, InterpretError>> error;
+		final String retExpr;
+
+		FnBodyParse(java.util.Optional<Result<String, InterpretError>> error, String retExpr) {
+			this.error = error;
+			this.retExpr = retExpr;
+		}
+	}
+
+	private FnBodyParse extractFnReturnExpr(String s, int arrowIdx, Env env) {
+		// look for a block first
+		int bodyOpen = s.indexOf('{', arrowIdx + 2);
+		if (bodyOpen >= 0) {
+			int j = findMatchingBrace(s, bodyOpen);
+			if (j < 0)
+				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
+						new InterpretError("unterminated fn body", env.source))), "");
+			String body = s.substring(bodyOpen + 1, j).trim();
+			int retIdx = body.indexOf("return");
+			if (retIdx < 0)
+				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
+						new InterpretError("missing return in fn body", env.source))), "");
+			int semi = body.indexOf(';', retIdx);
+			if (semi < 0)
+				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
+						new InterpretError("missing ';' after return", env.source))), "");
+			String expr = body.substring(retIdx + 6, semi).trim();
+			return new FnBodyParse(java.util.Optional.empty(), expr);
+		}
+		// compact form: search for 'return' after the arrow
+		int retIdx = s.indexOf("return", arrowIdx + 2);
+		if (retIdx < 0)
+			return new FnBodyParse(java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))),
+					"");
+		int semi = s.indexOf(';', retIdx);
+		int end = semi >= 0 ? semi : s.length();
+		String expr = s.substring(retIdx + 6, end).trim();
+		return new FnBodyParse(java.util.Optional.empty(), expr);
+	}
+
 	// Find the index of the matching closing '}' for the opening brace at openIdx.
 	// Returns -1 if no matching brace is found.
 	private int findMatchingBrace(String s, int openIdx) {
@@ -127,22 +171,10 @@ public class Interpreter {
 		int arrow = s.indexOf("=>", close + 1);
 		if (arrow < 0)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
-		// find body block
-		int bodyOpen = s.indexOf('{', arrow + 2);
-		if (bodyOpen < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
-		int j = findMatchingBrace(s, bodyOpen);
-		if (j < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("unterminated fn body", env.source)));
-		String body = s.substring(bodyOpen + 1, j).trim();
-		// find 'return <expr>;' inside body
-		int retIdx = body.indexOf("return");
-		if (retIdx < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing return in fn body", env.source)));
-		int semi = body.indexOf(';', retIdx);
-		if (semi < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing ';' after return", env.source)));
-		String retExpr = body.substring(retIdx + 6, semi).trim();
+		FnBodyParse fb = extractFnReturnExpr(s, arrow, env);
+		if (fb.error.isPresent())
+			return java.util.Optional.of(fb.error.get());
+		String retExpr = fb.retExpr;
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
 		if (!paramNames.isEmpty()) {

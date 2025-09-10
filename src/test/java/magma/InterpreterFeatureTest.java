@@ -170,4 +170,11 @@ public class InterpreterFeatureTest {
 		String src = "fn get() => { return 100; } get()";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnNoBraceBody() {
+		// Compact form: no braces around the body, single return expression
+		String src = "fn get() => return 100; get()";
+		TestUtils.assertValid(src, "100");
+	}
 }
