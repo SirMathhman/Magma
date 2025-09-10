@@ -23,6 +23,20 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void blockLetExprReturns5() {
+		// Block with a let-binding then expression should return the final expression
+		// value
+		TestUtils.assertValid("{let x = 5; x}", "5");
+	}
+
+	@Test
+	public void outerLetBlock5() {
+		// An outer let followed by a block that references the outer variable should
+		// evaluate to the variable's value
+		TestUtils.assertValid("let x = 5; {x}", "5");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}
