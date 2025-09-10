@@ -115,5 +115,9 @@ public class InterpreterFeatureTest {
 		TestUtils.assertValid("let x : I32; if (true) {x = 3;} else {x = 5;} x", "3");
 	}
 
-
+	@Test
+	public void compAssign() {
+		// New acceptance: compound assignment should work for mutable numeric vars
+		TestUtils.assertValid("let mut x = 0; x += 1; x", "1");
+	}
 }

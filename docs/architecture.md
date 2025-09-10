@@ -47,6 +47,47 @@ Notes
 This change is intentionally small: it treats `Bool` as a special case of an
 annotation (no width) and validates that the initializer is `true` or
 `false`. No other language changes are introduced.
+ 
+## Architecture change: compound assignment (+=)
+
+Goal
+----
+Support compound assignment `+=` for mutable numeric variables. Example:
+`let mut x = 0; x += 1; x` should evaluate to `"1"`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — add handling for `+=` in statement
+  position, share validation/evaluation logic with existing `=` handling.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add acceptance test
+  `compAssign` verifying `let mut x = 0; x += 1; x` => `"1"`.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: source program string containing a mutable variable and a `+=`
+  operation.
+- Output: on success, interpreter returns `Result.Ok` with the string
+  representation of the final variable value.
+- Error modes: assignment to immutable variable, unknown identifier,
+  read of uninitialized variable, invalid numeric RHS, or type mismatch
+  against an annotated/inferred type.
+
+Migration / Compatibility
+-------------------------
+This is a backwards-compatible extension for mutable variables only and
+reuses existing assignment validation rules. No change to existing public
+APIs.
+
+Tests added
+-----------
+- `src/test/java/magma/InterpreterFeatureTest.java::compAssign` — asserts
+  `let mut x = 0; x += 1; x` evaluates to `"1"`.
+
+Quality gates
+-------------
+- Failing test added first (red), implemented feature, ran `mvn -DskipTests=false test` until green.
+
+Documentation: updated this `docs/architecture.md` entry to describe the change.
 Title: Enforce typed-literal vs annotated type compatibility
 
 Goal

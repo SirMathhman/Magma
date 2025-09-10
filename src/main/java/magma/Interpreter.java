@@ -289,10 +289,15 @@ public class Interpreter {
 			return java.util.Optional.empty();
 		}
 		// Support assignment statements: <ident> = <expr>
-		int eqIdx = s.indexOf('=');
-		if (eqIdx > 0 && !s.startsWith("let ")) {
-			return handleAssignment(s, eqIdx, env);
-		}
+			// Support compound assignment '+=', and simple assignment '=' in statement position
+			int plusEqIdx = s.indexOf("+=");
+			if (plusEqIdx >= 0 && !s.startsWith("let ")) {
+				return handleCompAssign(s, plusEqIdx, env);
+			}
+			int eqIdx = s.indexOf('=');
+			if (eqIdx > 0 && !s.startsWith("let ")) {
+				return handleAssignment(s, eqIdx, env);
+			}
 		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
 		if (!parsed.isPresent())
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
@@ -375,34 +380,93 @@ public class Interpreter {
 	private java.util.Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx, Env env) {
 		String lhs = stmt.substring(0, eqIdx).trim();
 		String rhs = stmt.substring(eqIdx + 1).trim();
+		AssignPrep prep = prepAssignOps(lhs, rhs, env);
+		if (prep.error.isPresent())
+			return java.util.Optional.of(prep.error.get());
+		String evaluated = prep.evaluatedRhs.get();
+		// Enforce assignment value compatibility against annotated/inferred type
+		java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, evaluated, env);
+		if (valCheck.isPresent())
+			return java.util.Optional.of(valCheck.get());
+
+		env.valEnv.put(lhs, evaluated);
+		return java.util.Optional.empty();
+	}
+
+	// Small helper to hold prepared assignment operands
+	private static final class AssignPrep {
+		final java.util.Optional<String> evaluatedRhs;
+		final java.util.Optional<Result<String, InterpretError>> error;
+
+		AssignPrep(String evaluatedRhs) {
+			this.evaluatedRhs = java.util.Optional.of(evaluatedRhs);
+			this.error = java.util.Optional.empty();
+		}
+
+		AssignPrep(Result<String, InterpretError> error) {
+			this.evaluatedRhs = java.util.Optional.empty();
+			this.error = java.util.Optional.of(error);
+		}
+	}
+
+	// Prepare and validate lhs/rhs for assignment: validate identifier, mutability,
+	// check suffix compatibility, and evaluate the RHS. Returns AssignPrep where
+	// 'error' is present on failure; otherwise 'evaluatedRhs' holds the RHS value.
+	private AssignPrep prepAssignOps(String lhs, String rhs, Env env) {
 		if (!isSimpleIdentifier(lhs))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
-		// Unknown in valEnv can be acceptable if declared without initializer (present
-		// in typeEnv)
+			return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+		// Unknown in valEnv can be acceptable if declared without initializer (present in typeEnv)
 		if (!env.valEnv.containsKey(lhs) && !env.typeEnv.containsKey(lhs))
-			return java.util.Optional
-					.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
+			return new AssignPrep(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
 		Boolean isMut = env.mutEnv.getOrDefault(lhs, Boolean.FALSE);
 		if (!isMut)
-			return java.util.Optional
-					.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
+			return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
 
 		// Validate RHS suffix vs annotated/inferred type (if any) before evaluating
 		java.util.Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhs, rhs, env);
 		if (suffixCheck.isPresent())
-			return java.util.Optional.of(suffixCheck.get());
+			return new AssignPrep(suffixCheck.get());
 
 		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env.valEnv, env.typeEnv);
 		if (rhsVal instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) rhsVal);
+			return new AssignPrep((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
-		// Enforce assignment value compatibility against annotated/inferred type
-		java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, value, env);
-		if (valCheck.isPresent())
-			return java.util.Optional.of(valCheck.get());
+		return new AssignPrep(value);
+	}
 
-		env.valEnv.put(lhs, value);
-		return java.util.Optional.empty();
+	// Handle compound assignment of the form '<ident> += <expr>'
+	private java.util.Optional<Result<String, InterpretError>> handleCompAssign(String stmt, int plusEqIdx,
+									Env env) {
+		String lhs = stmt.substring(0, plusEqIdx).trim();
+		String rhs = stmt.substring(plusEqIdx + 2).trim();
+		// Reuse common preparation logic for assignments
+		AssignPrep ap = prepAssignOps(lhs, rhs, env);
+		if (ap.error.isPresent())
+			return java.util.Optional.of(ap.error.get());
+		// ap.evaluatedRhs is the evaluated RHS value
+		String rhsValue = ap.evaluatedRhs.get();
+
+		// Fetch current lhs value; it must exist in valEnv for compound assignment
+		if (!env.valEnv.containsKey(lhs))
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("read of uninitialized variable", env.source)));
+		String lhsValue = env.valEnv.get(lhs);
+
+		try {
+			java.math.BigInteger a = new java.math.BigInteger(lhsValue);
+			java.math.BigInteger b = new java.math.BigInteger(rhsValue);
+			java.math.BigInteger sum = a.add(b);
+			String sumStr = sum.toString();
+
+			// Validate resulting assignment against annotated/inferred type
+			java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
+			if (valCheck.isPresent())
+				return java.util.Optional.of(valCheck.get());
+
+			env.valEnv.put(lhs, sumStr);
+			return java.util.Optional.empty();
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
+		}
 	}
 
 	// Validate RHS textual suffix against the variable's annotated/inferred type
