@@ -271,4 +271,10 @@ public class InterpreterFeatureTest {
 		String src = "fn pass(param : I32) : I32 => { return param; } pass(true)";
 		TestUtils.assertInvalid(src);
 	}
+
+	@Test
+	public void nestedArrayIndex() {
+		// Nested arrays: [[1]][0][0] should resolve to 1.
+		TestUtils.assertValid("[[1]][0][0]", "1");
+	}
 }

@@ -1071,8 +1071,26 @@ public class Interpreter {
 	// <baseExpr>[<idxExpr>] where the trailing ']' matches an earlier '['.
 	private java.util.Optional<Result<String, InterpretError>> tryEvalIndexing(String s, Env env) {
 		int lastBracket = s.lastIndexOf(']');
-		int openBracket = lastBracket > 0 ? s.lastIndexOf('[', lastBracket - 1) : -1;
-		if (!(openBracket > 0 && lastBracket == s.length() - 1))
+		if (lastBracket != s.length() - 1)
+			return java.util.Optional.empty();
+		// Find the matching '[' for the trailing ']' by scanning backwards and
+		// counting nested brackets. This ensures nested array literals like
+		// "[[1]]" are not mis-detected as an indexing expression.
+		int openBracket = -1;
+		int depth = 0;
+		for (int i = lastBracket; i >= 0; i--) {
+			char c = s.charAt(i);
+			if (c == ']')
+				depth++;
+			else if (c == '[') {
+				depth--;
+				if (depth == 0) {
+					openBracket = i;
+					break;
+				}
+			}
+		}
+		if (!(openBracket > 0))
 			return java.util.Optional.empty();
 		String baseExpr = s.substring(0, openBracket).trim();
 		String idxExpr = s.substring(openBracket + 1, lastBracket).trim();
