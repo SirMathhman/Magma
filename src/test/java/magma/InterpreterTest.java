@@ -11,7 +11,7 @@ public class InterpreterTest {
 		String source = "bad source code";
 		String input = "";
 
-		Result<String, InterpretError> res = interp.interpret(source, input);
+		Result<String, InterpretError> res = interp.interpret(source);
 
 		assertTrue(res instanceof Result.Err);
 		Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) res;

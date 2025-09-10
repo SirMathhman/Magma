@@ -1,26 +1,174 @@
 package magma;
 
+import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Interpreter for a tiny language used by the project tests.
  */
 public class Interpreter {
-	private java.util.Optional<Result<String, InterpretError>> err(String msg, String source) {
-		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
-	}
-
 	// Helper to extract the return expression for a function body.
 	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
 	// braces).
-	private static final class FnBodyParse {
-		final java.util.Optional<Result<String, InterpretError>> error;
-		final String retExpr;
+	private record FnBodyParse(Optional<Result<String, InterpretError>> error, String retExpr) {}
 
-		FnBodyParse(java.util.Optional<Result<String, InterpretError>> error, String retExpr) {
-			this.error = error;
-			this.retExpr = retExpr;
+	// Helper to hold consequent/alternative extraction result
+	private static final class ConsAlt {
+		final String cons;
+		final String alt;
+		final int consumedIdx;
+		final Optional<Result<String, InterpretError>> error;
+
+		ConsAlt(String cons, String alt, int consumedIdx) {
+			this.cons = cons;
+			this.alt = alt;
+			this.consumedIdx = consumedIdx;
+			this.error = Optional.empty();
 		}
+
+		ConsAlt(Optional<Result<String, InterpretError>> error) {
+			this.cons = "";
+			this.alt = "";
+			this.consumedIdx = -1;
+			this.error = error;
+		}
+	}
+
+	private static final class AltInfo {
+		final String alt;
+		final int consumedIdx;
+		final Optional<Result<String, InterpretError>> error;
+
+		AltInfo(String alt, int consumedIdx) {
+			this.alt = alt;
+			this.consumedIdx = consumedIdx;
+			this.error = Optional.empty();
+		}
+
+		AltInfo(Optional<Result<String, InterpretError>> error) {
+			this.alt = "";
+			this.consumedIdx = -1;
+			this.error = error;
+		}
+	}
+
+	// Small holder for runtime environments and program source so we avoid
+	// passing multiple maps/strings as separate parameters (keeps parameter
+	// counts below the Checkstyle limit).
+	private static final class Env {
+		final Map<String, String> valEnv;
+		final Map<String, String> typeEnv;
+		final Map<String, FunctionDecl> fnEnv;
+		final Map<String, List<String>> fnParamNames;
+		final Map<String, List<String>> fnParamTypes;
+		final Map<String, Boolean> mutEnv;
+		final String source;
+
+		Env(Map<String, String> valEnv, Map<String, String> typeEnv, String source) {
+			this.valEnv = valEnv;
+			this.typeEnv = typeEnv;
+			this.fnEnv = new HashMap<>();
+			this.fnParamNames = new HashMap<>();
+			this.fnParamTypes = new HashMap<>();
+			this.mutEnv = new HashMap<>();
+			this.source = source;
+		}
+
+	}
+
+	// Helper to represent a parsed type kind and width together so checks can
+	// take a single object rather than separate primitive params.
+	private record TypeSpec(char kind, int width) {}
+
+	/**
+	 * @param returnType e.g., I32 or Bool
+	 * @param bodyExpr   expression returned by the function
+	 */ // Small helper to represent a zero-arg function declaration with a typed
+	// Helper to represent a function declaration (supports optional single
+	// parameter). The bodyExpr holds the expression returned by the function.
+	private record FunctionDecl(String name, String returnType, String bodyExpr) {}
+
+	// Small helper to hold prepared assignment operands
+	private static final class AssignPrep {
+		final Optional<String> evaluatedRhs;
+		final Optional<Result<String, InterpretError>> error;
+
+		AssignPrep(String evaluatedRhs) {
+			this.evaluatedRhs = Optional.of(evaluatedRhs);
+			this.error = Optional.empty();
+		}
+
+		AssignPrep(Result<String, InterpretError> error) {
+			this.evaluatedRhs = Optional.empty();
+			this.error = Optional.of(error);
+		}
+	}
+
+	// Helper used to resolve a dereference target variable's referenced target.
+	private static final class DerefResolve {
+		final String targetName;
+		final Optional<Result<String, InterpretError>> error;
+
+		DerefResolve(String targetName) {
+			this.targetName = targetName;
+			this.error = Optional.empty();
+		}
+
+		DerefResolve(Optional<Result<String, InterpretError>> error) {
+			this.targetName = "";
+			this.error = error;
+		}
+	}
+
+	// Small helper to represent a parsed let declaration
+	private static final class LetDeclaration {
+		final String name;
+		final String annotatedSuffix;
+		final String rhs;
+		boolean mutable;
+
+		LetDeclaration(String name, String annotatedSuffix, String rhs) {
+			this.name = name;
+			this.annotatedSuffix = annotatedSuffix;
+			this.rhs = rhs;
+			this.mutable = false;
+		}
+	}
+
+	// small helper to return parsed identifier and next index
+	private record ParseId(String name, int idx) {}
+
+	// Small helper struct to hold parse results
+	private record ParseResult(boolean valid, String integerPart, String suffix) {
+		private static final ParseResult INVALID = new ParseResult(false, "", "");
+
+		static ParseResult invalid() {
+			return INVALID;
+		}
+	}
+
+	// Outcome of processing an if-part: either a Result to return (if the
+	// branch produced an expression result or an error), or the index of the
+	// last consumed part so the caller can advance the main loop.
+	private record IfOutcome(Optional<Result<String, InterpretError>> result, int consumedIdx) {}
+
+	// Reference marker prefixes used to encode reference values in the string
+	// result type. These are internal-only and chosen to avoid colliding with
+	// numeric literal strings.
+	private static final String REF_PREFIX = "@REF:";
+	private static final String REFMUT_PREFIX = "@REFMUT:";
+	// Internal marker for array values stored as strings: "@ARR:elem1|elem2|..."
+	private static final String ARR_PREFIX = "@ARR:";
+	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
+
+	private Optional<Result<String, InterpretError>> err(String msg, String source) {
+		return Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
 	private FnBodyParse extractFnReturnExpr(String s, int arrowIdx, Env env) {
@@ -29,19 +177,17 @@ public class Interpreter {
 		if (bodyOpen >= 0) {
 			int j = findMatchingBrace(s, bodyOpen);
 			if (j < 0)
-				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
-						new InterpretError("unterminated fn body", env.source))), "");
+				return new FnBodyParse(Optional.of(new Result.Err<>(new InterpretError("unterminated fn body", env.source))),
+															 "");
 			String body = s.substring(bodyOpen + 1, j).trim();
 			int retIdx = body.indexOf("return");
-			if (retIdx < 0)
-				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
-						new InterpretError("missing return in fn body", env.source))), "");
+			if (retIdx < 0) return new FnBodyParse(
+					Optional.of(new Result.Err<>(new InterpretError("missing return in fn body", env.source))), "");
 			int semi = body.indexOf(';', retIdx);
-			if (semi < 0)
-				return new FnBodyParse(java.util.Optional.of(new Result.Err<>(
-						new InterpretError("missing ';' after return", env.source))), "");
+			if (semi < 0) return new FnBodyParse(
+					Optional.of(new Result.Err<>(new InterpretError("missing ';' after return", env.source))), "");
 			String expr = body.substring(retIdx + 6, semi).trim();
-			return new FnBodyParse(java.util.Optional.empty(), expr);
+			return new FnBodyParse(Optional.empty(), expr);
 		}
 		// compact form: accept either 'return <expr>;' OR a direct expression after the
 		// arrow
@@ -53,16 +199,14 @@ public class Interpreter {
 		} else {
 			exprStart = skipWs(s, searchStart, s.length());
 			if (exprStart >= s.length())
-				return new FnBodyParse(
-						java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))), "");
+				return new FnBodyParse(Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))), "");
 		}
 		int semi = s.indexOf(';', exprStart);
 		int end = semi >= 0 ? semi : s.length();
 		String expr = s.substring(exprStart, end).trim();
 		if (expr.isEmpty())
-			return new FnBodyParse(java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))),
-					"");
-		return new FnBodyParse(java.util.Optional.empty(), expr);
+			return new FnBodyParse(Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))), "");
+		return new FnBodyParse(Optional.empty(), expr);
 	}
 
 	// Find the index of the matching closing '}' for the opening brace at openIdx.
@@ -72,12 +216,10 @@ public class Interpreter {
 		int depth = 0;
 		for (int i = openIdx; i < len; i++) {
 			char c = s.charAt(i);
-			if (c == '{')
-				depth++;
+			if (c == '{') depth++;
 			else if (c == '}') {
 				depth--;
-				if (depth == 0)
-					return i;
+				if (depth == 0) return i;
 			}
 		}
 		return -1;
@@ -86,42 +228,36 @@ public class Interpreter {
 	// Try to evaluate a function call expression like 'name()' or 'name(arg)'.
 	// Returns Optional.empty() if the expression is not a function call, otherwise
 	// returns the Result (Ok or Err) wrapped in Optional.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalFunctionCall(String s, Env env) {
+	private Optional<Result<String, InterpretError>> tryEvalFunctionCall(String s, Env env) {
 		int parenIdx = s.indexOf('(');
-		if (parenIdx <= 0 || !s.endsWith(")"))
-			return java.util.Optional.empty();
+		if (parenIdx <= 0 || !s.endsWith(")")) return Optional.empty();
 		String name = s.substring(0, parenIdx).trim();
 		String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
-		if (!isSimpleIdentifier(name))
-			return java.util.Optional.empty();
-		if (!env.fnEnv.containsKey(name))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
+		if (!isSimpleIdentifier(name)) return Optional.empty();
+		if (!env.fnEnv.containsKey(name)) return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
 		FunctionDecl fd = env.fnEnv.get(name);
-		java.util.List<String> paramNames = env.fnParamNames.getOrDefault(name, java.util.Collections.emptyList());
-		java.util.List<String> paramTypes = env.fnParamTypes.getOrDefault(name, java.util.Collections.emptyList());
+		List<String> paramNames = env.fnParamNames.getOrDefault(name, Collections.emptyList());
+		List<String> paramTypes = env.fnParamTypes.getOrDefault(name, Collections.emptyList());
 		// parse call arguments (comma-separated)
-		java.util.List<String> args = new java.util.ArrayList<>();
+		List<String> args = new ArrayList<>();
 		if (!inside.isEmpty()) {
 			// split on commas (simple splitter; no nested expressions supported yet)
-			for (String a : inside.split(","))
-				args.add(a.trim());
+			for (String a : inside.split(",")) {args.add(a.trim());}
 		}
 		if (args.size() != paramNames.size()) {
-			return java.util.Optional.of(new Result.Err<>(
-					new InterpretError("argument count mismatch in call to " + name, s)));
+			return Optional.of(new Result.Err<>(new InterpretError("argument count mismatch in call to " + name, s)));
 		}
 		// evaluate each argument in caller env
-		java.util.List<String> evaluatedArgs = new java.util.ArrayList<>();
+		List<String> evaluatedArgs = new ArrayList<>();
 		for (String a : args) {
 			Result<String, InterpretError> r = evaluateExpression(a, env);
-			if (r instanceof Result.Err)
-				return java.util.Optional.of((Result<String, InterpretError>) r);
+			if (r instanceof Result.Err) return Optional.of(r);
 			evaluatedArgs.add(((Result.Ok<String, InterpretError>) r).value());
 		}
 		// create a temporary env for function body evaluation: copy maps but do not
 		// mutate caller env; bind parameters
-		java.util.Map<String, String> newVals = new java.util.HashMap<>(env.valEnv);
-		java.util.Map<String, String> newTypes = new java.util.HashMap<>(env.typeEnv);
+		Map<String, String> newVals = new HashMap<>(env.valEnv);
+		Map<String, String> newTypes = new HashMap<>(env.typeEnv);
 		Env fnEnv = new Env(newVals, newTypes, env.source);
 		fnEnv.fnEnv.putAll(env.fnEnv);
 		fnEnv.mutEnv.putAll(env.mutEnv);
@@ -134,45 +270,43 @@ public class Interpreter {
 			// Validate argument value against parameter annotated type (if any)
 			String ptype = i < paramTypes.size() ? paramTypes.get(i) : "";
 			if (!ptype.isEmpty()) {
-				java.util.Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, env);
-				if (annErr.isPresent())
-					return java.util.Optional.of(annErr.get());
+				Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, env);
+				if (annErr.isPresent()) return annErr;
 				fnEnv.typeEnv.put(p, ptype);
 			}
 			fnEnv.valEnv.put(p, val);
 		}
-		return java.util.Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
+		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
 
 	// Extracted helper to parse and record a zero-arg function declaration to
 	// reduce
 	// cyclomatic complexity of handleStatement.
-	private java.util.Optional<Result<String, InterpretError>> handleFnDecl(String s, Env env) {
+	private Optional<Result<String, InterpretError>> handleFnDecl(String s, Env env) {
 		int len = s.length();
 		int idx = skipWs(s, 2, len); // after 'fn'
-		java.util.Optional<ParseId> pidOpt = parseId(s, idx, len);
-		if (!pidOpt.isPresent())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn declaration", env.source)));
+		Optional<ParseId> pidOpt = parseId(s, idx, len);
+		if (pidOpt.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("invalid fn declaration", env.source)));
 		ParseId pid = pidOpt.get();
 		String name = pid.name;
 		idx = skipWs(s, pid.idx, len);
 		// parse empty parameter list '()'
 		if (idx >= len || s.charAt(idx) != '(')
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
 		int close = s.indexOf(')', idx + 1);
-		if (close < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
+		if (close < 0) return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
 		String params = s.substring(idx + 1, close).trim();
-		java.util.List<String> paramNames = new java.util.ArrayList<>();
-		java.util.List<String> paramTypes = new java.util.ArrayList<>();
+		List<String> paramNames = new ArrayList<>();
+		List<String> paramTypes = new ArrayList<>();
 		if (!params.isEmpty()) {
 			// split on commas and parse each param of the form: <ident> (':' <suffix>)?
 			for (String part : params.split(",")) {
 				String p = part.trim();
 				int plen = p.length();
-				java.util.Optional<ParseId> pPid = parseId(p, 0, plen);
-				if (!pPid.isPresent())
-					return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn parameter", env.source)));
+				Optional<ParseId> pPid = parseId(p, 0, plen);
+				if (pPid.isEmpty())
+					return Optional.of(new Result.Err<>(new InterpretError("invalid fn parameter", env.source)));
 				ParseId pp = pPid.get();
 				String pname = pp.name;
 				int after = skipWs(p, pp.idx, plen);
@@ -185,11 +319,9 @@ public class Interpreter {
 		String ann = parseAnnotatedSuffix(s, close + 1, len);
 		// find '=>' after annotation
 		int arrow = s.indexOf("=>", close + 1);
-		if (arrow < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
+		if (arrow < 0) return Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
 		FnBodyParse fb = extractFnReturnExpr(s, arrow, env);
-		if (fb.error.isPresent())
-			return java.util.Optional.of(fb.error.get());
+		if (fb.error.isPresent()) return fb.error;
 		String retExpr = fb.retExpr;
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
@@ -199,68 +331,42 @@ public class Interpreter {
 		if (!paramTypes.isEmpty()) {
 			env.fnParamTypes.put(name, paramTypes);
 		}
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
 	// Extracted helper to handle while statements to reduce cyclomatic complexity
-	private java.util.Optional<Result<String, InterpretError>> handleWhile(String s, Env env) {
+	private Optional<Result<String, InterpretError>> handleWhile(String s, Env env) {
 		int open = s.indexOf('(');
 		int close = s.indexOf(')', open + 1);
 		if (open < 0 || close < 0)
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid while syntax", env.source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid while syntax", env.source)));
 		String condExpr = s.substring(open + 1, close).trim();
-		String after = computeAfter(new String[] { s }, 0); // compute inline after
-		java.util.Optional<String> bodyStmt = java.util.Optional.empty();
+		String after = computeAfter(new String[]{s}, 0); // compute inline after
+		Optional<String> bodyStmt;
 		if (!after.isEmpty()) {
-			bodyStmt = java.util.Optional.of(after);
+			bodyStmt = Optional.of(after);
 		} else {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("while requires inline body", env.source)));
+			return Optional.of(new Result.Err<>(new InterpretError("while requires inline body", env.source)));
 		}
 
 		// Execute the loop
 		while (true) {
 			Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
-			if (condRes instanceof Result.Err)
-				return java.util.Optional.of((Result<String, InterpretError>) condRes);
+			if (condRes instanceof Result.Err) return Optional.of(condRes);
 			String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
 			boolean condTrue = "true".equals(condVal);
-			if (!condTrue)
-				break;
-			java.util.Optional<Result<String, InterpretError>> bodyRes = handleStatement(bodyStmt.get(), env);
-			if (bodyRes.isPresent())
-				return bodyRes;
+			if (!condTrue) break;
+			Optional<Result<String, InterpretError>> bodyRes = handleStatement(bodyStmt.get(), env);
+			if (bodyRes.isPresent()) return bodyRes;
 		}
-		return java.util.Optional.empty();
-	}
-
-	// Helper to hold consequent/alternative extraction result
-	private static final class ConsAlt {
-		final String cons;
-		final String alt;
-		final int consumedIdx;
-		final java.util.Optional<Result<String, InterpretError>> error;
-
-		ConsAlt(String cons, String alt, int consumedIdx) {
-			this.cons = cons;
-			this.alt = alt;
-			this.consumedIdx = consumedIdx;
-			this.error = java.util.Optional.empty();
-		}
-
-		ConsAlt(java.util.Optional<Result<String, InterpretError>> error) {
-			this.cons = "";
-			this.alt = "";
-			this.consumedIdx = -1;
-			this.error = error;
-		}
+		return Optional.empty();
 	}
 
 	// Extract consequent and alternative strings for an if starting at parts[idx].
 	// closeParenIdx is the index of ')' within parts[idx] used to find inline text.
 	private ConsAlt findConsAlt(String[] parts, int idx, Env env) {
 		String after = computeAfter(parts, idx);
-		if (!after.isEmpty())
-			return inlineAfter(parts, idx, env);
+		if (!after.isEmpty()) return inlineAfter(parts, idx, env);
 		return extractSeparated(parts, idx, env);
 	}
 
@@ -272,20 +378,16 @@ public class Interpreter {
 			String alt = after.substring(elseIdx + 4).trim();
 			return new ConsAlt(cons, alt, idx);
 		}
-		String cons = after;
 		AltInfo ai = nextAltInfo(parts, idx + 1, env);
-		if (ai.error.isPresent())
-			return new ConsAlt(ai.error);
-		return new ConsAlt(cons, ai.alt, ai.consumedIdx);
+		if (ai.error.isPresent()) return new ConsAlt(ai.error);
+		return new ConsAlt(after, ai.alt, ai.consumedIdx);
 	}
 
 	private ConsAlt extractSeparated(String[] parts, int idx, Env env) {
 		int consIdx = idx + 1;
-		while (consIdx < parts.length && parts[consIdx].trim().isEmpty())
-			consIdx++;
+		while (consIdx < parts.length && parts[consIdx].trim().isEmpty()) consIdx++;
 		if (consIdx >= parts.length)
-			return new ConsAlt(
-					java.util.Optional.of(new Result.Err<>(new InterpretError("missing consequent in if", env.source))));
+			return new ConsAlt(Optional.of(new Result.Err<>(new InterpretError("missing consequent in if", env.source))));
 		String consPart = parts[consIdx].trim();
 		int elseIdx = indexOfElse(consPart);
 		if (elseIdx >= 0) {
@@ -294,36 +396,15 @@ public class Interpreter {
 			return new ConsAlt(cons, alt, consIdx);
 		}
 		AltInfo ai = nextAltInfo(parts, consIdx + 1, env);
-		if (ai.error.isPresent())
-			return new ConsAlt(ai.error);
+		if (ai.error.isPresent()) return new ConsAlt(ai.error);
 		return new ConsAlt(consPart, ai.alt, ai.consumedIdx);
-	}
-
-	private static final class AltInfo {
-		final String alt;
-		final int consumedIdx;
-		final java.util.Optional<Result<String, InterpretError>> error;
-
-		AltInfo(String alt, int consumedIdx) {
-			this.alt = alt;
-			this.consumedIdx = consumedIdx;
-			this.error = java.util.Optional.empty();
-		}
-
-		AltInfo(java.util.Optional<Result<String, InterpretError>> error) {
-			this.alt = "";
-			this.consumedIdx = -1;
-			this.error = error;
-		}
 	}
 
 	private AltInfo nextAltInfo(String[] parts, int startIdx, Env env) {
 		int altIdx = startIdx;
-		while (altIdx < parts.length && parts[altIdx].trim().isEmpty())
-			altIdx++;
+		while (altIdx < parts.length && parts[altIdx].trim().isEmpty()) altIdx++;
 		if (altIdx >= parts.length)
-			return new AltInfo(
-					java.util.Optional.of(new Result.Err<>(new InterpretError("missing alternative in if", env.source))));
+			return new AltInfo(Optional.of(new Result.Err<>(new InterpretError("missing alternative in if", env.source))));
 		String altPart = parts[altIdx].trim();
 		String altPartTrimmed = altPart.startsWith("else") ? altPart.substring(4).trim() : altPart;
 		return new AltInfo(altPartTrimmed, altIdx);
@@ -335,15 +416,14 @@ public class Interpreter {
 		String part = parts[idx].trim();
 		int close = part.indexOf(')');
 		String after = "";
-		if (close >= 0 && close + 1 < part.length())
-			after = part.substring(close + 1).trim();
+		if (close >= 0 && close + 1 < part.length()) after = part.substring(close + 1).trim();
 		return after;
 	}
 
 	// Split source into top-level parts separated by semicolons, ignoring
 	// semicolons that appear inside brace-delimited blocks.
 	private String[] splitTopLevel(String source) {
-		java.util.List<String> parts = new java.util.ArrayList<>();
+		List<String> parts = new ArrayList<>();
 		StringBuilder sb = new StringBuilder();
 		int depth = 0;
 		int len = source.length();
@@ -362,8 +442,7 @@ public class Interpreter {
 				// expressions after a block (e.g., "} x") become a separate part.
 				if (depth == 0) {
 					int k = j + 1;
-					while (k < len && Character.isWhitespace(source.charAt(k)))
-						k++;
+					while (k < len && Character.isWhitespace(source.charAt(k))) k++;
 					if (k < len) {
 						char nc = source.charAt(k);
 						if (nc != ';') {
@@ -387,82 +466,28 @@ public class Interpreter {
 		return parts.toArray(new String[0]);
 	}
 
-	// Small holder for runtime environments and program source so we avoid
-	// passing multiple maps/strings as separate parameters (keeps parameter
-	// counts below the Checkstyle limit).
-	private static final class Env {
-		final java.util.Map<String, String> valEnv;
-		final java.util.Map<String, String> typeEnv;
-		final java.util.Map<String, FunctionDecl> fnEnv;
-		final java.util.Map<String, java.util.List<String>> fnParamNames;
-		final java.util.Map<String, java.util.List<String>> fnParamTypes;
-		final java.util.Map<String, Boolean> mutEnv;
-		final String source;
-
-		Env(java.util.Map<String, String> valEnv, java.util.Map<String, String> typeEnv, String source) {
-			this.valEnv = valEnv;
-			this.typeEnv = typeEnv;
-			this.fnEnv = new java.util.HashMap<>();
-			this.fnParamNames = new java.util.HashMap<>();
-			this.fnParamTypes = new java.util.HashMap<>();
-			this.mutEnv = new java.util.HashMap<>();
-			this.source = source;
-		}
-
-	}
-
-	// Helper to represent a parsed type kind and width together so checks can
-	// take a single object rather than separate primitive params.
-	private static final class TypeSpec {
-		final char kind;
-		final int width;
-
-		TypeSpec(char kind, int width) {
-			this.kind = kind;
-			this.width = width;
-		}
-	}
-
-	// Small helper to represent a zero-arg function declaration with a typed
-	// Helper to represent a function declaration (supports optional single
-	// parameter). The bodyExpr holds the expression returned by the function.
-	private static final class FunctionDecl {
-		final String name;
-		final String returnType; // e.g., I32 or Bool
-		final String bodyExpr; // expression returned by the function
-
-		FunctionDecl(String name, String returnType, String bodyExpr) {
-			this.name = name;
-			this.returnType = returnType;
-			this.bodyExpr = bodyExpr;
-		}
-	}
-
 	/**
 	 * Interpret the given source with the provided input and produce a result
 	 * wrapped in a Result (Ok or Err).
 	 *
 	 * @param source the source code to interpret
-	 * @param input  the runtime input for the program
 	 * @return the result of interpretation wrapped in a Result (Ok or Err)
 	 */
-	public Result<String, InterpretError> interpret(String source, String input) {
+	public Result<String, InterpretError> interpret(String source) {
 		// return it as the program output. Otherwise return Err with the source.
-		if (Objects.isNull(source))
-			return new Result.Err<>(new InterpretError("<missing source>", ""));
+		if (Objects.isNull(source)) return new Result.Err<>(new InterpretError("<missing source>", ""));
 
 		String s = source.trim();
 
 		// Support simple sequences with `let` bindings separated by ';'
-		if (s.contains(";"))
-			return evaluateSequence(s);
+		if (s.contains(";")) return evaluateSequence(s);
 
 		// For single-expression programs, evaluate the expression with empty
 		// environments so that expression handling (including literals,
 		// boolean literals, addition, and typed literals) is centralized in
 		// evaluateExpression(...).
-		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
-		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
+		Map<String, String> valEnv = new HashMap<>();
+		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
 		return evaluateExpression(s, env);
 	}
@@ -471,8 +496,8 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateSequence(String source) {
 		// Split at top-level semicolons only (ignore semicolons inside braces)
 		String[] parts = splitTopLevel(source);
-		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
-		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
+		Map<String, String> valEnv = new HashMap<>();
+		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
 		int i = 0;
 
@@ -489,16 +514,14 @@ public class Interpreter {
 				// consequent and alternative: `if (cond) <stmt>; else <stmt>;`
 				if (part.startsWith("if ") || part.startsWith("if(")) {
 					IfOutcome fo = processIfPart(parts, i, env);
-					if (fo.result.isPresent())
-						return fo.result.get();
+					if (fo.result.isPresent()) return fo.result.get();
 					i = fo.consumedIdx + 1;
 					continue;
 				}
 
 				// Statement position: expect a let-binding or assignment
-				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
-				if (stmtRes.isPresent())
-					return stmtRes.get();
+				Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
+				if (stmtRes.isPresent()) return stmtRes.get();
 				i++;
 			} else {
 				// Final expression: evaluate and return
@@ -511,7 +534,7 @@ public class Interpreter {
 		return new Result.Ok<>("");
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> handleStatement(String stmt, Env env) {
+	private Optional<Result<String, InterpretError>> handleStatement(String stmt, Env env) {
 		String s = stmt.trim();
 		// Support block statements of the form `{ ... }` containing one or more
 		// inner statements separated by semicolons. Execute inner statements in
@@ -526,13 +549,11 @@ public class Interpreter {
 			Env child = makeChildEnv(env);
 			for (String part : inner) {
 				String t = part.trim();
-				if (t.isEmpty())
-					continue;
-				java.util.Optional<Result<String, InterpretError>> innerRes = handleStatement(t, child);
-				if (innerRes.isPresent())
-					return innerRes;
+				if (t.isEmpty()) continue;
+				Optional<Result<String, InterpretError>> innerRes = handleStatement(t, child);
+				if (innerRes.isPresent()) return innerRes;
 			}
-			return java.util.Optional.empty();
+			return Optional.empty();
 		}
 		// Support while statements by delegating to helper to keep this method small
 		if (s.startsWith("while ") || s.startsWith("while(")) {
@@ -549,7 +570,7 @@ public class Interpreter {
 
 	// Extracted helper to handle assignments, compound assignments and let
 	// declarations.
-	private java.util.Optional<Result<String, InterpretError>> handleSimpleStmt(String s, Env env) {
+	private Optional<Result<String, InterpretError>> handleSimpleStmt(String s, Env env) {
 		// Support compound assignment '+=', and simple assignment '=' in statement
 		// position
 		int plusEqIdx = s.indexOf("+=");
@@ -560,37 +581,34 @@ public class Interpreter {
 		if (eqIdx > 0 && !s.startsWith("let ")) {
 			return handleAssignment(s, eqIdx, env);
 		}
-		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
-		if (!parsed.isPresent())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
+		Optional<LetDeclaration> parsed = parseLetDeclaration(s);
+		if (parsed.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
 		LetDeclaration d = parsed.get();
 		return handleLetDeclaration(d, env);
 	}
 
 	// Helper to process let declarations (extracted to reduce complexity)
-	private java.util.Optional<Result<String, InterpretError>> handleLetDeclaration(LetDeclaration d, Env env) {
+	private Optional<Result<String, InterpretError>> handleLetDeclaration(LetDeclaration d, Env env) {
 		// If there's no RHS (declaration only), record the annotation and mark as
 		// mutable
 		if (d.rhs.isEmpty()) {
 			if (!d.annotatedSuffix.isEmpty()) {
-				java.util.Optional<Result<String, InterpretError>> wErr = checkAnnotatedSuffix(d.annotatedSuffix, "0", env);
-				if (wErr.isPresent())
-					return wErr;
+				Optional<Result<String, InterpretError>> wErr = checkAnnotatedSuffix(d.annotatedSuffix, "0", env);
+				if (wErr.isPresent()) return wErr;
 				env.typeEnv.put(d.name, d.annotatedSuffix);
 			}
 			// Declarations without initializer are implicitly mutable to allow later
 			// assignment
 			env.mutEnv.put(d.name, Boolean.TRUE);
 			// Do not place a value in valEnv yet; assignment will set it.
-			return java.util.Optional.empty();
+			return Optional.empty();
 		}
 		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, env.valEnv, env.typeEnv);
-		if (rhsRes instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) rhsRes);
+		if (rhsRes instanceof Result.Err) return Optional.of(rhsRes);
 		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
-		java.util.Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, env);
-		if (annRes.isPresent())
-			return annRes;
+		Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, env);
+		if (annRes.isPresent()) return annRes;
 		// If there was no explicit annotation but the initializer is a boolean
 		// literal, record an inferred Bool annotation so future assignments are
 		// checked against the boolean type.
@@ -602,91 +620,67 @@ public class Interpreter {
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
 	private Result<String, InterpretError> getRhsValue(String rhs,
-			java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv) {
+																										 Map<String, String> valEnv,
+																										 Map<String, String> typeEnv) {
 		Env tmp = new Env(valEnv, typeEnv, "");
 		return evaluateExpression(rhs, tmp);
 	}
 
 	// Validate annotated suffix for a let declaration and record the annotation in
 	// typeEnv
-	private java.util.Optional<Result<String, InterpretError>> recordAnn(LetDeclaration d, String value, Env env) {
-		if (d.annotatedSuffix.isEmpty())
-			return java.util.Optional.empty();
-		java.util.Optional<Result<String, InterpretError>> check = chkRhs(d.annotatedSuffix, d.rhs, env.source);
-		if (check.isPresent())
-			return check;
-		java.util.Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, env);
-		if (v.isPresent())
-			return v;
+	private Optional<Result<String, InterpretError>> recordAnn(LetDeclaration d, String value, Env env) {
+		if (d.annotatedSuffix.isEmpty()) return Optional.empty();
+		Optional<Result<String, InterpretError>> check = chkRhs(d.annotatedSuffix, d.rhs, env.source);
+		if (check.isPresent()) return check;
+		Optional<Result<String, InterpretError>> v = checkAnnotatedSuffix(d.annotatedSuffix, value, env);
+		if (v.isPresent()) return v;
 		env.typeEnv.put(d.name, d.annotatedSuffix);
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> chkRhs(String annSuffix, String rhs, String source) {
+	private Optional<Result<String, InterpretError>> chkRhs(String annSuffix, String rhs, String source) {
 		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
 		if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
 			String ann = annSuffix.toUpperCase();
 			String rhsSuf = rhsPr.suffix.toUpperCase();
 			if (!ann.equals(rhsSuf))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
+				return Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", source)));
 		}
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
 	// Helper to handle assignment statements to reduce complexity
-	private java.util.Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx, Env env) {
+	private Optional<Result<String, InterpretError>> handleAssignment(String stmt, int eqIdx, Env env) {
 		String lhs = stmt.substring(0, eqIdx).trim();
 		String rhs = stmt.substring(eqIdx + 1).trim();
 		AssignPrep prep = prepAssignOps(lhs, rhs, env);
-		if (prep.error.isPresent())
-			return java.util.Optional.of(prep.error.get());
+		if (prep.error.isPresent() || prep.evaluatedRhs.isEmpty()) return prep.error;
 		String evaluated = prep.evaluatedRhs.get();
 		// Enforce assignment value compatibility against annotated/inferred type
-		java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, evaluated, env);
-		if (valCheck.isPresent())
-			return java.util.Optional.of(valCheck.get());
+		Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, evaluated, env);
+		if (valCheck.isPresent()) return valCheck;
 
 		// Handle deref-assignment marker produced by prepAssignOps: DREF_ASSIGN_PREFIX
 		// + target + ":" + value
 		if (evaluated.startsWith(DREF_ASSIGN_PREFIX)) {
 			String rest = evaluated.substring(DREF_ASSIGN_PREFIX.length());
 			int colon = rest.indexOf(':');
-			if (colon <= 0)
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid deref assignment", env.source)));
+			if (colon <= 0) return Optional.of(new Result.Err<>(new InterpretError("invalid deref assignment", env.source)));
 			String target = rest.substring(0, colon);
 			String value = rest.substring(colon + 1);
 			// Validate assignment value against the target's annotated/inferred type
-			java.util.Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
-			if (valCheckTarget.isPresent())
-				return java.util.Optional.of(valCheckTarget.get());
+			Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
+			if (valCheckTarget.isPresent()) return valCheckTarget;
 			env.valEnv.put(target, value);
-			return java.util.Optional.empty();
+			return Optional.empty();
 		}
 
 		env.valEnv.put(lhs, evaluated);
-		return java.util.Optional.empty();
-	}
-
-	// Small helper to hold prepared assignment operands
-	private static final class AssignPrep {
-		final java.util.Optional<String> evaluatedRhs;
-		final java.util.Optional<Result<String, InterpretError>> error;
-
-		AssignPrep(String evaluatedRhs) {
-			this.evaluatedRhs = java.util.Optional.of(evaluatedRhs);
-			this.error = java.util.Optional.empty();
-		}
-
-		AssignPrep(Result<String, InterpretError> error) {
-			this.evaluatedRhs = java.util.Optional.empty();
-			this.error = java.util.Optional.of(error);
-		}
+		return Optional.empty();
 	}
 
 	// Prepare and validate lhs/rhs for assignment: validate identifier, mutability,
@@ -711,11 +705,10 @@ public class Interpreter {
 		// If LHS is a dereference like '*y', resolve the variable y's value and
 		// ensure it is a reference; for a mutable reference allow assignment to
 		// the referenced target.
-		String lhsName = lhs;
+		String lhsName;
 		if (isDeref) {
 			DerefResolve dr = resolveDerefTarget(derefTarget, env);
-			if (dr.error.isPresent())
-				return new AssignPrep(dr.error.get());
+			if (dr.error.isPresent()) return new AssignPrep(dr.error.get());
 			lhsName = dr.targetName;
 		} else {
 			// Non-deref LHS must exist and be mutable
@@ -728,13 +721,11 @@ public class Interpreter {
 		}
 
 		// Validate RHS suffix vs annotated/inferred type (if any) before evaluating
-		java.util.Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhsName, rhs, env);
-		if (suffixCheck.isPresent())
-			return new AssignPrep(suffixCheck.get());
+		Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhsName, rhs, env);
+		if (suffixCheck.isPresent()) return new AssignPrep(suffixCheck.get());
 
 		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env);
-		if (rhsVal instanceof Result.Err)
-			return new AssignPrep((Result<String, InterpretError>) rhsVal);
+		if (rhsVal instanceof Result.Err) return new AssignPrep(rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
 		// If this is a deref-assignment, we will return the evaluated RHS and
 		// the caller will place the value into the referenced variable.
@@ -748,142 +739,95 @@ public class Interpreter {
 		return new AssignPrep(value);
 	}
 
-	// Helper used to resolve a dereference target variable's referenced target.
-	private static final class DerefResolve {
-		final String targetName;
-		final java.util.Optional<Result<String, InterpretError>> error;
-
-		DerefResolve(String targetName) {
-			this.targetName = targetName;
-			this.error = java.util.Optional.empty();
-		}
-
-		DerefResolve(java.util.Optional<Result<String, InterpretError>> error) {
-			this.targetName = "";
-			this.error = error;
-		}
-	}
-
 	private DerefResolve resolveDerefTarget(String holder, Env env) {
-		if (!env.valEnv.containsKey(holder) && !env.typeEnv.containsKey(holder))
-			return new DerefResolve(
-					java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source))));
+		if (!env.valEnv.containsKey(holder) && !env.typeEnv.containsKey(holder)) return new DerefResolve(
+				Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source))));
 		String refVal = env.valEnv.getOrDefault(holder, "");
 		if (refVal.startsWith(REFMUT_PREFIX)) {
 			String target = refVal.substring(REFMUT_PREFIX.length());
 			Boolean isMutTarget = env.mutEnv.getOrDefault(target, Boolean.FALSE);
-			if (!isMutTarget)
-				return new DerefResolve(java.util.Optional
-						.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
+			if (!isMutTarget) return new DerefResolve(
+					Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
 			return new DerefResolve(target);
 		}
 		if (refVal.startsWith(REF_PREFIX)) {
 			return new DerefResolve(
-					java.util.Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
+					Optional.of(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source))));
 		}
-		return new DerefResolve(
-				java.util.Optional.of(new Result.Err<>(new InterpretError("invalid dereference", env.source))));
+		return new DerefResolve(Optional.of(new Result.Err<>(new InterpretError("invalid dereference", env.source))));
 	}
 
 	// Handle compound assignment of the form '<ident> += <expr>'
-	private java.util.Optional<Result<String, InterpretError>> handleCompAssign(String stmt, int plusEqIdx,
-			Env env) {
+	private Optional<Result<String, InterpretError>> handleCompAssign(String stmt, int plusEqIdx, Env env) {
 		String lhs = stmt.substring(0, plusEqIdx).trim();
 		String rhs = stmt.substring(plusEqIdx + 2).trim();
 		// Reuse common preparation logic for assignments
 		AssignPrep ap = prepAssignOps(lhs, rhs, env);
-		if (ap.error.isPresent())
-			return java.util.Optional.of(ap.error.get());
+		if (ap.error.isPresent() || ap.evaluatedRhs.isEmpty()) return ap.error;
 		// ap.evaluatedRhs is the evaluated RHS value
 		String rhsValue = ap.evaluatedRhs.get();
 
 		// Fetch current lhs value; it must exist in valEnv for compound assignment
 		if (!env.valEnv.containsKey(lhs))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("read of uninitialized variable", env.source)));
+			return Optional.of(new Result.Err<>(new InterpretError("read of uninitialized variable", env.source)));
 		String lhsValue = env.valEnv.get(lhs);
 
 		try {
-			java.math.BigInteger a = new java.math.BigInteger(lhsValue);
-			java.math.BigInteger b = new java.math.BigInteger(rhsValue);
-			java.math.BigInteger sum = a.add(b);
+			BigInteger a = new BigInteger(lhsValue);
+			BigInteger b = new BigInteger(rhsValue);
+			BigInteger sum = a.add(b);
 			String sumStr = sum.toString();
 
 			// Validate resulting assignment against annotated/inferred type
-			java.util.Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
-			if (valCheck.isPresent())
-				return java.util.Optional.of(valCheck.get());
+			Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
+			if (valCheck.isPresent()) return valCheck;
 
 			env.valEnv.put(lhs, sumStr);
-			return java.util.Optional.empty();
+			return Optional.empty();
 		} catch (NumberFormatException ex) {
-			return java.util.Optional
-					.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
 		}
 	}
 
 	// Validate RHS textual suffix against the variable's annotated/inferred type
-	private java.util.Optional<Result<String, InterpretError>> vRhsSuffix(String lhs, String rhs,
-			Env env) {
+	private Optional<Result<String, InterpretError>> vRhsSuffix(String lhs, String rhs, Env env) {
 		ParseResult rhsPr = parseSignAndDigits(rhs.trim());
-		if (!env.typeEnv.containsKey(lhs))
-			return java.util.Optional.empty();
+		if (!env.typeEnv.containsKey(lhs)) return Optional.empty();
 		String ann = env.typeEnv.get(lhs);
 		if (ann.equalsIgnoreCase("Bool")) {
 			// If RHS is a typed literal (e.g., 3U8) that's incompatible with Bool
 			if (rhsPr.valid && !rhsPr.suffix.isEmpty())
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
-			return java.util.Optional.empty();
+				return Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+			return Optional.empty();
 		}
 		if (rhsPr.valid && !rhsPr.suffix.isEmpty()) {
 			String rhsSuf = rhsPr.suffix.toUpperCase();
 			if (!ann.toUpperCase().equals(rhsSuf))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
+				return Optional.of(new Result.Err<>(new InterpretError("mismatched typed literal in assignment", env.source)));
 		}
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
 	// Validate the evaluated RHS value against the variable's annotated/inferred
 	// type
-	private java.util.Optional<Result<String, InterpretError>> vAssignValue(String lhs, String value,
-			Env env) {
-		if (!env.typeEnv.containsKey(lhs))
-			return java.util.Optional.empty();
+	private Optional<Result<String, InterpretError>> vAssignValue(String lhs, String value, Env env) {
+		if (!env.typeEnv.containsKey(lhs)) return Optional.empty();
 		String ann = env.typeEnv.get(lhs);
 		if (ann.equalsIgnoreCase("Bool")) {
 			if (!"true".equals(value) && !"false".equals(value))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("mismatched assignment to Bool variable", env.source)));
+				return Optional.of(new Result.Err<>(new InterpretError("mismatched assignment to Bool variable", env.source)));
 		} else {
 			// For numeric typed annotations, ensure the evaluated RHS fits the annotated
 			// type
-			java.util.Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, value, env);
-			if (chk.isPresent())
-				return chk;
+			Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, value, env);
+			if (chk.isPresent()) return chk;
 		}
-		return java.util.Optional.empty();
-	}
-
-	// Small helper to represent a parsed let declaration
-	private static final class LetDeclaration {
-		final String name;
-		final String annotatedSuffix;
-		boolean mutable;
-		final String rhs;
-
-		LetDeclaration(String name, String annotatedSuffix, String rhs) {
-			this.name = name;
-			this.annotatedSuffix = annotatedSuffix;
-			this.rhs = rhs;
-			this.mutable = false;
-		}
+		return Optional.empty();
 	}
 
 	// Parse a let declaration of the form: let <ident> (':' <suffix>)? '=' <expr>
-	private java.util.Optional<LetDeclaration> parseLetDeclaration(String s) {
-		if (!s.startsWith("let "))
-			return java.util.Optional.empty();
+	private Optional<LetDeclaration> parseLetDeclaration(String s) {
+		if (!s.startsWith("let ")) return Optional.empty();
 		int len = s.length();
 		int idx = skipWs(s, 4, len); // after 'let '
 		boolean mutable = false;
@@ -892,9 +836,8 @@ public class Interpreter {
 			mutable = true;
 			idx = skipWs(s, idx + 4, len);
 		}
-		java.util.Optional<ParseId> pidOpt = parseId(s, idx, len);
-		if (!pidOpt.isPresent())
-			return java.util.Optional.empty();
+		Optional<ParseId> pidOpt = parseId(s, idx, len);
+		if (pidOpt.isEmpty()) return Optional.empty();
 		ParseId pid = pidOpt.get();
 		String name = pid.name;
 		idx = skipWs(s, pid.idx, len);
@@ -907,91 +850,70 @@ public class Interpreter {
 		}
 		LetDeclaration d = new LetDeclaration(name, annotatedSuffix, rhs);
 		d.mutable = mutable;
-		return java.util.Optional.of(d);
+		return Optional.of(d);
 	}
 
 	// helper to skip whitespace from index start up to len
 	private int skipWs(String s, int start, int len) {
 		int i = start;
-		while (i < len && Character.isWhitespace(s.charAt(i)))
-			i++;
+		while (i < len && Character.isWhitespace(s.charAt(i))) i++;
 		return i;
 	}
 
-	// small helper to return parsed identifier and next index
-	private static final class ParseId {
-		final String name;
-		final int idx;
-
-		ParseId(String name, int idx) {
-			this.name = name;
-			this.idx = idx;
-		}
-	}
-
-	private java.util.Optional<ParseId> parseId(String s, int idx, int len) {
-		if (idx >= len || !Character.isJavaIdentifierStart(s.charAt(idx)))
-			return java.util.Optional.empty();
+	private Optional<ParseId> parseId(String s, int idx, int len) {
+		if (idx >= len || !Character.isJavaIdentifierStart(s.charAt(idx))) return Optional.empty();
 		int start = idx;
-		idx++;
-		while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx)))
-			idx++;
-		return java.util.Optional.of(new ParseId(s.substring(start, idx), idx));
+		do idx++; while (idx < len && Character.isJavaIdentifierPart(s.charAt(idx)));
+		return Optional.of(new ParseId(s.substring(start, idx), idx));
 	}
 
 	private String parseAnnotatedSuffix(String s, int idx, int len) {
 		if (idx < len && s.charAt(idx) == ':') {
 			idx++;
 			int sufStart = idx;
-			while (idx < len && s.charAt(idx) != '=')
-				idx++;
+			while (idx < len && s.charAt(idx) != '=') idx++;
 			return s.substring(sufStart, idx).trim();
 		}
 		return "";
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value,
-			Env env) {
+	private Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value, Env env) {
 		// Special-case Bool annotation which does not follow the <Letter><digits>
 		// pattern used by integer typed suffixes (e.g. U8, I32).
 		if (annotatedSuffix.equalsIgnoreCase("Bool")) {
 			// For Bool, the value must be a boolean literal string "true" or "false"
-			if ("true".equals(value) || "false".equals(value))
-				return java.util.Optional.empty();
+			if ("true".equals(value) || "false".equals(value)) return Optional.empty();
 			return err("invalid boolean value for Bool annotation", env.source);
 		}
-		if (!isValidSuffix(annotatedSuffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
+		if (isInvalidSuffix(annotatedSuffix))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
 		char kind = Character.toUpperCase(annotatedSuffix.charAt(0));
 		int[] widthHolder = new int[1];
-		java.util.Optional<Result<String, InterpretError>> wErr = parseWidth(annotatedSuffix, widthHolder, env.source);
-		if (wErr.isPresent())
-			return wErr;
+		Optional<Result<String, InterpretError>> wErr = parseWidth(annotatedSuffix, widthHolder, env.source);
+		if (wErr.isPresent()) return wErr;
 		int width = widthHolder[0];
 		return checkFits(new TypeSpec(kind, width), value, env);
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> parseWidth(String annotatedSuffix, int[] outWidth,
-			String source) {
+	private Optional<Result<String, InterpretError>> parseWidth(String annotatedSuffix, int[] outWidth, String source) {
 		try {
 			outWidth[0] = Integer.parseInt(annotatedSuffix.substring(1));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> checkFits(TypeSpec ts, String value, Env env) {
+	private Optional<Result<String, InterpretError>> checkFits(TypeSpec ts, String value, Env env) {
 		try {
-			java.math.BigInteger val = new java.math.BigInteger(value);
+			BigInteger val = new BigInteger(value);
 			if (ts.kind == 'U') {
 				if (val.signum() < 0 || !fitsUnsigned(val, ts.width))
 					return err("value does not fit annotated type", env.source);
-				return java.util.Optional.empty();
+				return Optional.empty();
 			} else if (ts.kind == 'I') {
-				if (!fitsSigned(val, ts.width))
-					return err("value does not fit annotated type", env.source);
-				return java.util.Optional.empty();
+				if (!fitsSigned(val, ts.width)) return err("value does not fit annotated type", env.source);
+				return Optional.empty();
 			}
 			return err("unknown type kind", env.source);
 		} catch (NumberFormatException ex) {
@@ -1002,77 +924,53 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
 		// Try handling prefix operations: &mut, &, and * (deref)
-		java.util.Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
-		if (pref.isPresent())
-			return pref.get();
+		Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
+		if (pref.isPresent()) return pref.get();
 		// Block expression handling delegated to helper to keep this method small.
-		if (s.startsWith("{") && s.endsWith("}"))
-			return evalBlockExpr(s, env);
+		if (s.startsWith("{") && s.endsWith("}")) return evalBlockExpr(s, env);
 		// Boolean literals
-		if (s.equals("true") || s.equals("false"))
-			return new Result.Ok<>(s);
+		if (s.equals("true") || s.equals("false")) return new Result.Ok<>(s);
 
 		// array literal / indexing
-		java.util.Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
-		if (arrIdx.isPresent())
-			return arrIdx.get();
+		Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
+		if (arrIdx.isPresent()) return arrIdx.get();
 
 		// function call: <ident>(...) (supports zero-arg or single-arg calls)
-		java.util.Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
-		if (fnCall.isPresent())
-			return fnCall.get();
+		Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
+		if (fnCall.isPresent()) return fnCall.get();
 		// variable reference
 		if (isSimpleIdentifier(s)) {
-			if (env.valEnv.containsKey(s))
-				return new Result.Ok<>(env.valEnv.get(s));
+			if (env.valEnv.containsKey(s)) return new Result.Ok<>(env.valEnv.get(s));
 			return new Result.Err<>(new InterpretError("unknown identifier", expr));
 		}
 		// comparison (e.g., '<')
-		java.util.Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
-		if (cmpRes.isPresent())
-			return cmpRes.get();
+		Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
+		if (cmpRes.isPresent()) return cmpRes.get();
 		// addition
-		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
-		if (addRes.isPresent())
-			return addRes.get();
+		Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
+		if (addRes.isPresent()) return addRes.get();
 		// literal/typed-literal
 		ParseResult pr = parseSignAndDigits(s);
-		if (!pr.valid)
-			return new Result.Err<>(new InterpretError("invalid literal", expr));
-		if (pr.suffix.isEmpty())
-			return new Result.Ok<>(pr.integerPart);
+		if (!pr.valid) return new Result.Err<>(new InterpretError("invalid literal", expr));
+		if (pr.suffix.isEmpty()) return new Result.Ok<>(pr.integerPart);
 		return evaluateTypedSuffix(pr, expr);
 	}
 
-	// Reference marker prefixes used to encode reference values in the string
-	// result type. These are internal-only and chosen to avoid colliding with
-	// numeric literal strings.
-	private static final String REF_PREFIX = "@REF:";
-	private static final String REFMUT_PREFIX = "@REFMUT:";
-	// Internal marker for array values stored as strings: "@ARR:elem1|elem2|..."
-	private static final String ARR_PREFIX = "@ARR:";
-	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
-
 	// Try to evaluate either an array literal like `[1,2]` or an indexing expression
 	// like `<expr>[<expr>]`. Returns Optional.empty() if not applicable.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalArrayOrIndex(String s, Env env) {
+	private Optional<Result<String, InterpretError>> tryEvalArrayOrIndex(String s, Env env) {
 		// Try indexing first, then array literal. Extract to smaller helpers for
 		// cyclomatic complexity reduction.
-		java.util.Optional<Result<String, InterpretError>> idx = tryEvalIndexing(s, env);
-		if (idx.isPresent())
-			return idx;
-		java.util.Optional<Result<String, InterpretError>> lit = tryEvalArrayLiteral(s, env);
-		if (lit.isPresent())
-			return lit;
-		return java.util.Optional.empty();
+		Optional<Result<String, InterpretError>> idx = tryEvalIndexing(s, env);
+		if (idx.isPresent()) return idx;
+		return tryEvalArrayLiteral(s, env);
 	}
 
 	// Extracted helper: evaluate indexing expression of the form
 	// <baseExpr>[<idxExpr>] where the trailing ']' matches an earlier '['.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalIndexing(String s, Env env) {
+	private Optional<Result<String, InterpretError>> tryEvalIndexing(String s, Env env) {
 		int lastBracket = s.lastIndexOf(']');
-		if (lastBracket != s.length() - 1)
-			return java.util.Optional.empty();
+		if (lastBracket != s.length() - 1) return Optional.empty();
 		// Find the matching '[' for the trailing ']' by scanning backwards and
 		// counting nested brackets. This ensures nested array literals like
 		// "[[1]]" are not mis-detected as an indexing expression.
@@ -1080,8 +978,7 @@ public class Interpreter {
 		int depth = 0;
 		for (int i = lastBracket; i >= 0; i--) {
 			char c = s.charAt(i);
-			if (c == ']')
-				depth++;
+			if (c == ']') depth++;
 			else if (c == '[') {
 				depth--;
 				if (depth == 0) {
@@ -1090,85 +987,80 @@ public class Interpreter {
 				}
 			}
 		}
-		if (!(openBracket > 0))
-			return java.util.Optional.empty();
+		if (!(openBracket > 0)) return Optional.empty();
 		String baseExpr = s.substring(0, openBracket).trim();
 		String idxExpr = s.substring(openBracket + 1, lastBracket).trim();
 		Result<String, InterpretError> baseRes = evaluateExpression(baseExpr, env);
-		if (baseRes instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) baseRes);
+		if (baseRes instanceof Result.Err) return Optional.of(baseRes);
 		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
 		if (!baseVal.startsWith(ARR_PREFIX))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid array indexing", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid array indexing", s)));
 		String elemsJoined = baseVal.substring(ARR_PREFIX.length());
-		java.util.List<String> elems = new java.util.ArrayList<>();
+		List<String> elems = new ArrayList<>();
 		if (!elemsJoined.isEmpty()) {
-			for (String p : elemsJoined.split("\\|"))
-				elems.add(p);
+			Collections.addAll(elems, elemsJoined.split("\\|"));
 		}
 		Result<String, InterpretError> idxRes = evaluateExpression(idxExpr, env);
-		if (idxRes instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) idxRes);
+		if (idxRes instanceof Result.Err) return Optional.of(idxRes);
 		String idxVal = ((Result.Ok<String, InterpretError>) idxRes).value();
 		try {
 			int idx = Integer.parseInt(idxVal);
 			if (idx < 0 || idx >= elems.size())
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("index out of bounds", s)));
-			return java.util.Optional.of(new Result.Ok<>(elems.get(idx)));
+				return Optional.of(new Result.Err<>(new InterpretError("index out of bounds", s)));
+			return Optional.of(new Result.Ok<>(elems.get(idx)));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid index", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid index", s)));
 		}
 	}
 
 	// Extracted helper: evaluate array literal like [a,b,c] returning an ARR_PREFIX string
-	private java.util.Optional<Result<String, InterpretError>> tryEvalArrayLiteral(String s, Env env) {
-		if (!(s.startsWith("[") && s.endsWith("]")))
-			return java.util.Optional.empty();
+	private Optional<Result<String, InterpretError>> tryEvalArrayLiteral(String s, Env env) {
+		if (!(s.startsWith("[") && s.endsWith("]"))) return Optional.empty();
 		String inner = s.substring(1, s.length() - 1).trim();
-		java.util.List<String> elems = new java.util.ArrayList<>();
+		List<String> elems = new ArrayList<>();
 		if (!inner.isEmpty()) {
-			for (String p : inner.split(","))
-				elems.add(p.trim());
+			for (String p : inner.split(",")) {elems.add(p.trim());}
 		}
-		java.util.List<String> evaluated = new java.util.ArrayList<>();
+		List<String> evaluated = new ArrayList<>();
 		for (String e : elems) {
 			Result<String, InterpretError> r = evaluateExpression(e, env);
-			if (r instanceof Result.Err)
-				return java.util.Optional.of((Result<String, InterpretError>) r);
+			if (r instanceof Result.Err) return Optional.of(r);
 			evaluated.add(((Result.Ok<String, InterpretError>) r).value());
 		}
 		String join = String.join("|", evaluated);
-		return java.util.Optional.of(new Result.Ok<>(ARR_PREFIX + join));
+		return Optional.of(new Result.Ok<>(ARR_PREFIX + join));
 	}
+
+	// Strip leading transparent unary prefixes '*' and '&' from the expression
+	// and return the trimmed remainder. Extracted into a helper to keep
+	// evaluateExpression under the cyclomatic complexity threshold.
 
 	// Try to evaluate expressions that start with reference/dereference
 	// prefixes. Returns Optional.empty() if the expression does not start with
 	// a handled prefix.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalPrefix(String s, Env env) {
-		if (s.isEmpty())
-			return java.util.Optional.empty();
+	private Optional<Result<String, InterpretError>> tryEvalPrefix(String s, Env env) {
+		if (s.isEmpty()) return Optional.empty();
 		// &mut <ident>
 		if (s.startsWith("&mut")) {
 			String rest = s.substring(4).trim();
 			if (isSimpleIdentifier(rest)) {
-				return java.util.Optional.of(new Result.Ok<>(REFMUT_PREFIX + rest));
+				return Optional.of(new Result.Ok<>(REFMUT_PREFIX + rest));
 			}
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
 		}
 		// &<ident>
 		if (s.startsWith("&")) {
 			String rest = s.substring(1).trim();
 			if (isSimpleIdentifier(rest)) {
-				return java.util.Optional.of(new Result.Ok<>(REF_PREFIX + rest));
+				return Optional.of(new Result.Ok<>(REF_PREFIX + rest));
 			}
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
 		}
 		// *<expr> (dereference)
 		if (s.startsWith("*")) {
 			String inner = s.substring(1).trim();
 			Result<String, InterpretError> innerRes = evaluateExpression(inner, env);
-			if (innerRes instanceof Result.Err)
-				return java.util.Optional.of((Result<String, InterpretError>) innerRes);
+			if (innerRes instanceof Result.Err) return Optional.of(innerRes);
 			String val = ((Result.Ok<String, InterpretError>) innerRes).value();
 			if (val.startsWith(REF_PREFIX)) {
 				return derefRefHolder(val, env, REF_PREFIX);
@@ -1176,121 +1068,86 @@ public class Interpreter {
 			if (val.startsWith(REFMUT_PREFIX)) {
 				return derefRefHolder(val, env, REFMUT_PREFIX);
 			}
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
 		}
-		return java.util.Optional.empty();
+		return Optional.empty();
 	}
 
 	// Helper to dereference a reference-holder value like "@REF:target" and
 	// return the referenced variable's value or an Err if unknown.
-	private java.util.Optional<Result<String, InterpretError>> derefRefHolder(String holderVal, Env env, String prefix) {
+	private Optional<Result<String, InterpretError>> derefRefHolder(String holderVal, Env env, String prefix) {
 		String target = holderVal.substring(prefix.length());
 		if (!env.valEnv.containsKey(target))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
-		return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
+		return Optional.of(new Result.Ok<>(env.valEnv.get(target)));
 	}
-
-	// Strip leading transparent unary prefixes '*' and '&' from the expression
-	// and return the trimmed remainder. Extracted into a helper to keep
-	// evaluateExpression under the cyclomatic complexity threshold.
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
 	// each side is an expression that evaluates to an integer. Returns an
 	// Ok("true"/"false")
 	// or an empty Optional if not applicable.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalComp(String s, Env env) {
+	private Optional<Result<String, InterpretError>> tryEvalComp(String s, Env env) {
 		int ltIdx = s.indexOf('<');
-		if (ltIdx <= 0)
-			return java.util.Optional.empty();
+		if (ltIdx <= 0) return Optional.empty();
 		String leftRaw = s.substring(0, ltIdx).trim();
 		String rightRaw = s.substring(ltIdx + 1).trim();
 
 		// Evaluate both sides as expressions (they may be additions or identifiers)
 		Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, env);
-		if (leftRes instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) leftRes);
+		if (leftRes instanceof Result.Err) return Optional.of(leftRes);
 		Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, env);
-		if (rightRes instanceof Result.Err)
-			return java.util.Optional.of((Result<String, InterpretError>) rightRes);
+		if (rightRes instanceof Result.Err) return Optional.of(rightRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
 		String rightVal = ((Result.Ok<String, InterpretError>) rightRes).value();
 		try {
-			java.math.BigInteger a = new java.math.BigInteger(leftVal);
-			java.math.BigInteger b = new java.math.BigInteger(rightVal);
-			return java.util.Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
+			BigInteger a = new BigInteger(leftVal);
+			BigInteger b = new BigInteger(rightVal);
+			return Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
 		}
 	}
 
 	private boolean isSimpleIdentifier(String s) {
-		if (Objects.isNull(s) || s.isEmpty())
-			return false;
-		if (!Character.isJavaIdentifierStart(s.charAt(0)))
-			return false;
+		if (Objects.isNull(s) || s.isEmpty()) return false;
+		if (!Character.isJavaIdentifierStart(s.charAt(0))) return false;
 		for (int i = 1; i < s.length(); i++) {
-			if (!Character.isJavaIdentifierPart(s.charAt(i)))
-				return false;
+			if (!Character.isJavaIdentifierPart(s.charAt(i))) return false;
 		}
 		return true;
-	}
-
-	// Small helper struct to hold parse results
-	private static final class ParseResult {
-		final boolean valid;
-		final String integerPart;
-		final String suffix;
-
-		private static final ParseResult INVALID = new ParseResult(false, "", "");
-
-		ParseResult(boolean valid, String integerPart, String suffix) {
-			this.valid = valid;
-			this.integerPart = integerPart;
-			this.suffix = suffix;
-		}
-
-		static ParseResult invalid() {
-			return INVALID;
-		}
 	}
 
 	// Parse optional sign and digits and return integer part and suffix
 	private ParseResult parseSignAndDigits(String s) {
 		int i = 0;
 		int len = s.length();
-		if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-'))
-			i++;
+		if (i < len && (s.charAt(i) == '+' || s.charAt(i) == '-')) i++;
 		int digitsStart = i;
-		while (i < len && Character.isDigit(s.charAt(i)))
-			i++;
-		if (i <= digitsStart)
-			return ParseResult.invalid();
+		while (i < len && Character.isDigit(s.charAt(i))) i++;
+		if (i <= digitsStart) return ParseResult.invalid();
 		String integerPart = s.substring(0, i);
 		String suffix = s.substring(i).trim();
 		return new ParseResult(true, integerPart, suffix);
 	}
 
-	private boolean isValidSuffix(String suffix) {
-		if (suffix.length() < 2)
-			return false;
-		if (!Character.isLetter(suffix.charAt(0)))
-			return false;
+	private boolean isInvalidSuffix(String suffix) {
+		if (suffix.length() < 2) return true;
+		if (!Character.isLetter(suffix.charAt(0))) return true;
 		String widthStr = suffix.substring(1);
 		for (int j = 0; j < widthStr.length(); j++) {
-			if (!Character.isDigit(widthStr.charAt(j)))
-				return false;
+			if (!Character.isDigit(widthStr.charAt(j))) return true;
 		}
-		return true;
+		return false;
 	}
 
-	private boolean fitsUnsigned(java.math.BigInteger val, int width) {
-		java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(width).subtract(java.math.BigInteger.ONE);
+	private boolean fitsUnsigned(BigInteger val, int width) {
+		BigInteger max = BigInteger.ONE.shiftLeft(width).subtract(BigInteger.ONE);
 		return val.compareTo(max) <= 0;
 	}
 
-	private boolean fitsSigned(java.math.BigInteger val, int width) {
-		java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(width - 1).negate();
-		java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(width - 1).subtract(java.math.BigInteger.ONE);
+	private boolean fitsSigned(BigInteger val, int width) {
+		BigInteger min = BigInteger.ONE.shiftLeft(width - 1).negate();
+		BigInteger max = BigInteger.ONE.shiftLeft(width - 1).subtract(BigInteger.ONE);
 		return val.compareTo(min) >= 0 && val.compareTo(max) <= 0;
 	}
 
@@ -1298,18 +1155,16 @@ public class Interpreter {
 	 * Try to evaluate a simple addition expression of the form "<int> + <int>".
 	 * Returns an Ok Result on success or an empty Optional if not applicable.
 	 */
-	private java.util.Optional<Result<String, InterpretError>> tryEvaluateAddition(String s) {
+	private Optional<Result<String, InterpretError>> tryEvaluateAddition(String s) {
 		int plusIdx = s.indexOf('+');
-		if (plusIdx <= 0)
-			return java.util.Optional.empty();
+		if (plusIdx <= 0) return Optional.empty();
 		String leftRaw = s.substring(0, plusIdx).trim();
 		String rightRaw = s.substring(plusIdx + 1).trim();
 
 		// Parse each side for optional sign/digits and optional suffix
 		ParseResult leftPr = parseSignAndDigits(leftRaw);
 		ParseResult rightPr = parseSignAndDigits(rightRaw);
-		if (!leftPr.valid || !rightPr.valid)
-			return java.util.Optional.empty();
+		if (!leftPr.valid || !rightPr.valid) return Optional.empty();
 
 		// If either side has a suffix, we allow three cases:
 		// 1) both have suffixes and they match exactly (same kind and width)
@@ -1317,93 +1172,87 @@ public class Interpreter {
 		// only if its value fits into the typed width/kind of the typed side
 		// 3) mixed kinds/widths (e.g., U vs I or different widths) are invalid
 		// Validate typed/untyped suffixes; if invalid, return Err wrapped in Optional
-		java.util.Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, s);
-		if (suffixCheck.isPresent())
-			return suffixCheck;
+		Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, s);
+		if (suffixCheck.isPresent()) return suffixCheck;
 
 		try {
-			java.math.BigInteger a = new java.math.BigInteger(leftPr.integerPart);
-			java.math.BigInteger b = new java.math.BigInteger(rightPr.integerPart);
-			return java.util.Optional.of(new Result.Ok<>(a.add(b).toString()));
+			BigInteger a = new BigInteger(leftPr.integerPart);
+			BigInteger b = new BigInteger(rightPr.integerPart);
+			return Optional.of(new Result.Ok<>(a.add(b).toString()));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.empty();
+			return Optional.empty();
 		}
 	}
 
 	// Helper to validate typed/untyped operands for addition.
-	private java.util.Optional<Result<String, InterpretError>> checkTypedOperands(ParseResult leftPr,
-			ParseResult rightPr,
-			String source) {
+	private Optional<Result<String, InterpretError>> checkTypedOperands(ParseResult leftPr,
+																																			ParseResult rightPr,
+																																			String source) {
 		boolean leftHas = !leftPr.suffix.isEmpty();
 		boolean rightHas = !rightPr.suffix.isEmpty();
-		if (!leftHas && !rightHas)
-			return java.util.Optional.empty();
-		if (leftHas && rightHas)
-			return validateBothTyped(leftPr, rightPr, source);
+		if (!leftHas && !rightHas) return Optional.empty();
+		if (leftHas && rightHas) return validateBothTyped(leftPr, rightPr, source);
 		return validateOneTyped(leftPr, rightPr, source);
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> validateBothTyped(ParseResult leftPr, ParseResult rightPr,
-			String source) {
-		if (!isValidSuffix(leftPr.suffix) || !isValidSuffix(rightPr.suffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix on operand", source)));
+	private Optional<Result<String, InterpretError>> validateBothTyped(ParseResult leftPr,
+																																		 ParseResult rightPr,
+																																		 String source) {
+		if (isInvalidSuffix(leftPr.suffix) || isInvalidSuffix(rightPr.suffix))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix on operand", source)));
 		String l = leftPr.suffix.toUpperCase();
 		String r = rightPr.suffix.toUpperCase();
 		if (!l.equals(r))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("mismatched typed operand suffixes", source)));
-		return java.util.Optional.empty();
+			return Optional.of(new Result.Err<>(new InterpretError("mismatched typed operand suffixes", source)));
+		return Optional.empty();
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> validateOneTyped(ParseResult leftPr, ParseResult rightPr,
-			String source) {
+	private Optional<Result<String, InterpretError>> validateOneTyped(ParseResult leftPr,
+																																		ParseResult rightPr,
+																																		String source) {
 		boolean leftHas = !leftPr.suffix.isEmpty();
 		String typedSuffix = leftHas ? leftPr.suffix : rightPr.suffix;
 		String untypedInteger = leftHas ? rightPr.integerPart : leftPr.integerPart;
 		return vTyped(typedSuffix, untypedInteger, source);
 	}
 
-	private java.util.Optional<Result<String, InterpretError>> vTyped(String typedSuffix,
-			String untypedInteger,
-			String source) {
-		if (!isValidSuffix(typedSuffix))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix", source)));
+	private Optional<Result<String, InterpretError>> vTyped(String typedSuffix, String untypedInteger, String source) {
+		if (isInvalidSuffix(typedSuffix))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid typed suffix", source)));
 		char kind = Character.toUpperCase(typedSuffix.charAt(0));
 		int width;
 		try {
 			width = Integer.parseInt(typedSuffix.substring(1));
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
 		if (!(width == 8 || width == 16 || width == 32 || width == 64))
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("unsupported type width", source)));
-		java.math.BigInteger untypedVal;
+			return Optional.of(new Result.Err<>(new InterpretError("unsupported type width", source)));
+		BigInteger untypedVal;
 		try {
 			untypedVal = parseBigInteger(untypedInteger);
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in operand", source)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in operand", source)));
 		}
 		if (kind == 'U') {
 			if (untypedVal.signum() < 0 || !fitsUnsigned(untypedVal, width))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
-			return java.util.Optional.empty();
+				return Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit unsigned type", source)));
+			return Optional.empty();
 		}
 		if (kind == 'I') {
 			if (!fitsSigned(untypedVal, width))
-				return java.util.Optional
-						.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
-			return java.util.Optional.empty();
+				return Optional.of(new Result.Err<>(new InterpretError("untyped value does not fit signed type", source)));
+			return Optional.empty();
 		}
-		return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid typed operand combination", source)));
+		return Optional.of(new Result.Err<>(new InterpretError("invalid typed operand combination", source)));
 	}
 
-	private java.math.BigInteger parseBigInteger(String s) {
-		return new java.math.BigInteger(s);
+	private BigInteger parseBigInteger(String s) {
+		return new BigInteger(s);
 	}
 
 	private Result<String, InterpretError> evaluateTypedSuffix(ParseResult pr, String source) {
-		if (!isValidSuffix(pr.suffix))
-			return new Result.Err<>(new InterpretError("invalid typed literal suffix", source));
+		if (isInvalidSuffix(pr.suffix)) return new Result.Err<>(new InterpretError("invalid typed literal suffix", source));
 
 		char kind = Character.toUpperCase(pr.suffix.charAt(0));
 		String widthStr = pr.suffix.substring(1);
@@ -1412,16 +1261,14 @@ public class Interpreter {
 			if (!(width == 8 || width == 16 || width == 32 || width == 64))
 				return new Result.Err<>(new InterpretError("unsupported type width", source));
 
-			java.math.BigInteger val = new java.math.BigInteger(pr.integerPart);
+			BigInteger val = new BigInteger(pr.integerPart);
 			if (kind == 'U') {
 				if (val.signum() < 0)
 					return new Result.Err<>(new InterpretError("negative value for unsigned literal", source));
-				if (fitsUnsigned(val, width))
-					return new Result.Ok<>(pr.integerPart);
+				if (fitsUnsigned(val, width)) return new Result.Ok<>(pr.integerPart);
 				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			} else if (kind == 'I') {
-				if (fitsSigned(val, width))
-					return new Result.Ok<>(pr.integerPart);
+				if (fitsSigned(val, width)) return new Result.Ok<>(pr.integerPart);
 				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			}
 		} catch (NumberFormatException | ArithmeticException e) {
@@ -1435,14 +1282,11 @@ public class Interpreter {
 	// token or at the start of s; otherwise -1. This is a small helper used by
 	// the inline-if parsing to detect an 'else' following a consequent.
 	private int indexOfElse(String s) {
-		if (Objects.isNull(s))
-			return -1;
+		if (Objects.isNull(s)) return -1;
 		String trimmed = s.trim();
-		if (trimmed.startsWith("else ") || trimmed.equals("else"))
-			return 0;
+		if (trimmed.startsWith("else ") || trimmed.equals("else")) return 0;
 		// find ' else ' with surrounding whitespace
-		int idx = trimmed.indexOf(" else ");
-		return idx;
+		return trimmed.indexOf(" else ");
 	}
 
 	// Evaluate a brace-delimited block expression and return the value of the
@@ -1460,22 +1304,19 @@ public class Interpreter {
 		Env child = makeChildEnv(env);
 		for (String part : inner) {
 			String t = part.trim();
-			if (t.isEmpty())
-				continue;
+			if (t.isEmpty()) continue;
 			if (isStmtLike(t)) {
-				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, child);
+				Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, child);
 				if (stmtRes.isPresent()) {
 					Result<String, InterpretError> r = stmtRes.get();
-					if (r instanceof Result.Err)
-						return r;
+					if (r instanceof Result.Err) return r;
 					last = r;
 					continue;
 				}
 				continue;
 			}
 			Result<String, InterpretError> r = evaluateExpression(t, child);
-			if (r instanceof Result.Err)
-				return r;
+			if (r instanceof Result.Err) return r;
 			last = r;
 		}
 		return last;
@@ -1485,8 +1326,8 @@ public class Interpreter {
 	// that assignments and let-declarations inside the block do not mutate the
 	// outer environment.
 	private Env makeChildEnv(Env parent) {
-		java.util.Map<String, String> newVals = new java.util.HashMap<>(parent.valEnv);
-		java.util.Map<String, String> newTypes = new java.util.HashMap<>(parent.typeEnv);
+		Map<String, String> newVals = new HashMap<>(parent.valEnv);
+		Map<String, String> newTypes = new HashMap<>(parent.typeEnv);
 		Env child = new Env(newVals, newTypes, parent.source);
 		child.fnEnv.putAll(parent.fnEnv);
 		child.fnParamNames.putAll(parent.fnParamNames);
@@ -1496,22 +1337,9 @@ public class Interpreter {
 	}
 
 	private boolean isStmtLike(String t) {
-		return t.startsWith("{") || t.startsWith("while ") || t.startsWith("while(")
-				|| t.startsWith("fn ") || t.startsWith("fn(") || t.startsWith("if ") || t.startsWith("if(")
-				|| t.startsWith("let ") || t.indexOf("+=") >= 0 || (t.indexOf('=') > 0 && !t.startsWith("let "));
-	}
-
-	// Outcome of processing an if-part: either a Result to return (if the
-	// branch produced an expression result or an error), or the index of the
-	// last consumed part so the caller can advance the main loop.
-	private static final class IfOutcome {
-		final java.util.Optional<Result<String, InterpretError>> result;
-		final int consumedIdx;
-
-		IfOutcome(java.util.Optional<Result<String, InterpretError>> result, int consumedIdx) {
-			this.result = result;
-			this.consumedIdx = consumedIdx;
-		}
+		return t.startsWith("{") || t.startsWith("while ") || t.startsWith("while(") || t.startsWith("fn ") ||
+					 t.startsWith("fn(") || t.startsWith("if ") || t.startsWith("if(") || t.startsWith("let ") ||
+					 t.contains("+=") || (t.indexOf('=') > 0 && !t.startsWith("let "));
 	}
 
 	// Process an if-statement part starting at parts[idx]. Returns an IfOutcome
@@ -1522,30 +1350,26 @@ public class Interpreter {
 		int open = part.indexOf('(');
 		int close = part.indexOf(')', open + 1);
 		if (open < 0 || close < 0)
-			return new IfOutcome(java.util.Optional.of(new Result.Err<>(new InterpretError("invalid if syntax", env.source))),
-					idx);
+			return new IfOutcome(Optional.of(new Result.Err<>(new InterpretError("invalid if syntax", env.source))), idx);
 		String condExpr = part.substring(open + 1, close).trim();
 
 		// Delegate extraction of consequent and alternative to helper
 		ConsAlt ca = findConsAlt(parts, idx, env);
-		if (ca.error.isPresent())
-			return new IfOutcome(ca.error, idx);
+		if (ca.error.isPresent()) return new IfOutcome(ca.error, idx);
 		String cons = ca.cons;
 		String alt = ca.alt;
 		int consumedAltIdx = ca.consumedIdx;
 
 		// Evaluate condition
 		Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
-		if (condRes instanceof Result.Err)
-			return new IfOutcome(java.util.Optional.of((Result<String, InterpretError>) condRes), consumedAltIdx);
+		if (condRes instanceof Result.Err) return new IfOutcome(Optional.of(condRes), consumedAltIdx);
 		String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
 		boolean condTrue = "true".equals(condVal);
 
-		java.util.Optional<Result<String, InterpretError>> stmtRes = condTrue ? handleStatement(cons, env)
-				: handleStatement(alt, env);
-		if (stmtRes.isPresent())
-			return new IfOutcome(stmtRes, consumedAltIdx);
+		Optional<Result<String, InterpretError>> stmtRes =
+				condTrue ? handleStatement(cons, env) : handleStatement(alt, env);
+		if (stmtRes.isPresent()) return new IfOutcome(stmtRes, consumedAltIdx);
 
-		return new IfOutcome(java.util.Optional.empty(), consumedAltIdx);
+		return new IfOutcome(Optional.empty(), consumedAltIdx);
 	}
 }
