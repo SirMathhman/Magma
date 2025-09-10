@@ -120,4 +120,23 @@ public class InterpreterFeatureTest {
 		// New acceptance: compound assignment should work for mutable numeric vars
 		TestUtils.assertValid("let mut x = 0; x += 1; x", "1");
 	}
+
+	@Test
+	public void compAssignImmErr() {
+		// Using '+=' on an immutable let should be invalid
+		TestUtils.assertInvalid("let x = 0; x += 1; x");
+	}
+
+	@Test
+	public void compAssignBoolErr() {
+		// Using '+=' on a Bool-initialized variable should be invalid
+		TestUtils.assertInvalid("let mut x = true; x += 1; x");
+	}
+
+	@Test
+	public void whileLoopSum() {
+		// New acceptance: while loop with mutable vars and compound assignment
+		String src = "let mut sum = 0; let mut counter = 0; while (counter < 4) { sum += counter; counter += 1; } sum";
+		TestUtils.assertValid(src, "6");
+	}
 }

@@ -83,6 +83,43 @@ Tests added
 - `src/test/java/magma/InterpreterFeatureTest.java::compAssign` — asserts
   `let mut x = 0; x += 1; x` evaluates to `"1"`.
 
+- Invalid case to cover: `let mut x = true; x += 1; x` — compound numeric
+  assignment applied to a Bool-inferred or annotated variable should be
+  rejected. Planned test: `src/test/java/magma/InterpreterFeatureTest.java::compAssignBoolErr`.
+
+## Architecture change: while-loops
+
+Goal
+----
+Add support for `while` loops in statement position. Example:
+`let mut sum = 0; let mut counter = 0; while (counter < 4) { sum += counter; counter += 1; } sum` should evaluate to `"6"`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — add parsing & execution for `while` statements in `handleStatement`.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add a failing acceptance test `whileLoopSum`.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: source program string containing a top-level `while` statement (in a sequence).
+- Output: on success, the interpreter continues executing subsequent parts; final expression should reflect loop effects.
+- Errors: invalid while syntax (missing parentheses/body), errors evaluating the condition, or errors from statements inside the loop (assignment errors, type errors, etc.).
+
+Migration / Compatibility
+-------------------------
+This is an additive feature. `while` is only allowed in statement position (not as the final expression). Existing code paths for blocks and statements are reused to minimize changes.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::whileLoopSum` — asserts the example above returns `"6"`.
+
+Quality gates
+-------------
+- Add failing test (red)
+- Implement `while` and run `mvn -DskipTests=false test` until green
+- Ensure `mvn -DskipTests=false package` succeeds and Checkstyle/PMD stay clean
+
+
 Quality gates
 -------------
 - Failing test added first (red), implemented feature, ran `mvn -DskipTests=false test` until green.

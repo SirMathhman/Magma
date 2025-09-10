@@ -10,6 +10,37 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
+	// Extracted helper to handle while statements to reduce cyclomatic complexity
+	private java.util.Optional<Result<String, InterpretError>> handleWhile(String s, Env env) {
+		int open = s.indexOf('(');
+		int close = s.indexOf(')', open + 1);
+		if (open < 0 || close < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid while syntax", env.source)));
+		String condExpr = s.substring(open + 1, close).trim();
+		String after = computeAfter(new String[] { s }, 0); // compute inline after
+		java.util.Optional<String> bodyStmt = java.util.Optional.empty();
+		if (!after.isEmpty()) {
+			bodyStmt = java.util.Optional.of(after);
+		} else {
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("while requires inline body", env.source)));
+		}
+
+		// Execute the loop
+		while (true) {
+			Result<String, InterpretError> condRes = evaluateExpression(condExpr, env.valEnv, env.typeEnv);
+			if (condRes instanceof Result.Err)
+				return java.util.Optional.of((Result<String, InterpretError>) condRes);
+			String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
+			boolean condTrue = "true".equals(condVal);
+			if (!condTrue)
+				break;
+			java.util.Optional<Result<String, InterpretError>> bodyRes = handleStatement(bodyStmt.get(), env);
+			if (bodyRes.isPresent())
+				return bodyRes;
+		}
+		return java.util.Optional.empty();
+	}
+
 	// Helper to hold consequent/alternative extraction result
 	private static final class ConsAlt {
 		final String cons;
@@ -203,7 +234,6 @@ public class Interpreter {
 	 * @return the result of interpretation wrapped in a Result (Ok or Err)
 	 */
 	public Result<String, InterpretError> interpret(String source, String input) {
-		// Minimal implementation: if the source is a simple integer literal,
 		// return it as the program output. Otherwise return Err with the source.
 		if (Objects.isNull(source))
 			return new Result.Err<>(new InterpretError("<missing source>", ""));
@@ -288,16 +318,21 @@ public class Interpreter {
 			}
 			return java.util.Optional.empty();
 		}
+		// Support while statements by delegating to helper to keep this method small
+		if (s.startsWith("while ") || s.startsWith("while(")) {
+			return handleWhile(s, env);
+		}
 		// Support assignment statements: <ident> = <expr>
-			// Support compound assignment '+=', and simple assignment '=' in statement position
-			int plusEqIdx = s.indexOf("+=");
-			if (plusEqIdx >= 0 && !s.startsWith("let ")) {
-				return handleCompAssign(s, plusEqIdx, env);
-			}
-			int eqIdx = s.indexOf('=');
-			if (eqIdx > 0 && !s.startsWith("let ")) {
-				return handleAssignment(s, eqIdx, env);
-			}
+		// Support compound assignment '+=', and simple assignment '=' in statement
+		// position
+		int plusEqIdx = s.indexOf("+=");
+		if (plusEqIdx >= 0 && !s.startsWith("let ")) {
+			return handleCompAssign(s, plusEqIdx, env);
+		}
+		int eqIdx = s.indexOf('=');
+		if (eqIdx > 0 && !s.startsWith("let ")) {
+			return handleAssignment(s, eqIdx, env);
+		}
 		java.util.Optional<LetDeclaration> parsed = parseLetDeclaration(s);
 		if (!parsed.isPresent())
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
@@ -415,7 +450,8 @@ public class Interpreter {
 	private AssignPrep prepAssignOps(String lhs, String rhs, Env env) {
 		if (!isSimpleIdentifier(lhs))
 			return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
-		// Unknown in valEnv can be acceptable if declared without initializer (present in typeEnv)
+		// Unknown in valEnv can be acceptable if declared without initializer (present
+		// in typeEnv)
 		if (!env.valEnv.containsKey(lhs) && !env.typeEnv.containsKey(lhs))
 			return new AssignPrep(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
 		Boolean isMut = env.mutEnv.getOrDefault(lhs, Boolean.FALSE);
@@ -436,7 +472,7 @@ public class Interpreter {
 
 	// Handle compound assignment of the form '<ident> += <expr>'
 	private java.util.Optional<Result<String, InterpretError>> handleCompAssign(String stmt, int plusEqIdx,
-									Env env) {
+			Env env) {
 		String lhs = stmt.substring(0, plusEqIdx).trim();
 		String rhs = stmt.substring(plusEqIdx + 2).trim();
 		// Reuse common preparation logic for assignments
@@ -465,7 +501,8 @@ public class Interpreter {
 			env.valEnv.put(lhs, sumStr);
 			return java.util.Optional.empty();
 		} catch (NumberFormatException ex) {
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
+			return java.util.Optional
+					.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
 		}
 	}
 
@@ -659,6 +696,10 @@ public class Interpreter {
 				return new Result.Ok<>(valEnv.get(s));
 			return new Result.Err<>(new InterpretError("unknown identifier", expr));
 		}
+		// comparison (e.g., '<')
+		java.util.Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, valEnv, typeEnv);
+		if (cmpRes.isPresent())
+			return cmpRes.get();
 		// addition
 		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
 		if (addRes.isPresent())
@@ -670,6 +711,36 @@ public class Interpreter {
 		if (pr.suffix.isEmpty())
 			return new Result.Ok<>(pr.integerPart);
 		return evaluateTypedSuffix(pr, expr);
+	}
+
+	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
+	// each side is an expression that evaluates to an integer. Returns an
+	// Ok("true"/"false")
+	// or an empty Optional if not applicable.
+	private java.util.Optional<Result<String, InterpretError>> tryEvalComp(String s,
+			java.util.Map<String, String> valEnv, java.util.Map<String, String> typeEnv) {
+		int ltIdx = s.indexOf('<');
+		if (ltIdx <= 0)
+			return java.util.Optional.empty();
+		String leftRaw = s.substring(0, ltIdx).trim();
+		String rightRaw = s.substring(ltIdx + 1).trim();
+
+		// Evaluate both sides as expressions (they may be additions or identifiers)
+		Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, valEnv, typeEnv);
+		if (leftRes instanceof Result.Err)
+			return java.util.Optional.of((Result<String, InterpretError>) leftRes);
+		Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, valEnv, typeEnv);
+		if (rightRes instanceof Result.Err)
+			return java.util.Optional.of((Result<String, InterpretError>) rightRes);
+		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
+		String rightVal = ((Result.Ok<String, InterpretError>) rightRes).value();
+		try {
+			java.math.BigInteger a = new java.math.BigInteger(leftVal);
+			java.math.BigInteger b = new java.math.BigInteger(rightVal);
+			return java.util.Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
+		} catch (NumberFormatException ex) {
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
+		}
 	}
 
 	private boolean isSimpleIdentifier(String s) {
