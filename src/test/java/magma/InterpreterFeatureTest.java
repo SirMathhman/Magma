@@ -177,4 +177,11 @@ public class InterpreterFeatureTest {
 		String src = "fn get() => return 100; get()";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnCompactNoRet() {
+		// New acceptance: compact form without the 'return' keyword
+		String src = "fn get() => 100; get()";
+		TestUtils.assertValid(src, "100");
+	}
 }

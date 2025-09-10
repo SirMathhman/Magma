@@ -233,3 +233,30 @@ Documentation changes
 
 Note: the function return type annotation is optional. The interpreter accepts `fn get() => { return 100; } get()` (no `: I32`), which returns `"100"`.
 
+### Compact fn-body expression form
+
+Goal
+----
+Allow a compact function body syntax where the arrow `=>` is followed by a single expression without braces or the `return` keyword. Example: `fn get() => 100; get()` should evaluate to `"100"`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — extend `extractFnReturnExpr` to accept a direct expression after `=>` in addition to block bodies and the `=> return <expr>;` form.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add `fnCompactNoRet` acceptance test.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: a function declaration using the compact arrow form with a single expression (no braces), e.g. `fn get() => 100;`.
+- Output: the function should be callable and return the evaluated expression as usual.
+- Errors: invalid syntax (missing expression after `=>`) should produce an InterpretError.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::fnCompactNoRet` — asserts `fn get() => 100; get()` evaluates to `"100"`.
+
+Quality gates
+-------------
+- Add failing test (red) — done.
+- Implement change and run `mvn -DskipTests=false test` until green — done.
+- Ensure `mvn -DskipTests=false package` succeeds and Checkstyle/PMD pass — done.
+

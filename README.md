@@ -49,11 +49,19 @@ arguments are not currently supported.
 
 Return type is optional
 
-You can omit the return-type annotation. Example:
+You can omit the return-type annotation. Examples:
 
     fn get() => { return 100; } get()
 
 This evaluates to "100".
+
+Compact expression body
+
+You may also use a compact expression body after the arrow without braces or the `return` keyword. This is allowed for single-expression bodies. Example:
+
+    fn get() => 100; get()
+
+This also evaluates to "100". Note: the compact form only accepts a single expression after `=>` (up to the following semicolon).
 
 Code style and banned APIs
 

@@ -43,14 +43,25 @@ public class Interpreter {
 			String expr = body.substring(retIdx + 6, semi).trim();
 			return new FnBodyParse(java.util.Optional.empty(), expr);
 		}
-		// compact form: search for 'return' after the arrow
-		int retIdx = s.indexOf("return", arrowIdx + 2);
-		if (retIdx < 0)
+		// compact form: accept either 'return <expr>;' OR a direct expression after the
+		// arrow
+		int searchStart = arrowIdx + 2;
+		int retIdx = s.indexOf("return", searchStart);
+		int exprStart;
+		if (retIdx >= 0) {
+			exprStart = retIdx + 6; // after 'return'
+		} else {
+			exprStart = skipWs(s, searchStart, s.length());
+			if (exprStart >= s.length())
+				return new FnBodyParse(
+						java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))), "");
+		}
+		int semi = s.indexOf(';', exprStart);
+		int end = semi >= 0 ? semi : s.length();
+		String expr = s.substring(exprStart, end).trim();
+		if (expr.isEmpty())
 			return new FnBodyParse(java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))),
 					"");
-		int semi = s.indexOf(';', retIdx);
-		int end = semi >= 0 ? semi : s.length();
-		String expr = s.substring(retIdx + 6, end).trim();
 		return new FnBodyParse(java.util.Optional.empty(), expr);
 	}
 
