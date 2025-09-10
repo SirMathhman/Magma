@@ -50,6 +50,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void starAmpersand5() {
+		// Support transparent unary prefixes '*' and '&' so *&x returns x's value
+		TestUtils.assertValid("let x = 10; *&x", "10");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}

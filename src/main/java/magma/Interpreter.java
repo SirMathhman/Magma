@@ -913,7 +913,7 @@ public class Interpreter {
 	}
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
-		String s = expr.trim();
+		String s = stripUnaryPrefixes(expr.trim());
 		// Block expression handling delegated to helper to keep this method small.
 		if (s.startsWith("{") && s.endsWith("}"))
 			return evalBlockExpr(s, env);
@@ -946,6 +946,24 @@ public class Interpreter {
 		if (pr.suffix.isEmpty())
 			return new Result.Ok<>(pr.integerPart);
 		return evaluateTypedSuffix(pr, expr);
+	}
+
+	// Strip leading transparent unary prefixes '*' and '&' from the expression
+	// and return the trimmed remainder. Extracted into a helper to keep
+	// evaluateExpression under the cyclomatic complexity threshold.
+	private String stripUnaryPrefixes(String s) {
+		int p = 0;
+		int len = s.length();
+		while (p < len) {
+			char c = s.charAt(p);
+			if (c == '*' || c == '&')
+				p++;
+			else
+				break;
+		}
+		if (p > 0)
+			return s.substring(p).trim();
+		return s;
 	}
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
