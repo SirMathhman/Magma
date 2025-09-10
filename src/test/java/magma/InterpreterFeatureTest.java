@@ -70,6 +70,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void arrayIndexTwo() {
+		// New acceptance: array literal `[1, 2]` indexed at 1 yields `2`.
+		TestUtils.assertValid("[1, 2][1]", "2");
+	}
+
+	@Test
 	public void mutRefDerefAssign() {
 		// Mutable reference stored in 'y' should allow writing through '*y'
 		TestUtils.assertValid("let mut x = 0; let y = &mut x; *y = 10; x", "10");
