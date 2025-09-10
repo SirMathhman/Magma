@@ -13,7 +13,7 @@ public class InterpreterTest {
 
 		Result<String, InterpretError> res = interp.interpret(source);
 
-		assertTrue(res instanceof Result.Err);
+		assertInstanceOf(Result.Err.class, res);
 		Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) res;
 		// InterpretError should provide a human-readable reason and preserve the original source
 		assertNotNull(err.error().errorReason());
