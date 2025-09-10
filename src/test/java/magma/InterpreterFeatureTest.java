@@ -164,4 +164,10 @@ public class InterpreterFeatureTest {
 		String src = "fn first(a : I32, b : I32) : I32 => { return a; } first(100, 200)";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnOmitReturnType() {
+		String src = "fn get() => { return 100; } get()";
+		TestUtils.assertValid(src, "100");
+	}
 }

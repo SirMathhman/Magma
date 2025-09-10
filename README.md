@@ -47,6 +47,14 @@ The interpreter supports simple function declarations and calls. Example:
 This evaluates to "100". Note: parameter lists are comma-separated; nested commas in
 arguments are not currently supported.
 
+Return type is optional
+
+You can omit the return-type annotation. Example:
+
+    fn get() => { return 100; } get()
+
+This evaluates to "100".
+
 Code style and banned APIs
 
 - The project enforces a small set of Checkstyle rules located in `config/checkstyle/checkstyle.xml`.

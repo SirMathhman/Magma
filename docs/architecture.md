@@ -231,3 +231,5 @@ Documentation changes
 ---------------------
 - README updated with a short example (see commit) describing `fn` syntax and the current limitation (no nested-commas in args).
 
+Note: the function return type annotation is optional. The interpreter accepts `fn get() => { return 100; } get()` (no `: I32`), which returns `"100"`.
+
