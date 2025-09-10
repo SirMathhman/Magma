@@ -184,4 +184,11 @@ public class InterpreterFeatureTest {
 		String src = "fn get() => 100; get()";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnDupParamInvalid() {
+		// Invalid case: duplicate parameter names should be rejected
+		String src = "fn first(a : I32, a : I32) : I32 => { return first; } first(100, 200)";
+		TestUtils.assertInvalid(src);
+	}
 }

@@ -260,3 +260,19 @@ Quality gates
 - Implement change and run `mvn -DskipTests=false test` until green — done.
 - Ensure `mvn -DskipTests=false package` succeeds and Checkstyle/PMD pass — done.
 
+### Invalid case: duplicate function parameter names
+
+Goal
+----
+Ensure function declarations reject duplicate parameter names. Example invalid program:
+
+  fn first(a : I32, a : I32) : I32 => { return first; } first(100, 200)
+
+Files / Modules affected
+------------------------
+- `src/test/java/magma/InterpreterFeatureTest.java` — added `fnDupParamInvalid` test which asserts the program is invalid.
+
+Notes
+-----
+The interpreter currently rejects duplicate parameter names (the test verifies this). No code changes were necessary; documentation was updated to record the invalid case and test added.
+
