@@ -277,4 +277,10 @@ public class InterpreterFeatureTest {
 		// Nested arrays: [[1]][0][0] should resolve to 1.
 		TestUtils.assertValid("[[1]][0][0]", "1");
 	}
+
+	@Test
+	public void letArrayIndex() {
+		// Let binding that holds an array should be indexable: let x = [1]; x[0] => 1
+		TestUtils.assertValid("let x = [1]; x[0]", "1");
+	}
 }
