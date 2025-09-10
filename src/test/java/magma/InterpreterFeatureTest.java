@@ -139,4 +139,16 @@ public class InterpreterFeatureTest {
 		String src = "let mut sum = 0; let mut counter = 0; while (counter < 4) { sum += counter; counter += 1; } sum";
 		TestUtils.assertValid(src, "6");
 	}
+
+	@Test
+	public void fnReturnAndCall() {
+		String src = "fn get() : I32 => { return 100; } get()";
+		TestUtils.assertValid(src, "100");
+	}
+
+	@Test
+	public void fnNestedCall() {
+		String src = "fn get() : I32 => { return 100; } fn getAnother() : I32 => { return get(); } getAnother()";
+		TestUtils.assertValid(src, "100");
+	}
 }

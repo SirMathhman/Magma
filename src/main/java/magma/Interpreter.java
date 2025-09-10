@@ -10,6 +10,64 @@ public class Interpreter {
 		return java.util.Optional.of(new Result.Err<>(new InterpretError(msg, source)));
 	}
 
+	// Extracted helper to parse and record a zero-arg function declaration to reduce
+	// cyclomatic complexity of handleStatement.
+	private java.util.Optional<Result<String, InterpretError>> handleFnDecl(String s, Env env) {
+		int len = s.length();
+		int idx = skipWs(s, 2, len); // after 'fn'
+		java.util.Optional<ParseId> pidOpt = parseId(s, idx, len);
+		if (!pidOpt.isPresent())
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn declaration", env.source)));
+		ParseId pid = pidOpt.get();
+		String name = pid.name;
+		idx = skipWs(s, pid.idx, len);
+		// parse empty parameter list '()'
+		if (idx >= len || s.charAt(idx) != '(')
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
+		int close = s.indexOf(')', idx + 1);
+		if (close < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
+		String params = s.substring(idx + 1, close).trim();
+		if (!params.isEmpty())
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("only zero-arg fns supported", env.source)));
+		// annotated suffix after ')'
+		String ann = parseAnnotatedSuffix(s, close + 1, len);
+		// find '=>' after annotation
+		int arrow = s.indexOf("=>", close + 1);
+		if (arrow < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
+		// find body block
+		int bodyOpen = s.indexOf('{', arrow + 2);
+		if (bodyOpen < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
+		int j = bodyOpen;
+		int depth = 0;
+		for (; j < len; j++) {
+			char c = s.charAt(j);
+			if (c == '{')
+				depth++;
+			else if (c == '}') {
+				depth--;
+				if (depth == 0)
+					break;
+			}
+		}
+		if (j >= len)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("unterminated fn body", env.source)));
+		String body = s.substring(bodyOpen + 1, j).trim();
+		// find 'return <expr>;' inside body
+		int retIdx = body.indexOf("return");
+		if (retIdx < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing return in fn body", env.source)));
+		int semi = body.indexOf(';', retIdx);
+		if (semi < 0)
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing ';' after return", env.source)));
+		String retExpr = body.substring(retIdx + 6, semi).trim();
+		// record the function declaration in env
+		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
+		return java.util.Optional.empty();
+	}
+
 	// Extracted helper to handle while statements to reduce cyclomatic complexity
 	private java.util.Optional<Result<String, InterpretError>> handleWhile(String s, Env env) {
 		int open = s.indexOf('(');
@@ -27,7 +85,7 @@ public class Interpreter {
 
 		// Execute the loop
 		while (true) {
-			Result<String, InterpretError> condRes = evaluateExpression(condExpr, env.valEnv, env.typeEnv);
+			Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
 			if (condRes instanceof Result.Err)
 				return java.util.Optional.of((Result<String, InterpretError>) condRes);
 			String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
@@ -201,12 +259,14 @@ public class Interpreter {
 	private static final class Env {
 		final java.util.Map<String, String> valEnv;
 		final java.util.Map<String, String> typeEnv;
+		final java.util.Map<String, FunctionDecl> fnEnv;
 		final java.util.Map<String, Boolean> mutEnv;
 		final String source;
 
 		Env(java.util.Map<String, String> valEnv, java.util.Map<String, String> typeEnv, String source) {
 			this.valEnv = valEnv;
 			this.typeEnv = typeEnv;
+			this.fnEnv = new java.util.HashMap<>();
 			this.mutEnv = new java.util.HashMap<>();
 			this.source = source;
 		}
@@ -222,6 +282,20 @@ public class Interpreter {
 		TypeSpec(char kind, int width) {
 			this.kind = kind;
 			this.width = width;
+		}
+	}
+
+	// Small helper to represent a zero-arg function declaration with a typed
+	// return expression stored as the body string.
+	private static final class FunctionDecl {
+		final String name;
+		final String returnType; // e.g., I32 or Bool
+		final String bodyExpr; // expression returned by the function
+
+		FunctionDecl(String name, String returnType, String bodyExpr) {
+			this.name = name;
+			this.returnType = returnType;
+			this.bodyExpr = bodyExpr;
 		}
 	}
 
@@ -251,7 +325,7 @@ public class Interpreter {
 		java.util.Map<String, String> valEnv = new java.util.HashMap<>();
 		java.util.Map<String, String> typeEnv = new java.util.HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
-		return evaluateExpression(s, env.valEnv, env.typeEnv);
+	return evaluateExpression(s, env);
 	}
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
@@ -289,7 +363,7 @@ public class Interpreter {
 				i++;
 			} else {
 				// Final expression: evaluate and return
-				return evaluateExpression(part, env.valEnv, env.typeEnv);
+				return evaluateExpression(part, env);
 			}
 		}
 		// If we reached the end without a final expression (e.g., trailing semicolon or
@@ -322,7 +396,18 @@ public class Interpreter {
 		if (s.startsWith("while ") || s.startsWith("while(")) {
 			return handleWhile(s, env);
 		}
-		// Support assignment statements: <ident> = <expr>
+		// Support function declarations: fn <id>() : <suffix> => { return <expr>; }
+		if (s.startsWith("fn ") || s.startsWith("fn(")) {
+			return handleFnDecl(s, env);
+		}
+		// Support assignment statements and let declarations; extracted to reduce
+		// cyclomatic complexity of this method.
+		return handleSimpleStmt(s, env);
+	}
+
+	// Extracted helper to handle assignments, compound assignments and let
+	// declarations.
+	private java.util.Optional<Result<String, InterpretError>> handleSimpleStmt(String s, Env env) {
 		// Support compound assignment '+=', and simple assignment '=' in statement
 		// position
 		int plusEqIdx = s.indexOf("+=");
@@ -381,7 +466,8 @@ public class Interpreter {
 	private Result<String, InterpretError> getRhsValue(String rhs,
 			java.util.Map<String, String> valEnv,
 			java.util.Map<String, String> typeEnv) {
-		return evaluateExpression(rhs, valEnv, typeEnv);
+		Env tmp = new Env(valEnv, typeEnv, "");
+		return evaluateExpression(rhs, tmp);
 	}
 
 	// Validate annotated suffix for a let declaration and record the annotation in
@@ -463,7 +549,7 @@ public class Interpreter {
 		if (suffixCheck.isPresent())
 			return new AssignPrep(suffixCheck.get());
 
-		Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env.valEnv, env.typeEnv);
+	Result<String, InterpretError> rhsVal = evaluateExpression(rhs, env);
 		if (rhsVal instanceof Result.Err)
 			return new AssignPrep((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
@@ -684,24 +770,38 @@ public class Interpreter {
 		}
 	}
 
-	private Result<String, InterpretError> evaluateExpression(String expr, java.util.Map<String, String> valEnv,
-			java.util.Map<String, String> typeEnv) {
+	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
+
+		// function call: <ident>()  (only zero-arg supported)
+		int parenIdx = s.indexOf('(');
+		if (parenIdx > 0 && s.endsWith(")")) {
+			String name = s.substring(0, parenIdx).trim();
+			String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
+			if (isSimpleIdentifier(name)) {
+				if (!inside.isEmpty())
+					return new Result.Err<>(new InterpretError("only zero-arg calls supported", s));
+				if (!env.fnEnv.containsKey(name))
+					return new Result.Err<>(new InterpretError("unknown identifier", s));
+				FunctionDecl fd = env.fnEnv.get(name);
+				return evaluateExpression(fd.bodyExpr, env);
+			}
+		}
 		// variable reference
 		if (isSimpleIdentifier(s)) {
-			if (valEnv.containsKey(s))
-				return new Result.Ok<>(valEnv.get(s));
+			if (env.valEnv.containsKey(s))
+				return new Result.Ok<>(env.valEnv.get(s));
 			return new Result.Err<>(new InterpretError("unknown identifier", expr));
 		}
 		// comparison (e.g., '<')
-		java.util.Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, valEnv, typeEnv);
+		java.util.Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
 		if (cmpRes.isPresent())
 			return cmpRes.get();
 		// addition
-		java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
+	java.util.Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
 		if (addRes.isPresent())
 			return addRes.get();
 		// literal/typed-literal
@@ -717,8 +817,7 @@ public class Interpreter {
 	// each side is an expression that evaluates to an integer. Returns an
 	// Ok("true"/"false")
 	// or an empty Optional if not applicable.
-	private java.util.Optional<Result<String, InterpretError>> tryEvalComp(String s,
-			java.util.Map<String, String> valEnv, java.util.Map<String, String> typeEnv) {
+	private java.util.Optional<Result<String, InterpretError>> tryEvalComp(String s, Env env) {
 		int ltIdx = s.indexOf('<');
 		if (ltIdx <= 0)
 			return java.util.Optional.empty();
@@ -726,10 +825,10 @@ public class Interpreter {
 		String rightRaw = s.substring(ltIdx + 1).trim();
 
 		// Evaluate both sides as expressions (they may be additions or identifiers)
-		Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, valEnv, typeEnv);
+	Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, env);
 		if (leftRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) leftRes);
-		Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, valEnv, typeEnv);
+	Result<String, InterpretError> rightRes = evaluateExpression(rightRaw, env);
 		if (rightRes instanceof Result.Err)
 			return java.util.Optional.of((Result<String, InterpretError>) rightRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
@@ -999,7 +1098,7 @@ public class Interpreter {
 		int consumedAltIdx = ca.consumedIdx;
 
 		// Evaluate condition
-		Result<String, InterpretError> condRes = evaluateExpression(condExpr, env.valEnv, env.typeEnv);
+	Result<String, InterpretError> condRes = evaluateExpression(condExpr, env);
 		if (condRes instanceof Result.Err)
 			return new IfOutcome(java.util.Optional.of((Result<String, InterpretError>) condRes), consumedAltIdx);
 		String condVal = ((Result.Ok<String, InterpretError>) condRes).value();
