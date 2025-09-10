@@ -64,6 +64,12 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void mutRefDerefAssign() {
+		// Mutable reference stored in 'y' should allow writing through '*y'
+		TestUtils.assertValid("let mut x = 0; let y = &mut x; *y = 10; x", "10");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}

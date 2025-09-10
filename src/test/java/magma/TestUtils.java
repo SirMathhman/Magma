@@ -9,14 +9,26 @@ public final class TestUtils {
     public static void assertValid(String source, String expected) {
         Interpreter interp = new Interpreter();
         Result<String, InterpretError> res = interp.interpret(source, "");
-        assertTrue(res instanceof Result.Ok);
-        Result.Ok<String, InterpretError> ok = (Result.Ok<String, InterpretError>) res;
-        assertEquals(expected, ok.value());
+        switch (res) {
+            case Result.Ok<String, InterpretError> ok -> {
+                assertEquals(expected, ok.value());
+            }
+            case Result.Err<String, InterpretError>(InterpretError error) -> {
+                fail(error.display());
+            }
+        }
     }
 
     public static void assertInvalid(String source) {
         Interpreter interp = new Interpreter();
         Result<String, InterpretError> res = interp.interpret(source, "");
-        assertTrue(res instanceof Result.Err);
+        switch (res) {
+            case Result.Ok<String, InterpretError> ok -> {
+                fail(ok.value());
+            }
+            case Result.Err<String, InterpretError>(InterpretError error) -> {
+                assertNotNull(error.display());
+            }
+        }
     }
 }

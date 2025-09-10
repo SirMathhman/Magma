@@ -652,6 +652,22 @@ public class Interpreter {
 		if (valCheck.isPresent())
 			return java.util.Optional.of(valCheck.get());
 
+		// Handle deref-assignment marker produced by prepAssignOps: DREF_ASSIGN_PREFIX + target + ":" + value
+		if (evaluated.startsWith(DREF_ASSIGN_PREFIX)) {
+			String rest = evaluated.substring(DREF_ASSIGN_PREFIX.length());
+			int colon = rest.indexOf(':');
+			if (colon <= 0)
+				return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid deref assignment", env.source)));
+			String target = rest.substring(0, colon);
+			String value = rest.substring(colon + 1);
+			// Validate assignment value against the target's annotated/inferred type
+			java.util.Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
+			if (valCheckTarget.isPresent())
+				return java.util.Optional.of(valCheckTarget.get());
+			env.valEnv.put(target, value);
+			return java.util.Optional.empty();
+		}
+
 		env.valEnv.put(lhs, evaluated);
 		return java.util.Optional.empty();
 	}
@@ -676,18 +692,39 @@ public class Interpreter {
 	// check suffix compatibility, and evaluate the RHS. Returns AssignPrep where
 	// 'error' is present on failure; otherwise 'evaluatedRhs' holds the RHS value.
 	private AssignPrep prepAssignOps(String lhs, String rhs, Env env) {
-		if (!isSimpleIdentifier(lhs))
-			return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+		// support deref-assignment of the form '*<ident> = <expr>' where lhs may
+		// be a dereference of a reference value stored in a variable
+		boolean isDeref = false;
+		String derefTarget = null;
+		if (lhs.startsWith("*")) {
+			isDeref = true;
+			String inner = lhs.substring(1).trim();
+			if (!isSimpleIdentifier(inner))
+				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+			derefTarget = inner;
+		} else {
+			if (!isSimpleIdentifier(lhs))
+				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+		}
+		// Use the actual variable name for validation when LHS is a dereference
+		String lhsName = isDeref ? derefTarget : lhs;
 		// Unknown in valEnv can be acceptable if declared without initializer (present
 		// in typeEnv)
-		if (!env.valEnv.containsKey(lhs) && !env.typeEnv.containsKey(lhs))
+		if (!env.valEnv.containsKey(lhsName) && !env.typeEnv.containsKey(lhsName))
 			return new AssignPrep(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
-		Boolean isMut = env.mutEnv.getOrDefault(lhs, Boolean.FALSE);
-		if (!isMut)
-			return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
+		// If lhs is a deref, validate that the referenced variable is mutable
+		if (isDeref) {
+			Boolean isMutRef = env.mutEnv.getOrDefault(derefTarget, Boolean.FALSE);
+			if (!isMutRef)
+				return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
+		} else {
+			Boolean isMut = env.mutEnv.getOrDefault(lhsName, Boolean.FALSE);
+			if (!isMut)
+				return new AssignPrep(new Result.Err<>(new InterpretError("assignment to immutable variable", env.source)));
+		}
 
 		// Validate RHS suffix vs annotated/inferred type (if any) before evaluating
-		java.util.Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhs, rhs, env);
+		java.util.Optional<Result<String, InterpretError>> suffixCheck = vRhsSuffix(lhsName, rhs, env);
 		if (suffixCheck.isPresent())
 			return new AssignPrep(suffixCheck.get());
 
@@ -695,6 +732,13 @@ public class Interpreter {
 		if (rhsVal instanceof Result.Err)
 			return new AssignPrep((Result<String, InterpretError>) rhsVal);
 		String value = ((Result.Ok<String, InterpretError>) rhsVal).value();
+		// If this is a deref-assignment, we will return the evaluated RHS and
+		// the caller will place the value into the referenced variable.
+		if (isDeref) {
+			// encode a marker so the caller can detect deref assignment and write to
+			// the correct target. Use a distinct prefix for deref-assignments.
+			return new AssignPrep(DREF_ASSIGN_PREFIX + derefTarget + ":" + value);
+		}
 		return new AssignPrep(value);
 	}
 
@@ -913,7 +957,11 @@ public class Interpreter {
 	}
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
-		String s = stripUnaryPrefixes(expr.trim());
+		String s = expr.trim();
+		// Try handling prefix operations: &mut, &, and * (deref)
+		java.util.Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
+		if (pref.isPresent())
+			return pref.get();
 		// Block expression handling delegated to helper to keep this method small.
 		if (s.startsWith("{") && s.endsWith("}"))
 			return evalBlockExpr(s, env);
@@ -948,23 +996,63 @@ public class Interpreter {
 		return evaluateTypedSuffix(pr, expr);
 	}
 
+	// Reference marker prefixes used to encode reference values in the string
+	// result type. These are internal-only and chosen to avoid colliding with
+	// numeric literal strings.
+	private static final String REF_PREFIX = "@REF:";
+	private static final String REFMUT_PREFIX = "@REFMUT:";
+	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
+
+	// Try to evaluate expressions that start with reference/dereference
+	// prefixes. Returns Optional.empty() if the expression does not start with
+	// a handled prefix.
+	private java.util.Optional<Result<String, InterpretError>> tryEvalPrefix(String s, Env env) {
+		if (s.isEmpty())
+			return java.util.Optional.empty();
+		// &mut <ident>
+		if (s.startsWith("&mut")) {
+			String rest = s.substring(4).trim();
+			if (isSimpleIdentifier(rest)) {
+				return java.util.Optional.of(new Result.Ok<>(REFMUT_PREFIX + rest));
+			}
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
+		}
+		// &<ident>
+		if (s.startsWith("&")) {
+			String rest = s.substring(1).trim();
+			if (isSimpleIdentifier(rest)) {
+				return java.util.Optional.of(new Result.Ok<>(REF_PREFIX + rest));
+			}
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
+		}
+		// *<expr> (dereference)
+		if (s.startsWith("*")) {
+			String inner = s.substring(1).trim();
+			Result<String, InterpretError> innerRes = evaluateExpression(inner, env);
+			if (innerRes instanceof Result.Err)
+				return java.util.Optional.of((Result<String, InterpretError>) innerRes);
+			String val = ((Result.Ok<String, InterpretError>) innerRes).value();
+			if (val.startsWith(REF_PREFIX)) {
+				String target = val.substring(REF_PREFIX.length());
+				if (!env.valEnv.containsKey(target))
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
+				return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+			}
+			if (val.startsWith(REFMUT_PREFIX)) {
+				String target = val.substring(REFMUT_PREFIX.length());
+				if (!env.valEnv.containsKey(target))
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
+				return java.util.Optional.of(new Result.Ok<>(env.valEnv.get(target)));
+			}
+			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
+		}
+		return java.util.Optional.empty();
+	}
+
 	// Strip leading transparent unary prefixes '*' and '&' from the expression
 	// and return the trimmed remainder. Extracted into a helper to keep
 	// evaluateExpression under the cyclomatic complexity threshold.
-	private String stripUnaryPrefixes(String s) {
-		int p = 0;
-		int len = s.length();
-		while (p < len) {
-			char c = s.charAt(p);
-			if (c == '*' || c == '&')
-				p++;
-			else
-				break;
-		}
-		if (p > 0)
-			return s.substring(p).trim();
-		return s;
-	}
+
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
 	// each side is an expression that evaluates to an integer. Returns an
