@@ -198,4 +198,11 @@ public class InterpreterFeatureTest {
 		String src = "fn pass(param : I32) : I32 => { return param; } pass()";
 		TestUtils.assertInvalid(src);
 	}
+
+	@Test
+	public void fnArgTypeMismatch() {
+		// Invalid case: passing a boolean literal to a function expecting I32
+		String src = "fn pass(param : I32) : I32 => { return param; } pass(true)";
+		TestUtils.assertInvalid(src);
+	}
 }

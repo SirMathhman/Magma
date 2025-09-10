@@ -292,3 +292,20 @@ Notes
 -----
 The interpreter enforces argument-count checks during function call evaluation; the test verifies that calling a 1-arg function with zero arguments is rejected. No implementation change was required.
 
+### Invalid case: argument type mismatch in calls
+
+Goal
+----
+Ensure that function call arguments are compatible with the parameter annotated types. Example invalid program:
+
+  fn pass(param : I32) : I32 => { return param; } pass(true)
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — `tryEvalFunctionCall` now validates evaluated argument values against parameter annotated types using existing suffix checks.
+- `src/test/java/magma/InterpreterFeatureTest.java` — added `fnArgTypeMismatch` test which asserts the program is invalid.
+
+Notes
+-----
+The interpreter now performs annotated-type validation for call arguments before binding them into the callee environment. The validation reuses `checkAnnotatedSuffix` and returns an InterpretError if the argument value is incompatible with the annotated type.
+

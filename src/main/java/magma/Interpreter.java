@@ -131,10 +131,15 @@ public class Interpreter {
 		for (int i = 0; i < paramNames.size(); i++) {
 			String p = paramNames.get(i);
 			String val = evaluatedArgs.get(i);
-			fnEnv.valEnv.put(p, val);
+			// Validate argument value against parameter annotated type (if any)
 			String ptype = i < paramTypes.size() ? paramTypes.get(i) : "";
-			if (!ptype.isEmpty())
+			if (!ptype.isEmpty()) {
+				java.util.Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, env);
+				if (annErr.isPresent())
+					return java.util.Optional.of(annErr.get());
 				fnEnv.typeEnv.put(p, ptype);
+			}
+			fnEnv.valEnv.put(p, val);
 		}
 		return java.util.Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
