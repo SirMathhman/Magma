@@ -283,4 +283,10 @@ public class InterpreterFeatureTest {
 		// Let binding that holds an array should be indexable: let x = [1]; x[0] => 1
 		TestUtils.assertValid("let x = [1]; x[0]", "1");
 	}
+
+	@Test
+	public void indexedAssign1() {
+		// Writing through an array index for a mutable array variable should update the array
+		TestUtils.assertValid("let mut x = [0]; x[0] = 1; x[0]", "1");
+	}
 }
