@@ -157,4 +157,11 @@ public class InterpreterFeatureTest {
 		String src = "fn pass(param : I32) : I32 => { return param; } pass(100)";
 		TestUtils.assertValid(src, "100");
 	}
+
+	@Test
+	public void fnTwoParamCall() {
+		// Expect the function to accept two parameters and return the first
+		String src = "fn first(a : I32, b : I32) : I32 => { return a; } first(100, 200)";
+		TestUtils.assertValid(src, "100");
+	}
 }

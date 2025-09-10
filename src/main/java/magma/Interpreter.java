@@ -42,35 +42,45 @@ public class Interpreter {
 		if (!env.fnEnv.containsKey(name))
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
 		FunctionDecl fd = env.fnEnv.get(name);
-		String paramName = env.fnParamName.getOrDefault(name, "");
-		String paramType = env.fnParamType.getOrDefault(name, "");
-		if (paramName.isEmpty()) {
-			// zero-arg expected
-			if (!inside.isEmpty())
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("only zero-arg calls supported", s)));
-			return java.util.Optional.of(evaluateExpression(fd.bodyExpr, env));
+		java.util.List<String> paramNames = env.fnParamNames.getOrDefault(name, java.util.Collections.emptyList());
+		java.util.List<String> paramTypes = env.fnParamTypes.getOrDefault(name, java.util.Collections.emptyList());
+		// parse call arguments (comma-separated)
+		java.util.List<String> args = new java.util.ArrayList<>();
+		if (!inside.isEmpty()) {
+			// split on commas (simple splitter; no nested expressions supported yet)
+			for (String a : inside.split(","))
+				args.add(a.trim());
 		}
-		// single param function expected
-		if (inside.isEmpty())
-			return java.util.Optional.of(new Result.Err<>(new InterpretError("missing argument in call", s)));
-		// evaluate the argument in the caller env
-		Result<String, InterpretError> argRes = evaluateExpression(inside, env);
-		if (argRes instanceof Result.Err)
-			return java.util.Optional.of(argRes);
-		String argVal = ((Result.Ok<String, InterpretError>) argRes).value();
+		if (args.size() != paramNames.size()) {
+			return java.util.Optional.of(new Result.Err<>(
+					new InterpretError("argument count mismatch in call to " + name, s)));
+		}
+		// evaluate each argument in caller env
+		java.util.List<String> evaluatedArgs = new java.util.ArrayList<>();
+		for (String a : args) {
+			Result<String, InterpretError> r = evaluateExpression(a, env);
+			if (r instanceof Result.Err)
+				return java.util.Optional.of((Result<String, InterpretError>) r);
+			evaluatedArgs.add(((Result.Ok<String, InterpretError>) r).value());
+		}
 		// create a temporary env for function body evaluation: copy maps but do not
-		// mutate caller env; bind parameter
+		// mutate caller env; bind parameters
 		java.util.Map<String, String> newVals = new java.util.HashMap<>(env.valEnv);
 		java.util.Map<String, String> newTypes = new java.util.HashMap<>(env.typeEnv);
 		Env fnEnv = new Env(newVals, newTypes, env.source);
 		fnEnv.fnEnv.putAll(env.fnEnv);
 		fnEnv.mutEnv.putAll(env.mutEnv);
-		fnEnv.fnParamName.putAll(env.fnParamName);
-		fnEnv.fnParamType.putAll(env.fnParamType);
-		// record parameter value and type if annotated
-		fnEnv.valEnv.put(paramName, argVal);
-		if (!paramType.isEmpty())
-			fnEnv.typeEnv.put(paramName, paramType);
+		fnEnv.fnParamNames.putAll(env.fnParamNames);
+		fnEnv.fnParamTypes.putAll(env.fnParamTypes);
+		// bind parameter values and types
+		for (int i = 0; i < paramNames.size(); i++) {
+			String p = paramNames.get(i);
+			String val = evaluatedArgs.get(i);
+			fnEnv.valEnv.put(p, val);
+			String ptype = i < paramTypes.size() ? paramTypes.get(i) : "";
+			if (!ptype.isEmpty())
+				fnEnv.typeEnv.put(p, ptype);
+		}
 		return java.util.Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
 
@@ -93,19 +103,23 @@ public class Interpreter {
 		if (close < 0)
 			return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
 		String params = s.substring(idx + 1, close).trim();
-		String paramName = "";
-		String paramType = "";
+		java.util.List<String> paramNames = new java.util.ArrayList<>();
+		java.util.List<String> paramTypes = new java.util.ArrayList<>();
 		if (!params.isEmpty()) {
-			// allow single parameter of the form: <ident> (':' <suffix>)?
-			int pidx = 0;
-			int plen = params.length();
-			java.util.Optional<ParseId> pPid = parseId(params, pidx, plen);
-			if (!pPid.isPresent())
-				return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn parameter", env.source)));
-			ParseId pp = pPid.get();
-			paramName = pp.name;
-			int after = skipWs(params, pp.idx, plen);
-			paramType = parseAnnotatedSuffix(params, after, plen);
+			// split on commas and parse each param of the form: <ident> (':' <suffix>)?
+			for (String part : params.split(",")) {
+				String p = part.trim();
+				int plen = p.length();
+				java.util.Optional<ParseId> pPid = parseId(p, 0, plen);
+				if (!pPid.isPresent())
+					return java.util.Optional.of(new Result.Err<>(new InterpretError("invalid fn parameter", env.source)));
+				ParseId pp = pPid.get();
+				String pname = pp.name;
+				int after = skipWs(p, pp.idx, plen);
+				String ptype = parseAnnotatedSuffix(p, after, plen);
+				paramNames.add(pname);
+				paramTypes.add(ptype);
+			}
 		}
 		// annotated suffix after ')'
 		String ann = parseAnnotatedSuffix(s, close + 1, len);
@@ -131,11 +145,11 @@ public class Interpreter {
 		String retExpr = body.substring(retIdx + 6, semi).trim();
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
-		if (!paramName.isEmpty()) {
-			env.fnParamName.put(name, paramName);
+		if (!paramNames.isEmpty()) {
+			env.fnParamNames.put(name, paramNames);
 		}
-		if (!paramType.isEmpty()) {
-			env.fnParamType.put(name, paramType);
+		if (!paramTypes.isEmpty()) {
+			env.fnParamTypes.put(name, paramTypes);
 		}
 		return java.util.Optional.empty();
 	}
@@ -332,8 +346,8 @@ public class Interpreter {
 		final java.util.Map<String, String> valEnv;
 		final java.util.Map<String, String> typeEnv;
 		final java.util.Map<String, FunctionDecl> fnEnv;
-		final java.util.Map<String, String> fnParamName;
-		final java.util.Map<String, String> fnParamType;
+		final java.util.Map<String, java.util.List<String>> fnParamNames;
+		final java.util.Map<String, java.util.List<String>> fnParamTypes;
 		final java.util.Map<String, Boolean> mutEnv;
 		final String source;
 
@@ -341,8 +355,8 @@ public class Interpreter {
 			this.valEnv = valEnv;
 			this.typeEnv = typeEnv;
 			this.fnEnv = new java.util.HashMap<>();
-			this.fnParamName = new java.util.HashMap<>();
-			this.fnParamType = new java.util.HashMap<>();
+			this.fnParamNames = new java.util.HashMap<>();
+			this.fnParamTypes = new java.util.HashMap<>();
 			this.mutEnv = new java.util.HashMap<>();
 			this.source = source;
 		}

@@ -199,3 +199,35 @@ Notes and next steps
 - Behavior is intentionally minimal and conservative. If you want more expressions or a richer type system, we should replace the ad-hoc parsing with a small expression parser and add focused tests.
 
 Documentation: `docs/architecture.md` updated to reflect the final change.
+
+## Architecture change: multi-parameter function declarations and calls
+
+Goal
+----
+Support function declarations with multiple parameters and function calls that pass multiple arguments. Example:
+`fn first(a : I32, b : I32) : I32 => { return a; } first(100, 200)` should evaluate to `"100"`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — extend function parsing to accept comma-separated parameter lists and update call evaluation to bind multiple params.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add `fnTwoParamCall` acceptance test.
+
+Design notes
+------------
+- Parameter lists are stored in `Env.fnParamNames` and `Env.fnParamTypes` as lists keyed by function name.
+- `handleFnDecl` parses comma-separated parameters and records their names/types.
+- `tryEvalFunctionCall` splits call arguments on commas, evaluates each argument in the caller environment, checks arity, creates a shallow copy of the caller `Env`, binds parameters into the function-local env, and evaluates the function body expression.
+- Limitations: splitting on commas is simplistic and does not support nested comma-containing expressions in arguments or parameter defaults.
+
+Tests added
+-----------
+- `src/test/java/magma/InterpreterFeatureTest.java::fnTwoParamCall` — verifies two-argument function declaration and call returns expected value.
+
+Quality gates
+-------------
+- All tests must pass (`mvn test`) and Checkstyle must have 0 violations.
+
+Documentation changes
+---------------------
+- README updated with a short example (see commit) describing `fn` syntax and the current limitation (no nested-commas in args).
+

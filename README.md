@@ -38,6 +38,15 @@ If Maven is not installed, you can compile and run directly with javac/java:
     javac -d out src/main/java/magma/App.java
     java -cp out magma.App
 
+Function declarations
+
+The interpreter supports simple function declarations and calls. Example:
+
+    fn first(a : I32, b : I32) : I32 => { return a; } first(100, 200)
+
+This evaluates to "100". Note: parameter lists are comma-separated; nested commas in
+arguments are not currently supported.
+
 Code style and banned APIs
 
 - The project enforces a small set of Checkstyle rules located in `config/checkstyle/checkstyle.xml`.
