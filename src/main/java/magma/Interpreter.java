@@ -911,6 +911,9 @@ public class Interpreter {
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
+		// Block expression handling delegated to helper to keep this method small.
+		if (s.startsWith("{") && s.endsWith("}"))
+			return evalBlockExpr(s, env);
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
@@ -1191,6 +1194,43 @@ public class Interpreter {
 		// find ' else ' with surrounding whitespace
 		int idx = trimmed.indexOf(" else ");
 		return idx;
+	}
+
+	// Evaluate a brace-delimited block expression and return the value of the
+	// final inner expression (or appropriate Err). This is separated from
+	// evaluateExpression to reduce cyclomatic complexity and satisfy Checkstyle.
+	private Result<String, InterpretError> evalBlockExpr(String block, Env env) {
+		String s = block.trim();
+		String body = s.length() > 1 ? s.substring(1, s.length() - 1) : "";
+		String[] inner = body.split(";", -1);
+		Result<String, InterpretError> last = new Result.Ok<>("");
+		for (String part : inner) {
+			String t = part.trim();
+			if (t.isEmpty())
+				continue;
+			if (isStmtLike(t)) {
+				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, env);
+				if (stmtRes.isPresent()) {
+					Result<String, InterpretError> r = stmtRes.get();
+					if (r instanceof Result.Err)
+						return r;
+					last = r;
+					continue;
+				}
+				continue;
+			}
+			Result<String, InterpretError> r = evaluateExpression(t, env);
+			if (r instanceof Result.Err)
+				return r;
+			last = r;
+		}
+		return last;
+	}
+
+	private boolean isStmtLike(String t) {
+		return t.startsWith("{") || t.startsWith("while ") || t.startsWith("while(")
+				|| t.startsWith("fn ") || t.startsWith("fn(") || t.startsWith("if ") || t.startsWith("if(")
+				|| t.startsWith("let ") || t.indexOf("+=") >= 0 || (t.indexOf('=') > 0 && !t.startsWith("let "));
 	}
 
 	// Outcome of processing an if-part: either a Result to return (if the

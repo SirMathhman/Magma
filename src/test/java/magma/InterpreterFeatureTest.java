@@ -16,6 +16,13 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void blockExprReturns5() {
+		// New acceptance: a block expression with a single expression should return
+		// that expression's value
+		TestUtils.assertValid("{5}", "5");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}
