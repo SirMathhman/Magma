@@ -37,6 +37,19 @@ public class InterpreterFeatureTest {
 	}
 
 	@Test
+	public void blockThenOuter5() {
+		// Block-local let should not be visible after the block.
+		// The program `{let x = 5;} x` should be invalid because x is out of scope.
+		TestUtils.assertInvalid("{let x = 5;} x");
+	}
+
+	@Test
+	public void emptyBlockThenOuter5() {
+		// An empty block should not change outer bindings; let x remains visible
+		TestUtils.assertValid("let x = 5; {} x", "5");
+	}
+
+	@Test
 	public void typedAddition() {
 		TestUtils.assertValid("1U8 + 2U8", "3");
 	}

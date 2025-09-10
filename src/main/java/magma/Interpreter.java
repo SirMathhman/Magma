@@ -521,11 +521,14 @@ public class Interpreter {
 			int close = s.lastIndexOf('}');
 			String body = close > 0 ? s.substring(1, close) : "";
 			String[] inner = body.split(";", -1);
+			// Evaluate block body in a child env so inner lets/assignments do not
+			// mutate the outer environment.
+			Env child = makeChildEnv(env);
 			for (String part : inner) {
 				String t = part.trim();
 				if (t.isEmpty())
 					continue;
-				java.util.Optional<Result<String, InterpretError>> innerRes = handleStatement(t, env);
+				java.util.Optional<Result<String, InterpretError>> innerRes = handleStatement(t, child);
 				if (innerRes.isPresent())
 					return innerRes;
 			}
@@ -1204,12 +1207,17 @@ public class Interpreter {
 		String body = s.length() > 1 ? s.substring(1, s.length() - 1) : "";
 		String[] inner = body.split(";", -1);
 		Result<String, InterpretError> last = new Result.Ok<>("");
+		// Use a child environment for the block so inner let bindings do not
+		// leak into the outer environment. The child shares functions and
+		// mutability info but has its own value/type maps that start as copies
+		// of the parent's maps.
+		Env child = makeChildEnv(env);
 		for (String part : inner) {
 			String t = part.trim();
 			if (t.isEmpty())
 				continue;
 			if (isStmtLike(t)) {
-				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, env);
+				java.util.Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, child);
 				if (stmtRes.isPresent()) {
 					Result<String, InterpretError> r = stmtRes.get();
 					if (r instanceof Result.Err)
@@ -1219,12 +1227,26 @@ public class Interpreter {
 				}
 				continue;
 			}
-			Result<String, InterpretError> r = evaluateExpression(t, env);
+			Result<String, InterpretError> r = evaluateExpression(t, child);
 			if (r instanceof Result.Err)
 				return r;
 			last = r;
 		}
 		return last;
+	}
+
+	// Create a child Env for block evaluation: shallow-copy val/type maps so
+	// that assignments and let-declarations inside the block do not mutate the
+	// outer environment.
+	private Env makeChildEnv(Env parent) {
+		java.util.Map<String, String> newVals = new java.util.HashMap<>(parent.valEnv);
+		java.util.Map<String, String> newTypes = new java.util.HashMap<>(parent.typeEnv);
+		Env child = new Env(newVals, newTypes, parent.source);
+		child.fnEnv.putAll(parent.fnEnv);
+		child.fnParamNames.putAll(parent.fnParamNames);
+		child.fnParamTypes.putAll(parent.fnParamTypes);
+		child.mutEnv.putAll(parent.mutEnv);
+		return child;
 	}
 
 	private boolean isStmtLike(String t) {
