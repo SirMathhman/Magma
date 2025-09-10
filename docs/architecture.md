@@ -276,3 +276,19 @@ Notes
 -----
 The interpreter currently rejects duplicate parameter names (the test verifies this). No code changes were necessary; documentation was updated to record the invalid case and test added.
 
+### Invalid case: wrong arity on function call
+
+Goal
+----
+Ensure function calls with the wrong number of arguments are rejected. Example invalid program:
+
+  fn pass(param : I32) : I32 => { return param; } pass()
+
+Files / Modules affected
+------------------------
+- `src/test/java/magma/InterpreterFeatureTest.java` — added `fnWrongArityInvalid` test which asserts the program is invalid.
+
+Notes
+-----
+The interpreter enforces argument-count checks during function call evaluation; the test verifies that calling a 1-arg function with zero arguments is rejected. No implementation change was required.
+

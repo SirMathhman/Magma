@@ -191,4 +191,11 @@ public class InterpreterFeatureTest {
 		String src = "fn first(a : I32, a : I32) : I32 => { return first; } first(100, 200)";
 		TestUtils.assertInvalid(src);
 	}
+
+	@Test
+	public void fnWrongArityInvalid() {
+		// Invalid case: calling a 1-arg function with zero args should be rejected
+		String src = "fn pass(param : I32) : I32 => { return param; } pass()";
+		TestUtils.assertInvalid(src);
+	}
 }
