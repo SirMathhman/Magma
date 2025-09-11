@@ -199,6 +199,34 @@ Tests added
 -----------
 - `src/test/java/magma/InterpreterFeatureTest.java::fnTwoParamCall` — verifies two-argument function declaration and call returns expected value.
 
+## Architecture change: generics with two type parameters
+
+Goal
+----
+Allow functions to declare multiple generic type parameters, for example:
+
+  fn pass2<T, U>(a : T, b : U) => a; pass2(100, true)
+
+This should evaluate to "100". The runtime design will be consistent with the
+current single-type-parameter prototype: generic parameter names are recorded
+per-function and treated as erased at runtime for the purpose of annotated
+suffix checking during argument binding.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — generic parameter parsing already supports a comma-separated list; ensure it records multiple names and that bindEvaluatedArgs treats any listed generic name as erased.
+- `src/test/java/magma/GenericsTwoParamsTest.java` — new failing test verifying the behavior.
+
+Inputs / Outputs / Errors (contract)
+----------------------------------
+- Input: `fn pass2<T, U>(a : T, b : U) => a; pass2(100, true)`
+- Output: `Result.Ok("100")`.
+- Errors: malformed generic parameter list, wrong arity in calls, or invalid parameter annotations should produce `InterpretError`.
+
+Tests to add
+------------
+- `src/test/java/magma/GenericsTwoParamsTest.java` — assert that `pass2(100, true)` returns `"100"`.
+
 Quality gates
 -------------
 - All tests must pass (`mvn test`) and Checkstyle must have 0 violations.
