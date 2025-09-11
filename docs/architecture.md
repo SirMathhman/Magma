@@ -306,17 +306,59 @@ Tests to add
 
 Quality gates
 -------------
-- Add failing test (red)
-- Implement check in `Interpreter` to enforce mutability for indexed assignment
-- Run `mvn -DskipTests=false test` until green
+# Architecture
 
-Quality gates
--------------
-- Add failing test.
-- Implement minimal evaluator changes in `Interpreter.java`.
-- Run focused test and full build; fix Checkstyle/PMD as needed.
+This project implements a minimal interpreter for a tiny expression language in a single file (`src/main/java/magma/Interpreter.java`) with tests under `src/test/java/magma/`.
 
-Migration / Future
-------------------
-This is an incremental step. If arrays are needed elsewhere, consider replacing the ad-hoc marker with a typed runtime value model.
+## High-level design
+
+- Core entrypoint: `Interpreter.interpret(String source)`
+- Expression/evaluation helpers for literals, arithmetic, arrays, `let` bindings, assignment (incl. `+=`), control flow (`if`, `while`), simple functions, and struct declarations/literals with field access
+- Values are encoded as strings with internal prefixes for complex types:
+  - Arrays: `@ARR:elem1|elem2|...`
+  - Structs: `@STR:Type|field1=val1|field2=val2|...`
+  - References: `@REF:name` and `@REFMUT:name`
+- Environments (`Env`) hold value/type maps, function definitions, struct schemas, and mutability flags. Child envs are made for blocks and function calls so inner mutations don’t leak outward.
+
+## Recent changes and contracts
+
+1) Typed integer literals and type annotations
+  - Supported integer kinds: `U8/U16/U32/U64` and `I8/I16/I32/I64`
+  - Operations validate fits and mismatches
+  - `let x : U8 = 3;` enforces future assignments to fit `U8`
+
+2) Arrays and indexing
+  - `[a, b][i]` indexing returns the element value; invalid indices produce errors
+  - Mutable arrays support `x[i] = v`; immutable arrays reject writes
+
+3) References and deref
+  - `&x` and `&mut x` create immutable/mutable references. `*ref` reads the target, and `*ref = v` writes if the ref is mutable and the target is mutable
+
+4) Control flow and blocks
+  - `{ ... }` creates a child environment; inner lets don’t leak
+  - `if (cond) cons else alt` supports inline or separated consequent/alternative
+  - `while (cond) stmt` loops and executes an inline body statement
+
+5) Functions
+  - Declarations: `fn name(params?) : <suffix>? => { return <expr>; }`
+  - Params can carry type suffixes; arguments are checked against them
+  - Compact bodies are supported: `fn get() => return 100;` and `fn get() => 100;`
+  - New: Block-bodied functions no longer require the `return` keyword. When a function body is written with braces after `=>` and contains no `return`, the entire body is evaluated as a block expression at call time. This enables patterns like `fn wrap() => { let x = 100; this }`.
+
+6) Structs
+  - Declaration: `struct Name { field : Type, ... }`
+  - Literals: `Name { v1, v2 }` with field count checks
+  - Duplicate struct names and duplicate fields are rejected
+  - Per-field type annotations are parsed and stored; literal values are validated against them
+
+7) `this` expression (new)
+  - Inside a block expression, the bare identifier `this` evaluates to an anonymous struct capturing the block’s local `let` bindings declared so far in that block.
+  - Encoding uses the same struct runtime format with a synthetic type name `This`: `@STR:This|field=value|...` so `.field` access works uniformly.
+  - Example: `fn Wrapper() => { let x = 100; this } Wrapper().x` evaluates to `100`.
+  - Using `this` outside of a block is invalid and produces an error.
+
+## Notes
+
+- Quality gates: Checkstyle, PMD/CPD run during `mvn package`. Keep methods small and parameter counts low.
+- Internal value encodings are opaque outside the interpreter.
 

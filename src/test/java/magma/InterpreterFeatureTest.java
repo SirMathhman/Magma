@@ -331,4 +331,11 @@ public class InterpreterFeatureTest {
 		// required fields should be rejected.
 		TestUtils.assertInvalid("struct Point { x : I32, y : I32 } let test = Point {};");
 	}
+
+	@Test
+	public void thisCapturesLocal() {
+		// Acceptance: returning `this` from a function block captures block locals.
+		// Case: fn Wrapper() => {let x = 100; this} Wrapper().x => 100
+		TestUtils.assertValid("fn Wrapper() => {let x = 100; this} Wrapper().x", "100");
+	}
 }

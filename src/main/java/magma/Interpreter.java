@@ -383,8 +383,9 @@ public class Interpreter {
 			String body = s.substring(bodyOpen + 1, j).trim();
 			int retIdx = body.indexOf("return");
 			if (retIdx < 0)
-				return new FnBodyParse(
-						Optional.of(new Result.Err<>(new InterpretError("missing return in fn body", env.source))), "");
+				// No explicit return: treat the entire brace body as a block expression
+				// evaluated at call time (e.g., `{ let x = 100; this }`).
+				return new FnBodyParse(Optional.empty(), "{" + body + "}");
 			int semi = body.indexOf(';', retIdx);
 			if (semi < 0)
 				return new FnBodyParse(
@@ -1226,6 +1227,9 @@ public class Interpreter {
 		// Block expression handling delegated to helper to keep this method small.
 		if (s.startsWith("{") && s.endsWith("}"))
 			return evalBlockExpr(s, env);
+		// 'this' expression captures block-local lets inside a block expression
+		if (s.equals("this"))
+			return evalThisExpr(env, s);
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
@@ -1278,6 +1282,9 @@ public class Interpreter {
 		// Block expression
 		if (s.startsWith("{") && s.endsWith("}"))
 			return Optional.of(evalBlockExpr(s, env));
+		// 'this' expression
+		if (s.equals("this"))
+			return Optional.of(evalThisExpr(env, s));
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return Optional.of(new Result.Ok<>(s));
@@ -1934,6 +1941,8 @@ public class Interpreter {
 		// mutability info but has its own value/type maps that start as copies
 		// of the parent's maps.
 		Env child = makeChildEnv(env);
+		// Track block-local declarations so 'this' can capture them.
+		child.localDecls = java.util.Optional.of(new java.util.HashSet<String>());
 		for (String part : inner) {
 			String t = part.trim();
 			if (t.isEmpty())
@@ -1955,6 +1964,21 @@ public class Interpreter {
 			last = r;
 		}
 		return last;
+	}
+
+	// Build a runtime struct-like encoding for 'this' based on the current block's
+	// local declarations tracked in env.localDecls. Outside a block, it's invalid.
+	private Result<String, InterpretError> evalThisExpr(Env env, String source) {
+		if (env.localDecls.isEmpty())
+			return new Result.Err<>(new InterpretError("invalid this usage", source));
+		java.util.Set<String> locals = env.localDecls.get();
+		StringBuilder sb = new StringBuilder();
+		sb.append("This");
+		for (String name : locals) {
+			String val = env.valEnv.getOrDefault(name, "");
+			sb.append('|').append(name).append('=').append(val);
+		}
+		return new Result.Ok<>(STR_PREFIX + sb.toString());
 	}
 
 	// Create a child Env for block evaluation: shallow-copy val/type maps so
