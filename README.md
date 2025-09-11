@@ -72,6 +72,8 @@ Code style and banned APIs
  
 - New: Checkstyle now enforces a maximum number of parameters per method or constructor (3 parameters max). Methods or constructors with more than 3 parameters will fail the Checkstyle step. This rule is configured in `config/checkstyle/checkstyle.xml` under the `ParameterNumber` module.
 
+- New: The Java compiler is configured to treat usage of deprecated APIs as errors. The Maven build uses the `maven-compiler-plugin` with `-Xlint:deprecation` and `-Werror`, so any use of APIs marked `@Deprecated` will fail the build. This helps prevent accidental use of removed or unsupported APIs. If you need to temporarily allow a deprecated usage, annotate the specific usage with `@SuppressWarnings("deprecation")` and add a short comment explaining why.
+
 Runtime values (in-progress refactor)
 -------------------------------------
 

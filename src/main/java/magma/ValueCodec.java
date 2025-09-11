@@ -16,6 +16,7 @@ final class ValueCodec {
 	private static final String REF_PREFIX = "@REF:";
 	private static final String REFMUT_PREFIX = "@REFMUT:";
 	private static final String ARR_PREFIX = "@ARR:";
+	@Deprecated
 	private static final String STR_PREFIX = "@STR:";
 
 	private ValueCodec() {

@@ -366,6 +366,7 @@ public class Interpreter {
 	}
 
 	// Internal marker for struct values: "@STR:Type|field=val|..."
+	@Deprecated
 	private static final String STR_PREFIX = "@STR:";
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {

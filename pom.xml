@@ -35,6 +35,13 @@
 				<version>3.11.0</version>
 				<configuration>
 					<release>${maven.compiler.release}</release>
+					<!-- Treat usage of deprecated APIs as a compiler warning and fail the build by turning warnings into errors -->
+					<compilerArgs>
+						<!-- enable deprecation linting -->
+						<arg>-Xlint:deprecation</arg>
+						<!-- treat warnings as errors so deprecated usages fail the build -->
+						<arg>-Werror</arg>
+					</compilerArgs>
 				</configuration>
 			</plugin>
 			<!-- Ensure Surefire uses the JUnit Platform -->
