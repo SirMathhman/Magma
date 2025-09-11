@@ -399,3 +399,38 @@ Notes
 - Method bodies are stored as textual expressions; this is intentionally simple to avoid a broader redesign of the interpreter's value/closure model. If richer closures or parameterized methods are needed, consider introducing a first-class Function value type.
 - Follow-up improvements: add tests for nested blocks, methods referencing outer functions/vars, and method parameter support.
 
+### Implicit `this` return from block-bodied functions (new)
+
+Goal
+----
+Allow a block-bodied function that contains only declarations (lets and/or inner functions) to implicitly return the constructed `this` object that captures those declarations. This enables compact factory-style functions such as:
+
+  class fn Wrapper() => { let result = 100; fn get() => this.result; } Wrapper().get() => 100
+
+Design summary
+--------------
+- When a block expression finishes with no final expression (empty result) but the block tracked local declarations (via `env.localDecls`), the interpreter now returns the runtime-encoded `this` object constructed from those locals.
+- This behavior is implemented in `evalBlockExpr` and reuses the existing `evalThisExpr` to produce the `@STR:This|...` payload.
+
+Files / modules changed
+----------------------
+- `src/main/java/magma/Interpreter.java` — `evalBlockExpr` updated to return `this` when appropriate; small checkstyle-friendly refactors applied.
+
+Inputs / outputs / contract
+--------------------------
+- Input: a block expression whose body contains only declarations (no trailing expression) and is used as a function body returned from a `fn` declaration.
+- Output: `Result.Ok` with a `@STR:This|name=val|...` encoded value that exposes fields and embedded methods for subsequent `.field` and `.method()` access.
+
+Tests added
+-----------
+- `src/test/java/magma/InterpreterWrapperThisResultTest.java` — asserts the compact `class fn Wrapper() => { let result = 100; fn get() => this.result; } Wrapper().get()` evaluates to `100`.
+
+Quality gates
+-------------
+- All tests (including the new case) are executed as part of `mvn test` and must pass.
+- Checkstyle/PMD should report no violations; changes were small and localized to keep method cyclomatic complexity low.
+
+Notes
+-----
+- This is a small ergonomic feature that enables returning `this` from simple factory blocks without forcing the user to add an explicit final `this` expression. If this implicit behavior is undesirable we can revert and require explicit `this` return in block bodies instead.
+

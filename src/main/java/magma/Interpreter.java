@@ -852,7 +852,11 @@ public class Interpreter {
 			return handleWhile(s, env);
 		}
 		// Support function declarations: fn <id>() : <suffix> => { return <expr>; }
-		if (s.startsWith("fn ") || s.startsWith("fn(")) {
+		// Support function declarations: optional leading 'class ' then 'fn'
+		if (s.startsWith("fn ") || s.startsWith("fn(") || s.startsWith("class fn ") || s.startsWith("class fn(")) {
+			// If a leading 'class ' is present, strip it so handleFnDecl sees 'fn'.
+			if (s.startsWith("class "))
+				return handleFnDecl(s.substring(6), env);
 			return handleFnDecl(s, env);
 		}
 		// Support assignment statements and let declarations; extracted to reduce
@@ -2174,6 +2178,18 @@ public class Interpreter {
 			if (r instanceof Result.Err)
 				return r;
 			last = r;
+		}
+		// If the block produced no final expression (empty string) but the
+		// child environment tracked local declarations (lets or functions),
+		// return a runtime-encoded `this` object capturing those locals. This
+		// allows compact block-bodied functions that only declare members to
+		// implicitly return the constructed object so callers can immediately
+		// access fields/methods (e.g., `fn Wrapper() => { let x=1; fn get() => x; }`).
+		if (last instanceof Result.Ok) {
+			String v = ((Result.Ok<String, InterpretError>) last).value();
+			if (v.isEmpty() && child.localDecls.isPresent() && !child.localDecls.get().isEmpty()) {
+				return evalThisExpr(child, block);
+			}
 		}
 		return last;
 	}
