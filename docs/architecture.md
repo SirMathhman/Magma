@@ -1,3 +1,8 @@
+Typed Value model (in progress)
+-------------------------------
+- To reduce ad-hoc string parsing and make future features easier, a sealed `Value` hierarchy has been added with implementations for ints, bools, arrays, references, structs, and unit.
+- A `ValueCodec` utility converts between the legacy string encoding (used by `Interpreter` today) and the new `Value` types.
+- Migration plan: progressively update `Interpreter` helpers to operate on `Value` internally and only encode/decode at the edges. Tests will remain unchanged because the public API still returns `Result<String, InterpretError>`.
 # Architecture change: support Bool type annotations in let-declarations
 
 Goal
@@ -72,6 +77,14 @@ Migration / compatibility notes
 - Runtime representation of structs is internal to the interpreter; external callers should treat the encoded string as an opaque value except when using member access in source code.
 
 Implementation notes / rationale
+-------------------------------
+The interpreter uses a compact representation to avoid a broad refactor of the value model. This choice keeps the change small and low-risk.
+
+Typed Value model (in progress)
+-------------------------------
+- To reduce ad-hoc string parsing and make future features easier, a sealed `Value` hierarchy has been added with implementations for ints, bools, arrays, references, structs, and unit.
+- A `ValueCodec` utility converts between the legacy string encoding (used by `Interpreter` today) and the new `Value` types.
+- Migration plan: progressively update `Interpreter` helpers to operate on `Value` internally and only encode/decode at the edges. Tests will remain unchanged because the public API still returns `Result<String, InterpretError>`.
 -------------------------------
 - The interpreter uses a compact representation to avoid a broad refactor of the value model. This choice keeps the change small and low-risk.
 - Duplicate-name and duplicate-field checks are performed at declaration time to provide fast, early feedback to users.
