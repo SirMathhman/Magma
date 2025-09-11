@@ -176,6 +176,7 @@ public class Interpreter {
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
 		final Map<String, java.util.List<String>> structFieldTypes;
+ 		final Map<String, java.util.List<String>> unionEnv;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -191,6 +192,7 @@ public class Interpreter {
 			this.mutEnv = new HashMap<>();
 			this.structEnv = new HashMap<>();
 			this.structFieldTypes = new HashMap<>();
+			this.unionEnv = new HashMap<>();
 			this.source = source;
 			this.localDecls = java.util.Optional.empty();
 		}
@@ -1040,6 +1042,11 @@ public class Interpreter {
 		if (s.startsWith("object ")) {
 			return handleObjectDecl(s, env);
 		}
+
+		// Support type (union) declarations: type Name = T1 | T2 | ...
+		if (s.startsWith("type ")) {
+			return handleTypeDecl(s, env);
+		}
 		// Support compound assignment '+=', and simple assignment '=' in statement
 		// position
 		int plusEqIdx = s.indexOf("+=");
@@ -1406,6 +1413,16 @@ public class Interpreter {
 	}
 
 	private Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value, Env env) {
+		// If the annotation is a union type registered in env, accept when any
+		// member type accepts the value.
+		if (env.unionEnv.containsKey(annotatedSuffix)) {
+			for (String member : env.unionEnv.get(annotatedSuffix)) {
+				Optional<Result<String, InterpretError>> memberChk = checkAnnotatedSuffix(member, value, env);
+				if (memberChk.isEmpty())
+					return Optional.empty();
+			}
+			return err("value does not fit annotated union type", env.source);
+		}
 		// Special-case Bool annotation which does not follow the <Letter><digits>
 		// pattern used by integer typed suffixes (e.g. U8, I32).
 		if (annotatedSuffix.equalsIgnoreCase("Bool")) {
@@ -1454,44 +1471,57 @@ public class Interpreter {
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
-		Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
-		if (structRes.isPresent())
-			return structRes.get();
-		// Try method call (e.g., obj.method()) before plain member access
-		Optional<Result<String, InterpretError>> methodRes = tryEvalMethodCall(s, env);
-		if (methodRes.isPresent())
-			return methodRes.get();
+	Optional<Result<String, InterpretError>> prefix = tryEvalPrefixAll(s, env);
+		if (prefix.isPresent())
+			return prefix.get();
 
-		Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
-		if (memberRes.isPresent())
-			return memberRes.get();
-		// Try handling prefix operations: &mut, &, and * (deref)
-		Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
-		if (pref.isPresent())
-			return pref.get();
-		// Try a standalone struct literal of the form `Type { ... }` when a type
-		// named in env.structEnv is present. This covers cases where the struct
-		// was declared earlier and an instance is created later.
-		Optional<Result<String, InterpretError>> standaloneStruct = tryEvalStructLitSta(s, env);
-		if (standaloneStruct.isPresent())
-			return standaloneStruct.get();
-		// Block expression handling delegated to helper to keep this method small.
-		if (s.startsWith("{") && s.endsWith("}"))
-			return evalBlockExpr(s, env);
-		// 'this' expression captures block-local lets inside a block expression
-		if (s.equals("this"))
-			return evalThisExpr(env, s);
-		// Boolean literals
-		if (s.equals("true") || s.equals("false"))
-			return new Result.Ok<>(s);
-
-		Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
-		if (p1.isPresent())
-			return p1.get();
-		Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
-		if (p2.isPresent())
-			return p2.get();
+		Optional<Result<String, InterpretError>> prim = tryEvalPrimaries(s, env);
+		if (prim.isPresent())
+			return prim.get();
 		return new Result.Err<>(new InterpretError("invalid literal", expr));
+	}
+
+    // Extract primary evaluation parts to reduce cyclomatic complexity
+    private Optional<Result<String, InterpretError>> tryEvalPrimaries(String s, Env env) {
+        Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
+        if (p1.isPresent())
+            return p1;
+        Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
+        if (p2.isPresent())
+            return p2;
+        return Optional.empty();
+    }
+
+	// Try '<expr> is TypeName' operator. Returns Optional.empty() if not
+	// applicable, otherwise Ok("true") or Ok("false").
+	private Optional<Result<String, InterpretError>> tryEvalIsOp(String s, Env env) {
+		int isIdx = s.lastIndexOf(" is ");
+		if (isIdx <= 0)
+			return Optional.empty();
+		String left = s.substring(0, isIdx).trim();
+		String right = s.substring(isIdx + 4).trim();
+		if (!isSimpleIdentifier(right))
+			return Optional.empty();
+		Result<String, InterpretError> leftRes = evaluateExpression(left, env);
+		if (leftRes instanceof Result.Err)
+			return Optional.of(leftRes);
+		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
+		// If the right is a union name, check its members; otherwise check simple type names
+		if (env.unionEnv.containsKey(right)) {
+			for (String mem : env.unionEnv.get(right)) {
+				if (matchesTypeName(mem, leftVal))
+					return Optional.of(new Result.Ok<>("true"));
+			}
+			return Optional.of(new Result.Ok<>("false"));
+		}
+		// Not a union: support simple named checks like 'I32' or 'Bool'
+		if (right.equalsIgnoreCase("Bool")) {
+			return Optional.of(new Result.Ok<>(matchesTypeName("Bool", leftVal) ? "true" : "false"));
+		}
+		if (right.matches("[UIuIi]\\d+")) {
+			return Optional.of(new Result.Ok<>(matchesTypeName(right, leftVal) ? "true" : "false"));
+		}
+		return Optional.of(new Result.Err<>(new InterpretError("unknown type in 'is' check", env.source)));
 	}
 
 	// Try member access `<expr>.field` and return Optional.empty() if not
@@ -1578,6 +1608,46 @@ public class Interpreter {
 			return Optional.of(new Result.Ok<>(pr.integerPart));
 		return Optional.of(evaluateTypedSuffix(pr, s));
 	}
+
+	// Extracted helper for initial expression checks to reduce cyclomatic complexity
+	private Optional<Result<String, InterpretError>> tryEvalPrefixAll(String s, Env env) {
+		Optional<Result<String, InterpretError>> r = tryEvalPrefixPhase1(s, env);
+		if (r.isPresent())
+			return r;
+		return tryEvalPrefixPhase2(s, env);
+	}
+
+    private Optional<Result<String, InterpretError>> tryEvalPrefixPhase1(String s, Env env) {
+        Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
+        if (structRes.isPresent())
+            return structRes;
+        Optional<Result<String, InterpretError>> methodRes = tryEvalMethodCall(s, env);
+        if (methodRes.isPresent())
+            return methodRes;
+        Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
+        if (memberRes.isPresent())
+            return memberRes;
+        Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
+        if (pref.isPresent())
+            return pref;
+        return Optional.empty();
+    }
+
+    private Optional<Result<String, InterpretError>> tryEvalPrefixPhase2(String s, Env env) {
+        Optional<Result<String, InterpretError>> standaloneStruct = tryEvalStructLitSta(s, env);
+        if (standaloneStruct.isPresent())
+            return standaloneStruct;
+        if (s.startsWith("{") && s.endsWith("}"))
+            return Optional.of(evalBlockExpr(s, env));
+        Optional<Result<String, InterpretError>> isOp = tryEvalIsOp(s, env);
+        if (isOp.isPresent())
+            return isOp;
+        if (s.equals("this"))
+            return Optional.of(evalThisExpr(env, s));
+        if (s.equals("true") || s.equals("false"))
+            return Optional.of(new Result.Ok<>(s));
+        return Optional.empty();
+    }
 
 	// Try to evaluate either an array literal like `[1,2]` or an indexing
 	// expression
@@ -2577,6 +2647,7 @@ public class Interpreter {
 		e.mutEnv.putAll(src.mutEnv);
 		e.structEnv.putAll(src.structEnv);
 		e.structFieldTypes.putAll(src.structFieldTypes);
+		e.unionEnv.putAll(src.unionEnv);
 		return e;
 	}
 
@@ -2653,5 +2724,49 @@ public class Interpreter {
 		if (rest.isEmpty())
 			return Optional.empty();
 		return handleSimpleStmt(rest, env);
+		}
+
+// Handle a 'type' declaration (union) like: type Name = A | B | C
+private Optional<Result<String, InterpretError>> handleTypeDecl(String s, Env env) {
+	int eq = s.indexOf('=');
+	if (eq < 0)
+		return Optional.of(new Result.Err<>(new InterpretError("invalid type declaration", env.source)));
+	String left = s.substring(5, eq).trim();
+	String right = s.substring(eq + 1).trim();
+	if (right.endsWith(";"))
+		right = right.substring(0, right.length() - 1).trim();
+	if (!isSimpleIdentifier(left))
+		return Optional.of(new Result.Err<>(new InterpretError("invalid type name", env.source)));
+	java.util.List<String> members = new java.util.ArrayList<>();
+	for (String part : right.split("\\|")) {
+		String m = part.trim();
+		if (m.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("invalid union member", env.source)));
+		members.add(m);
 	}
+	if (env.unionEnv.containsKey(left))
+		return Optional.of(new Result.Err<>(new InterpretError("duplicate type declaration", env.source)));
+	env.unionEnv.put(left, members);
+	if (env.localDecls.isPresent())
+		env.localDecls.get().add(left);
+	return Optional.empty();
+}
+
+// Check whether a runtime value matches a named type like I32, Bool or a struct
+private boolean matchesTypeName(String typeName, String value) {
+	if (typeName.equalsIgnoreCase("Bool"))
+		return "true".equals(value) || "false".equals(value);
+	if (typeName.matches("[UIuIi]\\d+")) {
+		try {
+			new java.math.BigInteger(value);
+			return true;
+		} catch (NumberFormatException ex) {
+			return false;
+		}
+	}
+	if (value.startsWith(STR_PREFIX))
+		return true;
+	return false;
+}
+
 }

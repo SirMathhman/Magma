@@ -30,6 +30,36 @@ Tests to add
 ------------
 - `src/test/java/magma/ObjectTest.java` — assert that `object Temp { let value = 100; } Temp.value` evaluates to `100`.
 
+## Architecture change: union types (new)
+
+Goal
+----
+Allow declaration of named union types and runtime `is` checks. Example:
+
+  type MyUnion = I32 | Bool; let x : MyUnion = 100; x is I32
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — parse `type` declarations at statement position and record union definitions in `Env`.
+- `src/test/java/magma/UnionTypeTest.java` — new tests expressing acceptance criteria.
+
+Inputs / Outputs / Errors (contract)
+----------------------------------
+- Syntax: `type Name = T1 | T2 | ...;`
+- Let annotations may reference a union name: `let x : Name = <expr>`
+- The `is` operator tests whether a runtime value matches one of the member types and returns `true`/`false`.
+- Errors: duplicate type name, unknown member type in the union, and invalid `is` usage should produce `InterpretError`.
+
+Tests to add
+------------
+- `src/test/java/magma/UnionTypeTest.java` — two tests: one where `x` is an I32 value and `x is I32` -> `true`, and one where `x` is `true` and `x is I32` -> `false`.
+
+Quality gates
+-------------
+- Add tests and run `mvn test` — tests should initially fail.
+- Implement minimal changes to `Interpreter` to parse `type` declarations and evaluate `is` operator.
+- Ensure `mvn package` succeeds with zero Checkstyle violations.
+
 Quality gates
 -------------
 - Add tests and run `mvn test` — tests should initially fail.
