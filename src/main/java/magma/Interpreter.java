@@ -1366,7 +1366,7 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
 		if (cmpRes.isPresent())
 			return cmpRes;
-		Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
+	Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s, env);
 		if (addRes.isPresent())
 			return addRes;
 		ParseResult pr = parseSignAndDigits(s);
@@ -1512,16 +1512,15 @@ public class Interpreter {
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
 	// each side is an expression that evaluates to an integer. Returns an
-	// Ok("true"/"false")
-	// or an empty Optional if not applicable.
+	// Ok("true"/"false") or an empty Optional if not applicable.
 	private Optional<Result<String, InterpretError>> tryEvalComp(String s, Env env) {
 		int ltIdx = s.indexOf('<');
 		if (ltIdx <= 0)
 			return Optional.empty();
+
 		String leftRaw = s.substring(0, ltIdx).trim();
 		String rightRaw = s.substring(ltIdx + 1).trim();
 
-		// Evaluate both sides as expressions (they may be additions or identifiers)
 		Result<String, InterpretError> leftRes = evaluateExpression(leftRaw, env);
 		if (leftRes instanceof Result.Err)
 			return Optional.of(leftRes);
@@ -1531,11 +1530,11 @@ public class Interpreter {
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
 		String rightVal = ((Result.Ok<String, InterpretError>) rightRes).value();
 		try {
-			BigInteger a = new BigInteger(leftVal);
-			BigInteger b = new BigInteger(rightVal);
-			return Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
+			BigInteger l = parseBigInteger(leftVal);
+			BigInteger r = parseBigInteger(rightVal);
+			return Optional.of(new Result.Ok<>(l.compareTo(r) < 0 ? "true" : "false"));
 		} catch (NumberFormatException ex) {
-			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
+			return Optional.of(new Result.Err<>(new InterpretError("invalid comparison", s)));
 		}
 	}
 
@@ -1595,35 +1594,48 @@ public class Interpreter {
 	 * Try to evaluate a simple addition expression of the form "<int> + <int>".
 	 * Returns an Ok Result on success or an empty Optional if not applicable.
 	 */
-	private Optional<Result<String, InterpretError>> tryEvaluateAddition(String s) {
+	private Optional<Result<String, InterpretError>> tryEvaluateAddition(String s, Env env) {
 		int plusIdx = s.indexOf('+');
 		if (plusIdx <= 0)
 			return Optional.empty();
 		String leftRaw = s.substring(0, plusIdx).trim();
 		String rightRaw = s.substring(plusIdx + 1).trim();
-
-		// Parse each side for optional sign/digits and optional suffix
+		// Try to parse each side as a literal first. If parsing fails (identifiers
+		// or expressions), evaluate the side as an expression and parse the
+		// resulting value.
 		ParseResult leftPr = parseSignAndDigits(leftRaw);
 		ParseResult rightPr = parseSignAndDigits(rightRaw);
-		if (!leftPr.valid || !rightPr.valid)
-			return Optional.empty();
+		String leftVal = leftRaw;
+		String rightVal = rightRaw;
+		if (!leftPr.valid || !rightPr.valid) {
+			Result<String, InterpretError> lres = evaluateExpression(leftRaw, env);
+			if (lres instanceof Result.Err)
+				return Optional.of(lres);
+			Result<String, InterpretError> rres = evaluateExpression(rightRaw, env);
+			if (rres instanceof Result.Err)
+				return Optional.of(rres);
+			leftVal = ((Result.Ok<String, InterpretError>) lres).value();
+			rightVal = ((Result.Ok<String, InterpretError>) rres).value();
+			leftPr = parseSignAndDigits(leftVal);
+			rightPr = parseSignAndDigits(rightVal);
+			if (!leftPr.valid || !rightPr.valid)
+				return Optional.of(new Result.Err<>(new InterpretError("invalid literal", s)));
+		}
 
-		// If either side has a suffix, we allow three cases:
-		// 1) both have suffixes and they match exactly (same kind and width)
-		// 2) one has a suffix and the other doesn't: the untyped side is accepted
-		// only if its value fits into the typed width/kind of the typed side
-		// 3) mixed kinds/widths (e.g., U vs I or different widths) are invalid
-		// Validate typed/untyped suffixes; if invalid, return Err wrapped in Optional
 		Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, s);
 		if (suffixCheck.isPresent())
 			return suffixCheck;
 
 		try {
-			BigInteger a = new BigInteger(leftPr.integerPart);
-			BigInteger b = new BigInteger(rightPr.integerPart);
-			return Optional.of(new Result.Ok<>(a.add(b).toString()));
+			BigInteger l = parseBigInteger(leftPr.integerPart);
+			BigInteger r = parseBigInteger(rightPr.integerPart);
+			BigInteger sum = l.add(r);
+			if (leftPr.suffix.isEmpty() && rightPr.suffix.isEmpty())
+				return Optional.of(new Result.Ok<>(sum.toString()));
+			String suffix = !leftPr.suffix.isEmpty() ? leftPr.suffix : rightPr.suffix;
+			return Optional.of(new Result.Ok<>(sum.toString() + suffix));
 		} catch (NumberFormatException ex) {
-			return Optional.empty();
+			return Optional.of(new Result.Err<>(new InterpretError("invalid integer", s)));
 		}
 	}
 
