@@ -1092,10 +1092,8 @@ public class Interpreter {
 		if (s.startsWith("while ") || s.startsWith("while(")) {
 			return handleWhile(s, env);
 		}
-		// Support function declarations: fn <id>() : <suffix> => { return <expr>; }
-		// Support function declarations: optional leading 'class ' then 'fn'
-		if (s.startsWith("fn ") || s.startsWith("fn(") || s.startsWith("class fn ") || s.startsWith("class fn(")) {
-			// If a leading 'class ' is present, strip it so handleFnDecl sees 'fn'.
+		// Support function declarations (including optional leading 'class ')
+		if (isFnDecl(s)) {
 			if (s.startsWith("class "))
 				return handleFnDecl(s.substring(6), env);
 			return handleFnDecl(s, env);
@@ -1105,55 +1103,16 @@ public class Interpreter {
 		return handleSimpleStmt(s, env);
 	}
 
+	// Helper to detect function declaration starts (fn or class fn)
+	private boolean isFnDecl(String s) {
+		return s.startsWith("fn ") || s.startsWith("fn(") || s.startsWith("class fn ") || s.startsWith("class fn(");
+	}
+
 	// Extracted helper to handle assignments, compound assignments and let
 	// declarations.
 	private Optional<Result<String, InterpretError>> handleSimpleStmt(String s, Env env) {
-		// Accept a leading struct declaration in statement position. This allows
-		// code like `struct T { f : I32 } let x = T { 1 };` where the struct
-		// declaration and the let appear in the same semicolon-delimited part.
 		if (s.startsWith("struct ")) {
-			int nameStart = 7;
-			// support optional generic parameter list after the struct name: <T, U>
-			int braceOpen = s.indexOf('{', nameStart);
-			String structNameRaw = s.substring(nameStart, braceOpen > 0 ? braceOpen : s.length()).trim();
-			String structName = structNameRaw;
-			List<String> genericNames = new ArrayList<>();
-			// detect and parse generic list if present in the header
-			int genStart = structNameRaw.indexOf('<');
-			if (genStart >= 0) {
-				int genClose = structNameRaw.indexOf('>', genStart + 1);
-				if (genClose > genStart) {
-					String inside = structNameRaw.substring(genStart + 1, genClose).trim();
-					structName = structNameRaw.substring(0, genStart).trim();
-					if (!inside.isEmpty()) {
-						for (String g : inside.split(",")) {
-							String gn = g.trim();
-							if (!gn.isEmpty())
-								genericNames.add(gn);
-						}
-					}
-				}
-			}
-			int realBraceOpen = s.indexOf('{', nameStart);
-			if (realBraceOpen <= 0)
-				return Optional.of(new Result.Err<>(new InterpretError("invalid struct declaration", env.source)));
-			int braceOpenIdx = realBraceOpen;
-			int braceClose = findMatchingBrace(s, braceOpenIdx);
-			if (braceClose < 0)
-				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
-			String fieldsBlock = s.substring(braceOpenIdx + 1, braceClose).trim();
-			// record generic params if present
-			if (!genericNames.isEmpty()) {
-				env.structGenericParams.put(structName, genericNames);
-			}
-			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
-			if (declErr.isPresent())
-				return declErr;
-			String rest = s.substring(braceClose + 1).trim();
-			if (rest.isEmpty())
-				return Optional.empty();
-			// Process the trailing text as another simple statement (e.g., a let)
-			return handleSimpleStmt(rest, env);
+			return handleStructDecl(s, env);
 		}
 
 		if (s.startsWith("object ")) {
@@ -1179,6 +1138,52 @@ public class Interpreter {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid let declaration", env.source)));
 		LetDeclaration d = parsed.get();
 		return handleLetDeclaration(d, env);
+	}
+
+	// Extracted helper to handle a struct declaration found in statement position.
+	private Optional<Result<String, InterpretError>> handleStructDecl(String s, Env env) {
+		int nameStart = 7;
+		// support optional generic parameter list after the struct name: <T, U>
+		int braceOpen = s.indexOf('{', nameStart);
+		String structNameRaw = s.substring(nameStart, braceOpen > 0 ? braceOpen : s.length()).trim();
+		String structName = structNameRaw;
+		List<String> genericNames = new ArrayList<>();
+		// detect and parse generic list if present in the header
+		int genStart = structNameRaw.indexOf('<');
+		if (genStart >= 0) {
+			int genClose = structNameRaw.indexOf('>', genStart + 1);
+			if (genClose > genStart) {
+				String inside = structNameRaw.substring(genStart + 1, genClose).trim();
+				structName = structNameRaw.substring(0, genStart).trim();
+				if (!inside.isEmpty()) {
+					for (String g : inside.split(",")) {
+						String gn = g.trim();
+						if (!gn.isEmpty())
+							genericNames.add(gn);
+					}
+				}
+			}
+		}
+		int realBraceOpen = s.indexOf('{', nameStart);
+		if (realBraceOpen <= 0)
+			return Optional.of(new Result.Err<>(new InterpretError("invalid struct declaration", env.source)));
+		int braceOpenIdx = realBraceOpen;
+		int braceClose = findMatchingBrace(s, braceOpenIdx);
+		if (braceClose < 0)
+			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
+		String fieldsBlock = s.substring(braceOpenIdx + 1, braceClose).trim();
+		// record generic params if present
+		if (!genericNames.isEmpty()) {
+			env.structGenericParams.put(structName, genericNames);
+		}
+		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+		if (declErr.isPresent())
+			return declErr;
+		String rest = s.substring(braceClose + 1).trim();
+		if (rest.isEmpty())
+			return Optional.empty();
+		// Process the trailing text as another simple statement (e.g., a let)
+		return handleSimpleStmt(rest, env);
 	}
 
 	// Helper to process let declarations (extracted to reduce complexity)

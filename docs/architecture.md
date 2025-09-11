@@ -146,6 +146,21 @@ Implementation notes / rationale
 - The interpreter uses a compact representation to avoid a broad refactor of the value model. This choice keeps the change small and low-risk.
 - Duplicate-name and duplicate-field checks are performed at declaration time to provide fast, early feedback to users.
 
+### Generics (erased at runtime)
+
+Magma supports simple type-parameter generics for both structs and class-style constructors (declared with `class fn`).
+
+- Declaration examples:
+  - `struct Wrapper<T> { value : T }`
+  - `class fn Wrapper<T>(value : T) => this;`
+
+- Runtime semantics:
+  - Generic type parameter names (for functions and structs) are recorded at parse time and considered erased at runtime. That means a generic parameter name like `T` is used only to allow annotation syntax and is *not* a distinct runtime type.
+  - During runtime type-checks on annotated fields or parameters, annotations that match a declared generic parameter name for the current function/struct are skipped (treated as erased). This enables `Wrapper(100).value` to succeed when `Wrapper` is declared as `Wrapper<T>` and instantiated with an `int` value.
+
+Notes:
+- The current implementation only records generic parameter *names* (no bounds or variance) and performs erasure during runtime checks. Future work could add bounded generics or reified generics if needed.
+
 PR checklist (for this change)
 -----------------------------
 - [ ] Architecture: `docs/architecture.md` updated (this file).
