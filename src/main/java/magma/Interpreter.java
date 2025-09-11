@@ -146,6 +146,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnParamTypes;
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
+ 		final Map<String, java.util.List<String>> structFieldTypes;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -160,11 +161,16 @@ public class Interpreter {
 			this.fnParamTypes = new HashMap<>();
 			this.mutEnv = new HashMap<>();
 			this.structEnv = new HashMap<>();
+			this.structFieldTypes = new HashMap<>();
 			this.source = source;
 			this.localDecls = java.util.Optional.empty();
 		}
 
 	}
+
+		// Small record to hold a field name and its annotated type (may be empty).
+		private record FieldSpec(String name, String type) {
+		}
 
 	// Helper to represent a parsed type kind and width together so checks can
 	// take a single object rather than separate primitive params.
@@ -795,15 +801,9 @@ public class Interpreter {
 				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
 			String structName = s.substring(nameStart, braceOpen).trim();
 			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-			List<String> fieldNames = parseStructFields(fieldsBlock);
-			// Validate duplicate field names within the struct
-			Optional<Result<String, InterpretError>> dupErr = checkDuplicateFields(fieldNames, s);
-			if (dupErr.isPresent())
-				return dupErr;
-			// Reject duplicate struct declarations: a struct name must be unique.
-			if (env.structEnv.containsKey(structName))
-				return Optional.of(new Result.Err<>(new InterpretError("duplicate struct declaration", s)));
-			env.structEnv.put(structName, fieldNames);
+		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+			if (declErr.isPresent())
+				return declErr;
 			String rest = s.substring(braceClose + 1).trim();
 			if (rest.isEmpty())
 				return Optional.empty();
@@ -1684,12 +1684,9 @@ public class Interpreter {
 		if (braceClose < 0)
 			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
 		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-		List<String> fieldNames = parseStructFields(fieldsBlock);
-		// Validate duplicate field names within the struct
-		Optional<Result<String, InterpretError>> dupErr = checkDuplicateFields(fieldNames, s);
-		if (dupErr.isPresent())
-			return dupErr;
-		env.structEnv.put(structName, fieldNames);
+			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+			if (declErr.isPresent())
+				return declErr;
 		String rest = s.substring(braceClose + 1);
 		String restTrim = rest.trim();
 		if (restTrim.isEmpty())
@@ -1706,21 +1703,57 @@ public class Interpreter {
 		return Optional.of(new Result.Ok<>(""));
 	}
 
-	// Parse a struct fields block like "a : I32, b : I32" into a list of
-	// field names. Extracted to reduce the complexity of tryEvalStruct.
-	private List<String> parseStructFields(String fieldsBlock) {
-		List<String> names = new ArrayList<>();
+	// (parseStructFields removed; use parseStructFieldSpecs instead)
+
+	// Parse struct fields into a list of FieldSpec (name + optional type).
+	private List<FieldSpec> parseStructFieldSpec(String fieldsBlock) {
+		List<FieldSpec> specs = new ArrayList<>();
 		if (Objects.isNull(fieldsBlock) || fieldsBlock.trim().isEmpty())
-			return names;
+			return specs;
 		for (String part : fieldsBlock.split(";|,")) {
 			String p = part.trim();
 			if (p.isEmpty())
 				continue;
 			int colon = p.indexOf(':');
 			String fname = colon > 0 ? p.substring(0, colon).trim() : p;
-			names.add(fname);
+			String ftype = colon > 0 ? p.substring(colon + 1).trim() : "";
+			specs.add(new FieldSpec(fname, ftype));
 		}
-		return names;
+			return specs;
+	}
+
+	// Parse fieldsBlock and return a map with two lists: 'names' and 'types'.
+	private java.util.Map<String, java.util.List<String>> parseFieldNamesTypes(String fieldsBlock) {
+		List<FieldSpec> specs = parseStructFieldSpec(fieldsBlock);
+		java.util.List<String> names = new ArrayList<>();
+		java.util.List<String> types = new ArrayList<>();
+		for (FieldSpec fs : specs) {
+			names.add(fs.name());
+			types.add(fs.type());
+		}
+		java.util.Map<String, java.util.List<String>> m = new java.util.HashMap<>();
+		m.put("names", names);
+		m.put("types", types);
+		return m;
+	}
+
+	// Centralized helper for declaring a struct: parse fields, check duplicates,
+	// and record names/types in the environment.
+	private Optional<Result<String, InterpretError>> declareStruct(String structName, String fieldsBlock, Env env) {
+		String context = env.source;
+		java.util.Map<String, java.util.List<String>> nameAndTypes = parseFieldNamesTypes(fieldsBlock);
+		List<String> fieldNames = nameAndTypes.get("names");
+		List<String> fieldTypes = nameAndTypes.get("types");
+		// Validate duplicate field names within the struct
+		Optional<Result<String, InterpretError>> dupErr = checkDuplicateFields(fieldNames, context);
+		if (dupErr.isPresent())
+			return dupErr;
+		// Reject duplicate struct declarations: a struct name must be unique.
+		if (env.structEnv.containsKey(structName))
+			return Optional.of(new Result.Err<>(new InterpretError("duplicate struct declaration", context)));
+		env.structEnv.put(structName, fieldNames);
+		env.structFieldTypes.put(structName, fieldTypes);
+		return Optional.empty();
 	}
 
 	// Return an Optional containing an Err Result if duplicate field names are
@@ -1833,20 +1866,48 @@ public class Interpreter {
 				return Optional.of(r);
 			evaluated.add(((Result.Ok<String, InterpretError>) r).value());
 		}
+		Optional<Result<String, InterpretError>> typeChk = validateFieldTypes(structName, evaluated, env);
+		if (typeChk.isPresent())
+			return Optional.of(typeChk.get());
 		StringBuilder sb = new StringBuilder();
 		sb.append(structName);
 		for (int j = 0; j < fieldNames.size(); j++) {
 			sb.append('|').append(fieldNames.get(j)).append('=').append(evaluated.get(j));
 		}
-		String encoded = STR_PREFIX + sb.toString();
-		String trailing = afterName.substring(valClose + 1).trim();
+	String trailing = afterName.substring(valClose + 1).trim();
+		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(sb, trailing, restContext);
+		if (trailRes.isPresent())
+			return Optional.of(trailRes.get());
+		return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", restContext)));
+	}
+
+	// Validate evaluated struct literal values against declared per-field types.
+	private Optional<Result<String, InterpretError>> validateFieldTypes(String structName, List<String> evaluated,
+			Env env) {
+		List<String> ftypes = env.structFieldTypes.getOrDefault(structName, java.util.Collections.emptyList());
+		if (ftypes.isEmpty())
+			return Optional.empty();
+		for (int j = 0; j < ftypes.size(); j++) {
+			String ann = ftypes.get(j);
+			if (!ann.isEmpty()) {
+				Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, evaluated.get(j), env);
+				if (chk.isPresent())
+					return chk;
+			}
+		}
+		return Optional.empty();
+	}
+
+	// Resolve optional trailing '.field' access on an encoded struct StringBuilder.
+	private Optional<Result<String, InterpretError>> resolveFieldAccess(StringBuilder sb, String trailing,
+			String restContext) {
 		if (trailing.isEmpty())
-			return Optional.of(new Result.Ok<>(encoded));
+			return Optional.of(new Result.Ok<>(STR_PREFIX + sb.toString()));
 		if (trailing.startsWith(".")) {
 			String fieldReq = trailing.substring(1).trim();
 			if (!isSimpleIdentifier(fieldReq))
 				return Optional.of(new Result.Err<>(new InterpretError("invalid struct field access", restContext)));
-			for (String p : sb.toString().substring(structName.length() + 1).split("\\|")) {
+			for (String p : sb.toString().substring(restContext.split(" ")[0].length() + 1).split("\\|")) {
 				int eq = p.indexOf('=');
 				if (eq <= 0)
 					continue;
@@ -1857,7 +1918,7 @@ public class Interpreter {
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("unknown field", restContext)));
 		}
-		return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", restContext)));
+		return Optional.empty();
 	}
 
 	// Evaluate a brace-delimited block expression and return the value of the
@@ -1908,6 +1969,7 @@ public class Interpreter {
 		child.fnParamTypes.putAll(parent.fnParamTypes);
 		child.mutEnv.putAll(parent.mutEnv);
 		child.structEnv.putAll(parent.structEnv);
+		child.structFieldTypes.putAll(parent.structFieldTypes);
 		return child;
 	}
 
