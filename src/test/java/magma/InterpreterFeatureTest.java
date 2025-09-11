@@ -324,4 +324,11 @@ public class InterpreterFeatureTest {
 		// Invalid case: duplicate field names within a struct should be rejected
 		TestUtils.assertInvalid("struct Point { x : I32, x : I32 }");
 	}
+
+	@Test
+	public void structMissingFields() {
+		// Invalid: initializing a variable with a struct literal that omits
+		// required fields should be rejected.
+		TestUtils.assertInvalid("struct Point { x : I32, y : I32 } let test = Point {};");
+	}
 }
