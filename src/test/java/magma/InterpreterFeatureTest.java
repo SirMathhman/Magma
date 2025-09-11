@@ -312,4 +312,10 @@ public class InterpreterFeatureTest {
 		// value.field => 100
 		TestUtils.assertValid("struct Wrapper { field : I32 } let value = Wrapper { 100 }; value.field", "100");
 	}
+
+	@Test
+	public void dupStructDeclInvalid() {
+		// Invalid case: redeclaring a struct with the same name should be rejected
+		TestUtils.assertInvalid("struct Duplicate { field : I32 } struct Duplicate { field : I32 }");
+	}
 }

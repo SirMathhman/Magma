@@ -796,6 +796,9 @@ public class Interpreter {
 			String structName = s.substring(nameStart, braceOpen).trim();
 			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
 			List<String> fieldNames = parseStructFields(fieldsBlock);
+			// Reject duplicate struct declarations: a struct name must be unique.
+			if (env.structEnv.containsKey(structName))
+				return Optional.of(new Result.Err<>(new InterpretError("duplicate struct declaration", s)));
 			env.structEnv.put(structName, fieldNames);
 			String rest = s.substring(braceClose + 1).trim();
 			if (rest.isEmpty())
@@ -1695,9 +1698,13 @@ public class Interpreter {
 			return Optional.of(new Result.Ok<>(""));
 		if (looksLikeLitAfter(rest))
 			return tryEvalStructLiteral(restTrim, env);
-		// Otherwise treat the struct declaration as a standalone statement and
-		// allow the caller to continue parsing the following tokens (e.g., a
-		// let-declaration).
+		// If there's trailing text that is not a literal, attempt to parse it as
+		// a simple statement (e.g., another struct declaration or a let).
+		// This ensures duplicate struct declarations that appear adjacent
+		// without semicolons are still detected and reported.
+		Optional<Result<String, InterpretError>> trailingRes = handleSimpleStmt(restTrim, env);
+		if (trailingRes.isPresent())
+			return trailingRes;
 		return Optional.of(new Result.Ok<>(""));
 	}
 
