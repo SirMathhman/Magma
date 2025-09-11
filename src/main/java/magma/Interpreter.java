@@ -94,6 +94,7 @@ public class Interpreter {
 		final java.util.List<String> evaluatedArgs;
 		final Env fnEnv;
 		final Env callerEnv;
+		final String functionName;
 
 		@SuppressWarnings("unchecked")
 		BindReq(java.util.Map<String, Object> m) {
@@ -102,6 +103,7 @@ public class Interpreter {
 			this.evaluatedArgs = (java.util.List<String>) m.get("evaluatedArgs");
 			this.fnEnv = (Env) m.get("fnEnv");
 			this.callerEnv = (Env) m.get("callerEnv");
+			this.functionName = (String) m.getOrDefault("functionName", "");
 		}
 	}
 
@@ -111,9 +113,18 @@ public class Interpreter {
 			String val = req.evaluatedArgs.get(i);
 			String ptype = i < req.paramTypes.size() ? req.paramTypes.get(i) : "";
 			if (!ptype.isEmpty()) {
-				Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, req.callerEnv);
-				if (annErr.isPresent())
-					return annErr;
+				// If the parameter type is a generic parameter declared on the
+				// function (e.g., "T" in fn f<T>(...)), skip runtime annotated
+				// checking here because generics are erased at runtime for this
+				// interpreter. Record the concrete value's annotation in the
+				// callee environment so the body can refer to types if needed.
+				List<String> gens = req.callerEnv.fnGenericParams.getOrDefault(req.functionName,
+					java.util.Collections.emptyList());
+				if (!gens.contains(ptype)) {
+					Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, req.callerEnv);
+					if (annErr.isPresent())
+						return annErr;
+				}
 				req.fnEnv.typeEnv.put(p, ptype);
 			}
 			req.fnEnv.valEnv.put(p, val);
@@ -183,6 +194,7 @@ public class Interpreter {
 		final Map<String, FunctionDecl> fnEnv;
 		final Map<String, List<String>> fnParamNames;
 		final Map<String, List<String>> fnParamTypes;
+		final Map<String, List<String>> fnGenericParams;
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
 		final Map<String, java.util.List<String>> structFieldTypes;
@@ -199,6 +211,7 @@ public class Interpreter {
 			this.fnEnv = new HashMap<>();
 			this.fnParamNames = new HashMap<>();
 			this.fnParamTypes = new HashMap<>();
+			this.fnGenericParams = new HashMap<>();
 			this.mutEnv = new HashMap<>();
 			this.structEnv = new HashMap<>();
 			this.structFieldTypes = new HashMap<>();
@@ -684,6 +697,7 @@ public class Interpreter {
 		bindMap1.put("evaluatedArgs", evaluatedArgs);
 		bindMap1.put("fnEnv", fnEnv);
 		bindMap1.put("callerEnv", env);
+		bindMap1.put("functionName", name);
 		Optional<Result<String, InterpretError>> bindErr = bindEvaluatedArgs(new BindReq(bindMap1));
 		if (bindErr.isPresent())
 			return bindErr;
@@ -715,7 +729,16 @@ public class Interpreter {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid fn declaration", env.source)));
 		ParseId pid = pidOpt.get();
 		String name = pid.name;
-		idx = skipWs(s, pid.idx, len);
+		// Optional generic parameter list: <T, U>
+	GenericParseResult gpr = parseGenericParams(s, pid.idx, len);
+		List<String> genericNames = gpr.names;
+		int baseIdx = gpr.nextIdx;
+		// record generic parameter names for this function so callers can
+		// detect them during binding.
+		if (!genericNames.isEmpty()) {
+			env.fnGenericParams.put(name, genericNames);
+		}
+		idx = skipWs(s, baseIdx, len);
 		// parse empty parameter list '()'
 		if (idx >= len || s.charAt(idx) != '(')
 			return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
@@ -838,6 +861,41 @@ public class Interpreter {
 		if (ai.error.isPresent())
 			return new ConsAlt(ai.error);
 		return new ConsAlt(consPart, ai.alt, ai.consumedIdx);
+	}
+
+	// Helper return value for parsing generic parameter lists
+	private static class GenericParseResult {
+		List<String> names;
+		int nextIdx;
+
+		GenericParseResult(List<String> names, int nextIdx) {
+			this.names = names;
+			this.nextIdx = nextIdx;
+		}
+	}
+
+	// Parse an optional generic parameter list starting at pidIdx. Returns
+	// the list of generic names and the index after the list (or pidIdx if
+	// none present).
+	private GenericParseResult parseGenericParams(String s, int pidIdx, int len) {
+		List<String> genericNames = new ArrayList<>();
+		int genIdx = skipWs(s, pidIdx, len);
+		int nextIdx = pidIdx;
+		if (genIdx < len && s.charAt(genIdx) == '<') {
+			int genClose = s.indexOf('>', genIdx + 1);
+			if (genClose > genIdx) {
+				String inside = s.substring(genIdx + 1, genClose).trim();
+				if (!inside.isEmpty()) {
+					for (String g : inside.split(",")) {
+						String gn = g.trim();
+						if (!gn.isEmpty())
+							genericNames.add(gn);
+					}
+				}
+				nextIdx = genClose + 1;
+			}
+		}
+		return new GenericParseResult(genericNames, nextIdx);
 	}
 
 	private AltInfo nextAltInfo(String[] parts, int startIdx, Env env) {
@@ -2638,6 +2696,7 @@ public class Interpreter {
 		bindMap2.put("evaluatedArgs", evaluatedArgs);
 		bindMap2.put("fnEnv", fnEnv);
 		bindMap2.put("callerEnv", env);
+		bindMap2.put("functionName", fnName);
 		Optional<Result<String, InterpretError>> bindErr2 = bindEvaluatedArgs(new BindReq(bindMap2));
 		if (bindErr2.isPresent())
 			return bindErr2;
@@ -2696,6 +2755,7 @@ public class Interpreter {
 		e.fnEnv.putAll(src.fnEnv);
 		e.fnParamNames.putAll(src.fnParamNames);
 		e.fnParamTypes.putAll(src.fnParamTypes);
+		e.fnGenericParams.putAll(src.fnGenericParams);
 		e.mutEnv.putAll(src.mutEnv);
 		e.structEnv.putAll(src.structEnv);
 		e.structFieldTypes.putAll(src.structFieldTypes);
