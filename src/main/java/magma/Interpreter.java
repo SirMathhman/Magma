@@ -25,6 +25,28 @@ public class Interpreter {
 	private record FnBodyParse(Optional<Result<String, InterpretError>> error, String retExpr) {
 	}
 
+	// Helper to convert a block body containing 'return this;' into an
+	// equivalent block whose final expression is 'this' while preserving prior
+	// declarations.
+	private String transformReturnThis(String body) {
+		String[] parts = body.split(";", -1);
+		StringBuilder sb = new StringBuilder();
+		for (String p : parts) {
+			String t = p.trim();
+			if (t.isEmpty())
+				continue;
+			if (t.startsWith("return"))
+				continue; // drop the return token
+			if (sb.length() > 0)
+				sb.append(';');
+			sb.append(t);
+		}
+		if (sb.length() > 0)
+			sb.append(';');
+		sb.append("this");
+		return sb.toString();
+	}
+
 	// Small holder for parsed method signature
 	private record MethodSig(java.util.List<String> names, java.util.List<String> types, String bareName) {
 	}
@@ -54,8 +76,6 @@ public class Interpreter {
 		}
 		return new MethodSig(paramNames, paramTypes, bareName);
 	}
-
-
 
 	// Wrapper to satisfy Checkstyle parameter limits when binding args
 	private static final class BindReq {
@@ -97,7 +117,8 @@ public class Interpreter {
 	private Optional<Result<String, InterpretError>> evaluateBlock(String s, Env env) {
 		int close = s.lastIndexOf('}');
 		String body = close > 0 ? s.substring(1, close) : "";
-		String[] inner = body.split(";", -1);
+		// Split the block into top-level parts, preserving nested brace blocks
+		String[] inner = splitTopLevel(body);
 		boolean createdLocalSet = false;
 		if (env.localDecls.isEmpty()) {
 			env.localDecls = java.util.Optional.of(new HashSet<String>());
@@ -474,12 +495,33 @@ public class Interpreter {
 
 	private FnBodyParse extractFnReturnExpr(String s, int arrowIdx, Env env) {
 		// look for a block first
-		int bodyOpen = s.indexOf('{', arrowIdx + 2);
-		if (bodyOpen >= 0) {
-			int j = findMatchingBrace(s, bodyOpen);
+		// no-op
+		// Find a brace-delimited body after the arrow. There may be nested braces
+		// (e.g., inner function/class declarations). Prefer the brace whose body
+		// contains a 'return' token (typical for explicit returns). If none are
+		// found, fall back to the first matching brace.
+		int bodyOpen = -1;
+		int bodyClose = -1;
+		for (int i = arrowIdx + 2; i < s.length(); i++) {
+			if (s.charAt(i) != '{')
+				continue;
+			int j = findMatchingBrace(s, i);
 			if (j < 0)
-				return new FnBodyParse(Optional.of(new Result.Err<>(new InterpretError("unterminated fn body", env.source))),
-						"");
+				continue;
+			String candidateBody = s.substring(i + 1, j);
+			if (candidateBody.contains("return")) {
+				bodyOpen = i;
+				bodyClose = j;
+				break;
+			}
+			if (bodyOpen == -1) {
+				// remember the first matching brace in case no 'return' is found
+				bodyOpen = i;
+				bodyClose = j;
+			}
+		}
+		if (bodyOpen >= 0) {
+			int j = bodyClose;
 			String body = s.substring(bodyOpen + 1, j).trim();
 			int retIdx = body.indexOf("return");
 			if (retIdx < 0)
@@ -498,22 +540,7 @@ public class Interpreter {
 			// keep prior declarations). This lets the existing block-evaluator
 			// run the declarations and produce a populated `this` value.
 			if ("this".equals(expr)) {
-				String[] parts = body.split(";", -1);
-				StringBuilder sb = new StringBuilder();
-				for (String p : parts) {
-					String t = p.trim();
-					if (t.isEmpty())
-						continue;
-					if (t.startsWith("return"))
-						continue; // drop the return token
-					if (sb.length() > 0)
-						sb.append(';');
-					sb.append(t);
-				}
-				if (sb.length() > 0)
-					sb.append(';');
-				sb.append("this");
-				return new FnBodyParse(Optional.empty(), "{" + sb.toString() + "}");
+				return new FnBodyParse(Optional.empty(), "{" + transformReturnThis(body) + "}");
 			}
 			return new FnBodyParse(Optional.empty(), expr);
 		}
@@ -892,11 +919,13 @@ public class Interpreter {
 		Result<String, InterpretError> single = evaluateExpression(s, env);
 		if (single instanceof Result.Ok)
 			return single;
-		if (single instanceof Result.Err && (s.startsWith("fn ") || s.startsWith("fn("))) {
-			Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) single;
-			InterpretError ie = err.error();
-			if ("invalid literal".equals(ie.errorReason()))
-				return evaluateSequence(s);
+		if (single instanceof Result.Err
+				&& (s.startsWith("fn ") || s.startsWith("fn(") || s.startsWith("class fn ") || s.startsWith("class fn("))) {
+			// For top-level function/class-fn declarations followed immediately by an
+			// expression (no semicolon), the single-expression parser may fail
+			// while the sequence parser handles this case correctly. Always fall
+			// back to sequence parsing for these sources.
+			return evaluateSequence(s);
 		}
 		return single;
 	}
@@ -905,6 +934,7 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateSequence(String source) {
 		// Split at top-level semicolons only (ignore semicolons inside braces)
 		String[] parts = splitTopLevel(source);
+		// debug prints removed; keep output quiet during test runs
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
@@ -2282,7 +2312,7 @@ public class Interpreter {
 	private Result<String, InterpretError> evalBlockExpr(String block, Env env) {
 		String s = block.trim();
 		String body = s.length() > 1 ? s.substring(1, s.length() - 1) : "";
-		String[] inner = body.split(";", -1);
+		String[] inner = splitTopLevel(body);
 		Result<String, InterpretError> last = new Result.Ok<>("");
 		// Use a child environment for the block so inner let bindings do not
 		// leak into the outer environment. The child shares functions and
@@ -2359,7 +2389,8 @@ public class Interpreter {
 						sig.append(':').append(ptypes.get(i));
 					}
 				}
-				sb.append('|').append(name).append('=').append(METHOD_PREFIX).append(name).append('(').append(sig.toString()).append(')').append("::").append(fd.bodyExpr);
+				sb.append('|').append(name).append('=').append(METHOD_PREFIX).append(name).append('(').append(sig.toString())
+						.append(')').append("::").append(fd.bodyExpr);
 			} else {
 				sb.append('|').append(name).append('=').append(val);
 			}
@@ -2446,7 +2477,7 @@ public class Interpreter {
 		// and bindings for fields encoded in the object's payload so method bodies
 		// can reference block-local lets captured in `this`.
 		Env fnEnv = shallowCopyEnv(env);
-	java.util.Map<String, String> fields = parsePayloadFields(req.payload);
+		java.util.Map<String, String> fields = parsePayloadFields(req.payload);
 		if (!fields.isEmpty()) {
 			for (java.util.Map.Entry<String, String> e : fields.entrySet()) {
 				String n = e.getKey();
@@ -2476,7 +2507,8 @@ public class Interpreter {
 
 		java.util.List<String> evaluatedArgs = req.args;
 		if (evaluatedArgs.size() != paramNames.size())
-			return Optional.of(new Result.Err<>(new InterpretError("argument count mismatch in call to " + fnName, env.source)));
+			return Optional
+					.of(new Result.Err<>(new InterpretError("argument count mismatch in call to " + fnName, env.source)));
 
 		java.util.Map<String, Object> bindMap2 = new java.util.HashMap<>();
 		bindMap2.put("paramNames", paramNames);
@@ -2558,7 +2590,8 @@ public class Interpreter {
 
 	private boolean isStmtLike(String t) {
 		return t.startsWith("{") || t.startsWith("while ") || t.startsWith("while(") || t.startsWith("fn ") ||
-				t.startsWith("fn(") || t.startsWith("if ") || t.startsWith("if(") || t.startsWith("let ") ||
+				t.startsWith("fn(") || t.startsWith("class ") || t.startsWith("if ") || t.startsWith("if(")
+				|| t.startsWith("let ") ||
 				t.contains("+=") || (t.indexOf('=') > 0 && !t.startsWith("let "));
 	}
 
