@@ -366,6 +366,7 @@ public class Interpreter {
 	private static final String ARR_PREFIX = "@ARR:";
 	// Internal marker for struct values: "@STR:Type|field=val|..."
 	private static final String STR_PREFIX = "@STR:";
+	private static final String METHOD_PREFIX = "@MTH:";
 	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {
@@ -431,15 +432,42 @@ public class Interpreter {
 		return -1;
 	}
 
+	// Find opening '(' that matches the trailing ')' at lastParen. Returns -1 if none.
+	private int findOpenParen(String s, int lastParen) {
+		int parenIdx = -1;
+		int depth = 0;
+		for (int i = lastParen; i >= 0; i--) {
+			char c = s.charAt(i);
+			if (c == ')')
+				depth++;
+			else if (c == '(') {
+				depth--;
+				if (depth == 0) {
+					parenIdx = i;
+					break;
+				}
+			}
+		}
+		return parenIdx;
+	}
+
 	// Try to evaluate a function call expression like 'name()' or 'name(arg)'.
 	// Returns Optional.empty() if the expression is not a function call, otherwise
 	// returns the Result (Ok or Err) wrapped in Optional.
 	private Optional<Result<String, InterpretError>> tryEvalFunctionCall(String s, Env env) {
-		int parenIdx = s.indexOf('(');
-		if (parenIdx <= 0 || !s.endsWith(")"))
+		// To avoid mis-parsing expressions like 'Wrapper().get()' as a call to
+		// 'Wrapper' with a complex inside, find the opening '(' that matches
+		// the trailing ')' at the end of the string.
+		if (!s.endsWith(")")) {
 			return Optional.empty();
+		}
+		int lastParen = s.length() - 1;
+		int parenIdx = findOpenParen(s, lastParen);
+		if (parenIdx <= 0) {
+			return Optional.empty();
+		}
 		String name = s.substring(0, parenIdx).trim();
-		String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
+		String inside = s.substring(parenIdx + 1, lastParen).trim();
 		if (!isSimpleIdentifier(name))
 			return Optional.empty();
 		if (!env.fnEnv.containsKey(name))
@@ -547,6 +575,11 @@ public class Interpreter {
 		String retExpr = fb.retExpr;
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
+		// if we're inside a block tracking local declarations, record the function
+		// name so that `this` inside a returned object can include callable methods
+		if (env.localDecls.isPresent()) {
+			env.localDecls.get().add(name);
+		}
 		if (!paramNames.isEmpty()) {
 			env.fnParamNames.put(name, paramNames);
 		}
@@ -1229,6 +1262,11 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
 		if (structRes.isPresent())
 			return structRes.get();
+		// Try method call (e.g., obj.method()) before plain member access
+		Optional<Result<String, InterpretError>> methodRes = tryEvalMethodCall(s, env);
+		if (methodRes.isPresent())
+			return methodRes.get();
+
 		Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
 		if (memberRes.isPresent())
 			return memberRes.get();
@@ -1365,7 +1403,13 @@ public class Interpreter {
 			return Optional.empty();
 		String baseExpr = s.substring(0, openBracket).trim();
 		String idxExpr = s.substring(openBracket + 1, lastBracket).trim();
-		Result<String, InterpretError> baseRes = evaluateExpression(baseExpr, env);
+		Result<String, InterpretError> baseRes;
+		String beTrim = baseExpr.trim();
+		// If base starts with a function declaration, skip method-call handling
+		// here and let higher-level interpret() handle the fn...<expr> pattern
+		if (beTrim.startsWith("fn ") || beTrim.startsWith("fn("))
+			return Optional.empty();
+		baseRes = evaluateExpression(baseExpr, env);
 		if (baseRes instanceof Result.Err)
 			return Optional.of(baseRes);
 		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
@@ -1999,24 +2043,141 @@ public class Interpreter {
 		sb.append("This");
 		for (String name : locals) {
 			String val = env.valEnv.getOrDefault(name, "");
-			sb.append('|').append(name).append('=').append(val);
+			// If the local is a function, encode it specially so method calls can be
+			// dispatched when the object is used. Otherwise encode as a field value.
+			if (env.fnEnv.containsKey(name)) {
+				FunctionDecl fd = env.fnEnv.get(name);
+				// encode method with its body expression so it can be invoked outside
+				// the defining scope (as a simple closure representation)
+				sb.append('|').append(name).append('=').append(METHOD_PREFIX).append(name).append(':').append(fd.bodyExpr);
+			} else {
+				sb.append('|').append(name).append('=').append(val);
+			}
 		}
 		return new Result.Ok<>(STR_PREFIX + sb.toString());
+	}
+
+	// Try to evaluate a method call of the form '<expr>.name()'. If applicable,
+	// evaluate the base expression, extract the method name, and invoke the
+	// corresponding function declaration using captured locals as the function
+	// environment. Returns Optional.empty() if not a method call.
+	private Optional<Result<String, InterpretError>> tryEvalMethodCall(String s, Env env) {
+		if (!s.endsWith(")"))
+			return Optional.empty();
+		int lastParen = s.length() - 1;
+		int parenIdx = -1;
+		int depth = 0;
+		for (int i = lastParen; i >= 0; i--) {
+			char c = s.charAt(i);
+			if (c == ')')
+				depth++;
+			else if (c == '(') {
+				depth--;
+				if (depth == 0) {
+					parenIdx = i;
+					break;
+				}
+			}
+		}
+		if (parenIdx <= 0)
+			return Optional.empty();
+		int dotIdx = s.lastIndexOf('.', parenIdx);
+		if (dotIdx <= 0)
+			return Optional.empty();
+		String baseExpr = s.substring(0, dotIdx).trim();
+		String name = s.substring(dotIdx + 1, parenIdx).trim();
+		if (!isSimpleIdentifier(name))
+			return Optional.empty();
+		String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
+		if (!inside.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("method call with args not supported", s)));
+
+		Result<String, InterpretError> baseRes = evaluateExpression(baseExpr, env);
+		if (baseRes instanceof Result.Err)
+			return Optional.of(baseRes);
+		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
+		if (!baseVal.startsWith(STR_PREFIX))
+			return Optional.empty();
+		String payload = baseVal.substring(STR_PREFIX.length());
+		Optional<String> fieldValOpt = findFieldValue(payload, name);
+		if (fieldValOpt.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("unknown method", s)));
+		return evalMethodInvoke(fieldValOpt.get(), env, s);
+	}
+
+	// Core logic to evaluate a method invocation given the encoded field value.
+	private Optional<Result<String, InterpretError>> evalMethodInvoke(String fieldVal, Env env, String source) {
+		if (!fieldVal.startsWith(METHOD_PREFIX))
+			return Optional.of(new Result.Err<>(new InterpretError("field is not a method", source)));
+		String rest = fieldVal.substring(METHOD_PREFIX.length());
+		String fnName = rest;
+		String embeddedBody = "";
+		int colon = rest.indexOf(":");
+		if (colon >= 0) {
+			fnName = rest.substring(0, colon);
+			embeddedBody = rest.substring(colon + 1);
+		}
+		Env fnEnv = makeCapturedEnv(env);
+		if (!embeddedBody.isEmpty()) {
+			return Optional.of(evaluateExpression(embeddedBody, fnEnv));
+		}
+		if (!env.fnEnv.containsKey(fnName))
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", source)));
+		FunctionDecl fd = env.fnEnv.get(fnName);
+		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
+	}
+
+	// Return the encoded field value for a given field name from the payload or
+	// Optional.empty() if not present. Payload format: "This|name=val|..."
+	private Optional<String> findFieldValue(String payload, String name) {
+		int sep = payload.indexOf('|');
+		String fieldsPart = sep >= 0 ? payload.substring(sep + 1) : "";
+		for (String p : fieldsPart.split("\\|")) {
+			int eq = p.indexOf('=');
+			if (eq <= 0)
+				continue;
+			String fname = p.substring(0, eq);
+			String fval = p.substring(eq + 1);
+			if (fname.equals(name))
+				return Optional.of(fval);
+		}
+		return Optional.empty();
+	}
+
+	// Build an Env that captures the current env's locals as values. This is
+	// used when invoking methods so the method body sees the captured variables
+	// as if they were in scope.
+	private Env makeCapturedEnv(Env env) {
+		Env fnEnv = shallowCopyEnv(env);
+		if (env.localDecls.isPresent()) {
+			for (String n : env.localDecls.get()) {
+				fnEnv.valEnv.put(n, env.valEnv.getOrDefault(n, ""));
+			}
+			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(env.localDecls.get()));
+		}
+		return fnEnv;
+	}
+
+	// Shallow-copy an environment's maps and common registries into a new Env.
+	// This avoids duplicating the same copy logic across helpers.
+	private Env shallowCopyEnv(Env src) {
+		Map<String, String> newVals = new HashMap<>(src.valEnv);
+		Map<String, String> newTypes = new HashMap<>(src.typeEnv);
+		Env e = new Env(newVals, newTypes, src.source);
+		e.fnEnv.putAll(src.fnEnv);
+		e.fnParamNames.putAll(src.fnParamNames);
+		e.fnParamTypes.putAll(src.fnParamTypes);
+		e.mutEnv.putAll(src.mutEnv);
+		e.structEnv.putAll(src.structEnv);
+		e.structFieldTypes.putAll(src.structFieldTypes);
+		return e;
 	}
 
 	// Create a child Env for block evaluation: shallow-copy val/type maps so
 	// that assignments and let-declarations inside the block do not mutate the
 	// outer environment.
 	private Env makeChildEnv(Env parent) {
-		Map<String, String> newVals = new HashMap<>(parent.valEnv);
-		Map<String, String> newTypes = new HashMap<>(parent.typeEnv);
-		Env child = new Env(newVals, newTypes, parent.source);
-		child.fnEnv.putAll(parent.fnEnv);
-		child.fnParamNames.putAll(parent.fnParamNames);
-		child.fnParamTypes.putAll(parent.fnParamTypes);
-		child.mutEnv.putAll(parent.mutEnv);
-		child.structEnv.putAll(parent.structEnv);
-		child.structFieldTypes.putAll(parent.structFieldTypes);
+		Env child = shallowCopyEnv(parent);
 		return child;
 	}
 

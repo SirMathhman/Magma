@@ -362,3 +362,40 @@ This project implements a minimal interpreter for a tiny expression language in 
 - Quality gates: Checkstyle, PMD/CPD run during `mvn package`. Keep methods small and parameter counts low.
 - Internal value encodings are opaque outside the interpreter.
 
+### Method embedding in `this` (new)
+
+Goal
+----
+Support returning `this` from a block where `this` may include methods declared as inner functions, and allow calling those methods on the returned object. Example:
+
+    fn Wrapper() => {fn get() => 100; this} Wrapper().get() => 100
+
+Design summary
+--------------
+- `this` continues to be encoded as a runtime string with the `@STR:` prefix. The payload begins with `This` and then `|`-separated `name=value` entries.
+- Methods are stored inside the `this` payload using a `@MTH:` (METHOD_PREFIX) marker followed by `name:bodyExpr` where `bodyExpr` is the textual expression returned by the function. This is a lightweight closure emulation which allows evaluation of the method body later with a captured environment.
+- When a function is declared inside a block that is being tracked (via `env.localDecls`), the function name is recorded so that `evalThisExpr` will include it as a method entry in the encoded `this` payload.
+
+Invocation semantics
+--------------------
+- `<expr>.name()` first evaluates `<expr>`; if the result is a `@STR:` payload representing a `This` object, the interpreter searches for the field named `name`.
+- If the field is a method (`@MTH:`) the method body (embedded or referenced by name) is evaluated in a captured environment that includes the block-local values and functions. Methods currently support no arguments; calling with args produces an interpret error.
+
+Files changed / helpers added
+----------------------------
+- `src/main/java/magma/Interpreter.java`
+  - Added `METHOD_PREFIX` constant and logic in `evalThisExpr` to encode function locals as `@MTH:` entries.
+  - Added `tryEvalMethodCall` and `evalMethodInvoke` (method call detection + dispatch).
+  - Added `findFieldValue`, `makeCapturedEnv`, `shallowCopyEnv` helpers to keep methods small and avoid duplication (helps Checkstyle/PMD).
+  - Adjusted function-call parsing (`findOpenParen`) to correctly parse expressions like `Wrapper().get()`.
+
+Testing & status
+----------------
+- The change is covered by `src/test/java/magma/InterpreterWrapperThisTest.java` asserting the acceptance case above.
+- Local `mvn -DskipTests=false package` was run; all tests passed and static checks (Checkstyle/PMD) reported no violations.
+
+Notes
+-----
+- Method bodies are stored as textual expressions; this is intentionally simple to avoid a broader redesign of the interpreter's value/closure model. If richer closures or parameterized methods are needed, consider introducing a first-class Function value type.
+- Follow-up improvements: add tests for nested blocks, methods referencing outer functions/vars, and method parameter support.
+
