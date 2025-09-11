@@ -71,13 +71,3 @@ Code style and banned APIs
 - New: Checkstyle now enforces a maximum method name length of 20 characters. Long method names (21+ chars) will fail the build. The rule is configured in `config/checkstyle/checkstyle.xml`.
  
 - New: Checkstyle now enforces a maximum number of parameters per method or constructor (3 parameters max). Methods or constructors with more than 3 parameters will fail the Checkstyle step. This rule is configured in `config/checkstyle/checkstyle.xml` under the `ParameterNumber` module.
-
-Runtime values (in-progress refactor)
--------------------------------------
-
-- Existing interpreter logic represents values as strings; complex values use internal prefixes:
-    - Arrays: `@ARR:elem1|elem2|...`
-    - Structs: `@STR:Type|field1=val1|field2=val2|...`
-    - References: `@REF:name` and `@REFMUT:name`
-- A sealed `Value` hierarchy (`src/main/java/magma/Value.java`) has been introduced to model values with proper types (Int, Bool, Array, Ref, Struct, Unit).
-- `ValueCodec` (`src/main/java/magma/ValueCodec.java`) converts between the string encoding and `Value`. This lets us migrate internal interpreter code incrementally without breaking public behavior or tests.
