@@ -15,6 +15,10 @@ import java.util.HashSet;
  * Interpreter for a tiny language used by the project tests.
  */
 public class Interpreter {
+	// Debug flag to enable diagnostic prints during test runs
+	// Not final so the compiler won't treat debug branches as dead code.
+	private static boolean DEBUG = false;
+
 	// Helper to extract the return expression for a function body.
 	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
 	// braces).
@@ -47,91 +51,29 @@ public class Interpreter {
 		return Optional.empty();
 	}
 
-	// Remove block-local declarations that were created for the current block.
-	private void cleanupLocalDecls(Env env, boolean createdLocalSet) {
-		if (createdLocalSet && env.localDecls.isPresent()) {
-			for (String name : env.localDecls.get()) {
-				env.valEnv.remove(name);
-				env.typeEnv.remove(name);
-				env.mutEnv.remove(name);
-			}
-			env.localDecls = java.util.Optional.empty();
+	// Holder for alternative extraction when parsing inline 'if' consequents
+	// and alternatives. Contains either an error Result or the extracted
+	// alternative text and the index of the consumed part.
+	private record AltInfo(Optional<Result<String, InterpretError>> error, String alt, int consumedIdx) {
+		AltInfo(Optional<Result<String, InterpretError>> error) {
+			this(error, "", -1);
 		}
-	}
-
-	// Helper to hold consequent/alternative extraction result
-	private static final class ConsAlt {
-		final String cons;
-		final String alt;
-		final int consumedIdx;
-		final Optional<Result<String, InterpretError>> error;
-
-		ConsAlt(String cons, String alt, int consumedIdx) {
-			this.cons = cons;
-			this.alt = alt;
-			this.consumedIdx = consumedIdx;
-			this.error = Optional.empty();
-		}
-
-		ConsAlt(Optional<Result<String, InterpretError>> error) {
-			this.cons = "";
-			this.alt = "";
-			this.consumedIdx = -1;
-			this.error = error;
-		}
-	}
-
-	// Request object to resolve LHS into the actual target variable name. Use
-	// a compact 3-arg constructor to satisfy ParameterNumber check.
-	private static final class LhsResolveReq {
-		final String derefTarget; // non-empty if LHS was a deref like '*x'
-		final String indexBase; // non-empty if LHS was indexed like 'x[0]'
-		final String lhsRaw; // original lhs text
-
-		LhsResolveReq(String derefTarget, String indexBase, String lhsRaw) {
-			this.derefTarget = Objects.toString(derefTarget, "");
-			this.indexBase = Objects.toString(indexBase, "");
-			this.lhsRaw = Objects.toString(lhsRaw, "");
-		}
-	}
-
-	// Resolve an LHS into the actual variable name that should receive assignment.
-	// Returns Ok(name) or Err(...)
-	private Result<String, InterpretError> resolveLhsTarget(LhsResolveReq req, Env env) {
-		if (!req.derefTarget.isEmpty()) {
-			DerefResolve dr = resolveDerefTarget(req.derefTarget, env);
-			if (dr.error.isPresent())
-				return dr.error.get();
-			return new Result.Ok<>(dr.targetName);
-		}
-		if (!req.indexBase.isEmpty()) {
-			Optional<Result<String, InterpretError>> chk = chkExistsMut(req.indexBase, env);
-			if (chk.isPresent())
-				return chk.get();
-			return new Result.Ok<>(req.indexBase);
-		}
-		// simple identifier
-		Optional<Result<String, InterpretError>> chk = chkExistsMut(req.lhsRaw, env);
-		if (chk.isPresent())
-			return chk.get();
-		return new Result.Ok<>(req.lhsRaw);
-	}
-
-	private static final class AltInfo {
-		final String alt;
-		final int consumedIdx;
-		final Optional<Result<String, InterpretError>> error;
 
 		AltInfo(String alt, int consumedIdx) {
-			this.alt = alt;
-			this.consumedIdx = consumedIdx;
-			this.error = Optional.empty();
+			this(Optional.empty(), alt, consumedIdx);
+		}
+	}
+
+	// Holder for consequent/alternative extraction results used by the
+	// inline-if parsing. Either contains an error or the consequent string,
+	// alternative string and the consumed index.
+	private record ConsAlt(Optional<Result<String, InterpretError>> error, String cons, String alt, int consumedIdx) {
+		ConsAlt(Optional<Result<String, InterpretError>> error) {
+			this(error, "", "", -1);
 		}
 
-		AltInfo(Optional<Result<String, InterpretError>> error) {
-			this.alt = "";
-			this.consumedIdx = -1;
-			this.error = error;
+		ConsAlt(String cons, String alt, int consumedIdx) {
+			this(Optional.empty(), cons, alt, consumedIdx);
 		}
 	}
 
@@ -257,6 +199,63 @@ public class Interpreter {
 		return java.util.Optional.of(new IndexedLhs(base, idx));
 	}
 
+	// Remove block-local declarations tracking when a block completes, restoring
+	// outer env localDecls if we created the set for the block.
+	private void cleanupLocalDecls(Env env, boolean createdLocalSet) {
+		if (!createdLocalSet)
+			return;
+		if (env.localDecls.isPresent()) {
+			for (String n : env.localDecls.get()) {
+				env.valEnv.remove(n);
+				env.typeEnv.remove(n);
+				env.mutEnv.remove(n);
+			}
+		}
+		env.localDecls = java.util.Optional.empty();
+	}
+
+	// Helper used to resolve an assignment LHS target. This mirrors the
+	// previous small struct used by earlier versions of the interpreter.
+	private static final class LhsResolveReq {
+		final String derefTarget;
+		final String indexBase;
+		final String originalLhs;
+
+		LhsResolveReq(String derefTarget, String indexBase, String originalLhs) {
+			this.derefTarget = derefTarget;
+			this.indexBase = indexBase;
+			this.originalLhs = originalLhs;
+		}
+	}
+
+	// Resolve the actual target variable name for assignments, handling
+	// dereference and indexed forms. Returns Ok(targetName) or Err.
+	private Result<String, InterpretError> resolveLhsTarget(LhsResolveReq req, Env env) {
+		if (!req.derefTarget.isEmpty()) {
+			DerefResolve dr = resolveDerefTarget(req.derefTarget, env);
+			if (dr.error.isPresent())
+				return dr.error.get();
+			return new Result.Ok<>(dr.targetName);
+		}
+		if (!req.indexBase.isEmpty()) {
+			// For indexed assignment, the base must exist and be an array; return
+			// the base variable name to be used by handleIdxAssign
+			if (!env.valEnv.containsKey(req.indexBase)) {
+				if (DEBUG)
+					System.err.println("[DEBUG] missing index base: " + req.indexBase + " keys=" + env.valEnv.keySet());
+				return new Result.Err<>(new InterpretError("unknown identifier", env.source));
+			}
+			return new Result.Ok<>(req.indexBase);
+		}
+		// Simple identifier
+		if (!isSimpleIdentifier(req.originalLhs))
+			return new Result.Err<>(new InterpretError("invalid assignment lhs", env.source));
+		if (DEBUG && !env.valEnv.containsKey(req.originalLhs))
+			System.err
+					.println("[DEBUG] resolveLhsTarget: simple id missing: " + req.originalLhs + " keys=" + env.valEnv.keySet());
+		return new Result.Ok<>(req.originalLhs);
+	}
+
 	// Find opening '[' that matches the trailing ']' at lastBracket. Returns -1 if
 	// none.
 	private int findOpenBracket(String s, int lastBracket) {
@@ -351,6 +350,29 @@ public class Interpreter {
 		}
 	}
 
+	// Small holder to reduce parameter counts for addition helpers. Moved to
+	// top-level of the Interpreter class to satisfy Checkstyle and avoid
+	// illegal local class placement.
+	private static final class AddContext {
+		final ParseResult leftRawPr;
+		final ParseResult rightRawPr;
+		final String[] vals; // vals[0]=leftVal, vals[1]=rightVal
+
+		AddContext(ParseResult leftRawPr, ParseResult rightRawPr, String[] vals) {
+			this.leftRawPr = leftRawPr;
+			this.rightRawPr = rightRawPr;
+			this.vals = vals;
+		}
+
+		String leftVal() {
+			return vals[0];
+		}
+
+		String rightVal() {
+			return vals[1];
+		}
+	}
+
 	// Outcome of processing an if-part: either a Result to return (if the
 	// branch produced an expression result or an error), or the index of the
 	// last consumed part so the caller can advance the main loop.
@@ -432,7 +454,8 @@ public class Interpreter {
 		return -1;
 	}
 
-	// Find opening '(' that matches the trailing ')' at lastParen. Returns -1 if none.
+	// Find opening '(' that matches the trailing ')' at lastParen. Returns -1 if
+	// none.
 	private int findOpenParen(String s, int lastParen) {
 		int parenIdx = -1;
 		int depth = 0;
@@ -914,6 +937,10 @@ public class Interpreter {
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
+		if (DEBUG) {
+			System.err.println("[DEBUG] let recorded: " + d.name + "=" + value + " mut=" + d.mutable);
+			System.err.println("[DEBUG] env keys: " + env.valEnv.keySet());
+		}
 		// If the block is tracking local declarations, record this name so it can
 		// be removed when the block ends. This keeps block-local lets from
 		// polluting the outer environment while allowing assignments to update
@@ -984,10 +1011,18 @@ public class Interpreter {
 			Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
 			if (valCheckTarget.isPresent())
 				return valCheckTarget;
+			// Ensure the resolved target is mutable
+			Optional<Result<String, InterpretError>> mutChkTarget = chkExistsMut(target, env);
+			if (mutChkTarget.isPresent())
+				return mutChkTarget;
 			env.valEnv.put(target, value);
 			return Optional.empty();
 		}
 
+		// For simple assignment to an identifier, ensure it's mutable before writing
+		Optional<Result<String, InterpretError>> mutChkSimple = chkExistsMut(lhs, env);
+		if (mutChkSimple.isPresent())
+			return mutChkSimple;
 		env.valEnv.put(lhs, evaluated);
 		return Optional.empty();
 	}
@@ -1104,6 +1139,11 @@ public class Interpreter {
 			Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
 			if (valCheck.isPresent())
 				return valCheck;
+
+			// Ensure lhs exists and is mutable
+			Optional<Result<String, InterpretError>> mutChk = chkExistsMut(lhs, env);
+			if (mutChk.isPresent())
+				return mutChk;
 
 			env.valEnv.put(lhs, sumStr);
 			return Optional.empty();
@@ -1302,6 +1342,13 @@ public class Interpreter {
 	// Try member access `<expr>.field` and return Optional.empty() if not
 	// applicable
 	private Optional<Result<String, InterpretError>> tryEvalMemberAccess(String s, Env env) {
+		// If there's a top-level '+' or '<' then this expression is likely an
+		// addition or comparison and should not be treated as a simple member
+		// access. Use the helper that finds top-level operators to avoid
+		// mis-parsing expressions like `this.first + this.second`.
+		if (findTopLevelPlus(s) >= 0 || findTopLevelChar(s, '<') >= 0)
+			return Optional.empty();
+
 		int dotIdx = s.lastIndexOf('.');
 		if (dotIdx <= 0 || dotIdx >= s.length() - 1)
 			return Optional.empty();
@@ -1366,7 +1413,7 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
 		if (cmpRes.isPresent())
 			return cmpRes;
-	Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s, env);
+		Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s, env);
 		if (addRes.isPresent())
 			return addRes;
 		ParseResult pr = parseSignAndDigits(s);
@@ -1595,48 +1642,123 @@ public class Interpreter {
 	 * Returns an Ok Result on success or an empty Optional if not applicable.
 	 */
 	private Optional<Result<String, InterpretError>> tryEvaluateAddition(String s, Env env) {
-		int plusIdx = s.indexOf('+');
+		int plusIdx = findTopLevelPlus(s);
 		if (plusIdx <= 0)
 			return Optional.empty();
 		String leftRaw = s.substring(0, plusIdx).trim();
 		String rightRaw = s.substring(plusIdx + 1).trim();
-		// Try to parse each side as a literal first. If parsing fails (identifiers
-		// or expressions), evaluate the side as an expression and parse the
-		// resulting value.
-		ParseResult leftPr = parseSignAndDigits(leftRaw);
-		ParseResult rightPr = parseSignAndDigits(rightRaw);
-		String leftVal = leftRaw;
-		String rightVal = rightRaw;
-		if (!leftPr.valid || !rightPr.valid) {
-			Result<String, InterpretError> lres = evaluateExpression(leftRaw, env);
-			if (lres instanceof Result.Err)
-				return Optional.of(lres);
-			Result<String, InterpretError> rres = evaluateExpression(rightRaw, env);
-			if (rres instanceof Result.Err)
-				return Optional.of(rres);
-			leftVal = ((Result.Ok<String, InterpretError>) lres).value();
-			rightVal = ((Result.Ok<String, InterpretError>) rres).value();
-			leftPr = parseSignAndDigits(leftVal);
-			rightPr = parseSignAndDigits(rightVal);
-			if (!leftPr.valid || !rightPr.valid)
-				return Optional.of(new Result.Err<>(new InterpretError("invalid literal", s)));
+
+		// Parse raw operands first to preserve typed-literal suffix information
+		// (evaluateExpression strips suffixes). If both raw operands are literal-
+		// like, validate typed compatibility using the raw parse results and
+		// compute the sum directly from their integer parts.
+		ParseResult leftRawPr = parseSignAndDigits(leftRaw);
+		ParseResult rightRawPr = parseSignAndDigits(rightRaw);
+
+		Optional<Result<String, InterpretError>> rawAttempt = tryAddFromRaw(leftRaw, rightRaw, s);
+		if (rawAttempt.isPresent())
+			return rawAttempt;
+
+		Result<String, InterpretError> lres = evaluateExpression(leftRaw, env);
+		if (lres instanceof Result.Err)
+			return Optional.of(lres);
+		Result<String, InterpretError> rres = evaluateExpression(rightRaw, env);
+		if (rres instanceof Result.Err)
+			return Optional.of(rres);
+		String leftVal = ((Result.Ok<String, InterpretError>) lres).value();
+		String rightVal = ((Result.Ok<String, InterpretError>) rres).value();
+
+		AddContext ctx = new AddContext(leftRawPr, rightRawPr, new String[] { leftVal, rightVal });
+		return tryAddFromEvaluated(ctx, s);
+	}
+
+	/**
+	 * Try addition when both raw operands are literal-like. Returns Optional
+	 * (Ok/Err) when applicable, or Optional.empty() when not applicable.
+	 */
+	private Optional<Result<String, InterpretError>> tryAddFromRaw(String leftRaw, String rightRaw, String source) {
+		ParseResult leftRawPr = parseSignAndDigits(leftRaw);
+		ParseResult rightRawPr = parseSignAndDigits(rightRaw);
+		if (!(leftRawPr.valid && rightRawPr.valid))
+			return Optional.empty();
+		Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftRawPr, rightRawPr, source);
+		if (suffixCheck.isPresent())
+			return suffixCheck;
+		return addIntegerParts(leftRawPr.integerPart, rightRawPr.integerPart, source);
+	}
+
+	private Optional<Result<String, InterpretError>> tryAddFromEvaluated(AddContext ctx, String source) {
+		ParseResult leftRawPr = ctx.leftRawPr;
+		ParseResult rightRawPr = ctx.rightRawPr;
+		String leftVal = ctx.leftVal();
+		String rightVal = ctx.rightVal();
+		// If one of the raw operands included a typed suffix, validate the
+		// evaluated counterpart against that suffix.
+		if (leftRawPr.valid && !leftRawPr.suffix.isEmpty()) {
+			ParseResult rightEvalPr = parseSignAndDigits(rightVal);
+			if (!rightEvalPr.valid)
+				return Optional.of(new Result.Err<>(new InterpretError("invalid literal", source)));
+			Optional<Result<String, InterpretError>> v = vTyped(leftRawPr.suffix, rightEvalPr.integerPart, source);
+			if (v.isPresent())
+				return v;
+			return addIntegerParts(leftRawPr.integerPart, rightEvalPr.integerPart, source);
+
+			// moved AddContext to top-level of Interpreter class
 		}
 
-		Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, s);
+		if (rightRawPr.valid && !rightRawPr.suffix.isEmpty()) {
+			ParseResult leftEvalPr = parseSignAndDigits(leftVal);
+			if (!leftEvalPr.valid)
+				return Optional.of(new Result.Err<>(new InterpretError("invalid literal", source)));
+			Optional<Result<String, InterpretError>> v = vTyped(rightRawPr.suffix, leftEvalPr.integerPart, source);
+			if (v.isPresent())
+				return v;
+			return addIntegerParts(leftEvalPr.integerPart, rightRawPr.integerPart, source);
+		}
+
+		// Neither raw had typed suffixes that we could act on; parse evaluated
+		// values and validate their typed-compatibility normally.
+		ParseResult leftPr = parseSignAndDigits(leftVal);
+		ParseResult rightPr = parseSignAndDigits(rightVal);
+		if (!leftPr.valid || !rightPr.valid)
+			return Optional.of(new Result.Err<>(new InterpretError("invalid literal", source)));
+
+		Optional<Result<String, InterpretError>> suffixCheck = checkTypedOperands(leftPr, rightPr, source);
 		if (suffixCheck.isPresent())
 			return suffixCheck;
 
-		try {
-			BigInteger l = parseBigInteger(leftPr.integerPart);
-			BigInteger r = parseBigInteger(rightPr.integerPart);
-			BigInteger sum = l.add(r);
-			if (leftPr.suffix.isEmpty() && rightPr.suffix.isEmpty())
-				return Optional.of(new Result.Ok<>(sum.toString()));
-			String suffix = !leftPr.suffix.isEmpty() ? leftPr.suffix : rightPr.suffix;
-			return Optional.of(new Result.Ok<>(sum.toString() + suffix));
-		} catch (NumberFormatException ex) {
-			return Optional.of(new Result.Err<>(new InterpretError("invalid integer", s)));
+		return addIntegerParts(leftPr.integerPart, rightPr.integerPart, source);
+	}
+
+	// Find a top-level instance of a target char (ignore occurrences inside
+	// parentheses, brackets and braces). Returns index or -1 if none.
+	private int findTopLevelChar(String s, char target) {
+		int depthPar = 0;
+		int depthBrace = 0;
+		int depthBracket = 0;
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '(')
+				depthPar++;
+			else if (c == ')')
+				depthPar--;
+			else if (c == '{')
+				depthBrace++;
+			else if (c == '}')
+				depthBrace--;
+			else if (c == '[')
+				depthBracket++;
+			else if (c == ']')
+				depthBracket--;
+			else if (c == target && depthPar == 0 && depthBrace == 0 && depthBracket == 0)
+				return i;
 		}
+		return -1;
+	}
+
+	// Convenience for finding '+' specifically.
+	private int findTopLevelPlus(String s) {
+		return findTopLevelChar(s, '+');
 	}
 
 	// Helper to validate typed/untyped operands for addition.
@@ -1706,6 +1828,17 @@ public class Interpreter {
 
 	private BigInteger parseBigInteger(String s) {
 		return new BigInteger(s);
+	}
+
+	// Helper to add two integer parts, returning Ok(sum) or Err on parse failure.
+	private Optional<Result<String, InterpretError>> addIntegerParts(String aPart, String bPart, String source) {
+		try {
+			BigInteger l = parseBigInteger(aPart);
+			BigInteger r = parseBigInteger(bPart);
+			return Optional.of(new Result.Ok<>(l.add(r).toString()));
+		} catch (NumberFormatException ex) {
+			return Optional.of(new Result.Err<>(new InterpretError("invalid integer", source)));
+		}
 	}
 
 	private Result<String, InterpretError> evaluateTypedSuffix(ParseResult pr, String source) {
@@ -2190,20 +2323,6 @@ public class Interpreter {
 			m.put(fname, fval);
 		}
 		return m;
-	}
-
-	// Build an Env that captures the current env's locals as values. This is
-	// used when invoking methods so the method body sees the captured variables
-	// as if they were in scope.
-	private Env makeCapturedEnv(Env env) {
-		Env fnEnv = shallowCopyEnv(env);
-		if (env.localDecls.isPresent()) {
-			for (String n : env.localDecls.get()) {
-				fnEnv.valEnv.put(n, env.valEnv.getOrDefault(n, ""));
-			}
-			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(env.localDecls.get()));
-		}
-		return fnEnv;
 	}
 
 	// Shallow-copy an environment's maps and common registries into a new Env.
