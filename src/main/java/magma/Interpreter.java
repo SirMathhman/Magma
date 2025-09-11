@@ -341,9 +341,9 @@ public class Interpreter {
 		java.util.List<Value> elems = new java.util.ArrayList<>(((Value.ArrayVal) base).elements());
 		if (idxInt < 0 || idxInt >= elems.size())
 			return new AssignPrep(new Result.Err<>(new InterpretError("index out of bounds", env.source)));
-		elems.set(idxInt, ValueCodec.fromEncoded(valueEnc));
+		elems.set(idxInt, fromEncoded(valueEnc));
 		Value.ArrayVal updated = new Value.ArrayVal(elems);
-		return new AssignPrep(ValueCodec.toEncoded(updated), req.base);
+		return new AssignPrep(toEncoded(updated), req.base);
 	}
 
 	// small helper to return parsed identifier and next index
@@ -368,6 +368,79 @@ public class Interpreter {
 	// Internal marker for struct values: "@STR:Type|field=val|..."
 	@Deprecated
 	private static final String STR_PREFIX = "@STR:";
+
+	// Inline Value <-> encoded string bridge (previously in ValueCodec). This
+	// allows the Interpreter to operate directly on Value without referencing
+	// the separate ValueCodec class while the rest of the codebase migrates.
+	private static Value fromEncoded(String encoded) {
+		java.util.Objects.requireNonNull(encoded, "encoded");
+		if (encoded.equals("true"))
+			return new Value.BoolVal(true);
+		if (encoded.equals("false"))
+			return new Value.BoolVal(false);
+		if (encoded.startsWith("@REFMUT:")) {
+			return new Value.RefVal(encoded.substring("@REFMUT:".length()), true);
+		}
+		if (encoded.startsWith("@REF:")) {
+			return new Value.RefVal(encoded.substring("@REF:".length()), false);
+		}
+		if (encoded.startsWith("@ARR:")) {
+			String rest = encoded.substring("@ARR:".length());
+			List<Value> vals = new ArrayList<>();
+			if (!rest.isEmpty()) {
+				for (String p : rest.split("\\|"))
+					vals.add(fromEncoded(p));
+			}
+			return new Value.ArrayVal(vals);
+		}
+		if (encoded.startsWith("@STR:")) {
+			String payload = encoded.substring("@STR:".length());
+			String[] parts = payload.split("\\|");
+			String type = parts.length > 0 ? parts[0] : "";
+			java.util.Map<String, Value> fields = new java.util.HashMap<>();
+			for (int i = 1; i < parts.length; i++) {
+				String part = parts[i];
+				int eq = part.indexOf('=');
+				if (eq > 0) {
+					String name = part.substring(0, eq);
+					String val = part.substring(eq + 1);
+					fields.put(name, fromEncoded(val));
+				}
+			}
+			return new Value.StructVal(type, fields);
+		}
+		if (encoded.isEmpty())
+			return Value.UnitVal.INSTANCE;
+		try {
+			return new Value.IntVal(new java.math.BigInteger(encoded));
+		} catch (NumberFormatException ex) {
+			return Value.UnitVal.INSTANCE;
+		}
+	}
+
+	private static String toEncoded(Value v) {
+		if (v instanceof Value.BoolVal b)
+			return b.value() ? "true" : "false";
+		if (v instanceof Value.IntVal i)
+			return i.value().toString();
+		if (v instanceof Value.RefVal r)
+			return (r.mutable() ? "@REFMUT:" : "@REF:") + r.targetName();
+		if (v instanceof Value.ArrayVal a) {
+			List<String> enc = new ArrayList<>();
+			for (Value e : a.elements())
+				enc.add(toEncoded(e));
+			return "@ARR:" + String.join("|", enc);
+		}
+		if (v instanceof Value.StructVal s) {
+			StringBuilder sb = new StringBuilder();
+			sb.append(s.typeName());
+			for (java.util.Map.Entry<String, Value> e : s.fields().entrySet()) {
+				sb.append('|').append(e.getKey()).append('=').append(toEncoded(e.getValue()));
+			}
+			return "@STR:" + sb;
+		}
+		return "";
+	}
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {
 		return Optional.of(new Result.Err<>(new InterpretError(msg, source)));
@@ -488,7 +561,7 @@ public class Interpreter {
 					return annErr;
 				fnEnv.typeEnv.put(p, ptype);
 			}
-			fnEnv.valEnv.put(p, ValueCodec.fromEncoded(val));
+			fnEnv.valEnv.put(p, fromEncoded(val));
 		}
 		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
@@ -861,7 +934,7 @@ public class Interpreter {
 				env.typeEnv.put(d.name, "Bool");
 			}
 		}
-		env.valEnv.put(d.name, ValueCodec.fromEncoded(value));
+		env.valEnv.put(d.name, fromEncoded(value));
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
 		// If the block is tracking local declarations, record this name so it can
@@ -930,11 +1003,11 @@ public class Interpreter {
 			Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
 			if (valCheckTarget.isPresent())
 				return valCheckTarget;
-			env.valEnv.put(target, ValueCodec.fromEncoded(value));
+			env.valEnv.put(target, fromEncoded(value));
 			return Optional.empty();
 		}
 
-		env.valEnv.put(lhs, ValueCodec.fromEncoded(evaluated));
+		env.valEnv.put(lhs, fromEncoded(evaluated));
 		return Optional.empty();
 	}
 
@@ -1038,20 +1111,20 @@ public class Interpreter {
 		if (!env.valEnv.containsKey(lhs))
 			return Optional.of(new Result.Err<>(new InterpretError("read of uninitialized variable", env.source)));
 		Value lhsV = env.valEnv.get(lhs);
-		Value rhsV = ValueCodec.fromEncoded(rhsValue);
+		Value rhsV = fromEncoded(rhsValue);
 		if (!(lhsV instanceof Value.IntVal) || !(rhsV instanceof Value.IntVal))
 			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
 		BigInteger a = ((Value.IntVal) lhsV).value();
 		BigInteger b = ((Value.IntVal) rhsV).value();
 		BigInteger sum = a.add(b);
-		String sumStr = ValueCodec.toEncoded(new Value.IntVal(sum));
+		String sumStr = toEncoded(new Value.IntVal(sum));
 
 		// Validate resulting assignment against annotated/inferred type
 		Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
 		if (valCheck.isPresent())
 			return valCheck;
 
-		env.valEnv.put(lhs, ValueCodec.fromEncoded(sumStr));
+		env.valEnv.put(lhs, fromEncoded(sumStr));
 		return Optional.empty();
 	}
 
@@ -1226,7 +1299,7 @@ public class Interpreter {
 			return evalThisExpr(env, s);
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
-			return new Result.Ok<>(ValueCodec.toEncoded(new Value.BoolVal("true".equals(s))));
+			return new Result.Ok<>(toEncoded(new Value.BoolVal("true".equals(s))));
 
 		Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
 		if (p1.isPresent())
@@ -1250,15 +1323,15 @@ public class Interpreter {
 		Result<String, InterpretError> baseRes = evaluateExpression(base, env);
 		if (baseRes instanceof Result.Err)
 			return Optional.of(baseRes);
-		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
-		Value v = ValueCodec.fromEncoded(baseVal);
+	String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
+	Value v = fromEncoded(baseVal);
 		if (!(v instanceof Value.StructVal))
 			return Optional.of(new Result.Err<>(new InterpretError("invalid struct field access", s)));
 		Value.StructVal sv = (Value.StructVal) v;
-		Value fv = sv.get(field);
+	Value fv = sv.get(field);
 		if (Objects.isNull(fv))
 			return Optional.of(new Result.Err<>(new InterpretError("unknown field", s)));
-		return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(fv)));
+	return Optional.of(new Result.Ok<>(toEncoded(fv)));
 	}
 
 	// Primary evaluation part 1: block, boolean, array/index, function call,
@@ -1272,7 +1345,7 @@ public class Interpreter {
 			return Optional.of(evalThisExpr(env, s));
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
-			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.BoolVal("true".equals(s)))));
+			return Optional.of(new Result.Ok<>(toEncoded(new Value.BoolVal("true".equals(s)))));
 		// array literal / indexing
 		Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
 		if (arrIdx.isPresent())
@@ -1284,7 +1357,7 @@ public class Interpreter {
 		// variable reference
 		if (isSimpleIdentifier(s)) {
 			if (env.valEnv.containsKey(s))
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(env.valEnv.get(s))));
+				return Optional.of(new Result.Ok<>(toEncoded(env.valEnv.get(s))));
 			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
 		}
 		return Optional.empty();
@@ -1303,7 +1376,7 @@ public class Interpreter {
 			return Optional.empty();
 		if (pr.suffix.isEmpty())
 			return Optional
-					.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(new java.math.BigInteger(pr.integerPart)))));
+					.of(new Result.Ok<>(toEncoded(new Value.IntVal(new java.math.BigInteger(pr.integerPart)))));
 		return Optional.of(evaluateTypedSuffix(pr, s));
 	}
 
@@ -1337,7 +1410,7 @@ public class Interpreter {
 		if (baseRes instanceof Result.Err)
 			return Optional.of(baseRes);
 		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
-		Value base = ValueCodec.fromEncoded(baseVal);
+		Value base = fromEncoded(baseVal);
 		if (!(base instanceof Value.ArrayVal))
 			return Optional.of(new Result.Err<>(new InterpretError("invalid array indexing", s)));
 		java.util.List<Value> elems = ((Value.ArrayVal) base).elements();
@@ -1349,7 +1422,7 @@ public class Interpreter {
 			int idx = Integer.parseInt(idxVal);
 			if (idx < 0 || idx >= elems.size())
 				return Optional.of(new Result.Err<>(new InterpretError("index out of bounds", s)));
-			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(elems.get(idx))));
+			return Optional.of(new Result.Ok<>(toEncoded(elems.get(idx))));
 		} catch (NumberFormatException ex) {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid index", s)));
 		}
@@ -1373,10 +1446,10 @@ public class Interpreter {
 			if (r instanceof Result.Err)
 				return Optional.of(r);
 			String enc = ((Result.Ok<String, InterpretError>) r).value();
-			values.add(ValueCodec.fromEncoded(enc));
+			values.add(fromEncoded(enc));
 		}
 		Value.ArrayVal arr = new Value.ArrayVal(values);
-		return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(arr)));
+		return Optional.of(new Result.Ok<>(toEncoded(arr)));
 	}
 
 	// Strip leading transparent unary prefixes '*' and '&' from the expression
@@ -1394,7 +1467,7 @@ public class Interpreter {
 			String rest = s.substring(4).trim();
 			if (isSimpleIdentifier(rest)) {
 				Value.RefVal rv = new Value.RefVal(rest, true);
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(rv)));
+				return Optional.of(new Result.Ok<>(toEncoded(rv)));
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
 		}
@@ -1403,7 +1476,7 @@ public class Interpreter {
 			String rest = s.substring(1).trim();
 			if (isSimpleIdentifier(rest)) {
 				Value.RefVal rv = new Value.RefVal(rest, false);
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(rv)));
+				return Optional.of(new Result.Ok<>(toEncoded(rv)));
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
 		}
@@ -1414,13 +1487,13 @@ public class Interpreter {
 			if (innerRes instanceof Result.Err)
 				return Optional.of(innerRes);
 			String val = ((Result.Ok<String, InterpretError>) innerRes).value();
-			Value v = ValueCodec.fromEncoded(val);
+			Value v = fromEncoded(val);
 			if (v instanceof Value.RefVal r) {
 				String target = r.targetName();
 				if (!env.valEnv.containsKey(target))
 					return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
 				// Return the encoded value stored at the referenced target.
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(env.valEnv.get(target))));
+				return Optional.of(new Result.Ok<>(toEncoded(env.valEnv.get(target))));
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
 		}
@@ -1452,8 +1525,8 @@ public class Interpreter {
 			return Optional.of(rightRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
 		String rightVal = ((Result.Ok<String, InterpretError>) rightRes).value();
-		Value leftV = ValueCodec.fromEncoded(leftVal);
-		Value rightV = ValueCodec.fromEncoded(rightVal);
+		Value leftV = fromEncoded(leftVal);
+		Value rightV = fromEncoded(rightVal);
 		if (!(leftV instanceof Value.IntVal) || !(rightV instanceof Value.IntVal))
 			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
 		BigInteger a = ((Value.IntVal) leftV).value();
@@ -1542,8 +1615,8 @@ public class Interpreter {
 
 		// Prefer typed Values: attempt to evaluate each side and decode to IntVal
 		try {
-			Value leftV = ValueCodec.fromEncoded(leftPr.integerPart);
-			Value rightV = ValueCodec.fromEncoded(rightPr.integerPart);
+			Value leftV = fromEncoded(leftPr.integerPart);
+			Value rightV = fromEncoded(rightPr.integerPart);
 			// Fallback: if parse from integerPart doesn't map to IntVal, parse directly
 			BigInteger a;
 			BigInteger b;
@@ -1556,7 +1629,7 @@ public class Interpreter {
 			else
 				b = new BigInteger(rightPr.integerPart);
 			BigInteger sum = a.add(b);
-			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(sum))));
+			return Optional.of(new Result.Ok<>(toEncoded(new Value.IntVal(sum))));
 		} catch (NumberFormatException ex) {
 			return Optional.empty();
 		}
@@ -1643,15 +1716,15 @@ public class Interpreter {
 				return new Result.Err<>(new InterpretError("unsupported type width", source));
 
 			BigInteger val = new BigInteger(pr.integerPart);
-			if (kind == 'U') {
-				if (val.signum() < 0)
-					return new Result.Err<>(new InterpretError("negative value for unsigned literal", source));
-				if (fitsUnsigned(val, width))
-					return new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(val)));
-				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
+				if (kind == 'U') {
+					if (val.signum() < 0)
+						return new Result.Err<>(new InterpretError("negative value for unsigned literal", source));
+					if (fitsUnsigned(val, width))
+						return new Result.Ok<>(toEncoded(new Value.IntVal(val)));
+					return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			} else if (kind == 'I') {
-				if (fitsSigned(val, width))
-					return new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(val)));
+					if (fitsSigned(val, width))
+						return new Result.Ok<>(toEncoded(new Value.IntVal(val)));
 				return new Result.Err<>(new InterpretError("value does not fit typed literal", source));
 			}
 		} catch (NumberFormatException | ArithmeticException e) {
@@ -1869,13 +1942,13 @@ public class Interpreter {
 			if (r instanceof Result.Err)
 				return Optional.of(r);
 			String enc = ((Result.Ok<String, InterpretError>) r).value();
-			evaluated.add(ValueCodec.fromEncoded(enc));
+			evaluated.add(fromEncoded(enc));
 		}
 		// Validate field types against encoded values (reuse existing validator by
 		// encoding back the candidate values)
 		List<String> evaluatedEnc = new ArrayList<>();
 		for (Value vv : evaluated)
-			evaluatedEnc.add(ValueCodec.toEncoded(vv));
+			evaluatedEnc.add(toEncoded(vv));
 		Optional<Result<String, InterpretError>> typeChk = validateFieldTypes(structName, evaluatedEnc, env);
 		if (typeChk.isPresent())
 			return Optional.of(typeChk.get());
@@ -1886,11 +1959,11 @@ public class Interpreter {
 		}
 		Value.StructVal sv = new Value.StructVal(structName, fieldMap);
 		String trailing = afterName.substring(valClose + 1).trim();
-		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(ValueCodec.toEncoded(sv), trailing,
+		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(toEncoded(sv), trailing,
 				restContext);
 		if (trailRes.isPresent())
 			return Optional.of(trailRes.get());
-		return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(sv)));
+		return Optional.of(new Result.Ok<>(toEncoded(sv)));
 	}
 
 	// Validate evaluated struct literal values against declared per-field types.
