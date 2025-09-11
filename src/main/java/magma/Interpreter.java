@@ -782,6 +782,27 @@ public class Interpreter {
 	// Extracted helper to handle assignments, compound assignments and let
 	// declarations.
 	private Optional<Result<String, InterpretError>> handleSimpleStmt(String s, Env env) {
+		// Accept a leading struct declaration in statement position. This allows
+		// code like `struct T { f : I32 } let x = T { 1 };` where the struct
+		// declaration and the let appear in the same semicolon-delimited part.
+		if (s.startsWith("struct ")) {
+			int nameStart = 7;
+			int braceOpen = s.indexOf('{', nameStart);
+			if (braceOpen <= 0)
+				return Optional.of(new Result.Err<>(new InterpretError("invalid struct declaration", env.source)));
+			int braceClose = findMatchingBrace(s, braceOpen);
+			if (braceClose < 0)
+				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
+			String structName = s.substring(nameStart, braceOpen).trim();
+			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
+			List<String> fieldNames = parseStructFields(fieldsBlock);
+			env.structEnv.put(structName, fieldNames);
+			String rest = s.substring(braceClose + 1).trim();
+			if (rest.isEmpty())
+				return Optional.empty();
+			// Process the trailing text as another simple statement (e.g., a let)
+			return handleSimpleStmt(rest, env);
+		}
 		// Support compound assignment '+=', and simple assignment '=' in statement
 		// position
 		int plusEqIdx = s.indexOf("+=");
@@ -816,7 +837,7 @@ public class Interpreter {
 			// Do not place a value in valEnv yet; assignment will set it.
 			return Optional.empty();
 		}
-		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, env.valEnv, env.typeEnv);
+		Result<String, InterpretError> rhsRes = getRhsValue(d.rhs, env);
 		if (rhsRes instanceof Result.Err)
 			return Optional.of(rhsRes);
 		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
@@ -844,10 +865,11 @@ public class Interpreter {
 		return Optional.empty();
 	}
 
-	private Result<String, InterpretError> getRhsValue(String rhs,
-			Map<String, String> valEnv,
-			Map<String, String> typeEnv) {
-		Env tmp = new Env(valEnv, typeEnv, "");
+	private Result<String, InterpretError> getRhsValue(String rhs, Env env) {
+		// Evaluate RHS in a child environment so the evaluated expression
+		// can see functions, struct definitions, and mutability info while
+		// keeping value/type maps separate for safety.
+		Env tmp = makeChildEnv(env);
 		return evaluateExpression(rhs, tmp);
 	}
 
@@ -1188,6 +1210,12 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
 		if (pref.isPresent())
 			return pref.get();
+		// Try a standalone struct literal of the form `Type { ... }` when a type
+		// named in env.structEnv is present. This covers cases where the struct
+		// was declared earlier and an instance is created later.
+		Optional<Result<String, InterpretError>> standaloneStruct = tryEvalStructLitSta(s, env);
+		if (standaloneStruct.isPresent())
+			return standaloneStruct.get();
 		// Block expression handling delegated to helper to keep this method small.
 		if (s.startsWith("{") && s.endsWith("}"))
 			return evalBlockExpr(s, env);
@@ -1661,11 +1689,83 @@ public class Interpreter {
 			}
 		}
 		env.structEnv.put(structName, fieldNames);
-		String rest = s.substring(braceClose + 1).trim();
-		if (rest.isEmpty())
+		String rest = s.substring(braceClose + 1);
+		String restTrim = rest.trim();
+		if (restTrim.isEmpty())
 			return Optional.of(new Result.Ok<>(""));
-		return tryEvalStructLiteral(rest, env);
+		if (looksLikeLitAfter(rest))
+			return tryEvalStructLiteral(restTrim, env);
+		// Otherwise treat the struct declaration as a standalone statement and
+		// allow the caller to continue parsing the following tokens (e.g., a
+		// let-declaration).
+		return Optional.of(new Result.Ok<>(""));
 	}
+
+	// Parse a struct fields block like "a : I32, b : I32" into a list of
+	// field names. Extracted to reduce the complexity of tryEvalStruct.
+	private List<String> parseStructFields(String fieldsBlock) {
+		List<String> names = new ArrayList<>();
+		if (Objects.isNull(fieldsBlock) || fieldsBlock.trim().isEmpty())
+			return names;
+		for (String part : fieldsBlock.split(";|,")) {
+			String p = part.trim();
+			if (p.isEmpty())
+				continue;
+			int colon = p.indexOf(':');
+			String fname = colon > 0 ? p.substring(0, colon).trim() : p;
+			names.add(fname);
+		}
+		return names;
+	}
+
+	// Heuristic: does the trailing text after a struct declaration look like a
+	// literal, i.e., an identifier optionally followed by whitespace and a '{'?
+	private boolean looksLikeLitAfter(String rest) {
+		if (Objects.isNull(rest) || rest.isEmpty())
+			return false;
+		int i = 0;
+		while (i < rest.length() && Character.isWhitespace(rest.charAt(i)))
+			i++;
+		int start = i;
+		while (i < rest.length() && Character.isJavaIdentifierPart(rest.charAt(i)))
+			i++;
+		if (start < i) {
+			int j = i;
+			while (j < rest.length() && Character.isWhitespace(rest.charAt(j)))
+				j++;
+			return j < rest.length() && rest.charAt(j) == '{';
+		}
+		return false;
+	}
+
+	// Try to evaluate a standalone struct literal like `Type { ... }` where the
+	// type has been declared earlier. Returns Optional.empty() if not applicable.
+	private Optional<Result<String, InterpretError>> tryEvalStructLitSta(String s, Env env) {
+		// look for an identifier followed by a '{'
+		int i = 0;
+		int len = s.length();
+		while (i < len && Character.isWhitespace(s.charAt(i)))
+			i++;
+		int start = i;
+		while (i < len && Character.isJavaIdentifierPart(s.charAt(i)))
+			i++;
+		if (start == i)
+			return Optional.empty();
+		String typeName = s.substring(start, i);
+		if (!env.structEnv.containsKey(typeName))
+			return Optional.empty();
+		String rest = s.substring(i).trim();
+		if (!rest.startsWith("{"))
+			return Optional.empty();
+		// Delegate to the existing literal evaluator but provide the trimmed
+		// trailing text starting at the type name so it can parse the braces.
+		// NOTE: previously this accidentally called itself causing infinite
+		// recursion and a StackOverflowError. Call tryEvalStructLiteral which
+		// performs the actual parsing of "Type { ... }" literals.
+		return tryEvalStructLiteral(typeName + " " + rest, env);
+	}
+
+	// (removed helper to reduce unused code)
 
 	private Optional<Result<String, InterpretError>> tryEvalStructLiteral(String rest, Env env) {
 		// Delegate the bulk of struct-literal handling to a helper to keep this

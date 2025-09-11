@@ -303,4 +303,13 @@ public class InterpreterFeatureTest {
 		// Case: struct Wrapper { field : I32 } Wrapper { 100 }.field => 100
 		TestUtils.assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
 	}
+
+	@Test
+	public void structLetFieldAccess() {
+		// Acceptance: declaring a struct then creating a let-bound instance and
+		// accessing its field should return the field's value.
+		// Example: struct Wrapper { field : I32} let value = Wrapper { 100 };
+		// value.field => 100
+		TestUtils.assertValid("struct Wrapper { field : I32 } let value = Wrapper { 100 }; value.field", "100");
+	}
 }
