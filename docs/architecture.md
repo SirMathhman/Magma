@@ -227,6 +227,8 @@ Tests to add
 ------------
 - `src/test/java/magma/GenericsTwoParamsTest.java` — assert that `pass2(100, true)` returns `"100"`.
 
+Note: the `Generics` acceptance tests were consolidated into a single `GenericsTests` class to avoid single-method test classes.
+
 Quality gates
 -------------
 - All tests must pass (`mvn test`) and Checkstyle must have 0 violations.

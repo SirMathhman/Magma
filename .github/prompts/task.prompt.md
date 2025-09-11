@@ -60,6 +60,10 @@ Notes for automated agents
   - Prefer small, incremental commits with clear messages describing each step (tests, implementation, docs).
   - If blocked by missing information, add a small clarifying test or TODO in `docs/architecture.md` and surface the blocker in the PR.
 
+Test organization preference
+-------------------------
+- Tests should be consolidated where practical: avoid creating test classes that contain only a single test method. Group related test cases into a single test class (for example `GenericsTests` instead of `GenericsTest` and `GenericsTwoParamsTest`). This keeps the test suite tidy and reduces boilerplate across many small files.
+
 Documentation rule (repository policy):
   - Public-facing or behavioral changes must update documentation. Internal refactors must include a one-line PR note: "Documentation: no changes required (reason)".
 
