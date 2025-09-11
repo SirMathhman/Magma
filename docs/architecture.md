@@ -425,6 +425,25 @@ Tests added
 -----------
 - `src/test/java/magma/InterpreterWrapperThisResultTest.java` — asserts the compact `class fn Wrapper() => { let result = 100; fn get() => this.result; } Wrapper().get()` evaluates to `100`.
 
+### Explicit `return this` in block-bodied functions (added)
+
+Goal
+----
+Support an explicit `return this;` inside a block-bodied function in the same way as an implicit `this` final expression: the declarations preceding the `return` must be executed so that the returned `this` object captures them.
+
+Files / modules changed
+----------------------
+- `src/main/java/magma/Interpreter.java` — `extractFnReturnExpr` updated to rewrite a block body containing `return this;` into an equivalent block that preserves preceding declarations and ends with a `this` expression. This keeps the evaluation of declarations unchanged while making `return this;` behave as expected.
+
+Tests added
+-----------
+- `src/test/java/magma/InterpreterWrapperReturnThisTest.java` — asserts `class fn Wrapper() => {let result = 100; fn get() => this.result; return this;} Wrapper().get()` evaluates to `100`.
+
+Quality gates
+-------------
+- The new test is executed as part of the suite. Build and style checks must pass (`mvn -DskipTests=false package`).
+
+
 Quality gates
 -------------
 - All tests (including the new case) are executed as part of `mvn test` and must pass.

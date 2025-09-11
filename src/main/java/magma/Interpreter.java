@@ -414,6 +414,30 @@ public class Interpreter {
 				return new FnBodyParse(
 						Optional.of(new Result.Err<>(new InterpretError("missing ';' after return", env.source))), "");
 			String expr = body.substring(retIdx + 6, semi).trim();
+			// If the return expression is `this`, we need to execute the preceding
+			// declarations in the block so that `this` can capture them. Convert
+			// the block which contains `return this;` into an equivalent block
+			// whose final expression is `this` (remove the `return` token and
+			// keep prior declarations). This lets the existing block-evaluator
+			// run the declarations and produce a populated `this` value.
+			if ("this".equals(expr)) {
+				String[] parts = body.split(";", -1);
+				StringBuilder sb = new StringBuilder();
+				for (String p : parts) {
+					String t = p.trim();
+					if (t.isEmpty())
+						continue;
+					if (t.startsWith("return"))
+						continue; // drop the return token
+					if (sb.length() > 0)
+						sb.append(';');
+					sb.append(t);
+				}
+				if (sb.length() > 0)
+					sb.append(';');
+				sb.append("this");
+				return new FnBodyParse(Optional.empty(), "{" + sb.toString() + "}");
+			}
 			return new FnBodyParse(Optional.empty(), expr);
 		}
 		// compact form: accept either 'return <expr>;' OR a direct expression after the
