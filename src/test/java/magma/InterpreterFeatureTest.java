@@ -286,7 +286,14 @@ public class InterpreterFeatureTest {
 
 	@Test
 	public void indexedAssign1() {
-		// Writing through an array index for a mutable array variable should update the array
+		// Writing through an array index for a mutable array variable should update the
+		// array
 		TestUtils.assertValid("let mut x = [0]; x[0] = 1; x[0]", "1");
+	}
+
+	@Test
+	public void indexedAssignLet() {
+		// Invalid case: assigning through an index when the array variable is immutable
+		TestUtils.assertInvalid("let x = [0]; x[0] = 1; x[0]");
 	}
 }

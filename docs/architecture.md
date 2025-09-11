@@ -336,6 +336,32 @@ Tests to add
 ------------
 - `src/test/java/magma/InterpreterFeatureTest.java::arrayLiteralIndex` — asserts `"[1][0]"` evaluates to `"1"` (tests-first failing test).
 
+Additional acceptance: assignment through an array index must respect the variable's mutability
+
+Goal
+----
+Ensure that indexed assignment (e.g., `x[0] = 1`) is only allowed when the variable holding the array is mutable (declared with `let mut`). Assigning through an index when the variable was declared with an immutable `let` must be rejected.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — `prepAssignOps` / `handleIdxAssign` to validate that indexed assignments require the base variable to be mutable when the base is a variable name (not a deref or reference target).
+- `src/test/java/magma/InterpreterFeatureTest.java` — add failing test `indexedAssignLetInvalid` asserting `let x = [0]; x[0] = 1; x[0]` is invalid.
+
+Inputs / Outputs / Errors (contract)
+-----------------------------------
+- Input: program string containing `let x = [0]; x[0] = 1; x[0]`.
+- Output: interpretation must fail with an interpret error indicating assignment to immutable variable or invalid array assignment.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::indexedAssignLetInvalid` — asserts `let x = [0]; x[0] = 1; x[0]` is invalid.
+
+Quality gates
+-------------
+- Add failing test (red)
+- Implement check in `Interpreter` to enforce mutability for indexed assignment
+- Run `mvn -DskipTests=false test` until green
+
 Quality gates
 -------------
 - Add failing test.

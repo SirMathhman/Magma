@@ -8,6 +8,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+import java.util.HashSet;
 
 /**
  * Interpreter for a tiny language used by the project tests.
@@ -17,6 +19,46 @@ public class Interpreter {
 	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
 	// braces).
 	private record FnBodyParse(Optional<Result<String, InterpretError>> error, String retExpr) {
+	}
+
+	// Evaluate a brace-delimited block statement and manage block-local let
+	// declarations. This helper was extracted to reduce cyclomatic complexity
+	// in handleStatement.
+	private Optional<Result<String, InterpretError>> evaluateBlock(String s, Env env) {
+		int close = s.lastIndexOf('}');
+		String body = close > 0 ? s.substring(1, close) : "";
+		String[] inner = body.split(";", -1);
+		boolean createdLocalSet = false;
+		if (env.localDecls.isEmpty()) {
+			env.localDecls = java.util.Optional.of(new HashSet<String>());
+			createdLocalSet = true;
+		}
+		for (String part : inner) {
+			String t = part.trim();
+			if (t.isEmpty())
+				continue;
+			Optional<Result<String, InterpretError>> innerRes = handleStatement(t, env);
+			if (innerRes.isPresent()) {
+				if (createdLocalSet && env.localDecls.isPresent()) {
+					for (String name : env.localDecls.get()) {
+						env.valEnv.remove(name);
+						env.typeEnv.remove(name);
+						env.mutEnv.remove(name);
+					}
+					env.localDecls = java.util.Optional.empty();
+				}
+				return innerRes;
+			}
+		}
+		if (createdLocalSet && env.localDecls.isPresent()) {
+			for (String name : env.localDecls.get()) {
+				env.valEnv.remove(name);
+				env.typeEnv.remove(name);
+				env.mutEnv.remove(name);
+			}
+			env.localDecls = java.util.Optional.empty();
+		}
+		return Optional.empty();
 	}
 
 	// Helper to hold consequent/alternative extraction result
@@ -107,6 +149,10 @@ public class Interpreter {
 		final Map<String, Boolean> mutEnv;
 		final String source;
 
+		// Optional collector of let-declarations that should be treated as
+		// block-local so they can be removed/restored after the block completes.
+		java.util.Optional<Set<String>> localDecls;
+
 		Env(Map<String, String> valEnv, Map<String, String> typeEnv, String source) {
 			this.valEnv = valEnv;
 			this.typeEnv = typeEnv;
@@ -115,6 +161,7 @@ public class Interpreter {
 			this.fnParamTypes = new HashMap<>();
 			this.mutEnv = new HashMap<>();
 			this.source = source;
+			this.localDecls = java.util.Optional.empty();
 		}
 
 	}
@@ -715,21 +762,7 @@ public class Interpreter {
 		// the same environment. If any inner statement returns a Result (error
 		// or an expression result), surface it immediately.
 		if (s.startsWith("{")) {
-			int close = s.lastIndexOf('}');
-			String body = close > 0 ? s.substring(1, close) : "";
-			String[] inner = body.split(";", -1);
-			// Evaluate block body in a child env so inner lets/assignments do not
-			// mutate the outer environment.
-			Env child = makeChildEnv(env);
-			for (String part : inner) {
-				String t = part.trim();
-				if (t.isEmpty())
-					continue;
-				Optional<Result<String, InterpretError>> innerRes = handleStatement(t, child);
-				if (innerRes.isPresent())
-					return innerRes;
-			}
-			return Optional.empty();
+			return evaluateBlock(s, env);
 		}
 		// Support while statements by delegating to helper to keep this method small
 		if (s.startsWith("while ") || s.startsWith("while(")) {
@@ -799,6 +832,13 @@ public class Interpreter {
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
+		// If the block is tracking local declarations, record this name so it can
+		// be removed when the block ends. This keeps block-local lets from
+		// polluting the outer environment while allowing assignments to update
+		// existing outer variables.
+		if (env.localDecls.isPresent()) {
+			env.localDecls.get().add(d.name);
+		}
 		return Optional.empty();
 	}
 
