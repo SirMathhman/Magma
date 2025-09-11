@@ -1,3 +1,43 @@
+# Object singleton support (architecture)
+
+Goal
+----
+Add support for `object` singleton declarations so code like:
+
+    object Temp { let value = 100; } Temp.value
+
+evaluates to `100`.
+
+Design overview
+---------------
+- Treat `object` similarly to a `struct` + immediate instantiated literal with a private singleton identity.
+- When parsing a top-level `object Name { ... }` declaration, record a special entry in `Env` (e.g., `objectEnv`) mapping the name to its encoded payload (like struct literals use `@STR:` encoding) or maintain an `objectFields` map.
+- On encountering `Name` in an expression followed by `.field`, evaluate to the encoded payload so `Name.field` resolves similarly to struct literal member access.
+
+Files/Modules to change
+-----------------------
+- `src/main/java/magma/Interpreter.java` — extend parsing logic to recognize `object` declarations in statement position and to record the singleton in `env` so member access `Name.field` works.
+- `src/test/java/magma/ObjectTest.java` — new test expressing acceptance criteria.
+- `docs/` — this file added.
+
+Public contract
+---------------
+- Input: source string containing `object` declaration and field access.
+- Output: interpreter returns `Ok("100")` for the example above.
+- Errors: existing `InterpretError` for lexical/semantic issues (e.g., duplicate object names).
+
+Tests to add
+------------
+- `src/test/java/magma/ObjectTest.java` — assert that `object Temp { let value = 100; } Temp.value` evaluates to `100`.
+
+Quality gates
+-------------
+- Add tests and run `mvn test` — tests should initially fail.
+- Implement minimal changes to pass tests and ensure `mvn package` succeeds with zero Checkstyle violations.
+
+Migration notes
+--------------
+- `object` declarations are top-level statements; existing code that uses `struct` remains unchanged.
 # Architecture change: support Bool type annotations in let-declarations
 
 Goal

@@ -913,6 +913,10 @@ public class Interpreter {
 			// Process the trailing text as another simple statement (e.g., a let)
 			return handleSimpleStmt(rest, env);
 		}
+
+		if (s.startsWith("object ")) {
+			return handleObjectDecl(s, env);
+		}
 		// Support compound assignment '+=', and simple assignment '=' in statement
 		// position
 		int plusEqIdx = s.indexOf("+=");
@@ -1912,19 +1916,35 @@ public class Interpreter {
 		return trimmed.indexOf(" else ");
 	}
 
+	// Helper to parse declarations of the form '<keyword> Name { ... }'. Returns
+	// DeclInfo with the parsed name and brace indexes when successful.
+	private record DeclInfo(String name, int braceOpen, int braceClose) {
+	}
+
+	private java.util.Optional<DeclInfo> parseDeclHdr(String s, String keyword) {
+		int nameStart = keyword.length();
+		int braceOpen = s.indexOf('{', nameStart);
+		if (braceOpen <= 0)
+			return java.util.Optional.empty();
+		int braceClose = findMatchingBrace(s, braceOpen);
+		if (braceClose < 0)
+			return java.util.Optional.empty();
+		String name = s.substring(nameStart, braceOpen).trim();
+		return java.util.Optional.of(new DeclInfo(name, braceOpen, braceClose));
+	}
+
 	// Try to parse an inline struct declaration/literal and return its Result if
 	// applicable. This keeps evaluateExpression under the cyclomatic limit.
 	private Optional<Result<String, InterpretError>> tryEvalStruct(String s, Env env) {
 		if (!s.startsWith("struct "))
 			return Optional.empty();
-		int nameStart = 7;
-		int braceOpen = s.indexOf('{', nameStart);
-		if (braceOpen <= 0)
-			return Optional.empty();
-		String structName = s.substring(nameStart, braceOpen).trim();
-		int braceClose = findMatchingBrace(s, braceOpen);
-		if (braceClose < 0)
+		var diOpt = parseDeclHdr(s, "struct ");
+		if (diOpt.isEmpty())
 			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
+		DeclInfo di = diOpt.get();
+		String structName = di.name();
+		int braceOpen = di.braceOpen();
+		int braceClose = di.braceClose();
 		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
 		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
 		if (declErr.isPresent())
@@ -2426,5 +2446,31 @@ public class Interpreter {
 			return new IfOutcome(stmtRes, consumedAltIdx);
 
 		return new IfOutcome(Optional.empty(), consumedAltIdx);
+	}
+
+	// Handle an object declaration of the form: object Name { ... } [trailing]
+	private Optional<Result<String, InterpretError>> handleObjectDecl(String s, Env env) {
+		var diOpt = parseDeclHdr(s, "object ");
+		if (diOpt.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("invalid object declaration", env.source)));
+		DeclInfo di = diOpt.get();
+		String objName = di.name();
+		int braceOpen = di.braceOpen();
+		int braceClose = di.braceClose();
+		String block = s.substring(braceOpen, braceClose + 1).trim();
+		Result<String, InterpretError> blockRes = evalBlockExpr(block, env);
+		if (blockRes instanceof Result.Err)
+			return Optional.of(blockRes);
+		String value = ((Result.Ok<String, InterpretError>) blockRes).value();
+		// Record the singleton value and mark immutable
+		env.valEnv.put(objName, value);
+		env.mutEnv.put(objName, Boolean.FALSE);
+		if (env.localDecls.isPresent()) {
+			env.localDecls.get().add(objName);
+		}
+		String rest = s.substring(braceClose + 1).trim();
+		if (rest.isEmpty())
+			return Optional.empty();
+		return handleSimpleStmt(rest, env);
 	}
 }
