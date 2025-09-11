@@ -15,4 +15,10 @@ public class ObjectTest {
 		String src = "object Adder { fn add(a : I32, b : I32) => a + b; } Adder.add(3, 4)";
 		TestUtils.assertValid(src, "7");
 	}
+
+	@Test
+	public void objectWithField() {
+		String src = "object Interpreter { let DEBUG = false; } Interpreter.DEBUG";
+		TestUtils.assertValid(src, "false");
+	}
 }

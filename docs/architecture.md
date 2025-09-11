@@ -144,6 +144,8 @@ Notes and next steps
 
 Documentation: `docs/architecture.md` updated to reflect the final change.
 
+Note: Added `src/test/java/magma/ObjectTest.java::objectWithField` to verify object field access (e.g., `object Interpreter { let DEBUG = false; } Interpreter.DEBUG` => `false`).
+
 ## Architecture change: multi-parameter function declarations and calls
 
 Goal
