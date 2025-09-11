@@ -1,0 +1,5 @@
+object Interpreter {
+	let DEBUG = false;
+
+	
+}
