@@ -2,7 +2,7 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class FunctionTest {
 	@Test
@@ -73,7 +73,8 @@ public class FunctionTest {
 
 	@Test
 	public void adderThisFields() {
-		String src = "fn Adder(first : I32, second : I32) => {fn add() => this.first + this.second; this} Adder(3, 4).add()";
+		String src =
+				"fn Adder(first : I32, second : I32) => {fn add() => this.first + this.second; this} Adder(3, 4).add()";
 		assertEquals("7", TestUtils.runAndAssertOk(src));
 	}
 

@@ -19,7 +19,13 @@ public class ClassTest {
 
 	@Test
 	public void wrapperInvalidReturn() {
-		TestUtils
-				.assertInvalid("class fn Wrapper() => {let result = 100; fn get() => this.result; return 100;} Wrapper().get()");
+		TestUtils.assertInvalid(
+				"class fn Wrapper() => {let result = 100; fn get() => this.result; return 100;} Wrapper().get()");
+	}
+
+	@Test
+	public void classFnInnerCall() {
+		String src = "class fn Outer() => { class fn Inner() => { fn get() => 100; this; }; this; } Outer().Inner().get()";
+		TestUtils.assertValid(src, "100");
 	}
 }
