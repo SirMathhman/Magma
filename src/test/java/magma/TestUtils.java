@@ -25,4 +25,23 @@ public final class TestUtils {
 			}
 		});
 	}
+
+	public static String runAndAssertOk(String source) {
+		return assertTimeout(Duration.ofSeconds(1), () -> {
+			Result<String, InterpretError> res = new Interpreter().interpret(source);
+			switch (res) {
+				case Result.Ok<String, InterpretError> ok -> {
+					return ok.value();
+				}
+				case Result.Err<String, InterpretError> err -> {
+					fail(err.error().display());
+					return ""; // unreachable
+				}
+				default -> {
+					fail("unexpected result");
+					return "";
+				}
+			}
+		});
+	}
 }

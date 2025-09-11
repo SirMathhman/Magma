@@ -2102,13 +2102,13 @@ public class Interpreter {
 		Optional<String> fieldValOpt = findFieldValue(payload, name);
 		if (fieldValOpt.isEmpty())
 			return Optional.of(new Result.Err<>(new InterpretError("unknown method", s)));
-		return evalMethodInvoke(fieldValOpt.get(), env, s);
+		return evalMethodInvoke(fieldValOpt.get(), payload, env);
 	}
 
 	// Core logic to evaluate a method invocation given the encoded field value.
-	private Optional<Result<String, InterpretError>> evalMethodInvoke(String fieldVal, Env env, String source) {
+	private Optional<Result<String, InterpretError>> evalMethodInvoke(String fieldVal, String payload, Env env) {
 		if (!fieldVal.startsWith(METHOD_PREFIX))
-			return Optional.of(new Result.Err<>(new InterpretError("field is not a method", source)));
+			return Optional.of(new Result.Err<>(new InterpretError("field is not a method", env.source)));
 		String rest = fieldVal.substring(METHOD_PREFIX.length());
 		String fnName = rest;
 		String embeddedBody = "";
@@ -2117,12 +2117,29 @@ public class Interpreter {
 			fnName = rest.substring(0, colon);
 			embeddedBody = rest.substring(colon + 1);
 		}
-		Env fnEnv = makeCapturedEnv(env);
+
+		// Build a captured env that includes shallow copies of global registries
+		// and bindings for fields encoded in the object's payload so method bodies
+		// can reference block-local lets captured in `this`.
+		Env fnEnv = shallowCopyEnv(env);
+		java.util.Map<String, String> fields = parsePayloadFields(payload);
+		if (!fields.isEmpty()) {
+			for (java.util.Map.Entry<String, String> e : fields.entrySet()) {
+				String n = e.getKey();
+				String v = e.getValue();
+				// Skip method entries - methods are represented separately via METHOD_PREFIX
+				if (v.startsWith(METHOD_PREFIX))
+					continue;
+				fnEnv.valEnv.put(n, v);
+			}
+			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(fields.keySet()));
+		}
+
 		if (!embeddedBody.isEmpty()) {
 			return Optional.of(evaluateExpression(embeddedBody, fnEnv));
 		}
 		if (!env.fnEnv.containsKey(fnName))
-			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", source)));
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
 		FunctionDecl fd = env.fnEnv.get(fnName);
 		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
@@ -2142,6 +2159,25 @@ public class Interpreter {
 				return Optional.of(fval);
 		}
 		return Optional.empty();
+	}
+
+	// Parse the payload fields into a map name->value. Payload is of the form
+	// "This|name=val|..." where values may start with METHOD_PREFIX.
+	private java.util.Map<String, String> parsePayloadFields(String payload) {
+		java.util.Map<String, String> m = new java.util.HashMap<>();
+		int sep = payload.indexOf('|');
+		String fieldsPart = sep >= 0 ? payload.substring(sep + 1) : "";
+		if (fieldsPart.isEmpty())
+			return m;
+		for (String p : fieldsPart.split("\\|")) {
+			int eq = p.indexOf('=');
+			if (eq <= 0)
+				continue;
+			String fname = p.substring(0, eq);
+			String fval = p.substring(eq + 1);
+			m.put(fname, fval);
+		}
+		return m;
 	}
 
 	// Build an Env that captures the current env's locals as values. This is
