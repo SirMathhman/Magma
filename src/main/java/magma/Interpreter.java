@@ -146,7 +146,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnParamTypes;
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
-		final Map<String, java.util.List<String>> structFieldTypes;
+ 		final Map<String, java.util.List<String>> structFieldTypes;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -168,9 +168,9 @@ public class Interpreter {
 
 	}
 
-	// Small record to hold a field name and its annotated type (may be empty).
-	private record FieldSpec(String name, String type) {
-	}
+		// Small record to hold a field name and its annotated type (may be empty).
+		private record FieldSpec(String name, String type) {
+		}
 
 	// Helper to represent a parsed type kind and width together so checks can
 	// take a single object rather than separate primitive params.
@@ -317,21 +317,25 @@ public class Interpreter {
 		Result<String, InterpretError> rhsRes = evaluateExpression(req.valueExpr, env);
 		if (rhsRes instanceof Result.Err)
 			return new AssignPrep(rhsRes);
-		String valueEnc = ((Result.Ok<String, InterpretError>) rhsRes).value();
+		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
 		// Validate base exists and mutability
 		Optional<Result<String, InterpretError>> chk = chkExistsMut(req.base, env);
 		if (chk.isPresent())
 			return new AssignPrep(chk.get());
 		String baseVal = env.valEnv.getOrDefault(req.base, "");
-		Value base = ValueCodec.fromEncoded(baseVal);
-		if (!(base instanceof Value.ArrayVal))
+		if (!baseVal.startsWith(ARR_PREFIX))
 			return new AssignPrep(new Result.Err<>(new InterpretError("invalid array assignment", env.source)));
-		java.util.List<Value> elems = new java.util.ArrayList<>(((Value.ArrayVal) base).elements());
+		String elemsJoined = baseVal.substring(ARR_PREFIX.length());
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		if (!elemsJoined.isEmpty()) {
+			for (String p : elemsJoined.split("\\|"))
+				elems.add(p);
+		}
 		if (idxInt < 0 || idxInt >= elems.size())
 			return new AssignPrep(new Result.Err<>(new InterpretError("index out of bounds", env.source)));
-		elems.set(idxInt, ValueCodec.fromEncoded(valueEnc));
-		Value.ArrayVal updated = new Value.ArrayVal(elems);
-		return new AssignPrep(DREF_ASSIGN_PREFIX + req.base + ":" + ValueCodec.toEncoded(updated));
+		elems.set(idxInt, value);
+		String join = String.join("|", elems);
+		return new AssignPrep(DREF_ASSIGN_PREFIX + req.base + ":" + ARR_PREFIX + join);
 	}
 
 	// small helper to return parsed identifier and next index
@@ -358,6 +362,8 @@ public class Interpreter {
 	// numeric literal strings.
 	private static final String REF_PREFIX = "@REF:";
 	private static final String REFMUT_PREFIX = "@REFMUT:";
+	// Internal marker for array values stored as strings: "@ARR:elem1|elem2|..."
+	private static final String ARR_PREFIX = "@ARR:";
 	// Internal marker for struct values: "@STR:Type|field=val|..."
 	private static final String STR_PREFIX = "@STR:";
 	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
@@ -796,7 +802,7 @@ public class Interpreter {
 				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
 			String structName = s.substring(nameStart, braceOpen).trim();
 			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
 			if (declErr.isPresent())
 				return declErr;
 			String rest = s.substring(braceClose + 1).trim();
@@ -1345,10 +1351,13 @@ public class Interpreter {
 		if (baseRes instanceof Result.Err)
 			return Optional.of(baseRes);
 		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
-		Value base = ValueCodec.fromEncoded(baseVal);
-		if (!(base instanceof Value.ArrayVal))
+		if (!baseVal.startsWith(ARR_PREFIX))
 			return Optional.of(new Result.Err<>(new InterpretError("invalid array indexing", s)));
-		java.util.List<Value> elems = ((Value.ArrayVal) base).elements();
+		String elemsJoined = baseVal.substring(ARR_PREFIX.length());
+		List<String> elems = new ArrayList<>();
+		if (!elemsJoined.isEmpty()) {
+			Collections.addAll(elems, elemsJoined.split("\\|"));
+		}
 		Result<String, InterpretError> idxRes = evaluateExpression(idxExpr, env);
 		if (idxRes instanceof Result.Err)
 			return Optional.of(idxRes);
@@ -1357,7 +1366,7 @@ public class Interpreter {
 			int idx = Integer.parseInt(idxVal);
 			if (idx < 0 || idx >= elems.size())
 				return Optional.of(new Result.Err<>(new InterpretError("index out of bounds", s)));
-			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(elems.get(idx))));
+			return Optional.of(new Result.Ok<>(elems.get(idx)));
 		} catch (NumberFormatException ex) {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid index", s)));
 		}
@@ -1375,16 +1384,15 @@ public class Interpreter {
 				elems.add(p.trim());
 			}
 		}
-		List<Value> values = new ArrayList<>();
+		List<String> evaluated = new ArrayList<>();
 		for (String e : elems) {
 			Result<String, InterpretError> r = evaluateExpression(e, env);
 			if (r instanceof Result.Err)
 				return Optional.of(r);
-			String enc = ((Result.Ok<String, InterpretError>) r).value();
-			values.add(ValueCodec.fromEncoded(enc));
+			evaluated.add(((Result.Ok<String, InterpretError>) r).value());
 		}
-		Value.ArrayVal arr = new Value.ArrayVal(values);
-		return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(arr)));
+		String join = String.join("|", evaluated);
+		return Optional.of(new Result.Ok<>(ARR_PREFIX + join));
 	}
 
 	// Strip leading transparent unary prefixes '*' and '&' from the expression
@@ -1683,9 +1691,9 @@ public class Interpreter {
 		if (braceClose < 0)
 			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
 		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
-		if (declErr.isPresent())
-			return declErr;
+			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+			if (declErr.isPresent())
+				return declErr;
 		String rest = s.substring(braceClose + 1);
 		String restTrim = rest.trim();
 		if (restTrim.isEmpty())
@@ -1718,7 +1726,7 @@ public class Interpreter {
 			String ftype = colon > 0 ? p.substring(colon + 1).trim() : "";
 			specs.add(new FieldSpec(fname, ftype));
 		}
-		return specs;
+			return specs;
 	}
 
 	// Parse fieldsBlock and return a map with two lists: 'names' and 'types'.
@@ -1873,7 +1881,7 @@ public class Interpreter {
 		for (int j = 0; j < fieldNames.size(); j++) {
 			sb.append('|').append(fieldNames.get(j)).append('=').append(evaluated.get(j));
 		}
-		String trailing = afterName.substring(valClose + 1).trim();
+	String trailing = afterName.substring(valClose + 1).trim();
 		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(sb, trailing, restContext);
 		if (trailRes.isPresent())
 			return Optional.of(trailRes.get());
