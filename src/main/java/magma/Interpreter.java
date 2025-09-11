@@ -4,12 +4,12 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * Interpreter for a tiny language used by the project tests.
@@ -23,6 +23,72 @@ public class Interpreter {
 	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
 	// braces).
 	private record FnBodyParse(Optional<Result<String, InterpretError>> error, String retExpr) {
+	}
+
+	// Small holder for parsed method signature
+	private record MethodSig(java.util.List<String> names, java.util.List<String> types, String bareName) {
+	}
+
+	private MethodSig parseMethodSignature(String fnName) {
+		java.util.List<String> paramNames = new java.util.ArrayList<>();
+		java.util.List<String> paramTypes = new java.util.ArrayList<>();
+		int sigOpen = fnName.indexOf('(');
+		int sigClose = fnName.indexOf(')');
+		String bareName = fnName;
+		if (sigOpen > 0 && sigClose > sigOpen) {
+			bareName = fnName.substring(0, sigOpen);
+			String sig = fnName.substring(sigOpen + 1, sigClose).trim();
+			if (!sig.isEmpty()) {
+				for (String p : sig.split(",")) {
+					String part = p.trim();
+					int pcolon = part.indexOf(':');
+					if (pcolon > 0) {
+						paramNames.add(part.substring(0, pcolon).trim());
+						paramTypes.add(part.substring(pcolon + 1).trim());
+					} else {
+						paramNames.add(part);
+						paramTypes.add("");
+					}
+				}
+			}
+		}
+		return new MethodSig(paramNames, paramTypes, bareName);
+	}
+
+
+
+	// Wrapper to satisfy Checkstyle parameter limits when binding args
+	private static final class BindReq {
+		final java.util.List<String> paramNames;
+		final java.util.List<String> paramTypes;
+		final java.util.List<String> evaluatedArgs;
+		final Env fnEnv;
+		final Env callerEnv;
+
+		@SuppressWarnings("unchecked")
+		BindReq(java.util.Map<String, Object> m) {
+			this.paramNames = (java.util.List<String>) m.get("paramNames");
+			this.paramTypes = (java.util.List<String>) m.get("paramTypes");
+			this.evaluatedArgs = (java.util.List<String>) m.get("evaluatedArgs");
+			this.fnEnv = (Env) m.get("fnEnv");
+			this.callerEnv = (Env) m.get("callerEnv");
+		}
+	}
+
+	private Optional<Result<String, InterpretError>> bindEvaluatedArgs(BindReq req) {
+		for (int i = 0; i < req.paramNames.size(); i++) {
+			String p = req.paramNames.get(i);
+			String val = req.evaluatedArgs.get(i);
+			String ptype = i < req.paramTypes.size() ? req.paramTypes.get(i) : "";
+			if (!ptype.isEmpty()) {
+				Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, req.callerEnv);
+				if (annErr.isPresent())
+					return annErr;
+				req.fnEnv.typeEnv.put(p, ptype);
+			}
+			req.fnEnv.valEnv.put(p, val);
+		}
+		return Optional.empty();
 	}
 
 	// Evaluate a brace-delimited block statement and manage block-local let
@@ -157,6 +223,17 @@ public class Interpreter {
 		DerefResolve(Optional<Result<String, InterpretError>> error) {
 			this.targetName = "";
 			this.error = error;
+		}
+	}
+
+	// Helper to carry payload and evaluated argument list into evalMethodInvoke
+	private static final class MethodCallReq {
+		final String payload;
+		final java.util.List<String> args;
+
+		MethodCallReq(String payload, java.util.List<String> args) {
+			this.payload = payload;
+			this.args = args;
 		}
 	}
 
@@ -550,20 +627,15 @@ public class Interpreter {
 		fnEnv.mutEnv.putAll(env.mutEnv);
 		fnEnv.fnParamNames.putAll(env.fnParamNames);
 		fnEnv.fnParamTypes.putAll(env.fnParamTypes);
-		// bind parameter values and types
-		for (int i = 0; i < paramNames.size(); i++) {
-			String p = paramNames.get(i);
-			String val = evaluatedArgs.get(i);
-			// Validate argument value against parameter annotated type (if any)
-			String ptype = i < paramTypes.size() ? paramTypes.get(i) : "";
-			if (!ptype.isEmpty()) {
-				Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, env);
-				if (annErr.isPresent())
-					return annErr;
-				fnEnv.typeEnv.put(p, ptype);
-			}
-			fnEnv.valEnv.put(p, val);
-		}
+		java.util.Map<String, Object> bindMap1 = new java.util.HashMap<>();
+		bindMap1.put("paramNames", paramNames);
+		bindMap1.put("paramTypes", paramTypes);
+		bindMap1.put("evaluatedArgs", evaluatedArgs);
+		bindMap1.put("fnEnv", fnEnv);
+		bindMap1.put("callerEnv", env);
+		Optional<Result<String, InterpretError>> bindErr = bindEvaluatedArgs(new BindReq(bindMap1));
+		if (bindErr.isPresent())
+			return bindErr;
 		// Mark parameters as block-local declarations so `this` captured from a
 		// block inside the function will include them. This allows returning
 		// `this` to capture both parameters and inner let declarations.
@@ -2254,7 +2326,19 @@ public class Interpreter {
 				FunctionDecl fd = env.fnEnv.get(name);
 				// encode method with its body expression so it can be invoked outside
 				// the defining scope (as a simple closure representation)
-				sb.append('|').append(name).append('=').append(METHOD_PREFIX).append(name).append(':').append(fd.bodyExpr);
+				// include parameter names/types if available so callers can bind args
+				java.util.List<String> pnames = env.fnParamNames.getOrDefault(name, java.util.Collections.emptyList());
+				java.util.List<String> ptypes = env.fnParamTypes.getOrDefault(name, java.util.Collections.emptyList());
+				StringBuilder sig = new StringBuilder();
+				for (int i = 0; i < pnames.size(); i++) {
+					if (i > 0)
+						sig.append(',');
+					sig.append(pnames.get(i));
+					if (i < ptypes.size() && !ptypes.get(i).isEmpty()) {
+						sig.append(':').append(ptypes.get(i));
+					}
+				}
+				sb.append('|').append(name).append('=').append(METHOD_PREFIX).append(name).append('(').append(sig.toString()).append(')').append("::").append(fd.bodyExpr);
 			} else {
 				sb.append('|').append(name).append('=').append(val);
 			}
@@ -2294,8 +2378,6 @@ public class Interpreter {
 		if (!isSimpleIdentifier(name))
 			return Optional.empty();
 		String inside = s.substring(parenIdx + 1, s.length() - 1).trim();
-		if (!inside.isEmpty())
-			return Optional.of(new Result.Err<>(new InterpretError("method call with args not supported", s)));
 
 		Result<String, InterpretError> baseRes = evaluateExpression(baseExpr, env);
 		if (baseRes instanceof Result.Err)
@@ -2307,27 +2389,43 @@ public class Interpreter {
 		Optional<String> fieldValOpt = findFieldValue(payload, name);
 		if (fieldValOpt.isEmpty())
 			return Optional.of(new Result.Err<>(new InterpretError("unknown method", s)));
-		return evalMethodInvoke(fieldValOpt.get(), payload, env);
+		// If there are call-site arguments, evaluate them in the caller env and
+		// pass evaluated values to the method invoker.
+		java.util.List<String> evaluatedArgs = new java.util.ArrayList<>();
+		if (!inside.isEmpty()) {
+			for (String a : inside.split(",")) {
+				String argExpr = a.trim();
+				Result<String, InterpretError> r = evaluateExpression(argExpr, env);
+				if (r instanceof Result.Err)
+					return Optional.of(r);
+				evaluatedArgs.add(((Result.Ok<String, InterpretError>) r).value());
+			}
+		}
+		return evalMethodInvoke(fieldValOpt.get(), new MethodCallReq(payload, evaluatedArgs), env);
 	}
 
 	// Core logic to evaluate a method invocation given the encoded field value.
-	private Optional<Result<String, InterpretError>> evalMethodInvoke(String fieldVal, String payload, Env env) {
+	private Optional<Result<String, InterpretError>> evalMethodInvoke(String fieldVal, MethodCallReq req, Env env) {
 		if (!fieldVal.startsWith(METHOD_PREFIX))
 			return Optional.of(new Result.Err<>(new InterpretError("field is not a method", env.source)));
 		String rest = fieldVal.substring(METHOD_PREFIX.length());
 		String fnName = rest;
 		String embeddedBody = "";
-		int colon = rest.indexOf(":");
-		if (colon >= 0) {
-			fnName = rest.substring(0, colon);
-			embeddedBody = rest.substring(colon + 1);
+		// Look for embedded body separator '::' which separates name+sig from body.
+		int nameAndSigEnd = rest.length();
+		int dblColon = rest.indexOf("::");
+		if (dblColon >= 0) {
+			nameAndSigEnd = dblColon;
+			embeddedBody = rest.substring(dblColon + 2);
 		}
+		String nameAndSig = rest.substring(0, nameAndSigEnd);
+		fnName = nameAndSig;
 
 		// Build a captured env that includes shallow copies of global registries
 		// and bindings for fields encoded in the object's payload so method bodies
 		// can reference block-local lets captured in `this`.
 		Env fnEnv = shallowCopyEnv(env);
-		java.util.Map<String, String> fields = parsePayloadFields(payload);
+	java.util.Map<String, String> fields = parsePayloadFields(req.payload);
 		if (!fields.isEmpty()) {
 			for (java.util.Map.Entry<String, String> e : fields.entrySet()) {
 				String n = e.getKey();
@@ -2339,6 +2437,35 @@ public class Interpreter {
 			}
 			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(fields.keySet()));
 		}
+
+		// If the method has an embedded body, evaluate it in the captured env after
+		// binding any call-site arguments to the parameter names recorded for the
+		// function (if present in env.fnParamNames).
+		java.util.List<String> paramNames = new java.util.ArrayList<>();
+		java.util.List<String> paramTypes = new java.util.ArrayList<>();
+		MethodSig ms = parseMethodSignature(fnName);
+		if (!ms.names.isEmpty()) {
+			paramNames.addAll(ms.names);
+			paramTypes.addAll(ms.types);
+			fnName = ms.bareName;
+		} else {
+			paramNames.addAll(env.fnParamNames.getOrDefault(fnName, java.util.Collections.emptyList()));
+			paramTypes.addAll(env.fnParamTypes.getOrDefault(fnName, java.util.Collections.emptyList()));
+		}
+
+		java.util.List<String> evaluatedArgs = req.args;
+		if (evaluatedArgs.size() != paramNames.size())
+			return Optional.of(new Result.Err<>(new InterpretError("argument count mismatch in call to " + fnName, env.source)));
+
+		java.util.Map<String, Object> bindMap2 = new java.util.HashMap<>();
+		bindMap2.put("paramNames", paramNames);
+		bindMap2.put("paramTypes", paramTypes);
+		bindMap2.put("evaluatedArgs", evaluatedArgs);
+		bindMap2.put("fnEnv", fnEnv);
+		bindMap2.put("callerEnv", env);
+		Optional<Result<String, InterpretError>> bindErr2 = bindEvaluatedArgs(new BindReq(bindMap2));
+		if (bindErr2.isPresent())
+			return bindErr2;
 
 		if (!embeddedBody.isEmpty()) {
 			return Optional.of(evaluateExpression(embeddedBody, fnEnv));
