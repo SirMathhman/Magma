@@ -19,6 +19,16 @@ public class Interpreter {
 	// Not final so the compiler won't treat debug branches as dead code.
 	private static boolean DEBUG = false;
 
+	// Helper to detect whether a brace at index 'i' is immediately preceded by
+	// an identifier character (ignoring whitespace). Extracted to keep the
+	// cyclomatic complexity of extractFnReturnExpr below the Checkstyle limit.
+	private boolean bracePredId(String s, int i) {
+		int p = i - 1;
+		while (p >= 0 && Character.isWhitespace(s.charAt(p)))
+			p--;
+		return p >= 0 && Character.isJavaIdentifierPart(s.charAt(p));
+	}
+
 	// Helper to extract the return expression for a function body.
 	// It supports a block form '{ ... }' or a compact form '=> return <expr>;' (no
 	// braces).
@@ -510,6 +520,12 @@ public class Interpreter {
 			int j = findMatchingBrace(s, i);
 			if (j < 0)
 				continue;
+			// If the brace is immediately preceded by an identifier (ignoring
+			// whitespace), it's likely intended as a struct literal expression
+			// (e.g., 'Ok { }') rather than the function's body. Skip such braces
+			// so the compact-expression form (no surrounding block) is preserved.
+			if (bracePredId(s, i))
+				continue;
 			String candidateBody = s.substring(i + 1, j);
 			if (candidateBody.contains("return")) {
 				bodyOpen = i;
@@ -654,6 +670,12 @@ public class Interpreter {
 		Env fnEnv = new Env(newVals, newTypes, env.source);
 		fnEnv.fnEnv.putAll(env.fnEnv);
 		fnEnv.mutEnv.putAll(env.mutEnv);
+		// Ensure function-call evaluation environment sees declared structs, their
+		// field types, and known unions so that body expressions like `Ok { }`
+		// evaluate correctly when the declarations live in the caller scope.
+		fnEnv.structEnv.putAll(env.structEnv);
+		fnEnv.structFieldTypes.putAll(env.structFieldTypes);
+		fnEnv.unionEnv.putAll(env.unionEnv);
 		fnEnv.fnParamNames.putAll(env.fnParamNames);
 		fnEnv.fnParamTypes.putAll(env.fnParamTypes);
 		java.util.Map<String, Object> bindMap1 = new java.util.HashMap<>();
@@ -671,7 +693,15 @@ public class Interpreter {
 		if (!paramNames.isEmpty()) {
 			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(paramNames));
 		}
-		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
+		Result<String, InterpretError> res = evaluateExpression(fd.bodyExpr, fnEnv);
+		if (DEBUG) {
+			if (res instanceof Result.Ok) {
+				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned: " + ((Result.Ok<String, InterpretError>) res).value());
+			} else if (res instanceof Result.Err) {
+				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned error: " + ((Result.Err<String, InterpretError>) res).error());
+			}
+		}
+		return Optional.of(res);
 	}
 
 	// Extracted helper to parse and record a zero-arg function declaration to
@@ -1424,9 +1454,10 @@ public class Interpreter {
 			return err("value does not fit annotated union type", env.source);
 		}
 
-		// If the annotation names a declared struct type, accept when the value is
-		// a runtime-encoded struct whose name matches the annotation.
-		if (env.structEnv.containsKey(annotatedSuffix)) {
+		// If the annotation names a declared struct type or a class-style
+		// constructor (recorded in fnEnv), accept when the value is a
+		// runtime-encoded struct whose name matches the annotation.
+		if (env.structEnv.containsKey(annotatedSuffix) || env.fnEnv.containsKey(annotatedSuffix)) {
 			if (value.startsWith(STR_PREFIX)) {
 				String payload = value.substring(STR_PREFIX.length());
 				int sep = payload.indexOf('|');
@@ -1536,7 +1567,7 @@ public class Interpreter {
 			return Optional.of(new Result.Ok<>(matchesTypeName(right, leftVal) ? "true" : "false"));
 		}
 		// Support struct-name checks (e.g., 'x is Ok')
-		if (env.structEnv.containsKey(right)) {
+		if (env.structEnv.containsKey(right) || env.fnEnv.containsKey(right)) {
 			return Optional.of(new Result.Ok<>(matchesTypeName(right, leftVal) ? "true" : "false"));
 		}
 		return Optional.of(new Result.Err<>(new InterpretError("unknown type in 'is' check", env.source)));
@@ -2276,8 +2307,9 @@ public class Interpreter {
 		if (start == i)
 			return Optional.empty();
 		String typeName = s.substring(start, i);
-		if (!env.structEnv.containsKey(typeName))
-			return Optional.empty();
+		// Allow standalone struct literals even if the type hasn't been
+		// declared previously; evalStructLit will validate or allow an empty
+		// field list for ad-hoc zero-field literals.
 		String rest = s.substring(i).trim();
 		if (!rest.startsWith("{"))
 			return Optional.empty();
@@ -2304,8 +2336,6 @@ public class Interpreter {
 		if (start == i)
 			return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", rest)));
 		String structName = rest.substring(start, i);
-		if (!env.structEnv.containsKey(structName))
-			return Optional.of(new Result.Err<>(new InterpretError("unknown struct type", rest)));
 		String afterName = rest.substring(i).trim();
 		return evalStructLit(structName, afterName, env);
 	}
@@ -2329,7 +2359,11 @@ public class Interpreter {
 			for (String p : vals.split(","))
 				valExprs.add(p.trim());
 		}
-		List<String> fieldNames = env.structEnv.get(structName);
+		java.util.List<String> fieldNames = env.structEnv.getOrDefault(structName, java.util.Collections.emptyList());
+		// If the struct type was not previously declared, only allow an empty
+		// field list (e.g., `Ok { }`). Otherwise report unknown struct type.
+		if (!env.structEnv.containsKey(structName) && !valExprs.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("unknown struct type", restContext)));
 		if (valExprs.size() != fieldNames.size())
 			return Optional.of(new Result.Err<>(new InterpretError("struct literal field count mismatch", restContext)));
 		List<String> evaluated = new ArrayList<>();
