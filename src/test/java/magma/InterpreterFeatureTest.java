@@ -338,4 +338,11 @@ public class InterpreterFeatureTest {
 		// Case: fn Wrapper() => {let x = 100; this} Wrapper().x => 100
 		TestUtils.assertValid("fn Wrapper() => {let x = 100; this} Wrapper().x", "100");
 	}
+
+	@Test
+	public void thisCapturesParam() {
+		// Acceptance: parameters should be included in the captured `this` when
+		// returned from a function block. Case: fn Wrapper(x : I32) => {this} Wrapper(100).x => 100
+		TestUtils.assertValid("fn Wrapper(x : I32) => {this} Wrapper(100).x", "100");
+	}
 }

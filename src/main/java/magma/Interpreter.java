@@ -146,7 +146,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnParamTypes;
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
- 		final Map<String, java.util.List<String>> structFieldTypes;
+		final Map<String, java.util.List<String>> structFieldTypes;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -168,9 +168,9 @@ public class Interpreter {
 
 	}
 
-		// Small record to hold a field name and its annotated type (may be empty).
-		private record FieldSpec(String name, String type) {
-		}
+	// Small record to hold a field name and its annotated type (may be empty).
+	private record FieldSpec(String name, String type) {
+	}
 
 	// Helper to represent a parsed type kind and width together so checks can
 	// take a single object rather than separate primitive params.
@@ -489,6 +489,12 @@ public class Interpreter {
 			}
 			fnEnv.valEnv.put(p, val);
 		}
+		// Mark parameters as block-local declarations so `this` captured from a
+		// block inside the function will include them. This allows returning
+		// `this` to capture both parameters and inner let declarations.
+		if (!paramNames.isEmpty()) {
+			fnEnv.localDecls = java.util.Optional.of(new java.util.HashSet<>(paramNames));
+		}
 		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
 
@@ -710,14 +716,26 @@ public class Interpreter {
 		if (s.contains(";"))
 			return evaluateSequence(s);
 
-		// For single-expression programs, evaluate the expression with empty
-		// environments so that expression handling (including literals,
-		// boolean literals, addition, and typed literals) is centralized in
-		// evaluateExpression(...).
+		// Otherwise attempt to evaluate as a single expression. Special-case
+		// the 'fn <name>... <expr>' pattern: some valid programs declare a
+		// function and immediately follow with an expression without a
+		// semicolon (e.g., 'fn Wrapper() => { this } Wrapper().x'). If a
+		// single-expression parse fails with 'invalid literal', fall back to
+		// sequence parsing for sources that start with 'fn'. This avoids
+		// interfering with struct inline-literal handling.
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
-		return evaluateExpression(s, env);
+		Result<String, InterpretError> single = evaluateExpression(s, env);
+		if (single instanceof Result.Ok)
+			return single;
+		if (single instanceof Result.Err && (s.startsWith("fn ") || s.startsWith("fn("))) {
+			Result.Err<String, InterpretError> err = (Result.Err<String, InterpretError>) single;
+			InterpretError ie = err.error();
+			if ("invalid literal".equals(ie.errorReason()))
+				return evaluateSequence(s);
+		}
+		return single;
 	}
 
 	// Evaluate a semicolon-separated program supporting `let` declarations.
@@ -802,7 +820,7 @@ public class Interpreter {
 				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
 			String structName = s.substring(nameStart, braceOpen).trim();
 			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
 			if (declErr.isPresent())
 				return declErr;
 			String rest = s.substring(braceClose + 1).trim();
@@ -1691,9 +1709,9 @@ public class Interpreter {
 		if (braceClose < 0)
 			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
 		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
-			if (declErr.isPresent())
-				return declErr;
+		Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
+		if (declErr.isPresent())
+			return declErr;
 		String rest = s.substring(braceClose + 1);
 		String restTrim = rest.trim();
 		if (restTrim.isEmpty())
@@ -1726,7 +1744,7 @@ public class Interpreter {
 			String ftype = colon > 0 ? p.substring(colon + 1).trim() : "";
 			specs.add(new FieldSpec(fname, ftype));
 		}
-			return specs;
+		return specs;
 	}
 
 	// Parse fieldsBlock and return a map with two lists: 'names' and 'types'.
@@ -1881,7 +1899,7 @@ public class Interpreter {
 		for (int j = 0; j < fieldNames.size(); j++) {
 			sb.append('|').append(fieldNames.get(j)).append('=').append(evaluated.get(j));
 		}
-	String trailing = afterName.substring(valClose + 1).trim();
+		String trailing = afterName.substring(valClose + 1).trim();
 		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(sb, trailing, restContext);
 		if (trailRes.isPresent())
 			return Optional.of(trailRes.get());
@@ -1941,8 +1959,13 @@ public class Interpreter {
 		// mutability info but has its own value/type maps that start as copies
 		// of the parent's maps.
 		Env child = makeChildEnv(env);
-		// Track block-local declarations so 'this' can capture them.
-		child.localDecls = java.util.Optional.of(new java.util.HashSet<String>());
+		// Initialize child.localDecls: copy parent's tracked locals if present
+		// so that `this` captures parameters and other inherited locals; then
+		// add a fresh set for block-local declarations to be merged.
+		java.util.Set<String> initialLocals = new java.util.HashSet<>();
+		if (env.localDecls.isPresent())
+			initialLocals.addAll(env.localDecls.get());
+		child.localDecls = java.util.Optional.of(initialLocals);
 		for (String part : inner) {
 			String t = part.trim();
 			if (t.isEmpty())
