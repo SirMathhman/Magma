@@ -296,4 +296,11 @@ public class InterpreterFeatureTest {
 		// Invalid case: assigning through an index when the array variable is immutable
 		TestUtils.assertInvalid("let x = [0]; x[0] = 1; x[0]");
 	}
+
+	@Test
+	public void structFieldAccess() {
+		// Acceptance: struct literal with a named field should allow field access
+		// Case: struct Wrapper { field : I32 } Wrapper { 100 }.field => 100
+		TestUtils.assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
+	}
 }

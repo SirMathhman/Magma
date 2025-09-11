@@ -145,6 +145,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnParamNames;
 		final Map<String, List<String>> fnParamTypes;
 		final Map<String, Boolean> mutEnv;
+		final Map<String, java.util.List<String>> structEnv;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -158,6 +159,7 @@ public class Interpreter {
 			this.fnParamNames = new HashMap<>();
 			this.fnParamTypes = new HashMap<>();
 			this.mutEnv = new HashMap<>();
+			this.structEnv = new HashMap<>();
 			this.source = source;
 			this.localDecls = java.util.Optional.empty();
 		}
@@ -356,6 +358,8 @@ public class Interpreter {
 	private static final String REFMUT_PREFIX = "@REFMUT:";
 	// Internal marker for array values stored as strings: "@ARR:elem1|elem2|..."
 	private static final String ARR_PREFIX = "@ARR:";
+	// Internal marker for struct values: "@STR:Type|field=val|..."
+	private static final String STR_PREFIX = "@STR:";
 	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {
@@ -1174,6 +1178,12 @@ public class Interpreter {
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
+		Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
+		if (structRes.isPresent())
+			return structRes.get();
+		Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
+		if (memberRes.isPresent())
+			return memberRes.get();
 		// Try handling prefix operations: &mut, &, and * (deref)
 		Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
 		if (pref.isPresent())
@@ -1185,36 +1195,88 @@ public class Interpreter {
 		if (s.equals("true") || s.equals("false"))
 			return new Result.Ok<>(s);
 
+		Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
+		if (p1.isPresent())
+			return p1.get();
+		Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
+		if (p2.isPresent())
+			return p2.get();
+		return new Result.Err<>(new InterpretError("invalid literal", expr));
+	}
+
+	// Try member access `<expr>.field` and return Optional.empty() if not
+	// applicable
+	private Optional<Result<String, InterpretError>> tryEvalMemberAccess(String s, Env env) {
+		int dotIdx = s.lastIndexOf('.');
+		if (dotIdx <= 0 || dotIdx >= s.length() - 1)
+			return Optional.empty();
+		String base = s.substring(0, dotIdx).trim();
+		String field = s.substring(dotIdx + 1).trim();
+		if (!isSimpleIdentifier(field))
+			return Optional.empty();
+		Result<String, InterpretError> baseRes = evaluateExpression(base, env);
+		if (baseRes instanceof Result.Err)
+			return Optional.of(baseRes);
+		String baseVal = ((Result.Ok<String, InterpretError>) baseRes).value();
+		if (!baseVal.startsWith(STR_PREFIX))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid struct field access", s)));
+		String payload = baseVal.substring(STR_PREFIX.length());
+		int sep = payload.indexOf('|');
+		String fieldsPart = sep >= 0 ? payload.substring(sep + 1) : "";
+		if (fieldsPart.isEmpty())
+			return Optional.of(new Result.Err<>(new InterpretError("unknown field", s)));
+		for (String p : fieldsPart.split("\\|")) {
+			int eq = p.indexOf('=');
+			if (eq <= 0)
+				continue;
+			String fname = p.substring(0, eq);
+			String fval = p.substring(eq + 1);
+			if (fname.equals(field))
+				return Optional.of(new Result.Ok<>(fval));
+		}
+		return Optional.of(new Result.Err<>(new InterpretError("unknown field", s)));
+	}
+
+	// Primary evaluation part 1: block, boolean, array/index, function call,
+	// variable
+	private Optional<Result<String, InterpretError>> tryEvalPrimary1(String s, Env env) {
+		// Block expression
+		if (s.startsWith("{") && s.endsWith("}"))
+			return Optional.of(evalBlockExpr(s, env));
+		// Boolean literals
+		if (s.equals("true") || s.equals("false"))
+			return Optional.of(new Result.Ok<>(s));
 		// array literal / indexing
 		Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
 		if (arrIdx.isPresent())
-			return arrIdx.get();
-
-		// function call: <ident>(...) (supports zero-arg or single-arg calls)
+			return arrIdx;
+		// function call
 		Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
 		if (fnCall.isPresent())
-			return fnCall.get();
+			return fnCall;
 		// variable reference
 		if (isSimpleIdentifier(s)) {
 			if (env.valEnv.containsKey(s))
-				return new Result.Ok<>(env.valEnv.get(s));
-			return new Result.Err<>(new InterpretError("unknown identifier", expr));
+				return Optional.of(new Result.Ok<>(env.valEnv.get(s)));
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
 		}
-		// comparison (e.g., '<')
+		return Optional.empty();
+	}
+
+	// Primary evaluation part 2: comparison, addition, and literals
+	private Optional<Result<String, InterpretError>> tryEvalPrimary2(String s, Env env) {
 		Optional<Result<String, InterpretError>> cmpRes = tryEvalComp(s, env);
 		if (cmpRes.isPresent())
-			return cmpRes.get();
-		// addition
+			return cmpRes;
 		Optional<Result<String, InterpretError>> addRes = tryEvaluateAddition(s);
 		if (addRes.isPresent())
-			return addRes.get();
-		// literal/typed-literal
+			return addRes;
 		ParseResult pr = parseSignAndDigits(s);
 		if (!pr.valid)
-			return new Result.Err<>(new InterpretError("invalid literal", expr));
+			return Optional.empty();
 		if (pr.suffix.isEmpty())
-			return new Result.Ok<>(pr.integerPart);
-		return evaluateTypedSuffix(pr, expr);
+			return Optional.of(new Result.Ok<>(pr.integerPart));
+		return Optional.of(evaluateTypedSuffix(pr, s));
 	}
 
 	// Try to evaluate either an array literal like `[1,2]` or an indexing
@@ -1573,6 +1635,113 @@ public class Interpreter {
 		return trimmed.indexOf(" else ");
 	}
 
+	// Try to parse an inline struct declaration/literal and return its Result if
+	// applicable. This keeps evaluateExpression under the cyclomatic limit.
+	private Optional<Result<String, InterpretError>> tryEvalStruct(String s, Env env) {
+		if (!s.startsWith("struct "))
+			return Optional.empty();
+		int nameStart = 7;
+		int braceOpen = s.indexOf('{', nameStart);
+		if (braceOpen <= 0)
+			return Optional.empty();
+		String structName = s.substring(nameStart, braceOpen).trim();
+		int braceClose = findMatchingBrace(s, braceOpen);
+		if (braceClose < 0)
+			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
+		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
+		List<String> fieldNames = new ArrayList<>();
+		if (!fieldsBlock.isEmpty()) {
+			for (String part : fieldsBlock.split(";|,")) {
+				String p = part.trim();
+				if (p.isEmpty())
+					continue;
+				int colon = p.indexOf(':');
+				String fname = colon > 0 ? p.substring(0, colon).trim() : p;
+				fieldNames.add(fname);
+			}
+		}
+		env.structEnv.put(structName, fieldNames);
+		String rest = s.substring(braceClose + 1).trim();
+		if (rest.isEmpty())
+			return Optional.of(new Result.Ok<>(""));
+		return tryEvalStructLiteral(rest, env);
+	}
+
+	private Optional<Result<String, InterpretError>> tryEvalStructLiteral(String rest, Env env) {
+		// Delegate the bulk of struct-literal handling to a helper to keep this
+		// method's cyclomatic complexity low.
+		int i = 0;
+		int len = rest.length();
+		while (i < len && Character.isWhitespace(rest.charAt(i)))
+			i++;
+		int start = i;
+		while (i < len && Character.isJavaIdentifierPart(rest.charAt(i)))
+			i++;
+		if (start == i)
+			return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", rest)));
+		String structName = rest.substring(start, i);
+		if (!env.structEnv.containsKey(structName))
+			return Optional.of(new Result.Err<>(new InterpretError("unknown struct type", rest)));
+		String afterName = rest.substring(i).trim();
+		return evalStructLit(structName, afterName, env);
+	}
+
+	// Helper extracted from tryEvalStructLiteral that performs the detailed
+	// parsing and evaluation of the literal fields and optional trailing
+	// '.field' access. Keeping this logic separate reduces cyclomatic complexity
+	// in the caller.
+	private Optional<Result<String, InterpretError>> evalStructLit(String structName,
+			String afterName,
+			Env env) {
+		String restContext = structName + " " + afterName;
+		if (!afterName.startsWith("{"))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", restContext)));
+		int valClose = findMatchingBrace(afterName, 0);
+		if (valClose < 0)
+			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct literal", restContext)));
+		String vals = afterName.substring(1, valClose).trim();
+		List<String> valExprs = new ArrayList<>();
+		if (!vals.isEmpty()) {
+			for (String p : vals.split(","))
+				valExprs.add(p.trim());
+		}
+		List<String> fieldNames = env.structEnv.get(structName);
+		if (valExprs.size() != fieldNames.size())
+			return Optional.of(new Result.Err<>(new InterpretError("struct literal field count mismatch", restContext)));
+		List<String> evaluated = new ArrayList<>();
+		for (String e : valExprs) {
+			Result<String, InterpretError> r = evaluateExpression(e, env);
+			if (r instanceof Result.Err)
+				return Optional.of(r);
+			evaluated.add(((Result.Ok<String, InterpretError>) r).value());
+		}
+		StringBuilder sb = new StringBuilder();
+		sb.append(structName);
+		for (int j = 0; j < fieldNames.size(); j++) {
+			sb.append('|').append(fieldNames.get(j)).append('=').append(evaluated.get(j));
+		}
+		String encoded = STR_PREFIX + sb.toString();
+		String trailing = afterName.substring(valClose + 1).trim();
+		if (trailing.isEmpty())
+			return Optional.of(new Result.Ok<>(encoded));
+		if (trailing.startsWith(".")) {
+			String fieldReq = trailing.substring(1).trim();
+			if (!isSimpleIdentifier(fieldReq))
+				return Optional.of(new Result.Err<>(new InterpretError("invalid struct field access", restContext)));
+			for (String p : sb.toString().substring(structName.length() + 1).split("\\|")) {
+				int eq = p.indexOf('=');
+				if (eq <= 0)
+					continue;
+				String fname = p.substring(0, eq);
+				String fval = p.substring(eq + 1);
+				if (fname.equals(fieldReq))
+					return Optional.of(new Result.Ok<>(fval));
+			}
+			return Optional.of(new Result.Err<>(new InterpretError("unknown field", restContext)));
+		}
+		return Optional.of(new Result.Err<>(new InterpretError("invalid struct literal", restContext)));
+	}
+
 	// Evaluate a brace-delimited block expression and return the value of the
 	// final inner expression (or appropriate Err). This is separated from
 	// evaluateExpression to reduce cyclomatic complexity and satisfy Checkstyle.
@@ -1620,6 +1789,7 @@ public class Interpreter {
 		child.fnParamNames.putAll(parent.fnParamNames);
 		child.fnParamTypes.putAll(parent.fnParamTypes);
 		child.mutEnv.putAll(parent.mutEnv);
+		child.structEnv.putAll(parent.structEnv);
 		return child;
 	}
 

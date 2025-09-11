@@ -233,6 +233,50 @@ Documentation changes
 
 Note: the function return type annotation is optional. The interpreter accepts `fn get() => { return 100; } get()` (no `: I32`), which returns `"100"`.
 
+## Architecture change: inline structs and field access
+
+Goal
+----
+Add a minimal, inline struct declaration and literal feature so tests can express
+simple struct construction and field access. Example: `struct Wrapper { field : I32 } Wrapper { 100 }.field` => `"100"`.
+
+Files / Modules affected
+------------------------
+- `src/main/java/magma/Interpreter.java` — add lightweight parsing for inline
+  `struct` declarations, struct literals, and member access (`.`) evaluation.
+- `src/test/java/magma/InterpreterFeatureTest.java` — add `structWrapperFieldAccess` test.
+
+Contract
+--------
+- Input: inline struct declaration immediately followed by a struct literal and
+  field access expression.
+- Output: the field value as a string (e.g., `"100"`).
+- Error modes: unterminated declaration/literal, unknown field, invalid
+  struct literal, or mismatched field counts.
+
+Design notes
+------------
+- Structs are stored in `Env.structEnv` as an ordered list of field names.
+- Struct values are encoded as an internal string with the `@STR:` prefix and
+  the form `@STR:Type|field=val|...` so the rest of the interpreter can keep
+  using string-encoded runtime values.
+
+Tests to add
+------------
+- `src/test/java/magma/InterpreterFeatureTest.java::structWrapperFieldAccess`
+  — asserts `struct Wrapper { field : I32 } Wrapper { 100 }.field` evaluates to
+  `"100"`.
+
+Quality gates
+-------------
+- Add failing test (red) — done
+- Implement struct parsing/evaluation — done
+- Run `mvn -DskipTests=false test` until green
+
+This is intentionally minimal to satisfy acceptance tests. If richer struct
+semantics are needed, we should model runtime values with proper typed objects
+instead of an encoded string format.
+
 ### Compact fn-body expression form
 
 Goal
