@@ -104,6 +104,15 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- Add exec plugin so `mvn exec:java` can run magma.Main -->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>exec-maven-plugin</artifactId>
+				<version>3.1.0</version>
+				<configuration>
+					<mainClass>magma.Main</mainClass>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 

@@ -12,6 +12,8 @@ Additional files:
 
 - `src/main/java/magma/Interpreter.java` - Empty placeholder class for future interpreter features
 
+Note: a simple runner `magma.Main` was added that reads `src/main/magma/magma/Main.mgs` and invokes the interpreter; run it with `mvn exec:java -Dexec.mainClass=magma.Main` or by running the class directly.
+
 Interpreter API
 
 - `src/main/java/magma/Interpreter.java` provides `interpret(String source, String input)` which evaluates small programs and returns a `Result<String, InterpretError>`.
