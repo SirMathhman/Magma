@@ -796,6 +796,10 @@ public class Interpreter {
 			String structName = s.substring(nameStart, braceOpen).trim();
 			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
 			List<String> fieldNames = parseStructFields(fieldsBlock);
+			// Validate duplicate field names within the struct
+			Optional<Result<String, InterpretError>> dupErr = checkDuplicateFields(fieldNames, s);
+			if (dupErr.isPresent())
+				return dupErr;
 			// Reject duplicate struct declarations: a struct name must be unique.
 			if (env.structEnv.containsKey(structName))
 				return Optional.of(new Result.Err<>(new InterpretError("duplicate struct declaration", s)));
@@ -1680,17 +1684,11 @@ public class Interpreter {
 		if (braceClose < 0)
 			return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", s)));
 		String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
-		List<String> fieldNames = new ArrayList<>();
-		if (!fieldsBlock.isEmpty()) {
-			for (String part : fieldsBlock.split(";|,")) {
-				String p = part.trim();
-				if (p.isEmpty())
-					continue;
-				int colon = p.indexOf(':');
-				String fname = colon > 0 ? p.substring(0, colon).trim() : p;
-				fieldNames.add(fname);
-			}
-		}
+		List<String> fieldNames = parseStructFields(fieldsBlock);
+		// Validate duplicate field names within the struct
+		Optional<Result<String, InterpretError>> dupErr = checkDuplicateFields(fieldNames, s);
+		if (dupErr.isPresent())
+			return dupErr;
 		env.structEnv.put(structName, fieldNames);
 		String rest = s.substring(braceClose + 1);
 		String restTrim = rest.trim();
@@ -1723,6 +1721,19 @@ public class Interpreter {
 			names.add(fname);
 		}
 		return names;
+	}
+
+	// Return an Optional containing an Err Result if duplicate field names are
+	// present in the provided list. The caller can return the Result when
+	// present to surface the error to the interpreter user.
+	private Optional<Result<String, InterpretError>> checkDuplicateFields(List<String> fields, String context) {
+		Set<String> seen = new HashSet<>();
+		for (String f : fields) {
+			if (seen.contains(f))
+				return Optional.of(new Result.Err<>(new InterpretError("duplicate struct field", context)));
+			seen.add(f);
+		}
+		return Optional.empty();
 	}
 
 	// Heuristic: does the trailing text after a struct declaration look like a

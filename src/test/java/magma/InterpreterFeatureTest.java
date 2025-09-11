@@ -318,4 +318,10 @@ public class InterpreterFeatureTest {
 		// Invalid case: redeclaring a struct with the same name should be rejected
 		TestUtils.assertInvalid("struct Duplicate { field : I32 } struct Duplicate { field : I32 }");
 	}
+
+	@Test
+	public void dupFieldInvalid() {
+		// Invalid case: duplicate field names within a struct should be rejected
+		TestUtils.assertInvalid("struct Point { x : I32, x : I32 }");
+	}
 }
