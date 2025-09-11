@@ -39,17 +39,16 @@ public class Interpreter {
 				continue;
 			Optional<Result<String, InterpretError>> innerRes = handleStatement(t, env);
 			if (innerRes.isPresent()) {
-				if (createdLocalSet && env.localDecls.isPresent()) {
-					for (String name : env.localDecls.get()) {
-						env.valEnv.remove(name);
-						env.typeEnv.remove(name);
-						env.mutEnv.remove(name);
-					}
-					env.localDecls = java.util.Optional.empty();
-				}
+				cleanupLocalDecls(env, createdLocalSet);
 				return innerRes;
 			}
 		}
+		cleanupLocalDecls(env, createdLocalSet);
+		return Optional.empty();
+	}
+
+	// Remove block-local declarations that were created for the current block.
+	private void cleanupLocalDecls(Env env, boolean createdLocalSet) {
 		if (createdLocalSet && env.localDecls.isPresent()) {
 			for (String name : env.localDecls.get()) {
 				env.valEnv.remove(name);
@@ -58,7 +57,6 @@ public class Interpreter {
 			}
 			env.localDecls = java.util.Optional.empty();
 		}
-		return Optional.empty();
 	}
 
 	// Helper to hold consequent/alternative extraction result
