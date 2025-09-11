@@ -1423,6 +1423,20 @@ public class Interpreter {
 			}
 			return err("value does not fit annotated union type", env.source);
 		}
+
+		// If the annotation names a declared struct type, accept when the value is
+		// a runtime-encoded struct whose name matches the annotation.
+		if (env.structEnv.containsKey(annotatedSuffix)) {
+			if (value.startsWith(STR_PREFIX)) {
+				String payload = value.substring(STR_PREFIX.length());
+				int sep = payload.indexOf('|');
+				String name = sep >= 0 ? payload.substring(0, sep) : payload;
+				if (annotatedSuffix.equals(name))
+					return Optional.empty();
+				return err("value does not fit annotated type", env.source);
+			}
+			return err("value does not fit annotated type", env.source);
+		}
 		// Special-case Bool annotation which does not follow the <Letter><digits>
 		// pattern used by integer typed suffixes (e.g. U8, I32).
 		if (annotatedSuffix.equalsIgnoreCase("Bool")) {
@@ -1519,6 +1533,10 @@ public class Interpreter {
 			return Optional.of(new Result.Ok<>(matchesTypeName("Bool", leftVal) ? "true" : "false"));
 		}
 		if (right.matches("[UIuIi]\\d+")) {
+			return Optional.of(new Result.Ok<>(matchesTypeName(right, leftVal) ? "true" : "false"));
+		}
+		// Support struct-name checks (e.g., 'x is Ok')
+		if (env.structEnv.containsKey(right)) {
 			return Optional.of(new Result.Ok<>(matchesTypeName(right, leftVal) ? "true" : "false"));
 		}
 		return Optional.of(new Result.Err<>(new InterpretError("unknown type in 'is' check", env.source)));
@@ -2764,8 +2782,12 @@ private boolean matchesTypeName(String typeName, String value) {
 			return false;
 		}
 	}
-	if (value.startsWith(STR_PREFIX))
-		return true;
+		if (value.startsWith(STR_PREFIX)) {
+			String payload = value.substring(STR_PREFIX.length());
+			int sep = payload.indexOf('|');
+			String name = sep >= 0 ? payload.substring(0, sep) : payload;
+			return name.equals(typeName);
+		}
 	return false;
 }
 
