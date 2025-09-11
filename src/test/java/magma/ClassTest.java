@@ -20,6 +20,6 @@ public class ClassTest {
 	@Test
 	public void wrapperInvalidReturn() {
 		TestUtils
-				.assertInvalid("class fn Wrapper() => {let result = 100; fn get() => this.result; return 100} Wrapper().get()");
+				.assertInvalid("class fn Wrapper() => {let result = 100; fn get() => this.result; return 100;} Wrapper().get()");
 	}
 }
