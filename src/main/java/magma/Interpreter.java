@@ -195,6 +195,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnParamNames;
 		final Map<String, List<String>> fnParamTypes;
 		final Map<String, List<String>> fnGenericParams;
+		final Map<String, List<String>> structGenericParams;
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
 		final Map<String, java.util.List<String>> structFieldTypes;
@@ -212,6 +213,7 @@ public class Interpreter {
 			this.fnParamNames = new HashMap<>();
 			this.fnParamTypes = new HashMap<>();
 			this.fnGenericParams = new HashMap<>();
+			this.structGenericParams = new HashMap<>();
 			this.mutEnv = new HashMap<>();
 			this.structEnv = new HashMap<>();
 			this.structFieldTypes = new HashMap<>();
@@ -691,6 +693,8 @@ public class Interpreter {
 		fnEnv.unionEnv.putAll(env.unionEnv);
 		fnEnv.fnParamNames.putAll(env.fnParamNames);
 		fnEnv.fnParamTypes.putAll(env.fnParamTypes);
+		fnEnv.fnGenericParams.putAll(env.fnGenericParams);
+		fnEnv.structGenericParams.putAll(env.structGenericParams);
 		java.util.Map<String, Object> bindMap1 = new java.util.HashMap<>();
 		bindMap1.put("paramNames", paramNames);
 		bindMap1.put("paramTypes", paramTypes);
@@ -1109,14 +1113,39 @@ public class Interpreter {
 		// declaration and the let appear in the same semicolon-delimited part.
 		if (s.startsWith("struct ")) {
 			int nameStart = 7;
+			// support optional generic parameter list after the struct name: <T, U>
 			int braceOpen = s.indexOf('{', nameStart);
-			if (braceOpen <= 0)
+			String structNameRaw = s.substring(nameStart, braceOpen > 0 ? braceOpen : s.length()).trim();
+			String structName = structNameRaw;
+			List<String> genericNames = new ArrayList<>();
+			// detect and parse generic list if present in the header
+			int genStart = structNameRaw.indexOf('<');
+			if (genStart >= 0) {
+				int genClose = structNameRaw.indexOf('>', genStart + 1);
+				if (genClose > genStart) {
+					String inside = structNameRaw.substring(genStart + 1, genClose).trim();
+					structName = structNameRaw.substring(0, genStart).trim();
+					if (!inside.isEmpty()) {
+						for (String g : inside.split(",")) {
+							String gn = g.trim();
+							if (!gn.isEmpty())
+								genericNames.add(gn);
+						}
+					}
+				}
+			}
+			int realBraceOpen = s.indexOf('{', nameStart);
+			if (realBraceOpen <= 0)
 				return Optional.of(new Result.Err<>(new InterpretError("invalid struct declaration", env.source)));
-			int braceClose = findMatchingBrace(s, braceOpen);
+			int braceOpenIdx = realBraceOpen;
+			int braceClose = findMatchingBrace(s, braceOpenIdx);
 			if (braceClose < 0)
 				return Optional.of(new Result.Err<>(new InterpretError("unterminated struct declaration", env.source)));
-			String structName = s.substring(nameStart, braceOpen).trim();
-			String fieldsBlock = s.substring(braceOpen + 1, braceClose).trim();
+			String fieldsBlock = s.substring(braceOpenIdx + 1, braceClose).trim();
+			// record generic params if present
+			if (!genericNames.isEmpty()) {
+				env.structGenericParams.put(structName, genericNames);
+			}
 			Optional<Result<String, InterpretError>> declErr = declareStruct(structName, fieldsBlock, env);
 			if (declErr.isPresent())
 				return declErr;
@@ -2455,6 +2484,13 @@ public class Interpreter {
 		for (int j = 0; j < ftypes.size(); j++) {
 			String ann = ftypes.get(j);
 			if (!ann.isEmpty()) {
+				// If the annotation references a generic parameter declared on the
+				// struct (e.g., T in `struct Wrapper<T>{ value : T }`), skip runtime
+				// checking for that field because generics are erased at runtime.
+				List<String> gens = env.structGenericParams.getOrDefault(structName,
+					java.util.Collections.emptyList());
+				if (gens.contains(ann))
+					continue;
 				Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, evaluated.get(j), env);
 				if (chk.isPresent())
 					return chk;
@@ -2756,6 +2792,7 @@ public class Interpreter {
 		e.fnParamNames.putAll(src.fnParamNames);
 		e.fnParamTypes.putAll(src.fnParamTypes);
 		e.fnGenericParams.putAll(src.fnGenericParams);
+		e.structGenericParams.putAll(src.structGenericParams);
 		e.mutEnv.putAll(src.mutEnv);
 		e.structEnv.putAll(src.structEnv);
 		e.structFieldTypes.putAll(src.structFieldTypes);
