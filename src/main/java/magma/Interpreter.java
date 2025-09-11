@@ -878,6 +878,17 @@ public class Interpreter {
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
+		// Special-case: if the source is an object declaration with no trailing
+		// expression, treat it as a top-level statement and return empty output
+		// rather than attempting to parse it as a single expression (which
+		// previously produced "invalid literal"). This keeps behavior aligned
+		// with semicolon-separated sequences where statements-only return "".
+		if (s.startsWith("object ")) {
+			Optional<Result<String, InterpretError>> stmtRes = handleSimpleStmt(s, env);
+			if (stmtRes.isPresent())
+				return stmtRes.get();
+			return new Result.Ok<>("");
+		}
 		Result<String, InterpretError> single = evaluateExpression(s, env);
 		if (single instanceof Result.Ok)
 			return single;
@@ -924,7 +935,17 @@ public class Interpreter {
 					return stmtRes.get();
 				i++;
 			} else {
-				// Final expression: evaluate and return
+				// Final part: if it looks like a statement (object/struct/let/assign/etc.)
+				// treat it as a statement and return empty output on success, matching
+				// behavior for semicolon-separated sequences where statements-only
+				// produce an empty result.
+				if (isStmtLike(part) || part.startsWith("object ") || part.startsWith("struct ")) {
+					Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
+					if (stmtRes.isPresent())
+						return stmtRes.get();
+					return new Result.Ok<>("");
+				}
+				// Otherwise treat as a final expression: evaluate and return
 				return evaluateExpression(part, env);
 			}
 		}

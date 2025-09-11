@@ -21,4 +21,11 @@ public class ObjectTest {
 		String src = "object Interpreter { let DEBUG = false; } Interpreter.DEBUG";
 		TestUtils.assertValid(src, "false");
 	}
+
+	@Test
+	public void objectOnlyEmpty() {
+		String src = "object Interpreter { let DEBUG = false; }";
+		// Expect empty output when a source contains only declarations and no final expression
+		TestUtils.assertValid(src, "");
+	}
 }
