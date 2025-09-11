@@ -139,6 +139,7 @@ public class Interpreter {
 	// passing multiple maps/strings as separate parameters (keeps parameter
 	// counts below the Checkstyle limit).
 	private static final class Env {
+		final Map<String, String> valEnv;
 		final Map<String, String> typeEnv;
 		final Map<String, FunctionDecl> fnEnv;
 		final Map<String, List<String>> fnParamNames;
@@ -152,9 +153,7 @@ public class Interpreter {
 		// block-local so they can be removed/restored after the block completes.
 		java.util.Optional<Set<String>> localDecls;
 
-		final Map<String, Value> valEnv;
-
-		Env(Map<String, Value> valEnv, Map<String, String> typeEnv, String source) {
+		Env(Map<String, String> valEnv, Map<String, String> typeEnv, String source) {
 			this.valEnv = valEnv;
 			this.typeEnv = typeEnv;
 			this.fnEnv = new HashMap<>();
@@ -191,27 +190,15 @@ public class Interpreter {
 	private static final class AssignPrep {
 		final Optional<String> evaluatedRhs;
 		final Optional<Result<String, InterpretError>> error;
-		// If present, indicates the assignment should write to this target
-		// (used for deref-assignment '*x = ...' and indexed assignments that
-		// produce a write-through target).
-		final Optional<String> derefTarget;
 
 		AssignPrep(String evaluatedRhs) {
 			this.evaluatedRhs = Optional.of(evaluatedRhs);
 			this.error = Optional.empty();
-			this.derefTarget = Optional.empty();
-		}
-
-		AssignPrep(String evaluatedRhs, String derefTarget) {
-			this.evaluatedRhs = Optional.of(evaluatedRhs);
-			this.error = Optional.empty();
-			this.derefTarget = Optional.of(derefTarget);
 		}
 
 		AssignPrep(Result<String, InterpretError> error) {
 			this.evaluatedRhs = Optional.empty();
 			this.error = Optional.of(error);
-			this.derefTarget = Optional.empty();
 		}
 	}
 
@@ -335,7 +322,8 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> chk = chkExistsMut(req.base, env);
 		if (chk.isPresent())
 			return new AssignPrep(chk.get());
-		Value base = env.valEnv.getOrDefault(req.base, Value.UnitVal.INSTANCE);
+		String baseVal = env.valEnv.getOrDefault(req.base, "");
+		Value base = ValueCodec.fromEncoded(baseVal);
 		if (!(base instanceof Value.ArrayVal))
 			return new AssignPrep(new Result.Err<>(new InterpretError("invalid array assignment", env.source)));
 		java.util.List<Value> elems = new java.util.ArrayList<>(((Value.ArrayVal) base).elements());
@@ -343,7 +331,7 @@ public class Interpreter {
 			return new AssignPrep(new Result.Err<>(new InterpretError("index out of bounds", env.source)));
 		elems.set(idxInt, ValueCodec.fromEncoded(valueEnc));
 		Value.ArrayVal updated = new Value.ArrayVal(elems);
-		return new AssignPrep(ValueCodec.toEncoded(updated), req.base);
+		return new AssignPrep(DREF_ASSIGN_PREFIX + req.base + ":" + ValueCodec.toEncoded(updated));
 	}
 
 	// small helper to return parsed identifier and next index
@@ -367,6 +355,7 @@ public class Interpreter {
 
 	// Internal marker for struct values: "@STR:Type|field=val|..."
 	private static final String STR_PREFIX = "@STR:";
+	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {
 		return Optional.of(new Result.Err<>(new InterpretError(msg, source)));
@@ -468,7 +457,7 @@ public class Interpreter {
 		}
 		// create a temporary env for function body evaluation: copy maps but do not
 		// mutate caller env; bind parameters
-		Map<String, Value> newVals = new HashMap<>(env.valEnv);
+		Map<String, String> newVals = new HashMap<>(env.valEnv);
 		Map<String, String> newTypes = new HashMap<>(env.typeEnv);
 		Env fnEnv = new Env(newVals, newTypes, env.source);
 		fnEnv.fnEnv.putAll(env.fnEnv);
@@ -487,7 +476,7 @@ public class Interpreter {
 					return annErr;
 				fnEnv.typeEnv.put(p, ptype);
 			}
-			fnEnv.valEnv.put(p, ValueCodec.fromEncoded(val));
+			fnEnv.valEnv.put(p, val);
 		}
 		return Optional.of(evaluateExpression(fd.bodyExpr, fnEnv));
 	}
@@ -714,7 +703,7 @@ public class Interpreter {
 		// environments so that expression handling (including literals,
 		// boolean literals, addition, and typed literals) is centralized in
 		// evaluateExpression(...).
-		Map<String, Value> valEnv = new HashMap<>();
+		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
 		return evaluateExpression(s, env);
@@ -724,7 +713,7 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateSequence(String source) {
 		// Split at top-level semicolons only (ignore semicolons inside braces)
 		String[] parts = splitTopLevel(source);
-		Map<String, Value> valEnv = new HashMap<>();
+		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
 		int i = 0;
@@ -860,7 +849,7 @@ public class Interpreter {
 				env.typeEnv.put(d.name, "Bool");
 			}
 		}
-		env.valEnv.put(d.name, ValueCodec.fromEncoded(value));
+		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
 		// If the block is tracking local declarations, record this name so it can
@@ -920,20 +909,24 @@ public class Interpreter {
 		if (valCheck.isPresent())
 			return valCheck;
 
-		// If the prepared assignment included a derefTarget, write-through to that
-		// target variable instead of lhs. This replaces the previous string marker
-		// approach (DREF_ASSIGN_PREFIX + target + ":" + value).
-		if (prep.derefTarget.isPresent()) {
-			String target = prep.derefTarget.get();
-			String value = evaluated;
+		// Handle deref-assignment marker produced by prepAssignOps: DREF_ASSIGN_PREFIX
+		// + target + ":" + value
+		if (evaluated.startsWith(DREF_ASSIGN_PREFIX)) {
+			String rest = evaluated.substring(DREF_ASSIGN_PREFIX.length());
+			int colon = rest.indexOf(':');
+			if (colon <= 0)
+				return Optional.of(new Result.Err<>(new InterpretError("invalid deref assignment", env.source)));
+			String target = rest.substring(0, colon);
+			String value = rest.substring(colon + 1);
+			// Validate assignment value against the target's annotated/inferred type
 			Optional<Result<String, InterpretError>> valCheckTarget = vAssignValue(target, value, env);
 			if (valCheckTarget.isPresent())
 				return valCheckTarget;
-			env.valEnv.put(target, ValueCodec.fromEncoded(value));
+			env.valEnv.put(target, value);
 			return Optional.empty();
 		}
 
-		env.valEnv.put(lhs, ValueCodec.fromEncoded(evaluated));
+		env.valEnv.put(lhs, evaluated);
 		return Optional.empty();
 	}
 
@@ -998,7 +991,7 @@ public class Interpreter {
 		// If this is a deref-assignment, return marker so caller writes to resolved
 		// target
 		if (isDeref) {
-			return new AssignPrep(value, lhsName);
+			return new AssignPrep(DREF_ASSIGN_PREFIX + lhsName + ":" + value);
 		}
 		return new AssignPrep(value);
 	}
@@ -1007,7 +1000,8 @@ public class Interpreter {
 		if (!env.valEnv.containsKey(holder) && !env.typeEnv.containsKey(holder))
 			return new DerefResolve(
 					Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source))));
-		Value v = env.valEnv.getOrDefault(holder, Value.UnitVal.INSTANCE);
+		String enc = env.valEnv.getOrDefault(holder, "");
+		Value v = ValueCodec.fromEncoded(enc);
 		if (v instanceof Value.RefVal r) {
 			if (!r.mutable())
 				return new DerefResolve(
@@ -1036,22 +1030,24 @@ public class Interpreter {
 		// Fetch current lhs value; it must exist in valEnv for compound assignment
 		if (!env.valEnv.containsKey(lhs))
 			return Optional.of(new Result.Err<>(new InterpretError("read of uninitialized variable", env.source)));
-		Value lhsV = env.valEnv.get(lhs);
-		Value rhsV = ValueCodec.fromEncoded(rhsValue);
-		if (!(lhsV instanceof Value.IntVal) || !(rhsV instanceof Value.IntVal))
+		String lhsValue = env.valEnv.get(lhs);
+
+		try {
+			BigInteger a = new BigInteger(lhsValue);
+			BigInteger b = new BigInteger(rhsValue);
+			BigInteger sum = a.add(b);
+			String sumStr = sum.toString();
+
+			// Validate resulting assignment against annotated/inferred type
+			Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
+			if (valCheck.isPresent())
+				return valCheck;
+
+			env.valEnv.put(lhs, sumStr);
+			return Optional.empty();
+		} catch (NumberFormatException ex) {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in compound assignment", env.source)));
-		BigInteger a = ((Value.IntVal) lhsV).value();
-		BigInteger b = ((Value.IntVal) rhsV).value();
-		BigInteger sum = a.add(b);
-		String sumStr = ValueCodec.toEncoded(new Value.IntVal(sum));
-
-		// Validate resulting assignment against annotated/inferred type
-		Optional<Result<String, InterpretError>> valCheck = vAssignValue(lhs, sumStr, env);
-		if (valCheck.isPresent())
-			return valCheck;
-
-		env.valEnv.put(lhs, ValueCodec.fromEncoded(sumStr));
-		return Optional.empty();
+		}
 	}
 
 	// Validate RHS textual suffix against the variable's annotated/inferred type
@@ -1204,7 +1200,7 @@ public class Interpreter {
 		Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
 		if (structRes.isPresent())
 			return structRes.get();
-		Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
+	Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
 		if (memberRes.isPresent())
 			return memberRes.get();
 		// Try handling prefix operations: &mut, &, and * (deref)
@@ -1283,7 +1279,7 @@ public class Interpreter {
 		// variable reference
 		if (isSimpleIdentifier(s)) {
 			if (env.valEnv.containsKey(s))
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(env.valEnv.get(s))));
+				return Optional.of(new Result.Ok<>(env.valEnv.get(s)));
 			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
 		}
 		return Optional.empty();
@@ -1301,8 +1297,7 @@ public class Interpreter {
 		if (!pr.valid)
 			return Optional.empty();
 		if (pr.suffix.isEmpty())
-			return Optional
-					.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(new java.math.BigInteger(pr.integerPart)))));
+			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(new java.math.BigInteger(pr.integerPart)))));
 		return Optional.of(evaluateTypedSuffix(pr, s));
 	}
 
@@ -1418,8 +1413,7 @@ public class Interpreter {
 				String target = r.targetName();
 				if (!env.valEnv.containsKey(target))
 					return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", env.source)));
-				// Return the encoded value stored at the referenced target.
-				return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(env.valEnv.get(target))));
+				return Optional.of(new Result.Ok<>(env.valEnv.get(target)));
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("invalid dereference", s)));
 		}
@@ -1428,8 +1422,7 @@ public class Interpreter {
 
 	// Helper to dereference a reference-holder value like "@REF:target" and
 	// return the referenced variable's value or an Err if unknown.
-	// (legacy derefRefHolder removed; dereferencing now uses Value.RefVal via
-	// ValueCodec)
+	// (legacy derefRefHolder removed; dereferencing now uses Value.RefVal via ValueCodec)
 
 	// Try to evaluate a simple comparison of the form "<expr> < <expr>" where
 	// each side is an expression that evaluates to an integer. Returns an
@@ -1451,13 +1444,13 @@ public class Interpreter {
 			return Optional.of(rightRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
 		String rightVal = ((Result.Ok<String, InterpretError>) rightRes).value();
-		Value leftV = ValueCodec.fromEncoded(leftVal);
-		Value rightV = ValueCodec.fromEncoded(rightVal);
-		if (!(leftV instanceof Value.IntVal) || !(rightV instanceof Value.IntVal))
+		try {
+			BigInteger a = new BigInteger(leftVal);
+			BigInteger b = new BigInteger(rightVal);
+			return Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
+		} catch (NumberFormatException ex) {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid integer in comparison", s)));
-		BigInteger a = ((Value.IntVal) leftV).value();
-		BigInteger b = ((Value.IntVal) rightV).value();
-		return Optional.of(new Result.Ok<>(a.compareTo(b) < 0 ? "true" : "false"));
+		}
 	}
 
 	private boolean isSimpleIdentifier(String s) {
@@ -1539,23 +1532,10 @@ public class Interpreter {
 		if (suffixCheck.isPresent())
 			return suffixCheck;
 
-		// Prefer typed Values: attempt to evaluate each side and decode to IntVal
 		try {
-			Value leftV = ValueCodec.fromEncoded(leftPr.integerPart);
-			Value rightV = ValueCodec.fromEncoded(rightPr.integerPart);
-			// Fallback: if parse from integerPart doesn't map to IntVal, parse directly
-			BigInteger a;
-			BigInteger b;
-			if (leftV instanceof Value.IntVal li)
-				a = li.value();
-			else
-				a = new BigInteger(leftPr.integerPart);
-			if (rightV instanceof Value.IntVal ri)
-				b = ri.value();
-			else
-				b = new BigInteger(rightPr.integerPart);
-			BigInteger sum = a.add(b);
-			return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(new Value.IntVal(sum))));
+			BigInteger a = new BigInteger(leftPr.integerPart);
+			BigInteger b = new BigInteger(rightPr.integerPart);
+			return Optional.of(new Result.Ok<>(a.add(b).toString()));
 		} catch (NumberFormatException ex) {
 			return Optional.empty();
 		}
@@ -1885,8 +1865,7 @@ public class Interpreter {
 		}
 		Value.StructVal sv = new Value.StructVal(structName, fieldMap);
 		String trailing = afterName.substring(valClose + 1).trim();
-		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(ValueCodec.toEncoded(sv), trailing,
-				restContext);
+		Optional<Result<String, InterpretError>> trailRes = resolveFieldAccess(ValueCodec.toEncoded(sv), trailing, restContext);
 		if (trailRes.isPresent())
 			return Optional.of(trailRes.get());
 		return Optional.of(new Result.Ok<>(ValueCodec.toEncoded(sv)));
@@ -1918,8 +1897,7 @@ public class Interpreter {
 			String fieldReq = trailing.substring(1).trim();
 			if (!isSimpleIdentifier(fieldReq))
 				return Optional.of(new Result.Err<>(new InterpretError("invalid struct field access", restContext)));
-			// encodedStruct is of form "Type|field=val|..."; strip the leading type and
-			// split fields
+			// encodedStruct is of form "Type|field=val|..."; strip the leading type and split fields
 			String fieldsPart = encodedStruct.substring(restContext.split(" ")[0].length() + 1);
 			for (String p : fieldsPart.split("\\|")) {
 				int eq = p.indexOf('=');
@@ -1981,8 +1959,8 @@ public class Interpreter {
 		java.util.Set<String> locals = env.localDecls.get();
 		java.util.Map<String, Value> fields = new java.util.HashMap<>();
 		for (String name : locals) {
-			Value v = env.valEnv.getOrDefault(name, Value.UnitVal.INSTANCE);
-			fields.put(name, v);
+			String valEnc = env.valEnv.getOrDefault(name, "");
+			fields.put(name, ValueCodec.fromEncoded(valEnc));
 		}
 		Value.StructVal sv = new Value.StructVal("This", fields);
 		return new Result.Ok<>(ValueCodec.toEncoded(sv));
@@ -1992,7 +1970,7 @@ public class Interpreter {
 	// that assignments and let-declarations inside the block do not mutate the
 	// outer environment.
 	private Env makeChildEnv(Env parent) {
-		Map<String, Value> newVals = new HashMap<String, Value>(parent.valEnv);
+		Map<String, String> newVals = new HashMap<>(parent.valEnv);
 		Map<String, String> newTypes = new HashMap<>(parent.typeEnv);
 		Env child = new Env(newVals, newTypes, parent.source);
 		child.fnEnv.putAll(parent.fnEnv);
