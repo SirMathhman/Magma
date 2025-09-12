@@ -379,7 +379,7 @@ public class Interpreter {
 		}
 		// Simple identifier
 		if (!isSimpleIdentifier(req.originalLhs))
-			return new Result.Err<>(new InterpretError("invalid assignment lhs", env.source));
+			return new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + req.originalLhs + '"'));
 		if (DEBUG && !env.valEnv.containsKey(req.originalLhs))
 			System.err
 					.println("[DEBUG] resolveLhsTarget: simple id missing: " + req.originalLhs + " keys=" + env.valEnv.keySet());
@@ -1558,7 +1558,7 @@ public class Interpreter {
 		// function is recorded in the parent environment (so later calls can
 		// resolve it). Support only zero-arg arrow syntax '() => ...' here.
 		if (trimmed.startsWith("()") && trimmed.contains("=>")) {
-			return registerArrowFunction(trimmed, env);
+			return regArrowFn(trimmed, env);
 		}
 		// Evaluate RHS in a child environment so the evaluated expression
 		// can see functions, struct definitions, and mutability info while
@@ -1569,7 +1569,7 @@ public class Interpreter {
 
 	// Register an anonymous zero-arg arrow function into the provided env
 	// and return a Result.Ok containing the FN_PREFIX marker.
-	private Result<String, InterpretError> registerArrowFunction(String s, Env env) {
+	private Result<String, InterpretError> regArrowFn(String s, Env env) {
 		// find the arrow index after the params '()'
 		int arrowIdx = s.indexOf("=>");
 		FnBodyParse fb = extractFnReturnExpr(s, arrowIdx, env);
@@ -1676,11 +1676,11 @@ public class Interpreter {
 			isDeref = true;
 			String inner = lhs.substring(1).trim();
 			if (!isSimpleIdentifier(inner))
-				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + inner + '"')));
 			derefTarget = inner;
 		} else if (!isIndexed) {
 			if (!isSimpleIdentifier(lhs))
-				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs", env.source)));
+				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + lhs + '"')));
 		}
 		// Determine the actual variable name that will receive the assignment.
 		// If LHS is a dereference like '*y', resolve the variable y's value and

@@ -27,3 +27,7 @@ Notes for reviewers
 - Methods are encoded with `@MTH:name:bodyExpr`; bodyExpr is re-evaluated in a captured environment when invoked.
 - No argument support for methods in this change; calling with arguments will produce an error.
 - This is intentionally minimal to satisfy the acceptance test. Consider a follow-up to introduce proper Function values if more features are required.
+
+Runtime/diagnostics
+-------------------
+- Improved the "invalid assignment lhs" runtime error to include the offending LHS fragment (e.g., the invalid token or expression) instead of repeating the entire source text. This makes assignment errors easier to locate during debugging.
