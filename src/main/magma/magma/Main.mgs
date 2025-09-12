@@ -1,9 +1,0 @@
-class fn Ok() => {	
-}
-
-class fn Err() => {
-}
-
-object Interpreter {
-	let DEBUG = false;
-}
