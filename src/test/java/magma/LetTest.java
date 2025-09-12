@@ -44,6 +44,11 @@ public class LetTest {
 	}
 
 	@Test
+	public void mutCapturedByFn() {
+		TestUtils.assertValid("let mut x = 0; fn add() => x += 1; add(); x", "1");
+	}
+
+	@Test
 	public void assignImmutableErr() {
 		TestUtils.assertInvalid("let x = 0; x = 100; x");
 	}

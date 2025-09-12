@@ -594,6 +594,11 @@ public class Interpreter {
 		String expr = s.substring(exprStart, end).trim();
 		if (expr.isEmpty())
 			return new FnBodyParse(Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source))), "");
+		// If the compact body is a statement (assignment or compound assign),
+		// wrap it in a block so statement execution is used at call time.
+		if (expr.contains("+=") || (expr.indexOf('=') > 0 && !expr.startsWith("let "))) {
+			return new FnBodyParse(Optional.empty(), "{" + expr + "}");
+		}
 		return new FnBodyParse(Optional.empty(), expr);
 	}
 
