@@ -1889,6 +1889,63 @@ public class Interpreter {
 			return Optional.empty(); // applied and OK
 		}
 
+		// Support composite annotated forms like: "Base & drop<fnName>".
+		// If encountered, first validate the Base annotation against the value,
+		// then invoke the drop function `fnName()` as a side-effect and propagate
+		// any error it produces.
+		if (Objects.nonNull(annotatedSuffix)) {
+			// Parse composite forms like "Base & drop<fnName>" without using
+			// java.util.regex (project Checkstyle bans regex imports). We look
+			// for an '&' followed by 'drop<...>' and split accordingly.
+			int amp = annotatedSuffix.indexOf('&');
+			if (amp >= 0) {
+				String before = annotatedSuffix.substring(0, amp).trim();
+				String after = annotatedSuffix.substring(amp + 1).trim();
+				if (after.startsWith("drop<")) {
+					int gt = after.indexOf('>', 5); // after 'drop<' (5 chars)
+					if (gt > 5) {
+						String base = before;
+						String dropFn = after.substring(5, gt).trim();
+				// Validate the base annotation against the value. If the recursive
+				// check returns an Err result, propagate it. If it returns empty or
+				// an Ok, treat that as a successful base validation.
+				Optional<Result<String, InterpretError>> baseChk = checkAnnotatedSuffix(base, value, env);
+				if (baseChk.isPresent()) {
+					Result<String, InterpretError> r = baseChk.get();
+					if (r instanceof Result.Err)
+						return baseChk;
+					// applied and OK -> continue
+				}
+				// Invoke the drop function as a side-effect. Prefer executing the
+				// declared function body directly in the caller environment when the
+				// function has no parameters so assignments inside the drop can mutate
+				// the outer variables as expected for destructor-like behavior.
+				if (!env.fnEnv.containsKey(dropFn))
+					return Optional.of(new Result.Err<>(new InterpretError("unknown identifier in drop annotation", env.source)));
+				List<String> params = env.fnParamNames.getOrDefault(dropFn, Collections.emptyList());
+				if (params.isEmpty()) {
+					FunctionDecl fd = env.fnEnv.get(dropFn);
+					// Execute the function body directly in the caller environment so
+					// assignments inside the drop body mutate the outer scope as
+					// expected for destructor-like behavior.
+					Optional<Result<String, InterpretError>> dr = execBodyInCallerEnv(fd.bodyExpr, env);
+					if (dr.isPresent())
+						return dr;
+				} else {
+					// Non-zero-arg drop: fallback to normal call semantics (may not mutate
+					// caller's valEnv depending on call semantics), but still surface
+					// any runtime error.
+					Result<String, InterpretError> dr = evaluateExpression(dropFn + "()", env);
+					if (dr instanceof Result.Err)
+						return Optional.of(dr);
+				}
+						// applied and OK
+						return Optional.empty();
+					}
+				}
+			}
+		}
+
 		// Delegate remaining annotation forms (arrays, unions, structs, Bool, and
 		// primitive numeric widths) to a helper to keep this method small.
 		return checkPrimAnn(annotatedSuffix, value, env);
@@ -3245,6 +3302,110 @@ public class Interpreter {
 			}
 		}
 		return last;
+	}
+
+	// Execute a function/body expression directly in the provided caller
+	// environment (no child env). This is used for zero-arg drop functions
+	// where side-effects should mutate the caller's valEnv. Returns
+	// Optional.empty() on success or Optional.of(Result.Err) on error.
+	private Optional<Result<String, InterpretError>> execBodyInCallerEnv(String bodyExpr, Env env) {
+		if (Objects.isNull(bodyExpr))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid fn body", env.source)));
+
+		// If it's not a block, evaluate as a single expression in caller env.
+		if (!bodyExpr.startsWith("{")) {
+			Result<String, InterpretError> r = evaluateExpression(bodyExpr, env);
+			if (r instanceof Result.Err)
+				return Optional.of(r);
+			return Optional.empty();
+		}
+
+		String body = bodyExpr.length() > 1 ? bodyExpr.substring(1, bodyExpr.length() - 1) : "";
+		String[] inner = splitTopLevel(body);
+
+		// Backup and prepare localDecls
+		java.util.Optional<java.util.Set<String>> oldLocalsOpt = env.localDecls;
+		java.util.Set<String> initialLocals = new java.util.HashSet<>();
+		if (oldLocalsOpt.isPresent())
+			initialLocals.addAll(oldLocalsOpt.get());
+		java.util.Set<String> blockLocals = new java.util.HashSet<>(initialLocals);
+		env.localDecls = java.util.Optional.of(blockLocals);
+
+		// Bundle parameters into a request object to satisfy Checkstyle limits
+		ExecReq execReq = new ExecReq(inner, env, oldLocalsOpt);
+	Optional<Result<String, InterpretError>> execErr = execBlockParts(execReq);
+		if (execErr.isPresent())
+			return execErr;
+
+		// Cleanup: remove any block-local names that were not present before
+		java.util.Set<String> finalLocals = env.localDecls.orElse(java.util.Collections.emptySet());
+		for (String k : finalLocals) {
+			if (!initialLocals.contains(k))
+				env.valEnv.remove(k);
+		}
+
+		// Restore previous localDecls
+		env.localDecls = oldLocalsOpt;
+
+		return Optional.empty();
+	}
+
+	// Execute block parts in caller env; return Optional.of(Err) on error, or
+	// Optional.empty() on success. Keeps execBodyInCallerEnv simpler to satisfy
+	// Checkstyle cyclomatic limits.
+	// Request object to keep parameter count <= 3 for Checkstyle
+	private static final class ExecReq {
+		final String[] inner;
+		final Env env;
+		final java.util.Optional<java.util.Set<String>> oldLocalsOpt;
+
+		ExecReq(String[] inner, Env env, java.util.Optional<java.util.Set<String>> oldLocalsOpt) {
+			this.inner = inner;
+			this.env = env;
+			this.oldLocalsOpt = oldLocalsOpt;
+		}
+	}
+
+	// Renamed to 'execBlockParts' to satisfy method-name length limits
+	private Optional<Result<String, InterpretError>> execBlockParts(ExecReq req) {
+		// Compute pre-existing keys snapshot here to satisfy parameter-number rules
+		java.util.Set<String> preKeys = new java.util.HashSet<>(req.env.valEnv.keySet());
+		for (String part : req.inner) {
+			String t = part.trim();
+			if (t.isEmpty())
+				continue;
+			if (isStmtLike(t)) {
+				Optional<Result<String, InterpretError>> stmtRes = handleStatement(t, req.env);
+				if (stmtRes.isPresent()) {
+					Result<String, InterpretError> r = stmtRes.get();
+					if (r instanceof Result.Err) {
+						cleanupBlockLocals(req.env, preKeys, req.oldLocalsOpt);
+						return Optional.of(r);
+					}
+					continue;
+				}
+				continue;
+			}
+			Result<String, InterpretError> r = evaluateExpression(t, req.env);
+			if (r instanceof Result.Err) {
+				cleanupBlockLocals(req.env, preKeys, req.oldLocalsOpt);
+				return Optional.of(r);
+			}
+		}
+		return Optional.empty();
+	}
+
+	// Helper to restore previous localDecls and remove any block-local values
+	// that weren't present before execution. Extracted to avoid PMD CPD
+	// duplication across exec paths.
+	private void cleanupBlockLocals(Env env, java.util.Set<String> preKeys,
+			java.util.Optional<java.util.Set<String>> oldLocalsOpt) {
+		env.localDecls = oldLocalsOpt;
+		java.util.Set<String> currLocs = env.localDecls.orElse(java.util.Collections.emptySet());
+		for (String k : currLocs) {
+			if (!preKeys.contains(k))
+				env.valEnv.remove(k);
+		}
 	}
 
 	// Build a runtime struct-like encoding for 'this' based on the current block's
