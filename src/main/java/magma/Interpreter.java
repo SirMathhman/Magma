@@ -19,6 +19,9 @@ public class Interpreter {
 	// Not final so the compiler won't treat debug branches as dead code.
 	private static boolean DEBUG = false;
 
+	// Counter used to generate unique names for anonymous/arrow functions
+	private int anonFnCounter = 0;
+
 	// Helper to detect whether a brace at index 'i' is immediately preceded by
 	// an identifier character (ignoring whitespace). Extracted to keep the
 	// cyclomatic complexity of extractFnReturnExpr below the Checkstyle limit.
@@ -1550,11 +1553,34 @@ public class Interpreter {
 	}
 
 	private Result<String, InterpretError> getRhsValue(String rhs, Env env) {
+		String trimmed = rhs.trim();
+		// Short-circuit arrow-function literal registration so the anonymous
+		// function is recorded in the parent environment (so later calls can
+		// resolve it). Support only zero-arg arrow syntax '() => ...' here.
+		if (trimmed.startsWith("()") && trimmed.contains("=>")) {
+			return registerArrowFunction(trimmed, env);
+		}
 		// Evaluate RHS in a child environment so the evaluated expression
 		// can see functions, struct definitions, and mutability info while
 		// keeping value/type maps separate for safety.
 		Env tmp = makeChildEnv(env);
 		return evaluateExpression(rhs, tmp);
+	}
+
+	// Register an anonymous zero-arg arrow function into the provided env
+	// and return a Result.Ok containing the FN_PREFIX marker.
+	private Result<String, InterpretError> registerArrowFunction(String s, Env env) {
+		// find the arrow index after the params '()'
+		int arrowIdx = s.indexOf("=>");
+		FnBodyParse fb = extractFnReturnExpr(s, arrowIdx, env);
+		if (fb.error.isPresent()) {
+			return ((Result.Err<String, InterpretError>) fb.error.get());
+		}
+		String bodyExpr = fb.retExpr;
+		String anonName = "<anon>" + (++anonFnCounter);
+		env.fnEnv.put(anonName, new FunctionDecl(anonName, "", bodyExpr));
+		// no params list
+		return new Result.Ok<>(FN_PREFIX + anonName);
 	}
 
 	// Validate annotated suffix for a let declaration and record the annotation in
@@ -2265,9 +2291,56 @@ public class Interpreter {
 		return Optional.of(new Result.Err<>(new InterpretError("unknown field", s)));
 	}
 
+	// Try to parse an arrow-function literal like '() => 100' or '() => { this }'.
+	// If matched, register a generated anonymous function in env.fnEnv and
+	// return a FN_PREFIX marker referencing it.
+	private Optional<Result<String, InterpretError>> tryEvalArrowFunction(String s, Env env) {
+		String trimmed = s.trim();
+		// Only handle zero-arg arrow functions for now
+		if (!trimmed.startsWith("()"))
+			return Optional.empty();
+		int afterParams = 2;
+		int idx = skipWs(trimmed, afterParams, trimmed.length());
+		if (idx + 1 >= trimmed.length() || trimmed.charAt(idx) != '=' || trimmed.charAt(idx + 1) != '>')
+			return Optional.empty();
+		// Extract the function body expression using existing helper
+		FnBodyParse fb = extractFnReturnExpr(trimmed, idx, env);
+		if (fb.error.isPresent())
+			return fb.error;
+		String bodyExpr = fb.retExpr;
+		// generate unique anonymous name
+		String anonName = "<anon>" + (++anonFnCounter);
+		// record function decl with empty returnType (inferred)
+		env.fnEnv.put(anonName, new FunctionDecl(anonName, "", bodyExpr));
+		// record param/ptype lists as empty
+		env.fnParamNames.put(anonName, Collections.emptyList());
+		env.fnParamTypes.put(anonName, Collections.emptyList());
+		// scan function body for mutated outer targets and account for mutBorrowCount
+		java.util.Set<String> mutated = scanFuncMut(bodyExpr);
+		for (String m : mutated) {
+			if (env.mutEnv.getOrDefault(m, Boolean.FALSE)) {
+				int existing = env.mutBorrowCount.getOrDefault(m, 0);
+				if (existing > 0) {
+					// already borrowed; leave as-is
+				} else {
+					env.mutBorrowCount.put(m, 1);
+				}
+			}
+		}
+		if (env.localDecls.isPresent()) {
+			env.localDecls.get().add(anonName);
+		}
+		// no params to record
+		return Optional.of(new Result.Ok<>(FN_PREFIX + anonName));
+	}
+
 	// Primary evaluation part 1: block, boolean, array/index, function call,
 	// variable
 	private Optional<Result<String, InterpretError>> tryEvalPrimary1(String s, Env env) {
+		// try arrow function literal first: e.g. "() => 100" or "( ) => { this }"
+		Optional<Result<String, InterpretError>> arrow = tryEvalArrowFunction(s, env);
+		if (arrow.isPresent())
+			return arrow;
 		// Block expression
 		if (s.startsWith("{") && s.endsWith("}"))
 			return Optional.of(evalBlockExpr(s, env));
