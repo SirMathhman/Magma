@@ -174,6 +174,24 @@ If you want, I can also add a short example to `README.md` showing the declarati
 - Success: `Result.Ok` with the stringified result (literal or computed sum).
 - Failure: `Result.Err` for parse errors, type/width mismatches, unknown identifiers, or overflow.
 
+## Intrinsic functions (added)
+
+Goal
+----
+Add support for `intrinsic fn` declarations which register intrinsic functions and dispatch at call time. Intrinsics are stored as `FunctionDecl` entries whose `bodyExpr` is set to the marker `__intrinsic:<name>`. The call evaluator detects this marker and dispatches to a small intrinsic implementation (currently `print`) which returns the stringified first argument.
+
+Files changed
+-------------
+- `src/main/java/magma/Interpreter.java` — intrinsic parsing (`handleIntrinsicDecl`), intrinsic dispatch in `tryEvalFunctionCall`, and small statement-handling semantics to allow function-call statements to return values.
+
+Tests added
+-----------
+- `src/test/java/magma/IntrinsicPrintTest.java::intrinsicPrintConcat` — verifies that `intrinsic fn print<T>(value : T) : Void; print(1); print(2);` evaluates to `12`.
+
+Quality gates
+-------------
+- The feature is covered by the existing test suite and by the new test above. Checkstyle and PMD rules were respected by extracting small helpers and using Optional where required.
+
 Acceptance tests added
 -----------------------
 - `src/test/java/magma/InterpreterLetBindingTest.java`: verifies that an unannotated `let` binding followed by a variable lookup evaluates to the RHS value. Example: `let x = 3; x` should produce `"3"`.

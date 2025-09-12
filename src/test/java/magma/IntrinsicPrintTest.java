@@ -12,4 +12,11 @@ public class IntrinsicPrintTest {
         // Expect print to return the printed value as the program result
         assertValid(src, "100");
     }
+
+    @Test
+    public void intrinsicPrintConcat() {
+        String src = "intrinsic fn print<T>(value : T) : Void; print(1); print(2);";
+        // Expect sequential prints to concatenate their outputs into the program result
+        assertValid(src, "12");
+    }
 }

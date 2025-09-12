@@ -850,6 +850,44 @@ public class Interpreter {
 		return new ConsAlt(after, ai.alt, ai.consumedIdx);
 	}
 
+	// Process a statement at parts[idx], accumulate Ok results into `acc` and
+	// return an IfOutcome-like result: either an immediate Result to return or
+	// the index of the last consumed part. This keeps evaluateSequence under
+	// the cyclomatic complexity threshold.
+	// Wrapper to carry parameters for statement processing so the method
+	// signature stays within Checkstyle limits.
+	private static final class StmtProcReq {
+		final String[] parts;
+		final int idx;
+		final Env env;
+		java.util.Optional<StringBuilder> accOpt = java.util.Optional.empty(); // avoid using raw nulls
+
+		StmtProcReq(String[] parts, int idx, Env env) {
+			this.parts = parts;
+			this.idx = idx;
+			this.env = env;
+		}
+	}
+
+	// Short, Checkstyle-friendly name for the extracted statement processor.
+	private IfOutcome procStmtAcc(StmtProcReq req) {
+		String part = req.parts[req.idx].trim();
+		if (part.startsWith("if ") || part.startsWith("if(")) {
+			IfOutcome fo = processIfPart(req.parts, req.idx, req.env);
+			return fo;
+		}
+		Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, req.env);
+		if (stmtRes.isPresent()) {
+			Result<String, InterpretError> r = stmtRes.get();
+			if (r instanceof Result.Err)
+				return new IfOutcome(Optional.of(r), req.idx);
+			String val = ((Result.Ok<String, InterpretError>) r).value();
+			if (!val.isEmpty())
+				req.accOpt.ifPresent(sb -> sb.append(val));
+		}
+		return new IfOutcome(Optional.empty(), req.idx);
+	}
+
 	private ConsAlt extractSeparated(String[] parts, int idx, Env env) {
 		int consIdx = idx + 1;
 		while (consIdx < parts.length && parts[consIdx].trim().isEmpty())
@@ -1001,6 +1039,7 @@ public class Interpreter {
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
+		StringBuilder acc = new StringBuilder();
 		// Special-case: if the source is an object declaration with no trailing
 		// expression, treat it as a top-level statement and return empty output
 		// rather than attempting to parse it as a single expression (which
@@ -1035,6 +1074,7 @@ public class Interpreter {
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
+		StringBuilder acc = new StringBuilder();
 		int i = 0;
 
 		while (i < parts.length) {
@@ -1045,22 +1085,13 @@ public class Interpreter {
 			}
 			boolean isLast = (i == parts.length - 1);
 			if (!isLast) {
-				// Statement position
-				// Support a simple if-statement form that uses the next two parts as
-				// consequent and alternative: `if (cond) <stmt>; else <stmt>;`
-				if (part.startsWith("if ") || part.startsWith("if(")) {
-					IfOutcome fo = processIfPart(parts, i, env);
-					if (fo.result.isPresent())
-						return fo.result.get();
-					i = fo.consumedIdx + 1;
-					continue;
-				}
-
-				// Statement position: expect a let-binding or assignment
-				Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
-				if (stmtRes.isPresent())
-					return stmtRes.get();
-				i++;
+				StmtProcReq req = new StmtProcReq(parts, i, env);
+				req.accOpt = java.util.Optional.of(acc);
+				IfOutcome fo = procStmtAcc(req);
+				if (fo.result.isPresent())
+					return fo.result.get();
+				i = fo.consumedIdx + 1;
+				continue;
 			} else {
 				// Final part: if it looks like a statement (object/struct/let/assign/etc.)
 				// treat it as a statement and return empty output on success, matching
@@ -1068,17 +1099,29 @@ public class Interpreter {
 				// produce an empty result.
 				if (isStmtLike(part) || part.startsWith("object ") || part.startsWith("struct ")) {
 					Optional<Result<String, InterpretError>> stmtRes = handleStatement(part, env);
-					if (stmtRes.isPresent())
-						return stmtRes.get();
-					return new Result.Ok<>("");
+					if (stmtRes.isPresent()) {
+						Result<String, InterpretError> r = stmtRes.get();
+						if (r instanceof Result.Err)
+							return r;
+						String val = ((Result.Ok<String, InterpretError>) r).value();
+						if (!val.isEmpty())
+							acc.append(val);
+					}
+					return new Result.Ok<>(acc.toString());
 				}
-				// Otherwise treat as a final expression: evaluate and return
+				// Otherwise treat as a final expression: evaluate and return. If there
+				// were prior accumulated statement results, preserve original
+				// semantics and return the expression value (do not append).
 				return evaluateExpression(part, env);
 			}
 		}
 		// If we reached the end without a final expression (e.g., trailing semicolon or
 		// only statements),
-		// return empty string as the program result.
+		// return accumulated statement results (if any) or empty string as the program
+		// result. This preserves sequential statement-call accumulation like
+		// `print(1); print(2);` -> "12".
+		if (acc.length() > 0)
+			return new Result.Ok<>(acc.toString());
 		return new Result.Ok<>("");
 	}
 
