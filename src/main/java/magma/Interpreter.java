@@ -796,6 +796,23 @@ public class Interpreter {
 		String retExpr = fb.retExpr;
 		// record the function declaration in env
 		env.fnEnv.put(name, new FunctionDecl(name, ann, retExpr));
+
+		// If the function body text contains direct mutations of outer mutable
+		// variables (e.g., 'x += 1' or '*y = 3' or 'x = x + 1') then conservatively
+		// mark those targets as holding a mutable use so later '&mut' borrows are
+		// rejected. This is a coarse-grained runtime check to catch common cases
+		// where a function will mutate an outer variable.
+		java.util.Set<String> mutated = scanFuncMut(retExpr);
+		for (String m : mutated) {
+			if (env.mutEnv.getOrDefault(m, Boolean.FALSE)) {
+				int existing = env.mutBorrowCount.getOrDefault(m, 0);
+				if (existing > 0) {
+					// already borrowed; leave as-is
+				} else {
+					env.mutBorrowCount.put(m, 1);
+				}
+			}
+		}
 		// if we're inside a block tracking local declarations, record the function
 		// name so that `this` inside a returned object can include callable methods
 		if (env.localDecls.isPresent()) {
@@ -1281,6 +1298,82 @@ public class Interpreter {
 		if (!paramTypes.isEmpty())
 			env.fnParamTypes.put(name, paramTypes);
 		return Optional.empty();
+	}
+
+	// Short, Checkstyle-friendly scanner name. Use regex to conservatively
+	// detect simple assignment patterns like 'x =', 'x +=', and deref writes
+	// '*x ='. Returns a set of identifier names that appear mutated.
+	private java.util.Set<String> scanFuncMut(String body) {
+		java.util.Set<String> res = new java.util.HashSet<>();
+		if (Objects.isNull(body) || body.isEmpty())
+			return res;
+		res.addAll(scanIdentAssigns(body));
+		res.addAll(scanDerefAssigns(body));
+		return res;
+	}
+
+	// Scan for patterns where an identifier is followed by '=' or '+=' (simple
+	// assignment forms). Returns a set of identifier names.
+	private java.util.Set<String> scanIdentAssigns(String body) {
+		java.util.Set<String> res = new java.util.HashSet<>();
+		int i = 0;
+		int n = body.length();
+		while (i < n) {
+			char c = body.charAt(i);
+			if (Character.isJavaIdentifierStart(c)) {
+				int start = i;
+				i++;
+				while (i < n && Character.isJavaIdentifierPart(body.charAt(i)))
+					i++;
+				String ident = body.substring(start, i);
+				int j = i;
+				while (j < n && Character.isWhitespace(body.charAt(j)))
+					j++;
+				if (j < n) {
+					char cj = body.charAt(j);
+					if (cj == '=') {
+						res.add(ident);
+					} else if (cj == '+') {
+						if (j + 1 < n && body.charAt(j + 1) == '=')
+							res.add(ident);
+					}
+				}
+			} else {
+				i++;
+			}
+		}
+		return res;
+	}
+
+	// Scan for dereference assignment patterns like '*ident ='
+	private java.util.Set<String> scanDerefAssigns(String body) {
+		java.util.Set<String> res = new java.util.HashSet<>();
+		int i = 0;
+		int n = body.length();
+		while (i < n) {
+			char c = body.charAt(i);
+			if (c == '*') {
+				int j = i + 1;
+				while (j < n && Character.isWhitespace(body.charAt(j)))
+					j++;
+				if (j < n && Character.isJavaIdentifierStart(body.charAt(j))) {
+					int start = j;
+					j++;
+					while (j < n && Character.isJavaIdentifierPart(body.charAt(j)))
+						j++;
+					int k = j;
+					while (k < n && Character.isWhitespace(body.charAt(k)))
+						k++;
+					if (k < n && body.charAt(k) == '=') {
+						res.add(body.substring(start, j));
+					}
+				}
+				i = j;
+			} else {
+				i++;
+			}
+		}
+		return res;
 	}
 
 	// Helper to create the function-call child environment used during

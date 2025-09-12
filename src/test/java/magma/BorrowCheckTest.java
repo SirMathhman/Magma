@@ -12,4 +12,9 @@ public class BorrowCheckTest {
 	public void singleMutValid() {
 		TestUtils.assertValid("let mut x = 0; let y = &mut x; *y = 1; x", "1");
 	}
+
+	@Test
+	public void fnMutThenTakeInvalid() {
+		TestUtils.assertInvalid("let mut x = 0; fn doSomething() => { x += 1; x }; let z = &mut x;");
+	}
 }
