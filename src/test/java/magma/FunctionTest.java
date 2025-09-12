@@ -48,6 +48,12 @@ public class FunctionTest {
 	}
 
 	@Test
+	public void fnAssignedToVarCall() {
+		String src = "fn get() => 100; let func = get; func()";
+		TestUtils.assertValid(src, "100");
+	}
+
+	@Test
 	public void fnDupParamInvalid() {
 		String src = "fn first(a : I32, a : I32) : I32 => { return first; } first(100, 200)";
 		TestUtils.assertInvalid(src);

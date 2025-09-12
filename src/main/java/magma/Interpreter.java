@@ -514,6 +514,8 @@ public class Interpreter {
 	// Internal marker for struct values: "@STR:Type|field=val|..."
 	private static final String STR_PREFIX = "@STR:";
 	private static final String METHOD_PREFIX = "@MTH:";
+	// Marker for first-class function values stored in valEnv
+	private static final String FN_PREFIX = "@FN:";
 	private static final String DREF_ASSIGN_PREFIX = "@DREFASSIGN:";
 
 	private Optional<Result<String, InterpretError>> err(String msg, String source) {
@@ -521,38 +523,9 @@ public class Interpreter {
 	}
 
 	private FnBodyParse extractFnReturnExpr(String s, int arrowIdx, Env env) {
-		// look for a block first
-		// no-op
-		// Find a brace-delimited body after the arrow. There may be nested braces
-		// (e.g., inner function/class declarations). Prefer the brace whose body
-		// contains a 'return' token (typical for explicit returns). If none are
-		// found, fall back to the first matching brace.
-		int bodyOpen = -1;
-		int bodyClose = -1;
-		for (int i = arrowIdx + 2; i < s.length(); i++) {
-			if (s.charAt(i) != '{')
-				continue;
-			int j = findMatchingBrace(s, i);
-			if (j < 0)
-				continue;
-			// If the brace is immediately preceded by an identifier (ignoring
-			// whitespace), it's likely intended as a struct literal expression
-			// (e.g., 'Ok { }') rather than the function's body. Skip such braces
-			// so the compact-expression form (no surrounding block) is preserved.
-			if (bracePredId(s, i))
-				continue;
-			String candidateBody = s.substring(i + 1, j);
-			if (candidateBody.contains("return")) {
-				bodyOpen = i;
-				bodyClose = j;
-				break;
-			}
-			if (bodyOpen == -1) {
-				// remember the first matching brace in case no 'return' is found
-				bodyOpen = i;
-				bodyClose = j;
-			}
-		}
+		int[] bodyBounds = findFnBodyBlock(s, arrowIdx);
+		int bodyOpen = bodyBounds[0];
+		int bodyClose = bodyBounds[1];
 		if (bodyOpen >= 0) {
 			int j = bodyClose;
 			String body = s.substring(bodyOpen + 1, j).trim();
@@ -600,6 +573,34 @@ public class Interpreter {
 			return new FnBodyParse(Optional.empty(), "{" + expr + "}");
 		}
 		return new FnBodyParse(Optional.empty(), expr);
+	}
+
+	// Find a brace-delimited function body after arrowIdx. Returns [open, close]
+	// or [-1, -1] if none found. Extracted to reduce cyclomatic complexity in
+	// extractFnReturnExpr.
+	private int[] findFnBodyBlock(String s, int arrowIdx) {
+		int bodyOpen = -1;
+		int bodyClose = -1;
+		for (int i = arrowIdx + 2; i < s.length(); i++) {
+			if (s.charAt(i) != '{')
+				continue;
+			int j = findMatchingBrace(s, i);
+			if (j < 0)
+				continue;
+			if (bracePredId(s, i))
+				continue;
+			String candidateBody = s.substring(i + 1, j);
+			if (candidateBody.contains("return")) {
+				bodyOpen = i;
+				bodyClose = j;
+				break;
+			}
+			if (bodyOpen == -1) {
+				bodyOpen = i;
+				bodyClose = j;
+			}
+		}
+		return new int[] { bodyOpen, bodyClose };
 	}
 
 	// Find the index of the matching closing '}' for the opening brace at openIdx.
@@ -651,12 +652,15 @@ public class Interpreter {
 		if (parenIdx <= 0)
 			return Optional.empty();
 
-		String name = s.substring(0, parenIdx).trim();
+		String calleeExpr = s.substring(0, parenIdx).trim();
 		String inside = s.substring(parenIdx + 1, lastParen).trim();
-		if (!isSimpleIdentifier(name))
+		Optional<Result<String, InterpretError>> calleeResOpt = resolveCallee(calleeExpr, s, env);
+		if (calleeResOpt.isEmpty())
 			return Optional.empty();
-		if (!env.fnEnv.containsKey(name))
-			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
+		Result<String, InterpretError> calleeRes = calleeResOpt.get();
+		if (calleeRes instanceof Result.Err)
+			return Optional.of(calleeRes);
+		String name = ((Result.Ok<String, InterpretError>) calleeRes).value();
 
 		FunctionDecl fd = env.fnEnv.get(name);
 		List<String> paramNames = env.fnParamNames.getOrDefault(name, Collections.emptyList());
@@ -2035,11 +2039,8 @@ public class Interpreter {
 		if (fnCall.isPresent())
 			return fnCall;
 		// variable reference
-		if (isSimpleIdentifier(s)) {
-			if (env.valEnv.containsKey(s))
-				return Optional.of(new Result.Ok<>(env.valEnv.get(s)));
-			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", s)));
-		}
+		if (isSimpleIdentifier(s))
+			return evalIdentifierValue(s, env);
 		return Optional.empty();
 	}
 
@@ -2057,6 +2058,46 @@ public class Interpreter {
 		if (pr.suffix.isEmpty())
 			return Optional.of(new Result.Ok<>(pr.integerPart));
 		return Optional.of(evaluateTypedSuffix(pr, s));
+	}
+
+	// Evaluate a simple identifier as a value. If the identifier names a
+	// declared function, return a FN_PREFIX marker; otherwise return the value
+	// from valEnv or an unknown-identifier error.
+	private Optional<Result<String, InterpretError>> evalIdentifierValue(String id, Env env) {
+		if (env.fnEnv.containsKey(id))
+			return Optional.of(new Result.Ok<>(FN_PREFIX + id));
+		if (env.valEnv.containsKey(id))
+			return Optional.of(new Result.Ok<>(env.valEnv.get(id)));
+		return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", id)));
+	}
+
+	// Resolve a callee expression into a function name. If the callee is a
+	// simple identifier that names a function, return Ok(fnName). If the callee
+	// is a variable containing a FN_PREFIX marker, extract and return the
+	// referenced function name. If the callee expression evaluates to an error
+	// or is not callable, return an appropriate Optional<Result> (empty means
+	// not a call expression).
+	private Optional<Result<String, InterpretError>> resolveCallee(String calleeExpr, String source, Env env) {
+		if (isSimpleIdentifier(calleeExpr)) {
+			if (env.fnEnv.containsKey(calleeExpr))
+				return Optional.of(new Result.Ok<>(calleeExpr));
+			if (env.valEnv.containsKey(calleeExpr)) {
+				String v = env.valEnv.get(calleeExpr);
+				if (v.startsWith(FN_PREFIX))
+					return Optional.of(new Result.Ok<>(v.substring(FN_PREFIX.length())));
+				return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", source)));
+			}
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier", source)));
+		}
+		// Non-simple callee: evaluate expression and expect an FN_PREFIX marker
+		Result<String, InterpretError> r = evaluateExpression(calleeExpr, env);
+		if (r instanceof Result.Err)
+			return Optional.of(r);
+		String val = ((Result.Ok<String, InterpretError>) r).value();
+		if (val.startsWith(FN_PREFIX))
+			return Optional.of(new Result.Ok<>(val.substring(FN_PREFIX.length())));
+		// Not a callable expression
+		return Optional.empty();
 	}
 
 	// Extracted helper for initial expression checks to reduce cyclomatic

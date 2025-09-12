@@ -588,3 +588,37 @@ Notes
 -----
 - This is a small ergonomic feature that enables returning `this` from simple factory blocks without forcing the user to add an explicit final `this` expression. If this implicit behavior is undesirable we can revert and require explicit `this` return in block bodies instead.
 
+## Feature: assign function to variable and call
+
+Goal
+----
+Support assigning a function name to a variable and invoking it. Example:
+
+    fn get() => 100; let func = get; func()
+
+should evaluate to `100`.
+
+Files/Modules affected
+----------------------
+- `src/test/java/magma/FunctionTest.java` — add failing acceptance test `fnAssignedToVarCall`.
+- `src/main/java/magma/Interpreter.java` — small changes to treat declared functions as first-class values when referenced in expression position, and to allow calling a value that is a stored function reference.
+
+Contract
+--------
+- Input: `let func = get; func()` where `get` is a zero-arg function declared earlier in scope.
+- Output: the function's return value (string) on success, or `InterpretError` on semantic/arity/type errors.
+
+Implementation notes
+--------------------
+- Minimal approach: when evaluating an identifier in expression position, if it refers to a declared function name, encode a function-value marker (e.g. reuse `@MTH:` or introduce `@FN:`) and store that in `valEnv` so `let func = get` copies the marker string into `valEnv` for `func`.
+- When evaluating a call expression where the callee expression evaluates to a function-value marker instead of a bare function declaration name, dispatch to the function's body by resolving the encoded marker back to the function declaration and creating the child environment for the call (binding params, captured values). This keeps changes localized to `evaluateExpression`/`tryEvalFunctionCall` and avoids broader runtime model refactors.
+- Keep helpers small to satisfy Checkstyle/cyclomatic complexity rules: add helper(s) like `isFunctionValue(String val)` and `dispatchFunctionValue(String fnVal, Env callerEnv, List<String> args)`.
+
+Tests to add
+------------
+- `src/test/java/magma/FunctionTest.java::fnAssignedToVarCall` — verifies `fn get() => 100; let func = get; func()` returns `100`.
+
+Notes
+-----
+The tests were added first (red) and will fail until the interpreter is adjusted. This entry documents a minimal design to implement the feature with low risk and small code changes.
+
