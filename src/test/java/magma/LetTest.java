@@ -74,6 +74,11 @@ public class LetTest {
 	}
 
 	@Test
+	public void typedFixedSizeArrIdx() {
+		TestUtils.assertValid("let x : [U8; 3] = [1, 2, 3]; x[0]", "1");
+	}
+
+	@Test
 	public void indexedAssign1() {
 		TestUtils.assertValid("let mut x = [0]; x[0] = 1; x[0]", "1");
 	}

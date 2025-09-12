@@ -970,48 +970,105 @@ public class Interpreter {
 	// Split source into top-level parts separated by semicolons, ignoring
 	// semicolons that appear inside brace-delimited blocks.
 	private String[] splitTopLevel(String source) {
-		List<String> parts = new ArrayList<>();
-		StringBuilder sb = new StringBuilder();
-		int depth = 0;
 		int len = source.length();
+		SplitContext ctx = new SplitContext(source, len);
 		for (int j = 0; j < len; j++) {
-			char c = source.charAt(j);
-			if (c == '{') {
-				depth++;
-				sb.append(c);
-			} else if (c == '}') {
-				// closing a brace
-				depth--;
-				sb.append(c);
-				// If we've returned to depth 0, and the following non-space token is
-				// not 'else' and is not a semicolon or end-of-input, then treat this
-				// as a statement boundary (implicit semicolon) so that trailing
-				// expressions after a block (e.g., "} x") become a separate part.
-				if (depth == 0) {
-					int k = j + 1;
-					while (k < len && Character.isWhitespace(source.charAt(k)))
-						k++;
-					if (k < len) {
-						char nc = source.charAt(k);
-						if (nc != ';') {
-							String rest = source.substring(k);
-							if (!rest.startsWith("else")) {
-								parts.add(sb.toString());
-								sb.setLength(0);
-							}
-						}
-					}
-				}
-			} else if (c == ';' && depth == 0) {
-				parts.add(sb.toString());
-				sb.setLength(0);
-			} else {
-				sb.append(c);
+			if (!processSplitChar(j, ctx)) {
+				ctx.sb.append(ctx.source.charAt(j));
 			}
 		}
 		// add trailing part
-		parts.add(sb.toString());
-		return parts.toArray(new String[0]);
+		ctx.parts.add(ctx.sb.toString());
+		return ctx.parts.toArray(new String[0]);
+	}
+
+	// Helper class to hold nesting depths for splitTopLevel
+	private static class Depths {
+		int par = 0;
+		int brace = 0;
+		int bracket = 0;
+	}
+
+	private static class SplitContext {
+		final String source;
+		final int len;
+		final StringBuilder sb;
+		final List<String> parts;
+		final Depths depths;
+
+		SplitContext(String source, int len) {
+			this.source = source;
+			this.len = len;
+			this.sb = new StringBuilder();
+			this.parts = new ArrayList<>();
+			this.depths = new Depths();
+		}
+	}
+
+	// Process a single character during splitTopLevel; returns true if the
+	// character was handled (appended or caused a split) and false if caller
+	// should append it normally.
+	private boolean processSplitChar(int j, SplitContext ctx) {
+		char c = ctx.source.charAt(j);
+		if (c == '{' || c == '}')
+			return handleBrace(c, j, ctx);
+		if (c == '(' || c == ')' || c == '[' || c == ']')
+			return handleParensBrackets(c, ctx);
+		if (c == ';' && ctx.depths.par == 0 && ctx.depths.brace == 0 && ctx.depths.bracket == 0) {
+			ctx.parts.add(ctx.sb.toString());
+			ctx.sb.setLength(0);
+			return true;
+		}
+		return false;
+	}
+
+	private boolean handleBrace(char c, int j, SplitContext ctx) {
+		if (c == '{') {
+			ctx.depths.brace++;
+			ctx.sb.append(c);
+			return true;
+		}
+		// c == '}'
+		ctx.depths.brace--;
+		ctx.sb.append(c);
+		if (ctx.depths.brace == 0) {
+			int k = j + 1;
+			while (k < ctx.len && Character.isWhitespace(ctx.source.charAt(k)))
+				k++;
+			if (k < ctx.len) {
+				char nc = ctx.source.charAt(k);
+				if (nc != ';') {
+					String rest = ctx.source.substring(k);
+					if (!rest.startsWith("else")) {
+						ctx.parts.add(ctx.sb.toString());
+						ctx.sb.setLength(0);
+					}
+				}
+			}
+		}
+		return true;
+	}
+
+	private boolean handleParensBrackets(char c, SplitContext ctx) {
+		if (c == '(') {
+			ctx.depths.par++;
+			ctx.sb.append(c);
+			return true;
+		}
+		if (c == ')') {
+			ctx.depths.par--;
+			ctx.sb.append(c);
+			return true;
+		}
+		if (c == '[') {
+			ctx.depths.bracket++;
+			ctx.sb.append(c);
+			return true;
+		}
+		// c == ']'
+		ctx.depths.bracket--;
+		ctx.sb.append(c);
+		return true;
 	}
 
 	/**
@@ -1042,7 +1099,6 @@ public class Interpreter {
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
 		Env env = new Env(valEnv, typeEnv, source);
-		StringBuilder acc = new StringBuilder();
 		// Special-case: if the source is an object declaration with no trailing
 		// expression, treat it as a top-level statement and return empty output
 		// rather than attempting to parse it as a single expression (which
@@ -1669,30 +1725,34 @@ public class Interpreter {
 	}
 
 	private Optional<Result<String, InterpretError>> checkAnnotatedSuffix(String annotatedSuffix, String value, Env env) {
-		// If the annotation is a union type registered in env, accept when any
-		// member type accepts the value.
-		if (env.unionEnv.containsKey(annotatedSuffix)) {
-			for (String member : env.unionEnv.get(annotatedSuffix)) {
-				Optional<Result<String, InterpretError>> memberChk = checkAnnotatedSuffix(member, value, env);
-				if (memberChk.isEmpty())
-					return Optional.empty();
-			}
-			return err("value does not fit annotated union type", env.source);
+		// Diagnostic: log array-style annotations when encountered to help
+		// debugging parser/trim issues during test-driven development.
+		if (Objects.nonNull(annotatedSuffix) && annotatedSuffix.startsWith("[")) {
+			// note: array-style annotation encountered; handled below
+		}
+		Optional<Result<String, InterpretError>> arrChk = arrAnnChk(annotatedSuffix, value, env);
+		if (arrChk.isPresent()) {
+			Result<String, InterpretError> r = arrChk.get();
+			if (r instanceof Result.Err)
+				return arrChk; // error
+			// applied and OK: continue as success
+			return Optional.empty();
 		}
 
-		// If the annotation names a declared struct type or a class-style
-		// constructor (recorded in fnEnv), accept when the value is a
-		// runtime-encoded struct whose name matches the annotation.
-		if (env.structEnv.containsKey(annotatedSuffix) || env.fnEnv.containsKey(annotatedSuffix)) {
-			if (value.startsWith(STR_PREFIX)) {
-				String payload = value.substring(STR_PREFIX.length());
-				int sep = payload.indexOf('|');
-				String name = sep >= 0 ? payload.substring(0, sep) : payload;
-				if (annotatedSuffix.equals(name))
-					return Optional.empty();
-				return err("value does not fit annotated type", env.source);
-			}
-			return err("value does not fit annotated type", env.source);
+		Optional<Result<String, InterpretError>> unionChk = unionAnnChk(annotatedSuffix, value, env);
+		if (unionChk.isPresent()) {
+			Result<String, InterpretError> r = unionChk.get();
+			if (r instanceof Result.Err)
+				return unionChk;
+			return Optional.empty();
+		}
+
+		Optional<Result<String, InterpretError>> structChk = structAnnChk(annotatedSuffix, value, env);
+		if (structChk.isPresent()) {
+			Result<String, InterpretError> r = structChk.get();
+			if (r instanceof Result.Err)
+				return structChk;
+			return Optional.empty();
 		}
 		// Special-case Bool annotation which does not follow the <Letter><digits>
 		// pattern used by integer typed suffixes (e.g. U8, I32).
@@ -1720,6 +1780,70 @@ public class Interpreter {
 			return Optional.of(new Result.Err<>(new InterpretError("invalid type width", source)));
 		}
 		return Optional.empty();
+	}
+
+	// Helper: check fixed-size typed array annotation '[ElemType; N]'.
+	private Optional<Result<String, InterpretError>> arrAnnChk(String annotatedSuffix, String value, Env env) {
+		if (!(Objects.nonNull(annotatedSuffix) && annotatedSuffix.startsWith("[") && annotatedSuffix.endsWith("]")))
+			return Optional.empty();
+		String inside = annotatedSuffix.substring(1, annotatedSuffix.length() - 1).trim();
+		int semi = inside.indexOf(';');
+		if (semi < 0)
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
+		String elemType = inside.substring(0, semi).trim();
+		String sizeStr = inside.substring(semi + 1).trim();
+		int expectedSize;
+		try {
+			expectedSize = Integer.parseInt(sizeStr);
+		} catch (NumberFormatException ex) {
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type width", env.source)));
+		}
+		if (!value.startsWith(ARR_PREFIX))
+			return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", env.source)));
+		String elemsJoined = value.substring(ARR_PREFIX.length());
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		if (!elemsJoined.isEmpty()) {
+			for (String p : elemsJoined.split("\\|"))
+				elems.add(p);
+		}
+		if (elems.size() != expectedSize)
+			return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", env.source)));
+		for (String e : elems) {
+			Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(elemType, e, env);
+			if (chk.isPresent())
+				return chk;
+		}
+		// applied and OK
+		return Optional.of(new Result.Ok<>(value));
+	}
+
+	// Helper: check union annotation
+	private Optional<Result<String, InterpretError>> unionAnnChk(String annotatedSuffix, String value, Env env) {
+		if (!env.unionEnv.containsKey(annotatedSuffix))
+			return Optional.empty();
+		for (String member : env.unionEnv.get(annotatedSuffix)) {
+			Optional<Result<String, InterpretError>> memberChk = checkAnnotatedSuffix(member, value, env);
+			if (memberChk.isEmpty())
+				return Optional.of(new Result.Ok<>(value));
+			if (memberChk.isPresent() && memberChk.get() instanceof Result.Ok)
+				return Optional.of(new Result.Ok<>(value));
+		}
+		return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated union type", env.source)));
+	}
+
+	// Helper: check struct/class annotation
+	private Optional<Result<String, InterpretError>> structAnnChk(String annotatedSuffix, String value, Env env) {
+		if (!(env.structEnv.containsKey(annotatedSuffix) || env.fnEnv.containsKey(annotatedSuffix)))
+			return Optional.empty();
+		if (value.startsWith(STR_PREFIX)) {
+			String payload = value.substring(STR_PREFIX.length());
+			int sep = payload.indexOf('|');
+			String name = sep >= 0 ? payload.substring(0, sep) : payload;
+			if (annotatedSuffix.equals(name))
+				return Optional.of(new Result.Ok<>(value));
+			return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", env.source)));
+		}
+		return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", env.source)));
 	}
 
 	private Optional<Result<String, InterpretError>> checkFits(TypeSpec ts, String value, Env env) {
@@ -1969,16 +2093,8 @@ public class Interpreter {
 		return fhOpt.get();
 	}
 
-	// Parse function header and record generic params; return Optional<Result>
-	// to match existing caller patterns.
-	private Optional<Result<FnHeader, InterpretError>> parseFnHeaderRecord(String s, int idx, Env env) {
-		Result<FnHeader, InterpretError> fhRes = parseFnHeaderResult(s, idx, env);
-		if (fhRes instanceof Result.Err)
-			return Optional.of(new Result.Err<>(((Result.Err<FnHeader, InterpretError>) fhRes).error()));
-		FnHeader fh = ((Result.Ok<FnHeader, InterpretError>) fhRes).value();
-		recordFnGenParams(fh.name(), fh.genericNames(), env);
-		return Optional.of(new Result.Ok<>(fh));
-	}
+	// (parseFnHeaderRecord removed to avoid unused-method warnings; use
+	// parseFnHeaderResult/recordFnGenParams directly where needed.)
 
 	// A small holder for the results of parsing the common initial portion of
 	// a function declaration (used by both normal and intrinsic declarations).
