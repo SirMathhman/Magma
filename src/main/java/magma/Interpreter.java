@@ -806,21 +806,7 @@ public class Interpreter {
 		// rejected. This is a coarse-grained runtime check to catch common cases
 		// where a function will mutate an outer variable.
 		java.util.Set<String> mutated = scanFuncMut(retExpr);
-		for (String m : mutated) {
-			if (env.mutEnv.getOrDefault(m, Boolean.FALSE)) {
-				int existing = env.mutBorrowCount.getOrDefault(m, 0);
-				if (existing > 0) {
-					// already borrowed; leave as-is
-				} else {
-					env.mutBorrowCount.put(m, 1);
-				}
-			}
-		}
-		// if we're inside a block tracking local declarations, record the function
-		// name so that `this` inside a returned object can include callable methods
-		if (env.localDecls.isPresent()) {
-			env.localDecls.get().add(name);
-		}
+		accFuncMut(mutated, name, env);
 		if (!paramNames.isEmpty()) {
 			env.fnParamNames.put(name, paramNames);
 		}
@@ -2317,6 +2303,18 @@ public class Interpreter {
 		env.fnParamTypes.put(anonName, Collections.emptyList());
 		// scan function body for mutated outer targets and account for mutBorrowCount
 		java.util.Set<String> mutated = scanFuncMut(bodyExpr);
+		accFuncMut(mutated, anonName, env);
+		if (env.localDecls.isPresent()) {
+			env.localDecls.get().add(anonName);
+		}
+		// no params to record
+		return Optional.of(new Result.Ok<>(FN_PREFIX + anonName));
+	}
+
+	// Helper to centralize mutation-accounting logic used after scanning a function
+	// body for mutated outer variables. This avoids duplicated blocks flagged by
+	// PMD CPD and keeps the behavior consistent across call sites.
+	private void accFuncMut(java.util.Set<String> mutated, String name, Env env) {
 		for (String m : mutated) {
 			if (env.mutEnv.getOrDefault(m, Boolean.FALSE)) {
 				int existing = env.mutBorrowCount.getOrDefault(m, 0);
@@ -2327,11 +2325,11 @@ public class Interpreter {
 				}
 			}
 		}
+		// if we're inside a block tracking local declarations, record the function
+		// name so that `this` inside a returned object can include callable methods
 		if (env.localDecls.isPresent()) {
-			env.localDecls.get().add(anonName);
+			env.localDecls.get().add(name);
 		}
-		// no params to record
-		return Optional.of(new Result.Ok<>(FN_PREFIX + anonName));
 	}
 
 	// Primary evaluation part 1: block, boolean, array/index, function call,
