@@ -1110,9 +1110,17 @@ public class Interpreter {
 					return new Result.Ok<>(acc.toString());
 				}
 				// Otherwise treat as a final expression: evaluate and return. If there
-				// were prior accumulated statement results, preserve original
-				// semantics and return the expression value (do not append).
-				return evaluateExpression(part, env);
+				// were prior accumulated statement results, append the final expression
+				// value to the accumulator so sequences like `print(1); 2` produce "12".
+				Result<String, InterpretError> finalRes = evaluateExpression(part, env);
+				if (finalRes instanceof Result.Err)
+					return finalRes;
+				String finalVal = ((Result.Ok<String, InterpretError>) finalRes).value();
+				if (acc.length() > 0) {
+					acc.append(finalVal);
+					return new Result.Ok<>(acc.toString());
+				}
+				return finalRes;
 			}
 		}
 		// If we reached the end without a final expression (e.g., trailing semicolon or

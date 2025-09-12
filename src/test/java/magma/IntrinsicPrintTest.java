@@ -19,4 +19,13 @@ public class IntrinsicPrintTest {
         // Expect sequential prints to concatenate their outputs into the program result
         assertValid(src, "12");
     }
+
+    @Test
+    public void printFinalExpr() {
+        // Program with sequential print in statement position followed by a final
+        // expression. Expect the printed output to be prepended to the final
+        // expression's value, producing a concatenated program result.
+        String src = "intrinsic fn print<T>(value : T) : Void; print(1); 2";
+        assertValid(src, "12");
+    }
 }
