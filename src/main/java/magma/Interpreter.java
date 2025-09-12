@@ -1717,6 +1717,12 @@ public class Interpreter {
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return Optional.of(new Result.Ok<>(s));
+        // Double-quoted string literal
+		if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
+			String inner = s.substring(1, s.length() - 1);
+			String unescaped = unescapeString(inner);
+			return Optional.of(new Result.Ok<>(unescaped));
+		}
 		// array literal / indexing
 		Optional<Result<String, InterpretError>> arrIdx = tryEvalArrayOrIndex(s, env);
 		if (arrIdx.isPresent())
@@ -1977,6 +1983,30 @@ public class Interpreter {
 		String integerPart = s.substring(0, i);
 		String suffix = s.substring(i).trim();
 		return new ParseResult(true, integerPart, suffix);
+	}
+
+	// Unescape common escape sequences inside a double-quoted string literal.
+	// Supports: \\n+    //           \"  -> double quote
+	//           \n, \r, \t
+	private String unescapeString(String s) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '\\' && i + 1 < s.length()) {
+				char next = s.charAt(i + 1);
+				switch (next) {
+					case 'n' -> { sb.append('\n'); i++; }
+					case 'r' -> { sb.append('\r'); i++; }
+					case 't' -> { sb.append('\t'); i++; }
+					case '\\' -> { sb.append('\\'); i++; }
+					case '"' -> { sb.append('"'); i++; }
+					default -> { sb.append(next); i++; }
+				}
+			} else {
+				sb.append(c);
+			}
+		}
+		return sb.toString();
 	}
 
 	private boolean isInvalidSuffix(String suffix) {
