@@ -1421,6 +1421,12 @@ public class Interpreter {
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
 		if (DEBUG) {
+			System.err.println("[DEBUG] handleLetDeclaration: name=" + d.name + " ann='" + d.annotatedSuffix + "' rhs='"
+					+ d.rhs + "' value='" + value + "'");
+			System.err.println("[DEBUG] env.fnEnv keys: " + env.fnEnv.keySet());
+			System.err.println("[DEBUG] env.valEnv keys: " + env.valEnv.keySet());
+		}
+		if (DEBUG) {
 			System.err.println("[DEBUG] let recorded: " + d.name + "=" + value + " mut=" + d.mutable);
 			System.err.println("[DEBUG] env keys: " + env.valEnv.keySet());
 		}
@@ -1694,7 +1700,17 @@ public class Interpreter {
 		idx = skipWs(s, pid.idx, len);
 		String annotatedSuffix = parseAnnotatedSuffix(s, idx, len);
 		// find '=' after annotation (if any). Allow declarations without initializer
-		int eq = s.indexOf('=', idx);
+		// Note: the first '=' after the identifier might be the '=>' arrow inside
+		// a function-type annotation (e.g. `: () => I32`). To avoid splitting at
+		// that '=' we search for the assignment '=' starting after the
+		// annotation text when an annotation was present.
+		int searchStart = idx;
+		if (!annotatedSuffix.isEmpty()) {
+			int annPos = s.indexOf(annotatedSuffix, idx);
+			if (annPos >= 0)
+				searchStart = annPos + annotatedSuffix.length();
+		}
+		int eq = s.indexOf('=', searchStart);
 		String rhs = "";
 		if (eq >= 0) {
 			rhs = s.substring(eq + 1).trim();
@@ -1726,8 +1742,23 @@ public class Interpreter {
 		if (idx < len && s.charAt(idx) == ':') {
 			idx++;
 			int sufStart = idx;
-			while (idx < len && s.charAt(idx) != '=')
+			// Scan until the assignment '=' but skip over '=>' arrows which
+			// are part of function-type annotations (e.g. `() => I32`). The
+			// previous logic stopped at the '=' inside '=>', causing the
+			// remainder ("> I32 = get") to be treated as the RHS. To
+			// support richer annotation grammars, treat an '=' followed by
+			// '>' as part of the annotation and continue scanning.
+			while (idx < len) {
+				char c = s.charAt(idx);
+				if (c == '=' && idx + 1 < len && s.charAt(idx + 1) == '>') {
+					// skip the '=>' arrow as it's part of the annotation
+					idx += 2;
+					continue;
+				}
+				if (c == '=')
+					break;
 				idx++;
+			}
 			return s.substring(sufStart, idx).trim();
 		}
 		return "";
@@ -1739,6 +1770,22 @@ public class Interpreter {
 		if (Objects.nonNull(annotatedSuffix) && annotatedSuffix.startsWith("[")) {
 			// note: array-style annotation encountered; handled below
 		}
+		// Delegate function-type annotation checking to a helper to keep this
+		// method's cyclomatic complexity within Checkstyle limits.
+		Optional<Result<String, InterpretError>> fnChk = checkFnTypeAnn(annotatedSuffix, value, env);
+		if (fnChk.isPresent()) {
+			Result<String, InterpretError> r = fnChk.get();
+			if (r instanceof Result.Err)
+				return fnChk; // propagate error
+			return Optional.empty(); // applied and OK
+		}
+
+		// Delegate remaining annotation forms (arrays, unions, structs, Bool, and
+		// primitive numeric widths) to a helper to keep this method small.
+		return checkPrimAnn(annotatedSuffix, value, env);
+	}
+
+	private Optional<Result<String, InterpretError>> checkPrimAnn(String annotatedSuffix, String value, Env env) {
 		Optional<Result<String, InterpretError>> arrChk = arrAnnChk(annotatedSuffix, value, env);
 		if (arrChk.isPresent()) {
 			Result<String, InterpretError> r = arrChk.get();
@@ -1871,6 +1918,45 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			return err("invalid integer value", env.source);
 		}
+	}
+
+	// Helper to validate function-type annotations like `() => I32`.
+	// Returns Optional.empty() when the annotation doesn't apply. If the
+	// annotation applies and is valid, returns Optional.of(Optional.empty()).
+	// If it applies and is invalid, returns Optional.of(Result.Err).
+	private Optional<Result<String, InterpretError>> checkFnTypeAnn(String annotatedSuffix, String value, Env env) {
+		if (Objects.isNull(annotatedSuffix) || !annotatedSuffix.contains("=>"))
+			return Optional.empty(); // not applicable
+		String[] parts = annotatedSuffix.split("=>", 2);
+		String paramsPart = parts[0].trim();
+		String retPart = parts.length > 1 ? parts[1].trim() : "";
+		int expectedParams = 0;
+		if (paramsPart.startsWith("(") && paramsPart.endsWith(")")) {
+			String inside = paramsPart.substring(1, paramsPart.length() - 1).trim();
+			if (!inside.isEmpty()) {
+				String[] ps = inside.split(",");
+				expectedParams = ps.length;
+			}
+		} else {
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type suffix", env.source)));
+		}
+		// Value must be a function-value marker
+		if (Objects.isNull(value) || !value.startsWith(FN_PREFIX))
+			return Optional.of(new Result.Err<>(new InterpretError("value does not fit annotated type", env.source)));
+		String fnName = value.substring(FN_PREFIX.length());
+		if (!env.fnEnv.containsKey(fnName))
+			return Optional.of(new Result.Err<>(new InterpretError("unknown identifier in assignment", env.source)));
+		List<String> fnParams = env.fnParamNames.getOrDefault(fnName, Collections.emptyList());
+		if (fnParams.size() != expectedParams)
+			return Optional.of(new Result.Err<>(new InterpretError("argument count mismatch in assignment", env.source)));
+		// If the function declaration has an explicit return annotation, check it
+		String declaredRet = env.fnEnv.get(fnName).returnType;
+		if (!retPart.isEmpty() && !declaredRet.isEmpty()) {
+			if (!declaredRet.equalsIgnoreCase(retPart))
+				return Optional.of(new Result.Err<>(new InterpretError("function return type mismatch", env.source)));
+		}
+		// applied and OK: return Ok to signal applied and successful
+		return Optional.of(new Result.Ok<>(value));
 	}
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
