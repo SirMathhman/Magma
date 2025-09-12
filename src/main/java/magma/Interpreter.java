@@ -17,7 +17,7 @@ import java.util.Set;
 public class Interpreter {
 	// Debug flag to enable diagnostic prints during test runs
 	// Not final so the compiler won't treat debug branches as dead code.
-	private static boolean DEBUG = false;
+	private static boolean DEBUG = true;
 
 	// Counter used to generate unique names for anonymous/arrow functions
 	private int anonFnCounter = 0;
@@ -115,6 +115,8 @@ public class Interpreter {
 			String p = req.paramNames.get(i);
 			String val = req.evaluatedArgs.get(i);
 			String ptype = i < req.paramTypes.size() ? req.paramTypes.get(i) : "";
+			if (DEBUG)
+				System.err.println("[DEBUG] bindEvaluatedArgs param='" + p + "' ptype='" + ptype + "' val='" + val + "'");
 			if (!ptype.isEmpty()) {
 				// If the parameter type is a generic parameter declared on the
 				// function (e.g., "T" in fn f<T>(...)), skip runtime annotated
@@ -379,7 +381,8 @@ public class Interpreter {
 		}
 		// Simple identifier
 		if (!isSimpleIdentifier(req.originalLhs))
-			return new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + req.originalLhs + '"'));
+			return new Result.Err<>(new InterpretError(
+					"invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + req.originalLhs + '"'));
 		if (DEBUG && !env.valEnv.containsKey(req.originalLhs))
 			System.err
 					.println("[DEBUG] resolveLhsTarget: simple id missing: " + req.originalLhs + " keys=" + env.valEnv.keySet());
@@ -646,6 +649,43 @@ public class Interpreter {
 		return parenIdx;
 	}
 
+	// Find matching closeChar searching forward from startIdx for the openChar
+	// at startIdx. Returns index of matching closeChar or -1.
+	private int findMatchingForward(String s, int startIdx, char openChar) {
+		int len = s.length();
+		int depth = 0;
+		char closeChar = (openChar == '(') ? ')' : (openChar == '{') ? '}' : (openChar == '[') ? ']' : openChar;
+		for (int i = startIdx; i < len; i++) {
+			char c = s.charAt(i);
+			if (c == openChar)
+				depth++;
+			else if (c == closeChar) {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	// Find matching openChar searching backward from startIdx for the closeChar
+	// at startIdx. Returns index of matching openChar or -1.
+	private int findMatchingBackward(String s, int startIdx, char openChar) {
+		char closeChar = (openChar == '(') ? ')' : (openChar == '{') ? '}' : (openChar == '[') ? ']' : openChar;
+		int depth = 0;
+		for (int i = startIdx; i >= 0; i--) {
+			char c = s.charAt(i);
+			if (c == closeChar)
+				depth++;
+			else if (c == openChar) {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
 	// Try to evaluate a function call expression like 'name()' or 'name(arg)'.
 	// Returns Optional.empty() if the expression is not a function call, otherwise
 	// returns the Result (Ok or Err) wrapped in Optional.
@@ -777,7 +817,7 @@ public class Interpreter {
 		// parse empty parameter list '()'
 		if (idx >= len || s.charAt(idx) != '(')
 			return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
-		int close = s.indexOf(')', idx + 1);
+		int close = findMatchingForward(s, idx, '(');
 		if (close < 0)
 			return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
 		String params = s.substring(idx + 1, close).trim();
@@ -1155,6 +1195,8 @@ public class Interpreter {
 
 		while (i < parts.length) {
 			String part = parts[i].trim();
+			if (DEBUG)
+				System.err.println("[DEBUG] evaluateSequence part[" + i + "]='" + part + "'");
 			if (part.isEmpty()) {
 				i++;
 				continue;
@@ -1214,7 +1256,9 @@ public class Interpreter {
 		// Allow function-call expressions to appear in statement position
 		// (e.g., print(100);). Evaluate them here and ignore the result
 		// unless they produce an error.
-		if (s.endsWith(")")) {
+		// Avoid treating function declarations like "fn name(...) => ..." as calls.
+		if (s.endsWith(")") && !s.startsWith("fn ") && !s.startsWith("fn(") && !s.startsWith("class fn ")
+				&& !s.startsWith("class fn(")) {
 			Optional<Result<String, InterpretError>> fnCall = tryEvalFunctionCall(s, env);
 			if (fnCall.isPresent()) {
 				Result<String, InterpretError> r = fnCall.get();
@@ -1517,7 +1561,7 @@ public class Interpreter {
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
-			env.mutBorrowCount.put(d.name, 0);
+		env.mutBorrowCount.put(d.name, 0);
 		if (DEBUG) {
 			System.err.println("[DEBUG] handleLetDeclaration: name=" + d.name + " ann='" + d.annotatedSuffix + "' rhs='"
 					+ d.rhs + "' value='" + value + "'");
@@ -1662,11 +1706,13 @@ public class Interpreter {
 			isDeref = true;
 			String inner = lhs.substring(1).trim();
 			if (!isSimpleIdentifier(inner))
-				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + inner + '"')));
+				return new AssignPrep(new Result.Err<>(new InterpretError(
+						"invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + inner + '"')));
 			derefTarget = inner;
 		} else if (!isIndexed) {
 			if (!isSimpleIdentifier(lhs))
-				return new AssignPrep(new Result.Err<>(new InterpretError("invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + lhs + '"')));
+				return new AssignPrep(new Result.Err<>(new InterpretError(
+						"invalid assignment lhs (expected identifier, *ident, or ident[index])", '"' + lhs + '"')));
 		}
 		// Determine the actual variable name that will receive the assignment.
 		// If LHS is a dereference like '*y', resolve the variable y's value and
@@ -1918,39 +1964,40 @@ public class Interpreter {
 					if (gt > 5) {
 						String base = before;
 						String dropFn = after.substring(5, gt).trim();
-				// Validate the base annotation against the value. If the recursive
-				// check returns an Err result, propagate it. If it returns empty or
-				// an Ok, treat that as a successful base validation.
-				Optional<Result<String, InterpretError>> baseChk = checkAnnotatedSuffix(base, value, env);
-				if (baseChk.isPresent()) {
-					Result<String, InterpretError> r = baseChk.get();
-					if (r instanceof Result.Err)
-						return baseChk;
-					// applied and OK -> continue
-				}
-				// Invoke the drop function as a side-effect. Prefer executing the
-				// declared function body directly in the caller environment when the
-				// function has no parameters so assignments inside the drop can mutate
-				// the outer variables as expected for destructor-like behavior.
-				if (!env.fnEnv.containsKey(dropFn))
-					return Optional.of(new Result.Err<>(new InterpretError("unknown identifier in drop annotation", env.source)));
-				List<String> params = env.fnParamNames.getOrDefault(dropFn, Collections.emptyList());
-				if (params.isEmpty()) {
-					FunctionDecl fd = env.fnEnv.get(dropFn);
-					// Execute the function body directly in the caller environment so
-					// assignments inside the drop body mutate the outer scope as
-					// expected for destructor-like behavior.
-					Optional<Result<String, InterpretError>> dr = execBodyInCallerEnv(fd.bodyExpr, env);
-					if (dr.isPresent())
-						return dr;
-				} else {
-					// Non-zero-arg drop: fallback to normal call semantics (may not mutate
-					// caller's valEnv depending on call semantics), but still surface
-					// any runtime error.
-					Result<String, InterpretError> dr = evaluateExpression(dropFn + "()", env);
-					if (dr instanceof Result.Err)
-						return Optional.of(dr);
-				}
+						// Validate the base annotation against the value. If the recursive
+						// check returns an Err result, propagate it. If it returns empty or
+						// an Ok, treat that as a successful base validation.
+						Optional<Result<String, InterpretError>> baseChk = checkAnnotatedSuffix(base, value, env);
+						if (baseChk.isPresent()) {
+							Result<String, InterpretError> r = baseChk.get();
+							if (r instanceof Result.Err)
+								return baseChk;
+							// applied and OK -> continue
+						}
+						// Invoke the drop function as a side-effect. Prefer executing the
+						// declared function body directly in the caller environment when the
+						// function has no parameters so assignments inside the drop can mutate
+						// the outer variables as expected for destructor-like behavior.
+						if (!env.fnEnv.containsKey(dropFn))
+							return Optional
+									.of(new Result.Err<>(new InterpretError("unknown identifier in drop annotation", env.source)));
+						List<String> params = env.fnParamNames.getOrDefault(dropFn, Collections.emptyList());
+						if (params.isEmpty()) {
+							FunctionDecl fd = env.fnEnv.get(dropFn);
+							// Execute the function body directly in the caller environment so
+							// assignments inside the drop body mutate the outer scope as
+							// expected for destructor-like behavior.
+							Optional<Result<String, InterpretError>> dr = execBodyInCallerEnv(fd.bodyExpr, env);
+							if (dr.isPresent())
+								return dr;
+						} else {
+							// Non-zero-arg drop: fallback to normal call semantics (may not mutate
+							// caller's valEnv depending on call semantics), but still surface
+							// any runtime error.
+							Result<String, InterpretError> dr = evaluateExpression(dropFn + "()", env);
+							if (dr instanceof Result.Err)
+								return Optional.of(dr);
+						}
 						// applied and OK
 						return Optional.empty();
 					}
@@ -2185,6 +2232,8 @@ public class Interpreter {
 			names.add(pname);
 			types.add(ptype);
 		}
+		if (DEBUG)
+			System.err.println("[DEBUG] parseParamList params='" + params + "' names=" + names + " types=" + types);
 		return new Result.Ok<>(new ParamList(names, types));
 	}
 
@@ -3404,7 +3453,7 @@ public class Interpreter {
 
 		// Bundle parameters into a request object to satisfy Checkstyle limits
 		ExecReq execReq = new ExecReq(inner, env, oldLocalsOpt);
-	Optional<Result<String, InterpretError>> execErr = execBlockParts(execReq);
+		Optional<Result<String, InterpretError>> execErr = execBlockParts(execReq);
 		if (execErr.isPresent())
 			return execErr;
 
