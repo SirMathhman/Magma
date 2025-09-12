@@ -119,7 +119,7 @@ public class Interpreter {
 				// interpreter. Record the concrete value's annotation in the
 				// callee environment so the body can refer to types if needed.
 				List<String> gens = req.callerEnv.fnGenericParams.getOrDefault(req.functionName,
-					java.util.Collections.emptyList());
+						java.util.Collections.emptyList());
 				if (!gens.contains(ptype)) {
 					Optional<Result<String, InterpretError>> annErr = checkAnnotatedSuffix(ptype, val, req.callerEnv);
 					if (annErr.isPresent())
@@ -199,7 +199,7 @@ public class Interpreter {
 		final Map<String, Boolean> mutEnv;
 		final Map<String, java.util.List<String>> structEnv;
 		final Map<String, java.util.List<String>> structFieldTypes;
- 		final Map<String, java.util.List<String>> unionEnv;
+		final Map<String, java.util.List<String>> unionEnv;
 		final String source;
 
 		// Optional collector of let-declarations that should be treated as
@@ -658,7 +658,7 @@ public class Interpreter {
 		List<String> paramTypes = env.fnParamTypes.getOrDefault(name, Collections.emptyList());
 
 		// Evaluate and collect call arguments
-	Optional<Result<List<String>, InterpretError>> argsRes = evalCallArgs(inside, paramNames, env);
+		Optional<Result<List<String>, InterpretError>> argsRes = evalCallArgs(inside, paramNames, env);
 		if (argsRes.isEmpty())
 			return Optional.of(new Result.Err<>(new InterpretError("argument parsing error", s)));
 		Result<List<String>, InterpretError> ar = argsRes.get();
@@ -667,7 +667,7 @@ public class Interpreter {
 		List<String> evaluatedArgs = ((Result.Ok<List<String>, InterpretError>) ar).value();
 
 		// Prepare call environment and bind parameters
-	Result<Env, InterpretError> prep = prepCallEnv(new CallReq(env, paramNames, paramTypes, evaluatedArgs, name));
+		Result<Env, InterpretError> prep = prepCallEnv(new CallReq(env, paramNames, paramTypes, evaluatedArgs, name));
 		if (prep instanceof Result.Err)
 			return Optional.of(new Result.Err<>(((Result.Err<Env, InterpretError>) prep).error()));
 		Env fnEnv = ((Result.Ok<Env, InterpretError>) prep).value();
@@ -681,9 +681,11 @@ public class Interpreter {
 		Result<String, InterpretError> res = evaluateExpression(fd.bodyExpr, fnEnv);
 		if (DEBUG) {
 			if (res instanceof Result.Ok) {
-				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned: " + ((Result.Ok<String, InterpretError>) res).value());
+				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned: "
+						+ ((Result.Ok<String, InterpretError>) res).value());
 			} else if (res instanceof Result.Err) {
-				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned error: " + ((Result.Err<String, InterpretError>) res).error());
+				System.out.println("DEBUG: function call '" + name + "' body -> '" + fd.bodyExpr + "' returned error: "
+						+ ((Result.Err<String, InterpretError>) res).error());
 			}
 		}
 		return Optional.of(res);
@@ -691,7 +693,8 @@ public class Interpreter {
 
 	// Small holder to pass many parameters through a single object to satisfy
 	// Checkstyle limits on parameter count.
-	private record CallReq(Env callerEnv, List<String> paramNames, List<String> paramTypes, List<String> evaluatedArgs, String functionName) {
+	private record CallReq(Env callerEnv, List<String> paramNames, List<String> paramTypes, List<String> evaluatedArgs,
+			String functionName) {
 	}
 
 	// Evaluate call argument expressions and validate count against paramNames.
@@ -756,7 +759,7 @@ public class Interpreter {
 		int baseIdx = common.nextIdx();
 		FnHeader fh = common.fh();
 		String name = fh.name();
-		idx = skipWs(s, baseIdx, len);
+		int idx = skipWs(s, baseIdx, len);
 		// parse empty parameter list '()'
 		if (idx >= len || s.charAt(idx) != '(')
 			return Optional.of(new Result.Err<>(new InterpretError("invalid fn syntax", env.source)));
@@ -1069,7 +1072,7 @@ public class Interpreter {
 	private Result<String, InterpretError> evaluateSequence(String source) {
 		// Split at top-level semicolons only (ignore semicolons inside braces)
 		String[] parts = splitTopLevel(source);
-        
+
 		// debug prints removed; keep output quiet during test runs
 		Map<String, String> valEnv = new HashMap<>();
 		Map<String, String> typeEnv = new HashMap<>();
@@ -1739,7 +1742,7 @@ public class Interpreter {
 
 	private Result<String, InterpretError> evaluateExpression(String expr, Env env) {
 		String s = expr.trim();
-	Optional<Result<String, InterpretError>> prefix = tryEvalPrefixAll(s, env);
+		Optional<Result<String, InterpretError>> prefix = tryEvalPrefixAll(s, env);
 		if (prefix.isPresent())
 			return prefix.get();
 
@@ -1749,16 +1752,16 @@ public class Interpreter {
 		return new Result.Err<>(new InterpretError("invalid literal", expr));
 	}
 
-    // Extract primary evaluation parts to reduce cyclomatic complexity
-    private Optional<Result<String, InterpretError>> tryEvalPrimaries(String s, Env env) {
-        Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
-        if (p1.isPresent())
-            return p1;
-        Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
-        if (p2.isPresent())
-            return p2;
-        return Optional.empty();
-    }
+	// Extract primary evaluation parts to reduce cyclomatic complexity
+	private Optional<Result<String, InterpretError>> tryEvalPrimaries(String s, Env env) {
+		Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
+		if (p1.isPresent())
+			return p1;
+		Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
+		if (p2.isPresent())
+			return p2;
+		return Optional.empty();
+	}
 
 	// Result holder for parsed parameter lists.
 	private static record ParamList(java.util.List<String> names, java.util.List<String> types) {
@@ -1789,7 +1792,8 @@ public class Interpreter {
 
 	// Dispatch known intrinsic implementations. Kept as a separate helper to
 	// reduce cyclomatic complexity in tryEvalFunctionCall.
-	private Optional<Result<String, InterpretError>> dispatchIntrinsic(String name, List<String> evaluatedArgs, String source) {
+	private Optional<Result<String, InterpretError>> dispatchIntrinsic(String name, List<String> evaluatedArgs,
+			String source) {
 		if ("print".equals(name)) {
 			if (evaluatedArgs.isEmpty())
 				return Optional.of(new Result.Err<>(new InterpretError("missing arg to print", source)));
@@ -1812,7 +1816,8 @@ public class Interpreter {
 		if (leftRes instanceof Result.Err)
 			return Optional.of(leftRes);
 		String leftVal = ((Result.Ok<String, InterpretError>) leftRes).value();
-		// If the right is a union name, check its members; otherwise check simple type names
+		// If the right is a union name, check its members; otherwise check simple type
+		// names
 		if (env.unionEnv.containsKey(right)) {
 			for (String mem : env.unionEnv.get(right)) {
 				if (matchesTypeName(mem, leftVal))
@@ -1886,7 +1891,7 @@ public class Interpreter {
 		// Boolean literals
 		if (s.equals("true") || s.equals("false"))
 			return Optional.of(new Result.Ok<>(s));
-        // Double-quoted string literal
+		// Double-quoted string literal
 		if (s.length() >= 2 && s.charAt(0) == '"' && s.charAt(s.length() - 1) == '"') {
 			String inner = s.substring(1, s.length() - 1);
 			String unescaped = unescapeString(inner);
@@ -1925,7 +1930,8 @@ public class Interpreter {
 		return Optional.of(evaluateTypedSuffix(pr, s));
 	}
 
-	// Extracted helper for initial expression checks to reduce cyclomatic complexity
+	// Extracted helper for initial expression checks to reduce cyclomatic
+	// complexity
 	private Optional<Result<String, InterpretError>> tryEvalPrefixAll(String s, Env env) {
 		Optional<Result<String, InterpretError>> r = tryEvalPrefixPhase1(s, env);
 		if (r.isPresent())
@@ -1933,21 +1939,21 @@ public class Interpreter {
 		return tryEvalPrefixPhase2(s, env);
 	}
 
-    private Optional<Result<String, InterpretError>> tryEvalPrefixPhase1(String s, Env env) {
-        Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
-        if (structRes.isPresent())
-            return structRes;
-        Optional<Result<String, InterpretError>> methodRes = tryEvalMethodCall(s, env);
-        if (methodRes.isPresent())
-            return methodRes;
-        Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
-        if (memberRes.isPresent())
-            return memberRes;
-        Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
-        if (pref.isPresent())
-            return pref;
-        return Optional.empty();
-    }
+	private Optional<Result<String, InterpretError>> tryEvalPrefixPhase1(String s, Env env) {
+		Optional<Result<String, InterpretError>> structRes = tryEvalStruct(s, env);
+		if (structRes.isPresent())
+			return structRes;
+		Optional<Result<String, InterpretError>> methodRes = tryEvalMethodCall(s, env);
+		if (methodRes.isPresent())
+			return methodRes;
+		Optional<Result<String, InterpretError>> memberRes = tryEvalMemberAccess(s, env);
+		if (memberRes.isPresent())
+			return memberRes;
+		Optional<Result<String, InterpretError>> pref = tryEvalPrefix(s, env);
+		if (pref.isPresent())
+			return pref;
+		return Optional.empty();
+	}
 
 	// Helper to parse function header name and optional generic params.
 	private static record FnHeader(String name, List<String> genericNames, int nextIdx) {
@@ -2027,21 +2033,21 @@ public class Interpreter {
 		}
 	}
 
-    private Optional<Result<String, InterpretError>> tryEvalPrefixPhase2(String s, Env env) {
-        Optional<Result<String, InterpretError>> standaloneStruct = tryEvalStructLitSta(s, env);
-        if (standaloneStruct.isPresent())
-            return standaloneStruct;
-        if (s.startsWith("{") && s.endsWith("}"))
-            return Optional.of(evalBlockExpr(s, env));
-        Optional<Result<String, InterpretError>> isOp = tryEvalIsOp(s, env);
-        if (isOp.isPresent())
-            return isOp;
-        if (s.equals("this"))
-            return Optional.of(evalThisExpr(env, s));
-        if (s.equals("true") || s.equals("false"))
-            return Optional.of(new Result.Ok<>(s));
-        return Optional.empty();
-    }
+	private Optional<Result<String, InterpretError>> tryEvalPrefixPhase2(String s, Env env) {
+		Optional<Result<String, InterpretError>> standaloneStruct = tryEvalStructLitSta(s, env);
+		if (standaloneStruct.isPresent())
+			return standaloneStruct;
+		if (s.startsWith("{") && s.endsWith("}"))
+			return Optional.of(evalBlockExpr(s, env));
+		Optional<Result<String, InterpretError>> isOp = tryEvalIsOp(s, env);
+		if (isOp.isPresent())
+			return isOp;
+		if (s.equals("this"))
+			return Optional.of(evalThisExpr(env, s));
+		if (s.equals("true") || s.equals("false"))
+			return Optional.of(new Result.Ok<>(s));
+		return Optional.empty();
+	}
 
 	// Try to evaluate either an array literal like `[1,2]` or an indexing
 	// expression
@@ -2233,8 +2239,8 @@ public class Interpreter {
 	}
 
 	// Unescape common escape sequences inside a double-quoted string literal.
-	// Supports: \\n+    //           \"  -> double quote
-	//           \n, \r, \t
+	// Supports: \\n+ // \" -> double quote
+	// \n, \r, \t
 	private String unescapeString(String s) {
 		StringBuilder sb = new StringBuilder();
 		for (int i = 0; i < s.length(); i++) {
@@ -2242,12 +2248,30 @@ public class Interpreter {
 			if (c == '\\' && i + 1 < s.length()) {
 				char next = s.charAt(i + 1);
 				switch (next) {
-					case 'n' -> { sb.append('\n'); i++; }
-					case 'r' -> { sb.append('\r'); i++; }
-					case 't' -> { sb.append('\t'); i++; }
-					case '\\' -> { sb.append('\\'); i++; }
-					case '"' -> { sb.append('"'); i++; }
-					default -> { sb.append(next); i++; }
+					case 'n' -> {
+						sb.append('\n');
+						i++;
+					}
+					case 'r' -> {
+						sb.append('\r');
+						i++;
+					}
+					case 't' -> {
+						sb.append('\t');
+						i++;
+					}
+					case '\\' -> {
+						sb.append('\\');
+						i++;
+					}
+					case '"' -> {
+						sb.append('"');
+						i++;
+					}
+					default -> {
+						sb.append(next);
+						i++;
+					}
 				}
 			} else {
 				sb.append(c);
@@ -2770,7 +2794,7 @@ public class Interpreter {
 				// struct (e.g., T in `struct Wrapper<T>{ value : T }`), skip runtime
 				// checking for that field because generics are erased at runtime.
 				List<String> gens = env.structGenericParams.getOrDefault(structName,
-					java.util.Collections.emptyList());
+						java.util.Collections.emptyList());
 				if (gens.contains(ann))
 					continue;
 				Optional<Result<String, InterpretError>> chk = checkAnnotatedSuffix(ann, evaluated.get(j), env);
@@ -3155,53 +3179,53 @@ public class Interpreter {
 		if (rest.isEmpty())
 			return Optional.empty();
 		return handleSimpleStmt(rest, env);
-		}
-
-// Handle a 'type' declaration (union) like: type Name = A | B | C
-private Optional<Result<String, InterpretError>> handleTypeDecl(String s, Env env) {
-	int eq = s.indexOf('=');
-	if (eq < 0)
-		return Optional.of(new Result.Err<>(new InterpretError("invalid type declaration", env.source)));
-	String left = s.substring(5, eq).trim();
-	String right = s.substring(eq + 1).trim();
-	if (right.endsWith(";"))
-		right = right.substring(0, right.length() - 1).trim();
-	if (!isSimpleIdentifier(left))
-		return Optional.of(new Result.Err<>(new InterpretError("invalid type name", env.source)));
-	java.util.List<String> members = new java.util.ArrayList<>();
-	for (String part : right.split("\\|")) {
-		String m = part.trim();
-		if (m.isEmpty())
-			return Optional.of(new Result.Err<>(new InterpretError("invalid union member", env.source)));
-		members.add(m);
 	}
-	if (env.unionEnv.containsKey(left))
-		return Optional.of(new Result.Err<>(new InterpretError("duplicate type declaration", env.source)));
-	env.unionEnv.put(left, members);
-	if (env.localDecls.isPresent())
-		env.localDecls.get().add(left);
-	return Optional.empty();
-}
 
-// Check whether a runtime value matches a named type like I32, Bool or a struct
-private boolean matchesTypeName(String typeName, String value) {
-	if (typeName.equalsIgnoreCase("Bool"))
-		return "true".equals(value) || "false".equals(value);
-	if (typeName.matches("[UIuIi]\\d+")) {
-		try {
-			new java.math.BigInteger(value);
-			return true;
-		} catch (NumberFormatException ex) {
-			return false;
+	// Handle a 'type' declaration (union) like: type Name = A | B | C
+	private Optional<Result<String, InterpretError>> handleTypeDecl(String s, Env env) {
+		int eq = s.indexOf('=');
+		if (eq < 0)
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type declaration", env.source)));
+		String left = s.substring(5, eq).trim();
+		String right = s.substring(eq + 1).trim();
+		if (right.endsWith(";"))
+			right = right.substring(0, right.length() - 1).trim();
+		if (!isSimpleIdentifier(left))
+			return Optional.of(new Result.Err<>(new InterpretError("invalid type name", env.source)));
+		java.util.List<String> members = new java.util.ArrayList<>();
+		for (String part : right.split("\\|")) {
+			String m = part.trim();
+			if (m.isEmpty())
+				return Optional.of(new Result.Err<>(new InterpretError("invalid union member", env.source)));
+			members.add(m);
 		}
+		if (env.unionEnv.containsKey(left))
+			return Optional.of(new Result.Err<>(new InterpretError("duplicate type declaration", env.source)));
+		env.unionEnv.put(left, members);
+		if (env.localDecls.isPresent())
+			env.localDecls.get().add(left);
+		return Optional.empty();
 	}
+
+	// Check whether a runtime value matches a named type like I32, Bool or a struct
+	private boolean matchesTypeName(String typeName, String value) {
+		if (typeName.equalsIgnoreCase("Bool"))
+			return "true".equals(value) || "false".equals(value);
+		if (typeName.matches("[UIuIi]\\d+")) {
+			try {
+				new java.math.BigInteger(value);
+				return true;
+			} catch (NumberFormatException ex) {
+				return false;
+			}
+		}
 		if (value.startsWith(STR_PREFIX)) {
 			String payload = value.substring(STR_PREFIX.length());
 			int sep = payload.indexOf('|');
 			String name = sep >= 0 ? payload.substring(0, sep) : payload;
 			return name.equals(typeName);
 		}
-	return false;
-}
+		return false;
+	}
 
 }
