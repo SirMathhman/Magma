@@ -1973,13 +1973,14 @@ public class Interpreter {
 
 	// Extract primary evaluation parts to reduce cyclomatic complexity
 	private Optional<Result<String, InterpretError>> tryEvalPrimaries(String s, Env env) {
-		Optional<Result<String, InterpretError>> p1 = tryEvalPrimary1(s, env);
-		if (p1.isPresent())
-			return p1;
-		Optional<Result<String, InterpretError>> p2 = tryEvalPrimary2(s, env);
-		if (p2.isPresent())
-			return p2;
-		return Optional.empty();
+		java.util.List<Optional<Result<String, InterpretError>>> attempts = new java.util.ArrayList<>();
+		attempts.add(tryEvalPrimary1(s, env));
+		attempts.add(tryEvalPrimary2(s, env));
+		// If none were applicable, return empty. If one succeeded, it will be
+		// returned. If all applicable attempts failed, build a compound
+		// InterpretError containing each attempt's error as children for
+		// diagnostics.
+		return ResultUtils.firstOkOrCompound(attempts, "primary evaluation failed", s);
 	}
 
 	// Result holder for parsed parameter lists.
