@@ -197,6 +197,7 @@ public class Interpreter {
 		final Map<String, List<String>> fnGenericParams;
 		final Map<String, List<String>> structGenericParams;
 		final Map<String, Boolean> mutEnv;
+		final Map<String, Integer> mutBorrowCount;
 		final Map<String, java.util.List<String>> structEnv;
 		final Map<String, java.util.List<String>> structFieldTypes;
 		final Map<String, java.util.List<String>> unionEnv;
@@ -218,6 +219,7 @@ public class Interpreter {
 			this.structEnv = new HashMap<>();
 			this.structFieldTypes = new HashMap<>();
 			this.unionEnv = new HashMap<>();
+			this.mutBorrowCount = new HashMap<>();
 			this.source = source;
 			this.localDecls = java.util.Optional.empty();
 		}
@@ -1293,6 +1295,7 @@ public class Interpreter {
 		fnEnv.structEnv.putAll(env.structEnv);
 		fnEnv.structFieldTypes.putAll(env.structFieldTypes);
 		fnEnv.unionEnv.putAll(env.unionEnv);
+		fnEnv.mutBorrowCount.putAll(env.mutBorrowCount);
 		fnEnv.fnParamNames.putAll(env.fnParamNames);
 		fnEnv.fnParamTypes.putAll(env.fnParamTypes);
 		fnEnv.fnGenericParams.putAll(env.fnGenericParams);
@@ -1406,6 +1409,18 @@ public class Interpreter {
 		if (rhsRes instanceof Result.Err)
 			return Optional.of(rhsRes);
 		String value = ((Result.Ok<String, InterpretError>) rhsRes).value();
+
+		// If the RHS produced a mutable reference holder, ensure the parent
+		// environment enforces exclusive mutable borrows (guard against child
+		// env copies used during evaluation).
+		if (value.startsWith(REFMUT_PREFIX)) {
+			String target = value.substring(REFMUT_PREFIX.length());
+			int existing = env.mutBorrowCount.getOrDefault(target, 0);
+			if (existing > 0) {
+				return Optional.of(new Result.Err<>(new InterpretError("multiple mutable borrows", env.source)));
+			}
+			env.mutBorrowCount.put(target, 1);
+		}
 		Optional<Result<String, InterpretError>> annRes = recordAnn(d, value, env);
 		if (annRes.isPresent())
 			return annRes;
@@ -1420,6 +1435,7 @@ public class Interpreter {
 		env.valEnv.put(d.name, value);
 		// Record mutability
 		env.mutEnv.put(d.name, d.mutable ? Boolean.TRUE : Boolean.FALSE);
+			env.mutBorrowCount.put(d.name, 0);
 		if (DEBUG) {
 			System.err.println("[DEBUG] handleLetDeclaration: name=" + d.name + " ann='" + d.annotatedSuffix + "' rhs='"
 					+ d.rhs + "' value='" + value + "'");
@@ -2392,6 +2408,12 @@ public class Interpreter {
 		if (s.startsWith("&mut")) {
 			String rest = s.substring(4).trim();
 			if (isSimpleIdentifier(rest)) {
+				// enforce single mutable borrow per target at runtime
+				int existing = env.mutBorrowCount.getOrDefault(rest, 0);
+				if (existing > 0) {
+					return Optional.of(new Result.Err<>(new InterpretError("multiple mutable borrows", s)));
+				}
+				env.mutBorrowCount.put(rest, 1);
 				return Optional.of(new Result.Ok<>(REFMUT_PREFIX + rest));
 			}
 			return Optional.of(new Result.Err<>(new InterpretError("invalid reference", s)));
@@ -3352,6 +3374,7 @@ public class Interpreter {
 		e.structEnv.putAll(src.structEnv);
 		e.structFieldTypes.putAll(src.structFieldTypes);
 		e.unionEnv.putAll(src.unionEnv);
+		e.mutBorrowCount.putAll(src.mutBorrowCount);
 		return e;
 	}
 
@@ -3421,6 +3444,7 @@ public class Interpreter {
 		// Record the singleton value and mark immutable
 		env.valEnv.put(objName, value);
 		env.mutEnv.put(objName, Boolean.FALSE);
+		env.mutBorrowCount.put(objName, 0);
 		if (env.localDecls.isPresent()) {
 			env.localDecls.get().add(objName);
 		}
