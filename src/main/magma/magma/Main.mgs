@@ -1,11 +1,11 @@
 intrinsic fn print<T>(value : T) : Void;
 
-fn describe(message : &[U8], action : () => Void) => {
+fn describe(message : *[U8], action : () => Void) => {
 	print(message);
 	action();
 }
 
-fn it(message : &[U8], action : () => Bool) => {
+fn it(message : *[U8], action : () => Bool) => {
 	print("\tIt ");
 	print(message);
 	print(": ");
