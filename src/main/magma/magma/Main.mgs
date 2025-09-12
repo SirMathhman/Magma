@@ -14,7 +14,7 @@ fn it(message : &[U8], action : () => Bool) => {
 
 object Assert {
 	fn equals(expected : I32, actual : I32) : Bool => {
-		if (expected == action) {
+		if (expected == actual) {
 			return true;
 		} else {
 			print("Expected `");
