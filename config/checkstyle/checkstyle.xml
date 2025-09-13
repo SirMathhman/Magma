@@ -21,6 +21,12 @@
 			<property name="illegalPkgs" value="java.util.regex" />
 			<property name="severity" value="error" />
 		</module>
+
+		<!-- Limit number of parameters per method to a maximum of 3 -->
+		<module name="ParameterNumber">
+			<property name="max" value="3" />
+			<property name="severity" value="error" />
+		</module>
 	</module>
 
 	<!-- Ban fully-qualified references to java.util.regex.* (e.g. java.util.regex.Pattern) -->

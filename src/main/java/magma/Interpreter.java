@@ -19,7 +19,7 @@ public class Interpreter {
 		// Support chained addition expressions like "1 + 2 + 3" (arbitrary length)
 		if (normalized.contains("+")) {
 			String[] parts = normalized.split("\\+");
-			return evaluateOperands(parts, normalized, (a, b) -> a + b, false);
+			return evaluateOperands(parts, normalized, false);
 		}
 
 		// Support simple subtraction expressions like "10 - 4"
@@ -29,7 +29,7 @@ public class Interpreter {
 						new InterpreterError("Mixed addition and subtraction not supported", normalized, java.util.List.of()));
 			}
 			String[] parts = normalized.split("\\-");
-			return evaluateOperands(parts, normalized, (a, b) -> a - b, true);
+			return evaluateOperands(parts, normalized, true);
 		}
 
 		// If input starts with digits, return the leading digit sequence using
@@ -50,8 +50,7 @@ public class Interpreter {
 	 * subtraction
 	 * (first - second - third ...). For addition isSubtraction should be false.
 	 */
-	private Result<String, InterpreterError> evaluateOperands(String[] parts, String normalized,
-			java.util.function.IntBinaryOperator reducer, boolean isSubtraction) {
+	private Result<String, InterpreterError> evaluateOperands(String[] parts, String normalized, boolean isSubtraction) {
 		if (parts.length == 0) {
 			return Result.error(new InterpreterError("Invalid expression", normalized, java.util.List.of()));
 		}
@@ -71,12 +70,16 @@ public class Interpreter {
 				return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
 			}
 			Operand operand = op.get();
-			// For addition we add; for subtraction reduce with the operator provided
-			acc = reducer.applyAsInt(acc, operand.value());
-			java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
-					isSubtraction ? "Conflicting suffixes in subtraction" : "Conflicting suffixes in addition");
-			if (mergeErr.isPresent()) {
-				return Result.error(mergeErr.get());
+			// Apply operator: addition or left-associative subtraction
+			if (isSubtraction) {
+				acc = acc - operand.value();
+			} else {
+				acc = acc + operand.value();
+			}
+			java.util.Optional<String> mergeErrMsg = mergeSuffix(commonSuffixRef, operand.suffix());
+			if (mergeErrMsg.isPresent()) {
+				String msg = isSubtraction ? "Conflicting suffixes in subtraction" : "Conflicting suffixes in addition";
+				return Result.error(new InterpreterError(msg, normalized, java.util.List.of()));
 			}
 		}
 		return Result.success(Integer.toString(acc));
@@ -127,9 +130,9 @@ public class Interpreter {
 	 * containing
 	 * an InterpreterError if the suffix conflicts with the existing common suffix.
 	 */
-	private java.util.Optional<InterpreterError> mergeSuffix(
+	private java.util.Optional<String> mergeSuffix(
 			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonRef,
-			String suffix, String normalized, String conflictMessage) {
+			String suffix) {
 		String sfx = java.util.Objects.toString(suffix, "");
 		if (sfx.isEmpty()) {
 			return java.util.Optional.empty();
@@ -140,7 +143,7 @@ public class Interpreter {
 			return java.util.Optional.empty();
 		}
 		if (!cur.get().equals(sfx)) {
-			return java.util.Optional.of(new InterpreterError(conflictMessage, normalized, java.util.List.of()));
+			return java.util.Optional.of("conflict");
 		}
 		return java.util.Optional.empty();
 	}
