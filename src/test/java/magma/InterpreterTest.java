@@ -22,6 +22,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("5"), "5");
 	}
 
+	@Test
+	public void numWithSuffReturns() {
+		// Expect that an input with trailing letters keeps the numeric prefix only
+		assertSuccess(new Interpreter().interpret("5U8"), "5");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
