@@ -54,6 +54,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("1U8 + 2U8"), "3");
 	}
 
+	@Test
+	public void addThreeReturns() {
+		// Multiple additions should sum left-to-right (or as a set) and return the total
+		assertSuccess(new Interpreter().interpret("1 + 2 + 3"), "6");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

@@ -32,35 +32,34 @@ public class Interpreter {
 		// 2"
 		// Accept forms with spaces around '+'; do not use regex to comply with
 		// Checkstyle.
+		// Support N-ary additions: split on '+' and process each term
 		String[] plusParts = src.split("\\+");
-		if (plusParts.length == 2) {
-			String left = plusParts[0].trim();
-			String right = plusParts[1].trim();
-			try {
-				int a = Integer.parseInt(left);
-				int b = Integer.parseInt(right);
-				return new Ok<>(Integer.toString(a + b));
-			} catch (NumberFormatException ignored) {
-				// Try extracting leading numeric prefixes from operands (e.g. "1U8" -> "1")
-				java.util.Optional<Integer> aOpt = tryParseOrPrefix(left);
-				java.util.Optional<Integer> bOpt = tryParseOrPrefix(right);
-				if (aOpt.isPresent() && bOpt.isPresent()) {
-					// Determine if operands were pure integers or had suffixes
-					java.util.Optional<String> leftDigits = leadingDigits(left);
-					java.util.Optional<String> rightDigits = leadingDigits(right);
-					boolean leftPure = leftDigits.isPresent() && leftDigits.get().length() == left.length();
-					boolean rightPure = rightDigits.isPresent() && rightDigits.get().length() == right.length();
-					// If both operands have suffixes (not pure), allow only if suffixes match
-					if (!leftPure && !rightPure) {
-						String leftSuffix = left.substring(leftDigits.get().length());
-						String rightSuffix = right.substring(rightDigits.get().length());
-						if (!leftSuffix.equals(rightSuffix)) {
-							return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-						}
+		if (plusParts.length >= 2) {
+			int sum = 0;
+			java.util.Optional<String> commonSuffix = java.util.Optional.empty(); // when present, suffix required to match
+																																						// for suffixed operands
+			for (String rawPart : plusParts) {
+				String part = rawPart.trim();
+				java.util.Optional<Integer> valOpt = tryParseOrPrefix(part);
+				if (valOpt.isEmpty()) {
+					return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+				}
+				sum += valOpt.get();
+				// detect suffix
+				java.util.Optional<String> digits = leadingDigits(part);
+				String suffix = "";
+				if (digits.isPresent()) {
+					suffix = part.substring(digits.get().length());
+				}
+				if (!suffix.isEmpty()) {
+					if (commonSuffix.isEmpty()) {
+						commonSuffix = java.util.Optional.of(suffix);
+					} else if (!commonSuffix.get().equals(suffix)) {
+						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
 					}
-					return new Ok<>(Integer.toString(aOpt.get() + bOpt.get()));
 				}
 			}
+			return new Ok<>(Integer.toString(sum));
 		}
 
 		// Helper-like inline: try to parse an int, or use leading digit prefix if
