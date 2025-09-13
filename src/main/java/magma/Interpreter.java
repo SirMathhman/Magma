@@ -7,7 +7,12 @@ public class Interpreter {
 		if (source.isEmpty())
 			return new Ok<>("");
 
-		// Try combined addition/subtraction first
+		// Try multiplication first
+		Optional<Result<String, InterpreterError>> mul = tryMul(source);
+		if (mul.isPresent())
+			return mul.get();
+
+		// Try combined addition/subtraction next
 		Optional<Result<String, InterpreterError>> addsub = tryAddSub(source);
 		if (addsub.isPresent())
 			return addsub.get();
@@ -36,6 +41,39 @@ public class Interpreter {
 			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
 		int result = evaluateExpression(e);
 		return Optional.of(new Ok<>(String.valueOf(result)));
+	}
+
+	private static Optional<Result<String, InterpreterError>> tryMul(String source) {
+		if (!source.contains("*"))
+			return Optional.empty();
+		String[] parts = source.split("\\*");
+		if (parts.length != 2)
+			return Optional.empty();
+
+		String left = parts[0].trim();
+		String right = parts[1].trim();
+
+		try {
+			int a = Integer.parseInt(left);
+			int b = Integer.parseInt(right);
+			return Optional.of(new Ok<>(String.valueOf(a * b)));
+		} catch (NumberFormatException ignored) {
+		}
+
+		String la = leadingDigits(left);
+		String ra = leadingDigits(right);
+		if (la.isEmpty() || ra.isEmpty())
+			return Optional.empty();
+
+		String suffixLeft = left.substring(la.length());
+		String suffixRight = right.substring(ra.length());
+		if (!suffixLeft.isEmpty() && !suffixRight.isEmpty() && !suffixLeft.equals(suffixRight)) {
+			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+		}
+
+		int a2 = Integer.parseInt(la);
+		int b2 = Integer.parseInt(ra);
+		return Optional.of(new Ok<>(String.valueOf(a2 * b2)));
 	}
 
 	private static class Expression {

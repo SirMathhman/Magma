@@ -59,4 +59,10 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("5 - 2 + 1");
 		assertEquals(new Ok<String, InterpreterError>("4"), r);
 	}
+
+	@Test
+	void fiveTimesThree() {
+		Result<String, InterpreterError> r = Interpreter.interpret("5 * 3");
+		assertEquals(new Ok<String, InterpreterError>("15"), r);
+	}
 }
