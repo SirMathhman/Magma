@@ -45,6 +45,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("let x = 10; x"), "10");
 	}
 
+	@Test
+	public void letMutAssignment() {
+		// test mutable let and reassignment
+		assertSuccess(new Interpreter().interpret("let mut x = 0; x = 10; x"), "10");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

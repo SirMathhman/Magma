@@ -14,6 +14,8 @@ public class Interpreter {
 		}
 
 		java.util.Map<String, Integer> env = new java.util.HashMap<>();
+		// track mutability: true => mutable
+		java.util.Map<String, Boolean> mutable = new java.util.HashMap<>();
 		String[] stmts = normalized.split(";");
 		java.util.Optional<Integer> lastValue = java.util.Optional.empty();
 
@@ -22,24 +24,43 @@ public class Interpreter {
 			if (stmt.isEmpty())
 				continue;
 
-			// let <ident> = <expr>
+			// let <ident> = <expr> or let mut <ident> = <expr>
 			if (stmt.startsWith("let ")) {
 				String rest = stmt.substring(4).trim();
+				boolean isMut = false;
+				if (rest.startsWith("mut ")) {
+					isMut = true;
+					rest = rest.substring(4).trim();
+				}
 				int eq = rest.indexOf('=');
 				if (eq <= 0) {
 					return new Result.Err<>(new InterpreterError("invalid let statement", stmt, java.util.List.of()));
 				}
-				String ident = rest.substring(0, eq).trim();
-				String expr = rest.substring(eq + 1).trim();
-				if (ident.isEmpty()) {
-					return new Result.Err<>(new InterpreterError("invalid identifier in let", stmt, java.util.List.of()));
-				}
-				java.util.Optional<Integer> vOpt = evalExpr(expr, env);
-				if (vOpt.isEmpty()) {
-					return new Result.Err<>(new InterpreterError("invalid expression in let", expr, java.util.List.of()));
-				}
-				Integer v = vOpt.get();
+				java.util.Optional<java.util.Map.Entry<String, Integer>> entryOpt = parseAndEval(rest, env);
+				if (entryOpt.isEmpty())
+					return new Result.Err<>(new InterpreterError("invalid expression in let", rest, java.util.List.of()));
+				java.util.Map.Entry<String, Integer> entry = entryOpt.get();
+				String ident = entry.getKey();
+				Integer v = entry.getValue();
 				env.put(ident, v);
+				mutable.put(ident, isMut);
+				lastValue = java.util.Optional.of(v);
+				continue;
+			}
+
+			// assignment: <ident> = <expr>
+			int assignIdx = stmt.indexOf('=');
+			if (assignIdx > 0 && !stmt.startsWith("let ")) {
+				java.util.Optional<java.util.Map.Entry<String, Integer>> entryOpt = parseAndEval(stmt, env);
+				if (entryOpt.isEmpty())
+					return new Result.Err<>(new InterpreterError("invalid assignment", stmt, java.util.List.of()));
+				java.util.Map.Entry<String, Integer> entry = entryOpt.get();
+				String lhs = entry.getKey();
+				Integer v = entry.getValue();
+				if (!mutable.getOrDefault(lhs, false)) {
+					return new Result.Err<>(new InterpreterError("assignment to immutable variable", lhs, java.util.List.of()));
+				}
+				env.put(lhs, v);
 				lastValue = java.util.Optional.of(v);
 				continue;
 			}
@@ -87,5 +108,47 @@ public class Interpreter {
 		}
 
 		return java.util.Optional.empty();
+	}
+
+	// validate identifier not empty and evaluate expression; returns Optional with
+	// value or empty on failure
+	private java.util.Optional<Integer> validateAndEval(String ident, String expr, java.util.Map<String, Integer> env) {
+		if (java.util.Objects.isNull(ident) || ident.trim().isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		expr = expr.trim();
+		if (expr.isEmpty())
+			return java.util.Optional.empty();
+		return evalExpr(expr, env);
+	}
+
+	// parse strings like "ident = expr" (rest is already trimmed); returns
+	// Optional<[ident, expr]> empty on failure
+	private java.util.Optional<String[]> parseIdentExpr(String rest) {
+		int eq = rest.indexOf('=');
+		if (eq <= 0)
+			return java.util.Optional.empty();
+		String ident = rest.substring(0, eq).trim();
+		String expr = rest.substring(eq + 1).trim();
+		if (ident.isEmpty() || expr.isEmpty())
+			return java.util.Optional.empty();
+		return java.util.Optional.of(new String[] { ident, expr });
+	}
+
+	// parse and evaluate an "ident = expr" fragment; returns Optional of
+	// Map.Entry(ident,value)
+	private java.util.Optional<java.util.Map.Entry<String, Integer>> parseAndEval(String rest,
+			java.util.Map<String, Integer> env) {
+		java.util.Optional<String[]> pairOpt = parseIdentExpr(rest);
+		if (pairOpt.isEmpty())
+			return java.util.Optional.empty();
+		String[] pair = pairOpt.get();
+		String ident = pair[0];
+		String expr = pair[1];
+		java.util.Optional<Integer> vOpt = validateAndEval(ident, expr, env);
+		if (vOpt.isEmpty())
+			return java.util.Optional.empty();
+		Integer v = vOpt.get();
+		return java.util.Optional.of(new java.util.AbstractMap.SimpleEntry<>(ident, v));
 	}
 }
