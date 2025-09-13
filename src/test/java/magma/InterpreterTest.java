@@ -34,6 +34,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("1 + 2"), "3");
 	}
 
+	@Test
+	public void addPrefOperandSum() {
+		// Left operand has a suffix; interpreter should use leading numeric prefix ("1U8" -> "1")
+		assertSuccess(new Interpreter().interpret("1U8 + 2"), "3");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

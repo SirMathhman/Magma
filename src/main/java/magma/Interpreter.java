@@ -41,25 +41,73 @@ public class Interpreter {
 				int b = Integer.parseInt(right);
 				return new Ok<>(Integer.toString(a + b));
 			} catch (NumberFormatException ignored) {
-				// fall through to next checks
+				// Try extracting leading numeric prefixes from operands (e.g. "1U8" -> "1")
+				java.util.Optional<Integer> aOpt = tryParseOrPrefix(left);
+				java.util.Optional<Integer> bOpt = tryParseOrPrefix(right);
+				if (aOpt.isPresent() && bOpt.isPresent()) {
+					return new Ok<>(Integer.toString(aOpt.get() + bOpt.get()));
+				}
 			}
 		}
 
+		// Helper-like inline: try to parse an int, or use leading digit prefix if
+		// present
+		// (kept local to avoid adding new methods or imports)
+
 		// If input starts with a numeric prefix, return that prefix (e.g. "5U8" -> "5")
-		StringBuilder digits = new StringBuilder();
-		for (int i = 0; i < src.length(); i++) {
-			char c = src.charAt(i);
-			if (c >= '0' && c <= '9') {
-				digits.append(c);
-			} else {
-				break;
-			}
-		}
-		if (digits.length() > 0) {
-			return new Ok<>(digits.toString());
+		java.util.Optional<String> leading = leadingDigits(src);
+		if (leading.isPresent()) {
+			return new Ok<>(leading.get());
 		}
 
 		// For other non-empty inputs, return a generic not-implemented error
 		return new Err<>(new InterpreterError("not implemented", src, List.of()));
+	}
+
+	/**
+	 * Try to parse an integer from the given token. If parsing fails, extract a
+	 * leading
+	 * numeric prefix and return it as an Integer. Returns an empty Optional if no
+	 * numeric
+	 * prefix is found.
+	 */
+	private java.util.Optional<Integer> tryParseOrPrefix(String token) {
+		try {
+			return java.util.Optional.of(Integer.parseInt(token));
+		} catch (NumberFormatException ignored) {
+			java.util.Optional<String> digits = leadingDigits(token);
+			if (digits.isEmpty()) {
+				return java.util.Optional.empty();
+			}
+			try {
+				return java.util.Optional.of(Integer.parseInt(digits.get()));
+			} catch (NumberFormatException ex) {
+				return java.util.Optional.empty();
+			}
+		}
+	}
+
+	/**
+	 * Return the leading contiguous digit sequence of the input as an Optional
+	 * string,
+	 * or Optional.empty() if the input does not start with a digit.
+	 */
+	private java.util.Optional<String> leadingDigits(String s) {
+		if (java.util.Optional.ofNullable(s).orElse("").isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c >= '0' && c <= '9') {
+				sb.append(c);
+			} else {
+				break;
+			}
+		}
+		if (sb.length() == 0) {
+			return java.util.Optional.empty();
+		}
+		return java.util.Optional.of(sb.toString());
 	}
 }
