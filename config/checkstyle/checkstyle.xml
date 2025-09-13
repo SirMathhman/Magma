@@ -22,6 +22,12 @@
 			<property name="severity" value="error" />
 		</module>
 
+		<!-- Also ban usage of regex classes by fully-qualified name -->
+		<module name="IllegalType">
+			<property name="illegalClassNames" value="java.util.regex.Pattern,java.util.regex.Matcher,java.util.regex.PatternSyntaxException" />
+			<property name="severity" value="error" />
+		</module>
+
 		<!-- Limit number of parameters per method to a maximum of 3 -->
 		<module name="ParameterNumber">
 			<property name="max" value="3" />

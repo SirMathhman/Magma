@@ -21,6 +21,24 @@ public class InterpreterTest {
 		assertError(new Interpreter().interpret("invalid"));
 	}
 
+	@Test
+	public void one() {
+		// simple numeric input "1" should return the same string as success
+		assertSuccess(new Interpreter().interpret("1"), "1");
+	}
+
+	@Test
+	public void two() {
+		// simple numeric input "2" should return the same string as success
+		assertSuccess(new Interpreter().interpret("2"), "2");
+	}
+
+	@Test
+	public void addition() {
+		// test that a simple addition expression evaluates correctly
+		assertSuccess(new Interpreter().interpret("3 + 5"), "8");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
