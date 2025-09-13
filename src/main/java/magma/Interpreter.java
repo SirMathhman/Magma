@@ -182,6 +182,16 @@ public class Interpreter {
 			return Result.success(Integer.toString(acc));
 		}
 
+		// Support literal boolean true
+		if ("true".equals(normalized)) {
+			return Result.success("true");
+		}
+
+		// Support literal boolean false
+		if ("false".equals(normalized)) {
+			return Result.success("false");
+		}
+
 		// If input starts with digits, return the leading digit sequence using
 		// simple String scanning (avoid java.util.regex per project policy)
 		int i = 0;

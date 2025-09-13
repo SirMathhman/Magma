@@ -23,6 +23,18 @@ public class InterpreterTest {
 	}
 
 	@Test
+	public void interpret_literalTrue_returnsTrue() {
+		Result<String, InterpreterError> result = run("true");
+		assertEquals("true", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
+	public void interpret_literalFalse_returnsFalse() {
+		Result<String, InterpreterError> result = run("false");
+		assertEquals("false", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
 	public void interpret_numericInput_returnsSameString() {
 		Result<String, InterpreterError> result = run("100");
 		assertEquals("100", result.getValue().orElse("<missing>"));
