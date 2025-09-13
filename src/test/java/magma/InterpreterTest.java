@@ -28,6 +28,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("5U8"), "5");
 	}
 
+	@Test
+	public void addNumbersReturnsSum() {
+		// Simple addition expression with spaces should evaluate to the numeric sum
+		assertSuccess(new Interpreter().interpret("1 + 2"), "3");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

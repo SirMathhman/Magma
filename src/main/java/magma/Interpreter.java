@@ -28,6 +28,24 @@ public class Interpreter {
 		}
 
 		// If input starts with a numeric prefix, return that prefix (e.g. "5U8" -> "5")
+		// Very small interpreter feature: handle simple addition expressions like "1 +
+		// 2"
+		// Accept forms with spaces around '+'; do not use regex to comply with
+		// Checkstyle.
+		String[] plusParts = src.split("\\+");
+		if (plusParts.length == 2) {
+			String left = plusParts[0].trim();
+			String right = plusParts[1].trim();
+			try {
+				int a = Integer.parseInt(left);
+				int b = Integer.parseInt(right);
+				return new Ok<>(Integer.toString(a + b));
+			} catch (NumberFormatException ignored) {
+				// fall through to next checks
+			}
+		}
+
+		// If input starts with a numeric prefix, return that prefix (e.g. "5U8" -> "5")
 		StringBuilder digits = new StringBuilder();
 		for (int i = 0; i < src.length(); i++) {
 			char c = src.charAt(i);
