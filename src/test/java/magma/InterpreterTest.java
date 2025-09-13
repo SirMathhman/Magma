@@ -16,4 +16,10 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("1");
 		assertEquals(new Ok<String, InterpreterError>("1"), r);
 	}
+
+	@Test
+	void mixedDigits() {
+		Result<String, InterpreterError> r = Interpreter.interpret("1U8");
+		assertEquals(new Ok<String, InterpreterError>("1"), r);
+	}
 }
