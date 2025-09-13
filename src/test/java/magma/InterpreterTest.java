@@ -101,6 +101,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("(1)"), "1");
 	}
 
+	@Test
+	public void parenExprMulReturns() {
+		// Parentheses with expression: (1 + 2) * 3 == 9 with precedence
+		assertSuccess(new Interpreter().interpret("(1 + 2) * 3"), "9");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

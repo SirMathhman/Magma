@@ -22,6 +22,25 @@ public class Interpreter {
 		if (src.isEmpty()) {
 			return new Ok<>("");
 		}
+
+		// Evaluate innermost parenthesized expressions first: replace (expr) with its
+		// numeric result
+		while (src.indexOf('(') >= 0) {
+			int lastOpen = src.lastIndexOf('(');
+			int close = src.indexOf(')', lastOpen);
+			if (close == -1) {
+				return new Err<>(new InterpreterError("unmatched parentheses", src, List.of()));
+			}
+			String inner = src.substring(lastOpen + 1, close);
+			Result<String, InterpreterError> r = interpret(inner);
+			if (r instanceof Err<String, InterpreterError> err) {
+				return err;
+			}
+			String val = ((Ok<String, InterpreterError>) r).value();
+			// replace the parenthesized expression with its evaluated value
+			src = src.substring(0, lastOpen) + val + src.substring(close + 1);
+		}
+
 		// Unwrap surrounding parentheses if they enclose the whole expression
 		while (src.startsWith("(") && src.endsWith(")")) {
 			// check balanced parentheses
@@ -29,8 +48,10 @@ public class Interpreter {
 			boolean balanced = true;
 			for (int i = 0; i < src.length(); i++) {
 				char c = src.charAt(i);
-				if (c == '(') depth++;
-				else if (c == ')') depth--;
+				if (c == '(')
+					depth++;
+				else if (c == ')')
+					depth--;
 				if (depth == 0 && i < src.length() - 1) { // closing before end
 					balanced = false;
 					break;
@@ -40,7 +61,8 @@ public class Interpreter {
 					break;
 				}
 			}
-			if (!balanced) break;
+			if (!balanced)
+				break;
 			src = src.substring(1, src.length() - 1).trim();
 		}
 
