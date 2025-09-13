@@ -3,6 +3,9 @@ package magma;
 import magma.Result.Err;
 import magma.Result.Ok;
 
+import java.util.List;
+import java.util.Optional;
+
 /**
  * Simple interpreter stub.
  * The interpret method is a placeholder and should be implemented later.
@@ -15,7 +18,7 @@ public class Interpreter {
 	 * Otherwise returns Result.error(InterpreterError).
 	 */
 	public Result<String, InterpreterError> interpret(String input) {
-		String src = java.util.Optional.ofNullable(input).orElse("");
+		String src = Optional.ofNullable(input).orElse("");
 		if (src.isEmpty()) {
 			return new Ok<>("");
 		}
@@ -24,6 +27,6 @@ public class Interpreter {
 			return new Ok<>(src);
 		}
 		// For other non-empty inputs, return a generic not-implemented error
-		return new Err<>(new InterpreterError("not implemented", src, java.util.List.of()));
+		return new Err<>(new InterpreterError("not implemented", src, List.of()));
 	}
 }
