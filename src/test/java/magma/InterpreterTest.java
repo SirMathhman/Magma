@@ -89,6 +89,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("3 * 5"), "15");
 	}
 
+	@Test
+	public void divTwoReturns() {
+		// Simple integer division should compute the quotient
+		assertSuccess(new Interpreter().interpret("10 / 2"), "5");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

@@ -34,7 +34,31 @@ public class Interpreter {
 		// Checkstyle.
 		// Support '+', '-', and '*' operators. Implement standard precedence:
 		// evaluate '*' before '+' and '-', with left-to-right associativity.
-		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0 || src.indexOf('*') >= 0) {
+		// Fast-path: simple binary division like "a / b" (no other operators)
+		if (src.indexOf('/') >= 0 && src.indexOf('+') == -1 && src.indexOf('-') == -1 && src.indexOf('*') == -1) {
+			String[] parts = src.split("\\/");
+			if (parts.length == 2) {
+				String L = parts[0].trim();
+				String R = parts[1].trim();
+				java.util.Optional<TermVal> lv = parseTerm(L);
+				java.util.Optional<TermVal> rv = parseTerm(R);
+				if (lv.isEmpty() || rv.isEmpty())
+					return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+				if (!lv.get().suffix().isEmpty() || !rv.get().suffix().isEmpty()) {
+					// enforce suffix rules (must match or be empty)
+					if (!lv.get().suffix().isEmpty() && !rv.get().suffix().isEmpty()
+							&& !lv.get().suffix().equals(rv.get().suffix()))
+						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+				}
+				int a = lv.get().value();
+				int b = rv.get().value();
+				if (b == 0)
+					return new Err<>(new InterpreterError("division by zero", src, List.of()));
+				return new Ok<>(Integer.toString(a / b));
+			}
+		}
+
+		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0 || src.indexOf('*') >= 0 || src.indexOf('/') >= 0) {
 			java.util.List<String> terms = new java.util.ArrayList<>();
 			java.util.List<Character> ops = new java.util.ArrayList<>();
 			// use indexOf-based splitting to avoid duplicating character-iteration loops
@@ -43,6 +67,7 @@ public class Interpreter {
 				int nextPlus = src.indexOf('+', pos);
 				int nextMinus = src.indexOf('-', pos);
 				int nextMul = src.indexOf('*', pos);
+				int nextDiv = src.indexOf('/', pos);
 				if (nextPlus == -1 && nextMinus == -1 && nextMul == -1) {
 					terms.add(src.substring(pos).trim());
 					break;
@@ -60,6 +85,10 @@ public class Interpreter {
 				if (nextMul != -1 && nextMul < nextOp) {
 					nextOp = nextMul;
 					opChar = '*';
+				}
+				if (nextDiv != -1 && nextDiv < nextOp) {
+					nextOp = nextDiv;
+					opChar = '/';
 				}
 				terms.add(src.substring(pos, nextOp).trim());
 				ops.add(opChar);
@@ -84,19 +113,30 @@ public class Interpreter {
 					}
 				}
 
+				// DEBUG: dump parsed terms and operators
+				System.err.println("DBG parsed terms=" + terms + " ops=" + ops);
+				System.err.println("DBG tvals=" + tvals);
+
 				// Convert to mutable lists of integer values and operators, then apply
 				// precedence
 				java.util.List<Integer> values = new java.util.ArrayList<>();
 				for (TermVal tv : tvals)
 					values.add(tv.value());
 
-				// Evaluate all '*' first (left-to-right)
+				// Evaluate all '*' and '/' first (left-to-right)
 				int i = 0;
 				while (i < ops.size()) {
-					if (ops.get(i) == '*') {
+					char opc = ops.get(i);
+					if (opc == '*' || opc == '/') {
 						int a = values.get(i);
 						int b = values.get(i + 1);
-						values.set(i, a * b);
+						if (opc == '/') {
+							if (b == 0)
+								return new Err<>(new InterpreterError("division by zero", src, List.of()));
+							values.set(i, a / b);
+						} else {
+							values.set(i, a * b);
+						}
 						values.remove(i + 1);
 						ops.remove(i);
 					} else {
