@@ -12,9 +12,14 @@ public class Interpreter {
 	 * Otherwise returns Result.error(InterpreterError).
 	 */
 	public Result<String, InterpreterError> interpret(String input) {
-		if ("".equals(input)) {
+		String normalized = java.util.Objects.toString(input, "");
+		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		return Result.error(new InterpreterError("Only empty input is supported in this stub"));
+		// If input is digits only, echo it back as success
+		if (normalized.matches("\\d+")) {
+			return Result.success(normalized);
+		}
+		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
 	}
 }
