@@ -1,65 +1,75 @@
 package magma;
 
+import java.util.Optional;
+
 public class Interpreter {
 	public static Result<String, InterpreterError> interpret(String source) {
 		if (source.isEmpty())
 			return new Ok<>("");
 
-		// Handle simple addition expressions like "1 + 2"
-		if (source.contains("+")) {
-			String[] parts = source.split("\\+");
-			if (parts.length == 2) {
-				try {
-					int a = Integer.parseInt(parts[0].trim());
-					int b = Integer.parseInt(parts[1].trim());
-					return new Ok<>(String.valueOf(a + b));
-				} catch (NumberFormatException ignored) {
-					// Try extracting leading digits from each operand (e.g. "1U8")
-					String left = parts[0].trim();
-					String right = parts[1].trim();
-					StringBuilder la = new StringBuilder();
-					for (int i = 0; i < left.length(); i++) {
-						char c = left.charAt(i);
-						if (Character.isDigit(c))
-							la.append(c);
-						else
-							break;
-					}
-					StringBuilder ra = new StringBuilder();
-					for (int i = 0; i < right.length(); i++) {
-						char c = right.charAt(i);
-						if (Character.isDigit(c))
-							ra.append(c);
-						else
-							break;
-					}
-					if (la.length() > 0 && ra.length() > 0) {
-						int a2 = Integer.parseInt(la.toString());
-						int b2 = Integer.parseInt(ra.toString());
-						return new Ok<>(String.valueOf(a2 + b2));
-					}
-				}
-			}
-		}
+		// Try addition first
+		Optional<Result<String, InterpreterError>> add = tryAddition(source);
+		if (add.isPresent())
+			return add.get();
 
+		// Try parse as integer
 		try {
 			Integer.parseInt(source);
 			return new Ok<>(source);
 		} catch (NumberFormatException e) {
-			// If the input contains a leading integer followed by non-digits,
-			// extract the leading digit sequence without using java.util.regex.
-			StringBuilder sb = new StringBuilder();
-			for (int i = 0; i < source.length(); i++) {
-				char c = source.charAt(i);
-				if (Character.isDigit(c))
-					sb.append(c);
-				else
-					break;
-			}
-			if (sb.length() > 0) {
-				return new Ok<>(sb.toString());
-			}
+			// Extract leading digits if present
+			String lead = leadingDigits(source);
+			if (!lead.isEmpty())
+				return new Ok<>(lead);
 			return new Err<>(new InterpreterError("Invalid input", source));
 		}
+	}
+
+	private static Optional<Result<String, InterpreterError>> tryAddition(String source) {
+		if (!source.contains("+"))
+			return Optional.empty();
+		String[] parts = source.split("\\+");
+		if (parts.length != 2)
+			return Optional.empty();
+
+		String left = parts[0].trim();
+		String right = parts[1].trim();
+
+		// Try direct integer parse
+		try {
+			int a = Integer.parseInt(left);
+			int b = Integer.parseInt(right);
+			return Optional.of(new Ok<>(String.valueOf(a + b)));
+		} catch (NumberFormatException ignored) {
+			// fall through
+		}
+
+		// Try extracting leading digits
+		String la = leadingDigits(left);
+		String ra = leadingDigits(right);
+		if (la.isEmpty() || ra.isEmpty())
+			return Optional.empty();
+
+		String suffixLeft = left.substring(la.length());
+		String suffixRight = right.substring(ra.length());
+		if (!suffixLeft.isEmpty() && !suffixRight.isEmpty() && !suffixLeft.equals(suffixRight)) {
+			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+		}
+
+		int a2 = Integer.parseInt(la);
+		int b2 = Integer.parseInt(ra);
+		return Optional.of(new Ok<>(String.valueOf(a2 + b2)));
+	}
+
+	private static String leadingDigits(String s) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < s.length(); i++) {
+			char c = s.charAt(i);
+			if (Character.isDigit(c))
+				sb.append(c);
+			else
+				break;
+		}
+		return sb.toString();
 	}
 }

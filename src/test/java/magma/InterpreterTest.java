@@ -34,4 +34,11 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("1U8 + 2U8");
 		assertEquals(new Ok<String, InterpreterError>("3"), r);
 	}
+
+	@Test
+	void mismatchedSuffixesAddition() {
+		Result<String, InterpreterError> r = Interpreter.interpret("1U8 + 2U16");
+		// Expect Err with the original source as message
+		assertEquals(new Err<String, InterpreterError>(new InterpreterError("Invalid input", "1U8 + 2U16")), r);
+	}
 }
