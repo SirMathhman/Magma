@@ -269,20 +269,61 @@ public class Interpreter {
 			}
 		}
 
+		// Minimal logical AND support: evaluate '&&' with short-circuit semantics.
+		// We scan for top-level '&&' (depth 0) to avoid parsing inside parentheses.
+		int andPos = -1;
+		{
+			int depth = 0;
+			for (int p = 0; p + 1 < normalized.length(); p++) {
+				char ch = normalized.charAt(p);
+				if (ch == '(')
+					depth++;
+				else if (ch == ')')
+					depth--;
+				else if (depth == 0 && ch == '&' && normalized.charAt(p + 1) == '&') {
+					andPos = p;
+					break;
+				}
+			}
+		}
+		if (andPos != -1) {
+			String left = normalized.substring(0, andPos).trim();
+			String right = normalized.substring(andPos + 2).trim();
+			Result<String, InterpreterError> leftRes = interpret(left);
+			if (leftRes.isError())
+				return leftRes;
+			String leftVal = leftRes.getValue().orElse("");
+			if ("false".equals(leftVal)) {
+				return Result.success("false");
+			}
+			Result<String, InterpreterError> rightRes = interpret(right);
+			if (rightRes.isError())
+				return rightRes;
+			String rightVal = rightRes.getValue().orElse("");
+			if ("true".equals(rightVal))
+				return Result.success("true");
+			if ("false".equals(rightVal))
+				return Result.success("false");
+			return Result.error(new InterpreterError("Operands of && did not evaluate to boolean", normalized,
+					java.util.List.of()));
+		}
+
 		// Minimal logical OR support: evaluate '||' with short-circuit semantics.
 		// Only detect top-level '||' (we don't currently tokenize operators inside
 		// parentheses here).
 		int orPos = -1;
-		int depth = 0;
-		for (int p = 0; p + 1 < normalized.length(); p++) {
-			char ch = normalized.charAt(p);
-			if (ch == '(')
-				depth++;
-			else if (ch == ')')
-				depth--;
-			else if (depth == 0 && ch == '|' && normalized.charAt(p + 1) == '|') {
-				orPos = p;
-				break;
+		{
+			int depth = 0;
+			for (int p = 0; p + 1 < normalized.length(); p++) {
+				char ch = normalized.charAt(p);
+				if (ch == '(')
+					depth++;
+				else if (ch == ')')
+					depth--;
+				else if (depth == 0 && ch == '|' && normalized.charAt(p + 1) == '|') {
+					orPos = p;
+					break;
+				}
 			}
 		}
 		if (orPos != -1) {

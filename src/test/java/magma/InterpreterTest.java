@@ -183,4 +183,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("false || false || true");
 		assertEquals("true", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_logicalAnd_trueAndFalse_returnsFalse() {
+		Result<String, InterpreterError> result = run("true && false");
+		assertEquals("false", result.getValue().orElse("<missing>"));
+	}
 }
