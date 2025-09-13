@@ -165,12 +165,11 @@ public class Interpreter {
 			for (int k = 0; k < operators.size(); k++) {
 				String op = operators.get(k);
 				Operand right = operands.get(k + 1);
-				java.util.Optional<Result<String, InterpreterError>> mergeCheck = checkMergeSuffix(commonSuffixRef,
+				java.util.Optional<Result<String, InterpreterError>> maybeErr = checkMergeSuffix(commonSuffixRef,
 						right.suffix(),
 						normalized);
-				if (mergeCheck.isPresent()) {
-					return mergeCheck.get();
-				}
+				if (maybeErr.isPresent())
+					return maybeErr.get();
 				if ("+".equals(op)) {
 					acc = acc + right.value();
 				} else if ("-".equals(op)) {
@@ -238,22 +237,7 @@ public class Interpreter {
 		}
 
 		// Minimal logical AND support: evaluate '&&' with short-circuit semantics.
-		// We scan for top-level '&&' (depth 0) to avoid parsing inside parentheses.
-		int andPos = -1;
-		{
-			int depth = 0;
-			for (int p = 0; p + 1 < normalized.length(); p++) {
-				char ch = normalized.charAt(p);
-				if (ch == '(')
-					depth++;
-				else if (ch == ')')
-					depth--;
-				else if (depth == 0 && ch == '&' && normalized.charAt(p + 1) == '&') {
-					andPos = p;
-					break;
-				}
-			}
-		}
+		int andPos = findTopLevelOperator(normalized, "&&");
 		if (andPos != -1) {
 			String left = normalized.substring(0, andPos).trim();
 			String right = normalized.substring(andPos + 2).trim();
@@ -263,21 +247,7 @@ public class Interpreter {
 		// Minimal logical OR support: evaluate '||' with short-circuit semantics.
 		// Only detect top-level '||' (we don't currently tokenize operators inside
 		// parentheses here).
-		int orPos = -1;
-		{
-			int depth = 0;
-			for (int p = 0; p + 1 < normalized.length(); p++) {
-				char ch = normalized.charAt(p);
-				if (ch == '(')
-					depth++;
-				else if (ch == ')')
-					depth--;
-				else if (depth == 0 && ch == '|' && normalized.charAt(p + 1) == '|') {
-					orPos = p;
-					break;
-				}
-			}
-		}
+		int orPos = findTopLevelOperator(normalized, "||");
 		if (orPos != -1) {
 			String left = normalized.substring(0, orPos).trim();
 			String right = normalized.substring(orPos + 2).trim();
@@ -294,6 +264,29 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	// Find the first top-level occurrence of a two-character operator (like
+	// '&&' or '||') in a string, ignoring characters inside parentheses.
+	// Returns the index of the first operator character, or -1 if not found.
+	private int findTopLevelOperator(String s, String op) {
+		// Normalize operator safely (prefer java.util.Optional for absent values).
+		String opSafe = java.util.Objects.toString(op, "");
+		if (opSafe.length() != 2) {
+			return -1;
+		}
+		int depth = 0;
+		for (int i = 0; i + 1 < s.length(); i++) {
+			char ch = s.charAt(i);
+			if (ch == '(') {
+				depth++;
+			} else if (ch == ')') {
+				depth--;
+			} else if (depth == 0 && ch == opSafe.charAt(0) && s.charAt(i + 1) == opSafe.charAt(1)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	// Helper to check mergeSuffix and return an Optional Result error if merge
