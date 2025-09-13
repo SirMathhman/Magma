@@ -20,35 +20,59 @@ public class Interpreter {
 		if (normalized.contains("+")) {
 			String[] parts = normalized.split("\\+");
 			int sum = 0;
-			java.util.Optional<String> commonSuffix = java.util.Optional.empty();
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
+					java.util.Optional.empty());
 			for (String part : parts) {
-				String operand = part.trim();
-				java.util.OptionalInt opt = parseLeadingInt(operand);
-				if (!opt.isPresent()) {
-					// if any operand doesn't have a leading int, fail the addition parsing
-					sum = Integer.MIN_VALUE;
-					break;
+				java.util.Optional<Operand> op = parseOperand(part.trim());
+				if (op.isEmpty()) {
+					return Result.error(new InterpreterError("Invalid addition expression", normalized, java.util.List.of()));
 				}
-				sum += opt.getAsInt();
-				String suffix = operand.substring(getLeadingDigitsLength(operand));
-				if (!suffix.isEmpty()) {
-					if (!commonSuffix.isPresent()) {
-						commonSuffix = java.util.Optional.of(suffix);
-					} else if (!commonSuffix.get().equals(suffix)) {
-						// conflicting suffixes -> invalid
-						sum = Integer.MIN_VALUE;
-						break;
-					}
+				Operand operand = op.get();
+				sum += operand.value();
+				java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
+						"Conflicting suffixes in addition");
+				if (mergeErr.isPresent()) {
+					return Result.error(mergeErr.get());
 				}
 			}
-			if (sum != Integer.MIN_VALUE) {
-				return Result.success(Integer.toString(sum));
-			} else {
-				// Addition parsing failed (conflicting suffixes or non-numeric operand).
-				// Do not fall back to the leading-digit rule for the whole expression;
-				// return an explicit interpreter error instead.
-				return Result.error(new InterpreterError("Invalid addition expression", normalized, java.util.List.of()));
+			return Result.success(Integer.toString(sum));
+		}
+
+		// Support simple subtraction expressions like "10 - 4"
+		if (normalized.contains("-")) {
+			// For now, do not mix plus and minus in a single expression.
+			if (normalized.contains("+")) {
+				return Result.error(
+						new InterpreterError("Mixed addition and subtraction not supported", normalized, java.util.List.of()));
 			}
+			String[] parts = normalized.split("\\-");
+			if (parts.length == 0) {
+				return Result.error(new InterpreterError("Invalid subtraction expression", normalized, java.util.List.of()));
+			}
+			java.util.Optional<Operand> firstOp = parseOperand(parts[0].trim());
+			if (firstOp.isEmpty()) {
+				return Result.error(new InterpreterError("Invalid subtraction operand", normalized, java.util.List.of()));
+			}
+			int value = firstOp.get().value();
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
+					java.util.Optional.empty());
+			if (!firstOp.get().suffix().isEmpty()) {
+				commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
+			}
+			for (int k = 1; k < parts.length; k++) {
+				java.util.Optional<Operand> op = parseOperand(parts[k].trim());
+				if (op.isEmpty()) {
+					return Result.error(new InterpreterError("Invalid subtraction operand", normalized, java.util.List.of()));
+				}
+				Operand operand = op.get();
+				value -= operand.value();
+				java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
+						"Conflicting suffixes in subtraction");
+				if (mergeErr.isPresent()) {
+					return Result.error(mergeErr.get());
+				}
+			}
+			return Result.success(Integer.toString(value));
 		}
 
 		// If input starts with digits, return the leading digit sequence using
@@ -89,11 +113,40 @@ public class Interpreter {
 		}
 	}
 
-	private boolean hasSuffixAfterLeadingDigits(String s) {
-		int idx = 0;
-		while (idx < s.length() && Character.isDigit(s.charAt(idx))) {
-			idx++;
+	// Small holder for an operand's parsed integer value and optional suffix.
+	private static record Operand(int value, String suffix) {
+	}
+
+	private java.util.Optional<Operand> parseOperand(String s) {
+		java.util.OptionalInt opt = parseLeadingInt(s);
+		if (!opt.isPresent()) {
+			return java.util.Optional.empty();
 		}
-		return idx < s.length();
+		int v = opt.getAsInt();
+		String suffix = s.substring(getLeadingDigitsLength(s));
+		return java.util.Optional.of(new Operand(v, suffix));
+	}
+
+	/**
+	 * Merge a candidate suffix into the common-suffix holder. Returns an Optional
+	 * containing
+	 * an InterpreterError if the suffix conflicts with the existing common suffix.
+	 */
+	private java.util.Optional<InterpreterError> mergeSuffix(
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonRef,
+			String suffix, String normalized, String conflictMessage) {
+		String sfx = java.util.Objects.toString(suffix, "");
+		if (sfx.isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		java.util.Optional<String> cur = commonRef.get();
+		if (!cur.isPresent()) {
+			commonRef.set(java.util.Optional.of(sfx));
+			return java.util.Optional.empty();
+		}
+		if (!cur.get().equals(sfx)) {
+			return java.util.Optional.of(new InterpreterError(conflictMessage, normalized, java.util.List.of()));
+		}
+		return java.util.Optional.empty();
 	}
 }

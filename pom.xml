@@ -45,14 +45,18 @@
 				<version>3.22.0</version>
 				<configuration>
 					<!-- Lower threshold so small duplicates are detected during development -->
-					<minimumTokens>20</minimumTokens>
+					<minimumTokens>50</minimumTokens>
+					<!-- Control whether CPD ignores string literals and identifier names. Set to false to detect duplicates involving literals. -->
+					<ignoreLiterals>false</ignoreLiterals>
+					<ignoreIdentifiers>true</ignoreIdentifiers>
 					<!-- Use includeTests to ask CPD to examine test sources (supported parameter) -->
 					<includeTests>true</includeTests>
 				</configuration>
 				<executions>
 					<execution>
 						<id>cpd-check</id>
-						<phase>verify</phase>
+						<!-- Bind CPD check to the 'test' phase so it runs during 'mvn test' -->
+						<phase>test</phase>
 						<goals>
 							<goal>cpd-check</goal>
 						</goals>

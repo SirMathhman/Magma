@@ -75,4 +75,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("1U8 + 2 + 3I32");
 		assertEquals(true, result.getError().isPresent());
 	}
+
+	@Test
+	public void interpret_subtraction_simple_returnsDifference() {
+		Result<String, InterpreterError> result = run("10 - 4");
+		assertEquals("6", result.getValue().orElse("<missing>"));
+	}
 }
