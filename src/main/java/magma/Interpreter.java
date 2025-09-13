@@ -31,15 +31,21 @@ public class Interpreter {
 		}
 
 		// Recognize simple addition expressions like "3 + 5" (integers only)
-		java.util.regex.Pattern addPat = java.util.regex.Pattern.compile("^(-?\\d+)\\s*\\+\\s*(-?\\d+)$");
-		java.util.regex.Matcher m = addPat.matcher(normalized);
-		if (m.matches()) {
-			try {
-				int a = Integer.parseInt(m.group(1));
-				int b = Integer.parseInt(m.group(2));
-				return new Result.Ok<>(String.valueOf(a + b));
-			} catch (NumberFormatException e) {
-				// if parsing fails unexpectedly, return an error below
+		// Support optional whitespace and negative integers without regex by
+		// splitting on '+' and trimming the operands.
+		int plusIndex = normalized.indexOf('+');
+		if (plusIndex > 0) {
+			String left = normalized.substring(0, plusIndex).trim();
+			String right = normalized.substring(plusIndex + 1).trim();
+			// Ensure both sides are present and look like integers
+			if (!left.isEmpty() && !right.isEmpty()) {
+				try {
+					int a = Integer.parseInt(left);
+					int b = Integer.parseInt(right);
+					return new Result.Ok<>(String.valueOf(a + b));
+				} catch (NumberFormatException e) {
+					// fallthrough to error below
+				}
 			}
 		}
 
