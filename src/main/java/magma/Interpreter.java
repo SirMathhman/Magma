@@ -62,6 +62,28 @@ public class Interpreter {
 			return new Ok<>(Integer.toString(sum));
 		}
 
+		// Support simple binary subtraction: "a - b"
+		String[] minusParts = src.split("\\-");
+		if (minusParts.length == 2) {
+			String left = minusParts[0].trim();
+			String right = minusParts[1].trim();
+			java.util.Optional<Integer> aOpt = tryParseOrPrefix(left);
+			java.util.Optional<Integer> bOpt = tryParseOrPrefix(right);
+			if (aOpt.isEmpty() || bOpt.isEmpty()) {
+				return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+			}
+			// suffix rule: if both have suffixes, they must match
+			java.util.Optional<String> leftDigits = leadingDigits(left);
+			java.util.Optional<String> rightDigits = leadingDigits(right);
+			String leftSuffix = leftDigits.isPresent() ? left.substring(leftDigits.get().length()) : "";
+			String rightSuffix = rightDigits.isPresent() ? right.substring(rightDigits.get().length()) : "";
+			if (!leftSuffix.isEmpty() && !rightSuffix.isEmpty() && !leftSuffix.equals(rightSuffix)) {
+				return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+			}
+			int diff = aOpt.get() - bOpt.get();
+			return new Ok<>(Integer.toString(diff));
+		}
+
 		// Helper-like inline: try to parse an int, or use leading digit prefix if
 		// present
 		// (kept local to avoid adding new methods or imports)

@@ -50,14 +50,22 @@ public class InterpreterTest {
 
 	@Test
 	public void addSameSuffReturns() {
-		// Both operands have the same suffix; interpreter should use leading numeric prefixes
+		// Both operands have the same suffix; interpreter should use leading numeric
+		// prefixes
 		assertSuccess(new Interpreter().interpret("1U8 + 2U8"), "3");
 	}
 
 	@Test
 	public void addThreeReturns() {
-		// Multiple additions should sum left-to-right (or as a set) and return the total
+		// Multiple additions should sum left-to-right (or as a set) and return the
+		// total
 		assertSuccess(new Interpreter().interpret("1 + 2 + 3"), "6");
+	}
+
+	@Test
+	public void subTwoReturns() {
+		// Simple subtraction should compute the difference
+		assertSuccess(new Interpreter().interpret("3 - 2"), "1");
 	}
 
 	// Helper to assert a successful interpretation with expected value
