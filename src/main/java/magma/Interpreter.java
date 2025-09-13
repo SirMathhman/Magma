@@ -7,15 +7,10 @@ public class Interpreter {
 		if (source.isEmpty())
 			return new Ok<>("");
 
-		// Try subtraction first
-		Optional<Result<String, InterpreterError>> sub = trySubtraction(source);
-		if (sub.isPresent())
-			return sub.get();
-
-		// Try addition next
-		Optional<Result<String, InterpreterError>> add = tryAddition(source);
-		if (add.isPresent())
-			return add.get();
+		// Try combined addition/subtraction first
+		Optional<Result<String, InterpreterError>> addsub = tryAddSub(source);
+		if (addsub.isPresent())
+			return addsub.get();
 
 		// Try parse as integer
 		try {
@@ -30,86 +25,118 @@ public class Interpreter {
 		}
 	}
 
-	private static Optional<Result<String, InterpreterError>> tryAddition(String source) {
-		if (!source.contains("+"))
+	private static Optional<Result<String, InterpreterError>> tryAddSub(String source) {
+		Optional<Expression> expr = parseExpression(source);
+		if (expr.isEmpty())
 			return Optional.empty();
-
-		String[] parts = source.split("\\+");
-		if (parts.length < 2)
+		Expression e = expr.get();
+		if (e.values.size() < 2)
 			return Optional.empty();
-
-		int sum = 0;
-		String commonSuffix = "";
-		boolean anyParsed = false;
-
-		for (String raw : parts) {
-			String part = raw.trim();
-
-			// Try direct integer parse
-			try {
-				int v = Integer.parseInt(part);
-				sum += v;
-				anyParsed = true;
-				continue;
-			} catch (NumberFormatException ignored) {
-				// fall through
-			}
-
-			String ld = leadingDigits(part);
-			if (ld.isEmpty())
-				return Optional.empty();
-
-			String suffix = part.substring(ld.length());
-			if (!suffix.isEmpty()) {
-				if (commonSuffix.isEmpty())
-					commonSuffix = suffix;
-				else if (!commonSuffix.equals(suffix)) {
-					return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
-				}
-			}
-
-			sum += Integer.parseInt(ld);
-			anyParsed = true;
-		}
-
-		if (!anyParsed)
-			return Optional.empty();
-		return Optional.of(new Ok<>(String.valueOf(sum)));
+		if (!hasConsistentSuffixes(e))
+			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+		int result = evaluateExpression(e);
+		return Optional.of(new Ok<>(String.valueOf(result)));
 	}
 
-	private static Optional<Result<String, InterpreterError>> trySubtraction(String source) {
-		if (!source.contains("-"))
-			return Optional.empty();
-		String[] parts = source.split("-");
-		if (parts.length != 2)
-			return Optional.empty();
+	private static class Expression {
+		java.util.List<Integer> values = new java.util.ArrayList<>();
+		java.util.List<Character> ops = new java.util.ArrayList<>();
+		java.util.List<String> suffixes = new java.util.ArrayList<>();
+	}
 
-		String left = parts[0].trim();
-		String right = parts[1].trim();
+	private static Optional<Expression> parseExpression(String source) {
+		int len = source.length();
+		int i = 0;
+		Expression e = new Expression();
+		Optional<Token> t = parseTokenAt(source, i);
+		if (t.isEmpty())
+			return Optional.empty();
+		Token tok = t.get();
+		e.values.add(tok.value);
+		e.suffixes.add(tok.suffix);
+		i = tok.nextIndex;
 
-		// Try direct integer parse
-		try {
-			int a = Integer.parseInt(left);
-			int b = Integer.parseInt(right);
-			return Optional.of(new Ok<>(String.valueOf(a - b)));
-		} catch (NumberFormatException ignored) {
-			// fall through
+		while (i < len) {
+			while (i < len && Character.isWhitespace(source.charAt(i)))
+				i++;
+			if (i >= len)
+				break;
+			char c = source.charAt(i);
+			if (c != '+' && c != '-')
+				break;
+			e.ops.add(c);
+			i++;
+			Optional<Token> nt = parseTokenAt(source, i);
+			if (nt.isEmpty())
+				return Optional.empty();
+			Token nv = nt.get();
+			e.values.add(nv.value);
+			e.suffixes.add(nv.suffix);
+			i = nv.nextIndex;
 		}
+		return Optional.of(e);
+	}
 
-		String la = leadingDigits(left);
-		String ra = leadingDigits(right);
-		if (la.isEmpty() || ra.isEmpty())
+	private static boolean hasConsistentSuffixes(Expression e) {
+		String common = "";
+		for (String s : e.suffixes) {
+			if (s.isEmpty())
+				continue;
+			if (common.isEmpty())
+				common = s;
+			else if (!common.equals(s))
+				return false;
+		}
+		return true;
+	}
+
+	private static int evaluateExpression(Expression e) {
+		int acc = e.values.get(0);
+		for (int k = 0; k < e.ops.size(); k++) {
+			char op = e.ops.get(k);
+			int v = e.values.get(k + 1);
+			if (op == '+')
+				acc += v;
+			else
+				acc -= v;
+		}
+		return acc;
+	}
+
+	private static class Token {
+		final int value;
+		final String suffix;
+		final int nextIndex;
+
+		Token(int value, String suffix, int nextIndex) {
+			this.value = value;
+			this.suffix = suffix;
+			this.nextIndex = nextIndex;
+		}
+	}
+
+	private static Optional<Token> parseTokenAt(String source, int start) {
+		int len = source.length();
+		int i = start;
+		while (i < len && Character.isWhitespace(source.charAt(i)))
+			i++;
+		if (i >= len)
 			return Optional.empty();
 
-		String suffixLeft = left.substring(la.length());
-		String suffixRight = right.substring(ra.length());
-		if (!suffixLeft.isEmpty() && !suffixRight.isEmpty() && !suffixLeft.equals(suffixRight)) {
-			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+		StringBuilder digits = new StringBuilder();
+		while (i < len && Character.isDigit(source.charAt(i))) {
+			digits.append(source.charAt(i));
+			i++;
 		}
+		if (digits.length() == 0)
+			return Optional.empty();
 
-		int a2 = Integer.parseInt(la);
-		int b2 = Integer.parseInt(ra);
-		return Optional.of(new Ok<>(String.valueOf(a2 - b2)));
+		StringBuilder suf = new StringBuilder();
+		while (i < len && source.charAt(i) != '+' && source.charAt(i) != '-') {
+			suf.append(source.charAt(i));
+			i++;
+		}
+		return Optional.of(new Token(Integer.parseInt(digits.toString()), suf.toString().trim(), i));
 	}
 
 	private static String leadingDigits(String s) {
