@@ -12,11 +12,6 @@ public class Interpreter {
 		if (eval.isPresent())
 			return eval.get();
 
-		// Try multiplication fallback
-		Optional<Result<String, InterpreterError>> mul = tryMul(source);
-		if (mul.isPresent())
-			return mul.get();
-
 		// Try parse as integer
 		try {
 			Integer.parseInt(source);
@@ -28,51 +23,6 @@ public class Interpreter {
 				return new Ok<>(lead);
 			return new Err<>(new InterpreterError("Invalid input", source));
 		}
-	}
-
-	private static Optional<Result<String, InterpreterError>> tryMul(String source) {
-		if (!source.contains("*"))
-			return Optional.empty();
-		String[] parts = source.split("\\*");
-		if (parts.length < 2)
-			return Optional.empty();
-
-		int prod = 1;
-		String commonSuffix = "";
-		boolean anyParsed = false;
-
-		for (String raw : parts) {
-			String part = raw.trim();
-
-			try {
-				int v = Integer.parseInt(part);
-				prod *= v;
-				anyParsed = true;
-				continue;
-			} catch (NumberFormatException ignored) {
-				// fall through
-			}
-
-			String ld = leadingDigits(part);
-			if (ld.isEmpty())
-				return Optional.empty();
-
-			String suffix = part.substring(ld.length());
-			if (!suffix.isEmpty()) {
-				if (commonSuffix.isEmpty())
-					commonSuffix = suffix;
-				else if (!commonSuffix.equals(suffix)) {
-					return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
-				}
-			}
-
-			prod *= Integer.parseInt(ld);
-			anyParsed = true;
-		}
-
-		if (!anyParsed)
-			return Optional.empty();
-		return Optional.of(new Ok<>(String.valueOf(prod)));
 	}
 
 	// Precedence-aware evaluator: handles +, -, * with * having higher precedence
