@@ -16,24 +16,24 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		// Support expressions containing + and -. We tokenise into operands and
-		// operators
-		// and evaluate left-to-right. This preserves existing suffix conflict
-		// behaviour by merging suffixes as we consume operands.
-		if (normalized.contains("+") || normalized.contains("-")) {
-			// Tokenize: split on spaces around operators to be permissive with spacing.
+		// Support expressions containing +, - and * . We tokenise into operands and
+		// operators and evaluate left-to-right. This preserves existing suffix
+		// conflict behaviour by merging suffixes as we consume operands.
+		if (normalized.contains("+") || normalized.contains("-") || normalized.contains("*")) {
+			// Tokenize: split on operator characters to be permissive with spacing.
 			java.util.List<String> tokens = new java.util.ArrayList<>();
 			int idx = 0;
 			while (idx < normalized.length()) {
 				char c = normalized.charAt(idx);
-				if (c == '+' || c == '-') {
+				if (c == '+' || c == '-' || c == '*') {
 					tokens.add(Character.toString(c));
 					idx++;
 					continue;
 				}
 				// collect until next operator
 				int start = idx;
-				while (idx < normalized.length() && normalized.charAt(idx) != '+' && normalized.charAt(idx) != '-') {
+				while (idx < normalized.length() && normalized.charAt(idx) != '+' && normalized.charAt(idx) != '-'
+						&& normalized.charAt(idx) != '*') {
 					idx++;
 				}
 				tokens.add(normalized.substring(start, idx).trim());
@@ -58,7 +58,7 @@ public class Interpreter {
 			// Process remaining tokens in pairs (operator, operand)
 			for (int t = 1; t < tokens.size(); t += 2) {
 				String opTok = tokens.get(t);
-				if (!("+".equals(opTok) || "-".equals(opTok))) {
+				if (!("+".equals(opTok) || "-".equals(opTok) || "*".equals(opTok))) {
 					return Result
 							.error(new InterpreterError("Expected operator but found: " + opTok, normalized, java.util.List.of()));
 				}
@@ -73,8 +73,11 @@ public class Interpreter {
 				Operand operand = nextOp.get();
 				if ("+".equals(opTok)) {
 					acc = acc + operand.value();
-				} else {
+				} else if ("-".equals(opTok)) {
 					acc = acc - operand.value();
+				} else {
+					// multiplication
+					acc = acc * operand.value();
 				}
 				java.util.Optional<String> mergeErrMsg = mergeSuffix(commonSuffixRef, operand.suffix());
 				if (mergeErrMsg.isPresent()) {

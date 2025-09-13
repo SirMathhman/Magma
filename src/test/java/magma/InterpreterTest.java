@@ -87,4 +87,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("10 - 4 + 1");
 		assertEquals("7", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_simpleMultiplication_returnsProduct() {
+		Result<String, InterpreterError> result = run("2 * 3");
+		assertEquals("6", result.getValue().orElse("<missing>"));
+	}
 }
