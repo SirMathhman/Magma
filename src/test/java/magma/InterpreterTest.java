@@ -6,12 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class InterpreterTest {
 	@Test
-	void empty() {
+	void empty() throws InterpreterException {
 		assertEquals("", Interpreter.interpret(""));
 	}
 
 	@Test
-	void integer() {
+	void integer() throws InterpreterException {
 		assertEquals("1", Interpreter.interpret("1"));
 	}
 }
