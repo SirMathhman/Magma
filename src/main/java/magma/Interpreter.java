@@ -16,6 +16,48 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
+		// Handle parentheses: evaluate innermost parenthesized expressions first.
+		if (normalized.contains("(") || normalized.contains(")")) {
+			StringBuilder sb = new StringBuilder(normalized);
+			while (true) {
+				int close = -1;
+				for (int i = 0; i < sb.length(); i++) {
+					if (sb.charAt(i) == ')') {
+						close = i;
+						break;
+					}
+				}
+				if (close == -1) {
+					// no closing paren found; stop
+					break;
+				}
+				int open = -1;
+				for (int j = close - 1; j >= 0; j--) {
+					if (sb.charAt(j) == '(') {
+						open = j;
+						break;
+					}
+				}
+				if (open == -1) {
+					// unmatched closing paren -> error
+					return Result.error(new InterpreterError("Unmatched parenthesis", normalized, java.util.List.of()));
+				}
+				String inner = sb.substring(open + 1, close);
+				Result<String, InterpreterError> innerRes = interpret(inner);
+				if (innerRes.isError()) {
+					// propagate error from inner expression
+					return innerRes;
+				}
+				String val = innerRes.getValue().orElse("");
+				// Replace the '(inner)' with its evaluated value
+				sb.replace(open, close + 1, val);
+				// continue until no more parentheses
+				if (sb.indexOf("(") == -1 && sb.indexOf(")") == -1) {
+					normalized = sb.toString();
+					break;
+				}
+			}
+		}
 		// Support expressions containing +, - and * . We tokenise into operands and
 		// operators and evaluate with multiplication having higher precedence.
 		if (normalized.contains("+") || normalized.contains("-") || normalized.contains("*") || normalized.contains("/")
