@@ -7,14 +7,14 @@ package magma;
 public class Interpreter {
 
 	/**
-	 * Interpret the provided input and return a result string.
-	 * Behavior (stub): returns empty string if input is exactly empty ("").
-	 * Otherwise throws InterpreterError.
+	 * Interpret the provided input and return a Result.
+	 * Behavior (stub): returns Result.success("") if input is exactly empty ("").
+	 * Otherwise returns Result.error(InterpreterError).
 	 */
-	public String interpret(String input) {
+	public Result<String, InterpreterError> interpret(String input) {
 		if ("".equals(input)) {
-			return "";
+			return Result.success("");
 		}
-		throw new InterpreterError("Only empty input is supported in this stub");
+		return Result.error(new InterpreterError("Only empty input is supported in this stub"));
 	}
 }
