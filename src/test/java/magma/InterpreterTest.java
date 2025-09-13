@@ -47,4 +47,10 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("1 + 2 + 3");
 		assertEquals(new Ok<String, InterpreterError>("6"), r);
 	}
+
+	@Test
+	void twoMinusOne() {
+		Result<String, InterpreterError> r = Interpreter.interpret("2 - 1");
+		assertEquals(new Ok<String, InterpreterError>("1"), r);
+	}
 }
