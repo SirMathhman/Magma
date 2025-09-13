@@ -16,11 +16,14 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		// If input is digits only, or starts with digits, return the leading digit
-		// sequence
-		java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)").matcher(normalized);
-		if (m.find()) {
-			return Result.success(m.group(1));
+		// If input starts with digits, return the leading digit sequence using
+		// simple String scanning (avoid java.util.regex per project policy)
+		int i = 0;
+		while (i < normalized.length() && Character.isDigit(normalized.charAt(i))) {
+			i++;
+		}
+		if (i > 0) {
+			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
 	}

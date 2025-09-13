@@ -13,4 +13,20 @@
 		<property name="message" value="Avoid 'null'; use java.util.Optional instead" />
 		<property name="severity" value="error" />
 	</module>
+
+	<!-- Code-level checks go under TreeWalker -->
+	<module name="TreeWalker">
+		<!-- Ban imports from java.util.regex package -->
+		<module name="IllegalImport">
+			<property name="illegalPkgs" value="java.util.regex" />
+			<property name="severity" value="error" />
+		</module>
+	</module>
+
+	<!-- Ban fully-qualified references to java.util.regex.* (e.g. java.util.regex.Pattern) -->
+	<module name="RegexpSingleline">
+		<property name="format" value="java\\.util\\.regex\\." />
+		<property name="message" value="Avoid using java.util.regex; prefer simple String methods or java.util.Scanner" />
+		<property name="severity" value="error" />
+	</module>
 </module>
