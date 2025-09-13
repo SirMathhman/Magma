@@ -2,7 +2,7 @@ package magma;
 
 public class Interpreter {
 	public static Result<String, InterpreterError> interpret(String source) {
-		if (source == null || source.isEmpty())
+		if (source.isEmpty())
 			return new Ok<>("");
 
 		try {

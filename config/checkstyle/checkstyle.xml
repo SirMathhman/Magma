@@ -16,12 +16,20 @@
 		<property name="severity" value="error" />
 		<property name="fileExtensions" value="java" />
 	</module>
-    
+
+	<!-- Disallow use of the `null` literal; prefer java.util.Optional -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\bnull\b" />
+		<property name="message" value="Avoid using 'null'; prefer java.util.Optional instead." />
+		<property name="severity" value="error" />
+		<property name="fileExtensions" value="java" />
+	</module>
+
 	<!-- Disallow imports from java.util.regex package -->
 	<module name="TreeWalker">
 		<module name="IllegalImport">
-			<property name="illegalPkgs" value="java.util.regex"/>
-			<property name="severity" value="error"/>
+			<property name="illegalPkgs" value="java.util.regex" />
+			<property name="severity" value="error" />
 		</module>
 	</module>
 </module>
