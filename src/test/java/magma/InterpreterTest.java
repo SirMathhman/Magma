@@ -14,7 +14,13 @@ public class InterpreterTest {
 	public void emptyInputReturns() {
 		assertSuccess(new Interpreter().interpret(""), "");
 	}
-	
+
+	@Test
+	public void test() {
+		// non-empty input should produce an error in the current interpreter stub
+		assertError(new Interpreter().interpret("invalid"));
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
