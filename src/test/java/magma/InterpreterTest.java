@@ -31,4 +31,11 @@ public class InterpreterTest {
 		assertEquals(true, result.isSuccess());
 		assertEquals("100", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_numericPrefix_returnsPrefix() {
+		Result<String, InterpreterError> result = run("100U8");
+		assertEquals(true, result.isSuccess());
+		assertEquals("100", result.getValue().orElse("<missing>"));
+	}
 }

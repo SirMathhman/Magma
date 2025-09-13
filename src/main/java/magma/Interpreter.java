@@ -16,9 +16,11 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		// If input is digits only, echo it back as success
-		if (normalized.matches("\\d+")) {
-			return Result.success(normalized);
+		// If input is digits only, or starts with digits, return the leading digit
+		// sequence
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("^(\\d+)").matcher(normalized);
+		if (m.find()) {
+			return Result.success(m.group(1));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
 	}
