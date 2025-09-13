@@ -38,6 +38,27 @@
 					<release>${maven.compiler.release}</release>
 				</configuration>
 			</plugin>
+			<!-- PMD CPD plugin to detect copy/paste (duplicate code) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.22.0</version>
+				<configuration>
+					<!-- Lower threshold so small duplicates are detected during development -->
+					<minimumTokens>20</minimumTokens>
+					<!-- Use includeTests to ask CPD to examine test sources (supported parameter) -->
+					<includeTests>true</includeTests>
+				</configuration>
+				<executions>
+					<execution>
+						<id>cpd-check</id>
+						<phase>verify</phase>
+						<goals>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -51,6 +72,7 @@
 				<configuration>
 					<configLocation>${basedir}/config/checkstyle/checkstyle.xml</configLocation>
 					<encoding>${project.build.sourceEncoding}</encoding>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 					<consoleOutput>true</consoleOutput>
 					<failsOnError>false</failsOnError>
 				</configuration>
