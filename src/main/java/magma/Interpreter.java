@@ -19,60 +19,17 @@ public class Interpreter {
 		// Support chained addition expressions like "1 + 2 + 3" (arbitrary length)
 		if (normalized.contains("+")) {
 			String[] parts = normalized.split("\\+");
-			int sum = 0;
-			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
-					java.util.Optional.empty());
-			for (String part : parts) {
-				java.util.Optional<Operand> op = parseOperand(part.trim());
-				if (op.isEmpty()) {
-					return Result.error(new InterpreterError("Invalid addition expression", normalized, java.util.List.of()));
-				}
-				Operand operand = op.get();
-				sum += operand.value();
-				java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
-						"Conflicting suffixes in addition");
-				if (mergeErr.isPresent()) {
-					return Result.error(mergeErr.get());
-				}
-			}
-			return Result.success(Integer.toString(sum));
+			return evaluateOperands(parts, normalized, (a, b) -> a + b, false);
 		}
 
 		// Support simple subtraction expressions like "10 - 4"
 		if (normalized.contains("-")) {
-			// For now, do not mix plus and minus in a single expression.
 			if (normalized.contains("+")) {
 				return Result.error(
 						new InterpreterError("Mixed addition and subtraction not supported", normalized, java.util.List.of()));
 			}
 			String[] parts = normalized.split("\\-");
-			if (parts.length == 0) {
-				return Result.error(new InterpreterError("Invalid subtraction expression", normalized, java.util.List.of()));
-			}
-			java.util.Optional<Operand> firstOp = parseOperand(parts[0].trim());
-			if (firstOp.isEmpty()) {
-				return Result.error(new InterpreterError("Invalid subtraction operand", normalized, java.util.List.of()));
-			}
-			int value = firstOp.get().value();
-			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
-					java.util.Optional.empty());
-			if (!firstOp.get().suffix().isEmpty()) {
-				commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
-			}
-			for (int k = 1; k < parts.length; k++) {
-				java.util.Optional<Operand> op = parseOperand(parts[k].trim());
-				if (op.isEmpty()) {
-					return Result.error(new InterpreterError("Invalid subtraction operand", normalized, java.util.List.of()));
-				}
-				Operand operand = op.get();
-				value -= operand.value();
-				java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
-						"Conflicting suffixes in subtraction");
-				if (mergeErr.isPresent()) {
-					return Result.error(mergeErr.get());
-				}
-			}
-			return Result.success(Integer.toString(value));
+			return evaluateOperands(parts, normalized, (a, b) -> a - b, true);
 		}
 
 		// If input starts with digits, return the leading digit sequence using
@@ -85,6 +42,44 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	/**
+	 * Evaluate an array of operand strings using the provided binary operator.
+	 * If isSubtraction is true, the operator is treated as left-associative
+	 * subtraction
+	 * (first - second - third ...). For addition isSubtraction should be false.
+	 */
+	private Result<String, InterpreterError> evaluateOperands(String[] parts, String normalized,
+			java.util.function.IntBinaryOperator reducer, boolean isSubtraction) {
+		if (parts.length == 0) {
+			return Result.error(new InterpreterError("Invalid expression", normalized, java.util.List.of()));
+		}
+		java.util.Optional<Operand> firstOp = parseOperand(parts[0].trim());
+		if (firstOp.isEmpty()) {
+			return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
+		}
+		int acc = firstOp.get().value();
+		java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
+				java.util.Optional.empty());
+		if (!firstOp.get().suffix().isEmpty()) {
+			commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
+		}
+		for (int k = 1; k < parts.length; k++) {
+			java.util.Optional<Operand> op = parseOperand(parts[k].trim());
+			if (op.isEmpty()) {
+				return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
+			}
+			Operand operand = op.get();
+			// For addition we add; for subtraction reduce with the operator provided
+			acc = reducer.applyAsInt(acc, operand.value());
+			java.util.Optional<InterpreterError> mergeErr = mergeSuffix(commonSuffixRef, operand.suffix(), normalized,
+					isSubtraction ? "Conflicting suffixes in subtraction" : "Conflicting suffixes in addition");
+			if (mergeErr.isPresent()) {
+				return Result.error(mergeErr.get());
+			}
+		}
+		return Result.success(Integer.toString(acc));
 	}
 
 	private int getLeadingDigitsLength(String s) {

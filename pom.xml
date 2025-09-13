@@ -45,7 +45,7 @@
 				<version>3.22.0</version>
 				<configuration>
 					<!-- Lower threshold so small duplicates are detected during development -->
-					<minimumTokens>50</minimumTokens>
+					<minimumTokens>40</minimumTokens>
 					<!-- Control whether CPD ignores string literals and identifier names. Set to false to detect duplicates involving literals. -->
 					<ignoreLiterals>false</ignoreLiterals>
 					<ignoreIdentifiers>true</ignoreIdentifiers>
