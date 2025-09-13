@@ -9,4 +9,10 @@
     <property name="message" value="Use Result instead of exceptions (ban 'throw'/'throws')"/>
         <property name="severity" value="error"/>
     </module>
+    <!-- Ban use of the null literal; recommend java.util.Optional instead -->
+    <module name="RegexpSingleline">
+        <property name="format" value="\bnull\b"/>
+        <property name="message" value="Avoid 'null'; use java.util.Optional instead"/>
+        <property name="severity" value="error"/>
+    </module>
 </module>

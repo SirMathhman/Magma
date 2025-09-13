@@ -8,35 +8,35 @@ import java.util.Optional;
  * error value.
  */
 public final class Result<T, E> {
-	private final T value;
-	private final E error;
+	private final Optional<T> value;
+	private final Optional<E> error;
 
-	private Result(T value, E error) {
+	private Result(Optional<T> value, Optional<E> error) {
 		this.value = value;
 		this.error = error;
 	}
 
 	public static <T, E> Result<T, E> success(T value) {
-		return new Result<>(value, null);
+		return new Result<>(Optional.ofNullable(value), Optional.empty());
 	}
 
 	public static <T, E> Result<T, E> error(E error) {
-		return new Result<>(null, Objects.requireNonNull(error));
+		return new Result<>(Optional.empty(), Optional.of(Objects.requireNonNull(error)));
 	}
 
 	public boolean isSuccess() {
-		return error == null;
+		return error.isEmpty();
 	}
 
 	public boolean isError() {
-		return !isSuccess();
+		return error.isPresent();
 	}
 
 	public Optional<T> getValue() {
-		return Optional.ofNullable(value);
+		return value;
 	}
 
 	public Optional<E> getError() {
-		return Optional.ofNullable(error);
+		return error;
 	}
 }
