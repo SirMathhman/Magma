@@ -11,7 +11,7 @@ public class InterpreterTest {
 	}
 
 	@Test
-	public void interpret_emptyInput_returnsEmptyString() {
+	public void emptyInputReturns() {
 		Result<String, InterpreterError> result = run("");
 		assertEquals("", result.getValue().orElse("<missing>"));
 	}

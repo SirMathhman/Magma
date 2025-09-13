@@ -27,12 +27,24 @@
 			<property name="max" value="3" />
 			<property name="severity" value="error" />
 		</module>
+
+		<!-- Enforce method name length: max 20 characters -->
+		<module name="MethodName">
+			<!-- regexp: allow any Java identifier of 1..20 chars -->
+			<property name="format" value="^[A-Za-z_$][A-Za-z0-9_$]{0,19}$" />
+			<property name="severity" value="error" />
+			<property name="applyToPrivate" value="true" />
+			<property name="applyToPackage" value="true" />
+			<property name="applyToProtected" value="true" />
+			<property name="applyToPublic" value="true" />
+		</module>
 	</module>
 
 	<!-- Ban fully-qualified references to java.util.regex.* (e.g. java.util.regex.Pattern) -->
 	<module name="RegexpSingleline">
 		<property name="format" value="java\\.util\\.regex\\." />
-		<property name="message" value="Avoid using java.util.regex; prefer simple String methods or java.util.Scanner" />
+		<property name="message"
+			value="Avoid using java.util.regex; prefer simple String methods or java.util.Scanner" />
 		<property name="severity" value="error" />
 	</module>
 </module>
