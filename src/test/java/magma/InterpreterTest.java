@@ -38,4 +38,11 @@ public class InterpreterTest {
 		assertEquals(true, result.isSuccess());
 		assertEquals("100", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_simpleAddition_returnsSum() {
+		Result<String, InterpreterError> result = run("1 + 2");
+		assertEquals(true, result.isSuccess());
+		assertEquals("3", result.getValue().orElse("<missing>"));
+	}
 }

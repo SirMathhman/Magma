@@ -16,6 +16,21 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
+		// Support a simple addition expression like "1 + 2" using simple string
+		// operations
+		int plus = normalized.indexOf('+');
+		if (plus > 0) {
+			String left = normalized.substring(0, plus).trim();
+			String right = normalized.substring(plus + 1).trim();
+			try {
+				int a = Integer.parseInt(left);
+				int b = Integer.parseInt(right);
+				return Result.success(Integer.toString(a + b));
+			} catch (NumberFormatException ex) {
+				// fall through to other checks
+			}
+		}
+
 		// If input starts with digits, return the leading digit sequence using
 		// simple String scanning (avoid java.util.regex per project policy)
 		int i = 0;
