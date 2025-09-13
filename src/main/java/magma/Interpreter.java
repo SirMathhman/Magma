@@ -16,20 +16,74 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		// Support chained addition expressions like "1 + 2 + 3" (arbitrary length)
-		if (normalized.contains("+")) {
-			String[] parts = normalized.split("\\+");
-			return evaluateOperands(parts, normalized, false);
-		}
-
-		// Support simple subtraction expressions like "10 - 4"
-		if (normalized.contains("-")) {
-			if (normalized.contains("+")) {
-				return Result.error(
-						new InterpreterError("Mixed addition and subtraction not supported", normalized, java.util.List.of()));
+		// Support expressions containing + and -. We tokenise into operands and
+		// operators
+		// and evaluate left-to-right. This preserves existing suffix conflict
+		// behaviour by merging suffixes as we consume operands.
+		if (normalized.contains("+") || normalized.contains("-")) {
+			// Tokenize: split on spaces around operators to be permissive with spacing.
+			java.util.List<String> tokens = new java.util.ArrayList<>();
+			int idx = 0;
+			while (idx < normalized.length()) {
+				char c = normalized.charAt(idx);
+				if (c == '+' || c == '-') {
+					tokens.add(Character.toString(c));
+					idx++;
+					continue;
+				}
+				// collect until next operator
+				int start = idx;
+				while (idx < normalized.length() && normalized.charAt(idx) != '+' && normalized.charAt(idx) != '-') {
+					idx++;
+				}
+				tokens.add(normalized.substring(start, idx).trim());
 			}
-			String[] parts = normalized.split("\\-");
-			return evaluateOperands(parts, normalized, true);
+
+			// Expect tokens like [operand, op, operand, op, operand...]
+			if (tokens.isEmpty()) {
+				return Result.error(new InterpreterError("Invalid expression", normalized, java.util.List.of()));
+			}
+			// First token must be an operand
+			java.util.Optional<Operand> firstOp = parseOperand(tokens.get(0));
+			if (firstOp.isEmpty()) {
+				return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
+			}
+			int acc = firstOp.get().value();
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
+					java.util.Optional.empty());
+			if (!firstOp.get().suffix().isEmpty()) {
+				commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
+			}
+
+			// Process remaining tokens in pairs (operator, operand)
+			for (int t = 1; t < tokens.size(); t += 2) {
+				String opTok = tokens.get(t);
+				if (!("+".equals(opTok) || "-".equals(opTok))) {
+					return Result
+							.error(new InterpreterError("Expected operator but found: " + opTok, normalized, java.util.List.of()));
+				}
+				if (t + 1 >= tokens.size()) {
+					return Result
+							.error(new InterpreterError("Trailing operator without operand", normalized, java.util.List.of()));
+				}
+				java.util.Optional<Operand> nextOp = parseOperand(tokens.get(t + 1));
+				if (nextOp.isEmpty()) {
+					return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
+				}
+				Operand operand = nextOp.get();
+				if ("+".equals(opTok)) {
+					acc = acc + operand.value();
+				} else {
+					acc = acc - operand.value();
+				}
+				java.util.Optional<String> mergeErrMsg = mergeSuffix(commonSuffixRef, operand.suffix());
+				if (mergeErrMsg.isPresent()) {
+					String msg = "Conflicting suffixes in expression";
+					return Result.error(new InterpreterError(msg, normalized, java.util.List.of()));
+				}
+			}
+
+			return Result.success(Integer.toString(acc));
 		}
 
 		// If input starts with digits, return the leading digit sequence using

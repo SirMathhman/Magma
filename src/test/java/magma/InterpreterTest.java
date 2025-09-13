@@ -81,4 +81,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("10 - 4");
 		assertEquals("6", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_mixedSubtractionAddition_leftToRight_returnsSeven() {
+		Result<String, InterpreterError> result = run("10 - 4 + 1");
+		assertEquals("7", result.getValue().orElse("<missing>"));
+	}
 }
