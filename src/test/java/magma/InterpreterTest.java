@@ -136,4 +136,15 @@ public class InterpreterTest {
 		assertEquals("1", result.getValue().orElse("<missing>"));
 	}
 
+	@Test
+	public void interpret_parenthesizedExpression_plusThree_returnsSix() {
+		Result<String, InterpreterError> result = run("(1 + 2) + 3");
+		assertEquals("6", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
+	public void interpret_parenthesizedExpression_timesThree_returnsNine() {
+		Result<String, InterpreterError> result = run("(1 + 2) * 3");
+		assertEquals("9", result.getValue().orElse("<missing>"));
+	}
 }
