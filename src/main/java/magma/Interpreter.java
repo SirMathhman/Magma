@@ -5,6 +5,20 @@ public class Interpreter {
 		if (source.isEmpty())
 			return new Ok<>("");
 
+		// Handle simple addition expressions like "1 + 2"
+		if (source.contains("+")) {
+			String[] parts = source.split("\\+");
+			if (parts.length == 2) {
+				try {
+					int a = Integer.parseInt(parts[0].trim());
+					int b = Integer.parseInt(parts[1].trim());
+					return new Ok<>(String.valueOf(a + b));
+				} catch (NumberFormatException ignored) {
+					// fall through to other handling
+				}
+			}
+		}
+
 		try {
 			Integer.parseInt(source);
 			return new Ok<>(source);

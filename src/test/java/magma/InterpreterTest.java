@@ -22,4 +22,10 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("1U8");
 		assertEquals(new Ok<String, InterpreterError>("1"), r);
 	}
+
+	@Test
+	void simpleAddition() {
+		Result<String, InterpreterError> r = Interpreter.interpret("1 + 2");
+		assertEquals(new Ok<String, InterpreterError>("3"), r);
+	}
 }
