@@ -22,12 +22,10 @@ public class Interpreter {
 		if (plus > 0) {
 			String left = normalized.substring(0, plus).trim();
 			String right = normalized.substring(plus + 1).trim();
-			try {
-				int a = Integer.parseInt(left);
-				int b = Integer.parseInt(right);
-				return Result.success(Integer.toString(a + b));
-			} catch (NumberFormatException ex) {
-				// fall through to other checks
+			java.util.OptionalInt optA = parseLeadingInt(left);
+			java.util.OptionalInt optB = parseLeadingInt(right);
+			if (optA.isPresent() && optB.isPresent()) {
+				return Result.success(Integer.toString(optA.getAsInt() + optB.getAsInt()));
 			}
 		}
 
@@ -41,5 +39,23 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	// Helper: parse leading integer prefix from a string (e.g. "1U8" -> 1)
+	// Returns OptionalInt.empty() if no leading digits are present or integer
+	// parsing fails
+	private java.util.OptionalInt parseLeadingInt(String s) {
+		int idx = 0;
+		while (idx < s.length() && Character.isDigit(s.charAt(idx))) {
+			idx++;
+		}
+		if (idx == 0) {
+			return java.util.OptionalInt.empty();
+		}
+		try {
+			return java.util.OptionalInt.of(Integer.parseInt(s.substring(0, idx)));
+		} catch (NumberFormatException ex) {
+			return java.util.OptionalInt.empty();
+		}
 	}
 }
