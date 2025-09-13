@@ -126,10 +126,11 @@ public class Interpreter {
 				if ("*".equals(op) || "/".equals(op) || "%".equals(op)) {
 					Operand a = operands.get(j);
 					Operand b = operands.get(j + 1);
-					java.util.Optional<String> mergeErr = mergeSuffix(commonSuffixRef, b.suffix());
-					if (mergeErr.isPresent()) {
-						return Result
-								.error(new InterpreterError("Conflicting suffixes in expression", normalized, java.util.List.of()));
+					java.util.Optional<Result<String, InterpreterError>> mergeCheck = checkMergeSuffix(commonSuffixRef,
+							b.suffix(),
+							normalized);
+					if (mergeCheck.isPresent()) {
+						return mergeCheck.get();
 					}
 					int newVal;
 					if ("*".equals(op)) {
@@ -164,10 +165,11 @@ public class Interpreter {
 			for (int k = 0; k < operators.size(); k++) {
 				String op = operators.get(k);
 				Operand right = operands.get(k + 1);
-				java.util.Optional<String> mergeErr = mergeSuffix(commonSuffixRef, right.suffix());
-				if (mergeErr.isPresent()) {
-					return Result
-							.error(new InterpreterError("Conflicting suffixes in expression", normalized, java.util.List.of()));
+				java.util.Optional<Result<String, InterpreterError>> mergeCheck = checkMergeSuffix(commonSuffixRef,
+						right.suffix(),
+						normalized);
+				if (mergeCheck.isPresent()) {
+					return mergeCheck.get();
 				}
 				if ("+".equals(op)) {
 					acc = acc + right.value();
@@ -292,6 +294,21 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	// Helper to check mergeSuffix and return an Optional Result error if merge
+	// failed. Returns Optional.empty() when merge is OK, or
+	// Optional.of(Result.error(...))
+	// when conflicting suffixes are detected.
+	private java.util.Optional<Result<String, InterpreterError>> checkMergeSuffix(
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonRef, String suffix,
+			String context) {
+		java.util.Optional<String> mergeErr = mergeSuffix(commonRef, suffix);
+		if (mergeErr.isPresent()) {
+			return java.util.Optional.of(Result.error(new InterpreterError("Conflicting suffixes in expression", context,
+					java.util.List.of())));
+		}
+		return java.util.Optional.empty();
 	}
 
 	// Helper to evaluate an if-then-else where condStr, thenPart, elsePart are
