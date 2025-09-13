@@ -210,24 +210,7 @@ public class Interpreter {
 				}
 				String thenPart = normalized.substring(parenClose + 1, elseIdx).trim();
 				String elsePart = normalized.substring(elseIdx + 4).trim();
-				Result<String, InterpreterError> condRes = interpret(condStr);
-				if (condRes.isError()) {
-					return condRes;
-				}
-				String condVal = condRes.getValue().orElse("");
-				if (!"true".equals(condVal) && !"false".equals(condVal)) {
-					return Result.error(new InterpreterError("Condition did not evaluate to boolean", normalized,
-							java.util.List.of()));
-				}
-				Result<String, InterpreterError> thenRes = interpret(thenPart);
-				if (thenRes.isError()) {
-					return thenRes;
-				}
-				Result<String, InterpreterError> elseRes = interpret(elsePart);
-				if (elseRes.isError()) {
-					return elseRes;
-				}
-				return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
+				return evaluateIfBranch(condStr, thenPart, elsePart);
 			} else {
 				// No parentheses around condition (e.g. after parentheses were resolved):
 				// expect: if <cond-token> <then> else <else>
@@ -248,24 +231,7 @@ public class Interpreter {
 				}
 				String thenPart = normalized.substring(pos, elseIdx).trim();
 				String elsePart = normalized.substring(elseIdx + 4).trim();
-				Result<String, InterpreterError> condRes = interpret(condStr);
-				if (condRes.isError()) {
-					return condRes;
-				}
-				String condVal = condRes.getValue().orElse("");
-				if (!"true".equals(condVal) && !"false".equals(condVal)) {
-					return Result.error(new InterpreterError("Condition did not evaluate to boolean", normalized,
-							java.util.List.of()));
-				}
-				Result<String, InterpreterError> thenRes = interpret(thenPart);
-				if (thenRes.isError()) {
-					return thenRes;
-				}
-				Result<String, InterpreterError> elseRes = interpret(elsePart);
-				if (elseRes.isError()) {
-					return elseRes;
-				}
-				return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
+				return evaluateIfBranch(condStr, thenPart, elsePart);
 			}
 		}
 
@@ -358,6 +324,30 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	// Helper to evaluate an if-then-else where condStr, thenPart, elsePart are
+	// substrings of the original normalized input. Returns the Result for the
+	// chosen branch or an error if condition/branches are invalid.
+	private Result<String, InterpreterError> evaluateIfBranch(String condStr, String thenPart, String elsePart) {
+		Result<String, InterpreterError> condRes = interpret(condStr);
+		if (condRes.isError()) {
+			return condRes;
+		}
+		String condVal = condRes.getValue().orElse("");
+		if (!"true".equals(condVal) && !"false".equals(condVal)) {
+			return Result.error(new InterpreterError("Condition did not evaluate to boolean", condStr,
+					java.util.List.of()));
+		}
+		Result<String, InterpreterError> thenRes = interpret(thenPart);
+		if (thenRes.isError()) {
+			return thenRes;
+		}
+		Result<String, InterpreterError> elseRes = interpret(elsePart);
+		if (elseRes.isError()) {
+			return elseRes;
+		}
+		return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
 	}
 
 	private int getLeadingDigitsLength(String s) {

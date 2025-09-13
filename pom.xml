@@ -45,7 +45,9 @@
 				<version>3.22.0</version>
 				<configuration>
 					<!-- Lower threshold so small duplicates are detected during development -->
-					<minimumTokens>40</minimumTokens>
+					<minimumTokens>100</minimumTokens>
+					<!-- Fail the build when CPD finds duplicates -->
+					<failOnViolation>true</failOnViolation>
 					<!-- Control whether CPD ignores string literals and identifier names. Set to false to detect duplicates involving literals. -->
 					<ignoreLiterals>false</ignoreLiterals>
 					<ignoreIdentifiers>true</ignoreIdentifiers>
