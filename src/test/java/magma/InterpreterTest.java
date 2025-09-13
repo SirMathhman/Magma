@@ -39,6 +39,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("3 + 5"), "8");
 	}
 
+	@Test
+	public void letAssignment() {
+		// test simple let assignment and lookup
+		assertSuccess(new Interpreter().interpret("let x = 10; x"), "10");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
