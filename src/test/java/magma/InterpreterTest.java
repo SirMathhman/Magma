@@ -171,4 +171,16 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("(1 + 2) * (3 + 4)");
 		assertEquals("21", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_logicalOr_trueOrFalse_returnsTrue() {
+		Result<String, InterpreterError> result = run("true || false");
+		assertEquals("true", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
+	public void interpret_chainedLogicalOr_falseFalseTrue_returnsTrue() {
+		Result<String, InterpreterError> result = run("false || false || true");
+		assertEquals("true", result.getValue().orElse("<missing>"));
+	}
 }

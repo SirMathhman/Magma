@@ -269,6 +269,44 @@ public class Interpreter {
 			}
 		}
 
+		// Minimal logical OR support: evaluate '||' with short-circuit semantics.
+		// Only detect top-level '||' (we don't currently tokenize operators inside
+		// parentheses here).
+		int orPos = -1;
+		int depth = 0;
+		for (int p = 0; p + 1 < normalized.length(); p++) {
+			char ch = normalized.charAt(p);
+			if (ch == '(')
+				depth++;
+			else if (ch == ')')
+				depth--;
+			else if (depth == 0 && ch == '|' && normalized.charAt(p + 1) == '|') {
+				orPos = p;
+				break;
+			}
+		}
+		if (orPos != -1) {
+			String left = normalized.substring(0, orPos).trim();
+			String right = normalized.substring(orPos + 2).trim();
+			Result<String, InterpreterError> leftRes = interpret(left);
+			if (leftRes.isError())
+				return leftRes;
+			String leftVal = leftRes.getValue().orElse("");
+			if ("true".equals(leftVal)) {
+				return Result.success("true");
+			}
+			Result<String, InterpreterError> rightRes = interpret(right);
+			if (rightRes.isError())
+				return rightRes;
+			String rightVal = rightRes.getValue().orElse("");
+			if ("true".equals(rightVal))
+				return Result.success("true");
+			if ("false".equals(rightVal))
+				return Result.success("false");
+			return Result.error(new InterpreterError("Operands of || did not evaluate to boolean", normalized,
+					java.util.List.of()));
+		}
+
 		// If input starts with digits, return the leading digit sequence using
 		// simple String scanning (avoid java.util.regex per project policy)
 		int i = 0;
