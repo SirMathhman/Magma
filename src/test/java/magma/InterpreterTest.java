@@ -5,18 +5,21 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class InterpreterTest {
+	private Result<String, InterpreterError> run(String input) {
+		Interpreter interp = new Interpreter();
+		return interp.interpret(input);
+	}
+
 	@Test
 	public void interpret_emptyInput_returnsEmptyString() {
-		Interpreter interp = new Interpreter();
-		Result<String, InterpreterError> result = interp.interpret("");
+		Result<String, InterpreterError> result = run("");
 		assertEquals(true, result.isSuccess());
 		assertEquals("", result.getValue().orElse("<missing>"));
 	}
 
 	@Test
 	public void interpret_nonEmpty_returnsErrorResult() {
-		Interpreter interp = new Interpreter();
-		Result<String, InterpreterError> result = interp.interpret("hello");
+		Result<String, InterpreterError> result = run("hello");
 		assertEquals(true, result.isError());
 		// error should be present
 		assertEquals(true, result.getError().isPresent());
@@ -24,8 +27,7 @@ public class InterpreterTest {
 
 	@Test
 	public void interpret_numericInput_returnsSameString() {
-		Interpreter interp = new Interpreter();
-		Result<String, InterpreterError> result = interp.interpret("100");
+		Result<String, InterpreterError> result = run("100");
 		assertEquals(true, result.isSuccess());
 		assertEquals("100", result.getValue().orElse("<missing>"));
 	}
