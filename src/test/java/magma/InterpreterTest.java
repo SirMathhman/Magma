@@ -69,4 +69,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("1 + 2 + 3");
 		assertEquals("6", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_invalidMixedSuffixChainedAddition_returnsError() {
+		Result<String, InterpreterError> result = run("1U8 + 2 + 3I32");
+		assertEquals(true, result.getError().isPresent());
+	}
 }
