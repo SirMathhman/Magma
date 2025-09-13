@@ -16,28 +16,38 @@ public class Interpreter {
 		if ("".equals(normalized)) {
 			return Result.success("");
 		}
-		// Support a simple addition expression like "1 + 2" using simple string
-		// operations
-		int plus = normalized.indexOf('+');
-		if (plus > 0) {
-			String left = normalized.substring(0, plus).trim();
-			String right = normalized.substring(plus + 1).trim();
-			java.util.OptionalInt optA = parseLeadingInt(left);
-			java.util.OptionalInt optB = parseLeadingInt(right);
-			// If both operands had extra suffixes after their numeric prefix, treat as
-			// invalid
-			boolean leftHasSuffix = hasSuffixAfterLeadingDigits(left);
-			boolean rightHasSuffix = hasSuffixAfterLeadingDigits(right);
-			if (leftHasSuffix && rightHasSuffix) {
-				String leftSuffix = left.substring(getLeadingDigitsLength(left));
-				String rightSuffix = right.substring(getLeadingDigitsLength(right));
-				if (!leftSuffix.equals(rightSuffix)) {
-					return Result.error(new InterpreterError("Invalid operands with conflicting suffixes"));
+		// Support chained addition expressions like "1 + 2 + 3" (arbitrary length)
+		if (normalized.contains("+")) {
+			String[] parts = normalized.split("\\+");
+			int sum = 0;
+			java.util.Optional<String> commonSuffix = java.util.Optional.empty();
+			for (String part : parts) {
+				String operand = part.trim();
+				java.util.OptionalInt opt = parseLeadingInt(operand);
+				if (!opt.isPresent()) {
+					// if any operand doesn't have a leading int, fail the addition parsing
+					sum = Integer.MIN_VALUE;
+					break;
 				}
-				// suffixes match — allow addition and ignore suffixes for numeric computation
+				sum += opt.getAsInt();
+				String suffix = operand.substring(getLeadingDigitsLength(operand));
+				if (!suffix.isEmpty()) {
+					if (!commonSuffix.isPresent()) {
+						commonSuffix = java.util.Optional.of(suffix);
+					} else if (!commonSuffix.get().equals(suffix)) {
+						// conflicting suffixes -> invalid
+						sum = Integer.MIN_VALUE;
+						break;
+					}
+				}
 			}
-			if (optA.isPresent() && optB.isPresent()) {
-				return Result.success(Integer.toString(optA.getAsInt() + optB.getAsInt()));
+			if (sum != Integer.MIN_VALUE) {
+				return Result.success(Integer.toString(sum));
+			} else {
+				// Addition parsing failed (conflicting suffixes or non-numeric operand).
+				// Do not fall back to the leading-digit rule for the whole expression;
+				// return an explicit interpreter error instead.
+				return Result.error(new InterpreterError("Invalid addition expression", normalized, java.util.List.of()));
 			}
 		}
 
