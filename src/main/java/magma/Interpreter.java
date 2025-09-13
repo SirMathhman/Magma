@@ -16,7 +16,11 @@ public class Interpreter {
 		if (src.isEmpty()) {
 			return Result.success("");
 		}
-		// For now, any non-empty input is not implemented; return a generic error
+		// If the input is a simple integer literal, return it as the result
+		if (src.matches("^[0-9]+$")) {
+			return Result.success(src);
+		}
+		// For other non-empty inputs, return a generic not-implemented error
 		return Result.error(new InterpreterError("not implemented", src, java.util.List.of()));
 	}
 }
