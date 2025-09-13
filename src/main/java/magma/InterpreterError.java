@@ -1,18 +1,16 @@
 package magma;
 
 /**
- * Custom runtime exception used by the Interpreter stub.
+ * InterpreterError is a simple data holder representing interpreter failures.
  */
-public class InterpreterError extends RuntimeException {
-	public InterpreterError() {
-		super();
-	}
+public final class InterpreterError {
+	private final String message;
 
 	public InterpreterError(String message) {
-		super(message);
+		this.message = message;
 	}
 
-	public InterpreterError(String message, Throwable cause) {
-		super(message, cause);
+	public String getMessage() {
+		return message;
 	}
 }
