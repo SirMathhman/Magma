@@ -41,4 +41,10 @@ class InterpreterTest {
 		// Expect Err with the original source as message
 		assertEquals(new Err<String, InterpreterError>(new InterpreterError("Invalid input", "1U8 + 2U16")), r);
 	}
+
+	@Test
+	void sumThreeOperands() {
+		Result<String, InterpreterError> r = Interpreter.interpret("1 + 2 + 3");
+		assertEquals(new Ok<String, InterpreterError>("6"), r);
+	}
 }
