@@ -16,4 +16,12 @@
 		<property name="severity" value="error" />
 		<property name="fileExtensions" value="java" />
 	</module>
+    
+	<!-- Disallow imports from java.util.regex package -->
+	<module name="TreeWalker">
+		<module name="IllegalImport">
+			<property name="illegalPkgs" value="java.util.regex"/>
+			<property name="severity" value="error"/>
+		</module>
+	</module>
 </module>
