@@ -93,4 +93,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("2 * 3");
 		assertEquals("6", result.getValue().orElse("<missing>"));
 	}
+	
+	@Test
+	public void interpret_precedence_multiplicationBeforeAddition_returnsSeven() {
+		Result<String, InterpreterError> result = run("1 + 2 * 3");
+		assertEquals("7", result.getValue().orElse("<missing>"));
+	}
 }

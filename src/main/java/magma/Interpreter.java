@@ -17,8 +17,7 @@ public class Interpreter {
 			return Result.success("");
 		}
 		// Support expressions containing +, - and * . We tokenise into operands and
-		// operators and evaluate left-to-right. This preserves existing suffix
-		// conflict behaviour by merging suffixes as we consume operands.
+		// operators and evaluate with multiplication having higher precedence.
 		if (normalized.contains("+") || normalized.contains("-") || normalized.contains("*")) {
 			// Tokenize: split on operator characters to be permissive with spacing.
 			java.util.List<String> tokens = new java.util.ArrayList<>();
@@ -39,23 +38,19 @@ public class Interpreter {
 				tokens.add(normalized.substring(start, idx).trim());
 			}
 
-			// Expect tokens like [operand, op, operand, op, operand...]
 			if (tokens.isEmpty()) {
 				return Result.error(new InterpreterError("Invalid expression", normalized, java.util.List.of()));
 			}
-			// First token must be an operand
-			java.util.Optional<Operand> firstOp = parseOperand(tokens.get(0));
-			if (firstOp.isEmpty()) {
+
+			// Build operands and operators lists
+			java.util.List<Operand> operands = new java.util.ArrayList<>();
+			java.util.List<String> operators = new java.util.ArrayList<>();
+
+			java.util.Optional<Operand> firstOpOpt = parseOperand(tokens.get(0));
+			if (firstOpOpt.isEmpty()) {
 				return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
 			}
-			int acc = firstOp.get().value();
-			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
-					java.util.Optional.empty());
-			if (!firstOp.get().suffix().isEmpty()) {
-				commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
-			}
-
-			// Process remaining tokens in pairs (operator, operand)
+			operands.add(firstOpOpt.get());
 			for (int t = 1; t < tokens.size(); t += 2) {
 				String opTok = tokens.get(t);
 				if (!("+".equals(opTok) || "-".equals(opTok) || "*".equals(opTok))) {
@@ -66,23 +61,62 @@ public class Interpreter {
 					return Result
 							.error(new InterpreterError("Trailing operator without operand", normalized, java.util.List.of()));
 				}
+				operators.add(opTok);
 				java.util.Optional<Operand> nextOp = parseOperand(tokens.get(t + 1));
 				if (nextOp.isEmpty()) {
 					return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
 				}
-				Operand operand = nextOp.get();
-				if ("+".equals(opTok)) {
-					acc = acc + operand.value();
-				} else if ("-".equals(opTok)) {
-					acc = acc - operand.value();
+				operands.add(nextOp.get());
+			}
+
+			// Common suffix reference (preserve previous behaviour: prefer first operand's
+			// suffix)
+			java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
+					java.util.Optional.empty());
+			if (!operands.get(0).suffix().isEmpty()) {
+				commonSuffixRef.set(java.util.Optional.of(operands.get(0).suffix()));
+			}
+
+			// First pass: collapse multiplications
+			for (int j = 0; j < operators.size();) {
+				String op = operators.get(j);
+				if ("*".equals(op)) {
+					Operand a = operands.get(j);
+					Operand b = operands.get(j + 1);
+					java.util.Optional<String> mergeErr = mergeSuffix(commonSuffixRef, b.suffix());
+					if (mergeErr.isPresent()) {
+						return Result
+								.error(new InterpreterError("Conflicting suffixes in expression", normalized, java.util.List.of()));
+					}
+					int newVal = a.value() * b.value();
+					String newSfx = commonSuffixRef.get().orElse("");
+					Operand merged = new Operand(newVal, newSfx);
+					operands.set(j, merged);
+					operands.remove(j + 1);
+					operators.remove(j);
+					// don't increment j; check again at same position
 				} else {
-					// multiplication
-					acc = acc * operand.value();
+					j++;
 				}
-				java.util.Optional<String> mergeErrMsg = mergeSuffix(commonSuffixRef, operand.suffix());
-				if (mergeErrMsg.isPresent()) {
-					String msg = "Conflicting suffixes in expression";
-					return Result.error(new InterpreterError(msg, normalized, java.util.List.of()));
+			}
+
+			// Second pass: evaluate + and - left-to-right
+			int acc = operands.get(0).value();
+			for (int k = 0; k < operators.size(); k++) {
+				String op = operators.get(k);
+				Operand right = operands.get(k + 1);
+				java.util.Optional<String> mergeErr = mergeSuffix(commonSuffixRef, right.suffix());
+				if (mergeErr.isPresent()) {
+					return Result
+							.error(new InterpreterError("Conflicting suffixes in expression", normalized, java.util.List.of()));
+				}
+				if ("+".equals(op)) {
+					acc = acc + right.value();
+				} else if ("-".equals(op)) {
+					acc = acc - right.value();
+				} else {
+					return Result.error(new InterpreterError("Unsupported operator after precedence pass: " + op, normalized,
+							java.util.List.of()));
 				}
 			}
 
@@ -99,47 +133,6 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
-	}
-
-	/**
-	 * Evaluate an array of operand strings using the provided binary operator.
-	 * If isSubtraction is true, the operator is treated as left-associative
-	 * subtraction
-	 * (first - second - third ...). For addition isSubtraction should be false.
-	 */
-	private Result<String, InterpreterError> evaluateOperands(String[] parts, String normalized, boolean isSubtraction) {
-		if (parts.length == 0) {
-			return Result.error(new InterpreterError("Invalid expression", normalized, java.util.List.of()));
-		}
-		java.util.Optional<Operand> firstOp = parseOperand(parts[0].trim());
-		if (firstOp.isEmpty()) {
-			return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
-		}
-		int acc = firstOp.get().value();
-		java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonSuffixRef = new java.util.concurrent.atomic.AtomicReference<>(
-				java.util.Optional.empty());
-		if (!firstOp.get().suffix().isEmpty()) {
-			commonSuffixRef.set(java.util.Optional.of(firstOp.get().suffix()));
-		}
-		for (int k = 1; k < parts.length; k++) {
-			java.util.Optional<Operand> op = parseOperand(parts[k].trim());
-			if (op.isEmpty()) {
-				return Result.error(new InterpreterError("Invalid operand", normalized, java.util.List.of()));
-			}
-			Operand operand = op.get();
-			// Apply operator: addition or left-associative subtraction
-			if (isSubtraction) {
-				acc = acc - operand.value();
-			} else {
-				acc = acc + operand.value();
-			}
-			java.util.Optional<String> mergeErrMsg = mergeSuffix(commonSuffixRef, operand.suffix());
-			if (mergeErrMsg.isPresent()) {
-				String msg = isSubtraction ? "Conflicting suffixes in subtraction" : "Conflicting suffixes in addition";
-				return Result.error(new InterpreterError(msg, normalized, java.util.List.of()));
-			}
-		}
-		return Result.success(Integer.toString(acc));
 	}
 
 	private int getLeadingDigitsLength(String s) {
