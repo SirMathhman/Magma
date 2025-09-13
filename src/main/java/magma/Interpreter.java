@@ -54,6 +54,29 @@ public class Interpreter {
 			}
 
 			// assignment: <ident> = <expr>
+			// compound assignment: += (e.g., x += 10)
+			int plusEq = stmt.indexOf("+=");
+			if (plusEq > 0 && !stmt.startsWith("let ")) {
+				String lhs = stmt.substring(0, plusEq).trim();
+				String rhs = stmt.substring(plusEq + 2).trim();
+				if (lhs.isEmpty() || rhs.isEmpty()) {
+					return new Result.Err<>(new InterpreterError("invalid assignment", stmt, java.util.List.of()));
+				}
+				if (!mutable.getOrDefault(lhs, false)) {
+					return new Result.Err<>(new InterpreterError("assignment to immutable variable", lhs, java.util.List.of()));
+				}
+				java.util.Optional<Integer> rOpt = evalExpr(rhs, env);
+				if (rOpt.isEmpty())
+					return new Result.Err<>(new InterpreterError("invalid expression in assignment", rhs, java.util.List.of()));
+				Integer add = rOpt.get();
+				Integer base = env.getOrDefault(lhs, 0);
+				Integer nv = base + add;
+				env.put(lhs, nv);
+				lastValue = java.util.Optional.of(nv);
+				continue;
+			}
+
+			// assignment: <ident> = <expr>
 			int assignIdx = stmt.indexOf('=');
 			if (assignIdx > 0 && !stmt.startsWith("let ")) {
 				java.util.Optional<java.util.Map.Entry<String, Integer>> entryOpt = parseAndEval(stmt, env);
