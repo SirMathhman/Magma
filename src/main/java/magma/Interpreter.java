@@ -90,6 +90,46 @@ public class Interpreter {
 		if (expr.isEmpty())
 			return java.util.Optional.empty();
 
+		// if-expression: if (<cond>) <then> else <else>
+		if (expr.startsWith("if ")) {
+			String rest = expr.substring(3).trim();
+			// expect parentheses around condition or a bare condition
+			String cond;
+			if (rest.startsWith("(")) {
+				int close = rest.indexOf(')');
+				if (close < 0)
+					return java.util.Optional.empty();
+				cond = rest.substring(1, close).trim();
+				rest = rest.substring(close + 1).trim();
+			} else {
+				int sp = rest.indexOf(' ');
+				if (sp < 0)
+					return java.util.Optional.empty();
+				cond = rest.substring(0, sp).trim();
+				rest = rest.substring(sp + 1).trim();
+			}
+			// find 'else' separator
+			int elseIdx = rest.indexOf(" else ");
+			if (elseIdx < 0)
+				return java.util.Optional.empty();
+			String thenPart = rest.substring(0, elseIdx).trim();
+			String elsePart = rest.substring(elseIdx + 6).trim();
+			// evaluate condition: true/false or integer non-zero
+			boolean condTrue = false;
+			if (cond.equals("true"))
+				condTrue = true;
+			else if (cond.equals("false"))
+				condTrue = false;
+			else {
+				java.util.Optional<Integer> cval = evalExpr(cond, env);
+				if (cval.isEmpty())
+					return java.util.Optional.empty();
+				condTrue = cval.get() != 0;
+			}
+			String chosen = condTrue ? thenPart : elsePart;
+			return evalExpr(chosen, env);
+		}
+
 		// variable lookup
 		if (env.containsKey(expr))
 			return java.util.Optional.of(env.get(expr));

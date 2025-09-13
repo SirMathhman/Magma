@@ -56,6 +56,11 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("true"), "true");
 	}
 
+	@Test
+	public void ifExpression() {
+		assertSuccess(new Interpreter().interpret("if (true) 3 else 5"), "3");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
