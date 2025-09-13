@@ -255,23 +255,7 @@ public class Interpreter {
 		if (andPos != -1) {
 			String left = normalized.substring(0, andPos).trim();
 			String right = normalized.substring(andPos + 2).trim();
-			Result<String, InterpreterError> leftRes = interpret(left);
-			if (leftRes.isError())
-				return leftRes;
-			String leftVal = leftRes.getValue().orElse("");
-			if ("false".equals(leftVal)) {
-				return Result.success("false");
-			}
-			Result<String, InterpreterError> rightRes = interpret(right);
-			if (rightRes.isError())
-				return rightRes;
-			String rightVal = rightRes.getValue().orElse("");
-			if ("true".equals(rightVal))
-				return Result.success("true");
-			if ("false".equals(rightVal))
-				return Result.success("false");
-			return Result.error(new InterpreterError("Operands of && did not evaluate to boolean", normalized,
-					java.util.List.of()));
+			return evaluateBooleanBinary(left, right, "&&");
 		}
 
 		// Minimal logical OR support: evaluate '||' with short-circuit semantics.
@@ -295,23 +279,7 @@ public class Interpreter {
 		if (orPos != -1) {
 			String left = normalized.substring(0, orPos).trim();
 			String right = normalized.substring(orPos + 2).trim();
-			Result<String, InterpreterError> leftRes = interpret(left);
-			if (leftRes.isError())
-				return leftRes;
-			String leftVal = leftRes.getValue().orElse("");
-			if ("true".equals(leftVal)) {
-				return Result.success("true");
-			}
-			Result<String, InterpreterError> rightRes = interpret(right);
-			if (rightRes.isError())
-				return rightRes;
-			String rightVal = rightRes.getValue().orElse("");
-			if ("true".equals(rightVal))
-				return Result.success("true");
-			if ("false".equals(rightVal))
-				return Result.success("false");
-			return Result.error(new InterpreterError("Operands of || did not evaluate to boolean", normalized,
-					java.util.List.of()));
+			return evaluateBooleanBinary(left, right, "||");
 		}
 
 		// If input starts with digits, return the leading digit sequence using
@@ -348,6 +316,36 @@ public class Interpreter {
 			return elseRes;
 		}
 		return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
+	}
+
+	// Helper to evaluate boolean binary operators '&&' and '||' with
+	// short-circuiting.
+	// Expects left/right to be subexpressions to be evaluated via interpret().
+	private Result<String, InterpreterError> evaluateBooleanBinary(String left, String right, String op) {
+		Result<String, InterpreterError> leftRes = interpret(left);
+		if (leftRes.isError())
+			return leftRes;
+		String leftVal = leftRes.getValue().orElse("");
+		// AND short-circuit: false -> false
+		if ("&&".equals(op) && "false".equals(leftVal)) {
+			return Result.success("false");
+		}
+		// OR short-circuit: true -> true
+		if ("||".equals(op) && "true".equals(leftVal)) {
+			return Result.success("true");
+		}
+		Result<String, InterpreterError> rightRes = interpret(right);
+		if (rightRes.isError())
+			return rightRes;
+		String rightVal = rightRes.getValue().orElse("");
+		if ("true".equals(rightVal) || "false".equals(rightVal)) {
+			if ("&&".equals(op))
+				return Result.success(("true".equals(leftVal) && "true".equals(rightVal)) ? "true" : "false");
+			return Result.success(("true".equals(leftVal) || "true".equals(rightVal)) ? "true" : "false");
+		}
+		return Result
+				.error(new InterpreterError("Operands of " + op + " did not evaluate to boolean", left + " " + op + " " + right,
+						java.util.List.of()));
 	}
 
 	private int getLeadingDigitsLength(String s) {
