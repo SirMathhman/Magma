@@ -72,6 +72,14 @@ public class Interpreter {
 		}
 
 		// Boolean literals
+		// Handle boolean operators (&&, ||) at top level with short-circuiting
+		if (hasTopLevelBoolOp(src)) {
+			Result<String, InterpreterError> rr = evalBooleanSplit(src, new String[] { "&&", "||" });
+			if (rr instanceof Err<String, InterpreterError> e)
+				return e;
+			return rr;
+		}
+
 		if (src.equals("true") || src.equals("false")) {
 			return new Ok<>(src);
 		}
@@ -150,6 +158,8 @@ public class Interpreter {
 				java.util.Optional<String> commonSuffix = java.util.Optional.empty();
 				for (String t : terms) {
 					java.util.Optional<TermVal> tvOpt = parseTerm(t);
+
+					// ...existing code continues
 					if (tvOpt.isEmpty())
 						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
 					TermVal tv = tvOpt.get();
@@ -219,17 +229,87 @@ public class Interpreter {
 		return new Err<>(new InterpreterError("not implemented", src, List.of()));
 	}
 
+	private boolean hasTopLevelBoolOp(String s) {
+		int depth = 0;
+		for (int i = 0; i + 1 < s.length(); i++) {
+			char c = s.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')')
+				depth--;
+			if (depth == 0) {
+				if (c == '&' && s.charAt(i + 1) == '&')
+					return true;
+				if (c == '|' && s.charAt(i + 1) == '|')
+					return true;
+			}
+		}
+		return false;
+	}
+
+	private Result<String, InterpreterError> evalBooleanSplit(String src, String[] ops) {
+		java.util.List<String> operands = new java.util.ArrayList<>();
+		java.util.List<String> boolOps = new java.util.ArrayList<>();
+		int depth = 0;
+		int pos = 0;
+		for (int i = 0; i < src.length(); i++) {
+			char c = src.charAt(i);
+			if (c == '(') {
+				depth++;
+				continue;
+			}
+			if (c == ')') {
+				depth--;
+				continue;
+			}
+			if (depth != 0)
+				continue;
+			// try match any operator (prefer longer)
+			for (String op : ops) {
+				int len = op.length();
+				if (i + len <= src.length() && src.startsWith(op, i)) {
+					operands.add(src.substring(pos, i).trim());
+					boolOps.add(op);
+					pos = i + len;
+					i = pos - 1;
+					break;
+				}
+			}
+		}
+		operands.add(src.substring(pos).trim());
+
+		java.util.Optional<String> cur = java.util.Optional.empty();
+		for (int k = 0; k < operands.size(); k++) {
+			String opnd = operands.get(k);
+			Result<String, InterpreterError> rr = interpret(opnd);
+			if (rr instanceof Err<String, InterpreterError> e)
+				return e;
+			String val = ((Ok<String, InterpreterError>) rr).value();
+			if (!val.equals("true") && !val.equals("false"))
+				return new Err<>(new InterpreterError("invalid boolean operand", src, List.of()));
+			if (k == 0) {
+				cur = java.util.Optional.of(val);
+			} else {
+				String bop = boolOps.get(k - 1);
+				if (bop.equals("&&")) {
+					if (cur.get().equals("false"))
+						return new Ok<>("false");
+					if (val.equals("false"))
+						return new Ok<>("false");
+					cur = java.util.Optional.of("true");
+				} else {
+					if (cur.get().equals("true"))
+						return new Ok<>("true");
+					if (val.equals("true"))
+						return new Ok<>("true");
+					cur = java.util.Optional.of("false");
+				}
+			}
+		}
+		return new Ok<>(cur.orElse("false"));
+	}
+
 	private static record TermVal(int value, String suffix) {
-	}
-
-	private static record TermResult(int value, java.util.Optional<String> updatedCommon) {
-	}
-
-	private java.util.Optional<TermResult> processTerm(String term, java.util.Optional<String> commonSuffix) {
-		return parseTerm(term).flatMap(tv -> {
-			java.util.Optional<java.util.Optional<String>> updatedOuter = updateCommonSuffix(commonSuffix, tv.suffix());
-			return updatedOuter.map(u -> new TermResult(tv.value(), u));
-		});
 	}
 
 	/**
@@ -246,23 +326,6 @@ public class Interpreter {
 		if (d.isPresent())
 			suffix = term.substring(d.get().length());
 		return java.util.Optional.of(new TermVal(v.get(), suffix));
-	}
-
-	/**
-	 * Given the current commonSuffix (may be empty) and a new term suffix,
-	 * return the updated commonSuffix (wrapped in Optional) or Optional.empty()
-	 * if the suffixes conflict (invalid).
-	 */
-	private java.util.Optional<java.util.Optional<String>> updateCommonSuffix(java.util.Optional<String> common,
-			String suffix) {
-		suffix = java.util.Optional.ofNullable(suffix).orElse("");
-		if (suffix.isEmpty())
-			return java.util.Optional.of(common);
-		if (common.isEmpty())
-			return java.util.Optional.of(java.util.Optional.of(suffix));
-		if (common.get().equals(suffix))
-			return java.util.Optional.of(common);
-		return java.util.Optional.empty();
 	}
 
 	/**

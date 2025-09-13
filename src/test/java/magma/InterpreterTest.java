@@ -113,6 +113,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("true"), "true");
 	}
 
+	@Test
+	public void booleanAndReturns() {
+		// Logical AND should short-circuit and evaluate to false for true && false
+		assertSuccess(new Interpreter().interpret("true && false"), "false");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
