@@ -32,8 +32,9 @@ public class Interpreter {
 		// 2"
 		// Accept forms with spaces around '+'; do not use regex to comply with
 		// Checkstyle.
-		// Support '+' and '-' operators with equal precedence, evaluated left-to-right.
-		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0) {
+		// Support '+', '-', and '*' operators with equal precedence, evaluated
+		// left-to-right.
+		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0 || src.indexOf('*') >= 0) {
 			java.util.List<String> terms = new java.util.ArrayList<>();
 			java.util.List<Character> ops = new java.util.ArrayList<>();
 			// use indexOf-based splitting to avoid duplicating character-iteration loops
@@ -41,24 +42,24 @@ public class Interpreter {
 			while (pos < src.length()) {
 				int nextPlus = src.indexOf('+', pos);
 				int nextMinus = src.indexOf('-', pos);
-				if (nextPlus == -1 && nextMinus == -1) {
+				int nextMul = src.indexOf('*', pos);
+				if (nextPlus == -1 && nextMinus == -1 && nextMul == -1) {
 					terms.add(src.substring(pos).trim());
 					break;
 				}
-				int nextOp;
-				char opChar;
-				if (nextPlus == -1) {
-					nextOp = nextMinus;
-					opChar = '-';
-				} else if (nextMinus == -1) {
+				int nextOp = Integer.MAX_VALUE;
+				char opChar = '?';
+				if (nextPlus != -1 && nextPlus < nextOp) {
 					nextOp = nextPlus;
 					opChar = '+';
-				} else if (nextPlus < nextMinus) {
-					nextOp = nextPlus;
-					opChar = '+';
-				} else {
+				}
+				if (nextMinus != -1 && nextMinus < nextOp) {
 					nextOp = nextMinus;
 					opChar = '-';
+				}
+				if (nextMul != -1 && nextMul < nextOp) {
+					nextOp = nextMul;
+					opChar = '*';
 				}
 				terms.add(src.substring(pos, nextOp).trim());
 				ops.add(opChar);
@@ -81,8 +82,10 @@ public class Interpreter {
 					commonSuffix = tr.get().updatedCommon();
 					if (op == '+')
 						acc = acc + tr.get().value();
-					else
+					else if (op == '-')
 						acc = acc - tr.get().value();
+					else if (op == '*')
+						acc = acc * tr.get().value();
 				}
 				return new Ok<>(Integer.toString(acc));
 			}

@@ -83,6 +83,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("4 - 2 + 1"), "3");
 	}
 
+	@Test
+	public void mulTwoReturns() {
+		// Simple multiplication should compute the product
+		assertSuccess(new Interpreter().interpret("3 * 5"), "15");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
