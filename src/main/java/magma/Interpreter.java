@@ -24,6 +24,13 @@ public class Interpreter {
 			String right = normalized.substring(plus + 1).trim();
 			java.util.OptionalInt optA = parseLeadingInt(left);
 			java.util.OptionalInt optB = parseLeadingInt(right);
+			// If both operands had extra suffixes after their numeric prefix, treat as
+			// invalid
+			boolean leftHasSuffix = hasSuffixAfterLeadingDigits(left);
+			boolean rightHasSuffix = hasSuffixAfterLeadingDigits(right);
+			if (leftHasSuffix && rightHasSuffix) {
+				return Result.error(new InterpreterError("Invalid operands with conflicting suffixes"));
+			}
 			if (optA.isPresent() && optB.isPresent()) {
 				return Result.success(Integer.toString(optA.getAsInt() + optB.getAsInt()));
 			}
@@ -57,5 +64,13 @@ public class Interpreter {
 		} catch (NumberFormatException ex) {
 			return java.util.OptionalInt.empty();
 		}
+	}
+
+	private boolean hasSuffixAfterLeadingDigits(String s) {
+		int idx = 0;
+		while (idx < s.length() && Character.isDigit(s.charAt(idx))) {
+			idx++;
+		}
+		return idx < s.length();
 	}
 }

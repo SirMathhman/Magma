@@ -45,4 +45,11 @@ public class InterpreterTest {
 		assertEquals(true, result.isSuccess());
 		assertEquals("3", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_invalidAddition_withSuffixes_returnsError() {
+		Result<String, InterpreterError> result = run("1U8 + 2I32");
+		assertEquals(true, result.isError());
+		assertEquals(true, result.getError().isPresent());
+	}
 }
