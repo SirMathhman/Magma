@@ -28,4 +28,10 @@ class InterpreterTest {
 		Result<String, InterpreterError> r = Interpreter.interpret("1 + 2");
 		assertEquals(new Ok<String, InterpreterError>("3"), r);
 	}
+
+	@Test
+	void mixedAdditionOperands() {
+		Result<String, InterpreterError> r = Interpreter.interpret("1U8 + 2U8");
+		assertEquals(new Ok<String, InterpreterError>("3"), r);
+	}
 }

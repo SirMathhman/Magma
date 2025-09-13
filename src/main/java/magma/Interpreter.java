@@ -14,7 +14,30 @@ public class Interpreter {
 					int b = Integer.parseInt(parts[1].trim());
 					return new Ok<>(String.valueOf(a + b));
 				} catch (NumberFormatException ignored) {
-					// fall through to other handling
+					// Try extracting leading digits from each operand (e.g. "1U8")
+					String left = parts[0].trim();
+					String right = parts[1].trim();
+					StringBuilder la = new StringBuilder();
+					for (int i = 0; i < left.length(); i++) {
+						char c = left.charAt(i);
+						if (Character.isDigit(c))
+							la.append(c);
+						else
+							break;
+					}
+					StringBuilder ra = new StringBuilder();
+					for (int i = 0; i < right.length(); i++) {
+						char c = right.charAt(i);
+						if (Character.isDigit(c))
+							ra.append(c);
+						else
+							break;
+					}
+					if (la.length() > 0 && ra.length() > 0) {
+						int a2 = Integer.parseInt(la.toString());
+						int b2 = Integer.parseInt(ra.toString());
+						return new Ok<>(String.valueOf(a2 + b2));
+					}
 				}
 			}
 		}

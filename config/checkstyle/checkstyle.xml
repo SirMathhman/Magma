@@ -34,8 +34,8 @@
 
 		<!-- Enforce cyclomatic complexity <= 15 for methods -->
 		<module name="CyclomaticComplexity">
-			<property name="max" value="15" />
-			<property name="severity" value="error" />
+			<property name="max" value="15"/>
+			<property name="severity" value="error"/>
 		</module>
 	</module>
 </module>
