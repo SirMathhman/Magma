@@ -18,13 +18,13 @@ public class Interpreter {
 		}
 		// Support expressions containing +, - and * . We tokenise into operands and
 		// operators and evaluate with multiplication having higher precedence.
-		if (normalized.contains("+") || normalized.contains("-") || normalized.contains("*")) {
+		if (normalized.contains("+") || normalized.contains("-") || normalized.contains("*") || normalized.contains("/")) {
 			// Tokenize: split on operator characters to be permissive with spacing.
 			java.util.List<String> tokens = new java.util.ArrayList<>();
 			int idx = 0;
 			while (idx < normalized.length()) {
 				char c = normalized.charAt(idx);
-				if (c == '+' || c == '-' || c == '*') {
+				if (c == '+' || c == '-' || c == '*' || c == '/') {
 					tokens.add(Character.toString(c));
 					idx++;
 					continue;
@@ -32,7 +32,7 @@ public class Interpreter {
 				// collect until next operator
 				int start = idx;
 				while (idx < normalized.length() && normalized.charAt(idx) != '+' && normalized.charAt(idx) != '-'
-						&& normalized.charAt(idx) != '*') {
+						&& normalized.charAt(idx) != '*' && normalized.charAt(idx) != '/') {
 					idx++;
 				}
 				tokens.add(normalized.substring(start, idx).trim());
@@ -53,7 +53,7 @@ public class Interpreter {
 			operands.add(firstOpOpt.get());
 			for (int t = 1; t < tokens.size(); t += 2) {
 				String opTok = tokens.get(t);
-				if (!("+".equals(opTok) || "-".equals(opTok) || "*".equals(opTok))) {
+				if (!("+".equals(opTok) || "-".equals(opTok) || "*".equals(opTok) || "/".equals(opTok))) {
 					return Result
 							.error(new InterpreterError("Expected operator but found: " + opTok, normalized, java.util.List.of()));
 				}
@@ -80,7 +80,7 @@ public class Interpreter {
 			// First pass: collapse multiplications
 			for (int j = 0; j < operators.size();) {
 				String op = operators.get(j);
-				if ("*".equals(op)) {
+				if ("*".equals(op) || "/".equals(op)) {
 					Operand a = operands.get(j);
 					Operand b = operands.get(j + 1);
 					java.util.Optional<String> mergeErr = mergeSuffix(commonSuffixRef, b.suffix());
@@ -88,7 +88,15 @@ public class Interpreter {
 						return Result
 								.error(new InterpreterError("Conflicting suffixes in expression", normalized, java.util.List.of()));
 					}
-					int newVal = a.value() * b.value();
+					int newVal;
+					if ("*".equals(op)) {
+						newVal = a.value() * b.value();
+					} else {
+						if (b.value() == 0) {
+							return Result.error(new InterpreterError("Division by zero", normalized, java.util.List.of()));
+						}
+						newVal = a.value() / b.value();
+					}
 					String newSfx = commonSuffixRef.get().orElse("");
 					Operand merged = new Operand(newVal, newSfx);
 					operands.set(j, merged);
