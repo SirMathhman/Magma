@@ -1,10 +1,13 @@
 package magma;
 
-import magma.Result.Err;
-import magma.Result.Ok;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
+
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import magma.Result.Err;
+import magma.Result.Ok;
 
 public class InterpreterTest {
 	@Test
@@ -68,10 +71,16 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("3 - 2"), "1");
 	}
 
+	@Test
+	public void subThreeReturns() {
+		// Left-associative subtraction: (4 - 2) - 1 == 1
+		assertSuccess(new Interpreter().interpret("4 - 2 - 1"), "1");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {
-			case Err<String, InterpreterError>(InterpreterError error) -> fail("expected success but got error: " + error);
+			case Err<String, InterpreterError>(InterpreterError error) -> fail(error.display());
 			case Ok<String, InterpreterError>(String value) -> assertEquals(expected, value);
 		}
 	}

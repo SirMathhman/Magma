@@ -22,4 +22,8 @@ public final class InterpreterError {
 	public String getSourceCode() {
 		return sourceCode;
 	}
+
+	public String display() {
+		return message + ": " + sourceCode;
+	}
 }
