@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE module PUBLIC "-//Puppy Crawl//DTD Check Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
 <module name="Checker">
-	<!-- No rule modules defined: acts as 'no rules' configuration -->
+	<!-- Forbid use of the 'throw' keyword -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\bthrow\b" />
+		<property name="message" value="Using 'throw' is disallowed; use Result&lt;T,E&gt; instead." />
+		<property name="severity" value="error" />
+		<property name="fileExtensions" value="java" />
+	</module>
+
+	<!-- Forbid use of the 'throws' keyword in method signatures -->
+	<module name="RegexpSingleline">
+		<property name="format" value="\bthrows\b" />
+		<property name="message" value="Using 'throws' is disallowed; return Result&lt;T,E&gt; instead." />
+		<property name="severity" value="error" />
+		<property name="fileExtensions" value="java" />
+	</module>
 </module>

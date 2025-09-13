@@ -1,8 +1,3 @@
-package magma;
+// This file was intentionally left blank to avoid duplicate type definitions.
+// InterpreterError is defined in InterpreterError.java
 
-public record InterpreterError(String reason, String sourceCode) {
-	@Override
-	public String toString() {
-		return reason + ": " + sourceCode;
-	}
-}
