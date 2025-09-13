@@ -95,6 +95,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("10 / 2"), "5");
 	}
 
+	@Test
+	public void parenSingleReturns() {
+		// Parentheses around a single literal should evaluate to the inner value
+		assertSuccess(new Interpreter().interpret("(1)"), "1");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

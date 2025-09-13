@@ -22,6 +22,28 @@ public class Interpreter {
 		if (src.isEmpty()) {
 			return new Ok<>("");
 		}
+		// Unwrap surrounding parentheses if they enclose the whole expression
+		while (src.startsWith("(") && src.endsWith(")")) {
+			// check balanced parentheses
+			int depth = 0;
+			boolean balanced = true;
+			for (int i = 0; i < src.length(); i++) {
+				char c = src.charAt(i);
+				if (c == '(') depth++;
+				else if (c == ')') depth--;
+				if (depth == 0 && i < src.length() - 1) { // closing before end
+					balanced = false;
+					break;
+				}
+				if (depth < 0) {
+					balanced = false;
+					break;
+				}
+			}
+			if (!balanced) break;
+			src = src.substring(1, src.length() - 1).trim();
+		}
+
 		// If the input is a simple integer literal, return it as the result
 		if (src.matches("^[0-9]+$")) {
 			return new Ok<>(src);
@@ -113,9 +135,7 @@ public class Interpreter {
 					}
 				}
 
-				// DEBUG: dump parsed terms and operators
-				System.err.println("DBG parsed terms=" + terms + " ops=" + ops);
-				System.err.println("DBG tvals=" + tvals);
+				// parsed terms and values available in tvals
 
 				// Convert to mutable lists of integer values and operators, then apply
 				// precedence
