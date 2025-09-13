@@ -107,6 +107,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("(1 + 2) * 3"), "9");
 	}
 
+	@Test
+	public void booleanTrueReturns() {
+		// Boolean literal true should be returned as-is
+		assertSuccess(new Interpreter().interpret("true"), "true");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

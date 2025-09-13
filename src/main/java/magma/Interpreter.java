@@ -71,6 +71,11 @@ public class Interpreter {
 			return new Ok<>(src);
 		}
 
+		// Boolean literals
+		if (src.equals("true") || src.equals("false")) {
+			return new Ok<>(src);
+		}
+
 		// If input starts with a numeric prefix, return that prefix (e.g. "5U8" -> "5")
 		// Very small interpreter feature: handle simple addition expressions like "1 +
 		// 2"
