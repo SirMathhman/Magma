@@ -123,4 +123,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("(1)");
 		assertEquals("1", result.getValue().orElse("<missing>"));
 	}
+    
+	@Test
+	public void interpret_triplyNestedParentheses_returnsNumber() {
+		Result<String, InterpreterError> result = run("(((1)))");
+		assertEquals("1", result.getValue().orElse("<missing>"));
+	}
 }
