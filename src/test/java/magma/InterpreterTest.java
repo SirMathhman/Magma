@@ -59,4 +59,18 @@ public class InterpreterTest {
 		assertEquals(true, result.isSuccess());
 		assertEquals("3", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_invalidAddition_differentIntegerSizes_returnsError() {
+		Result<String, InterpreterError> result = run("1I16 + 2I32");
+		assertEquals(true, result.isError());
+		assertEquals(true, result.getError().isPresent());
+	}
+
+	@Test
+	public void interpret_invalidAddition_differentSuffixes_returnsError() {
+		Result<String, InterpreterError> result = run("1I16 + 2I32");
+		assertEquals(true, result.isError());
+		assertEquals(true, result.getError().isPresent());
+	}
 }
