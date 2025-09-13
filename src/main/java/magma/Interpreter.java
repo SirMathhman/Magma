@@ -1,14 +1,15 @@
 package magma;
 
 public class Interpreter {
-	public static String interpret(String source) throws InterpreterException {
-		if (source.isEmpty()) return "";
+	public static Result<String, InterpreterError> interpret(String source) {
+		if (source.isEmpty())
+			return new Ok<>("");
 
 		try {
 			Integer.parseInt(source);
-			return source;
+			return new Ok<>(source);
 		} catch (NumberFormatException e) {
-			throw new InterpreterException("Invalid input", source);
+			return new Err<>(new InterpreterError("Invalid input", source));
 		}
 	}
 }

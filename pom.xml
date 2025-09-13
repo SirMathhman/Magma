@@ -30,8 +30,8 @@
                 <configuration>
                     <!-- Point to our config file which contains no rules -->
                     <configLocation>config/checkstyle/checkstyle.xml</configLocation>
-                    <!-- Do not fail the build on violations (we want no-op behavior) -->
-                    <failsOnError>false</failsOnError>
+                    <!-- Fail the build on Checkstyle violations -->
+                    <failsOnError>true</failsOnError>
                     <linkXRef>false</linkXRef>
                     <!-- ensure test sources are included in Checkstyle analysis -->
                     <includeTestSourceDirectory>true</includeTestSourceDirectory>
