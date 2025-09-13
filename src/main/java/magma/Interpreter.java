@@ -13,6 +13,11 @@ public class Interpreter {
 			return new Result.Ok<>("");
 		}
 
+		// quick accept boolean literal inputs
+		if (normalized.equals("true") || normalized.equals("false")) {
+			return new Result.Ok<>(normalized);
+		}
+
 		java.util.Map<String, Integer> env = new java.util.HashMap<>();
 		// track mutability: true => mutable
 		java.util.Map<String, Boolean> mutable = new java.util.HashMap<>();
