@@ -32,8 +32,8 @@ public class Interpreter {
 		// 2"
 		// Accept forms with spaces around '+'; do not use regex to comply with
 		// Checkstyle.
-		// Support '+', '-', and '*' operators with equal precedence, evaluated
-		// left-to-right.
+		// Support '+', '-', and '*' operators. Implement standard precedence:
+		// evaluate '*' before '+' and '-', with left-to-right associativity.
 		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0 || src.indexOf('*') >= 0) {
 			java.util.List<String> terms = new java.util.ArrayList<>();
 			java.util.List<Character> ops = new java.util.ArrayList<>();
@@ -66,26 +66,53 @@ public class Interpreter {
 				pos = nextOp + 1;
 			}
 			if (terms.size() >= 2) {
-				// DEBUG: inspect parsed terms and operators
-				System.err.println("DEBUG terms=" + terms + " ops=" + ops);
-				// Evaluate left-to-right, enforcing suffix rules via processTerm
-				java.util.Optional<TermResult> first = processTerm(terms.get(0), java.util.Optional.empty());
-				if (first.isEmpty())
-					return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-				int acc = first.get().value();
-				java.util.Optional<String> commonSuffix = first.get().updatedCommon();
-				for (int i = 0; i < ops.size(); i++) {
-					char op = ops.get(i);
-					java.util.Optional<TermResult> tr = processTerm(terms.get(i + 1), commonSuffix);
-					if (tr.isEmpty())
+				// First, parse all terms and enforce common suffix consistency across the whole
+				// expression
+				java.util.List<TermVal> tvals = new java.util.ArrayList<>();
+				java.util.Optional<String> commonSuffix = java.util.Optional.empty();
+				for (String t : terms) {
+					java.util.Optional<TermVal> tvOpt = parseTerm(t);
+					if (tvOpt.isEmpty())
 						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-					commonSuffix = tr.get().updatedCommon();
+					TermVal tv = tvOpt.get();
+					tvals.add(tv);
+					if (!tv.suffix().isEmpty()) {
+						if (commonSuffix.isEmpty())
+							commonSuffix = java.util.Optional.of(tv.suffix());
+						else if (!commonSuffix.get().equals(tv.suffix()))
+							return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+					}
+				}
+
+				// Convert to mutable lists of integer values and operators, then apply
+				// precedence
+				java.util.List<Integer> values = new java.util.ArrayList<>();
+				for (TermVal tv : tvals)
+					values.add(tv.value());
+
+				// Evaluate all '*' first (left-to-right)
+				int i = 0;
+				while (i < ops.size()) {
+					if (ops.get(i) == '*') {
+						int a = values.get(i);
+						int b = values.get(i + 1);
+						values.set(i, a * b);
+						values.remove(i + 1);
+						ops.remove(i);
+					} else {
+						i++;
+					}
+				}
+
+				// Then evaluate remaining + and - left-to-right
+				int acc = values.get(0);
+				for (i = 0; i < ops.size(); i++) {
+					char op = ops.get(i);
+					int v = values.get(i + 1);
 					if (op == '+')
-						acc = acc + tr.get().value();
-					else if (op == '-')
-						acc = acc - tr.get().value();
-					else if (op == '*')
-						acc = acc * tr.get().value();
+						acc = acc + v;
+					else
+						acc = acc - v;
 				}
 				return new Ok<>(Integer.toString(acc));
 			}
@@ -116,52 +143,6 @@ public class Interpreter {
 			java.util.Optional<java.util.Optional<String>> updatedOuter = updateCommonSuffix(commonSuffix, tv.suffix());
 			return updatedOuter.map(u -> new TermResult(tv.value(), u));
 		});
-	}
-
-	private static record AccContext(java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonRef,
-			java.util.concurrent.atomic.AtomicInteger accRef) {
-	}
-
-	private AccContext createContext(java.util.Optional<String> common, int initial) {
-		java.util.concurrent.atomic.AtomicReference<java.util.Optional<String>> commonRef = new java.util.concurrent.atomic.AtomicReference<>(
-				common);
-		java.util.concurrent.atomic.AtomicInteger accRef = new java.util.concurrent.atomic.AtomicInteger(initial);
-		return new AccContext(commonRef, accRef);
-	}
-
-	/**
-	 * Parse a term and return an Optional TermVal; exists to avoid duplicating the
-	 * tryParseOrPrefix + leadingDigits pattern.
-	 */
-	private java.util.Optional<TermVal> safeParseTerm(String term) {
-		return parseTerm(term);
-	}
-
-	private boolean processAndAccumulate(String part, AccContext ctx, int sign) {
-		java.util.Optional<TermResult> trOpt = processTerm(part, ctx.commonRef().get());
-		if (trOpt.isEmpty())
-			return false;
-		TermResult tr = trOpt.get();
-		ctx.commonRef().set(tr.updatedCommon());
-		if (sign >= 0)
-			ctx.accRef().addAndGet(tr.value());
-		else
-			ctx.accRef().addAndGet(-tr.value());
-		return true;
-	}
-
-	/**
-	 * Accumulate numeric values from parts into a context and return the computed
-	 * integer as a String if successful, or Optional.empty() on error.
-	 */
-
-	private java.util.OptionalInt accumulateValue(java.util.List<String> parts, AccContext ctx, int sign) {
-		for (String rawPart : parts) {
-			String part = rawPart.trim();
-			if (!processAndAccumulate(part, ctx, sign))
-				return java.util.OptionalInt.empty();
-		}
-		return java.util.OptionalInt.of(ctx.accRef().get());
 	}
 
 	/**
