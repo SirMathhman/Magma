@@ -48,6 +48,12 @@ public class InterpreterTest {
 		assertError(new Interpreter().interpret("1U8 + 2U16"));
 	}
 
+	@Test
+	public void addSameSuffReturns() {
+		// Both operands have the same suffix; interpreter should use leading numeric prefixes
+		assertSuccess(new Interpreter().interpret("1U8 + 2U8"), "3");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

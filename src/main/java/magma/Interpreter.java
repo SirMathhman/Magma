@@ -50,9 +50,13 @@ public class Interpreter {
 					java.util.Optional<String> rightDigits = leadingDigits(right);
 					boolean leftPure = leftDigits.isPresent() && leftDigits.get().length() == left.length();
 					boolean rightPure = rightDigits.isPresent() && rightDigits.get().length() == right.length();
-					// If both operands have suffixes (not pure), consider the expression invalid
+					// If both operands have suffixes (not pure), allow only if suffixes match
 					if (!leftPure && !rightPure) {
-						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+						String leftSuffix = left.substring(leftDigits.get().length());
+						String rightSuffix = right.substring(rightDigits.get().length());
+						if (!leftSuffix.equals(rightSuffix)) {
+							return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+						}
 					}
 					return new Ok<>(Integer.toString(aOpt.get() + bOpt.get()));
 				}
