@@ -7,7 +7,12 @@ public class Interpreter {
 		if (source.isEmpty())
 			return new Ok<>("");
 
-		// Try addition first
+		// Try subtraction first
+		Optional<Result<String, InterpreterError>> sub = trySubtraction(source);
+		if (sub.isPresent())
+			return sub.get();
+
+		// Try addition next
 		Optional<Result<String, InterpreterError>> add = tryAddition(source);
 		if (add.isPresent())
 			return add.get();
@@ -70,6 +75,41 @@ public class Interpreter {
 		if (!anyParsed)
 			return Optional.empty();
 		return Optional.of(new Ok<>(String.valueOf(sum)));
+	}
+
+	private static Optional<Result<String, InterpreterError>> trySubtraction(String source) {
+		if (!source.contains("-"))
+			return Optional.empty();
+		String[] parts = source.split("-");
+		if (parts.length != 2)
+			return Optional.empty();
+
+		String left = parts[0].trim();
+		String right = parts[1].trim();
+
+		// Try direct integer parse
+		try {
+			int a = Integer.parseInt(left);
+			int b = Integer.parseInt(right);
+			return Optional.of(new Ok<>(String.valueOf(a - b)));
+		} catch (NumberFormatException ignored) {
+			// fall through
+		}
+
+		String la = leadingDigits(left);
+		String ra = leadingDigits(right);
+		if (la.isEmpty() || ra.isEmpty())
+			return Optional.empty();
+
+		String suffixLeft = left.substring(la.length());
+		String suffixRight = right.substring(ra.length());
+		if (!suffixLeft.isEmpty() && !suffixRight.isEmpty() && !suffixLeft.equals(suffixRight)) {
+			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+		}
+
+		int a2 = Integer.parseInt(la);
+		int b2 = Integer.parseInt(ra);
+		return Optional.of(new Ok<>(String.valueOf(a2 - b2)));
 	}
 
 	private static String leadingDigits(String s) {
