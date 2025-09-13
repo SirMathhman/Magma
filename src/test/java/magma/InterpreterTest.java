@@ -105,4 +105,16 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("8 / 4");
 		assertEquals("2", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_mixedPrecedence_divisionBeforeAddition_returnsThree() {
+		Result<String, InterpreterError> result = run("1 + 8 / 4");
+		assertEquals("3", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
+	public void interpret_simpleModulus_returnsRemainder() {
+		Result<String, InterpreterError> result = run("3 % 2");
+		assertEquals("1", result.getValue().orElse("<missing>"));
+	}
 }
