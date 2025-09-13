@@ -47,33 +47,45 @@ public class Interpreter {
 		if (!source.contains("*"))
 			return Optional.empty();
 		String[] parts = source.split("\\*");
-		if (parts.length != 2)
+		if (parts.length < 2)
 			return Optional.empty();
 
-		String left = parts[0].trim();
-		String right = parts[1].trim();
+		int prod = 1;
+		String commonSuffix = "";
+		boolean anyParsed = false;
 
-		try {
-			int a = Integer.parseInt(left);
-			int b = Integer.parseInt(right);
-			return Optional.of(new Ok<>(String.valueOf(a * b)));
-		} catch (NumberFormatException ignored) {
+		for (String raw : parts) {
+			String part = raw.trim();
+
+			try {
+				int v = Integer.parseInt(part);
+				prod *= v;
+				anyParsed = true;
+				continue;
+			} catch (NumberFormatException ignored) {
+				// fall through
+			}
+
+			String ld = leadingDigits(part);
+			if (ld.isEmpty())
+				return Optional.empty();
+
+			String suffix = part.substring(ld.length());
+			if (!suffix.isEmpty()) {
+				if (commonSuffix.isEmpty())
+					commonSuffix = suffix;
+				else if (!commonSuffix.equals(suffix)) {
+					return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
+				}
+			}
+
+			prod *= Integer.parseInt(ld);
+			anyParsed = true;
 		}
 
-		String la = leadingDigits(left);
-		String ra = leadingDigits(right);
-		if (la.isEmpty() || ra.isEmpty())
+		if (!anyParsed)
 			return Optional.empty();
-
-		String suffixLeft = left.substring(la.length());
-		String suffixRight = right.substring(ra.length());
-		if (!suffixLeft.isEmpty() && !suffixRight.isEmpty() && !suffixLeft.equals(suffixRight)) {
-			return Optional.of(new Err<>(new InterpreterError("Invalid input", source)));
-		}
-
-		int a2 = Integer.parseInt(la);
-		int b2 = Integer.parseInt(ra);
-		return Optional.of(new Ok<>(String.valueOf(a2 * b2)));
+		return Optional.of(new Ok<>(String.valueOf(prod)));
 	}
 
 	private static class Expression {
