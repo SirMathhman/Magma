@@ -36,8 +36,16 @@ public class InterpreterTest {
 
 	@Test
 	public void addPrefOperandSum() {
-		// Left operand has a suffix; interpreter should use leading numeric prefix ("1U8" -> "1")
+		// Left operand has a suffix; interpreter should use leading numeric prefix
+		// ("1U8" -> "1")
 		assertSuccess(new Interpreter().interpret("1U8 + 2"), "3");
+	}
+
+	@Test
+	public void addBothSuffError() {
+		// Both operands have suffixes; this should be considered invalid by the
+		// interpreter
+		assertError(new Interpreter().interpret("1U8 + 2U16"));
 	}
 
 	// Helper to assert a successful interpretation with expected value

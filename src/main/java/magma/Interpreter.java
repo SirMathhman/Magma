@@ -45,6 +45,15 @@ public class Interpreter {
 				java.util.Optional<Integer> aOpt = tryParseOrPrefix(left);
 				java.util.Optional<Integer> bOpt = tryParseOrPrefix(right);
 				if (aOpt.isPresent() && bOpt.isPresent()) {
+					// Determine if operands were pure integers or had suffixes
+					java.util.Optional<String> leftDigits = leadingDigits(left);
+					java.util.Optional<String> rightDigits = leadingDigits(right);
+					boolean leftPure = leftDigits.isPresent() && leftDigits.get().length() == left.length();
+					boolean rightPure = rightDigits.isPresent() && rightDigits.get().length() == right.length();
+					// If both operands have suffixes (not pure), consider the expression invalid
+					if (!leftPure && !rightPure) {
+						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+					}
 					return new Ok<>(Integer.toString(aOpt.get() + bOpt.get()));
 				}
 			}
