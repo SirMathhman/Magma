@@ -77,6 +77,12 @@ public class InterpreterTest {
 		assertSuccess(new Interpreter().interpret("4 - 2 - 1"), "1");
 	}
 
+	@Test
+	public void mixedSubAddReturns() {
+		// Mixed operations without precedence: (4 - 2) + 1 == 3 using left-to-right
+		assertSuccess(new Interpreter().interpret("4 - 2 + 1"), "3");
+	}
+
 	// Helper to assert a successful interpretation with expected value
 	private void assertSuccess(Result<String, InterpreterError> result, String expected) {
 		switch (result) {

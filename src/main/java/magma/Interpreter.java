@@ -32,41 +32,60 @@ public class Interpreter {
 		// 2"
 		// Accept forms with spaces around '+'; do not use regex to comply with
 		// Checkstyle.
-		// Support N-ary additions: split on '+' and process each term
-		String[] plusParts = src.split("\\+");
-		if (plusParts.length >= 2) {
-			// sum will be obtained from accumulateValue
-			java.util.Optional<String> commonSuffix = java.util.Optional.empty(); // when present, suffix required to match
-																																						// for suffixed operands
-			AccContext addCtx = createContext(commonSuffix, 0);
-			java.util.OptionalInt sumOpt = accumulateValue(java.util.Arrays.asList(plusParts), addCtx, +1);
-			if (sumOpt.isEmpty())
-				return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-			return new Ok<>(Integer.toString(sumOpt.getAsInt()));
-		}
-
-		// Support simple binary subtraction: "a - b"
-		String[] minusParts = src.split("\\-");
-		if (minusParts.length >= 2) {
-			// left-associative subtraction: (((a - b) - c) - ...)
-			java.util.List<String> parts = new java.util.ArrayList<>();
-			for (String p : minusParts)
-				parts.add(p.trim());
-			// parse first term
-			java.util.Optional<TermVal> t0 = safeParseTerm(parts.get(0));
-			if (t0.isEmpty())
-				return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-			int acc = t0.get().value();
-			java.util.Optional<String> commonSuffix = java.util.Optional.empty();
-			if (!t0.get().suffix().isEmpty())
-				commonSuffix = java.util.Optional.of(t0.get().suffix());
-			AccContext ctx = createContext(commonSuffix, acc);
-			java.util.OptionalInt accOpt = accumulateValue(parts.subList(1, parts.size()), ctx, -1);
-			if (accOpt.isEmpty())
-				return new Err<>(new InterpreterError("invalid operands", src, List.of()));
-			acc = accOpt.getAsInt();
-			commonSuffix = ctx.commonRef().get();
-			return new Ok<>(Integer.toString(acc));
+		// Support '+' and '-' operators with equal precedence, evaluated left-to-right.
+		if (src.indexOf('+') >= 0 || src.indexOf('-') >= 0) {
+			java.util.List<String> terms = new java.util.ArrayList<>();
+			java.util.List<Character> ops = new java.util.ArrayList<>();
+			// use indexOf-based splitting to avoid duplicating character-iteration loops
+			int pos = 0;
+			while (pos < src.length()) {
+				int nextPlus = src.indexOf('+', pos);
+				int nextMinus = src.indexOf('-', pos);
+				if (nextPlus == -1 && nextMinus == -1) {
+					terms.add(src.substring(pos).trim());
+					break;
+				}
+				int nextOp;
+				char opChar;
+				if (nextPlus == -1) {
+					nextOp = nextMinus;
+					opChar = '-';
+				} else if (nextMinus == -1) {
+					nextOp = nextPlus;
+					opChar = '+';
+				} else if (nextPlus < nextMinus) {
+					nextOp = nextPlus;
+					opChar = '+';
+				} else {
+					nextOp = nextMinus;
+					opChar = '-';
+				}
+				terms.add(src.substring(pos, nextOp).trim());
+				ops.add(opChar);
+				pos = nextOp + 1;
+			}
+			if (terms.size() >= 2) {
+				// DEBUG: inspect parsed terms and operators
+				System.err.println("DEBUG terms=" + terms + " ops=" + ops);
+				// Evaluate left-to-right, enforcing suffix rules via processTerm
+				java.util.Optional<TermResult> first = processTerm(terms.get(0), java.util.Optional.empty());
+				if (first.isEmpty())
+					return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+				int acc = first.get().value();
+				java.util.Optional<String> commonSuffix = first.get().updatedCommon();
+				for (int i = 0; i < ops.size(); i++) {
+					char op = ops.get(i);
+					java.util.Optional<TermResult> tr = processTerm(terms.get(i + 1), commonSuffix);
+					if (tr.isEmpty())
+						return new Err<>(new InterpreterError("invalid operands", src, List.of()));
+					commonSuffix = tr.get().updatedCommon();
+					if (op == '+')
+						acc = acc + tr.get().value();
+					else
+						acc = acc - tr.get().value();
+				}
+				return new Ok<>(Integer.toString(acc));
+			}
 		}
 
 		// Helper-like inline: try to parse an int, or use leading digit prefix if
