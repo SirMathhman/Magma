@@ -165,4 +165,10 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("if (true) 3 else 5");
 		assertEquals("3", result.getValue().orElse("<missing>"));
 	}
+
+	@Test
+	public void interpret_nestedParenthesesMultiplication_returnsProduct() {
+		Result<String, InterpreterError> result = run("(1 + 2) * (3 + 4)");
+		assertEquals("21", result.getValue().orElse("<missing>"));
+	}
 }
