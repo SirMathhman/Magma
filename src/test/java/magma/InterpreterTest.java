@@ -74,6 +74,11 @@ public class InterpreterTest {
 		}
 	}
 
+	@Test
+	public void lessThanComparison() {
+		assertSuccess(new Interpreter().interpret("3 < 5"), "true");
+	}
+
 	// Helper to assert an error result
 	private void assertError(Result<String, InterpreterError> result) {
 		switch (result) {

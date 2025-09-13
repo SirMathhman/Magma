@@ -18,6 +18,18 @@ public class Interpreter {
 			return new Result.Ok<>(normalized);
 		}
 
+		// quick single-expression comparison support (e.g., "3 < 5")
+		if (!normalized.contains(";") && normalized.contains("<")) {
+			int lt = normalized.indexOf('<');
+			String left = normalized.substring(0, lt).trim();
+			String right = normalized.substring(lt + 1).trim();
+			java.util.Optional<Integer> a = evalExpr(left, java.util.Collections.emptyMap());
+			java.util.Optional<Integer> b = evalExpr(right, java.util.Collections.emptyMap());
+			if (a.isEmpty() || b.isEmpty())
+				return new Result.Err<>(new InterpreterError("invalid input", normalized, java.util.List.of()));
+			return new Result.Ok<>(a.get() < b.get() ? "true" : "false");
+		}
+
 		java.util.Map<String, Integer> env = new java.util.HashMap<>();
 		// track mutability: true => mutable
 		java.util.Map<String, Boolean> mutable = new java.util.HashMap<>();
