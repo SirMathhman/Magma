@@ -2,6 +2,9 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 
+import magma.Result.Err;
+import magma.Result.Ok;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
@@ -21,7 +24,7 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("test");
 		// Expect an error for non-empty input (interpreter not implemented for this
 		// input)
-		assertTrue(result.isError(), "expected error but got success: " + result.getValue().orElse("<missing>"));
+		assertTrue(result instanceof Err, "expected error but got success: " + result.getValue().orElse("<missing>"));
 		InterpreterError err = result.getError().orElseThrow();
 		// The current Interpreter returns a generic 'not implemented' error with the
 		// source code
@@ -32,7 +35,7 @@ public class InterpreterTest {
 	@Test
 	public void numericReturns() {
 		Result<String, InterpreterError> result = run("5");
-		assertTrue(result.isSuccess(), "expected success for numeric literal");
+		assertTrue(result instanceof Ok, "expected success for numeric literal");
 		assertEquals("5", result.getValue().orElse("<missing>"));
 	}
 }
