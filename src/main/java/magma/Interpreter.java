@@ -192,6 +192,83 @@ public class Interpreter {
 			return Result.success("false");
 		}
 
+		// Minimal support for if-then-else: if (<cond>) <then> else <else>
+		// Accept either parenthesized condition (if (cond) ...) or a bare condition
+		// token
+		// (if cond then else) because parentheses may already have been resolved above.
+		if (normalized.startsWith("if ")) {
+			int parenOpen = normalized.indexOf('(');
+			int parenClose = parenOpen == -1 ? -1 : normalized.indexOf(')', parenOpen + 1);
+			String condStr;
+			int elseIdx;
+			if (parenOpen != -1 && parenClose != -1 && parenClose > parenOpen) {
+				condStr = normalized.substring(parenOpen + 1, parenClose).trim();
+				elseIdx = normalized.indexOf("else", parenClose + 1);
+				if (elseIdx == -1) {
+					return Result.error(new InterpreterError("Missing else branch in if expression", normalized,
+							java.util.List.of()));
+				}
+				String thenPart = normalized.substring(parenClose + 1, elseIdx).trim();
+				String elsePart = normalized.substring(elseIdx + 4).trim();
+				Result<String, InterpreterError> condRes = interpret(condStr);
+				if (condRes.isError()) {
+					return condRes;
+				}
+				String condVal = condRes.getValue().orElse("");
+				if (!"true".equals(condVal) && !"false".equals(condVal)) {
+					return Result.error(new InterpreterError("Condition did not evaluate to boolean", normalized,
+							java.util.List.of()));
+				}
+				Result<String, InterpreterError> thenRes = interpret(thenPart);
+				if (thenRes.isError()) {
+					return thenRes;
+				}
+				Result<String, InterpreterError> elseRes = interpret(elsePart);
+				if (elseRes.isError()) {
+					return elseRes;
+				}
+				return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
+			} else {
+				// No parentheses around condition (e.g. after parentheses were resolved):
+				// expect: if <cond-token> <then> else <else>
+				int pos = 3; // after "if "
+				while (pos < normalized.length() && Character.isWhitespace(normalized.charAt(pos)))
+					pos++;
+				int startCond = pos;
+				while (pos < normalized.length() && !Character.isWhitespace(normalized.charAt(pos)))
+					pos++;
+				if (startCond == pos) {
+					return Result.error(new InterpreterError("Malformed if condition", normalized, java.util.List.of()));
+				}
+				condStr = normalized.substring(startCond, pos).trim();
+				elseIdx = normalized.indexOf("else", pos);
+				if (elseIdx == -1) {
+					return Result.error(new InterpreterError("Missing else branch in if expression", normalized,
+							java.util.List.of()));
+				}
+				String thenPart = normalized.substring(pos, elseIdx).trim();
+				String elsePart = normalized.substring(elseIdx + 4).trim();
+				Result<String, InterpreterError> condRes = interpret(condStr);
+				if (condRes.isError()) {
+					return condRes;
+				}
+				String condVal = condRes.getValue().orElse("");
+				if (!"true".equals(condVal) && !"false".equals(condVal)) {
+					return Result.error(new InterpreterError("Condition did not evaluate to boolean", normalized,
+							java.util.List.of()));
+				}
+				Result<String, InterpreterError> thenRes = interpret(thenPart);
+				if (thenRes.isError()) {
+					return thenRes;
+				}
+				Result<String, InterpreterError> elseRes = interpret(elsePart);
+				if (elseRes.isError()) {
+					return elseRes;
+				}
+				return Result.success("true".equals(condVal) ? thenRes.getValue().orElse("") : elseRes.getValue().orElse(""));
+			}
+		}
+
 		// If input starts with digits, return the leading digit sequence using
 		// simple String scanning (avoid java.util.regex per project policy)
 		int i = 0;

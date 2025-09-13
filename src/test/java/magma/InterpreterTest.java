@@ -129,13 +129,13 @@ public class InterpreterTest {
 		Result<String, InterpreterError> result = run("3 % 2");
 		assertEquals("1", result.getValue().orElse("<missing>"));
 	}
-    
+
 	@Test
 	public void interpret_parenthesizedSingleNumber_returnsNumber() {
 		Result<String, InterpreterError> result = run("(1)");
 		assertEquals("1", result.getValue().orElse("<missing>"));
 	}
-    
+
 	@Test
 	public void interpret_triplyNestedParentheses_returnsNumber() {
 		Result<String, InterpreterError> result = run("(((1)))");
@@ -158,5 +158,11 @@ public class InterpreterTest {
 	public void interpret_parenthesizedExpression_timesThree_returnsNine() {
 		Result<String, InterpreterError> result = run("(1 + 2) * 3");
 		assertEquals("9", result.getValue().orElse("<missing>"));
+	}
+
+	@Test
+	public void interpret_simpleIfExpression_trueBranch_returnsThen() {
+		Result<String, InterpreterError> result = run("if (true) 3 else 5");
+		assertEquals("3", result.getValue().orElse("<missing>"));
 	}
 }
