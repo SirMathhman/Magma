@@ -29,7 +29,12 @@ public class Interpreter {
 			boolean leftHasSuffix = hasSuffixAfterLeadingDigits(left);
 			boolean rightHasSuffix = hasSuffixAfterLeadingDigits(right);
 			if (leftHasSuffix && rightHasSuffix) {
-				return Result.error(new InterpreterError("Invalid operands with conflicting suffixes"));
+				String leftSuffix = left.substring(getLeadingDigitsLength(left));
+				String rightSuffix = right.substring(getLeadingDigitsLength(right));
+				if (!leftSuffix.equals(rightSuffix)) {
+					return Result.error(new InterpreterError("Invalid operands with conflicting suffixes"));
+				}
+				// suffixes match — allow addition and ignore suffixes for numeric computation
 			}
 			if (optA.isPresent() && optB.isPresent()) {
 				return Result.success(Integer.toString(optA.getAsInt() + optB.getAsInt()));
@@ -46,6 +51,14 @@ public class Interpreter {
 			return Result.success(normalized.substring(0, i));
 		}
 		return Result.error(new InterpreterError("Only empty input or numeric input is supported in this stub"));
+	}
+
+	private int getLeadingDigitsLength(String s) {
+		int idx = 0;
+		while (idx < s.length() && Character.isDigit(s.charAt(idx))) {
+			idx++;
+		}
+		return idx;
 	}
 
 	// Helper: parse leading integer prefix from a string (e.g. "1U8" -> 1)

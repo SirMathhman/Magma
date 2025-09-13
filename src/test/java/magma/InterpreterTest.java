@@ -52,4 +52,11 @@ public class InterpreterTest {
 		assertEquals(true, result.isError());
 		assertEquals(true, result.getError().isPresent());
 	}
+
+	@Test
+	public void interpret_addition_with_identicalSuffixes_returnsSum() {
+		Result<String, InterpreterError> result = run("1I32 + 2I32");
+		assertEquals(true, result.isSuccess());
+		assertEquals("3", result.getValue().orElse("<missing>"));
+	}
 }
