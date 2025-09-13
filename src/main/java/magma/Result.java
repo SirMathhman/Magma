@@ -4,39 +4,45 @@ import java.util.Objects;
 import java.util.Optional;
 
 /**
- * Simple generic Result type: either Success with a value, or Error with an
- * error value.
+ * Simple generic Result type: either Ok with a value, or Err with an error
+ * value.
  */
-public final class Result<T, E> {
-	private final Optional<T> value;
-	private final Optional<E> error;
-
-	private Result(Optional<T> value, Optional<E> error) {
-		this.value = value;
-		this.error = error;
+public sealed interface Result<T, E> permits Result.Ok, Result.Err {
+	static <T, E> Result<T, E> success(T value) {
+		return new Ok<>(value);
 	}
 
-	public static <T, E> Result<T, E> success(T value) {
-		return new Result<>(Optional.ofNullable(value), Optional.empty());
+	static <T, E> Result<T, E> error(E error) {
+		return new Err<>(Objects.requireNonNull(error));
 	}
 
-	public static <T, E> Result<T, E> error(E error) {
-		return new Result<>(Optional.empty(), Optional.of(Objects.requireNonNull(error)));
+	default boolean isSuccess() {
+		return this instanceof Ok;
 	}
 
-	public boolean isSuccess() {
-		return error.isEmpty();
+	default boolean isError() {
+		return this instanceof Err;
 	}
 
-	public boolean isError() {
-		return error.isPresent();
+	@SuppressWarnings("unchecked")
+	default Optional<T> getValue() {
+		if (this instanceof Ok<T, E> o) {
+			return Optional.ofNullable(o.value());
+		}
+		return Optional.empty();
 	}
 
-	public Optional<T> getValue() {
-		return value;
+	@SuppressWarnings("unchecked")
+	default Optional<E> getError() {
+		if (this instanceof Err<T, E> e) {
+			return Optional.of(e.error());
+		}
+		return Optional.empty();
 	}
 
-	public Optional<E> getError() {
-		return error;
+	record Ok<T, E>(T value) implements Result<T, E> {
+	}
+
+	record Err<T, E>(E error) implements Result<T, E> {
 	}
 }
