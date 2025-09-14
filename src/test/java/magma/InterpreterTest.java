@@ -63,4 +63,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("true", interpreter.interpret("3 < 5"));
 	}
+
+	@Test
+	void interpretReturnsOneHundredForFunctionCall() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("100", interpreter.interpret("fn get() : I32 => {return 100;} get()"));
+	}
 }
