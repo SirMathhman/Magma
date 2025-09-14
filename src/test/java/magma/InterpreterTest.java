@@ -47,8 +47,15 @@ class InterpreterTest {
 	}
 
 	@Test
+	void interpretReturnsThreeForWhileLoopCounter() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("3", interpreter.interpret("let mut counter = 0; while (counter < 3) counter += 1; counter"));
+	}
+
+	@Test
 	void interpretReturnsTrueForTrueInput() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("true", interpreter.interpret("true"));
 	}
 }
+z`
