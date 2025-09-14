@@ -1,6 +1,8 @@
 package magma;
 
 public class Interpreter {
+	private java.util.Map<String, java.util.List<String>> structDefs;
+
 	public String interpret(String input) throws InterpretException {
 		if (input == null || input.isEmpty()) {
 			return "";
@@ -8,7 +10,9 @@ public class Interpreter {
 		input = input.trim();
 		java.util.Map<String, Integer> vars = new java.util.HashMap<>();
 		java.util.Map<String, String> functions = new java.util.HashMap<>();
-		return interpret(input, vars, functions);
+		java.util.Map<String, java.util.List<String>> structDefs = new java.util.HashMap<>();
+		this.structDefs = structDefs;
+		return interpret(input, vars, functions, structDefs);
 	}
 
 	private String handleArrayIndex(String stmt, java.util.Map<String, Integer> vars,
@@ -117,8 +121,8 @@ public class Interpreter {
 
 	// internal interpret that reuses the provided vars map so nested evaluations
 	// see updates
-	private String interpret(String input, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions)
-			throws InterpretException {
+	private String interpret(String input, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions,
+			java.util.Map<String, java.util.List<String>> structDefs) throws InterpretException {
 		if (input == null || input.isEmpty()) {
 			return "";
 		}
@@ -129,7 +133,7 @@ public class Interpreter {
 			stmt = stmt.trim();
 			if (stmt.isEmpty())
 				continue;
-			lastValue = processStatement(stmt, vars, functions);
+			lastValue = processStatement(stmt, vars, functions, structDefs);
 		}
 		if (lastValue == null) {
 			throw new InterpretException("No value to return");
@@ -138,7 +142,8 @@ public class Interpreter {
 	}
 
 	private String processStatement(String stmt, java.util.Map<String, Integer> vars,
-			java.util.Map<String, String> functions) throws InterpretException {
+			java.util.Map<String, String> functions, java.util.Map<String, java.util.List<String>> structDefs)
+			throws InterpretException {
 		// function declaration: fn name() : I32 => { ... }
 		if (stmt.startsWith("fn ")) {
 			int nameStart = 3;
@@ -161,8 +166,68 @@ public class Interpreter {
 		} else if (stmt.startsWith("if (") && stmt.contains(")") && stmt.contains("else")) {
 			return handleConditional(stmt, vars, functions);
 		} else {
+			String structAccess = handleStructAccess(stmt, vars, functions, structDefs);
+			if (structAccess != null)
+				return structAccess;
 			return handleLiteralOrVariable(stmt, vars, functions);
 		}
+	}
+
+	private String handleStructAccess(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions, java.util.Map<String, java.util.List<String>> structDefs)
+			throws InterpretException {
+		stmt = stmt.trim();
+		// struct declaration: struct Name { field : I32 }
+		if (stmt.startsWith("struct ")) {
+			int nameStart = 7;
+			int brace = stmt.indexOf('{', nameStart);
+			int braceEnd = stmt.indexOf('}', brace);
+			if (brace > nameStart && braceEnd > brace) {
+				String name = stmt.substring(nameStart, brace).trim();
+				String inside = stmt.substring(brace + 1, braceEnd).trim();
+				// assume single field like 'field : I32'
+				String[] parts = inside.split(":");
+				if (parts.length >= 1) {
+					String fieldName = parts[0].trim();
+					java.util.List<String> fields = new java.util.ArrayList<>();
+					fields.add(fieldName);
+					structDefs.put(name, fields);
+					return "";
+				}
+			}
+		}
+		// struct literal access: Name { 100 }.field
+		int dot = stmt.indexOf('.');
+		if (dot > 0) {
+			String left = stmt.substring(0, dot).trim();
+			String field = stmt.substring(dot + 1).trim();
+			// left should be like: Name { 100 }
+			int brace = left.indexOf('{');
+			int braceEnd = left.indexOf('}');
+			if (brace > 0 && braceEnd > brace) {
+				String name = left.substring(0, brace).trim();
+				String inner = left.substring(brace + 1, braceEnd).trim();
+				java.util.List<String> defs = structDefs.get(name);
+				if (defs == null)
+					return null;
+				// parse values
+				String[] vals = inner.isEmpty() ? new String[0] : inner.split(",");
+				int idx = -1;
+				for (int i = 0; i < defs.size(); i++) {
+					if (defs.get(i).equals(field)) {
+						idx = i;
+						break;
+					}
+				}
+				if (idx == -1)
+					throw new InterpretException("Unknown field: " + field);
+				if (idx >= vals.length)
+					throw new InterpretException("Missing field value for: " + field);
+				String valExpr = vals[idx].trim();
+				return handleLiteralOrVariable(valExpr, vars, functions);
+			}
+		}
+		return null;
 	}
 
 	private String[] splitTopLevelStatements(String input) {
@@ -187,7 +252,7 @@ public class Interpreter {
 					int j = i + 1;
 					while (j < input.length() && Character.isWhitespace(input.charAt(j)))
 						j++;
-					if (j < input.length() && input.charAt(j) != ';') {
+					if (j < input.length() && input.charAt(j) != ';' && input.charAt(j) != '.') {
 						parts.add(cur.toString());
 						cur.setLength(0);
 					}
@@ -222,9 +287,9 @@ public class Interpreter {
 			// execute body as a statement or block
 			if (body.startsWith("{") && body.endsWith("}")) {
 				String inner = body.substring(1, body.length() - 1).trim();
-				last = interpret(inner, vars, functions);
+				last = interpret(inner, vars, functions, this.structDefs);
 			} else {
-				last = interpret(body, vars, functions);
+				last = interpret(body, vars, functions, this.structDefs);
 			}
 		}
 		return last == null ? "" : last;
@@ -369,7 +434,7 @@ public class Interpreter {
 				throw new InterpretException("Unsupported condition: " + condition);
 			}
 			String branch = condValue ? trueBranch : falseBranch;
-			return interpret(branch, vars, functions);
+			return interpret(branch, vars, functions, this.structDefs);
 		} else {
 			throw new InterpretException("Invalid if-else syntax");
 		}

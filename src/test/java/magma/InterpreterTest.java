@@ -75,4 +75,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("100", interpreter.interpret("[100][0]"));
 	}
+
+	@Test
+	void interpretReturnsOneHundredForStructField() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("100", interpreter.interpret("struct Wrapper { field : I32 } Wrapper { 100 }.field"));
+	}
 }
