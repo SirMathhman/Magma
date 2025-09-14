@@ -1,0 +1,7 @@
+struct HashMap<K, V> {
+	
+}
+
+struct Interpreter {
+
+}

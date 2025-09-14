@@ -83,6 +83,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void interpretReturnsEmptyForStructDeclarationOnly() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("", interpreter.interpret("struct Wrapper { field : I32 }"));
+	}
+
+	@Test
 	void interpretReturnsOneHundredForPointerDeref() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("100", interpreter.interpret("let x = 100; *&x"));
