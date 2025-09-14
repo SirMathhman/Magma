@@ -5,10 +5,14 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InterpreterTest {
 	@Test
-	void interpretReturnsInput() {
+	void interpretReturnsEmptyStringForEmptyInput() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
-		String input = "Hello, Magma!";
-		String result = interpreter.interpret(input);
-		assertEquals(input, result);
+		assertEquals("", interpreter.interpret(""));
+	}
+
+	@Test
+	void interpretThrowsExceptionForNonEmptyInput() {
+		Interpreter interpreter = new Interpreter();
+		assertThrows(InterpretException.class, () -> interpreter.interpret("Hello"));
 	}
 }
