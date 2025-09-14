@@ -21,4 +21,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("5", interpreter.interpret("5"));
 	}
+
+	@Test
+	void interpretReturnsFiveForLetXEqualsFiveX() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("5", interpreter.interpret("let x = 5; x"));
+	}
 }
