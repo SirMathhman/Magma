@@ -89,6 +89,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void interpretReturnsOneHundredForGenericStructField() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("100", interpreter.interpret("struct Wrapper<T> { field : T } Wrapper<I32>{ 100 }.field"));
+	}
+
+	@Test
 	void interpretReturnsOneHundredForPointerDeref() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("100", interpreter.interpret("let x = 100; *&x"));

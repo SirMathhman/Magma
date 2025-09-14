@@ -17,9 +17,11 @@ public class Interpreter {
 
 	private String handlePointerDeref(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
 		stmt = stmt.trim();
-		if (!stmt.startsWith("*&")) return null;
+		if (!stmt.startsWith("*&"))
+			return null;
 		String varName = stmt.substring(2).trim();
-		if (vars.containsKey(varName)) return String.valueOf(vars.get(varName));
+		if (vars.containsKey(varName))
+			return String.valueOf(vars.get(varName));
 		throw new InterpretException("Unknown statement or variable: " + stmt);
 	}
 
@@ -191,7 +193,7 @@ public class Interpreter {
 			int brace = stmt.indexOf('{', nameStart);
 			int braceEnd = stmt.indexOf('}', brace);
 			if (brace > nameStart && braceEnd > brace) {
-				String name = stmt.substring(nameStart, brace).trim();
+				String name = stripGenericName(stmt.substring(nameStart, brace).trim());
 				String inside = stmt.substring(brace + 1, braceEnd).trim();
 				// assume single field like 'field : I32'
 				String[] parts = inside.split(":");
@@ -213,7 +215,7 @@ public class Interpreter {
 			int brace = left.indexOf('{');
 			int braceEnd = left.indexOf('}');
 			if (brace > 0 && braceEnd > brace) {
-				String name = left.substring(0, brace).trim();
+				String name = stripGenericName(left.substring(0, brace).trim());
 				String inner = left.substring(brace + 1, braceEnd).trim();
 				java.util.List<String> defs = structDefs.get(name);
 				if (defs == null)
@@ -348,6 +350,14 @@ public class Interpreter {
 		}
 	}
 
+	private String stripGenericName(String name) {
+		int lt = name.indexOf('<');
+		if (lt >= 0) {
+			return name.substring(0, lt).trim();
+		}
+		return name;
+	}
+
 	private String handleLetMut(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
 		String[] parts = stmt.substring(8).split("=");
 		if (parts.length == 2) {
@@ -458,7 +468,8 @@ public class Interpreter {
 			return fnCall;
 		// pointer deref pattern *&x
 		String ptr = handlePointerDeref(stmt, vars);
-		if (ptr != null) return ptr;
+		if (ptr != null)
+			return ptr;
 		// array indexing: [a, b, ...][i]
 		String arrResult = handleArrayIndex(stmt, vars, functions);
 		if (arrResult != null)
