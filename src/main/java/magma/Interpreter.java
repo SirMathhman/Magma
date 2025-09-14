@@ -66,22 +66,44 @@ public class Interpreter {
 	}
 
 	private String handleAssignment(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
-		String[] parts = stmt.split("=");
-		if (parts.length == 2) {
-			String varName = parts[0].trim();
-			String varValue = parts[1].trim();
-			if (!vars.containsKey(varName)) {
-				throw new InterpretException("Variable not declared: " + varName);
-			}
-			try {
-				int value = Integer.parseInt(varValue);
-				vars.put(varName, value);
-				return String.valueOf(value);
-			} catch (NumberFormatException e) {
-				throw new InterpretException("Assigned value is not an integer");
+		stmt = stmt.trim();
+		if (stmt.contains("+=")) {
+			String[] parts = stmt.split("\\+=");
+			if (parts.length == 2) {
+				String varName = parts[0].trim();
+				String varValue = parts[1].trim();
+				if (!vars.containsKey(varName)) {
+					throw new InterpretException("Variable not declared: " + varName);
+				}
+				try {
+					int value = Integer.parseInt(varValue);
+					int newValue = vars.get(varName) + value;
+					vars.put(varName, newValue);
+					return String.valueOf(newValue);
+				} catch (NumberFormatException e) {
+					throw new InterpretException("Assigned value is not an integer");
+				}
+			} else {
+				throw new InterpretException("Invalid += assignment syntax");
 			}
 		} else {
-			throw new InterpretException("Invalid assignment syntax");
+			String[] parts = stmt.split("=");
+			if (parts.length == 2) {
+				String varName = parts[0].trim();
+				String varValue = parts[1].trim();
+				if (!vars.containsKey(varName)) {
+					throw new InterpretException("Variable not declared: " + varName);
+				}
+				try {
+					int value = Integer.parseInt(varValue);
+					vars.put(varName, value);
+					return String.valueOf(value);
+				} catch (NumberFormatException e) {
+					throw new InterpretException("Assigned value is not an integer");
+				}
+			} else {
+				throw new InterpretException("Invalid assignment syntax");
+			}
 		}
 	}
 

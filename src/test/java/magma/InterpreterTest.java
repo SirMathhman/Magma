@@ -41,6 +41,12 @@ class InterpreterTest {
 	}
 
 	@Test
+	void interpretReturnsOneForLetMutXPlusEqualsOne() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("1", interpreter.interpret("let mut x = 0; x += 1; x"));
+	}
+
+	@Test
 	void interpretReturnsTrueForTrueInput() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("true", interpreter.interpret("true"));
