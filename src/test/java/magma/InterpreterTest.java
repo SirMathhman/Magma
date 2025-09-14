@@ -81,4 +81,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("100", interpreter.interpret("struct Wrapper { field : I32 } Wrapper { 100 }.field"));
 	}
+
+	@Test
+	void interpretReturnsOneHundredForPointerDeref() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("100", interpreter.interpret("let x = 100; *&x"));
+	}
 }

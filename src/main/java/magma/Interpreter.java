@@ -15,6 +15,14 @@ public class Interpreter {
 		return interpret(input, vars, functions, structDefs);
 	}
 
+	private String handlePointerDeref(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		stmt = stmt.trim();
+		if (!stmt.startsWith("*&")) return null;
+		String varName = stmt.substring(2).trim();
+		if (vars.containsKey(varName)) return String.valueOf(vars.get(varName));
+		throw new InterpretException("Unknown statement or variable: " + stmt);
+	}
+
 	private String handleArrayIndex(String stmt, java.util.Map<String, Integer> vars,
 			java.util.Map<String, String> functions) throws InterpretException {
 		stmt = stmt.trim();
@@ -448,6 +456,9 @@ public class Interpreter {
 		String fnCall = handleFunctionCall(stmt, vars, functions);
 		if (fnCall != null)
 			return fnCall;
+		// pointer deref pattern *&x
+		String ptr = handlePointerDeref(stmt, vars);
+		if (ptr != null) return ptr;
 		// array indexing: [a, b, ...][i]
 		String arrResult = handleArrayIndex(stmt, vars, functions);
 		if (arrResult != null)
