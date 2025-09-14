@@ -27,4 +27,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("5", interpreter.interpret("let x = 5; x"));
 	}
+
+	@Test
+	void interpretReturnsTenForLetMutXAssignment() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("10", interpreter.interpret("let mut x = 0; x = 10; x"));
+	}
 }
