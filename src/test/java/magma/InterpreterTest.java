@@ -33,4 +33,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("10", interpreter.interpret("let mut x = 0; x = 10; x"));
 	}
+
+	@Test
+	void interpretReturnsTrueForTrueInput() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("true", interpreter.interpret("true"));
+	}
 }

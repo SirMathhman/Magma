@@ -69,15 +69,19 @@ public class Interpreter {
 			}
 			// Handle integer literal
 			else {
-				try {
-					int value = Integer.parseInt(stmt);
-					lastValue = String.valueOf(value);
-				} catch (NumberFormatException e) {
-					// Handle variable usage
-					if (vars.containsKey(stmt)) {
-						lastValue = String.valueOf(vars.get(stmt));
-					} else {
-						throw new InterpretException("Unknown statement or variable: " + stmt);
+				if ("true".equals(stmt) || "false".equals(stmt)) {
+					lastValue = stmt;
+				} else {
+					try {
+						int value = Integer.parseInt(stmt);
+						lastValue = String.valueOf(value);
+					} catch (NumberFormatException e) {
+						// Handle variable usage
+						if (vars.containsKey(stmt)) {
+							lastValue = String.valueOf(vars.get(stmt));
+						} else {
+							throw new InterpretException("Unknown statement or variable: " + stmt);
+						}
 					}
 				}
 			}
