@@ -15,4 +15,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertThrows(InterpretException.class, () -> interpreter.interpret("Hello"));
 	}
+
+	@Test
+	void interpretReturnsFiveForFiveInput() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("5", interpreter.interpret("5"));
+	}
 }

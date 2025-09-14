@@ -5,7 +5,13 @@ public class Interpreter {
 		if (input == null || input.isEmpty()) {
 			return "";
 		} else {
-			throw new InterpretException("Non-empty input is not allowed");
+			// If input is a valid integer, return it as string
+			try {
+				Integer.parseInt(input);
+				return input;
+			} catch (NumberFormatException e) {
+				throw new InterpretException("Non-empty input is not allowed");
+			}
 		}
 	}
 }
