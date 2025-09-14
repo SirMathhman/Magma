@@ -5,6 +5,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class InterpreterTest {
 	@Test
+	void interpretReturnsThreeForIfTrueElseFive() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("3", interpreter.interpret("if (true) 3 else 5"));
+	}
+
+	@Test
 	void interpretReturnsEmptyStringForEmptyInput() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("", interpreter.interpret(""));

@@ -30,6 +30,15 @@
 				<configuration>
 					<configLocation>checkstyle.xml</configLocation>
 				</configuration>
+				<executions>
+					<execution>
+						<id>checkstyle-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 			</plugin>
 		</plugins>
 	</build>

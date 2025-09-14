@@ -13,82 +13,115 @@ public class Interpreter {
 			stmt = stmt.trim();
 			if (stmt.isEmpty())
 				continue;
-			// Handle let mut x = value
 			if (stmt.startsWith("let mut ")) {
-				String[] parts = stmt.substring(8).split("=");
-				if (parts.length == 2) {
-					String varName = parts[0].trim();
-					String varValue = parts[1].trim();
-					try {
-						int value = Integer.parseInt(varValue);
-						vars.put(varName, value);
-						lastValue = String.valueOf(value);
-					} catch (NumberFormatException e) {
-						throw new InterpretException("Assigned value is not an integer");
-					}
-				} else {
-					throw new InterpretException("Invalid let mut syntax");
-				}
-			}
-			// Handle let x = value
-			else if (stmt.startsWith("let ")) {
-				String[] parts = stmt.substring(4).split("=");
-				if (parts.length == 2) {
-					String varName = parts[0].trim();
-					String varValue = parts[1].trim();
-					try {
-						int value = Integer.parseInt(varValue);
-						vars.put(varName, value);
-						lastValue = String.valueOf(value);
-					} catch (NumberFormatException e) {
-						throw new InterpretException("Assigned value is not an integer");
-					}
-				} else {
-					throw new InterpretException("Invalid let syntax");
-				}
-			}
-			// Handle variable assignment: x = value
-			else if (stmt.contains("=") && !stmt.startsWith("let")) {
-				String[] parts = stmt.split("=");
-				if (parts.length == 2) {
-					String varName = parts[0].trim();
-					String varValue = parts[1].trim();
-					if (!vars.containsKey(varName)) {
-						throw new InterpretException("Variable not declared: " + varName);
-					}
-					try {
-						int value = Integer.parseInt(varValue);
-						vars.put(varName, value);
-						lastValue = String.valueOf(value);
-					} catch (NumberFormatException e) {
-						throw new InterpretException("Assigned value is not an integer");
-					}
-				} else {
-					throw new InterpretException("Invalid assignment syntax");
-				}
-			}
-			// Handle integer literal
-			else {
-				if ("true".equals(stmt) || "false".equals(stmt)) {
-					lastValue = stmt;
-				} else {
-					try {
-						int value = Integer.parseInt(stmt);
-						lastValue = String.valueOf(value);
-					} catch (NumberFormatException e) {
-						// Handle variable usage
-						if (vars.containsKey(stmt)) {
-							lastValue = String.valueOf(vars.get(stmt));
-						} else {
-							throw new InterpretException("Unknown statement or variable: " + stmt);
-						}
-					}
-				}
+				lastValue = handleLetMut(stmt, vars);
+			} else if (stmt.startsWith("let ")) {
+				lastValue = handleLet(stmt, vars);
+			} else if (stmt.contains("=") && !stmt.startsWith("let")) {
+				lastValue = handleAssignment(stmt, vars);
+			} else if (stmt.startsWith("if (") && stmt.contains(")") && stmt.contains("else")) {
+				lastValue = handleConditional(stmt, vars);
+			} else {
+				lastValue = handleLiteralOrVariable(stmt, vars);
 			}
 		}
 		if (lastValue == null) {
 			throw new InterpretException("No value to return");
 		}
 		return lastValue;
+	}
+
+	private String handleLetMut(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		String[] parts = stmt.substring(8).split("=");
+		if (parts.length == 2) {
+			String varName = parts[0].trim();
+			String varValue = parts[1].trim();
+			try {
+				int value = Integer.parseInt(varValue);
+				vars.put(varName, value);
+				return String.valueOf(value);
+			} catch (NumberFormatException e) {
+				throw new InterpretException("Assigned value is not an integer");
+			}
+		} else {
+			throw new InterpretException("Invalid let mut syntax");
+		}
+	}
+
+	private String handleLet(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		String[] parts = stmt.substring(4).split("=");
+		if (parts.length == 2) {
+			String varName = parts[0].trim();
+			String varValue = parts[1].trim();
+			try {
+				int value = Integer.parseInt(varValue);
+				vars.put(varName, value);
+				return String.valueOf(value);
+			} catch (NumberFormatException e) {
+				throw new InterpretException("Assigned value is not an integer");
+			}
+		} else {
+			throw new InterpretException("Invalid let syntax");
+		}
+	}
+
+	private String handleAssignment(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		String[] parts = stmt.split("=");
+		if (parts.length == 2) {
+			String varName = parts[0].trim();
+			String varValue = parts[1].trim();
+			if (!vars.containsKey(varName)) {
+				throw new InterpretException("Variable not declared: " + varName);
+			}
+			try {
+				int value = Integer.parseInt(varValue);
+				vars.put(varName, value);
+				return String.valueOf(value);
+			} catch (NumberFormatException e) {
+				throw new InterpretException("Assigned value is not an integer");
+			}
+		} else {
+			throw new InterpretException("Invalid assignment syntax");
+		}
+	}
+
+	private String handleConditional(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		int condStart = stmt.indexOf('(') + 1;
+		int condEnd = stmt.indexOf(')');
+		String condition = stmt.substring(condStart, condEnd).trim();
+		String[] parts = stmt.substring(condEnd + 1).split("else");
+		if (parts.length == 2) {
+			String trueBranch = parts[0].trim();
+			String falseBranch = parts[1].trim();
+			boolean condValue;
+			if ("true".equals(condition)) {
+				condValue = true;
+			} else if ("false".equals(condition)) {
+				condValue = false;
+			} else {
+				throw new InterpretException("Unsupported condition: " + condition);
+			}
+			String branch = condValue ? trueBranch : falseBranch;
+			return interpret(branch);
+		} else {
+			throw new InterpretException("Invalid if-else syntax");
+		}
+	}
+
+	private String handleLiteralOrVariable(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
+		if ("true".equals(stmt) || "false".equals(stmt)) {
+			return stmt;
+		} else {
+			try {
+				int value = Integer.parseInt(stmt);
+				return String.valueOf(value);
+			} catch (NumberFormatException e) {
+				if (vars.containsKey(stmt)) {
+					return String.valueOf(vars.get(stmt));
+				} else {
+					throw new InterpretException("Unknown statement or variable: " + stmt);
+				}
+			}
+		}
 	}
 }
