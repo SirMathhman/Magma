@@ -195,15 +195,9 @@ public class Interpreter {
 			if (brace > nameStart && braceEnd > brace) {
 				String name = stripGenericName(stmt.substring(nameStart, brace).trim());
 				String inside = stmt.substring(brace + 1, braceEnd).trim();
-				// assume single field like 'field : I32'
-				String[] parts = inside.split(":");
-				if (parts.length >= 1) {
-					String fieldName = parts[0].trim();
-					java.util.List<String> fields = new java.util.ArrayList<>();
-					fields.add(fieldName);
-					structDefs.put(name, fields);
-					return "";
-				}
+				java.util.List<String> fields = parseStructFieldNames(inside);
+				structDefs.put(name, fields);
+				return "";
 			}
 		}
 		// struct literal access: Name { 100 }.field
@@ -356,6 +350,21 @@ public class Interpreter {
 			return name.substring(0, lt).trim();
 		}
 		return name;
+	}
+
+	private java.util.List<String> parseStructFieldNames(String inside) {
+		java.util.List<String> fields = new java.util.ArrayList<>();
+		if (inside == null || inside.isEmpty()) {
+			return fields;
+		}
+		String[] fieldDecls = inside.split(",");
+		for (String fd : fieldDecls) {
+			String[] p = fd.split(":");
+			if (p.length >= 1) {
+				fields.add(p[0].trim());
+			}
+		}
+		return fields;
 	}
 
 	private String handleLetMut(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {

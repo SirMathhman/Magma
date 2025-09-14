@@ -95,6 +95,15 @@ class InterpreterTest {
 	}
 
 	@Test
+	void interpretReturnsValuesForGenericStructWithTwoTypeParams() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		// declare a struct with two type parameters and two fields, then construct and
+		// access fields
+		String program = "struct Pair<A, B> { first : A, second : B } Pair<I32, I32>{ 7, 11 }.second";
+		assertEquals("11", interpreter.interpret(program));
+	}
+
+	@Test
 	void interpretReturnsOneHundredForPointerDeref() throws InterpretException {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("100", interpreter.interpret("let x = 100; *&x"));
