@@ -11,10 +11,52 @@ public class Interpreter {
 		return interpret(input, vars, functions);
 	}
 
-	private String handleFunctionCall(String stmt, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
-		if (!stmt.endsWith("()")) return null;
+	private String handleArrayIndex(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
+		stmt = stmt.trim();
+		if (!stmt.startsWith("["))
+			return null;
+		// find closing bracket for the array literal
+		int close = stmt.indexOf(']');
+		if (close < 0)
+			return null;
+		String inner = stmt.substring(1, close).trim();
+		// parse elements (simple integers or variables)
+		java.util.List<String> elems = new java.util.ArrayList<>();
+		if (!inner.isEmpty()) {
+			String[] parts = inner.split(",");
+			for (String p : parts)
+				elems.add(p.trim());
+		}
+		// after the closing bracket, expect an index like [i]
+		String rest = stmt.substring(close + 1).trim();
+		if (!rest.startsWith("[") || !rest.endsWith(")") && !rest.endsWith("]")) {
+			// support either [index] or nothing
+			if (rest.isEmpty())
+				return null;
+		}
+		if (rest.startsWith("[")) {
+			int idxClose = rest.indexOf(']');
+			if (idxClose < 0)
+				return null;
+			String idxExpr = rest.substring(1, idxClose).trim();
+			int idx = parseOperand(idxExpr, vars);
+			if (idx < 0 || idx >= elems.size())
+				throw new InterpretException("Index out of bounds: " + idx);
+			String el = elems.get(idx);
+			// evaluate element
+			return handleLiteralOrVariable(el, vars, functions);
+		}
+		return null;
+	}
+
+	private String handleFunctionCall(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
+		if (!stmt.endsWith("()"))
+			return null;
 		String name = stmt.substring(0, stmt.length() - 2).trim();
-		if (!functions.containsKey(name)) return null;
+		if (!functions.containsKey(name))
+			return null;
 		String fn = functions.get(name);
 		int arrow = fn.indexOf('>');
 		int brace = fn.indexOf('{', arrow >= 0 ? arrow : 0);
@@ -24,19 +66,21 @@ public class Interpreter {
 			body = fn.substring(brace + 1, braceEnd).trim();
 		} else {
 			int arr = fn.indexOf("=>");
-			if (arr >= 0) body = fn.substring(arr + 2).trim();
+			if (arr >= 0)
+				body = fn.substring(arr + 2).trim();
 		}
 		int ret = body.indexOf("return ");
 		String expr = body;
 		if (ret >= 0) {
 			expr = body.substring(ret + 7).trim();
-			if (expr.endsWith(";")) expr = expr.substring(0, expr.length() - 1).trim();
+			if (expr.endsWith(";"))
+				expr = expr.substring(0, expr.length() - 1).trim();
 		}
 		return handleLiteralOrVariable(expr, vars, functions);
 	}
 
 	private String evaluateComparisonExpr(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
-		String[] ops = {"<=", ">=", "==", "!=", "<", ">"};
+		String[] ops = { "<=", ">=", "==", "!=", "<", ">" };
 		for (String op : ops) {
 			int idx = stmt.indexOf(op);
 			if (idx >= 0) {
@@ -46,12 +90,24 @@ public class Interpreter {
 				int r = parseOperand(right, vars);
 				boolean result = false;
 				switch (op) {
-					case "<=": result = l <= r; break;
-					case ">=": result = l >= r; break;
-					case "==": result = l == r; break;
-					case "!=": result = l != r; break;
-					case "<": result = l < r; break;
-					case ">": result = l > r; break;
+					case "<=":
+						result = l <= r;
+						break;
+					case ">=":
+						result = l >= r;
+						break;
+					case "==":
+						result = l == r;
+						break;
+					case "!=":
+						result = l != r;
+						break;
+					case "<":
+						result = l < r;
+						break;
+					case ">":
+						result = l > r;
+						break;
 				}
 				return result ? "true" : "false";
 			}
@@ -59,8 +115,10 @@ public class Interpreter {
 		return null;
 	}
 
-	// internal interpret that reuses the provided vars map so nested evaluations see updates
-	private String interpret(String input, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
+	// internal interpret that reuses the provided vars map so nested evaluations
+	// see updates
+	private String interpret(String input, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions)
+			throws InterpretException {
 		if (input == null || input.isEmpty()) {
 			return "";
 		}
@@ -69,7 +127,8 @@ public class Interpreter {
 		String lastValue = null;
 		for (String stmt : statements) {
 			stmt = stmt.trim();
-			if (stmt.isEmpty()) continue;
+			if (stmt.isEmpty())
+				continue;
 			lastValue = processStatement(stmt, vars, functions);
 		}
 		if (lastValue == null) {
@@ -78,7 +137,8 @@ public class Interpreter {
 		return lastValue;
 	}
 
-	private String processStatement(String stmt, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
+	private String processStatement(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
 		// function declaration: fn name() : I32 => { ... }
 		if (stmt.startsWith("fn ")) {
 			int nameStart = 3;
@@ -111,15 +171,22 @@ public class Interpreter {
 		int depth = 0;
 		for (int i = 0; i < input.length(); i++) {
 			char c = input.charAt(i);
-			if (c == '{') { depth++; cur.append(c); continue; }
+			if (c == '{') {
+				depth++;
+				cur.append(c);
+				continue;
+			}
 			if (c == '}') {
 				depth--;
 				cur.append(c);
-				// if we closed a top-level brace, and the next non-space char is not a semicolon,
-				// treat this as a statement boundary so e.g. "} get()" splits between brace and call
+				// if we closed a top-level brace, and the next non-space char is not a
+				// semicolon,
+				// treat this as a statement boundary so e.g. "} get()" splits between brace and
+				// call
 				if (depth == 0) {
 					int j = i + 1;
-					while (j < input.length() && Character.isWhitespace(input.charAt(j))) j++;
+					while (j < input.length() && Character.isWhitespace(input.charAt(j)))
+						j++;
 					if (j < input.length() && input.charAt(j) != ';') {
 						parts.add(cur.toString());
 						cur.setLength(0);
@@ -134,24 +201,28 @@ public class Interpreter {
 			}
 			cur.append(c);
 		}
-		if (cur.length() > 0) parts.add(cur.toString());
+		if (cur.length() > 0)
+			parts.add(cur.toString());
 		return parts.toArray(new String[0]);
 	}
 
-	private String handleWhileLoop(String stmt, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
+	private String handleWhileLoop(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
 		int condStart = stmt.indexOf('(') + 1;
 		int condEnd = stmt.indexOf(')');
 		String condition = stmt.substring(condStart, condEnd).trim();
 		String body = stmt.substring(condEnd + 1).trim();
-		// body may end with a semicolon when split earlier; ensure it's a valid statement
+		// body may end with a semicolon when split earlier; ensure it's a valid
+		// statement
 		String last = null;
 		int safety = 10000; // prevent infinite loops
 		while (evaluateCondition(condition, vars)) {
-			if (safety-- <= 0) throw new InterpretException("Possible infinite loop");
+			if (safety-- <= 0)
+				throw new InterpretException("Possible infinite loop");
 			// execute body as a statement or block
-			if (body.startsWith("{" ) && body.endsWith("}")) {
-					String inner = body.substring(1, body.length() - 1).trim();
-					last = interpret(inner, vars, functions);
+			if (body.startsWith("{") && body.endsWith("}")) {
+				String inner = body.substring(1, body.length() - 1).trim();
+				last = interpret(inner, vars, functions);
 			} else {
 				last = interpret(body, vars, functions);
 			}
@@ -162,7 +233,7 @@ public class Interpreter {
 	private boolean evaluateCondition(String condition, java.util.Map<String, Integer> vars) throws InterpretException {
 		condition = condition.trim();
 		// support simple comparisons like a < b, a <= b, a > b, a >= b, a == b, a != b
-		String[] ops = {"<=", ">=", "==", "!=", "<", ">"};
+		String[] ops = { "<=", ">=", "==", "!=", "<", ">" };
 		for (String op : ops) {
 			int idx = condition.indexOf(op);
 			if (idx >= 0) {
@@ -171,18 +242,26 @@ public class Interpreter {
 				int l = parseOperand(left, vars);
 				int r = parseOperand(right, vars);
 				switch (op) {
-				case "<=": return l <= r;
-				case ">=": return l >= r;
-				case "==": return l == r;
-				case "!=": return l != r;
-				case "<": return l < r;
-				case ">": return l > r;
+					case "<=":
+						return l <= r;
+					case ">=":
+						return l >= r;
+					case "==":
+						return l == r;
+					case "!=":
+						return l != r;
+					case "<":
+						return l < r;
+					case ">":
+						return l > r;
 				}
 			}
 		}
 		// support boolean literals
-		if ("true".equals(condition)) return true;
-		if ("false".equals(condition)) return false;
+		if ("true".equals(condition))
+			return true;
+		if ("false".equals(condition))
+			return false;
 		throw new InterpretException("Unsupported condition: " + condition);
 	}
 
@@ -190,7 +269,8 @@ public class Interpreter {
 		try {
 			return Integer.parseInt(token);
 		} catch (NumberFormatException e) {
-			if (vars.containsKey(token)) return vars.get(token);
+			if (vars.containsKey(token))
+				return vars.get(token);
 			throw new InterpretException("Unknown operand: " + token);
 		}
 	}
@@ -271,7 +351,8 @@ public class Interpreter {
 		}
 	}
 
-	private String handleConditional(String stmt, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
+	private String handleConditional(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
 		int condStart = stmt.indexOf('(') + 1;
 		int condEnd = stmt.indexOf(')');
 		String condition = stmt.substring(condStart, condEnd).trim();
@@ -288,21 +369,28 @@ public class Interpreter {
 				throw new InterpretException("Unsupported condition: " + condition);
 			}
 			String branch = condValue ? trueBranch : falseBranch;
-					return interpret(branch, vars, functions);
+			return interpret(branch, vars, functions);
 		} else {
 			throw new InterpretException("Invalid if-else syntax");
 		}
 	}
 
-	private String handleLiteralOrVariable(String stmt, java.util.Map<String, Integer> vars, java.util.Map<String, String> functions) throws InterpretException {
+	private String handleLiteralOrVariable(String stmt, java.util.Map<String, Integer> vars,
+			java.util.Map<String, String> functions) throws InterpretException {
 		if ("true".equals(stmt) || "false".equals(stmt)) {
 			return stmt;
 		}
 		String fnCall = handleFunctionCall(stmt, vars, functions);
-		if (fnCall != null) return fnCall;
+		if (fnCall != null)
+			return fnCall;
+		// array indexing: [a, b, ...][i]
+		String arrResult = handleArrayIndex(stmt, vars, functions);
+		if (arrResult != null)
+			return arrResult;
 		// Check for comparison expressions
 		String comp = evaluateComparisonExpr(stmt, vars);
-		if (comp != null) return comp;
+		if (comp != null)
+			return comp;
 		try {
 			int value = Integer.parseInt(stmt);
 			return String.valueOf(value);
