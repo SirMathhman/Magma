@@ -57,5 +57,10 @@ class InterpreterTest {
 		Interpreter interpreter = new Interpreter();
 		assertEquals("true", interpreter.interpret("true"));
 	}
+
+	@Test
+	void interpretReturnsTrueForThreeLessThanFive() throws InterpretException {
+		Interpreter interpreter = new Interpreter();
+		assertEquals("true", interpreter.interpret("3 < 5"));
+	}
 }
-z`

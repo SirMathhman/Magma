@@ -203,16 +203,36 @@ public class Interpreter {
 	private String handleLiteralOrVariable(String stmt, java.util.Map<String, Integer> vars) throws InterpretException {
 		if ("true".equals(stmt) || "false".equals(stmt)) {
 			return stmt;
-		} else {
-			try {
-				int value = Integer.parseInt(stmt);
-				return String.valueOf(value);
-			} catch (NumberFormatException e) {
-				if (vars.containsKey(stmt)) {
-					return String.valueOf(vars.get(stmt));
-				} else {
-					throw new InterpretException("Unknown statement or variable: " + stmt);
+		}
+		// Check for comparison expressions
+		String[] ops = {"<=", ">=", "==", "!=", "<", ">"};
+		for (String op : ops) {
+			int idx = stmt.indexOf(op);
+			if (idx >= 0) {
+				String left = stmt.substring(0, idx).trim();
+				String right = stmt.substring(idx + op.length()).trim();
+				int l = parseOperand(left, vars);
+				int r = parseOperand(right, vars);
+				boolean result = false;
+				switch (op) {
+					case "<=": result = l <= r; break;
+					case ">=": result = l >= r; break;
+					case "==": result = l == r; break;
+					case "!=": result = l != r; break;
+					case "<": result = l < r; break;
+					case ">": result = l > r; break;
 				}
+				return result ? "true" : "false";
+			}
+		}
+		try {
+			int value = Integer.parseInt(stmt);
+			return String.valueOf(value);
+		} catch (NumberFormatException e) {
+			if (vars.containsKey(stmt)) {
+				return String.valueOf(vars.get(stmt));
+			} else {
+				throw new InterpretException("Unknown statement or variable: " + stmt);
 			}
 		}
 	}
