@@ -2,7 +2,10 @@ package magma;
 
 public class Interpreter {
 	public String interpret(String input) {
-		// TODO: Implement interpretation logic
-		return "";
+		if (input == null || input.isEmpty()) {
+			return "";
+		} else {
+			throw new InterpretException("Non-empty input is not allowed");
+		}
 	}
 }

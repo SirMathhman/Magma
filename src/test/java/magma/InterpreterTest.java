@@ -5,10 +5,16 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class InterpreterTest {
 	@Test
-	public void testInterpretStub() {
+	public void testInterpretEmptyInput() {
 		Interpreter interpreter = new Interpreter();
-		String input = "test input";
-		String result = interpreter.interpret(input);
-		assertEquals("", result, "Stub should return empty string");
+		String result = interpreter.interpret("");
+		assertEquals("", result, "Should return empty string for empty input");
+	}
+
+	@Test
+	public void testInterpretNonEmptyInputThrows() {
+		Interpreter interpreter = new Interpreter();
+		assertThrows(InterpretException.class, () -> interpreter.interpret("something"),
+				"Should throw InterpretException for non-empty input");
 	}
 }
