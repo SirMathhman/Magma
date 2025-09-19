@@ -168,4 +168,9 @@ public class AppTest {
         assertThrows(magma.InterpretException.class,
                 () -> App.interpret("let x = 0; let y : &mut I32 = &mut x; y = 10; x"));
     }
+
+    @Test
+    public void testBracesAsParens() throws Exception {
+        assertEquals("100", App.interpret("{100}"));
+    }
 }

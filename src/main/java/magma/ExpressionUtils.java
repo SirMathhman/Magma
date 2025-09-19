@@ -188,12 +188,14 @@ public class ExpressionUtils {
 		}
 
 		private long parseParenOrValRes(VarResolver resolver, boolean unaryMinus) {
-			if (pos < s.length() && s.charAt(pos) == '(') {
+			if (pos < s.length() && (s.charAt(pos) == '(' || s.charAt(pos) == '{')) {
+				char open = s.charAt(pos);
+				char close = open == '(' ? ')' : '}';
 				pos++;
 				long v = parseExprResInternal(resolver);
 				skipWhitespace();
-				if (pos >= s.length() || s.charAt(pos) != ')')
-					throw new IllegalArgumentException("Missing )");
+				if (pos >= s.length() || s.charAt(pos) != close)
+					throw new IllegalArgumentException("Missing " + close);
 				pos++;
 				return unaryMinus ? -v : v;
 			}
@@ -276,11 +278,10 @@ public class ExpressionUtils {
 				pos++;
 				skipWhitespace();
 				if (pos < s.length() && Character.isJavaIdentifierStart(s.charAt(pos))) {
-					int start = pos;
+					// skip identifier
 					pos++;
 					while (pos < s.length() && Character.isJavaIdentifierPart(s.charAt(pos)))
 						pos++;
-					String name = s.substring(start, pos);
 					throw new IllegalArgumentException("Dereference not available without resolver");
 				} else {
 					throw new IllegalArgumentException("Invalid dereference");
@@ -288,12 +289,14 @@ public class ExpressionUtils {
 			}
 			boolean unaryMinus = detectAndConsumeUnarySign();
 			skipWhitespace();
-			if (pos < s.length() && s.charAt(pos) == '(') {
+			if (pos < s.length() && (s.charAt(pos) == '(' || s.charAt(pos) == '{')) {
+				char open = s.charAt(pos);
+				char close = open == '(' ? ')' : '}';
 				pos++;
 				long v = parseExpression();
 				skipWhitespace();
-				if (pos >= s.length() || s.charAt(pos) != ')')
-					throw new IllegalArgumentException("Missing )");
+				if (pos >= s.length() || s.charAt(pos) != close)
+					throw new IllegalArgumentException("Missing " + close);
 				pos++;
 				return unaryMinus ? -v : v;
 			}

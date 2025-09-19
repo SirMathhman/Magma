@@ -102,8 +102,8 @@ public class App {
     private static String parseAddEval(String t) {
         if (t == null || t.isEmpty())
             return null;
-        // If the input contains parentheses, use the recursive parser.
-        if (t.indexOf('(') >= 0 || t.indexOf(')') >= 0) {
+        // If the input contains parentheses or braces, use the recursive parser.
+        if (t.indexOf('(') >= 0 || t.indexOf(')') >= 0 || t.indexOf('{') >= 0 || t.indexOf('}') >= 0) {
             ExpressionUtils.ExprParser parser = new ExpressionUtils.ExprParser(t);
             try {
                 long v = parser.parseExpression();
