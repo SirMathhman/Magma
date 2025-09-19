@@ -198,4 +198,9 @@ public class AppTest {
     public void bracesIgnoredBetweenStmts() throws Exception {
         assertEquals("100", App.interpret("let x = 100; {} x"));
     }
+
+    @Test
+    public void bracedLetVarOutOfScope() {
+        assertThrows(magma.InterpretException.class, () -> App.interpret("{let x = 100;} x"));
+    }
 }
