@@ -2,6 +2,9 @@ package magma;
 
 public class App {
 
+    private static final String[] ALLOWED_SUFFIXES = new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32",
+            "I64" };
+
     /**
      * Interpret a simple command string and return a response.
      * <p>
@@ -89,75 +92,111 @@ public class App {
     private static String parseAndEvaluateAddition(String t) {
         if (t == null || t.isEmpty())
             return null;
-        // Collect operands split by '+' while respecting a possible leading sign on the
-        // first operand.
-        java.util.List<String> parts = new java.util.ArrayList<>();
-        int i = 0;
-        int last = 0;
-        // We'll treat any '+' character as a separator except when it's at index 0
-        // (leading sign)
-        for (i = 1; i < t.length(); i++) {
-            if (t.charAt(i) == '+') {
-                parts.add(t.substring(last, i).trim());
-                last = i + 1;
-            }
-        }
-        // add final part
-        parts.add(t.substring(last).trim());
-        if (parts.size() < 2)
-            return null; // not an addition
-
+        java.util.List<OperandParseResult> operands = tokenizeOperands(t);
+        if (operands == null || operands.size() < 2)
+            return null;
         String commonSuffix = null;
         long total = 0L;
-        for (String p : parts) {
-            if (p.isEmpty())
-                return null;
-            // For each operand, allow an allowed suffix; detect and strip it.
-            String suf = findAllowedSuffix(p);
-            String numPart = suf == null ? p : p.substring(0, p.length() - suf.length()).trim();
-            if (!isIntegerString(numPart))
-                return null;
-            if (suf != null) {
+        for (OperandParseResult r : operands) {
+            if (r.suffix != null) {
                 if (commonSuffix == null)
-                    commonSuffix = suf;
-                else if (!commonSuffix.equals(suf))
-                    return null; // mixed suffixes not allowed
+                    commonSuffix = r.suffix;
+                else if (!commonSuffix.equals(r.suffix))
+                    return null;
             }
-            try {
-                long v = Long.parseLong(numPart);
-                total += v;
-            } catch (NumberFormatException ex) {
-                return null;
-            }
+            total += r.value;
         }
         return String.valueOf(total);
     }
 
-    // Return the allowed suffix (exact match) at the end of s, or null if none.
-    private static String findAllowedSuffix(String s) {
-        if (s == null || s.isEmpty())
-            return null;
-        String[] suffixes = new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" };
-        for (String suf : suffixes) {
-            if (s.endsWith(suf))
-                return suf;
+    private static class OperandParseResult {
+        final long value;
+        final String suffix;
+        final int nextPos;
+
+        OperandParseResult(long value, String suffix, int nextPos) {
+            this.value = value;
+            this.suffix = suffix;
+            this.nextPos = nextPos;
         }
-        return null;
     }
 
-    private static boolean isIntegerString(String s) {
-        if (s == null || s.isEmpty())
-            return false;
-        int idx = 0;
-        if (s.charAt(0) == '+' || s.charAt(0) == '-') {
-            if (s.length() == 1)
-                return false;
-            idx = 1;
+    private static OperandParseResult parseNumberWithSuffix(String t, int pos) {
+        int n = t.length();
+        if (pos >= n)
+            return null;
+        // optional sign as part of the number
+        int sign = +1;
+        if ((t.charAt(pos) == '+' || t.charAt(pos) == '-') && pos + 1 < n && Character.isDigit(t.charAt(pos + 1))) {
+            if (t.charAt(pos) == '-')
+                sign = -1;
+            pos++;
         }
-        for (int i = idx; i < s.length(); i++) {
-            if (!Character.isDigit(s.charAt(i)))
-                return false;
+        int ds = pos;
+        while (pos < n && Character.isDigit(t.charAt(pos)))
+            pos++;
+        if (pos == ds)
+            return null;
+        String digits = t.substring(ds, pos);
+        String suf = null;
+        for (String s : ALLOWED_SUFFIXES) {
+            if (pos + s.length() <= n && t.startsWith(s, pos)) {
+                suf = s;
+                pos += s.length();
+                break;
+            }
         }
-        return true;
+        long v;
+        try {
+            v = Long.parseLong((sign == -1 ? "-" : "") + digits);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+        return new OperandParseResult(v, suf, pos);
     }
+
+    private static java.util.List<OperandParseResult> tokenizeOperands(String t) {
+        int n = t.length();
+        int pos = 0;
+        java.util.List<OperandParseResult> out = new java.util.ArrayList<>();
+        boolean expectNumber = true;
+        int pendingOp = +1; // operator to apply to next number
+
+        while (pos < n) {
+            // skip whitespace
+            while (pos < n && Character.isWhitespace(t.charAt(pos)))
+                pos++;
+            if (pos >= n)
+                break;
+
+            if (!expectNumber) {
+                // expect an operator
+                char c = t.charAt(pos);
+                if (c == '+')
+                    pendingOp = +1;
+                else if (c == '-')
+                    pendingOp = -1;
+                else
+                    return null;
+                pos++;
+                expectNumber = true;
+                continue;
+            }
+
+            OperandParseResult r = parseNumberWithSuffix(t, pos);
+            if (r == null)
+                return null;
+            // apply pending operator
+            out.add(new OperandParseResult(pendingOp * r.value, r.suffix, r.nextPos));
+            pos = r.nextPos;
+            expectNumber = false;
+            // after first number, ensure we saw operator between numbers; tokenizer will
+            // accept sequences like "1 2" as invalid
+        }
+
+        return out;
+    }
+
+    // helpers removed: parseNumberWithSuffix now handles integer parsing and suffix
+    // detection
 }

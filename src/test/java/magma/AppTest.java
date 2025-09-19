@@ -80,4 +80,10 @@ public class AppTest {
         assertEquals("6", App.interpret("1 + 2 + 3"));
         assertEquals("0", App.interpret("1 + -1 + 0"));
     }
+
+    @Test
+    public void testInterpretSubtraction() throws Exception {
+        assertEquals("1", App.interpret("3 - 2"));
+        assertEquals("-1", App.interpret("2 - 3"));
+    }
 }
