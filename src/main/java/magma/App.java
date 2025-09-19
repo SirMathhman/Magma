@@ -194,7 +194,7 @@ public class App {
         if (eq >= 0) {
             String lhs = stmt.substring(0, eq).trim();
             String rhs = stmt.substring(eq + 1).trim();
-            IdParseResult id = parseIdentifier(lhs, 0);
+            IdentifierUtils.IdParseResult id = IdentifierUtils.parseIdentifier(lhs, 0);
             if (id == null || id.next != lhs.length())
                 throw new IllegalArgumentException("Invalid assignment");
             String name = id.name;
@@ -230,12 +230,16 @@ public class App {
         String after = stmt.substring(3).trim();
         // split on '=' first to separate LHS and RHS
         int eq = after.indexOf('=');
-        if (eq < 0)
-            return false;
-        String lhs = after.substring(0, eq).trim();
-        String rhs = after.substring(eq + 1).trim();
-        if (rhs.isEmpty())
-            return false;
+        String lhs;
+        String rhs = null;
+        if (eq < 0) {
+            lhs = after.trim();
+        } else {
+            lhs = after.substring(0, eq).trim();
+            rhs = after.substring(eq + 1).trim();
+            if (rhs.isEmpty())
+                return false;
+        }
         // lhs should be like: [mut] <ident> or [mut] <ident> : <type>
         String[] lhsParts = lhs.split(":");
         String ident = lhsParts[0].trim();
@@ -244,7 +248,7 @@ public class App {
             isMutable = true;
             ident = ident.substring(4).trim();
         }
-        IdParseResult id = parseIdentifier(ident, 0);
+        IdentifierUtils.IdParseResult id = IdentifierUtils.parseIdentifier(ident, 0);
         if (id == null || id.next != ident.length())
             return false;
         String name = id.name;
@@ -257,7 +261,15 @@ public class App {
                 return false;
         }
         try {
-            long val = evaluateExprWithEnv(rhs, env);
+            long val;
+            if (rhs == null) {
+                // no initializer — only allowed for mutable declarations
+                if (!isMutable)
+                    return false;
+                val = 0L;
+            } else {
+                val = evaluateExprWithEnv(rhs, env);
+            }
             env.put(name, val);
             mut.put(name, isMutable);
             return true;
@@ -266,29 +278,7 @@ public class App {
         }
     }
 
-    private static class IdParseResult {
-        final String name;
-        final int next;
-
-        IdParseResult(String name, int next) {
-            this.name = name;
-            this.next = next;
-        }
-    }
-
-    private static IdParseResult parseIdentifier(String s, int pos) {
-        int n = s.length();
-        int i = pos;
-        while (i < n && Character.isWhitespace(s.charAt(i)))
-            i++;
-        if (i >= n || !Character.isJavaIdentifierStart(s.charAt(i)))
-            return null;
-        int start = i;
-        i++;
-        while (i < n && Character.isJavaIdentifierPart(s.charAt(i)))
-            i++;
-        return new IdParseResult(s.substring(start, i), i);
-    }
+    // Identifier parsing moved to IdentifierUtils to reduce file length
 
     // Extend ExprParser with a resolver-capable expression entry point
     // We'll add a small interface and method via insertion into ExprParser below.
