@@ -183,4 +183,9 @@ public class AppTest {
     public void testLetThenBracedExpr() throws Exception {
         assertEquals("100", App.interpret("let x = 100; {x}"));
     }
+
+    @Test
+    public void emptyBracesReturnEmpty() throws Exception {
+        assertEquals("", App.interpret("{}"));
+    }
 }

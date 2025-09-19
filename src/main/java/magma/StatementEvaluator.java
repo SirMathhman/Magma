@@ -6,6 +6,8 @@ public class StatementEvaluator {
 		if (t == null)
 			return null;
 		String stripped = stripOuterBraces(t);
+		if (stripped.trim().isEmpty())
+			return "";
 		if (!stripped.contains("let") && !stripped.contains(";"))
 			return null;
 		return processStatementParts(stripped);
