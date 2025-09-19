@@ -122,4 +122,9 @@ public class AppTest {
         // initializer has suffix U8 but declared type is I32 — should error
         assertThrows(magma.InterpretException.class, () -> App.interpret("let x : I32= 1U8;"));
     }
+
+    @Test
+    public void testLetNoTypeReturnsOne() throws Exception {
+        assertEquals("1", App.interpret("let x = 1; x"));
+    }
 }
