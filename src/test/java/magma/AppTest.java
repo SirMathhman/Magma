@@ -152,4 +152,9 @@ public class AppTest {
     public void testLetNoInitNotMutable() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("let x : I32; x = 0; x = 1; x"));
     }
+
+    @Test
+    public void testPointerDeref() throws Exception {
+        assertEquals("10", App.interpret("let x : I32 = 10; let y : *I32 = &x; *y"));
+    }
 }

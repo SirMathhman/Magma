@@ -118,6 +118,7 @@ public class ExpressionUtils {
 
 		public interface VarResolver {
 			long resolve(String name);
+			long resolveRef(String name);
 		}
 
 		public long parseExprRes(VarResolver resolver) {
@@ -163,6 +164,23 @@ public class ExpressionUtils {
 			skipWhitespace();
 			if (pos >= s.length())
 				throw new IllegalArgumentException("Unexpected end");
+			// support unary dereference '*name'
+			if (pos < s.length() && s.charAt(pos) == '*') {
+				pos++;
+				skipWhitespace();
+				if (pos < s.length() && Character.isJavaIdentifierStart(s.charAt(pos))) {
+					int start = pos;
+					pos++;
+					while (pos < s.length() && Character.isJavaIdentifierPart(s.charAt(pos)))
+						pos++;
+					String name = s.substring(start, pos);
+					long v = resolver.resolveRef(name);
+					skipWhitespace();
+					return v;
+				} else {
+					throw new IllegalArgumentException("Invalid dereference");
+				}
+			}
 			boolean unaryMinus = detectAndConsumeUnarySign();
 			skipWhitespace();
 			return parseParenOrValRes(resolver, unaryMinus);
@@ -252,6 +270,21 @@ public class ExpressionUtils {
 			skipWhitespace();
 			if (pos >= s.length())
 				throw new IllegalArgumentException("Unexpected end");
+			// support unary dereference in non-resolver path (not used by App right now)
+			if (pos < s.length() && s.charAt(pos) == '*') {
+				pos++;
+				skipWhitespace();
+				if (pos < s.length() && Character.isJavaIdentifierStart(s.charAt(pos))) {
+					int start = pos;
+					pos++;
+					while (pos < s.length() && Character.isJavaIdentifierPart(s.charAt(pos)))
+						pos++;
+					String name = s.substring(start, pos);
+					throw new IllegalArgumentException("Dereference not available without resolver");
+				} else {
+					throw new IllegalArgumentException("Invalid dereference");
+				}
+			}
 			boolean unaryMinus = detectAndConsumeUnarySign();
 			skipWhitespace();
 			if (pos < s.length() && s.charAt(pos) == '(') {

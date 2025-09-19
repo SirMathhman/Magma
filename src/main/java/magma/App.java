@@ -154,13 +154,15 @@ public class App {
         String[] parts = t.split(";");
         java.util.Map<String, Long> env = new java.util.HashMap<>();
         java.util.Map<String, Boolean> mut = new java.util.HashMap<>();
+        java.util.Map<String, String> types = new java.util.HashMap<>();
+        java.util.Map<String, String> refs = new java.util.HashMap<>();
         for (int i = 0; i < parts.length; i++) {
             String stmt = parts[i].trim();
             if (stmt.isEmpty())
                 continue;
             Long maybeValue = null;
             try {
-                maybeValue = evaluateStatement(stmt, env, mut);
+                maybeValue = evaluateStatement(stmt, env, mut, types, refs);
             } catch (IllegalArgumentException ex) {
                 throw new InterpretException(ex.getMessage());
             }
@@ -183,9 +185,10 @@ public class App {
     // result),
     // or the evaluated numeric value for an expression statement.
     private static Long evaluateStatement(String stmt, java.util.Map<String, Long> env,
-            java.util.Map<String, Boolean> mut) {
+            java.util.Map<String, Boolean> mut, java.util.Map<String, String> types,
+            java.util.Map<String, String> refs) {
         if (stmt.startsWith("let")) {
-            if (!parseLetStatement(stmt, env, mut))
+            if (!parseLetStatement(stmt, env, mut, types, refs))
                 throw new IllegalArgumentException("Invalid let");
             return null;
         }
@@ -201,19 +204,45 @@ public class App {
             Boolean isMutable = mut.get(name);
             if (isMutable == null || !isMutable)
                 throw new IllegalArgumentException("Not mutable");
-            long val = evaluateExprWithEnv(rhs, env);
-            env.put(name, val);
+            // handle address-of assignment like &x
+            String rhsTrim = rhs.trim();
+            if (rhsTrim.startsWith("&")) {
+                String target = rhsTrim.substring(1).trim();
+                IdentifierUtils.IdParseResult tid = IdentifierUtils.parseIdentifier(target, 0);
+                if (tid == null || tid.next != target.length())
+                    throw new IllegalArgumentException("Invalid address-of");
+                // ensure target exists
+                if (!env.containsKey(tid.name))
+                    throw new IllegalArgumentException("Unknown var");
+                refs.put(name, tid.name);
+                // keep numeric storage as 0
+                env.put(name, 0L);
+            } else {
+                long val = evaluateExprWithEnv(rhs, env, refs);
+                env.put(name, val);
+            }
             return null;
         }
         // expression
-        return Long.valueOf(evaluateExprWithEnv(stmt, env));
+        return Long.valueOf(evaluateExprWithEnv(stmt, env, refs));
     }
 
-    private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env) {
+    private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env,
+            java.util.Map<String, String> refs) {
         ExpressionUtils.ExprParser p = new ExpressionUtils.ExprParser(expr);
         long v = p.parseExprRes(new ExpressionUtils.ExprParser.VarResolver() {
             public long resolve(String name) {
                 Long val = env.get(name);
+                if (val == null)
+                    throw new IllegalArgumentException("Unknown var");
+                return val.longValue();
+            }
+
+            public long resolveRef(String name) {
+                String target = refs.get(name);
+                if (target == null)
+                    throw new IllegalArgumentException("Not a pointer");
+                Long val = env.get(target);
                 if (val == null)
                     throw new IllegalArgumentException("Unknown var");
                 return val.longValue();
@@ -226,7 +255,8 @@ public class App {
     }
 
     private static boolean parseLetStatement(String stmt, java.util.Map<String, Long> env,
-            java.util.Map<String, Boolean> mut) {
+            java.util.Map<String, Boolean> mut, java.util.Map<String, String> types,
+            java.util.Map<String, String> refs) {
         String after = stmt.substring(3).trim();
         // split on '=' first to separate LHS and RHS
         int eq = after.indexOf('=');
@@ -257,8 +287,15 @@ public class App {
             return false;
         if (lhsParts.length > 1) {
             String type = lhsParts[1].trim();
-            if (!isAllowedSuffix(type))
-                return false;
+            // support pointer types like *I32
+            if (type.startsWith("*")) {
+                String inner = type.substring(1).trim();
+                if (!isAllowedSuffix(inner))
+                    return false;
+            } else {
+                if (!isAllowedSuffix(type))
+                    return false;
+            }
         }
         try {
             long val;
@@ -268,10 +305,28 @@ public class App {
                     return false;
                 val = 0L;
             } else {
-                val = evaluateExprWithEnv(rhs, env);
+                // handle address-of initializer like &x
+                String rhsTrim = rhs.trim();
+                if (rhsTrim.startsWith("&")) {
+                    String target = rhsTrim.substring(1).trim();
+                    IdentifierUtils.IdParseResult tid = IdentifierUtils.parseIdentifier(target, 0);
+                    if (tid == null || tid.next != target.length())
+                        return false;
+                    if (!env.containsKey(tid.name))
+                        return false;
+                    // store reference mapping for this var
+                    refs.put(name, tid.name);
+                    val = 0L;
+                } else {
+                    val = evaluateExprWithEnv(rhs, env, refs);
+                }
             }
             env.put(name, val);
             mut.put(name, isMutable);
+            // store type if provided
+            if (lhsParts.length > 1) {
+                types.put(name, lhsParts[1].trim());
+            }
             return true;
         } catch (RuntimeException ex) {
             return false;
