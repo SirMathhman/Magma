@@ -15,4 +15,12 @@ public class AppTest {
     public void testInterpretThrows() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("hello"));
     }
+
+    @Test
+    public void testInterpretNumeric() throws Exception {
+        assertEquals("5", App.interpret("5"));
+        assertEquals("123", App.interpret("123"));
+        assertEquals("+42", App.interpret("+42"));
+        assertEquals("-7", App.interpret("-7"));
+    }
 }

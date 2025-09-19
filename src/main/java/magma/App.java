@@ -23,8 +23,27 @@ public class App {
         // If input is null or empty (after trimming) return empty string.
         if (input == null)
             return "";
-        if (input.trim().isEmpty())
-            return "";
+        String t = input.trim();
+        if (t.isEmpty()) return "";
+
+        // If the trimmed input is a numeric string (digits, optionally prefixed with + or -), return it.
+        int start = 0;
+        if (t.charAt(0) == '+' || t.charAt(0) == '-') {
+            if (t.length() == 1) {
+                // Just a sign, not a number.
+                throw new InterpretException("No interpretation available for: " + input);
+            }
+            start = 1;
+        }
+        boolean allDigits = true;
+        for (int i = start; i < t.length(); i++) {
+            if (!Character.isDigit(t.charAt(i))) {
+                allDigits = false;
+                break;
+            }
+        }
+        if (allDigits) return t;
+
         // Otherwise, there is no default behavior yet — throw a checked exception.
         throw new InterpretException("No interpretation available for: " + input);
     }
