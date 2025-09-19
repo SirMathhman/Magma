@@ -31,7 +31,12 @@ public class App {
             return "";
 
         // Try parsing statements (let bindings) first
-        String stmtResult = parseEvalStmts(t);
+        String stmtResult = null;
+        try {
+            stmtResult = parseEvalStmts(t);
+        } catch (InterpretException ex) {
+            throw ex;
+        }
         if (stmtResult != null)
             return stmtResult;
 
@@ -141,20 +146,26 @@ public class App {
 
     // Very small statements evaluator: supports sequences like
     // "let x : I32 = 1; x" and returns the value of the last expression as string.
-    private static String parseEvalStmts(String t) {
+    private static String parseEvalStmts(String t) throws InterpretException {
         if (t == null)
             return null;
         if (!t.contains("let") && !t.contains(";"))
             return null;
         String[] parts = t.split(";");
         java.util.Map<String, Long> env = new java.util.HashMap<>();
+        java.util.Map<String, Boolean> mut = new java.util.HashMap<>();
         for (int i = 0; i < parts.length; i++) {
             String stmt = parts[i].trim();
             if (stmt.isEmpty())
                 continue;
-            Long maybeValue = evaluateStatement(stmt, env);
+            Long maybeValue = null;
+            try {
+                maybeValue = evaluateStatement(stmt, env, mut);
+            } catch (IllegalArgumentException ex) {
+                throw new InterpretException(ex.getMessage());
+            }
             if (maybeValue == null)
-                continue; // let-binding handled, continue
+                continue; // let-binding or assignment handled, continue
             // if it's an expression value, determine if this is the last non-empty part
             boolean anyLater = false;
             for (int k = i + 1; k < parts.length; k++)
@@ -171,10 +182,27 @@ public class App {
     // Evaluate a single statement. Returns null for let-binding statements (no
     // result),
     // or the evaluated numeric value for an expression statement.
-    private static Long evaluateStatement(String stmt, java.util.Map<String, Long> env) {
+    private static Long evaluateStatement(String stmt, java.util.Map<String, Long> env,
+            java.util.Map<String, Boolean> mut) {
         if (stmt.startsWith("let")) {
-            if (!parseLetStatement(stmt, env))
+            if (!parseLetStatement(stmt, env, mut))
                 throw new IllegalArgumentException("Invalid let");
+            return null;
+        }
+        // assignment? form: <ident> = <expr>
+        int eq = stmt.indexOf('=');
+        if (eq >= 0) {
+            String lhs = stmt.substring(0, eq).trim();
+            String rhs = stmt.substring(eq + 1).trim();
+            IdParseResult id = parseIdentifier(lhs, 0);
+            if (id == null || id.next != lhs.length())
+                throw new IllegalArgumentException("Invalid assignment");
+            String name = id.name;
+            Boolean isMutable = mut.get(name);
+            if (isMutable == null || !isMutable)
+                throw new IllegalArgumentException("Not mutable");
+            long val = evaluateExprWithEnv(rhs, env);
+            env.put(name, val);
             return null;
         }
         // expression
@@ -197,7 +225,8 @@ public class App {
         return v;
     }
 
-    private static boolean parseLetStatement(String stmt, java.util.Map<String, Long> env) {
+    private static boolean parseLetStatement(String stmt, java.util.Map<String, Long> env,
+            java.util.Map<String, Boolean> mut) {
         String after = stmt.substring(3).trim();
         // split on '=' first to separate LHS and RHS
         int eq = after.indexOf('=');
@@ -207,13 +236,21 @@ public class App {
         String rhs = after.substring(eq + 1).trim();
         if (rhs.isEmpty())
             return false;
-        // lhs should be like: <ident> or <ident> : <type>
+        // lhs should be like: [mut] <ident> or [mut] <ident> : <type>
         String[] lhsParts = lhs.split(":");
         String ident = lhsParts[0].trim();
+        boolean isMutable = false;
+        if (ident.startsWith("mut ")) {
+            isMutable = true;
+            ident = ident.substring(4).trim();
+        }
         IdParseResult id = parseIdentifier(ident, 0);
         if (id == null || id.next != ident.length())
             return false;
         String name = id.name;
+        // redeclaration not allowed
+        if (env.containsKey(name))
+            return false;
         if (lhsParts.length > 1) {
             String type = lhsParts[1].trim();
             if (!isAllowedSuffix(type))
@@ -222,6 +259,7 @@ public class App {
         try {
             long val = evaluateExprWithEnv(rhs, env);
             env.put(name, val);
+            mut.put(name, isMutable);
             return true;
         } catch (RuntimeException ex) {
             return false;
