@@ -104,4 +104,10 @@ public class AppTest {
         assertEquals("1", App.interpret("(1)"));
         assertEquals("9", App.interpret("(2 + 1) * 3"));
     }
+
+    @Test
+    public void testLetBinding() throws Exception {
+        assertEquals("1", App.interpret("let x : I32 = 1; x"));
+        assertEquals("14", App.interpret("let a:I32=2; let b:I32=3; a + b * 4"));
+    }
 }

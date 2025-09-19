@@ -30,6 +30,11 @@ public class App {
         if (t.isEmpty())
             return "";
 
+        // Try parsing statements (let bindings) first
+        String stmtResult = parseAndEvaluateStatements(t);
+        if (stmtResult != null)
+            return stmtResult;
+
         // Try parsing a simple addition expression like "2 + 3" (no regex).
         String plusResult = parseAndEvaluateAddition(t);
         if (plusResult != null)
@@ -273,6 +278,94 @@ public class App {
             this.s = s;
         }
 
+        interface VarResolver {
+            long resolve(String name);
+        }
+
+        long parseExpressionWithResolver(VarResolver resolver) {
+            return parseExpressionWithResolverInternal(resolver);
+        }
+
+        private long parseExpressionWithResolverInternal(VarResolver resolver) {
+            long v = parseTermWithResolver(resolver);
+            skipWhitespace();
+            while (pos < s.length()) {
+                char c = s.charAt(pos);
+                if (c == '+' || c == '-') {
+                    pos++;
+                    long r = parseTermWithResolver(resolver);
+                    if (c == '+')
+                        v = v + r;
+                    else
+                        v = v - r;
+                    skipWhitespace();
+                } else
+                    break;
+            }
+            return v;
+        }
+
+        private long parseTermWithResolver(VarResolver resolver) {
+            long v = parseFactorWithResolver(resolver);
+            skipWhitespace();
+            while (pos < s.length()) {
+                char c = s.charAt(pos);
+                if (c == '*') {
+                    pos++;
+                    long r = parseFactorWithResolver(resolver);
+                    v = v * r;
+                    skipWhitespace();
+                } else
+                    break;
+            }
+            return v;
+        }
+
+        private long parseFactorWithResolver(VarResolver resolver) {
+            skipWhitespace();
+            if (pos >= s.length())
+                throw new IllegalArgumentException("Unexpected end");
+            boolean unaryMinus = detectAndConsumeUnarySign();
+            skipWhitespace();
+            return parseParenthesizedOrValueWithResolver(resolver, unaryMinus);
+        }
+
+        private long parseParenthesizedOrValueWithResolver(VarResolver resolver, boolean unaryMinus) {
+            if (pos < s.length() && s.charAt(pos) == '(') {
+                pos++;
+                long v = parseExpressionWithResolverInternal(resolver);
+                skipWhitespace();
+                if (pos >= s.length() || s.charAt(pos) != ')')
+                    throw new IllegalArgumentException("Missing )");
+                pos++;
+                return unaryMinus ? -v : v;
+            }
+            if (pos < s.length() && Character.isJavaIdentifierStart(s.charAt(pos))) {
+                int start = pos;
+                pos++;
+                while (pos < s.length() && Character.isJavaIdentifierPart(s.charAt(pos)))
+                    pos++;
+                String name = s.substring(start, pos);
+                long v = resolver.resolve(name);
+                return unaryMinus ? -v : v;
+            }
+            OperandParseResult r = parseNumberWithSuffix(s, pos);
+            if (r == null)
+                throw new IllegalArgumentException("Invalid number");
+            pos = r.nextPos;
+            checkAndSetSuffix(r.suffix);
+            return unaryMinus ? -r.value : r.value;
+        }
+
+        private void checkAndSetSuffix(String suf) {
+            if (suf == null)
+                return;
+            if (commonSuffix == null)
+                commonSuffix = suf;
+            else if (!commonSuffix.equals(suf))
+                throw new IllegalArgumentException("Mixed suffixes");
+        }
+
         boolean isAtEnd() {
             return pos >= s.length();
         }
@@ -364,4 +457,120 @@ public class App {
             return false;
         }
     }
+
+    // Very small statements evaluator: supports sequences like
+    // "let x : I32 = 1; x" and returns the value of the last expression as string.
+    private static String parseAndEvaluateStatements(String t) {
+        if (t == null)
+            return null;
+        if (!t.contains("let") && !t.contains(";"))
+            return null;
+        String[] parts = t.split(";");
+        java.util.Map<String, Long> env = new java.util.HashMap<>();
+        for (int i = 0; i < parts.length; i++) {
+            String stmt = parts[i].trim();
+            if (stmt.isEmpty())
+                continue;
+            Long maybeValue = evaluateStatement(stmt, env);
+            if (maybeValue == null)
+                continue; // let-binding handled, continue
+            // if it's an expression value, determine if this is the last non-empty part
+            boolean anyLater = false;
+            for (int k = i + 1; k < parts.length; k++)
+                if (!parts[k].trim().isEmpty()) {
+                    anyLater = true;
+                    break;
+                }
+            if (!anyLater)
+                return String.valueOf(maybeValue.longValue());
+        }
+        return null;
+    }
+
+    // Evaluate a single statement. Returns null for let-binding statements (no
+    // result),
+    // or the evaluated numeric value for an expression statement.
+    private static Long evaluateStatement(String stmt, java.util.Map<String, Long> env) {
+        if (stmt.startsWith("let")) {
+            if (!parseLetStatement(stmt, env))
+                throw new IllegalArgumentException("Invalid let");
+            return null;
+        }
+        // expression
+        return Long.valueOf(evaluateExprWithEnv(stmt, env));
+    }
+
+    private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env) {
+        ExprParser p = new ExprParser(expr);
+        long v = p.parseExpressionWithResolver(new ExprParser.VarResolver() {
+            public long resolve(String name) {
+                Long val = env.get(name);
+                if (val == null)
+                    throw new IllegalArgumentException("Unknown var");
+                return val.longValue();
+            }
+        });
+        p.skipWhitespace();
+        if (!p.isAtEnd())
+            throw new IllegalArgumentException("Trailing data");
+        return v;
+    }
+
+    private static boolean parseLetStatement(String stmt, java.util.Map<String, Long> env) {
+        String after = stmt.substring(3).trim();
+        // split on '=' first to separate LHS and RHS
+        int eq = after.indexOf('=');
+        if (eq < 0)
+            return false;
+        String lhs = after.substring(0, eq).trim();
+        String rhs = after.substring(eq + 1).trim();
+        if (rhs.isEmpty())
+            return false;
+        // lhs should be like: <ident> or <ident> : <type>
+        String[] lhsParts = lhs.split(":");
+        String ident = lhsParts[0].trim();
+        IdParseResult id = parseIdentifier(ident, 0);
+        if (id == null || id.next != ident.length())
+            return false;
+        String name = id.name;
+        if (lhsParts.length > 1) {
+            String type = lhsParts[1].trim();
+            if (!isAllowedSuffix(type))
+                return false;
+        }
+        try {
+            long val = evaluateExprWithEnv(rhs, env);
+            env.put(name, val);
+            return true;
+        } catch (RuntimeException ex) {
+            return false;
+        }
+    }
+
+    private static class IdParseResult {
+        final String name;
+        final int next;
+
+        IdParseResult(String name, int next) {
+            this.name = name;
+            this.next = next;
+        }
+    }
+
+    private static IdParseResult parseIdentifier(String s, int pos) {
+        int n = s.length();
+        int i = pos;
+        while (i < n && Character.isWhitespace(s.charAt(i)))
+            i++;
+        if (i >= n || !Character.isJavaIdentifierStart(s.charAt(i)))
+            return null;
+        int start = i;
+        i++;
+        while (i < n && Character.isJavaIdentifierPart(s.charAt(i)))
+            i++;
+        return new IdParseResult(s.substring(start, i), i);
+    }
+
+    // Extend ExprParser with a resolver-capable expression entry point
+    // We'll add a small interface and method via insertion into ExprParser below.
 }
