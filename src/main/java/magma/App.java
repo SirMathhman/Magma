@@ -92,21 +92,61 @@ public class App {
     private static String parseAndEvaluateAddition(String t) {
         if (t == null || t.isEmpty())
             return null;
-        java.util.List<OperandParseResult> operands = tokenizeOperands(t);
-        if (operands == null || operands.size() < 2)
+        ExpressionTokens tokens = tokenizeExpression(t);
+        if (tokens == null || tokens.operands.size() < 1)
             return null;
+        // If there are no operators, this is a plain number (possibly signed) and
+        // should be handled by numeric-prefix logic so we return null here.
+        if (tokens.operators.isEmpty())
+            return null;
+
+        // enforce suffix consistency across operands (if present)
         String commonSuffix = null;
-        long total = 0L;
-        for (OperandParseResult r : operands) {
+        for (OperandParseResult r : tokens.operands) {
             if (r.suffix != null) {
                 if (commonSuffix == null)
                     commonSuffix = r.suffix;
                 else if (!commonSuffix.equals(r.suffix))
                     return null;
             }
-            total += r.value;
         }
-        return String.valueOf(total);
+
+        // First, apply multiplication (higher precedence).
+        java.util.List<Long> values = new java.util.ArrayList<>();
+        java.util.List<Character> ops = new java.util.ArrayList<>();
+
+        long current = tokens.operands.get(0).value;
+        for (int i = 0; i < tokens.operators.size(); i++) {
+            char op = tokens.operators.get(i);
+            OperandParseResult next = tokens.operands.get(i + 1);
+            if (op == '*') {
+                current = current * next.value;
+            } else {
+                values.add(current);
+                ops.add(op);
+                current = next.value;
+            }
+        }
+        values.add(current);
+
+        // Now evaluate + and - left to right
+        long result = values.get(0);
+        for (int i = 0; i < ops.size(); i++) {
+            char op = ops.get(i);
+            long v = values.get(i + 1);
+            if (op == '+')
+                result = result + v;
+            else if (op == '-')
+                result = result - v;
+            else
+                return null;
+        }
+        return String.valueOf(result);
+    }
+
+    private static class ExpressionTokens {
+        final java.util.List<OperandParseResult> operands = new java.util.ArrayList<>();
+        final java.util.List<Character> operators = new java.util.ArrayList<>();
     }
 
     private static class OperandParseResult {
@@ -155,45 +195,37 @@ public class App {
         return new OperandParseResult(v, suf, pos);
     }
 
-    private static java.util.List<OperandParseResult> tokenizeOperands(String t) {
+    private static ExpressionTokens tokenizeExpression(String t) {
         int n = t.length();
         int pos = 0;
-        java.util.List<OperandParseResult> out = new java.util.ArrayList<>();
-        boolean expectNumber = true;
-        int pendingOp = +1; // operator to apply to next number
+        ExpressionTokens out = new ExpressionTokens();
+        // first number
+        OperandParseResult first = parseNumberWithSuffix(t, pos);
+        if (first == null)
+            return null;
+        out.operands.add(first);
+        pos = first.nextPos;
 
-        while (pos < n) {
+        while (true) {
             // skip whitespace
             while (pos < n && Character.isWhitespace(t.charAt(pos)))
                 pos++;
             if (pos >= n)
                 break;
-
-            if (!expectNumber) {
-                // expect an operator
-                char c = t.charAt(pos);
-                if (c == '+')
-                    pendingOp = +1;
-                else if (c == '-')
-                    pendingOp = -1;
-                else
-                    return null;
-                pos++;
-                expectNumber = true;
-                continue;
-            }
-
-            OperandParseResult r = parseNumberWithSuffix(t, pos);
-            if (r == null)
+            char c = t.charAt(pos);
+            if (c != '+' && c != '-' && c != '*')
                 return null;
-            // apply pending operator
-            out.add(new OperandParseResult(pendingOp * r.value, r.suffix, r.nextPos));
-            pos = r.nextPos;
-            expectNumber = false;
-            // after first number, ensure we saw operator between numbers; tokenizer will
-            // accept sequences like "1 2" as invalid
+            out.operators.add(c);
+            pos++;
+            // parse next number
+            while (pos < n && Character.isWhitespace(t.charAt(pos)))
+                pos++;
+            OperandParseResult next = parseNumberWithSuffix(t, pos);
+            if (next == null)
+                return null;
+            out.operands.add(next);
+            pos = next.nextPos;
         }
-
         return out;
     }
 

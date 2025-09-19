@@ -86,4 +86,11 @@ public class AppTest {
         assertEquals("1", App.interpret("3 - 2"));
         assertEquals("-1", App.interpret("2 - 3"));
     }
+
+    @Test
+    public void testInterpretMultiplication() throws Exception {
+        assertEquals("6", App.interpret("3 * 2"));
+        // multiplication has higher precedence than addition
+        assertEquals("14", App.interpret("2 + 3 * 4"));
+    }
 }
