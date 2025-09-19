@@ -46,6 +46,16 @@
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
+			<!-- Checkstyle plugin (uses project-root checkstyle.xml) -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<version>3.2.2</version>
+				<configuration>
+					<configLocation>${project.basedir}/checkstyle.xml</configLocation>
+					<failsOnError>false</failsOnError>
+				</configuration>
+			</plugin>
 		</plugins>
 	</build>
 
