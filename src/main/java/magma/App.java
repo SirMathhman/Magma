@@ -87,45 +87,50 @@ public class App {
      * Otherwise returns null.
      */
     private static String parseAndEvaluateAddition(String t) {
-        if (t == null)
+        if (t == null || t.isEmpty())
             return null;
-        int plusIndex = -1;
-        // find a '+' that is not the first character (to avoid leading sign)
-        for (int i = 1; i < t.length(); i++) {
+        // Collect operands split by '+' while respecting a possible leading sign on the
+        // first operand.
+        java.util.List<String> parts = new java.util.ArrayList<>();
+        int i = 0;
+        int last = 0;
+        // We'll treat any '+' character as a separator except when it's at index 0
+        // (leading sign)
+        for (i = 1; i < t.length(); i++) {
             if (t.charAt(i) == '+') {
-                plusIndex = i;
-                break;
+                parts.add(t.substring(last, i).trim());
+                last = i + 1;
             }
         }
-        if (plusIndex <= 0)
-            return null;
-        String left = t.substring(0, plusIndex).trim();
-        String right = t.substring(plusIndex + 1).trim();
-        if (left.isEmpty() || right.isEmpty())
-            return null;
-        // Allow operands to include an allowed suffix (e.g., "3I32"). If present, strip
-        // it.
-        String leftSuffix = findAllowedSuffix(left);
-        String rightSuffix = findAllowedSuffix(right);
-        String leftStripped = leftSuffix == null ? left : left.substring(0, left.length() - leftSuffix.length()).trim();
-        String rightStripped = rightSuffix == null ? right
-                : right.substring(0, right.length() - rightSuffix.length()).trim();
-        boolean leftHadSuffix = leftSuffix != null;
-        boolean rightHadSuffix = rightSuffix != null;
-        // If both operands include suffixes, only allow if they are the same suffix.
-        if (leftHadSuffix && rightHadSuffix && !leftSuffix.equals(rightSuffix))
-            return null;
-        // Validate left and right as integer strings (no regex)
-        if (!isIntegerString(leftStripped) || !isIntegerString(rightStripped))
-            return null;
-        try {
-            long a = Long.parseLong(leftStripped);
-            long b = Long.parseLong(rightStripped);
-            long sum = a + b;
-            return String.valueOf(sum);
-        } catch (NumberFormatException ex) {
-            return null;
+        // add final part
+        parts.add(t.substring(last).trim());
+        if (parts.size() < 2)
+            return null; // not an addition
+
+        String commonSuffix = null;
+        long total = 0L;
+        for (String p : parts) {
+            if (p.isEmpty())
+                return null;
+            // For each operand, allow an allowed suffix; detect and strip it.
+            String suf = findAllowedSuffix(p);
+            String numPart = suf == null ? p : p.substring(0, p.length() - suf.length()).trim();
+            if (!isIntegerString(numPart))
+                return null;
+            if (suf != null) {
+                if (commonSuffix == null)
+                    commonSuffix = suf;
+                else if (!commonSuffix.equals(suf))
+                    return null; // mixed suffixes not allowed
+            }
+            try {
+                long v = Long.parseLong(numPart);
+                total += v;
+            } catch (NumberFormatException ex) {
+                return null;
+            }
         }
+        return String.valueOf(total);
     }
 
     // Return the allowed suffix (exact match) at the end of s, or null if none.

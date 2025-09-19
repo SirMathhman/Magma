@@ -74,4 +74,10 @@ public class AppTest {
     public void testAdditionSameSuffixAllowed() throws Exception {
         assertEquals("5", App.interpret("2I32 + 3I32"));
     }
+
+    @Test
+    public void testInterpretChainedAddition() throws Exception {
+        assertEquals("6", App.interpret("1 + 2 + 3"));
+        assertEquals("0", App.interpret("1 + -1 + 0"));
+    }
 }
