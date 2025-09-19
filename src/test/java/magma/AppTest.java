@@ -93,4 +93,15 @@ public class AppTest {
         // multiplication has higher precedence than addition
         assertEquals("14", App.interpret("2 + 3 * 4"));
     }
+
+    @Test
+    public void testOperatorPrecedence() throws Exception {
+        assertEquals("7", App.interpret("1 + 2 * 3"));
+    }
+
+    @Test
+    public void testParentheses() throws Exception {
+        assertEquals("1", App.interpret("(1)"));
+        assertEquals("9", App.interpret("(2 + 1) * 3"));
+    }
 }
