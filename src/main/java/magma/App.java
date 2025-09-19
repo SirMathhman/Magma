@@ -30,16 +30,16 @@ public class App {
         if (t.isEmpty())
             return "";
 
-    // Try parsing statements (let bindings) first
-    String stmtResult = parseEvalStmts(t);
+        // Try parsing statements (let bindings) first
+        String stmtResult = parseEvalStmts(t);
         if (stmtResult != null)
             return stmtResult;
 
-    // Try parsing a simple addition expression like "2 + 3" (no regex).
-    String plusResult = parseAddEval(t);
+        // Try parsing a simple addition expression like "2 + 3" (no regex).
+        String plusResult = parseAddEval(t);
         if (plusResult != null)
             return plusResult;
-    int end = parseNumPrefixEnd(t);
+        int end = parseNumPrefixEnd(t);
         if (end > 0) {
             if (end == t.length())
                 return t.substring(0, end);
@@ -111,7 +111,7 @@ public class App {
             }
         }
 
-    ExpressionTypes.ExpressionTokens tokens = tokenizeExpression(t);
+        ExpressionTypes.ExpressionTokens tokens = ExpressionUtils.tokenizeExpression(t, ALLOWED_SUFFIXES);
         if (tokens == null || tokens.operands.size() < 1)
             return null;
         // If there are no operators, this is a plain number (possibly signed) and
@@ -120,12 +120,12 @@ public class App {
             return null;
 
         // enforce suffix consistency across operands (if present)
-        if (!suffixesConsistent(tokens))
+        if (!ExpressionUtils.suffixesConsistent(tokens))
             return null;
 
         // First, apply multiplication (higher precedence) via helper to reduce
         // complexity.
-    ExpressionTypes.Reduction red = reduceMult(tokens);
+        ExpressionTypes.Reduction red = ExpressionUtils.reduceMult(tokens);
         // Now evaluate + and - left to right using reduced lists
         long result = red.values.get(0);
         for (int i = 0; i < red.ops.size(); i++) {
@@ -137,19 +137,6 @@ public class App {
                 result = result - v;
         }
         return String.valueOf(result);
-    }
-
-    // delegate parsing helpers to ExpressionUtils
-    private static ExpressionTypes.Reduction reduceMult(ExpressionTypes.ExpressionTokens tokens) {
-        return ExpressionUtils.reduceMult(tokens);
-    }
-
-    private static boolean suffixesConsistent(ExpressionTypes.ExpressionTokens tokens) {
-        return ExpressionUtils.suffixesConsistent(tokens);
-    }
-
-    private static ExpressionTypes.ExpressionTokens tokenizeExpression(String t) {
-        return ExpressionUtils.tokenizeExpression(t, ALLOWED_SUFFIXES);
     }
 
     // Very small statements evaluator: supports sequences like

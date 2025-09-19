@@ -127,4 +127,9 @@ public class AppTest {
     public void testLetNoTypeReturnsOne() throws Exception {
         assertEquals("1", App.interpret("let x = 1; x"));
     }
+
+    @Test
+    public void testLetAssignMismatchU() {
+        assertThrows(magma.InterpretException.class, () -> App.interpret("let x : U8 = 1; let y : U16 = x;"));
+    }
 }
