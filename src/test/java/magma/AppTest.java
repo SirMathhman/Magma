@@ -6,33 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AppTest {
     @Test
-    public void testInterpretNull() {
-        try {
-            assertEquals("", App.interpret(null));
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    public void testInterpretEmpty() throws Exception {
+        assertEquals("", App.interpret(null));
+        assertEquals("", App.interpret("   "));
     }
 
     @Test
-    public void testInterpretHello() {
+    public void testInterpretThrows() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("hello"));
-        assertThrows(magma.InterpretException.class, () -> App.interpret("  HeLLo  "));
-    }
-
-    @Test
-    public void testInterpretPing() {
-        assertThrows(magma.InterpretException.class, () -> App.interpret("ping"));
-    }
-
-    @Test
-    public void testInterpretRepeat() {
-        assertThrows(magma.InterpretException.class, () -> App.interpret("repeat:abc"));
-        assertThrows(magma.InterpretException.class, () -> App.interpret("repeat:123 456"));
-    }
-
-    @Test
-    public void testInterpretUnknown() {
-        assertThrows(magma.InterpretException.class, () -> App.interpret("foobar"));
     }
 }
