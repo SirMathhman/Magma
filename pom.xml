@@ -46,14 +46,25 @@
 					<useModulePath>false</useModulePath>
 				</configuration>
 			</plugin>
-			<!-- Checkstyle plugin (uses project-root checkstyle.xml) -->
+			<!-- Checkstyle plugin (uses project-root checkstyle.xml). Runs during test phase and includes
+			test sources -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.2.2</version>
+				<executions>
+					<execution>
+						<id>checkstyle-test</id>
+						<phase>test</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
 				<configuration>
 					<configLocation>${project.basedir}/checkstyle.xml</configLocation>
-					<failsOnError>false</failsOnError>
+					<failsOnError>true</failsOnError>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 				</configuration>
 			</plugin>
 		</plugins>
