@@ -24,25 +24,24 @@ public class App {
         if (input == null)
             return "";
         String t = input.trim();
-        if (t.isEmpty()) return "";
+        if (t.isEmpty())
+            return "";
 
-        // If the trimmed input is a numeric string (digits, optionally prefixed with + or -), return it.
-        int start = 0;
+        // If the trimmed input starts with an optional +/-, then at least one digit,
+        // return the longest leading numeric prefix.
+        int idx = 0;
         if (t.charAt(0) == '+' || t.charAt(0) == '-') {
-            if (t.length() == 1) {
-                // Just a sign, not a number.
-                throw new InterpretException("No interpretation available for: " + input);
-            }
-            start = 1;
+            idx = 1;
         }
-        boolean allDigits = true;
-        for (int i = start; i < t.length(); i++) {
-            if (!Character.isDigit(t.charAt(i))) {
-                allDigits = false;
-                break;
-            }
+        int digitsStart = idx;
+        while (idx < t.length() && Character.isDigit(t.charAt(idx))) {
+            idx++;
         }
-        if (allDigits) return t;
+        int digitsCount = idx - digitsStart;
+        if (digitsCount > 0) {
+            // return sign+digits if sign present, else digits only
+            return t.substring(0, idx);
+        }
 
         // Otherwise, there is no default behavior yet — throw a checked exception.
         throw new InterpretException("No interpretation available for: " + input);

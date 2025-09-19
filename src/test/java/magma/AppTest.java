@@ -23,4 +23,14 @@ public class AppTest {
         assertEquals("+42", App.interpret("+42"));
         assertEquals("-7", App.interpret("-7"));
     }
+
+    @Test
+    public void testInterpretNumericPrefix() throws Exception {
+        assertEquals("5", App.interpret("5U8"));
+        assertEquals("123", App.interpret("123abc"));
+        assertEquals("+42", App.interpret("+42xyz"));
+        assertEquals("-7", App.interpret("-7-foo"));
+        // if no leading digits, previous behavior applies (exception)
+        assertThrows(magma.InterpretException.class, () -> App.interpret("a123"));
+    }
 }
