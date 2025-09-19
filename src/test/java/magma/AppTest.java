@@ -188,4 +188,9 @@ public class AppTest {
     public void emptyBracesReturnEmpty() throws Exception {
         assertEquals("", App.interpret("{}"));
     }
+
+    @Test
+    public void leadingEmptyBracesThenNum() throws Exception {
+        assertEquals("100", App.interpret("{} 100"));
+    }
 }

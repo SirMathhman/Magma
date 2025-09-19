@@ -5,7 +5,11 @@ public class StatementEvaluator {
 	public static String parseEvalStmts(String t) throws InterpretException {
 		if (t == null)
 			return null;
-		String stripped = stripOuterBraces(t);
+		// If the string starts with a top-level brace block, strip it and continue
+		String stripped = BraceUtils.stripLeadingBraceBlock(t);
+		// Also support the case where the entire string is a brace block
+		if (stripped.trim().startsWith("{") && stripped.trim().endsWith("}"))
+			stripped = BraceUtils.stripOuterBraces(stripped);
 		if (stripped.trim().isEmpty())
 			return "";
 		if (!stripped.contains("let") && !stripped.contains(";"))
@@ -13,27 +17,34 @@ public class StatementEvaluator {
 		return processStatementParts(stripped);
 	}
 
-	private static String stripOuterBraces(String t) {
+	public static String stripLeadingBraceBlock(String t) {
+		if (t == null)
+			return null;
 		String trimmed = t.trim();
 		if (!trimmed.startsWith("{"))
 			return t;
 		int depth = 0;
-		int match = -1;
-		for (int i = 0; i < trimmed.length(); i++) {
+		int i;
+		for (i = 0; i < trimmed.length(); i++) {
 			char c = trimmed.charAt(i);
 			if (c == '{')
 				depth++;
 			else if (c == '}') {
 				depth--;
 				if (depth == 0) {
-					match = i;
+					i++;
 					break;
 				}
 			}
 		}
-		if (match == trimmed.length() - 1)
-			return trimmed.substring(1, trimmed.length() - 1).trim();
-		return t;
+		if (depth != 0)
+			return t; // unmatched braces — leave as is
+		// if the leading brace block covers the whole trimmed string, don't strip it
+		// here
+		if (i >= trimmed.length())
+			return t;
+		// return the remainder after the leading brace block
+		return trimmed.substring(i).trim();
 	}
 
 	private static String processStatementParts(String t) throws InterpretException {
@@ -255,7 +266,6 @@ public class StatementEvaluator {
 			return null;
 		return new java.util.AbstractMap.SimpleEntry<>(tid.name, (ptrTypeMutable || isMutAddr));
 	}
-
 
 	private static boolean isAllowedSuffix(String s) {
 		if (s == null)

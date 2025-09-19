@@ -26,6 +26,8 @@ public class App {
         if (input == null)
             return "";
         String t = input.trim();
+        // Remove a leading top-level brace block if present (e.g. "{} 100" -> "100")
+        t = StatementEvaluator.stripLeadingBraceBlock(t);
         if (t.isEmpty())
             return "";
 
