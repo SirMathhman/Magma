@@ -209,4 +209,10 @@ public class AppTest {
         assertEquals("true", App.interpret("true"));
         assertEquals("true", App.interpret("TRUE"));
     }
+
+    @Test
+    public void equalityOperatorNumeric() throws Exception {
+        assertEquals("true", App.interpret("5 == 5"));
+        assertEquals("false", App.interpret("5 == 6"));
+    }
 }

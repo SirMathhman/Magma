@@ -31,26 +31,23 @@ public class App {
         if (t.isEmpty())
             return "";
 
-        // Try parsing statements (let bindings) first
-        String stmtResult = null;
-        try {
-            stmtResult = StatementEvaluator.parseEvalStmts(t);
-        } catch (InterpretException ex) {
-            throw ex;
-        }
-        if (stmtResult != null)
-            return stmtResult;
+        String runRes = EvaluatorDispatcher.run(t, input);
+        if (runRes != null)
+            return runRes;
 
-        // boolean literals
+        // Otherwise, there is no default behavior yet — throw a checked exception.
+        throw new InterpretException("No interpretation available for: " + input);
+    }
+
+    static String tryEvalBooleanLiteral(String t) {
         if (t.equalsIgnoreCase("true"))
             return "true";
         if (t.equalsIgnoreCase("false"))
             return "false";
+        return null;
+    }
 
-        // Try parsing a simple addition expression like "2 + 3" (no regex).
-        String plusResult = parseAddEval(t);
-        if (plusResult != null)
-            return plusResult;
+    static String tryEvalNumericPrefix(String t, String input) throws InterpretException {
         int end = parseNumPrefixEnd(t);
         if (end > 0) {
             if (end == t.length())
@@ -60,9 +57,48 @@ public class App {
                 return t.substring(0, end);
             throw new InterpretException("No interpretation available for: " + input);
         }
+        return null;
+    }
 
-        // Otherwise, there is no default behavior yet — throw a checked exception.
-        throw new InterpretException("No interpretation available for: " + input);
+    static String tryEvalEquality(String t) {
+        int depth = 0;
+        for (int i = 0; i < t.length() - 1; i++) {
+            char c = t.charAt(i);
+            if (c == '(' || c == '{')
+                depth++;
+            else if (c == ')' || c == '}')
+                depth--;
+            else if (depth == 0 && c == '=' && t.charAt(i + 1) == '=') {
+                String left = t.substring(0, i).trim();
+                String right = t.substring(i + 2).trim();
+                return evaluateEquality(left, right);
+            }
+        }
+        return null;
+    }
+
+    private static String evaluateEquality(String left, String right) {
+        // boolean equality
+        if ((left.equalsIgnoreCase("true") || left.equalsIgnoreCase("false"))
+                && (right.equalsIgnoreCase("true") || right.equalsIgnoreCase("false"))) {
+            return String.valueOf(left.equalsIgnoreCase(right)).toLowerCase();
+        }
+        // numeric equality
+        try {
+            ExpressionParser pl = new ExpressionParser(left);
+            long lv = pl.parseExpression();
+            pl.skipWhitespace();
+            if (!pl.isAtEnd())
+                return null;
+            ExpressionParser pr = new ExpressionParser(right);
+            long rv = pr.parseExpression();
+            pr.skipWhitespace();
+            if (!pr.isAtEnd())
+                return null;
+            return String.valueOf(lv == rv);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
     }
 
     // Return the index just after the last digit in the leading numeric prefix,
@@ -106,7 +142,7 @@ public class App {
      * where left and right are integers (optional +/-), returns the sum as string.
      * Otherwise returns null.
      */
-    private static String parseAddEval(String t) {
+    static String parseAddEval(String t) {
         if (t == null || t.isEmpty())
             return null;
         // If the input contains parentheses or braces, use the recursive parser.
