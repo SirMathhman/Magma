@@ -46,4 +46,13 @@ public class AppTest {
     public void testDisallowedSuffix() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("5XYZ"));
     }
+
+    @Test
+    public void testInterpretAddition() throws Exception {
+        assertEquals("5", App.interpret("2 + 3"));
+        assertEquals("0", App.interpret("1 + -1"));
+        assertEquals("100", App.interpret("40+60"));
+        // invalid addition forms should not be parsed
+        assertThrows(magma.InterpretException.class, () -> App.interpret("+ 3 + 2"));
+    }
 }

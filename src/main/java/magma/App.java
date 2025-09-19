@@ -26,6 +26,11 @@ public class App {
         String t = input.trim();
         if (t.isEmpty())
             return "";
+
+        // Try parsing a simple addition expression like "2 + 3" (no regex).
+        String plusResult = parseAndEvaluateAddition(t);
+        if (plusResult != null)
+            return plusResult;
         int end = parseNumericPrefixEnd(t);
         if (end > 0) {
             if (end == t.length())
@@ -73,6 +78,58 @@ public class App {
             default:
                 return false;
         }
+    }
+
+    /**
+     * If the input is a simple addition expression (left <op> right) with a single
+     * '+',
+     * where left and right are integers (optional +/-), returns the sum as string.
+     * Otherwise returns null.
+     */
+    private static String parseAndEvaluateAddition(String t) {
+        if (t == null)
+            return null;
+        int plusIndex = -1;
+        // find a '+' that is not the first character (to avoid leading sign)
+        for (int i = 1; i < t.length(); i++) {
+            if (t.charAt(i) == '+') {
+                plusIndex = i;
+                break;
+            }
+        }
+        if (plusIndex <= 0)
+            return null;
+        String left = t.substring(0, plusIndex).trim();
+        String right = t.substring(plusIndex + 1).trim();
+        if (left.isEmpty() || right.isEmpty())
+            return null;
+        // Validate left and right as integer strings (no regex)
+        if (!isIntegerString(left) || !isIntegerString(right))
+            return null;
+        try {
+            long a = Long.parseLong(left);
+            long b = Long.parseLong(right);
+            long sum = a + b;
+            return String.valueOf(sum);
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private static boolean isIntegerString(String s) {
+        if (s == null || s.isEmpty())
+            return false;
+        int idx = 0;
+        if (s.charAt(0) == '+' || s.charAt(0) == '-') {
+            if (s.length() == 1)
+                return false;
+            idx = 1;
+        }
+        for (int i = idx; i < s.length(); i++) {
+            if (!Character.isDigit(s.charAt(i)))
+                return false;
+        }
+        return true;
     }
 
 }
