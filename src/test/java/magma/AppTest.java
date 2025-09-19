@@ -69,4 +69,9 @@ public class AppTest {
     public void testAdditionBothSuffixesNotAllowed() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("2U8 + 3I32"));
     }
+
+    @Test
+    public void testAdditionSameSuffixAllowed() throws Exception {
+        assertEquals("5", App.interpret("2I32 + 3I32"));
+    }
 }

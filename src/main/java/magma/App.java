@@ -105,20 +105,15 @@ public class App {
             return null;
         // Allow operands to include an allowed suffix (e.g., "3I32"). If present, strip
         // it.
-        String leftStripped = stripAllowedSuffix(left);
-        String rightStripped = stripAllowedSuffix(right);
-        boolean leftHadSuffix = false;
-        boolean rightHadSuffix = false;
-        if (leftStripped == null)
-            leftStripped = left;
-        else
-            leftHadSuffix = true;
-        if (rightStripped == null)
-            rightStripped = right;
-        else
-            rightHadSuffix = true;
-        // If both operands include suffixes, we do not support the operation.
-        if (leftHadSuffix && rightHadSuffix)
+        String leftSuffix = findAllowedSuffix(left);
+        String rightSuffix = findAllowedSuffix(right);
+        String leftStripped = leftSuffix == null ? left : left.substring(0, left.length() - leftSuffix.length()).trim();
+        String rightStripped = rightSuffix == null ? right
+                : right.substring(0, right.length() - rightSuffix.length()).trim();
+        boolean leftHadSuffix = leftSuffix != null;
+        boolean rightHadSuffix = rightSuffix != null;
+        // If both operands include suffixes, only allow if they are the same suffix.
+        if (leftHadSuffix && rightHadSuffix && !leftSuffix.equals(rightSuffix))
             return null;
         // Validate left and right as integer strings (no regex)
         if (!isIntegerString(leftStripped) || !isIntegerString(rightStripped))
@@ -133,18 +128,14 @@ public class App {
         }
     }
 
-    // If `s` ends with an allowed suffix, return the string with the suffix
-    // removed, else return null.
-    private static String stripAllowedSuffix(String s) {
+    // Return the allowed suffix (exact match) at the end of s, or null if none.
+    private static String findAllowedSuffix(String s) {
         if (s == null || s.isEmpty())
             return null;
-        // check each allowed suffix
         String[] suffixes = new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" };
         for (String suf : suffixes) {
-            if (s.endsWith(suf)) {
-                String prefix = s.substring(0, s.length() - suf.length()).trim();
-                return prefix.isEmpty() ? null : prefix;
-            }
+            if (s.endsWith(suf))
+                return suf;
         }
         return null;
     }
