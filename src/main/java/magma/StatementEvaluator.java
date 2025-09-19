@@ -16,33 +16,7 @@ public class StatementEvaluator {
 	}
 
 	public static String stripLeadingBraceBlock(String t) {
-		if (t == null)
-			return null;
-		String trimmed = t.trim();
-		if (!trimmed.startsWith("{"))
-			return t;
-		int depth = 0;
-		int i;
-		for (i = 0; i < trimmed.length(); i++) {
-			char c = trimmed.charAt(i);
-			if (c == '{')
-				depth++;
-			else if (c == '}') {
-				depth--;
-				if (depth == 0) {
-					i++;
-					break;
-				}
-			}
-		}
-		if (depth != 0)
-			return t; // unmatched braces — leave as is
-		// if the leading brace block covers the whole trimmed string, don't strip it
-		// here
-		if (i >= trimmed.length())
-			return t;
-		// return the remainder after the leading brace block
-		return trimmed.substring(i).trim();
+		return BraceUtils.stripLeadingBraceBlock(t);
 	}
 
 	private static String processStatementParts(String t) throws InterpretException {
@@ -60,6 +34,24 @@ public class StatementEvaluator {
 			stmt = stmt.trim();
 			if (stmt.isEmpty())
 				continue;
+			String stmtTrim = stmt.trim();
+			// handle statement-level if that may span the next part as 'else'
+			if (stmtTrim.startsWith("if")) {
+				String combined = stmtTrim;
+				if (IfStatementHandler.indexOfTopLevelElse(stmtTrim) < 0 && i + 1 < parts.length
+						&& parts[i + 1].trim().startsWith("else")) {
+					combined = stmt + "; " + parts[i + 1].trim();
+					i++; // consume else part
+				}
+				try {
+					Long maybeIf = IfStatementHandler.evaluateIfStatement(combined, ctx);
+					if (maybeIf != null && !anyLaterPart(parts, i))
+						return String.valueOf(maybeIf.longValue());
+					continue;
+				} catch (IllegalArgumentException ex) {
+					throw new InterpretException(ex.getMessage());
+				}
+			}
 			Long maybeValue = null;
 			try {
 				maybeValue = evaluateStatement(stmt, ctx);
@@ -81,7 +73,7 @@ public class StatementEvaluator {
 		return false;
 	}
 
-	private static Long evaluateStatement(String stmt, StatementContext ctx) {
+	static Long evaluateStatement(String stmt, StatementContext ctx) {
 		if (stmt.startsWith("let")) {
 			if (!parseLetStatement(stmt, ctx))
 				throw new IllegalArgumentException("Invalid let");

@@ -13,6 +13,7 @@ public class EvaluatorDispatcher {
 		funcs.add(s -> App.tryEvalEquality(s));
 		funcs.add(s -> App.tryEvalBooleanLiteral(s));
 		funcs.add(s -> tryEvalIfExpression(s));
+		funcs.add(s -> MatchEvaluator.tryEvalMatchExpression(s));
 		funcs.add(s -> App.parseAddEval(s));
 		funcs.add(s -> {
 			try {
@@ -110,4 +111,5 @@ public class EvaluatorDispatcher {
 		}
 		return -1;
 	}
+
 }

@@ -233,4 +233,16 @@ public class AppTest {
         assertEquals("3", App.interpret("let x = if (true) { 3 } else { 5 }; x"));
         assertEquals("5", App.interpret("let y = if (false) { 3 } else { 5 }; y"));
     }
+
+    @Test
+    public void letIfStatementAssigns() throws Exception {
+        assertEquals("3", App.interpret("let mut x = 0; if (true) x = 3; else x = 5; x"));
+        assertEquals("5", App.interpret("let mut y = 0; if (false) y = 3; else y = 5; y"));
+    }
+
+    @Test
+    public void matchExpressionSimple() throws Exception {
+        assertEquals("true", App.interpret("match (3) { 3 => true; _ => false; }"));
+        assertEquals("false", App.interpret("match (4) { 3 => true; _ => false; }"));
+    }
 }
