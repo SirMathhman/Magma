@@ -192,6 +192,24 @@ public class App {
         if (eq >= 0) {
             String lhs = stmt.substring(0, eq).trim();
             String rhs = stmt.substring(eq + 1).trim();
+            // support deref assignment: *y = expr
+            if (lhs.startsWith("*")) {
+                String targetName = lhs.substring(1).trim();
+                IdentifierUtils.IdParseResult tid = IdentifierUtils.parseIdentifier(targetName, 0);
+                if (tid == null || tid.next != targetName.length())
+                    throw new IllegalArgumentException("Invalid deref lhs");
+                // ensure y is a pointer
+                String pointee = ctx.refs.get(tid.name);
+                if (pointee == null)
+                    throw new IllegalArgumentException("Not a pointer");
+                // if pointer mutable required, check
+                Boolean ptrMutable = ctx.refsMutable.get(tid.name);
+                if (ptrMutable == null || !ptrMutable)
+                    throw new IllegalArgumentException("Pointer not mutable");
+                long val = evaluateExprWithEnv(rhs, ctx.env, ctx.refs);
+                ctx.env.put(pointee, val);
+                return null;
+            }
             IdentifierUtils.IdParseResult id = IdentifierUtils.parseIdentifier(lhs, 0);
             if (id == null || id.next != lhs.length())
                 throw new IllegalArgumentException("Invalid assignment");
@@ -203,6 +221,11 @@ public class App {
             String rhsTrim = rhs.trim();
             if (rhsTrim.startsWith("&")) {
                 String target = rhsTrim.substring(1).trim();
+                boolean isMutAddr = false;
+                if (target.startsWith("mut ")) {
+                    isMutAddr = true;
+                    target = target.substring(4).trim();
+                }
                 IdentifierUtils.IdParseResult tid = IdentifierUtils.parseIdentifier(target, 0);
                 if (tid == null || tid.next != target.length())
                     throw new IllegalArgumentException("Invalid address-of");
@@ -210,6 +233,7 @@ public class App {
                 if (!ctx.env.containsKey(tid.name))
                     throw new IllegalArgumentException("Unknown var");
                 ctx.refs.put(name, tid.name);
+                ctx.refsMutable.put(name, isMutAddr);
                 // keep numeric storage as 0
                 ctx.env.put(name, 0L);
             } else {
@@ -282,11 +306,16 @@ public class App {
         // redeclaration not allowed
         if (env.containsKey(name))
             return false;
+        boolean ptrTypeMutable = false;
         if (lhsParts.length > 1) {
             String type = lhsParts[1].trim();
-            // support pointer types like *I32
+            // support pointer types like *I32 or *mut I32
             if (type.startsWith("*")) {
                 String inner = type.substring(1).trim();
+                if (inner.startsWith("mut ")) {
+                    ptrTypeMutable = true;
+                    inner = inner.substring(4).trim();
+                }
                 if (!isAllowedSuffix(inner))
                     return false;
             } else {
@@ -306,6 +335,11 @@ public class App {
                 String rhsTrim = rhs.trim();
                 if (rhsTrim.startsWith("&")) {
                     String target = rhsTrim.substring(1).trim();
+                    boolean isMutAddr = false;
+                    if (target.startsWith("mut ")) {
+                        isMutAddr = true;
+                        target = target.substring(4).trim();
+                    }
                     IdentifierUtils.IdParseResult tid = IdentifierUtils.parseIdentifier(target, 0);
                     if (tid == null || tid.next != target.length())
                         return false;
@@ -313,6 +347,11 @@ public class App {
                         return false;
                     // store reference mapping for this var
                     refs.put(name, tid.name);
+                    // set pointer mutability from type OR initializer
+                    if (ptrTypeMutable || isMutAddr)
+                        ctx.refsMutable.put(name, Boolean.TRUE);
+                    else
+                        ctx.refsMutable.put(name, Boolean.FALSE);
                     val = 0L;
                 } else {
                     val = evaluateExprWithEnv(rhs, env, refs);

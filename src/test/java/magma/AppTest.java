@@ -157,4 +157,9 @@ public class AppTest {
     public void testPointerDeref() throws Exception {
         assertEquals("10", App.interpret("let x : I32 = 10; let y : *I32 = &x; *y"));
     }
+
+    @Test
+    public void testMutPointerDerefAssign() throws Exception {
+        assertEquals("10", App.interpret("let mut x = 0; let y : *mut I32 = &mut x; *y = 10; x"));
+    }
 }
