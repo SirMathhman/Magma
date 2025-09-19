@@ -26,8 +26,13 @@ public class App {
      * @param input the command to interpret
      * @return the interpreted response
      */
-    public static String interpret(String input) {
-        // Stub: no default behavior implemented yet.
-        throw new UnsupportedOperationException("interpret is not implemented");
+    public static String interpret(String input) throws InterpretException {
+        // If input is null or empty (after trimming) return empty string.
+        if (input == null)
+            return "";
+        if (input.trim().isEmpty())
+            return "";
+        // Otherwise, there is no default behavior yet — throw a checked exception.
+        throw new InterpretException("No interpretation available for: " + input);
     }
 }

@@ -2,6 +2,7 @@ package magma;
 
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AppTest {
     @Test
@@ -11,33 +12,32 @@ public class AppTest {
 
     @Test
     public void testInterpretNull() {
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class, () -> App.interpret(null));
+        try {
+            assertEquals("", App.interpret(null));
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Test
     public void testInterpretHello() {
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> App.interpret("hello"));
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> App.interpret("  HeLLo  "));
+    assertThrows(magma.InterpretException.class, () -> App.interpret("hello"));
+    assertThrows(magma.InterpretException.class, () -> App.interpret("  HeLLo  "));
     }
 
     @Test
     public void testInterpretPing() {
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class, () -> App.interpret("ping"));
+        assertThrows(magma.InterpretException.class, () -> App.interpret("ping"));
     }
 
     @Test
     public void testInterpretRepeat() {
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> App.interpret("repeat:abc"));
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> App.interpret("repeat:123 456"));
+    assertThrows(magma.InterpretException.class, () -> App.interpret("repeat:abc"));
+    assertThrows(magma.InterpretException.class, () -> App.interpret("repeat:123 456"));
     }
 
     @Test
     public void testInterpretUnknown() {
-        org.junit.jupiter.api.Assertions.assertThrows(UnsupportedOperationException.class,
-                () -> App.interpret("foobar"));
+        assertThrows(magma.InterpretException.class, () -> App.interpret("foobar"));
     }
 }
