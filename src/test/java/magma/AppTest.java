@@ -55,4 +55,12 @@ public class AppTest {
         // invalid addition forms should not be parsed
         assertThrows(magma.InterpretException.class, () -> App.interpret("+ 3 + 2"));
     }
+
+    @Test
+    public void testInterpretAdditionWithSuffix() throws Exception {
+        assertEquals("5", App.interpret("2 + 3I32"));
+        assertEquals("5", App.interpret("2I16+3U8"));
+        // mixed invalid suffix should not parse
+        assertThrows(magma.InterpretException.class, () -> App.interpret("2 + 3XYZ"));
+    }
 }

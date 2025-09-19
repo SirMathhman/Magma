@@ -103,17 +103,41 @@ public class App {
         String right = t.substring(plusIndex + 1).trim();
         if (left.isEmpty() || right.isEmpty())
             return null;
+        // Allow operands to include an allowed suffix (e.g., "3I32"). If present, strip
+        // it.
+        String leftStripped = stripAllowedSuffix(left);
+        String rightStripped = stripAllowedSuffix(right);
+        if (leftStripped == null)
+            leftStripped = left;
+        if (rightStripped == null)
+            rightStripped = right;
         // Validate left and right as integer strings (no regex)
-        if (!isIntegerString(left) || !isIntegerString(right))
+        if (!isIntegerString(leftStripped) || !isIntegerString(rightStripped))
             return null;
         try {
-            long a = Long.parseLong(left);
-            long b = Long.parseLong(right);
+            long a = Long.parseLong(leftStripped);
+            long b = Long.parseLong(rightStripped);
             long sum = a + b;
             return String.valueOf(sum);
         } catch (NumberFormatException ex) {
             return null;
         }
+    }
+
+    // If `s` ends with an allowed suffix, return the string with the suffix
+    // removed, else return null.
+    private static String stripAllowedSuffix(String s) {
+        if (s == null || s.isEmpty())
+            return null;
+        // check each allowed suffix
+        String[] suffixes = new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32", "I64" };
+        for (String suf : suffixes) {
+            if (s.endsWith(suf)) {
+                String prefix = s.substring(0, s.length() - suf.length()).trim();
+                return prefix.isEmpty() ? null : prefix;
+            }
+        }
+        return null;
     }
 
     private static boolean isIntegerString(String s) {
