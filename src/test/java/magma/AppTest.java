@@ -215,4 +215,10 @@ public class AppTest {
         assertEquals("true", App.interpret("5 == 5"));
         assertEquals("false", App.interpret("5 == 6"));
     }
+
+    @Test
+    public void ifExpressionSelectsBranch() throws Exception {
+        assertEquals("3", App.interpret("if (true) 3 else 5"));
+        assertEquals("5", App.interpret("if (false) 3 else 5"));
+    }
 }
