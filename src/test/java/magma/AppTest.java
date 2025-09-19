@@ -203,4 +203,10 @@ public class AppTest {
     public void bracedLetVarOutOfScope() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("{let x = 100;} x"));
     }
+
+    @Test
+    public void literalTrueReturnsTrue() throws Exception {
+        assertEquals("true", App.interpret("true"));
+        assertEquals("true", App.interpret("TRUE"));
+    }
 }

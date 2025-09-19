@@ -41,6 +41,12 @@ public class App {
         if (stmtResult != null)
             return stmtResult;
 
+        // boolean literals
+        if (t.equalsIgnoreCase("true"))
+            return "true";
+        if (t.equalsIgnoreCase("false"))
+            return "false";
+
         // Try parsing a simple addition expression like "2 + 3" (no regex).
         String plusResult = parseAddEval(t);
         if (plusResult != null)
