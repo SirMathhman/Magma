@@ -162,4 +162,10 @@ public class AppTest {
     public void testMutPointerDerefAssign() throws Exception {
         assertEquals("10", App.interpret("let mut x = 0; let y : *mut I32 = &mut x; *y = 10; x"));
     }
+
+    @Test
+    public void testAddrTypeSyntaxInvalid() {
+        assertThrows(magma.InterpretException.class,
+                () -> App.interpret("let x = 0; let y : &mut I32 = &mut x; y = 10; x"));
+    }
 }
