@@ -137,4 +137,9 @@ public class AppTest {
     public void testMutLetAssignThenRead() throws Exception {
         assertEquals("1", App.interpret("let mut x = 0; x = 1; x"));
     }
+
+    @Test
+    public void testLetDoubleSpaceInvalid() {
+        assertThrows(magma.InterpretException.class, () -> App.interpret("let  x = 0; x = 1; x"));
+    }
 }
