@@ -107,10 +107,19 @@ public class App {
         // it.
         String leftStripped = stripAllowedSuffix(left);
         String rightStripped = stripAllowedSuffix(right);
+        boolean leftHadSuffix = false;
+        boolean rightHadSuffix = false;
         if (leftStripped == null)
             leftStripped = left;
+        else
+            leftHadSuffix = true;
         if (rightStripped == null)
             rightStripped = right;
+        else
+            rightHadSuffix = true;
+        // If both operands include suffixes, we do not support the operation.
+        if (leftHadSuffix && rightHadSuffix)
+            return null;
         // Validate left and right as integer strings (no regex)
         if (!isIntegerString(leftStripped) || !isIntegerString(rightStripped))
             return null;
@@ -155,5 +164,4 @@ public class App {
         }
         return true;
     }
-
 }

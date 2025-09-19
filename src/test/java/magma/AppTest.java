@@ -59,8 +59,14 @@ public class AppTest {
     @Test
     public void testInterpretAdditionWithSuffix() throws Exception {
         assertEquals("5", App.interpret("2 + 3I32"));
-        assertEquals("5", App.interpret("2I16+3U8"));
+        // if both operands have suffixes, the operation is not allowed
+        assertThrows(magma.InterpretException.class, () -> App.interpret("2I16+3U8"));
         // mixed invalid suffix should not parse
         assertThrows(magma.InterpretException.class, () -> App.interpret("2 + 3XYZ"));
+    }
+
+    @Test
+    public void testAdditionBothSuffixesNotAllowed() {
+        assertThrows(magma.InterpretException.class, () -> App.interpret("2U8 + 3I32"));
     }
 }
