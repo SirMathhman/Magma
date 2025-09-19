@@ -111,7 +111,7 @@ public class App {
             }
         }
 
-        ExpressionUtils.ExpressionTokens tokens = tokenizeExpression(t);
+        ExpressionTypes.ExpressionTokens tokens = tokenizeExpression(t);
         if (tokens == null || tokens.operands.size() < 1)
             return null;
         // If there are no operators, this is a plain number (possibly signed) and
@@ -125,7 +125,7 @@ public class App {
 
         // First, apply multiplication (higher precedence) via helper to reduce
         // complexity.
-        ExpressionUtils.Reduction red = reduceMultiplications(tokens);
+        ExpressionTypes.Reduction red = reduceMultiplications(tokens);
         // Now evaluate + and - left to right using reduced lists
         long result = red.values.get(0);
         for (int i = 0; i < red.ops.size(); i++) {
@@ -140,15 +140,15 @@ public class App {
     }
 
     // delegate parsing helpers to ExpressionUtils
-    private static ExpressionUtils.Reduction reduceMultiplications(ExpressionUtils.ExpressionTokens tokens) {
+    private static ExpressionTypes.Reduction reduceMultiplications(ExpressionTypes.ExpressionTokens tokens) {
         return ExpressionUtils.reduceMultiplications(tokens);
     }
 
-    private static boolean suffixesConsistent(ExpressionUtils.ExpressionTokens tokens) {
+    private static boolean suffixesConsistent(ExpressionTypes.ExpressionTokens tokens) {
         return ExpressionUtils.suffixesConsistent(tokens);
     }
 
-    private static ExpressionUtils.ExpressionTokens tokenizeExpression(String t) {
+    private static ExpressionTypes.ExpressionTokens tokenizeExpression(String t) {
         return ExpressionUtils.tokenizeExpression(t, ALLOWED_SUFFIXES);
     }
 

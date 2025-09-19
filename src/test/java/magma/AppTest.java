@@ -110,4 +110,10 @@ public class AppTest {
         assertEquals("1", App.interpret("let x : I32 = 1; x"));
         assertEquals("14", App.interpret("let a:I32=2; let b:I32=3; a + b * 4"));
     }
+
+    @Test
+    public void testLetRedeclarationThrows() {
+        // redeclaring the same variable in the same statement sequence should error
+        assertThrows(magma.InterpretException.class, () -> App.interpret("let x = 1; let x = 1;"));
+    }
 }

@@ -4,34 +4,9 @@ public class ExpressionUtils {
 	private static final String[] ALLOWED_SUFFIXES = new String[] { "U8", "U16", "U32", "U64", "I8", "I16", "I32",
 			"I64" };
 
-	public static class Reduction {
-		public final java.util.List<Long> values;
-		public final java.util.List<Character> ops;
+	// Use ExpressionTypes for token/result types to keep this file small
 
-		public Reduction(java.util.List<Long> values, java.util.List<Character> ops) {
-			this.values = values;
-			this.ops = ops;
-		}
-	}
-
-	public static class ExpressionTokens {
-		public final java.util.List<OperandParseResult> operands = new java.util.ArrayList<>();
-		public final java.util.List<Character> operators = new java.util.ArrayList<>();
-	}
-
-	public static class OperandParseResult {
-		public final long value;
-		public final String suffix;
-		public final int nextPos;
-
-		public OperandParseResult(long value, String suffix, int nextPos) {
-			this.value = value;
-			this.suffix = suffix;
-			this.nextPos = nextPos;
-		}
-	}
-
-	public static OperandParseResult parseNumberWithSuffix(String t, int pos, String[] allowedSuffixes) {
+	public static ExpressionTypes.OperandParseResult parseNumberWithSuffix(String t, int pos, String[] allowedSuffixes) {
 		int n = t.length();
 		if (pos >= n)
 			return null;
@@ -61,14 +36,14 @@ public class ExpressionUtils {
 		} catch (NumberFormatException ex) {
 			return null;
 		}
-		return new OperandParseResult(v, suf, pos);
+		return new ExpressionTypes.OperandParseResult(v, suf, pos);
 	}
 
-	public static ExpressionTokens tokenizeExpression(String t, String[] allowedSuffixes) {
+	public static ExpressionTypes.ExpressionTokens tokenizeExpression(String t, String[] allowedSuffixes) {
 		int n = t.length();
 		int pos = 0;
-		ExpressionTokens out = new ExpressionTokens();
-		OperandParseResult first = parseNumberWithSuffix(t, pos, allowedSuffixes);
+		ExpressionTypes.ExpressionTokens out = new ExpressionTypes.ExpressionTokens();
+		ExpressionTypes.OperandParseResult first = parseNumberWithSuffix(t, pos, allowedSuffixes);
 		if (first == null)
 			return null;
 		out.operands.add(first);
@@ -86,7 +61,7 @@ public class ExpressionUtils {
 			pos++;
 			while (pos < n && Character.isWhitespace(t.charAt(pos)))
 				pos++;
-			OperandParseResult next = parseNumberWithSuffix(t, pos, allowedSuffixes);
+			ExpressionTypes.OperandParseResult next = parseNumberWithSuffix(t, pos, allowedSuffixes);
 			if (next == null)
 				return null;
 			out.operands.add(next);
@@ -95,9 +70,9 @@ public class ExpressionUtils {
 		return out;
 	}
 
-	public static boolean suffixesConsistent(ExpressionTokens tokens) {
+	public static boolean suffixesConsistent(ExpressionTypes.ExpressionTokens tokens) {
 		String common = null;
-		for (OperandParseResult r : tokens.operands) {
+		for (ExpressionTypes.OperandParseResult r : tokens.operands) {
 			if (r.suffix != null) {
 				if (common == null)
 					common = r.suffix;
@@ -108,13 +83,13 @@ public class ExpressionUtils {
 		return true;
 	}
 
-	public static Reduction reduceMultiplications(ExpressionTokens tokens) {
+	public static ExpressionTypes.Reduction reduceMultiplications(ExpressionTypes.ExpressionTokens tokens) {
 		java.util.List<Long> values = new java.util.ArrayList<>();
 		java.util.List<Character> ops = new java.util.ArrayList<>();
 		long current = tokens.operands.get(0).value;
 		for (int i = 0; i < tokens.operators.size(); i++) {
 			char op = tokens.operators.get(i);
-			OperandParseResult next = tokens.operands.get(i + 1);
+			ExpressionTypes.OperandParseResult next = tokens.operands.get(i + 1);
 			if (op == '*')
 				current = current * next.value;
 			else {
@@ -124,7 +99,7 @@ public class ExpressionUtils {
 			}
 		}
 		values.add(current);
-		return new Reduction(values, ops);
+		return new ExpressionTypes.Reduction(values, ops);
 	}
 
 	public static class ExprParser {
@@ -207,7 +182,7 @@ public class ExpressionUtils {
 				long v = resolver.resolve(name);
 				return unaryMinus ? -v : v;
 			}
-			OperandParseResult r = parseNumberWithSuffix(s, pos, ALLOWED_SUFFIXES);
+			ExpressionTypes.OperandParseResult r = parseNumberWithSuffix(s, pos, ALLOWED_SUFFIXES);
 			if (r == null)
 				throw new IllegalArgumentException("Invalid number");
 			pos = r.nextPos;
@@ -283,7 +258,7 @@ public class ExpressionUtils {
 				pos++;
 				return unaryMinus ? -v : v;
 			}
-			OperandParseResult r = parseNumberWithSuffix(s, pos, ALLOWED_SUFFIXES);
+			ExpressionTypes.OperandParseResult r = parseNumberWithSuffix(s, pos, ALLOWED_SUFFIXES);
 			if (r == null)
 				throw new IllegalArgumentException("Invalid number");
 			pos = r.nextPos;
