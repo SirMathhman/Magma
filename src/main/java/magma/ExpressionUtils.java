@@ -118,6 +118,7 @@ public class ExpressionUtils {
 
 		public interface VarResolver {
 			long resolve(String name);
+
 			long resolveRef(String name);
 		}
 

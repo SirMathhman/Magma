@@ -152,17 +152,14 @@ public class App {
         if (!t.contains("let") && !t.contains(";"))
             return null;
         String[] parts = t.split(";");
-        java.util.Map<String, Long> env = new java.util.HashMap<>();
-        java.util.Map<String, Boolean> mut = new java.util.HashMap<>();
-        java.util.Map<String, String> types = new java.util.HashMap<>();
-        java.util.Map<String, String> refs = new java.util.HashMap<>();
+        StatementContext ctx = new StatementContext();
         for (int i = 0; i < parts.length; i++) {
             String stmt = parts[i].trim();
             if (stmt.isEmpty())
                 continue;
             Long maybeValue = null;
             try {
-                maybeValue = evaluateStatement(stmt, env, mut, types, refs);
+                maybeValue = evaluateStatement(stmt, ctx);
             } catch (IllegalArgumentException ex) {
                 throw new InterpretException(ex.getMessage());
             }
@@ -184,11 +181,9 @@ public class App {
     // Evaluate a single statement. Returns null for let-binding statements (no
     // result),
     // or the evaluated numeric value for an expression statement.
-    private static Long evaluateStatement(String stmt, java.util.Map<String, Long> env,
-            java.util.Map<String, Boolean> mut, java.util.Map<String, String> types,
-            java.util.Map<String, String> refs) {
+    private static Long evaluateStatement(String stmt, StatementContext ctx) {
         if (stmt.startsWith("let")) {
-            if (!parseLetStatement(stmt, env, mut, types, refs))
+            if (!parseLetStatement(stmt, ctx))
                 throw new IllegalArgumentException("Invalid let");
             return null;
         }
@@ -201,7 +196,7 @@ public class App {
             if (id == null || id.next != lhs.length())
                 throw new IllegalArgumentException("Invalid assignment");
             String name = id.name;
-            Boolean isMutable = mut.get(name);
+            Boolean isMutable = ctx.mut.get(name);
             if (isMutable == null || !isMutable)
                 throw new IllegalArgumentException("Not mutable");
             // handle address-of assignment like &x
@@ -212,19 +207,19 @@ public class App {
                 if (tid == null || tid.next != target.length())
                     throw new IllegalArgumentException("Invalid address-of");
                 // ensure target exists
-                if (!env.containsKey(tid.name))
+                if (!ctx.env.containsKey(tid.name))
                     throw new IllegalArgumentException("Unknown var");
-                refs.put(name, tid.name);
+                ctx.refs.put(name, tid.name);
                 // keep numeric storage as 0
-                env.put(name, 0L);
+                ctx.env.put(name, 0L);
             } else {
-                long val = evaluateExprWithEnv(rhs, env, refs);
-                env.put(name, val);
+                long val = evaluateExprWithEnv(rhs, ctx.env, ctx.refs);
+                ctx.env.put(name, val);
             }
             return null;
         }
         // expression
-        return Long.valueOf(evaluateExprWithEnv(stmt, env, refs));
+        return Long.valueOf(evaluateExprWithEnv(stmt, ctx.env, ctx.refs));
     }
 
     private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env,
@@ -254,9 +249,11 @@ public class App {
         return v;
     }
 
-    private static boolean parseLetStatement(String stmt, java.util.Map<String, Long> env,
-            java.util.Map<String, Boolean> mut, java.util.Map<String, String> types,
-            java.util.Map<String, String> refs) {
+    private static boolean parseLetStatement(String stmt, StatementContext ctx) {
+        java.util.Map<String, Long> env = ctx.env;
+        java.util.Map<String, Boolean> mut = ctx.mut;
+        java.util.Map<String, String> types = ctx.types;
+        java.util.Map<String, String> refs = ctx.refs;
         String after = stmt.substring(3).trim();
         // split on '=' first to separate LHS and RHS
         int eq = after.indexOf('=');
