@@ -221,4 +221,10 @@ public class AppTest {
         assertEquals("3", App.interpret("if (true) 3 else 5"));
         assertEquals("5", App.interpret("if (false) 3 else 5"));
     }
+
+    @Test
+    public void ifExpressionWithBraces() throws Exception {
+        assertEquals("3", App.interpret("if (true) { 3 } else { 5 }"));
+        assertEquals("5", App.interpret("if (false) { 3 } else { 5 }"));
+    }
 }
