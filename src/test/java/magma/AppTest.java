@@ -173,4 +173,9 @@ public class AppTest {
     public void testBracesAsParens() throws Exception {
         assertEquals("100", App.interpret("{100}"));
     }
+
+    @Test
+    public void testBracedStatements() throws Exception {
+        assertEquals("100", App.interpret("{let x = 100; x}"));
+    }
 }

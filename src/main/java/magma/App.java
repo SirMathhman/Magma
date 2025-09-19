@@ -149,6 +149,29 @@ public class App {
     private static String parseEvalStmts(String t) throws InterpretException {
         if (t == null)
             return null;
+        // allow a single top-level brace block: { ... }
+        String trimmed = t.trim();
+        if (trimmed.startsWith("{")) {
+            int depth = 0;
+            int match = -1;
+            for (int i = 0; i < trimmed.length(); i++) {
+                char c = trimmed.charAt(i);
+                if (c == '{')
+                    depth++;
+                else if (c == '}') {
+                    depth--;
+                    if (depth == 0) {
+                        match = i;
+                        break;
+                    }
+                }
+            }
+            if (match == trimmed.length() - 1) {
+                // outer braces wrap the whole string — strip them
+                t = trimmed.substring(1, trimmed.length() - 1).trim();
+            }
+        }
+
         if (!t.contains("let") && !t.contains(";"))
             return null;
         String[] parts = t.split(";");
