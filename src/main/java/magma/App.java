@@ -99,7 +99,7 @@ public class App {
             return null;
         // If the input contains parentheses, use the recursive parser.
         if (t.indexOf('(') >= 0 || t.indexOf(')') >= 0) {
-            ExprParser parser = new ExprParser(t);
+            ExpressionUtils.ExprParser parser = new ExpressionUtils.ExprParser(t);
             try {
                 long v = parser.parseExpression();
                 parser.skipWhitespace();
@@ -111,7 +111,7 @@ public class App {
             }
         }
 
-        ExpressionTokens tokens = tokenizeExpression(t);
+        ExpressionUtils.ExpressionTokens tokens = tokenizeExpression(t);
         if (tokens == null || tokens.operands.size() < 1)
             return null;
         // If there are no operators, this is a plain number (possibly signed) and
@@ -125,7 +125,7 @@ public class App {
 
         // First, apply multiplication (higher precedence) via helper to reduce
         // complexity.
-        Reduction red = reduceMultiplications(tokens);
+        ExpressionUtils.Reduction red = reduceMultiplications(tokens);
         // Now evaluate + and - left to right using reduced lists
         long result = red.values.get(0);
         for (int i = 0; i < red.ops.size(); i++) {
@@ -139,323 +139,17 @@ public class App {
         return String.valueOf(result);
     }
 
-    private static class Reduction {
-        final java.util.List<Long> values;
-        final java.util.List<Character> ops;
-
-        Reduction(java.util.List<Long> values, java.util.List<Character> ops) {
-            this.values = values;
-            this.ops = ops;
-        }
+    // delegate parsing helpers to ExpressionUtils
+    private static ExpressionUtils.Reduction reduceMultiplications(ExpressionUtils.ExpressionTokens tokens) {
+        return ExpressionUtils.reduceMultiplications(tokens);
     }
 
-    private static Reduction reduceMultiplications(ExpressionTokens tokens) {
-        java.util.List<Long> values = new java.util.ArrayList<>();
-        java.util.List<Character> ops = new java.util.ArrayList<>();
-        long current = tokens.operands.get(0).value;
-        for (int i = 0; i < tokens.operators.size(); i++) {
-            char op = tokens.operators.get(i);
-            OperandParseResult next = tokens.operands.get(i + 1);
-            if (op == '*')
-                current = current * next.value;
-            else {
-                values.add(current);
-                ops.add(op);
-                current = next.value;
-            }
-        }
-        values.add(current);
-        return new Reduction(values, ops);
+    private static boolean suffixesConsistent(ExpressionUtils.ExpressionTokens tokens) {
+        return ExpressionUtils.suffixesConsistent(tokens);
     }
 
-    private static class ExpressionTokens {
-        final java.util.List<OperandParseResult> operands = new java.util.ArrayList<>();
-        final java.util.List<Character> operators = new java.util.ArrayList<>();
-    }
-
-    private static boolean suffixesConsistent(ExpressionTokens tokens) {
-        String common = null;
-        for (OperandParseResult r : tokens.operands) {
-            if (r.suffix != null) {
-                if (common == null)
-                    common = r.suffix;
-                else if (!common.equals(r.suffix))
-                    return false;
-            }
-        }
-        return true;
-    }
-
-    private static class OperandParseResult {
-        final long value;
-        final String suffix;
-        final int nextPos;
-
-        OperandParseResult(long value, String suffix, int nextPos) {
-            this.value = value;
-            this.suffix = suffix;
-            this.nextPos = nextPos;
-        }
-    }
-
-    private static OperandParseResult parseNumberWithSuffix(String t, int pos) {
-        int n = t.length();
-        if (pos >= n)
-            return null;
-        // optional sign as part of the number
-        int sign = +1;
-        if ((t.charAt(pos) == '+' || t.charAt(pos) == '-') && pos + 1 < n && Character.isDigit(t.charAt(pos + 1))) {
-            if (t.charAt(pos) == '-')
-                sign = -1;
-            pos++;
-        }
-        int ds = pos;
-        while (pos < n && Character.isDigit(t.charAt(pos)))
-            pos++;
-        if (pos == ds)
-            return null;
-        String digits = t.substring(ds, pos);
-        String suf = null;
-        for (String s : ALLOWED_SUFFIXES) {
-            if (pos + s.length() <= n && t.startsWith(s, pos)) {
-                suf = s;
-                pos += s.length();
-                break;
-            }
-        }
-        long v;
-        try {
-            v = Long.parseLong((sign == -1 ? "-" : "") + digits);
-        } catch (NumberFormatException ex) {
-            return null;
-        }
-        return new OperandParseResult(v, suf, pos);
-    }
-
-    private static ExpressionTokens tokenizeExpression(String t) {
-        int n = t.length();
-        int pos = 0;
-        ExpressionTokens out = new ExpressionTokens();
-        // first number
-        OperandParseResult first = parseNumberWithSuffix(t, pos);
-        if (first == null)
-            return null;
-        out.operands.add(first);
-        pos = first.nextPos;
-
-        while (true) {
-            // skip whitespace
-            while (pos < n && Character.isWhitespace(t.charAt(pos)))
-                pos++;
-            if (pos >= n)
-                break;
-            char c = t.charAt(pos);
-            if (c != '+' && c != '-' && c != '*')
-                return null;
-            out.operators.add(c);
-            pos++;
-            // parse next number
-            while (pos < n && Character.isWhitespace(t.charAt(pos)))
-                pos++;
-            OperandParseResult next = parseNumberWithSuffix(t, pos);
-            if (next == null)
-                return null;
-            out.operands.add(next);
-            pos = next.nextPos;
-        }
-        return out;
-    }
-
-    // helpers removed: parseNumberWithSuffix now handles integer parsing and suffix
-    // detection
-
-    private static class ExprParser {
-        final String s;
-        int pos = 0;
-        String commonSuffix = null;
-
-        ExprParser(String s) {
-            this.s = s;
-        }
-
-        interface VarResolver {
-            long resolve(String name);
-        }
-
-        long parseExpressionWithResolver(VarResolver resolver) {
-            return parseExpressionWithResolverInternal(resolver);
-        }
-
-        private long parseExpressionWithResolverInternal(VarResolver resolver) {
-            long v = parseTermWithResolver(resolver);
-            skipWhitespace();
-            while (pos < s.length()) {
-                char c = s.charAt(pos);
-                if (c == '+' || c == '-') {
-                    pos++;
-                    long r = parseTermWithResolver(resolver);
-                    if (c == '+')
-                        v = v + r;
-                    else
-                        v = v - r;
-                    skipWhitespace();
-                } else
-                    break;
-            }
-            return v;
-        }
-
-        private long parseTermWithResolver(VarResolver resolver) {
-            long v = parseFactorWithResolver(resolver);
-            skipWhitespace();
-            while (pos < s.length()) {
-                char c = s.charAt(pos);
-                if (c == '*') {
-                    pos++;
-                    long r = parseFactorWithResolver(resolver);
-                    v = v * r;
-                    skipWhitespace();
-                } else
-                    break;
-            }
-            return v;
-        }
-
-        private long parseFactorWithResolver(VarResolver resolver) {
-            skipWhitespace();
-            if (pos >= s.length())
-                throw new IllegalArgumentException("Unexpected end");
-            boolean unaryMinus = detectAndConsumeUnarySign();
-            skipWhitespace();
-            return parseParenthesizedOrValueWithResolver(resolver, unaryMinus);
-        }
-
-        private long parseParenthesizedOrValueWithResolver(VarResolver resolver, boolean unaryMinus) {
-            if (pos < s.length() && s.charAt(pos) == '(') {
-                pos++;
-                long v = parseExpressionWithResolverInternal(resolver);
-                skipWhitespace();
-                if (pos >= s.length() || s.charAt(pos) != ')')
-                    throw new IllegalArgumentException("Missing )");
-                pos++;
-                return unaryMinus ? -v : v;
-            }
-            if (pos < s.length() && Character.isJavaIdentifierStart(s.charAt(pos))) {
-                int start = pos;
-                pos++;
-                while (pos < s.length() && Character.isJavaIdentifierPart(s.charAt(pos)))
-                    pos++;
-                String name = s.substring(start, pos);
-                long v = resolver.resolve(name);
-                return unaryMinus ? -v : v;
-            }
-            OperandParseResult r = parseNumberWithSuffix(s, pos);
-            if (r == null)
-                throw new IllegalArgumentException("Invalid number");
-            pos = r.nextPos;
-            checkAndSetSuffix(r.suffix);
-            return unaryMinus ? -r.value : r.value;
-        }
-
-        private void checkAndSetSuffix(String suf) {
-            if (suf == null)
-                return;
-            if (commonSuffix == null)
-                commonSuffix = suf;
-            else if (!commonSuffix.equals(suf))
-                throw new IllegalArgumentException("Mixed suffixes");
-        }
-
-        boolean isAtEnd() {
-            return pos >= s.length();
-        }
-
-        void skipWhitespace() {
-            while (pos < s.length() && Character.isWhitespace(s.charAt(pos)))
-                pos++;
-        }
-
-        long parseExpression() {
-            long v = parseTerm();
-            skipWhitespace();
-            while (pos < s.length()) {
-                char c = s.charAt(pos);
-                if (c == '+' || c == '-') {
-                    pos++;
-                    long r = parseTerm();
-                    if (c == '+')
-                        v = v + r;
-                    else
-                        v = v - r;
-                    skipWhitespace();
-                } else
-                    break;
-            }
-            return v;
-        }
-
-        long parseTerm() {
-            long v = parseFactor();
-            skipWhitespace();
-            while (pos < s.length()) {
-                char c = s.charAt(pos);
-                if (c == '*') {
-                    pos++;
-                    long r = parseFactor();
-                    v = v * r;
-                    skipWhitespace();
-                } else
-                    break;
-            }
-            return v;
-        }
-
-        long parseFactor() {
-            skipWhitespace();
-            if (pos >= s.length())
-                throw new IllegalArgumentException("Unexpected end");
-            // handle unary +/-
-            boolean unaryMinus = detectAndConsumeUnarySign();
-
-            skipWhitespace();
-            if (pos < s.length() && s.charAt(pos) == '(') {
-                pos++; // consume '('
-                long v = parseExpression();
-                skipWhitespace();
-                if (pos >= s.length() || s.charAt(pos) != ')')
-                    throw new IllegalArgumentException("Missing )");
-                pos++; // consume ')'
-                return unaryMinus ? -v : v;
-            }
-
-            OperandParseResult r = parseNumberWithSuffix(s, pos);
-            if (r == null)
-                throw new IllegalArgumentException("Invalid number");
-            pos = r.nextPos;
-            if (r.suffix != null) {
-                if (commonSuffix == null)
-                    commonSuffix = r.suffix;
-                else if (!commonSuffix.equals(r.suffix))
-                    throw new IllegalArgumentException("Mixed suffixes");
-            }
-            return unaryMinus ? -r.value : r.value;
-        }
-
-        private boolean detectAndConsumeUnarySign() {
-            if (pos >= s.length())
-                return false;
-            if (s.charAt(pos) != '+' && s.charAt(pos) != '-')
-                return false;
-            char signChar = s.charAt(pos);
-            int look = pos + 1;
-            while (look < s.length() && Character.isWhitespace(s.charAt(look)))
-                look++;
-            if (look < s.length() && (s.charAt(look) == '(' || Character.isDigit(s.charAt(look)))) {
-                pos = look;
-                return signChar == '-';
-            }
-            return false;
-        }
+    private static ExpressionUtils.ExpressionTokens tokenizeExpression(String t) {
+        return ExpressionUtils.tokenizeExpression(t, ALLOWED_SUFFIXES);
     }
 
     // Very small statements evaluator: supports sequences like
@@ -501,8 +195,8 @@ public class App {
     }
 
     private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env) {
-        ExprParser p = new ExprParser(expr);
-        long v = p.parseExpressionWithResolver(new ExprParser.VarResolver() {
+        ExpressionUtils.ExprParser p = new ExpressionUtils.ExprParser(expr);
+        long v = p.parseExpressionWithResolver(new ExpressionUtils.ExprParser.VarResolver() {
             public long resolve(String name) {
                 Long val = env.get(name);
                 if (val == null)
