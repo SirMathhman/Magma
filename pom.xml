@@ -65,9 +65,11 @@
 					<configLocation>${project.basedir}/checkstyle.xml</configLocation>
 					<failsOnError>true</failsOnError>
 					<includeTestSourceDirectory>true</includeTestSourceDirectory>
+					<!-- Print detailed violations to the console and write XML to a file -->
+					<consoleOutput>true</consoleOutput>
+					<outputFile>${project.build.directory}/checkstyle-result.xml</outputFile>
 				</configuration>
 			</plugin>
 		</plugins>
 	</build>
-
 </project>

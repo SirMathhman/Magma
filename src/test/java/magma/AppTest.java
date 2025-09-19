@@ -27,10 +27,23 @@ public class AppTest {
     @Test
     public void testInterpretNumericPrefix() throws Exception {
         assertEquals("5", App.interpret("5U8"));
-        assertEquals("123", App.interpret("123abc"));
-        assertEquals("+42", App.interpret("+42xyz"));
-        assertEquals("-7", App.interpret("-7-foo"));
+        // non-allowed suffixes should NOT be accepted
+        assertThrows(magma.InterpretException.class, () -> App.interpret("123abc"));
+        assertThrows(magma.InterpretException.class, () -> App.interpret("+42xyz"));
+        assertThrows(magma.InterpretException.class, () -> App.interpret("-7-foo"));
         // if no leading digits, previous behavior applies (exception)
         assertThrows(magma.InterpretException.class, () -> App.interpret("a123"));
+    }
+
+    @Test
+    public void testAllowedSuffixes() throws Exception {
+        assertEquals("5", App.interpret("5U8"));
+        assertEquals("10", App.interpret("10U32"));
+        assertEquals("7", App.interpret("7I16"));
+    }
+
+    @Test
+    public void testDisallowedSuffix() {
+        assertThrows(magma.InterpretException.class, () -> App.interpret("5XYZ"));
     }
 }

@@ -26,24 +26,53 @@ public class App {
         String t = input.trim();
         if (t.isEmpty())
             return "";
-
-        // If the trimmed input starts with an optional +/-, then at least one digit,
-        // return the longest leading numeric prefix.
-        int idx = 0;
-        if (t.charAt(0) == '+' || t.charAt(0) == '-') {
-            idx = 1;
-        }
-        int digitsStart = idx;
-        while (idx < t.length() && Character.isDigit(t.charAt(idx))) {
-            idx++;
-        }
-        int digitsCount = idx - digitsStart;
-        if (digitsCount > 0) {
-            // return sign+digits if sign present, else digits only
-            return t.substring(0, idx);
+        int end = parseNumericPrefixEnd(t);
+        if (end > 0) {
+            if (end == t.length())
+                return t.substring(0, end);
+            String suffix = t.substring(end);
+            if (isAllowedSuffix(suffix))
+                return t.substring(0, end);
+            throw new InterpretException("No interpretation available for: " + input);
         }
 
         // Otherwise, there is no default behavior yet — throw a checked exception.
         throw new InterpretException("No interpretation available for: " + input);
     }
+
+    // Return the index just after the last digit in the leading numeric prefix,
+    // or -1 if there is no leading digit sequence. Accepts an optional leading +/-.
+    private static int parseNumericPrefixEnd(String t) {
+        if (t == null || t.isEmpty())
+            return -1;
+        int idx = 0;
+        if (t.charAt(0) == '+' || t.charAt(0) == '-') {
+            idx = 1;
+            if (t.length() == 1)
+                return -1; // just a sign
+        }
+        int start = idx;
+        while (idx < t.length() && Character.isDigit(t.charAt(idx)))
+            idx++;
+        return (idx - start) > 0 ? idx : -1;
+    }
+
+    private static boolean isAllowedSuffix(String s) {
+        if (s == null)
+            return false;
+        switch (s) {
+            case "U8":
+            case "U16":
+            case "U32":
+            case "U64":
+            case "I8":
+            case "I16":
+            case "I32":
+            case "I64":
+                return true;
+            default:
+                return false;
+        }
+    }
+
 }
