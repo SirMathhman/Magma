@@ -193,4 +193,9 @@ public class AppTest {
     public void leadingEmptyBracesThenNum() throws Exception {
         assertEquals("100", App.interpret("{} 100"));
     }
+
+    @Test
+    public void bracesIgnoredBetweenStmts() throws Exception {
+        assertEquals("100", App.interpret("let x = 100; {} x"));
+    }
 }

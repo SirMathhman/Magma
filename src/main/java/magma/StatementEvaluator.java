@@ -52,6 +52,14 @@ public class StatementEvaluator {
 		StatementContext ctx = new StatementContext();
 		for (int i = 0; i < parts.length; i++) {
 			String stmt = parts[i].trim();
+			// strip any leading top-level brace blocks from this statement part
+			String normalized = BraceUtils.stripLeadingBraceBlock(stmt);
+			// repeat in case there are multiple leading blocks like "{} {} x"
+			while (!normalized.equals(stmt)) {
+				stmt = normalized;
+				normalized = BraceUtils.stripLeadingBraceBlock(stmt);
+			}
+			stmt = stmt.trim();
 			if (stmt.isEmpty())
 				continue;
 			Long maybeValue = null;
