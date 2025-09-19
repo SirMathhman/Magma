@@ -5,9 +5,7 @@ public class StatementEvaluator {
 	public static String parseEvalStmts(String t) throws InterpretException {
 		if (t == null)
 			return null;
-		// If the string starts with a top-level brace block, strip it and continue
 		String stripped = BraceUtils.stripLeadingBraceBlock(t);
-		// Also support the case where the entire string is a brace block
 		if (stripped.trim().startsWith("{") && stripped.trim().endsWith("}"))
 			stripped = BraceUtils.stripOuterBraces(stripped);
 		if (stripped.trim().isEmpty())
@@ -152,6 +150,22 @@ public class StatementEvaluator {
 
 	private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env,
 			java.util.Map<String, String> refs) {
+		String trimmed = expr.trim();
+		// if-expression may be present (e.g. in initializer). Try interpreting at
+		// top-level first.
+		try {
+			String interp = App.interpret(trimmed);
+			if (interp != null && !interp.isEmpty()) {
+				// try to parse the interpreted result as a long
+				try {
+					return Long.parseLong(interp);
+				} catch (NumberFormatException nfe) {
+					// fall through to normal parsing which may throw
+				}
+			}
+		} catch (InterpretException e) {
+			// ignore and fall back to expression parsing
+		}
 		ExpressionParser p = new ExpressionParser(expr);
 		long v = p.parseExprRes(new ExpressionParser.VarResolver() {
 			public long resolve(String name) {
@@ -276,21 +290,7 @@ public class StatementEvaluator {
 	}
 
 	private static boolean isAllowedSuffix(String s) {
-		if (s == null)
-			return false;
-		switch (s) {
-			case "U8":
-			case "U16":
-			case "U32":
-			case "U64":
-			case "I8":
-			case "I16":
-			case "I32":
-			case "I64":
-				return true;
-			default:
-				return false;
-		}
+		return SuffixUtils.isAllowedSuffix(s);
 	}
 
 }
