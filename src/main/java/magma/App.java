@@ -30,16 +30,16 @@ public class App {
         if (t.isEmpty())
             return "";
 
-        // Try parsing statements (let bindings) first
-        String stmtResult = parseAndEvaluateStatements(t);
+    // Try parsing statements (let bindings) first
+    String stmtResult = parseEvalStmts(t);
         if (stmtResult != null)
             return stmtResult;
 
-        // Try parsing a simple addition expression like "2 + 3" (no regex).
-        String plusResult = parseAndEvaluateAddition(t);
+    // Try parsing a simple addition expression like "2 + 3" (no regex).
+    String plusResult = parseAddEval(t);
         if (plusResult != null)
             return plusResult;
-        int end = parseNumericPrefixEnd(t);
+    int end = parseNumPrefixEnd(t);
         if (end > 0) {
             if (end == t.length())
                 return t.substring(0, end);
@@ -55,7 +55,7 @@ public class App {
 
     // Return the index just after the last digit in the leading numeric prefix,
     // or -1 if there is no leading digit sequence. Accepts an optional leading +/-.
-    private static int parseNumericPrefixEnd(String t) {
+    private static int parseNumPrefixEnd(String t) {
         if (t == null || t.isEmpty())
             return -1;
         int idx = 0;
@@ -94,7 +94,7 @@ public class App {
      * where left and right are integers (optional +/-), returns the sum as string.
      * Otherwise returns null.
      */
-    private static String parseAndEvaluateAddition(String t) {
+    private static String parseAddEval(String t) {
         if (t == null || t.isEmpty())
             return null;
         // If the input contains parentheses, use the recursive parser.
@@ -111,7 +111,7 @@ public class App {
             }
         }
 
-        ExpressionTypes.ExpressionTokens tokens = tokenizeExpression(t);
+    ExpressionTypes.ExpressionTokens tokens = tokenizeExpression(t);
         if (tokens == null || tokens.operands.size() < 1)
             return null;
         // If there are no operators, this is a plain number (possibly signed) and
@@ -125,7 +125,7 @@ public class App {
 
         // First, apply multiplication (higher precedence) via helper to reduce
         // complexity.
-        ExpressionTypes.Reduction red = reduceMultiplications(tokens);
+    ExpressionTypes.Reduction red = reduceMult(tokens);
         // Now evaluate + and - left to right using reduced lists
         long result = red.values.get(0);
         for (int i = 0; i < red.ops.size(); i++) {
@@ -140,8 +140,8 @@ public class App {
     }
 
     // delegate parsing helpers to ExpressionUtils
-    private static ExpressionTypes.Reduction reduceMultiplications(ExpressionTypes.ExpressionTokens tokens) {
-        return ExpressionUtils.reduceMultiplications(tokens);
+    private static ExpressionTypes.Reduction reduceMult(ExpressionTypes.ExpressionTokens tokens) {
+        return ExpressionUtils.reduceMult(tokens);
     }
 
     private static boolean suffixesConsistent(ExpressionTypes.ExpressionTokens tokens) {
@@ -154,7 +154,7 @@ public class App {
 
     // Very small statements evaluator: supports sequences like
     // "let x : I32 = 1; x" and returns the value of the last expression as string.
-    private static String parseAndEvaluateStatements(String t) {
+    private static String parseEvalStmts(String t) {
         if (t == null)
             return null;
         if (!t.contains("let") && !t.contains(";"))
@@ -196,7 +196,7 @@ public class App {
 
     private static long evaluateExprWithEnv(String expr, java.util.Map<String, Long> env) {
         ExpressionUtils.ExprParser p = new ExpressionUtils.ExprParser(expr);
-        long v = p.parseExpressionWithResolver(new ExpressionUtils.ExprParser.VarResolver() {
+        long v = p.parseExprRes(new ExpressionUtils.ExprParser.VarResolver() {
             public long resolve(String name) {
                 Long val = env.get(name);
                 if (val == null)

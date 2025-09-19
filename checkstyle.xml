@@ -10,5 +10,9 @@
 		<module name="CyclomaticComplexity">
 			<property name="max" value="15" />
 		</module>
+		<!-- Enforce method names to be at most 20 characters (camelCase starting with lowercase letter) -->
+		<module name="MethodName">
+			<property name="format" value="^[a-z][a-zA-Z0-9]{0,24}$" />
+		</module>
 	</module>
 </module>

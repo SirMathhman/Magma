@@ -25,7 +25,7 @@ public class AppTest {
     }
 
     @Test
-    public void testInterpretNumericPrefix() throws Exception {
+    public void testNumPrefix() throws Exception {
         assertEquals("5", App.interpret("5U8"));
         // non-allowed suffixes should NOT be accepted
         assertThrows(magma.InterpretException.class, () -> App.interpret("123abc"));
@@ -57,7 +57,7 @@ public class AppTest {
     }
 
     @Test
-    public void testInterpretAdditionWithSuffix() throws Exception {
+    public void testAddWithSuffix() throws Exception {
         assertEquals("5", App.interpret("2 + 3I32"));
         // if both operands have suffixes, the operation is not allowed
         assertThrows(magma.InterpretException.class, () -> App.interpret("2I16+3U8"));
@@ -66,17 +66,17 @@ public class AppTest {
     }
 
     @Test
-    public void testAdditionBothSuffixesNotAllowed() {
+    public void testBothSuffixesNA() {
         assertThrows(magma.InterpretException.class, () -> App.interpret("2U8 + 3I32"));
     }
 
     @Test
-    public void testAdditionSameSuffixAllowed() throws Exception {
+    public void testSameSuffixAllowed() throws Exception {
         assertEquals("5", App.interpret("2I32 + 3I32"));
     }
 
     @Test
-    public void testInterpretChainedAddition() throws Exception {
+    public void testChainedAdd() throws Exception {
         assertEquals("6", App.interpret("1 + 2 + 3"));
         assertEquals("0", App.interpret("1 + -1 + 0"));
     }
@@ -88,7 +88,7 @@ public class AppTest {
     }
 
     @Test
-    public void testInterpretMultiplication() throws Exception {
+    public void testMultiplication() throws Exception {
         assertEquals("6", App.interpret("3 * 2"));
         // multiplication has higher precedence than addition
         assertEquals("14", App.interpret("2 + 3 * 4"));
@@ -112,8 +112,14 @@ public class AppTest {
     }
 
     @Test
-    public void testLetRedeclarationThrows() {
+    public void testLetRedeclThrows() {
         // redeclaring the same variable in the same statement sequence should error
         assertThrows(magma.InterpretException.class, () -> App.interpret("let x = 1; let x = 1;"));
+    }
+
+    @Test
+    public void testLetTypeMismatch() {
+        // initializer has suffix U8 but declared type is I32 — should error
+        assertThrows(magma.InterpretException.class, () -> App.interpret("let x : I32= 1U8;"));
     }
 }

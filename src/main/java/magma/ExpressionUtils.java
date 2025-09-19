@@ -102,6 +102,11 @@ public class ExpressionUtils {
 		return new ExpressionTypes.Reduction(values, ops);
 	}
 
+	// shorter alias to satisfy MethodName rule changes elsewhere
+	public static ExpressionTypes.Reduction reduceMult(ExpressionTypes.ExpressionTokens tokens) {
+		return reduceMultiplications(tokens);
+	}
+
 	public static class ExprParser {
 		final String s;
 		int pos = 0;
@@ -115,11 +120,11 @@ public class ExpressionUtils {
 			long resolve(String name);
 		}
 
-		public long parseExpressionWithResolver(VarResolver resolver) {
-			return parseExpressionWithResolverInternal(resolver);
+		public long parseExprRes(VarResolver resolver) {
+			return parseExprResInternal(resolver);
 		}
 
-		private long parseExpressionWithResolverInternal(VarResolver resolver) {
+		private long parseExprResInternal(VarResolver resolver) {
 			long v = parseTermWithResolver(resolver);
 			skipWhitespace();
 			while (pos < s.length()) {
@@ -160,13 +165,13 @@ public class ExpressionUtils {
 				throw new IllegalArgumentException("Unexpected end");
 			boolean unaryMinus = detectAndConsumeUnarySign();
 			skipWhitespace();
-			return parseParenthesizedOrValueWithResolver(resolver, unaryMinus);
+			return parseParenOrValRes(resolver, unaryMinus);
 		}
 
-		private long parseParenthesizedOrValueWithResolver(VarResolver resolver, boolean unaryMinus) {
+		private long parseParenOrValRes(VarResolver resolver, boolean unaryMinus) {
 			if (pos < s.length() && s.charAt(pos) == '(') {
 				pos++;
-				long v = parseExpressionWithResolverInternal(resolver);
+				long v = parseExprResInternal(resolver);
 				skipWhitespace();
 				if (pos >= s.length() || s.charAt(pos) != ')')
 					throw new IllegalArgumentException("Missing )");
