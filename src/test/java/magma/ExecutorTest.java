@@ -119,6 +119,11 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void declaredBoolInitializerReturnsTrue() {
+		assertValid("let x : Bool = true; x", "true");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}

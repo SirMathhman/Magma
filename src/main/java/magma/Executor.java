@@ -101,6 +101,13 @@ public class Executor {
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var pair = rhsResult.get();
 		var suffix = pair[1];
+		// If declared is present and RHS has no suffix (e.g. literal like true), accept
+		// it
+		if (!java.util.Objects.isNull(declared) && !declared.isEmpty()) {
+			if (java.util.Objects.isNull(suffix) || suffix.isEmpty()) {
+				return java.util.Optional.empty();
+			}
+		}
 		if (!isDeclaredCompatible(declared, suffix))
 			return java.util.Optional.of(new Result.Err<>("Declared type does not match expression suffix"));
 		return java.util.Optional.empty();
