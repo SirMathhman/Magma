@@ -83,6 +83,31 @@
 					</execution>
 				</executions>
 			</plugin>
+			<!-- PMD plugin configured to run CPD (copy/paste detector). No PMD rulesets
+			     are configured here; CPD only detects duplicate code. We set
+			     failOnViolation to false so adding the plugin won't break the build by
+			     default. -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.22.0</version>
+				<executions>
+					<execution>
+						<id>cpd-check</id>
+						<phase>test</phase>
+						<goals>
+							<goal>cpd</goal>
+							<goal>cpd-check</goal>
+						</goals>
+						<configuration>
+							<!-- Minimum token length for duplicates; adjust if desired -->
+							<minimumTokens>100</minimumTokens>
+							<!-- Do not fail the build by default when duplicates are found -->
+							<failOnViolation>true</failOnViolation>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 
