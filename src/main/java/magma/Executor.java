@@ -16,7 +16,13 @@ public class Executor {
 			if (first.startsWith("let ") && rest.length() > 0) {
 				int eq = first.indexOf('=', 4);
 				if (eq > 4) {
-					var ident = first.substring(4, eq).trim();
+					var lhs = first.substring(4, eq).trim();
+					// allow optional type annotation on the lhs, e.g. "x : U8"
+					var ident = lhs;
+					int colon = lhs.indexOf(':');
+					if (colon > 0) {
+						ident = lhs.substring(0, colon).trim();
+					}
 					var expr = first.substring(eq + 1).trim();
 					// evaluate the expression on the right-hand side
 					var rhs = evaluateSingle(expr);

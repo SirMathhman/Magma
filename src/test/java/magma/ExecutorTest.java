@@ -40,6 +40,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void typedLetBindingWithAdditionAndSuffixesIsEvaluated() {
+		// allow an optional type annotation in the let-binding
+		assertValid("let x : U8 = 1U8 + 2U8; x", "3");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
