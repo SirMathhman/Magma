@@ -200,7 +200,8 @@ public class Executor {
 		// if it's an identifier, return its value from env
 		if (env.containsKey(stmt)) {
 			var entry = env.get(stmt);
-			// If the binding exists but has empty value and a declared suffix, treat as uninitialized
+			// If the binding exists but has empty value and a declared suffix, treat as
+			// uninitialized
 			var val = entry[0];
 			var declaredSuffix = entry[1];
 			if ((java.util.Objects.isNull(val) || val.isEmpty()) && !java.util.Objects.isNull(declaredSuffix)
@@ -247,6 +248,10 @@ public class Executor {
 		var leading = extractLeadingDigits(s);
 		if (leading.isPresent()) {
 			return java.util.Optional.of(new String[] { leading.get()[0], leading.get()[1] });
+		}
+		// boolean literals
+		if ("true".equals(s) || "false".equals(s)) {
+			return java.util.Optional.of(new String[] { s, "" });
 		}
 		return java.util.Optional.empty();
 	}
