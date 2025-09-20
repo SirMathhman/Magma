@@ -99,7 +99,7 @@
 					<!-- Ignore duplicate matches that are only string literals -->
 					<ignoreLiterals>true</ignoreLiterals>
 					<!-- Do not fail the build by default when duplicates are found -->
-					<failOnViolation>false</failOnViolation>
+					<failOnViolation>true</failOnViolation>
 				</configuration>
 				<executions>
 					<execution>
