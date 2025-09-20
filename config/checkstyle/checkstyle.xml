@@ -23,5 +23,9 @@
 		<module name="IllegalToken">
 			<property name="tokens" value="TYPECAST" />
 		</module>
+
+		<module name="CyclomaticComplexity">
+			<property name="max" value="15" />
+		</module>
 	</module>
 </module>
