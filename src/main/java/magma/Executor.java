@@ -7,52 +7,64 @@ public class Executor {
 			return new Result.Ok<>("");
 		}
 		var s = opt.get().trim();
-		// support a simple sequence with a let-binding like: "let x = 1U8 + 2U8; x"
-		if (hasDuplicateLetBinding(s)) {
-			return new Result.Err<>("Duplicate binding");
+		// support a semicolon-separated sequence of statements like:
+		// let x = 1U8; let y : I32 = x; expr
+		var parts = s.split(";");
+		var env = new java.util.HashMap<String, String[]>();
+		var nonEmpty = new java.util.ArrayList<String>();
+		for (var p : parts) {
+			var t = p.trim();
+			if (!t.isEmpty())
+				nonEmpty.add(t);
 		}
-		int semi = s.indexOf(';');
-		if (semi > 0) {
-			var first = s.substring(0, semi).trim();
-			var rest = s.substring(semi + 1).trim();
-			// If there is no trailing reference after the semicolon, return empty Ok
-			if (rest.isEmpty() && first.startsWith("let ")) {
-				return new Result.Ok<>("");
-			}
-			// only handle the simple pattern: let <ident> = <expr>; <ident>
-			if (first.startsWith("let ") && rest.length() > 0) {
-				int eq = first.indexOf('=', 4);
-				if (eq > 4) {
-					var lhs = first.substring(4, eq).trim();
-					var ident = extractIdentFromLhs(lhs);
-					var expr = first.substring(eq + 1).trim();
-					// evaluate the expression on the right-hand side
-					// evaluate expression and capture value + optional suffix for validation
-					var rhsWithSuffix = evaluateSingleWithSuffix(expr);
-					if (rhsWithSuffix.isPresent()) {
-						var pair = rhsWithSuffix.get();
-						var value = pair[0];
-						var suffix = pair[1];
-						// if lhs declared a type, ensure it matches the suffix (e.g., U8)
-						int colonPos = lhs.indexOf(':');
-						if (colonPos > 0) {
-							var declared = lhs.substring(colonPos + 1).trim();
-							if (!declared.isEmpty() && !declared.equals(suffix)) {
-								return new Result.Err<>("Declared type does not match expression suffix");
-							}
-						}
-						if (rest.equals(ident)) {
-							return new Result.Ok<>(value);
-						}
-					} else {
-						// propagate evaluation error
+		for (int i = 0; i < nonEmpty.size(); i++) {
+			var stmt = nonEmpty.get(i);
+			if (stmt.startsWith("let ")) {
+				int eq = stmt.indexOf('=', 4);
+				if (eq <= 4)
+					return new Result.Err<>("Non-empty input not allowed");
+				var lhs = stmt.substring(4, eq).trim();
+				var ident = extractIdentFromLhs(lhs);
+				if (env.containsKey(ident))
+					return new Result.Err<>("Duplicate binding");
+				int colonPos = lhs.indexOf(':');
+				var declared = "";
+				if (colonPos > 0)
+					declared = lhs.substring(colonPos + 1).trim();
+				var rhs = stmt.substring(eq + 1).trim();
+				if (rhs.isEmpty())
+					return new Result.Err<>("Non-empty input not allowed");
+				var rhsOpt = evaluateSingleWithSuffix(rhs);
+				String[] pair;
+				if (rhsOpt.isPresent()) {
+					pair = rhsOpt.get();
+				} else {
+					// treat rhs as identifier and look up in env
+					if (!env.containsKey(rhs))
 						return new Result.Err<>("Non-empty input not allowed");
-					}
+					pair = env.get(rhs);
 				}
+				var suffix = pair[1];
+				if (!declared.isEmpty() && !declared.equals(suffix)) {
+					return new Result.Err<>("Declared type does not match expression suffix");
+				}
+				env.put(ident, pair);
+			} else {
+				// non-let statement; only allowed as the final expression
+				if (i != nonEmpty.size() - 1)
+					return new Result.Err<>("Non-empty input not allowed");
+				// if it's an identifier, return its value from env
+				if (env.containsKey(stmt)) {
+					var pair = env.get(stmt);
+					return new Result.Ok<>(pair[0]);
+				}
+				// otherwise evaluate as single expression
+				return evaluateSingle(stmt);
 			}
 		}
-		// fallback to evaluate the whole input as a single expression
-		return evaluateSingle(s);
+		// all statements were let-bindings and none produced a value
+		return new Result.Ok<>("");
+		// (fallback removed - semicolon handling covers cases)
 	}
 
 	private static Result<String, String> evaluateSingle(String s) {
@@ -178,26 +190,6 @@ public class Executor {
 			return java.util.Optional.of(new String[] { num, suffix });
 		}
 		return java.util.Optional.empty();
-	}
-
-	private static boolean hasDuplicateLetBinding(String s) {
-		var seen = new java.util.HashSet<String>();
-		var parts = s.split(";");
-		for (var p : parts) {
-			var t = p.trim();
-			if (t.startsWith("let ")) {
-				int eq = t.indexOf('=', 4);
-				if (eq > 4) {
-					var lhs = t.substring(4, eq).trim();
-					var ident = lhs;
-					int colon = lhs.indexOf(':');
-					if (colon > 0) ident = lhs.substring(0, colon).trim();
-					if (seen.contains(ident)) return true;
-					seen.add(ident);
-				}
-			}
-		}
-		return false;
 	}
 
 	private static String extractIdentFromLhs(String lhs) {

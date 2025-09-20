@@ -70,6 +70,15 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void typedLetReferencingDifferentSuffixReturnsErr() {
+		// let x has suffix U8, let y declares I32 and references x -> should error
+		switch (Executor.execute("let x = 10U8; let y : I32 = x;")) {
+			case Result.Ok(var value) -> fail(value);
+			case Result.Err(var error) -> assertEquals("Declared type does not match expression suffix", error);
+		}
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
