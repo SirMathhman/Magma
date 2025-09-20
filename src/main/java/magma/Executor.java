@@ -8,6 +8,9 @@ public class Executor {
 		}
 		var s = opt.get().trim();
 		// support a simple sequence with a let-binding like: "let x = 1U8 + 2U8; x"
+		if (hasDuplicateLetBinding(s)) {
+			return new Result.Err<>("Duplicate binding");
+		}
 		int semi = s.indexOf(';');
 		if (semi > 0) {
 			var first = s.substring(0, semi).trim();
@@ -21,12 +24,7 @@ public class Executor {
 				int eq = first.indexOf('=', 4);
 				if (eq > 4) {
 					var lhs = first.substring(4, eq).trim();
-					// allow optional type annotation on the lhs, e.g. "x : U8"
-					var ident = lhs;
-					int colon = lhs.indexOf(':');
-					if (colon > 0) {
-						ident = lhs.substring(0, colon).trim();
-					}
+					var ident = extractIdentFromLhs(lhs);
 					var expr = first.substring(eq + 1).trim();
 					// evaluate the expression on the right-hand side
 					// evaluate expression and capture value + optional suffix for validation
@@ -180,5 +178,34 @@ public class Executor {
 			return java.util.Optional.of(new String[] { num, suffix });
 		}
 		return java.util.Optional.empty();
+	}
+
+	private static boolean hasDuplicateLetBinding(String s) {
+		var seen = new java.util.HashSet<String>();
+		var parts = s.split(";");
+		for (var p : parts) {
+			var t = p.trim();
+			if (t.startsWith("let ")) {
+				int eq = t.indexOf('=', 4);
+				if (eq > 4) {
+					var lhs = t.substring(4, eq).trim();
+					var ident = lhs;
+					int colon = lhs.indexOf(':');
+					if (colon > 0) ident = lhs.substring(0, colon).trim();
+					if (seen.contains(ident)) return true;
+					seen.add(ident);
+				}
+			}
+		}
+		return false;
+	}
+
+	private static String extractIdentFromLhs(String lhs) {
+		var ident = lhs;
+		int colon = lhs.indexOf(':');
+		if (colon > 0) {
+			ident = lhs.substring(0, colon).trim();
+		}
+		return ident;
 	}
 }

@@ -61,6 +61,15 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void duplicateLetBindingsReturnError() {
+		// Two let-bindings for the same identifier in the same input should return an error
+		switch (Executor.execute("let x = 10; let x = 10;")) {
+			case Result.Ok(var value) -> fail(value);
+			case Result.Err(var error) -> assertEquals("Duplicate binding", error);
+		}
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
