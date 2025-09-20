@@ -17,6 +17,12 @@ public class Executor {
 			var leftNum = leadingInteger(left);
 			var rightNum = leadingInteger(right);
 			if (!leftNum.isEmpty() && !rightNum.isEmpty()) {
+				// suffixes are the remaining parts after the leading integer
+				var leftSuffix = left.substring(leftNum.length());
+				var rightSuffix = right.substring(rightNum.length());
+				if (!leftSuffix.equals(rightSuffix)) {
+					return new Result.Err<>("Mismatched operand suffixes");
+				}
 				try {
 					var a = Integer.parseInt(leftNum);
 					var b = Integer.parseInt(rightNum);
