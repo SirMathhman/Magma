@@ -96,6 +96,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void doubleAssignmentToDeclaredVarReturnsErr() {
+		// declare without initializer, assign twice -> second assignment should error
+		assertInvalid("let x : I32; x = 10; x = 20; x", "Non-empty input not allowed");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}

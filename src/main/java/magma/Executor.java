@@ -76,8 +76,8 @@ public class Executor {
 			// must have declared type
 			if (declared.isEmpty())
 				return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
-			// Declaration without initializer: allow assignment later -> default to mutable
-			var entry = new String[] { "", declared, "mutable" };
+			// Declaration without initializer: mark as deferred (assign-once)
+			var entry = new String[] { "", declared, "deferred" };
 			env.put(ident, entry);
 			return java.util.Optional.empty();
 		}
@@ -167,7 +167,8 @@ public class Executor {
 		if (!env.containsKey(ident))
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var entry = env.get(ident);
-		if (!"mutable".equals(entry[2]))
+		var mutFlag = entry[2];
+		if (!"mutable".equals(mutFlag) && !"deferred".equals(mutFlag))
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
@@ -185,8 +186,10 @@ public class Executor {
 					return java.util.Optional.of(new Result.Err<>("Declared type does not match expression suffix"));
 			}
 		}
-		// Update the environment entry with new value but keep mutability
-		var newEntry = new String[] { pair[0], pair[1], entry[2] };
+		// Determine new mutability: deferred -> immutable after first assignment;
+		// mutable remains mutable
+		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
+		var newEntry = new String[] { pair[0], pair[1], newMut };
 		env.put(ident, newEntry);
 		return java.util.Optional.empty();
 	}
