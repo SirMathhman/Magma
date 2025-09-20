@@ -84,6 +84,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void assigningToImmutableBindingReturnsErr() {
+		// assigning to immutable binding should be an error
+		assertInvalid("let x = 0; x = 10; x", "Non-empty input not allowed");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
