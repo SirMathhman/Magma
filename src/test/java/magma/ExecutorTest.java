@@ -139,6 +139,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void assignThroughMutableReferenceUpdatesPointee() {
+		// let mut x = 0; let y : *mut I32 = &mut x; y = 10; x => 10
+		assertValid("let mut x = 0; let y : *mut I32 = &mut x; y = 10; x", "10");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}

@@ -121,6 +121,14 @@ public class Executor {
 
 	private static java.util.Optional<String[]> parseRhsPair(String rhs, java.util.Map<String, String[]> env) {
 		if (rhs.startsWith("&")) {
+			// support &mut and & (immutable) references
+			if (rhs.startsWith("&mut")) {
+				var pointee = rhs.substring(4).trim();
+				if (!env.containsKey(pointee))
+					return java.util.Optional.empty();
+				var pointeeSuffix = env.get(pointee)[1];
+				return java.util.Optional.of(new String[] { pointee, "*mut " + pointeeSuffix });
+			}
 			var pointee = rhs.substring(1).trim();
 			if (!env.containsKey(pointee))
 				return java.util.Optional.empty();
@@ -151,7 +159,17 @@ public class Executor {
 	private static boolean checkBasePointeeCompatibility(String baseDeclared, String pointeeSuffix) {
 		if (baseDeclared.isEmpty() || pointeeSuffix.isEmpty())
 			return true;
-		return baseDeclared.equals(pointeeSuffix);
+		// Normalize and handle 'mut' prefix differences like "mut I32" vs "mut "
+		var b = baseDeclared.trim();
+		var p = pointeeSuffix.trim();
+		if (b.startsWith("mut") && p.startsWith("mut")) {
+			var bRest = b.substring(3).trim();
+			var pRest = p.substring(3).trim();
+			if (bRest.isEmpty() || pRest.isEmpty())
+				return true;
+			return bRest.equals(pRest);
+		}
+		return b.equals(p);
 	}
 
 	private static boolean isAssignmentStatement(String stmt) {
@@ -177,7 +195,8 @@ public class Executor {
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var entry = env.get(ident);
 		var mutFlag = entry[2];
-		if (!"mutable".equals(mutFlag) && !"deferred".equals(mutFlag))
+		var lhsSuffix = entry[1];
+		if (!isLhsAssignable(entry))
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
@@ -185,8 +204,52 @@ public class Executor {
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var pair = rhsEval.get();
 		var rhsSuffix = pair[1];
-		// If the existing entry has a declared suffix, validate compatibility
 		var declaredSuffix = entry[1];
+		var compatErr = validateDeclaredCompatibility(declaredSuffix, rhsSuffix);
+		if (compatErr.isPresent())
+			return compatErr;
+		// If the LHS is a pointer variable with '*mut' suffix, update the pointee
+		// instead
+		if (!java.util.Objects.isNull(lhsSuffix) && lhsSuffix.startsWith("*mut")) {
+			var derefErr = handleDerefAssignment(entry, pair, env);
+			if (derefErr.isPresent())
+				return derefErr;
+			return java.util.Optional.empty();
+		}
+		// Determine new mutability: deferred -> immutable after first assignment;
+		// mutable remains mutable
+		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
+		var newEntry = new String[] { pair[0], pair[1], newMut };
+		env.put(ident, newEntry);
+		return java.util.Optional.empty();
+	}
+
+	private static java.util.Optional<Result<String, String>> handleDerefAssignment(String[] pointerEntry,
+			String[] rhsPair, java.util.Map<String, String[]> env) {
+		// pointerEntry[0] holds the pointee name
+		var pointeeName = pointerEntry[0];
+		if (java.util.Objects.isNull(pointeeName) || pointeeName.isEmpty())
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		if (!env.containsKey(pointeeName))
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var pointeeEntry = env.get(pointeeName);
+		// update pointee value and set its suffix to RHS suffix, keep mutability
+		var updated = new String[] { rhsPair[0], rhsPair[1], pointeeEntry[2] };
+		env.put(pointeeName, updated);
+		return java.util.Optional.empty();
+	}
+
+	private static boolean isLhsAssignable(String[] entry) {
+		var mutFlag = entry[2];
+		var lhsSuffix = entry[1];
+		// If the LHS is a pointer variable with '*mut' suffix, allow deref-assignment
+		if (!java.util.Objects.isNull(lhsSuffix) && lhsSuffix.startsWith("*mut"))
+			return true;
+		return "mutable".equals(mutFlag) || "deferred".equals(mutFlag);
+	}
+
+	private static java.util.Optional<Result<String, String>> validateDeclaredCompatibility(String declaredSuffix,
+			String rhsSuffix) {
 		if (!java.util.Objects.isNull(declaredSuffix) && !declaredSuffix.isEmpty()) {
 			// If RHS has a suffix, enforce compatibility; if RHS suffix is empty, accept
 			// and rely on declared type
@@ -195,11 +258,6 @@ public class Executor {
 					return java.util.Optional.of(new Result.Err<>("Declared type does not match expression suffix"));
 			}
 		}
-		// Determine new mutability: deferred -> immutable after first assignment;
-		// mutable remains mutable
-		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
-		var newEntry = new String[] { pair[0], pair[1], newMut };
-		env.put(ident, newEntry);
 		return java.util.Optional.empty();
 	}
 
