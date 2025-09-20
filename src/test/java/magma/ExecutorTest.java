@@ -10,13 +10,26 @@ public class ExecutorTest {
 	public void emptyInputReturnsEmpty() {
 		var res = Executor.execute("");
 		assertTrue(res instanceof Result.Ok);
-		assertEquals("", ((Result.Ok<String, String>) res).value());
+		if (res instanceof Result.Ok ok) {
+			assertEquals("", ok.value());
+		}
 	}
 
 	@Test
 	public void nonEmptyInputReturnsErr() {
 		var res = Executor.execute("data");
 		assertTrue(res instanceof Result.Err);
-		assertEquals("Non-empty input not allowed", ((Result.Err<String, String>) res).error());
+		if (res instanceof Result.Err err) {
+			assertEquals("Non-empty input not allowed", err.error());
+		}
+	}
+
+	@Test
+	public void leadingDigitsAreReturned() {
+		var res = Executor.execute("5U8");
+		assertTrue(res instanceof Result.Ok);
+		if (res instanceof Result.Ok ok) {
+			assertEquals("5", ok.value());
+		}
 	}
 }
