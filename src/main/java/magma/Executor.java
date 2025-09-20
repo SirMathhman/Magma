@@ -76,8 +76,10 @@ public class Executor {
 			// must have declared type
 			if (declared.isEmpty())
 				return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
-			// Declaration without initializer: mark as deferred (assign-once)
-			var entry = new String[] { "", declared, "deferred" };
+			// Declaration without initializer: mark as deferred (assign-once) unless 'mut'
+			// was present
+			var mut = isMutable ? "mutable" : "deferred";
+			var entry = new String[] { "", declared, mut };
 			env.put(ident, entry);
 			return java.util.Optional.empty();
 		}

@@ -102,6 +102,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void mutableDeclarationAllowsMultipleAssignments() {
+		// let mut without initializer should allow multiple assignments
+		assertValid("let mut x : I32; x = 10; x = 20; x", "20");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
