@@ -200,6 +200,13 @@ public class Executor {
 		// if it's an identifier, return its value from env
 		if (env.containsKey(stmt)) {
 			var entry = env.get(stmt);
+			// If the binding exists but has empty value and a declared suffix, treat as uninitialized
+			var val = entry[0];
+			var declaredSuffix = entry[1];
+			if ((java.util.Objects.isNull(val) || val.isEmpty()) && !java.util.Objects.isNull(declaredSuffix)
+					&& !declaredSuffix.isEmpty()) {
+				return new Result.Err<>("Non-empty input not allowed");
+			}
 			return new Result.Ok<>(entry[0]);
 		}
 		// pointer dereference expression like *y

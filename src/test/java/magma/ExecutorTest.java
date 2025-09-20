@@ -108,6 +108,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void readingDeclaredButUninitializedIsInvalid() {
+		// declaring without initializer then reading should be invalid
+		assertInvalid("let x : I32; x", "Non-empty input not allowed");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
