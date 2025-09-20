@@ -22,23 +22,30 @@ public class Executor {
 		if (nonEmpty.isEmpty())
 			return new Result.Ok<>("");
 		var last = nonEmpty.get(nonEmpty.size() - 1);
-		if (last.startsWith("let ")) {
-			var buildErr = processLetStatements(nonEmpty, env);
+		if (last.startsWith("let ") || isAssignmentStatement(last)) {
+			var buildErr = processStatements(nonEmpty, env);
 			if (buildErr.isPresent())
 				return buildErr.get();
 			return new Result.Ok<>("");
 		}
 		var toProcess = nonEmpty.subList(0, nonEmpty.size() - 1);
-		var buildErr = processLetStatements(toProcess, env);
+		var buildErr = processStatements(toProcess, env);
 		if (buildErr.isPresent())
 			return buildErr.get();
 		return evaluateFinal(nonEmpty.get(nonEmpty.size() - 1), env);
 	}
 
-	private static java.util.Optional<Result<String, String>> processLetStatements(java.util.List<String> stmts,
+	private static java.util.Optional<Result<String, String>> processStatements(java.util.List<String> stmts,
 			java.util.Map<String, String[]> env) {
 		for (var stmt : stmts) {
-			var err = processSingleLet(stmt, env);
+			java.util.Optional<Result<String, String>> err;
+			if (stmt.startsWith("let ")) {
+				err = processSingleLet(stmt, env);
+			} else if (isAssignmentStatement(stmt)) {
+				err = processAssignment(stmt, env);
+			} else {
+				err = java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			}
 			if (err.isPresent())
 				return err;
 		}
@@ -52,7 +59,13 @@ public class Executor {
 		int eq = stmt.indexOf('=', 4);
 		if (eq <= 4)
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
-		var lhs = stmt.substring(4, eq).trim();
+		var afterLet = stmt.substring(4, eq).trim();
+		var isMutable = false;
+		var lhs = afterLet;
+		if (afterLet.startsWith("mut ")) {
+			isMutable = true;
+			lhs = afterLet.substring(4).trim();
+		}
 		var ident = extractIdentFromLhs(lhs);
 		if (env.containsKey(ident))
 			return java.util.Optional.of(new Result.Err<>("Duplicate binding"));
@@ -61,18 +74,32 @@ public class Executor {
 		if (colonPos > 0)
 			declared = lhs.substring(colonPos + 1).trim();
 		var rhs = stmt.substring(eq + 1).trim();
-		if (rhs.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var evalResult = evaluateAndValidateRhs(rhs, declared, env);
+		if (evalResult.isPresent())
+			return evalResult;
+		var pair = evaluateRhsExpression(rhs, env).get(); // Safe since we validated above
+		// Store [value, suffix, mutability]
+		var entry = new String[] { pair[0], pair[1], isMutable ? "mutable" : "immutable" };
+		env.put(ident, entry);
+		return java.util.Optional.empty();
+	}
 
-		var pairOpt = parseRhsPair(rhs, env);
-		if (pairOpt.isEmpty())
+	private static java.util.Optional<Result<String, String>> evaluateAndValidateRhs(String rhs, String declared,
+			java.util.Map<String, String[]> env) {
+		var rhsResult = evaluateRhsExpression(rhs, env);
+		if (rhsResult.isEmpty())
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
-		var pair = pairOpt.get();
+		var pair = rhsResult.get();
 		var suffix = pair[1];
 		if (!isDeclaredCompatible(declared, suffix))
 			return java.util.Optional.of(new Result.Err<>("Declared type does not match expression suffix"));
-		env.put(ident, pair);
 		return java.util.Optional.empty();
+	}
+
+	private static java.util.Optional<String[]> evaluateRhsExpression(String rhs, java.util.Map<String, String[]> env) {
+		if (rhs.isEmpty())
+			return java.util.Optional.empty();
+		return parseRhsPair(rhs, env);
 	}
 
 	private static java.util.Optional<String[]> parseRhsPair(String rhs, java.util.Map<String, String[]> env) {
@@ -88,7 +115,9 @@ public class Executor {
 			return rhsOpt;
 		if (!env.containsKey(rhs))
 			return java.util.Optional.empty();
-		return java.util.Optional.of(env.get(rhs));
+		// Return only [value, suffix] from environment entry
+		var entry = env.get(rhs);
+		return java.util.Optional.of(new String[] { entry[0], entry[1] });
 	}
 
 	private static boolean isDeclaredCompatible(String declared, String suffix) {
@@ -108,11 +137,46 @@ public class Executor {
 		return baseDeclared.equals(pointeeSuffix);
 	}
 
+	private static boolean isAssignmentStatement(String stmt) {
+		// Assignment: ident = expr (no 'let' prefix and contains '=')
+		if (stmt.startsWith("let "))
+			return false;
+		int eq = stmt.indexOf('=');
+		if (eq <= 0)
+			return false;
+		var lhs = stmt.substring(0, eq).trim();
+		// Simple identifier check - should not contain spaces or special chars except
+		// ':'
+		return lhs.matches("[a-zA-Z_][a-zA-Z0-9_]*");
+	}
+
+	private static java.util.Optional<Result<String, String>> processAssignment(String stmt,
+			java.util.Map<String, String[]> env) {
+		int eq = stmt.indexOf('=');
+		if (eq <= 0)
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var ident = stmt.substring(0, eq).trim();
+		if (!env.containsKey(ident))
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var entry = env.get(ident);
+		if (!"mutable".equals(entry[2]))
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var rhs = stmt.substring(eq + 1).trim();
+		var evalResult = evaluateAndValidateRhs(rhs, "", env);
+		if (evalResult.isPresent())
+			return evalResult;
+		var pair = evaluateRhsExpression(rhs, env).get(); // Safe since we validated above
+		// Update the environment entry with new value but keep mutability
+		var newEntry = new String[] { pair[0], pair[1], entry[2] };
+		env.put(ident, newEntry);
+		return java.util.Optional.empty();
+	}
+
 	private static Result<String, String> evaluateFinal(String stmt, java.util.Map<String, String[]> env) {
 		// if it's an identifier, return its value from env
 		if (env.containsKey(stmt)) {
-			var pair = env.get(stmt);
-			return new Result.Ok<>(pair[0]);
+			var entry = env.get(stmt);
+			return new Result.Ok<>(entry[0]);
 		}
 		// pointer dereference expression like *y
 		if (stmt.startsWith("*")) {
@@ -121,8 +185,8 @@ public class Executor {
 				return new Result.Err<>("Non-empty input not allowed");
 			var target = env.get(ref)[0];
 			if (env.containsKey(target)) {
-				var pair = env.get(target);
-				return new Result.Ok<>(pair[0]);
+				var entry = env.get(target);
+				return new Result.Ok<>(entry[0]);
 			}
 			return new Result.Err<>("Non-empty input not allowed");
 		}

@@ -53,13 +53,15 @@ public class ExecutorTest {
 
 	@Test
 	public void letBindingWithoutReferenceReturnsEmpty() {
-		// When the input is "let x = 10;" (no trailing reference), we expect an empty Ok
+		// When the input is "let x = 10;" (no trailing reference), we expect an empty
+		// Ok
 		assertValid("let x = 10;", "");
 	}
 
 	@Test
 	public void duplicateLetBindingsReturnError() {
-		// Two let-bindings for the same identifier in the same input should return an error
+		// Two let-bindings for the same identifier in the same input should return an
+		// error
 		assertInvalid("let x = 10; let x = 10;", "Duplicate binding");
 	}
 
@@ -73,6 +75,12 @@ public class ExecutorTest {
 	public void pointerDereferenceReturnsValue() {
 		// simple pointer: let x = 10; let y : *I32 = &x; *y -> 10
 		assertValid("let x = 10; let y : *I32 = &x; *y", "10");
+	}
+
+	@Test
+	public void mutableAssignmentReturnsNewValue() {
+		// mutable variable: let mut x = 0; x = 10; x -> 10
+		assertValid("let mut x = 0; x = 10; x", "10");
 	}
 
 	@Test
