@@ -54,28 +54,25 @@ public class ExecutorTest {
 	@Test
 	public void letBindingWithoutReferenceReturnsEmpty() {
 		// When the input is "let x = 10;" (no trailing reference), we expect an empty Ok
-		switch (Executor.execute("let x = 10;")) {
-			case Result.Ok(var value) -> assertEquals("", value);
-			case Result.Err(var error) -> fail(error);
-		}
+		assertValid("let x = 10;", "");
 	}
 
 	@Test
 	public void duplicateLetBindingsReturnError() {
 		// Two let-bindings for the same identifier in the same input should return an error
-		switch (Executor.execute("let x = 10; let x = 10;")) {
-			case Result.Ok(var value) -> fail(value);
-			case Result.Err(var error) -> assertEquals("Duplicate binding", error);
-		}
+		assertInvalid("let x = 10; let x = 10;", "Duplicate binding");
 	}
 
 	@Test
 	public void typedLetReferencingDifferentSuffixReturnsErr() {
 		// let x has suffix U8, let y declares I32 and references x -> should error
-		switch (Executor.execute("let x = 10U8; let y : I32 = x;")) {
-			case Result.Ok(var value) -> fail(value);
-			case Result.Err(var error) -> assertEquals("Declared type does not match expression suffix", error);
-		}
+		assertInvalid("let x = 10U8; let y : I32 = x;", "Declared type does not match expression suffix");
+	}
+
+	@Test
+	public void pointerDereferenceReturnsValue() {
+		// simple pointer: let x = 10; let y : *I32 = &x; *y -> 10
+		assertValid("let x = 10; let y : *I32 = &x; *y", "10");
 	}
 
 	@Test
