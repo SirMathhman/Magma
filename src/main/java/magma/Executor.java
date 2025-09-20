@@ -12,6 +12,10 @@ public class Executor {
 		if (semi > 0) {
 			var first = s.substring(0, semi).trim();
 			var rest = s.substring(semi + 1).trim();
+			// If there is no trailing reference after the semicolon, return empty Ok
+			if (rest.isEmpty() && first.startsWith("let ")) {
+				return new Result.Ok<>("");
+			}
 			// only handle the simple pattern: let <ident> = <expr>; <ident>
 			if (first.startsWith("let ") && rest.length() > 0) {
 				int eq = first.indexOf('=', 4);

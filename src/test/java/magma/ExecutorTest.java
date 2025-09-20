@@ -52,6 +52,15 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void letBindingWithoutReferenceReturnsEmpty() {
+		// When the input is "let x = 10;" (no trailing reference), we expect an empty Ok
+		switch (Executor.execute("let x = 10;")) {
+			case Result.Ok(var value) -> assertEquals("", value);
+			case Result.Err(var error) -> fail(error);
+		}
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
