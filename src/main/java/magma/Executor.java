@@ -44,7 +44,7 @@ public class Executor {
 			} else if (isAssignmentStatement(stmt)) {
 				err = processAssignment(stmt, env);
 			} else {
-				err = java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+				err = java.util.Optional.of(new Result.Err<>("Invalid statement: " + stmt));
 			}
 			if (err.isPresent())
 				return err;
@@ -55,7 +55,7 @@ public class Executor {
 	private static java.util.Optional<Result<String, String>> processSingleLet(String stmt,
 			java.util.Map<String, String[]> env) {
 		if (!stmt.startsWith("let "))
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Expected 'let' declaration"));
 		int eq = stmt.indexOf('=', 4);
 		var afterLet = stmt.substring(4, (eq > 4 ? eq : stmt.length())).trim();
 		var isMutable = false;
@@ -71,11 +71,14 @@ public class Executor {
 		var declared = "";
 		if (colonPos > 0)
 			declared = lhs.substring(colonPos + 1).trim();
+		// Declared types must not start with '&' (use & only in RHS expressions)
+		if (!declared.isEmpty() && declared.startsWith("&"))
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		// If there is no '=', this is a declaration without initializer
 		if (eq <= 4) {
 			// must have declared type
 			if (declared.isEmpty())
-				return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+				return java.util.Optional.of(new Result.Err<>("Missing declared type for variable '" + ident + "'"));
 			// Declaration without initializer: mark as deferred (assign-once) unless 'mut'
 			// was present
 			var mut = isMutable ? "mutable" : "deferred";
@@ -98,7 +101,7 @@ public class Executor {
 			java.util.Map<String, String[]> env) {
 		var rhsResult = evaluateRhsExpression(rhs, env);
 		if (rhsResult.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
 		var pair = rhsResult.get();
 		var suffix = pair[1];
 		// If declared is present and RHS has no suffix (e.g. literal like true), accept
@@ -189,10 +192,10 @@ public class Executor {
 			java.util.Map<String, String[]> env) {
 		int eq = stmt.indexOf('=');
 		if (eq <= 0)
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Invalid assignment syntax"));
 		var ident = stmt.substring(0, eq).trim();
 		if (!env.containsKey(ident))
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Unknown identifier: '" + ident + "'"));
 		var entry = env.get(ident);
 		var mutFlag = entry[2];
 		var lhsSuffix = entry[1];
@@ -201,7 +204,7 @@ public class Executor {
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
 		if (rhsEval.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
 		var pair = rhsEval.get();
 		var rhsSuffix = pair[1];
 		var declaredSuffix = entry[1];
@@ -229,9 +232,9 @@ public class Executor {
 		// pointerEntry[0] holds the pointee name
 		var pointeeName = pointerEntry[0];
 		if (java.util.Objects.isNull(pointeeName) || pointeeName.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Pointer target not specified"));
 		if (!env.containsKey(pointeeName))
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Pointer target not found: '" + pointeeName + "'"));
 		var pointeeEntry = env.get(pointeeName);
 		// update pointee value and set its suffix to RHS suffix, keep mutability
 		var updated = new String[] { rhsPair[0], rhsPair[1], pointeeEntry[2] };
@@ -271,7 +274,7 @@ public class Executor {
 			var declaredSuffix = entry[1];
 			if ((java.util.Objects.isNull(val) || val.isEmpty()) && !java.util.Objects.isNull(declaredSuffix)
 					&& !declaredSuffix.isEmpty()) {
-				return new Result.Err<>("Non-empty input not allowed");
+				return new Result.Err<>("Uninitialized variable '" + stmt + "'");
 			}
 			return new Result.Ok<>(entry[0]);
 		}
@@ -279,7 +282,7 @@ public class Executor {
 		if (stmt.startsWith("*")) {
 			var ref = stmt.substring(1).trim();
 			if (!env.containsKey(ref))
-				return new Result.Err<>("Non-empty input not allowed");
+				return new Result.Err<>("Unknown pointer variable: '" + ref + "'");
 			var target = env.get(ref)[0];
 			if (env.containsKey(target)) {
 				var entry = env.get(target);
@@ -302,7 +305,7 @@ public class Executor {
 			var pair = pairOpt.get();
 			return new Result.Ok<>(pair[0]);
 		}
-		return new Result.Err<>("Non-empty input not allowed");
+		return new Result.Err<>("Invalid expression: '" + s + "'");
 	}
 
 	/**

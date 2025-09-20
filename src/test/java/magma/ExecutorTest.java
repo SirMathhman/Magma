@@ -145,6 +145,11 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void invalidAmpersandInDeclaredTypeErrors() {
+		assertInvalid("let mut x = 0; let y : *mut I32 = &mut x; let z : &mut x;", "Non-empty input not allowed");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
