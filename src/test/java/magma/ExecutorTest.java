@@ -129,6 +129,16 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void booleanIfExpressionEvaluatesToTrue() {
+		assertValid("if (true) true else false", "true");
+	}
+
+	@Test
+	public void letWithIfInitializerAssignsCorrectly() {
+		assertValid("let x = if (true) true else false; x", "true");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
