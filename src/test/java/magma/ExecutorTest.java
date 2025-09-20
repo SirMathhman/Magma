@@ -154,6 +154,11 @@ public class ExecutorTest {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
 
+	@Test
+	public void bracedExpressionEvaluatesInner() {
+		assertValid("{0}", "0");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Result.Ok(var value) -> assertEquals(expected, value);

@@ -101,7 +101,7 @@ public class Executor {
 			java.util.Map<String, String[]> env) {
 		var rhsResult = evaluateRhsExpression(rhs, env);
 		if (rhsResult.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
+			return rhsError(rhs);
 		var pair = rhsResult.get();
 		var suffix = pair[1];
 		// If declared is present and RHS has no suffix (e.g. literal like true), accept
@@ -146,6 +146,10 @@ public class Executor {
 		// Return only [value, suffix] from environment entry
 		var entry = env.get(rhs);
 		return java.util.Optional.of(new String[] { entry[0], entry[1] });
+	}
+
+	private static java.util.Optional<Result<String, String>> rhsError(String rhs) {
+		return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
 	}
 
 	private static boolean isDeclaredCompatible(String declared, String suffix) {
@@ -204,7 +208,7 @@ public class Executor {
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
 		if (rhsEval.isEmpty())
-			return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
+			return rhsError(rhs);
 		var pair = rhsEval.get();
 		var rhsSuffix = pair[1];
 		var declaredSuffix = entry[1];
@@ -353,6 +357,13 @@ public class Executor {
 				}
 			}
 			return java.util.Optional.empty();
+		}
+		// braced expression: { expr }
+		if (s.startsWith("{") && s.endsWith("}")) {
+			var inner = s.substring(1, s.length() - 1).trim();
+			if (inner.isEmpty())
+				return java.util.Optional.empty();
+			return evaluateSingleWithSuffix(inner);
 		}
 		return java.util.Optional.empty();
 	}
