@@ -59,7 +59,7 @@
 					<archive>
 						<manifest>
 							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
-							<mainClass>magma.App</mainClass>
+							<mainClass>magma.Executor</mainClass>
 						</manifest>
 					</archive>
 				</configuration>

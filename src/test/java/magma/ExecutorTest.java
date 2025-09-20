@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class AppTest {
+public class ExecutorTest {
 	@Test
 	public void testAdd() {
-		assertEquals(5, App.add(2, 3));
+		assertEquals(5, Executor.add(2, 3));
 	}
 }
