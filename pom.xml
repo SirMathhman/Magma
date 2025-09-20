@@ -71,6 +71,7 @@
 				<configuration>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
 					<failOnViolation>true</failOnViolation>
+					<includeTestSourceDirectory>true</includeTestSourceDirectory>
 				</configuration>
 				<executions>
 					<execution>

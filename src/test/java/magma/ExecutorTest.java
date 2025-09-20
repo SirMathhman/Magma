@@ -7,7 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class ExecutorTest {
 	@Test
-	public void emptyInputReturnsEmpty() throws Exception {
+	public void emptyInputReturnsEmpty() {
 		var res = Executor.execute("");
 		assertTrue(res instanceof Result.Ok);
 		assertEquals("", ((Result.Ok<String, String>) res).value());
