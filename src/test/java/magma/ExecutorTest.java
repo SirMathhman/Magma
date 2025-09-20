@@ -32,4 +32,13 @@ public class ExecutorTest {
 			assertEquals("5", ok.value());
 		}
 	}
+
+	@Test
+	public void simpleAdditionIsEvaluated() {
+		var res = Executor.execute("1 + 2");
+		assertTrue(res instanceof Result.Ok);
+		if (res instanceof Result.Ok ok) {
+			assertEquals("3", ok.value());
+		}
+	}
 }
