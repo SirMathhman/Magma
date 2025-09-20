@@ -90,6 +90,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void declarationWithoutInitializerThenAssignReturnsValue() {
+		// declare with type but no initializer, then assign and read
+		assertValid("let x : I32; x = 10; x", "10");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}

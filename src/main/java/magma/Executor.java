@@ -57,9 +57,7 @@ public class Executor {
 		if (!stmt.startsWith("let "))
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		int eq = stmt.indexOf('=', 4);
-		if (eq <= 4)
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
-		var afterLet = stmt.substring(4, eq).trim();
+		var afterLet = stmt.substring(4, (eq > 4 ? eq : stmt.length())).trim();
 		var isMutable = false;
 		var lhs = afterLet;
 		if (afterLet.startsWith("mut ")) {
@@ -73,6 +71,16 @@ public class Executor {
 		var declared = "";
 		if (colonPos > 0)
 			declared = lhs.substring(colonPos + 1).trim();
+		// If there is no '=', this is a declaration without initializer
+		if (eq <= 4) {
+			// must have declared type
+			if (declared.isEmpty())
+				return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			// Declaration without initializer: allow assignment later -> default to mutable
+			var entry = new String[] { "", declared, "mutable" };
+			env.put(ident, entry);
+			return java.util.Optional.empty();
+		}
 		var rhs = stmt.substring(eq + 1).trim();
 		var evalResult = evaluateAndValidateRhs(rhs, declared, env);
 		if (evalResult.isPresent())
@@ -162,10 +170,21 @@ public class Executor {
 		if (!"mutable".equals(entry[2]))
 			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
 		var rhs = stmt.substring(eq + 1).trim();
-		var evalResult = evaluateAndValidateRhs(rhs, "", env);
-		if (evalResult.isPresent())
-			return evalResult;
-		var pair = evaluateRhsExpression(rhs, env).get(); // Safe since we validated above
+		var rhsEval = evaluateRhsExpression(rhs, env);
+		if (rhsEval.isEmpty())
+			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+		var pair = rhsEval.get();
+		var rhsSuffix = pair[1];
+		// If the existing entry has a declared suffix, validate compatibility
+		var declaredSuffix = entry[1];
+		if (!java.util.Objects.isNull(declaredSuffix) && !declaredSuffix.isEmpty()) {
+			// If RHS has a suffix, enforce compatibility; if RHS suffix is empty, accept
+			// and rely on declared type
+			if (!java.util.Objects.isNull(rhsSuffix) && !rhsSuffix.isEmpty()) {
+				if (!isDeclaredCompatible(declaredSuffix, rhsSuffix))
+					return java.util.Optional.of(new Result.Err<>("Declared type does not match expression suffix"));
+			}
+		}
 		// Update the environment entry with new value but keep mutability
 		var newEntry = new String[] { pair[0], pair[1], entry[2] };
 		env.put(ident, newEntry);
