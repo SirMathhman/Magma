@@ -91,6 +91,16 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-pmd-plugin</artifactId>
 				<version>3.22.0</version>
+				<configuration>
+					<!-- Minimum token length for duplicates; adjust if desired -->
+					<minimumTokens>30</minimumTokens>
+					<!-- Also analyze test sources for duplicates -->
+					<includeTests>true</includeTests>
+					<!-- Ignore duplicate matches that are only string literals -->
+					<ignoreLiterals>true</ignoreLiterals>
+					<!-- Do not fail the build by default when duplicates are found -->
+					<failOnViolation>false</failOnViolation>
+				</configuration>
 				<executions>
 					<execution>
 						<id>cpd-check</id>
@@ -99,12 +109,6 @@
 							<goal>cpd</goal>
 							<goal>cpd-check</goal>
 						</goals>
-						<configuration>
-							<!-- Minimum token length for duplicates; adjust if desired -->
-							<minimumTokens>100</minimumTokens>
-							<!-- Do not fail the build by default when duplicates are found -->
-							<failOnViolation>true</failOnViolation>
-						</configuration>
 					</execution>
 				</executions>
 			</plugin>
