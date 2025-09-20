@@ -6,7 +6,36 @@ public class Executor {
 		if (opt.isEmpty()) {
 			return new Result.Ok<>("");
 		}
-		var s = opt.get();
+		var s = opt.get().trim();
+		// support a simple sequence with a let-binding like: "let x = 1U8 + 2U8; x"
+		int semi = s.indexOf(';');
+		if (semi > 0) {
+			var first = s.substring(0, semi).trim();
+			var rest = s.substring(semi + 1).trim();
+			// only handle the simple pattern: let <ident> = <expr>; <ident>
+			if (first.startsWith("let ") && rest.length() > 0) {
+				int eq = first.indexOf('=', 4);
+				if (eq > 4) {
+					var ident = first.substring(4, eq).trim();
+					var expr = first.substring(eq + 1).trim();
+					// evaluate the expression on the right-hand side
+					var rhs = evaluateSingle(expr);
+					if (rhs instanceof Result.Ok) {
+						if (rest.equals(ident)) {
+							return rhs;
+						}
+						// fall through to normal handling if the rest isn't a simple var ref
+					} else if (rhs instanceof Result.Err) {
+						return rhs;
+					}
+				}
+			}
+		}
+		// fallback to evaluate the whole input as a single expression
+		return evaluateSingle(s);
+	}
+
+	private static Result<String, String> evaluateSingle(String s) {
 		// Support simple addition expressions like "1 + 2" (optional spaces) without
 		// regex
 		int plusIndex = s.indexOf('+');

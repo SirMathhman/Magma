@@ -34,6 +34,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void letBindingWithAdditionAndSuffixesIsEvaluated() {
+		// exercise a sequence with a let-binding and then referencing the variable
+		assertValid("let x = 1U8 + 2U8; x", "3");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
