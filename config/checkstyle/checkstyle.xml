@@ -3,17 +3,25 @@
 <module name="Checker">
 	<!-- Flag usages of the literal 'null' and recommend using java.util.Optional -->
 	<module name="RegexpSingleline">
-		<property name="format" value="\bnull\b"/>
-		<property name="message" value="Avoid using literal 'null'; prefer java.util.Optional"/>
-		<property name="minimum" value="0"/>
-		<property name="maximum" value="0"/>
+		<property name="format" value="\bnull\b" />
+		<property name="message" value="Avoid using literal 'null'; prefer java.util.Optional" />
+		<property name="minimum" value="0" />
+		<property name="maximum" value="0" />
 	</module>
-	
+
 	<!-- Ban throw and throws keywords and recommend using Result<T, X> sealed interface -->
 	<module name="RegexpSingleline">
-		<property name="format" value="\b(throw|throws)\b"/>
-		<property name="message" value="Avoid using 'throw' or 'throws'; prefer Result&lt;T, X&gt; sealed interface with Ok and Err variants"/>
-		<property name="minimum" value="0"/>
-		<property name="maximum" value="0"/>
+		<property name="format" value="\b(throw|throws)\b" />
+		<property name="message"
+			value="Avoid using 'throw' or 'throws'; prefer Result&lt;T, X&gt; sealed interface with Ok and Err variants" />
+		<property name="minimum" value="0" />
+		<property name="maximum" value="0" />
+	</module>
+
+	<!-- Ban all type casts at the AST/token level -->
+	<module name="TreeWalker">
+		<module name="IllegalToken">
+			<property name="tokens" value="TYPECAST" />
+		</module>
 	</module>
 </module>
