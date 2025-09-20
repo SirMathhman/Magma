@@ -18,6 +18,15 @@
 		<property name="maximum" value="0" />
 	</module>
 
+	<!-- Ban fully-qualified type names; prefer imports or simple names -->
+	<module name="RegexpSingleline">
+		<!-- Allow fully-qualified names for common packages (java, javax, org.junit, magma) -->
+		<property name="format" value="^(?!\s*import\b)(?!.*\b(?:java|javax|org\.junit|magma)\.).*(([a-z_][a-z0-9_]*\.)+[A-Z][A-Za-z0-9_$]*).*$" />
+		<property name="message" value="Avoid using fully-qualified type names; import the type or use the short name" />
+		<property name="minimum" value="0" />
+		<property name="maximum" value="0" />
+	</module>
+
 	<!-- Ban all type casts at the AST/token level -->
 	<module name="TreeWalker">
 		<module name="IllegalToken">

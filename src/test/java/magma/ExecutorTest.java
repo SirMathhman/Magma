@@ -164,6 +164,16 @@ public class ExecutorTest {
 		assertValid("{let x = 0; x}", "0");
 	}
 
+	@Test
+	public void plusWithBracedOperandsEvaluates() {
+		assertValid("{1} + {2}", "3");
+	}
+
+	@Test
+	public void letThenBracedExpressionReadsVariable() {
+		assertValid("let x = 3; {x}", "3");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Result.Ok(var value) -> assertEquals(expected, value);
