@@ -1,0 +1,12 @@
+# Compiled class files
+**/target/
+
+# IDE files
+.idea/
+*.iml
+
+# Eclipse
+.settings/``
+
+# Mac
+.DS_Store
