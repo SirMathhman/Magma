@@ -25,14 +25,26 @@ public class Executor {
 					}
 					var expr = first.substring(eq + 1).trim();
 					// evaluate the expression on the right-hand side
-					var rhs = evaluateSingle(expr);
-					if (rhs instanceof Result.Ok) {
-						if (rest.equals(ident)) {
-							return rhs;
+					// evaluate expression and capture value + optional suffix for validation
+					var rhsWithSuffix = evaluateSingleWithSuffix(expr);
+					if (rhsWithSuffix.isPresent()) {
+						var pair = rhsWithSuffix.get();
+						var value = pair[0];
+						var suffix = pair[1];
+						// if lhs declared a type, ensure it matches the suffix (e.g., U8)
+						int colonPos = lhs.indexOf(':');
+						if (colonPos > 0) {
+							var declared = lhs.substring(colonPos + 1).trim();
+							if (!declared.isEmpty() && !declared.equals(suffix)) {
+								return new Result.Err<>("Declared type does not match expression suffix");
+							}
 						}
-						// fall through to normal handling if the rest isn't a simple var ref
-					} else if (rhs instanceof Result.Err) {
-						return rhs;
+						if (rest.equals(ident)) {
+							return new Result.Ok<>(value);
+						}
+					} else {
+						// propagate evaluation error
+						return new Result.Err<>("Non-empty input not allowed");
 					}
 				}
 			}
@@ -77,6 +89,46 @@ public class Executor {
 			return new Result.Ok<>(s.substring(0, i));
 		}
 		return new Result.Err<>("Non-empty input not allowed");
+	}
+
+	/**
+	 * Evaluate the single expression and also return the suffix of the resulting
+	 * value if present. Returns Optional of String[2] where [0]=value and [1]=suffix
+	 * (empty string if none). Returns empty Optional if evaluation failed.
+	 */
+	private static java.util.Optional<String[]> evaluateSingleWithSuffix(String s) {
+		int plusIndex = s.indexOf('+');
+		if (plusIndex >= 0 && plusIndex == s.lastIndexOf('+')) {
+			var left = s.substring(0, plusIndex).trim();
+			var right = s.substring(plusIndex + 1).trim();
+			var leftNum = leadingInteger(left);
+			var rightNum = leadingInteger(right);
+			if (!leftNum.isEmpty() && !rightNum.isEmpty()) {
+				var leftSuffix = left.substring(leftNum.length());
+				var rightSuffix = right.substring(rightNum.length());
+				if (!leftSuffix.equals(rightSuffix)) {
+					return java.util.Optional.empty();
+				}
+				try {
+					var a = Integer.parseInt(leftNum);
+					var b = Integer.parseInt(rightNum);
+					return java.util.Optional.of(new String[]{String.valueOf(a + b), leftSuffix});
+				} catch (NumberFormatException ex) {
+					return java.util.Optional.empty();
+				}
+			}
+		}
+		// leading digits case
+		var i = 0;
+		while (i < s.length() && Character.isDigit(s.charAt(i))) {
+			i++;
+		}
+		if (i > 0) {
+			var num = s.substring(0, i);
+			var suffix = s.substring(i);
+			return java.util.Optional.of(new String[]{num, suffix});
+		}
+		return java.util.Optional.empty();
 	}
 
 	private static String leadingInteger(String s) {

@@ -46,6 +46,15 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void typedLetBindingWithMismatchedDeclaredTypeReturnsErr() {
+		// declared type U8 does not match RHS suffix I32
+		switch (Executor.execute("let x : U8 = 10I32; x")) {
+			case Result.Ok(var value) -> fail(value);
+			case Result.Err(var error) -> assertNotNull(error);
+		}
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
