@@ -3,62 +3,53 @@ package magma;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+// ...existing imports...
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class ExecutorTest {
 	@Test
 	public void emptyInputReturnsEmpty() {
-		var res = Executor.execute("");
-		switch (res) {
-			case Result.Ok(var value) -> assertEquals("", value);
-			case Result.Err(var error) -> fail(error);
-		}
+		assertValid("", "");
 	}
 
 	@Test
 	public void nonEmptyInputReturnsErr() {
-		var res = Executor.execute("data");
-		switch (res) {
-			case Result.Ok(var value) -> fail(value);
-			case Result.Err(var error) -> assertEquals("Non-empty input not allowed", error);
-		}
+		assertInvalid("data", "Non-empty input not allowed");
 	}
 
 	@Test
 	public void leadingDigitsAreReturned() {
-		var res = Executor.execute("5U8");
-		assertTrue(res instanceof Result.Ok);
-		switch (res) {
-			case Result.Ok(var value) -> assertEquals("5", value);
-			case Result.Err(var error) -> fail(error);
-		}
+		assertValid("5U8", "5");
 	}
 
 	@Test
 	public void simpleAdditionIsEvaluated() {
-		var res = Executor.execute("1 + 2");
-		switch (res) {
-			case Result.Ok(var value) -> assertEquals("3", value);
-			case Result.Err(var error) -> fail(error);
-		}
+		assertValid("1 + 2", "3");
 	}
 
 	@Test
 	public void additionWithSuffixesIsEvaluated() {
-		var res = Executor.execute("1U8 + 2U8");
-		switch (res) {
-			case Result.Ok(var value) -> assertEquals("3", value);
-			case Result.Err(var error) -> fail(error);
-		}
+		assertValid("1U8 + 2U8", "3");
 	}
 
 	@Test
 	public void mismatchedSuffixesReturnErr() {
-		var res = Executor.execute("1U8 + 2I16");
+		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
+	}
+
+	private static void assertValid(String input, String expected) {
+		var res = Executor.execute(input);
+		switch (res) {
+			case Result.Ok(var value) -> assertEquals(expected, value);
+			case Result.Err(var error) -> fail(error);
+		}
+	}
+
+	private static void assertInvalid(String input, String expectedError) {
+		var res = Executor.execute(input);
 		switch (res) {
 			case Result.Ok(var value) -> fail(value);
-			case Result.Err(var error) -> assertEquals("Mismatched operand suffixes", error);
+			case Result.Err(var error) -> assertEquals(expectedError, error);
 		}
 	}
 }
