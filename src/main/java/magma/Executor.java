@@ -13,10 +13,13 @@ public class Executor {
 		if (plusIndex >= 0 && plusIndex == s.lastIndexOf('+')) {
 			var left = s.substring(0, plusIndex).trim();
 			var right = s.substring(plusIndex + 1).trim();
-			if (isIntegerString(left) && isIntegerString(right)) {
+			// allow operands like "1U8" by extracting leading integer portion
+			var leftNum = leadingInteger(left);
+			var rightNum = leadingInteger(right);
+			if (!leftNum.isEmpty() && !rightNum.isEmpty()) {
 				try {
-					var a = Integer.parseInt(left);
-					var b = Integer.parseInt(right);
+					var a = Integer.parseInt(leftNum);
+					var b = Integer.parseInt(rightNum);
 					return new Result.Ok<>(String.valueOf(a + b));
 				} catch (NumberFormatException ex) {
 					// fall through to other handling if numbers are out of int range
@@ -35,24 +38,18 @@ public class Executor {
 		return new Result.Err<>("Non-empty input not allowed");
 	}
 
-	private static boolean isIntegerString(String s) {
+	private static String leadingInteger(String s) {
 		if (java.util.Objects.isNull(s) || s.isEmpty()) {
-			return false;
+			return "";
 		}
 		int idx = 0;
 		char c = s.charAt(0);
 		if (c == '+' || c == '-') {
-			if (s.length() == 1) {
-				return false;
-			}
 			idx = 1;
 		}
-		while (idx < s.length()) {
-			if (!Character.isDigit(s.charAt(idx))) {
-				return false;
-			}
+		while (idx < s.length() && Character.isDigit(s.charAt(idx))) {
 			idx++;
 		}
-		return true;
+		return s.substring(0, idx);
 	}
 }

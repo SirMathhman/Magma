@@ -41,4 +41,13 @@ public class ExecutorTest {
 			assertEquals("3", ok.value());
 		}
 	}
+
+	@Test
+	public void additionWithSuffixesIsEvaluated() {
+		var res = Executor.execute("1U8 + 2U8");
+		assertTrue(res instanceof Result.Ok);
+		if (res instanceof Result.Ok ok) {
+			assertEquals("3", ok.value());
+		}
+	}
 }
