@@ -237,6 +237,13 @@ public class Executor {
 		var resOpt = evaluateArithmeticOrLeading(s);
 		if (resOpt.isPresent())
 			return resOpt.get();
+		// try single-expression forms that also return a suffix (booleans, if-expr,
+		// leading with suffix)
+		var pairOpt = evaluateSingleWithSuffix(s);
+		if (pairOpt.isPresent()) {
+			var pair = pairOpt.get();
+			return new Result.Ok<>(pair[0]);
+		}
 		return new Result.Err<>("Non-empty input not allowed");
 	}
 
@@ -259,6 +266,32 @@ public class Executor {
 		// boolean literals
 		if ("true".equals(s) || "false".equals(s)) {
 			return java.util.Optional.of(new String[] { s, "" });
+		}
+		// if-expression: if (cond) thenExpr else elseExpr
+		if (s.startsWith("if (")) {
+			int close = s.indexOf(')', 4);
+			if (close > 4) {
+				var condExpr = s.substring(4, close).trim();
+				var rest = s.substring(close + 1).trim();
+				var elseIdx = rest.indexOf("else");
+				if (elseIdx > 0) {
+					var thenExpr = rest.substring(0, elseIdx).trim();
+					var elseExpr = rest.substring(elseIdx + 4).trim();
+					// Evaluate condition using suffix-aware evaluator to avoid casts
+					var condPairOpt = evaluateSingleWithSuffix(condExpr);
+					if (condPairOpt.isPresent()) {
+						var condPair = condPairOpt.get();
+						var condVal = condPair[0];
+						// treat 'true' as truthy
+						boolean takeThen = "true".equals(condVal);
+						var chosen = takeThen ? thenExpr : elseExpr;
+						var chosenOpt = evaluateSingleWithSuffix(chosen);
+						if (chosenOpt.isPresent())
+							return chosenOpt;
+					}
+				}
+			}
+			return java.util.Optional.empty();
 		}
 		return java.util.Optional.empty();
 	}

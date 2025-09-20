@@ -124,6 +124,11 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void simpleIfExpressionEvaluates() {
+		assertValid("if (true) 3 else 5", "3");
+	}
+
+	@Test
 	public void mismatchedSuffixesReturnErr() {
 		assertInvalid("1U8 + 2I16", "Mismatched operand suffixes");
 	}
