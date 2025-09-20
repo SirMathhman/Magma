@@ -7,6 +7,11 @@ public class Executor {
 			return new Result.Ok<>("");
 		}
 		var s = opt.get().trim();
+		// If the whole input is a braced block, evaluate the inner sequence directly
+		if (s.startsWith("{") && s.endsWith("}")) {
+			var inner = s.substring(1, s.length() - 1).trim();
+			return runSequence(inner);
+		}
 		return runSequence(s);
 	}
 
@@ -73,7 +78,7 @@ public class Executor {
 			declared = lhs.substring(colonPos + 1).trim();
 		// Declared types must not start with '&' (use & only in RHS expressions)
 		if (!declared.isEmpty() && declared.startsWith("&"))
-			return java.util.Optional.of(new Result.Err<>("Non-empty input not allowed"));
+			return java.util.Optional.of(new Result.Err<>("Invalid declared type: '" + declared + "'"));
 		// If there is no '=', this is a declaration without initializer
 		if (eq <= 4) {
 			// must have declared type
@@ -101,7 +106,7 @@ public class Executor {
 			java.util.Map<String, String[]> env) {
 		var rhsResult = evaluateRhsExpression(rhs, env);
 		if (rhsResult.isEmpty())
-			return rhsError(rhs);
+			return java.util.Optional.of(new Result.Err<>("Invalid RHS expression: '" + rhs + "'"));
 		var pair = rhsResult.get();
 		var suffix = pair[1];
 		// If declared is present and RHS has no suffix (e.g. literal like true), accept
@@ -332,40 +337,53 @@ public class Executor {
 		if ("true".equals(s) || "false".equals(s)) {
 			return java.util.Optional.of(new String[] { s, "" });
 		}
-		// if-expression: if (cond) thenExpr else elseExpr
-		if (s.startsWith("if (")) {
-			int close = s.indexOf(')', 4);
-			if (close > 4) {
-				var condExpr = s.substring(4, close).trim();
-				var rest = s.substring(close + 1).trim();
-				var elseIdx = rest.indexOf("else");
-				if (elseIdx > 0) {
-					var thenExpr = rest.substring(0, elseIdx).trim();
-					var elseExpr = rest.substring(elseIdx + 4).trim();
-					// Evaluate condition using suffix-aware evaluator to avoid casts
-					var condPairOpt = evaluateSingleWithSuffix(condExpr);
-					if (condPairOpt.isPresent()) {
-						var condPair = condPairOpt.get();
-						var condVal = condPair[0];
-						// treat 'true' as truthy
-						boolean takeThen = "true".equals(condVal);
-						var chosen = takeThen ? thenExpr : elseExpr;
-						var chosenOpt = evaluateSingleWithSuffix(chosen);
-						if (chosenOpt.isPresent())
-							return chosenOpt;
-					}
-				}
+		var ifOpt = evaluateIfWithSuffix(s);
+		if (ifOpt.isPresent())
+			return ifOpt;
+		var brOpt = evaluateBracedWithSuffix(s);
+		if (brOpt.isPresent())
+			return brOpt;
+		return java.util.Optional.empty();
+	}
+
+	private static java.util.Optional<String[]> evaluateIfWithSuffix(String s) {
+		if (!s.startsWith("if ("))
+			return java.util.Optional.empty();
+		int close = s.indexOf(')', 4);
+		if (close <= 4)
+			return java.util.Optional.empty();
+		var condExpr = s.substring(4, close).trim();
+		var rest = s.substring(close + 1).trim();
+		var elseIdx = rest.indexOf("else");
+		if (elseIdx <= 0)
+			return java.util.Optional.empty();
+		var thenExpr = rest.substring(0, elseIdx).trim();
+		var elseExpr = rest.substring(elseIdx + 4).trim();
+		var condPairOpt = evaluateSingleWithSuffix(condExpr);
+		if (condPairOpt.isPresent()) {
+			var condPair = condPairOpt.get();
+			var condVal = condPair[0];
+			boolean takeThen = "true".equals(condVal);
+			var chosen = takeThen ? thenExpr : elseExpr;
+			return evaluateSingleWithSuffix(chosen);
+		}
+		return java.util.Optional.empty();
+	}
+
+	private static java.util.Optional<String[]> evaluateBracedWithSuffix(String s) {
+		if (!s.startsWith("{") || !s.endsWith("}"))
+			return java.util.Optional.empty();
+		var inner = s.substring(1, s.length() - 1).trim();
+		if (inner.isEmpty())
+			return java.util.Optional.empty();
+		if (inner.contains(";") || inner.startsWith("let ")) {
+			var res = runSequence(inner);
+			if (res instanceof Result.Ok ok) {
+				return java.util.Optional.of(new String[] { String.valueOf(ok.value()), "" });
 			}
 			return java.util.Optional.empty();
 		}
-		// braced expression: { expr }
-		if (s.startsWith("{") && s.endsWith("}")) {
-			var inner = s.substring(1, s.length() - 1).trim();
-			if (inner.isEmpty())
-				return java.util.Optional.empty();
-			return evaluateSingleWithSuffix(inner);
-		}
-		return java.util.Optional.empty();
+		return evaluateSingleWithSuffix(inner);
 	}
 
 	// Helper that consolidates arithmetic and leading-digit handling returning

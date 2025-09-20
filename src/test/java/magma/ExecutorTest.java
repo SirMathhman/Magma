@@ -159,6 +159,11 @@ public class ExecutorTest {
 		assertValid("{0}", "0");
 	}
 
+	@Test
+	public void bracedSequenceEvaluatesStatements() {
+		assertValid("{let x = 0; x}", "0");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Result.Ok(var value) -> assertEquals(expected, value);
