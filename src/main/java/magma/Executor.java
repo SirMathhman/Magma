@@ -15,6 +15,26 @@ public class Executor {
 	private record PlusOperands(String sum, String leftSuffix, String rightSuffix) {
 	}
 
+	private static Option<Result<String, String>> handleCompoundPlusAssignment(String ident, String[] entry,
+			String[] rhsPair, Map<String, String[]> env) {
+		var lhsSuffix = entry[1];
+		var mutFlag = entry[2];
+		// Do not support pointer-target compound assignment here
+		if (!Objects.isNull(lhsSuffix) && lhsSuffix.startsWith("*mut")) {
+			return createErr("Compound assignment not supported on pointer target");
+		}
+		// Left-hand current value
+		var lhsVal = entry[0];
+		if (Objects.isNull(lhsVal) || lhsVal.isEmpty())
+			return createErr("Uninitialized variable '" + ident + "'");
+		// Try numeric addition using the helper
+		var sumOpt = parseAndSumStrings(lhsVal, rhsPair[0], lhsSuffix, rhsPair[1]);
+		if (!(sumOpt instanceof Some<PlusOperands>(var sumOperands)))
+			return createErr("Invalid compound assignment operands");
+		env.put(ident, makeNewEntry(sumOperands.sum, sumOperands.leftSuffix, mutFlag));
+		return new None<>();
+	}
+
 	public static Result<String, String> execute(String input) {
 		Some<String> stringOption = new Some<>(input);
 		var opt = !stringOption.value().isEmpty() ? stringOption : new None<String>();
@@ -271,9 +291,15 @@ public class Executor {
 	}
 
 	private static boolean isAssignmentStatement(String stmt) {
-		// Assignment: ident = expr (no 'let' prefix and contains '=')
+		// Assignment: ident = expr or compound forms like ident += expr
 		if (stmt.startsWith("let "))
 			return false;
+		// detect compound assignment operator first (e.g., "+=")
+		var plusEq = stmt.indexOf("+=");
+		if (plusEq > 0) {
+			var lhs = stmt.substring(0, plusEq).trim();
+			return lhs.matches("[a-zA-Z_][a-zA-Z0-9_]*");
+		}
 		var eq = stmt.indexOf('=');
 		if (eq <= 0)
 			return false;
@@ -284,10 +310,13 @@ public class Executor {
 	}
 
 	private static Option<Result<String, String>> processAssignment(String stmt, Map<String, String[]> env) {
-		var eq = stmt.indexOf('=');
-		if (eq <= 0)
+		// Support compound assignment like += in addition to simple '='
+		var plusEq = stmt.indexOf("+=");
+		boolean isCompoundPlus = plusEq > 0;
+		var opPos = isCompoundPlus ? plusEq : stmt.indexOf('=');
+		if (opPos <= 0)
 			return createErr("Invalid assignment syntax");
-		var ident = stmt.substring(0, eq).trim();
+		var ident = stmt.substring(0, opPos).trim();
 		if (!env.containsKey(ident))
 			return createErr("Unknown identifier: '" + ident + "'");
 		var entry = env.get(ident);
@@ -295,7 +324,7 @@ public class Executor {
 		var lhsSuffix = entry[1];
 		if (!isLhsAssignable(entry))
 			return createErr("Assignment target is not assignable");
-		var rhs = stmt.substring(eq + 1).trim();
+		var rhs = stmt.substring(opPos + (isCompoundPlus ? 2 : 1)).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
 		if (!(rhsEval instanceof Some<String[]>(var pair)))
 			return rhsError(rhs);
@@ -304,6 +333,12 @@ public class Executor {
 		var compatErr = validateDeclaredCompatibility(declaredSuffix, rhsSuffix);
 		if (compatErr instanceof Some<Result<String, String>>)
 			return compatErr;
+
+		// Handle compound '+=' specially (extracted to helper to reduce complexity)
+		if (isCompoundPlus) {
+			return handleCompoundPlusAssignment(ident, entry, pair, env);
+		}
+
 		// If the LHS is a pointer variable with '*mut' suffix, update the pointee
 		// instead
 		if (!Objects.isNull(lhsSuffix) && lhsSuffix.startsWith("*mut")) {
@@ -311,10 +346,13 @@ public class Executor {
 		}
 		// Determine new mutability: deferred -> immutable after first assignment;
 		// mutable remains mutable
-		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
-		var newEntry = new String[] { pair[0], pair[1], newMut };
-		env.put(ident, newEntry);
+		env.put(ident, makeNewEntry(pair[0], pair[1], mutFlag));
 		return new None<>();
+	}
+
+	private static String[] makeNewEntry(String value, String suffix, String mutFlag) {
+		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
+		return new String[] { value, suffix, newMut };
 	}
 
 	private static Option<Result<String, String>> handleDerefAssignment(String[] pointerEntry,

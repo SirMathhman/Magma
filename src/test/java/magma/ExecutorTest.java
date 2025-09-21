@@ -111,6 +111,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void compoundAssignmentPlusEqualsUpdatesMutable() {
+		// Test compound assignment x += 10 on a mutable binding
+		assertValid("let mut x = 0; x += 10; x", "10");
+	}
+
+	@Test
 	public void readingDeclaredButUninitializedIsInvalid() {
 		// declaring without initializer then reading should be invalid
 		assertInvalid("let x : I32; x", "Non-empty input not allowed");
