@@ -325,11 +325,22 @@ public class Executor {
 		var rhsOpt = evaluateSingleWithSuffix(rhs);
 		if (rhsOpt instanceof Some<String[]>)
 			return rhsOpt;
-		// function call form: name()
-		if (rhs.endsWith("()") && rhs.indexOf(' ') < 0) {
-			var name = rhs.substring(0, rhs.length() - 2).trim();
-			var call = evaluateFunctionCall(name, env);
-			return call;
+		// function call form: name(arg1, arg2, ...)
+		var p = rhs.indexOf('(');
+		if (p > 0) {
+			var close = matchingClosingParenIndex(rhs, p);
+			if (close == rhs.length() - 1) {
+				var name = rhs.substring(0, p).trim();
+				if (!name.contains(" ")) {
+					var argsRaw = rhs.substring(p + 1, close).trim();
+					if (argsRaw.isEmpty())
+						return evaluateFunctionCall(name, env);
+					var argPairs = parseAndEvalArgPairs(argsRaw, env);
+					if (argPairs.isEmpty())
+						return new None<>();
+					return evaluateFunctionCall(name, argPairs, env);
+				}
+			}
 		}
 		if (!env.containsKey(rhs))
 			return new None<>();
@@ -338,55 +349,112 @@ public class Executor {
 		return new Some<>(new String[] { entry[0], entry[1] });
 	}
 
-	private static Option<Result<String, String>> processFunctionDef(String stmt, Map<String, String[]> env) {
-		// minimal parser: fn name() : Type => { body }
-		var rest = stmt.substring(2).trim();
-		var nameEnd = rest.indexOf('(');
-		if (nameEnd <= 0)
-			return createErr("Invalid function syntax");
-		var name = rest.substring(0, nameEnd).trim();
-		// For now accept zero-arg only and capture the trailing body
-		var arrow = rest.indexOf("=>", nameEnd);
-		if (arrow < 0)
-			return createErr("Invalid function syntax");
-		var body = rest.substring(arrow + 2).trim();
-		// Store the function body as a special entry in env with suffix "fn"
-		env.put(name, new String[] { body, "fn", "immutable" });
-		return new None<>();
+	private static String[] splitTopLevelArgs(String s) {
+		if (Objects.isNull(s) || s.isEmpty())
+			return new String[0];
+		var segments = new java.util.ArrayList<String>();
+		var pos = 0;
+		var lvl = 0;
+		for (var idx = 0; idx < s.length(); idx++) {
+			var ch = s.charAt(idx);
+			if (ch == '(')
+				lvl++;
+			else if (ch == ')')
+				lvl--;
+			else if (ch == ',' && lvl == 0) {
+				segments.add(s.substring(pos, idx).trim());
+				pos = idx + 1;
+			}
+		}
+		segments.add(s.substring(pos).trim());
+		return segments.toArray(new String[0]);
 	}
 
-	private static Option<String[]> evaluateFunctionCall(String name, Map<String, String[]> env) {
+	private static Option<String[]> evaluateFunctionCall(String name, java.util.List<String[]> argPairs,
+			Map<String, String[]> env) {
 		if (!env.containsKey(name))
 			return new None<>();
 		var entry = env.get(name);
 		if (!"fn".equals(entry[1]))
 			return new None<>();
 		var body = entry[0];
-		// If body is braced, evaluate inner sequence and return value
+		var paramDecl = entry.length > 2 ? entry[2] : "";
+		// support single-parameter functions
+		var local = new HashMap<String, String[]>();
+		if (!Objects.isNull(paramDecl) && !paramDecl.isEmpty() && argPairs.size() > 0) {
+			var colon = paramDecl.indexOf(':');
+			var paramName = colon > 0 ? paramDecl.substring(0, colon).trim() : paramDecl.trim();
+			var firstArg = argPairs.get(0);
+			local.put(paramName, new String[] { firstArg[0], firstArg[1], "immutable" });
+		}
 		if (body.startsWith("{") && body.endsWith("}")) {
 			var inner = body.substring(1, body.length() - 1).trim();
-			// If body is a simple 'return <expr>;' form, extract and evaluate that expr
 			if (inner.startsWith("return ") && inner.endsWith(";")) {
 				var expr = inner.substring(7, inner.length() - 1).trim();
-				var res = evaluateSingleWithSuffix(expr);
-				if (res instanceof Some<String[]>(var pair))
-					return wrapPair(pair);
-				return new None<>();
+				var res = evaluateRhsExpressionWithLocal(expr, env, local);
+				return normalizePairOpt(res);
 			}
 			var res = runSequence(inner);
 			if (res instanceof Ok(var value))
-				return wrapPair(new String[] { String.valueOf(value), "" });
+				return new Some<>(new String[] { String.valueOf(value), "" });
 			return new None<>();
 		}
-		// Otherwise treat as single expression
 		var resOpt = evaluateSingleWithSuffix(body);
-		if (resOpt instanceof Some<String[]>(var pair))
-			return wrapPair(pair);
+		return normalizePairOpt(resOpt);
+	}
+
+	private static Option<String[]> normalizePairOpt(Option<String[]> opt) {
+		if (opt instanceof Some<String[]>(var pair))
+			return new Some<>(new String[] { pair[0], pair[1] });
 		return new None<>();
 	}
 
-	private static Option<String[]> wrapPair(String[] pair) {
-		return new Some<>(new String[] { pair[0], pair[1] });
+	private static Option<String[]> evaluateRhsExpressionWithLocal(String expr, Map<String, String[]> outerEnv,
+			Map<String, String[]> local) {
+		if (local.containsKey(expr))
+			return new Some<>(new String[] { local.get(expr)[0], local.get(expr)[1] });
+		return evaluateRhsExpression(expr, outerEnv);
+	}
+
+	private static Option<Result<String, String>> processFunctionDef(String stmt, Map<String, String[]> env) {
+		// minimal parser: fn name(params) : Type => { body }
+		var rest = stmt.substring(2).trim();
+		var nameEnd = rest.indexOf('(');
+		if (nameEnd <= 0)
+			return createErr("Invalid function syntax");
+		var name = rest.substring(0, nameEnd).trim();
+		var close = matchingClosingParenIndex(rest, nameEnd);
+		if (close < 0)
+			return createErr("Invalid function syntax");
+		var paramsRaw = rest.substring(nameEnd + 1, close).trim();
+		var arrow = rest.indexOf("=>", close);
+		if (arrow < 0)
+			return createErr("Invalid function syntax");
+		var body = rest.substring(arrow + 2).trim();
+		var paramDecl = paramsRaw.isEmpty() ? "" : paramsRaw.replaceAll("\\s+", "");
+		// Store the function body as a special entry in env with suffix "fn" and
+		// paramDecl
+		env.put(name, new String[] { body, "fn", paramDecl });
+		return new None<>();
+	}
+
+	private static Option<String[]> evaluateFunctionCall(String name, Map<String, String[]> env) {
+		// Delegate to the argument-list overload with empty args to avoid duplication
+		return evaluateFunctionCall(name, new java.util.ArrayList<String[]>(), env);
+	}
+
+	private static java.util.List<String[]> parseAndEvalArgPairs(String argsRaw, Map<String, String[]> env) {
+		var argExprs = splitTopLevelArgs(argsRaw);
+		var argPairs = new java.util.ArrayList<String[]>();
+		for (var a : argExprs) {
+			if (Objects.isNull(a) || a.isEmpty())
+				continue;
+			var ap = evaluateRhsExpression(a, env);
+			if (!(ap instanceof Some<String[]>(var pair)))
+				return java.util.Collections.emptyList();
+			argPairs.add(pair);
+		}
+		return argPairs;
 	}
 
 	private static Option<Result<String, String>> rhsError(String rhs) {
@@ -556,15 +624,38 @@ public class Executor {
 			return new Err<>("Non-empty input not allowed");
 		}
 		// otherwise evaluate as single expression
-		// special-case zero-arg function call like name()
-		if (stmt.endsWith("()") && stmt.indexOf(' ') < 0) {
-			var name = stmt.substring(0, stmt.length() - 2).trim();
-			var call = evaluateFunctionCall(name, env);
-			if (call instanceof Some<String[]>(var pair))
-				return new Ok<>(pair[0]);
-			return new Err<>("Invalid expression: '" + stmt + "'");
-		}
+		var funcTry = tryEvaluateFunctionCallFinal(stmt, env);
+		if (funcTry instanceof Some<Result<String, String>>(var f))
+			return f;
 		return evaluateSingle(stmt);
+	}
+
+	private static Option<Result<String, String>> tryEvaluateFunctionCallFinal(String stmt, Map<String, String[]> env) {
+		var p = stmt.indexOf('(');
+		if (p <= 0)
+			return new None<>();
+		var close = matchingClosingParenIndex(stmt, p);
+		if (close != stmt.length() - 1)
+			return new None<>();
+		var name = stmt.substring(0, p).trim();
+		if (name.contains(" "))
+			return new None<>();
+		var argsRaw = stmt.substring(p + 1, close).trim();
+		if (argsRaw.isEmpty()) {
+			var call = evaluateFunctionCall(name, env);
+			return makeFinalResultFromCallPair(call, stmt);
+		}
+		var argPairs = parseAndEvalArgPairs(argsRaw, env);
+		if (argPairs.isEmpty())
+			return new Some<>(new Err<>("Invalid expression: '" + stmt + "'"));
+		var call = evaluateFunctionCall(name, argPairs, env);
+		return makeFinalResultFromCallPair(call, stmt);
+	}
+
+	private static Option<Result<String, String>> makeFinalResultFromCallPair(Option<String[]> callOpt, String stmt) {
+		if (callOpt instanceof Some<String[]>(var pair))
+			return new Some<>(new Ok<>(pair[0]));
+		return new Some<>(new Err<>("Invalid expression: '" + stmt + "'"));
 	}
 
 	private static Option<Result<String, String>> evaluateBracedFinal(String stmt, Map<String, String[]> env) {
