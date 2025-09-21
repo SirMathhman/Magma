@@ -135,6 +135,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void whileWithZeroConditionIsError() {
+		// while condition must be boolean-like; numeric 0 is invalid here
+		assertInvalid("while (0) {}", "Invalid condition expression");
+	}
+
+	@Test
 	public void readingDeclaredButUninitializedIsInvalid() {
 		// declaring without initializer then reading should be invalid
 		assertInvalid("let x : I32; x", "Non-empty input not allowed");
@@ -211,6 +217,12 @@ public class ExecutorTest {
 	@Test
 	public void letWithBracedSequenceInitializerEvaluates() {
 		assertValid("let x = {let y = 10; y}; x", "10");
+	}
+
+	@Test
+	public void functionDefinitionAndCallReturnsValue() {
+		// Define a simple function and call it
+		assertValid("fn get() : I32 => { return 100; } get()", "100");
 	}
 
 	private static void assertValid(String input, String expected) {

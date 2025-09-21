@@ -80,8 +80,12 @@ public class Executor {
 		for (var i = 0; i < s.length(); i++) {
 			var c = s.charAt(i);
 			depth = updateBraceDepth(depth, c);
-			if (isSemicolonAtTopLevel(c, depth)) {
+			if (isSemicolonAtTopLevel(c, depth) || isClosingBraceAtTopLevel(c, depth)) {
 				var statement = s.substring(start, i).trim();
+				// include the closing brace in the statement when splitting on '}'
+				if (isClosingBraceAtTopLevel(c, depth)) {
+					statement = s.substring(start, i + 1).trim();
+				}
 				if (!statement.isEmpty()) {
 					nonEmpty.add(statement);
 				}
@@ -150,6 +154,8 @@ public class Executor {
 				err = processAssignment(stmt, env);
 			} else if (stmt.startsWith("while ") || stmt.startsWith("while(")) {
 				err = processWhile(stmt, env);
+			} else if (stmt.startsWith("fn ")) {
+				err = processFunctionDef(stmt, env);
 			} else {
 				err = new Some<>(new Err<>("Invalid statement: " + stmt));
 			}
@@ -319,11 +325,68 @@ public class Executor {
 		var rhsOpt = evaluateSingleWithSuffix(rhs);
 		if (rhsOpt instanceof Some<String[]>)
 			return rhsOpt;
+		// function call form: name()
+		if (rhs.endsWith("()") && rhs.indexOf(' ') < 0) {
+			var name = rhs.substring(0, rhs.length() - 2).trim();
+			var call = evaluateFunctionCall(name, env);
+			return call;
+		}
 		if (!env.containsKey(rhs))
 			return new None<>();
 		// Return only [value, suffix] from environment entry
 		var entry = env.get(rhs);
 		return new Some<>(new String[] { entry[0], entry[1] });
+	}
+
+	private static Option<Result<String, String>> processFunctionDef(String stmt, Map<String, String[]> env) {
+		// minimal parser: fn name() : Type => { body }
+		var rest = stmt.substring(2).trim();
+		var nameEnd = rest.indexOf('(');
+		if (nameEnd <= 0)
+			return createErr("Invalid function syntax");
+		var name = rest.substring(0, nameEnd).trim();
+		// For now accept zero-arg only and capture the trailing body
+		var arrow = rest.indexOf("=>", nameEnd);
+		if (arrow < 0)
+			return createErr("Invalid function syntax");
+		var body = rest.substring(arrow + 2).trim();
+		// Store the function body as a special entry in env with suffix "fn"
+		env.put(name, new String[] { body, "fn", "immutable" });
+		return new None<>();
+	}
+
+	private static Option<String[]> evaluateFunctionCall(String name, Map<String, String[]> env) {
+		if (!env.containsKey(name))
+			return new None<>();
+		var entry = env.get(name);
+		if (!"fn".equals(entry[1]))
+			return new None<>();
+		var body = entry[0];
+		// If body is braced, evaluate inner sequence and return value
+		if (body.startsWith("{") && body.endsWith("}")) {
+			var inner = body.substring(1, body.length() - 1).trim();
+			// If body is a simple 'return <expr>;' form, extract and evaluate that expr
+			if (inner.startsWith("return ") && inner.endsWith(";")) {
+				var expr = inner.substring(7, inner.length() - 1).trim();
+				var res = evaluateSingleWithSuffix(expr);
+				if (res instanceof Some<String[]>(var pair))
+					return wrapPair(pair);
+				return new None<>();
+			}
+			var res = runSequence(inner);
+			if (res instanceof Ok(var value))
+				return wrapPair(new String[] { String.valueOf(value), "" });
+			return new None<>();
+		}
+		// Otherwise treat as single expression
+		var resOpt = evaluateSingleWithSuffix(body);
+		if (resOpt instanceof Some<String[]>(var pair))
+			return wrapPair(pair);
+		return new None<>();
+	}
+
+	private static Option<String[]> wrapPair(String[] pair) {
+		return new Some<>(new String[] { pair[0], pair[1] });
 	}
 
 	private static Option<Result<String, String>> rhsError(String rhs) {
@@ -493,6 +556,14 @@ public class Executor {
 			return new Err<>("Non-empty input not allowed");
 		}
 		// otherwise evaluate as single expression
+		// special-case zero-arg function call like name()
+		if (stmt.endsWith("()") && stmt.indexOf(' ') < 0) {
+			var name = stmt.substring(0, stmt.length() - 2).trim();
+			var call = evaluateFunctionCall(name, env);
+			if (call instanceof Some<String[]>(var pair))
+				return new Ok<>(pair[0]);
+			return new Err<>("Invalid expression: '" + stmt + "'");
+		}
 		return evaluateSingle(stmt);
 	}
 
@@ -555,6 +626,11 @@ public class Executor {
 		var ifOpt = evaluateIfWithSuffix(s);
 		if (ifOpt instanceof Some<String[]>)
 			return ifOpt;
+		// function call as a bare final expression (name())
+		if (s.endsWith("()") && s.indexOf(' ') < 0) {
+			var name = s.substring(0, s.length() - 2).trim();
+			return evaluateFunctionCall(name, Map.of());
+		}
 		return evaluateBracedWithSuffix(s);
 	}
 
