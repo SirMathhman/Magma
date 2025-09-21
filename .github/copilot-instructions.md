@@ -65,3 +65,5 @@ Short, focused guidance for AI coding agents working in this repository.
   - Preserve existing tests' behavior unless the change intentionally updates tests and documentation.
 
   You MUST always run `mvn test` or some other variant at the end of your task! Do not use the test runner, because it will skip mandatory linting checks! You MUST resolve all linting errors.
+
+  Avoid making new test classes that don't correspond to source classes. A single source class should not be tested by multiple test classes.
