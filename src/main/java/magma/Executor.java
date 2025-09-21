@@ -462,6 +462,11 @@ public class Executor {
 	 * (empty string if none). Returns empty Optional if evaluation failed.
 	 */
 	private static Option<String[]> evaluateSingleWithSuffix(String s) {
+		// Check for comparison operators (e.g., '<') before numeric/leading parsing
+		var cmpOpt = evaluateComparisonWithSuffix(s);
+		if (cmpOpt instanceof Some<String[]>)
+			return cmpOpt;
+
 		// Try arithmetic or leading-digit parsing and also provide suffix
 		var arithOpt = evaluateArithmeticWithSuffix(s);
 		if (arithOpt instanceof Some<String[]>)
@@ -471,6 +476,8 @@ public class Executor {
 		if (leading instanceof Some<String[]>(var value)) {
 			return new Some<>(new String[] { value[0], value[1] });
 		}
+
+        
 		// boolean literals
 		if ("true".equals(s) || "false".equals(s)) {
 			return new Some<>(new String[] { s, "" });
@@ -518,6 +525,34 @@ public class Executor {
 			return new None<>();
 		}
 		return evaluateSingleWithSuffix(inner);
+	}
+
+	private static Option<String[]> evaluateComparisonWithSuffix(String s) {
+		// Only support single '<' comparison for now
+		var idx = s.indexOf('<');
+		if (idx < 0)
+			return new None<>();
+		// ensure single '<'
+		if (s.indexOf('<', idx + 1) >= 0)
+			return new None<>();
+		var left = s.substring(0, idx).trim();
+		var right = s.substring(idx + 1).trim();
+		if (left.isEmpty() || right.isEmpty())
+			return new None<>();
+		var leftOpt = evaluateSingleWithSuffix(left);
+		var rightOpt = evaluateSingleWithSuffix(right);
+		if (!(leftOpt instanceof Some<String[]>(var lpair)))
+			return new None<>();
+		if (!(rightOpt instanceof Some<String[]>(var rpair)))
+			return new None<>();
+		try {
+			var l = Integer.parseInt(lpair[0]);
+			var r = Integer.parseInt(rpair[0]);
+			var res = l < r ? "true" : "false";
+			return new Some<>(new String[] { res, "" });
+		} catch (NumberFormatException ex) {
+			return new None<>();
+		}
 	}
 
 	private static int matchingClosingBraceIndex(String s) {

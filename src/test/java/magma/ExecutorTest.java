@@ -123,6 +123,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void lessThanComparisonAssignsBoolean() {
+		// Comparison should evaluate to true and be stored in the binding
+		assertValid("let x = 3 < 4; x", "true");
+	}
+
+	@Test
 	public void readingDeclaredButUninitializedIsInvalid() {
 		// declaring without initializer then reading should be invalid
 		assertInvalid("let x : I32; x", "Non-empty input not allowed");
