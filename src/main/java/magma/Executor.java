@@ -631,14 +631,32 @@ public class Executor {
 	private static boolean isParamCompatible(String declaredType, String[] arg) {
 		if (Objects.isNull(declaredType) || declaredType.isEmpty())
 			return true;
+		// If declared type is a simple type variable (e.g., 'T'), accept any arg and
+		// let generic resolution happen later.
+		if (declaredType.length() > 0 && Character.isUpperCase(declaredType.charAt(0))) {
+			var allLetters = true;
+			for (var i = 0; i < declaredType.length(); i++) {
+				if (!Character.isLetter(declaredType.charAt(i))) {
+					allLetters = false;
+					break;
+				}
+			}
+			if (allLetters)
+				return true;
+		}
 		var argSuffix = arg[1];
 		if (!Objects.isNull(argSuffix) && !argSuffix.isEmpty()) {
 			return !isNotDeclaredCompatible(declaredType, argSuffix);
 		}
 		var v = arg[0];
+		// If the argument has no suffix, accept only a boolean literal for Bool;
+		// otherwise reject so callers must provide a properly suffixed value.
 		if ("true".equals(v) || "false".equals(v))
 			return declaredType.equals("Bool");
-		return true;
+		// allow integer literals for integer-like declared types
+		if (isIntegerLiteral(v))
+			return declaredType.startsWith("I") || declaredType.startsWith("U");
+		return false;
 	}
 
 	private static Option<String[]> executeFunctionBody(String body, Map<String, String[]> env,
