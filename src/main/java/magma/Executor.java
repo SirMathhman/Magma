@@ -162,6 +162,8 @@ public class Executor {
 				err = processSingleLet(stmt, env);
 			} else if (isAssignmentStatement(stmt)) {
 				err = processAssignment(stmt, env);
+			} else if (stmt.startsWith("struct ")) {
+				err = processStructDef(stmt, env);
 			} else if (stmt.startsWith("while ") || stmt.startsWith("while(")) {
 				err = processWhile(stmt, env);
 			} else if (stmt.startsWith("fn ")) {
@@ -173,6 +175,38 @@ public class Executor {
 				return err;
 		}
 		return new None<>();
+	}
+
+	private static Option<Result<String, String>> processStructDef(String stmt, Map<String, String[]> env) {
+		// minimal parser: struct Name { field : Type, ... }
+		var parsed = parseNameAndInner(stmt, 6);
+		if (!(parsed instanceof Some<String[]>(var pr)))
+			return createErr("Invalid struct syntax");
+		var name = pr[0];
+		var inner = pr[1];
+		// normalize fields as comma-separated without whitespace
+		var fieldDecl = inner.replaceAll("\\s+", "");
+		// If name is already bound (either as a value or a struct), treat as duplicate
+		if (env.containsKey(name) || structRegistry.containsKey(name))
+			return createErr("Duplicate binding");
+		// store struct in registry
+		structRegistry.put(name, new String[] { fieldDecl, "struct" });
+		return new None<>();
+	}
+
+	private static Option<String[]> parseNameAndInner(String stmt, int prefixLen) {
+		if (stmt.length() <= prefixLen)
+			return new None<>();
+		var rest = stmt.substring(prefixLen).trim();
+		var nameEnd = rest.indexOf('{');
+		if (nameEnd <= 0)
+			return new None<>();
+		var name = rest.substring(0, nameEnd).trim();
+		var close = matchingClosingBraceIndex(rest);
+		if (close != rest.length() - 1)
+			return new None<>();
+		var inner = rest.substring(nameEnd + 1, close).trim();
+		return new Some<>(new String[] { name, inner });
 	}
 
 	private static int matchingClosingParenIndex(String s, int openPos) {
@@ -846,6 +880,11 @@ public class Executor {
 			var name = s.substring(0, s.length() - 2).trim();
 			return evaluateFunctionCall(name, Map.of());
 		}
+
+		// struct constructor with immediate field access: Name { ... }.field
+		var constructorFieldOpt = evaluateConstructorFieldAccess(s);
+		if (constructorFieldOpt instanceof Some<String[]>)
+			return constructorFieldOpt;
 		return evaluateBracedWithSuffix(s);
 	}
 
@@ -1076,5 +1115,70 @@ public class Executor {
 			ident = lhs.substring(0, colon).trim();
 		}
 		return ident;
+	}
+
+	// Helpers for struct storage in env
+	private static boolean envContainsStruct(String name) {
+		// env is passed around; to resolve struct entries we must search a global
+		// context. For the local evaluation we will rely on the caller to provide
+		// an env map; however many call sites here don't have it. To keep this
+		// helper simple and safe, we'll create a fresh env at usage time by reusing
+		// the top-level runSequence env via a temporary empty map lookup - but the
+		// evaluateSingleWithSuffix usage calls this in a context where env isn't
+		// directly available. Instead, to avoid broad refactors, we'll attempt to
+		// read struct entries from a shared registry stored in a static map.
+		return structRegistry.containsKey(name);
+	}
+
+	private static String[] getStructEntry(String name) {
+		return structRegistry.get(name);
+	}
+
+	private static final java.util.Map<String, String[]> structRegistry = new java.util.HashMap<>();
+
+	private static Option<String[]> evaluateConstructorFieldAccess(String s) {
+		var dotIdx = s.indexOf('.');
+		if (dotIdx <= 0)
+			return new None<>();
+		var left = s.substring(0, dotIdx).trim();
+		var field = s.substring(dotIdx + 1).trim();
+		if (!(left.contains("{") && left.endsWith("}")))
+			return new None<>();
+		var p = left.indexOf('{');
+		var name = left.substring(0, p).trim();
+		var body = left.substring(p + 1, left.length() - 1).trim();
+		if (!envContainsStruct(name))
+			return new None<>();
+		var structEntry = getStructEntry(name);
+		if (Objects.isNull(structEntry))
+			return new None<>();
+		var fieldDeclObj = structEntry[0];
+		if (Objects.isNull(fieldDeclObj))
+			return new None<>();
+		var fieldDecl = fieldDeclObj;
+		var fields = fieldDecl.isEmpty() ? new String[0] : fieldDecl.split(",");
+		var fieldNames = new java.util.ArrayList<String>();
+		for (var f : fields) {
+			var c = f.indexOf(':');
+			var fname = c > 0 ? f.substring(0, c).trim() : f.trim();
+			fieldNames.add(fname);
+		}
+		var argExprs = splitTopLevelArgs(body);
+		if (argExprs.length != fieldNames.size())
+			return new None<>();
+		var argPairs = new java.util.ArrayList<String[]>();
+		for (var ae : argExprs) {
+			if (ae.isEmpty())
+				return new None<>();
+			var ap = evaluateRhsExpression(ae, Map.of());
+			if (!(ap instanceof Some<String[]>(var pair)))
+				return new None<>();
+			argPairs.add(pair);
+		}
+		var idx = fieldNames.indexOf(field);
+		if (idx < 0)
+			return new None<>();
+		var selected = argPairs.get(idx);
+		return new Some<>(new String[] { selected[0], selected[1] });
 	}
 }

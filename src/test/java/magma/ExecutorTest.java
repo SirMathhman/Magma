@@ -297,8 +297,15 @@ public class ExecutorTest {
 
 	@Test
 	public void genericFunctionReturnAssignedToDifferentDeclaredTypeReturnsErr() {
-		// Generic function returns T; calling with an I32 and assigning to Bool should error
+		// Generic function returns T; calling with an I32 and assigning to Bool should
+		// error
 		assertInvalid("fn pass<T>(value : T) : T => value; let result : Bool = pass(100)");
+	}
+
+	@Test
+	public void structConstructorAndFieldAccessEvaluates() {
+		// Define a struct and construct it, then access its field
+		assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
 	}
 
 	private static void assertValid(String input, String expected) {
