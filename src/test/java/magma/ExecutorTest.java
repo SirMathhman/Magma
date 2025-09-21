@@ -177,6 +177,11 @@ public class ExecutorTest {
 		assertValid("let x = 3; {x}", "3");
 	}
 
+	@Test
+	public void letWithBracedSequenceInitializerEvaluates() {
+		assertValid("let x = {let y = 10; y}; x", "10");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);

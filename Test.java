@@ -1,0 +1,1 @@
+public class Test { public static void main(String[] args) { var executor = new magma.Executor(); var result = executor.execute("let x = {let y = 10; y}; x"); System.out.println("Result: " + ((magma.Result.Ok) result).value()); } }

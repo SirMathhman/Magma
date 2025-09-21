@@ -21,8 +21,8 @@ public class Executor {
 		if (opt instanceof None<String>) {
 			return new Ok<>("");
 		}
-		if (opt instanceof Some<String>(var stringSome)) {
-			var s = stringSome.trim();
+		if (opt instanceof Some<String> someString) {
+			var s = someString.value().trim();
 			// If the whole input is a braced block (matching braces), evaluate the inner
 			// sequence directly
 			if (s.startsWith("{") && matchingClosingBraceIndex(s) == s.length() - 1) {
@@ -53,14 +53,42 @@ public class Executor {
 	}
 
 	private static ArrayList<String> splitNonEmptyStatements(String s) {
-		var parts = s.split(";");
 		var nonEmpty = new ArrayList<String>();
-		for (var p : parts) {
-			var t = p.trim();
-			if (!t.isEmpty())
-				nonEmpty.add(t);
+		var start = 0;
+		var depth = 0;
+
+		for (var i = 0; i < s.length(); i++) {
+			var c = s.charAt(i);
+			depth = updateBraceDepth(depth, c);
+			if (isSemicolonAtTopLevel(c, depth)) {
+				var statement = s.substring(start, i).trim();
+				if (!statement.isEmpty()) {
+					nonEmpty.add(statement);
+				}
+				start = i + 1;
+			}
 		}
+
+		// Add the remaining part after the last semicolon
+		var lastStatement = s.substring(start).trim();
+		if (!lastStatement.isEmpty()) {
+			nonEmpty.add(lastStatement);
+		}
+
 		return nonEmpty;
+	}
+
+	private static boolean isSemicolonAtTopLevel(char c, int depth) {
+		return c == ';' && depth == 0;
+	}
+
+	private static int updateBraceDepth(int depth, char c) {
+		if (c == '{') {
+			return depth + 1;
+		} else if (c == '}') {
+			return depth - 1;
+		}
+		return depth;
 	}
 
 	private static Option<Result<String, String>> handleAllBindingsCase(List<String> nonEmpty,
@@ -456,17 +484,18 @@ public class Executor {
 
 	private static int matchingClosingBraceIndex(String s) {
 		var depth = 0;
-		for (var i = 0; i < s.length(); i++) {
-			var c = s.charAt(i);
-			if (c == '{')
-				depth++;
-			else if (c == '}') {
-				depth--;
-				if (depth == 0)
-					return i;
+		for (var pos = 0; pos < s.length(); pos++) {
+			var ch = s.charAt(pos);
+			depth = updateBraceDepth(depth, ch);
+			if (isClosingBraceAtTopLevel(ch, depth)) {
+				return pos;
 			}
 		}
 		return -1;
+	}
+
+	private static boolean isClosingBraceAtTopLevel(char ch, int depth) {
+		return ch == '}' && depth == 0;
 	}
 
 	// Helper that consolidates arithmetic and leading-digit handling returning
