@@ -63,3 +63,5 @@ Short, focused guidance for AI coding agents working in this repository.
 - When in doubt
   - Run `mvn test` locally to validate behavior and checkstyle.
   - Preserve existing tests' behavior unless the change intentionally updates tests and documentation.
+
+  You MUST always run `mvn test` or some other variant at the end of your task! Do not use the test runner, because it will skip mandatory linting checks!
