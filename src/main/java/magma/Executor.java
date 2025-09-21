@@ -20,10 +20,8 @@ public class Executor {
 		if (opt instanceof None<String>) {
 			return new Ok<>("");
 		}
-		var s = (switch (opt) {
-			case Option.None<String> _ -> null;
-			case Some<String>(String value) -> value;
-		}).trim();
+		Some<String> stringSome = (Some<String>) opt;
+		var s = stringSome.value().trim();
 		// If the whole input is a braced block (matching braces), evaluate the inner
 		// sequence directly
 		if (s.startsWith("{") && matchingClosingBraceIndex(s) == s.length() - 1) {
@@ -77,10 +75,9 @@ public class Executor {
 		var env = new HashMap<String, String[]>();
 		if (nonEmpty.isEmpty()) return new Ok<>("");
 		var maybe = handleAllBindingsCase(nonEmpty, env);
-		if (maybe instanceof Some<Result<String, String>>) return switch (maybe) {
-			case Option.None<Result<String, String>> _ -> null;
-			case Some<Result<String, String>>(Result<String, String> value) -> value;
-		};
+		if (maybe instanceof Some<Result<String, String>>(Result<String, String> value)) {
+			return value;
+		}
 		var buildErr = processNonFinalStatements(nonEmpty, env);
 		return switch (buildErr) {
 			case None<Result<String, String>> _ -> evaluateFinal(nonEmpty.getLast(), env);
@@ -135,11 +132,8 @@ public class Executor {
 		var evalResult = evaluateAndValidateRhs(rhs, declared, env);
 		if (evalResult instanceof Some<Result<String, String>>) return evalResult;
 		final var strings = evaluateRhsExpression(rhs, env);
-		if (strings instanceof None<String[]>) return new None<>();
-		var pair = switch (strings) {
-			case Option.None<String[]> _ -> null;
-			case Some<String[]>(String[] value) -> value;
-		}; // Safe since we validated above
+		if (!(strings instanceof Some<String[]>(String[] pair))) return new None<>();
+		// Safe since we validated above
 		// Store [value, suffix, mutability]
 		var entry = new String[]{pair[0], pair[1], isMutable ? "mutable" : "immutable"};
 		env.put(ident, entry);
@@ -150,11 +144,7 @@ public class Executor {
 																																			 String declared,
 																																			 Map<String, String[]> env) {
 		var rhsResult = evaluateRhsExpression(rhs, env);
-		if (rhsResult instanceof None<String[]>) return rhsError(rhs);
-		var pair = switch (rhsResult) {
-			case Option.None<String[]> _ -> null;
-			case Some<String[]>(String[] value) -> value;
-		};
+		if (!(rhsResult instanceof Some<String[]>(String[] pair))) return rhsError(rhs);
 		var suffix = pair[1];
 		// If declared is present and RHS has no suffix (e.g. literal like true), accept
 		// it
@@ -248,11 +238,7 @@ public class Executor {
 		if (!isLhsAssignable(entry)) return createErr("Assignment target is not assignable");
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
-		if (rhsEval instanceof None<String[]>) return rhsError(rhs);
-		var pair = switch (rhsEval) {
-			case Option.None<String[]> _ -> null;
-			case Some<String[]>(String[] value) -> value;
-		};
+		if (!(rhsEval instanceof Some<String[]>(String[] pair))) return rhsError(rhs);
 		var rhsSuffix = pair[1];
 		var declaredSuffix = entry[1];
 		var compatErr = validateDeclaredCompatibility(declaredSuffix, rhsSuffix);
@@ -306,10 +292,9 @@ public class Executor {
 
 	private static Result<String, String> evaluateFinal(String stmt, Map<String, String[]> env) {
 		var br = evaluateBracedFinal(stmt, env);
-		if (br instanceof Some<Result<String, String>>) return switch (br) {
-			case Option.None<Result<String, String>> _ -> null;
-			case Some<Result<String, String>>(Result<String, String> value) -> value;
-		};
+		if (br instanceof Some<Result<String, String>>(Result<String, String> value)) {
+			return value;
+		}
 		// if it's an identifier, return its value from env
 		if (env.containsKey(stmt)) {
 			var entry = env.get(stmt);
@@ -351,19 +336,14 @@ public class Executor {
 
 	private static Result<String, String> evaluateSingle(String s) {
 		var resOpt = evaluateArithmeticOrLeading(s);
-		if (resOpt instanceof Some<Result<String, String>>) return switch (resOpt) {
-			case Option.None<Result<String, String>> _ -> null;
-			case Some<Result<String, String>>(Result<String, String> value) -> value;
-		};
+		if (resOpt instanceof Some<Result<String, String>>(Result<String, String> value)) {
+			return value;
+		}
 		// try single-expression forms that also return a suffix (booleans, if-expr,
 		// leading with suffix)
 		var pairOpt = evaluateSingleWithSuffix(s);
-		if (pairOpt instanceof Some<String[]>) {
-			var pair = switch (pairOpt) {
-				case Option.None<String[]> _ -> null;
-				case Some<String[]>(String[] value) -> value;
-			};
-			return new Ok<>(pair[0]);
+		if (pairOpt instanceof Some<String[]>(String[] value)) {
+			return new Ok<>(value[0]);
 		}
 		return new Err<>("Invalid expression: '" + s + "'");
 	}
@@ -380,14 +360,8 @@ public class Executor {
 		if (arithOpt instanceof Some<String[]>) return arithOpt;
 		// leading digits case
 		var leading = extractLeadingDigits(s);
-		if (leading instanceof Some<String[]>) {
-			return new Some<>(new String[]{(switch (leading) {
-				case Option.None<String[]> _1 -> null;
-				case Some<String[]>(String[] value1) -> value1;
-			})[0], (switch (leading) {
-				case Option.None<String[]> _ -> null;
-				case Some<String[]>(String[] value) -> value;
-			})[1]});
+		if (leading instanceof Some<String[]>(String[] value)) {
+			return new Some<>(new String[]{((String[]) value)[0], ((String[]) value)[1]});
 		}
 		// boolean literals
 		if ("true".equals(s) || "false".equals(s)) {
@@ -409,12 +383,8 @@ public class Executor {
 		var thenExpr = rest.substring(0, elseIdx).trim();
 		var elseExpr = rest.substring(elseIdx + 4).trim();
 		var condPairOpt = evaluateSingleWithSuffix(condExpr);
-		if (condPairOpt instanceof Some<String[]>) {
-			var condPair = switch (condPairOpt) {
-				case Option.None<String[]> _ -> null;
-				case Some<String[]>(String[] value) -> value;
-			};
-			var condVal = condPair[0];
+		if (condPairOpt instanceof Some<String[]>(String[] value)) {
+			var condVal = value[0];
 			var takeThen = "true".equals(condVal);
 			var chosen = takeThen ? thenExpr : elseExpr;
 			return evaluateSingleWithSuffix(chosen);
@@ -455,15 +425,11 @@ public class Executor {
 	private static Option<Result<String, String>> evaluateArithmeticOrLeading(String s) {
 		// arithmetic case handled by shared parser
 		var opOpt = parsePlusOperands(s);
-		if (opOpt instanceof Some<PlusOperands>) {
-			var op = switch (opOpt) {
-				case Option.None<PlusOperands> _ -> null;
-				case Some<PlusOperands>(PlusOperands value) -> value;
-			};
-			if (!op.leftSuffix.equals(op.rightSuffix)) {
+		if (opOpt instanceof Some<PlusOperands>(PlusOperands value)) {
+			if (!value.leftSuffix.equals(value.rightSuffix)) {
 				return new Some<>(new Err<>("Mismatched operand suffixes"));
 			}
-			return new Some<>(new Ok<>(op.sum));
+			return new Some<>(new Ok<>(value.sum));
 		}
 		// leading digits
 		var leading = extractLeadingDigits(s);
@@ -477,11 +443,7 @@ public class Executor {
 	// empty when not applicable
 	private static Option<String[]> evaluateArithmeticWithSuffix(String s) {
 		var opOpt = parsePlusOperands(s);
-		if (opOpt instanceof None<PlusOperands>) return new None<>();
-		var op = switch (opOpt) {
-			case Option.None<PlusOperands> _ -> null;
-			case Some<PlusOperands>(PlusOperands value) -> value;
-		};
+		if (!(opOpt instanceof Some<PlusOperands>(PlusOperands op))) return new None<>();
 		if (!op.leftSuffix.equals(op.rightSuffix)) return new None<>();
 		return new Some<>(new String[]{op.sum, op.leftSuffix});
 	}
@@ -503,20 +465,12 @@ public class Executor {
 			// Try evaluating each side as a full expression (handles braced expressions)
 			var leftPairOpt = evaluateSingleWithSuffix(left);
 			var rightPairOpt = evaluateSingleWithSuffix(right);
-			if (leftPairOpt instanceof Some<String[]>) {
-				if (rightPairOpt instanceof Some<String[]>) {
-					var leftPair = switch (leftPairOpt) {
-						case Option.None<String[]> _1 -> null;
-						case Some<String[]>(String[] value1) -> value1;
-					};
-					var rightPair = switch (rightPairOpt) {
-						case Option.None<String[]> _ -> null;
-						case Some<String[]>(String[] value) -> value;
-					};
-					var leftVal = leftPair[0];
-					var rightVal = rightPair[0];
-					var leftSuffix = leftPair[1];
-					var rightSuffix = rightPair[1];
+			if (leftPairOpt instanceof Some<String[]>(String[] leftResult)) {
+				if (rightPairOpt instanceof Some<String[]>(String[] rightResult)) {
+					var leftVal = leftResult[0];
+					var rightVal = rightResult[0];
+					var leftSuffix = leftResult[1];
+					var rightSuffix = rightResult[1];
 					return parseAndSumStrings(leftVal, rightVal, leftSuffix, rightSuffix);
 				}
 			}
