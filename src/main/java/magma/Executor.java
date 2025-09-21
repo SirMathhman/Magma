@@ -15,6 +15,24 @@ public class Executor {
 	private record PlusOperands(String sum, String leftSuffix, String rightSuffix) {
 	}
 
+	private static Option<String[]> parseGenericName(String name) {
+		var genStart = name.indexOf('<');
+		if (genStart <= 0)
+			return new Some<>(new String[] { name, "" });
+		var genClose = name.indexOf('>', genStart);
+		if (genClose <= genStart)
+			return new None<>();
+		var baseName = name.substring(0, genStart).trim();
+		var typeArg = name.substring(genStart + 1, genClose).trim();
+		return new Some<>(new String[] { baseName, typeArg });
+	}
+
+	private static String substituteParamInFieldDecl(String fieldDeclObj, String paramDecl, String typeArg) {
+		if (Objects.isNull(paramDecl) || paramDecl.isEmpty() || Objects.isNull(typeArg) || typeArg.isEmpty())
+			return fieldDeclObj;
+		return fieldDeclObj.replace(paramDecl, typeArg);
+	}
+
 	private static Option<Result<String, String>> handleCompoundPlusAssignment(String ident, String[] entry,
 			String[] rhsPair, Map<String, String[]> env) {
 		var lhsSuffix = entry[1];
@@ -178,19 +196,29 @@ public class Executor {
 	}
 
 	private static Option<Result<String, String>> processStructDef(String stmt, Map<String, String[]> env) {
-		// minimal parser: struct Name { field : Type, ... }
+		// minimal parser: struct Name<T,...> { field : Type, ... }
 		var parsed = parseNameAndInner(stmt, 6);
 		if (!(parsed instanceof Some<String[]>(var pr)))
 			return createErr("Invalid struct syntax");
-		var name = pr[0];
+		var rawName = pr[0];
 		var inner = pr[1];
+		// handle optional generics on struct name, e.g. Name<T>
+		var genStart = rawName.indexOf('<');
+		var baseName = genStart > 0 ? rawName.substring(0, genStart).trim() : rawName;
+		var paramDecl = "";
+		if (genStart > 0) {
+			var genClose = rawName.indexOf('>', genStart);
+			if (genClose < 0)
+				return createErr("Invalid struct syntax");
+			paramDecl = rawName.substring(genStart + 1, genClose).replaceAll("\\s+", "");
+		}
 		// normalize fields as comma-separated without whitespace
 		var fieldDecl = inner.replaceAll("\\s+", "");
 		// If name is already bound (either as a value or a struct), treat as duplicate
-		if (env.containsKey(name) || structRegistry.containsKey(name))
+		if (env.containsKey(baseName) || structRegistry.containsKey(baseName))
 			return createErr("Duplicate binding");
-		// store struct in registry
-		structRegistry.put(name, new String[] { fieldDecl, "struct" });
+		// store struct in registry; include optional paramDecl at index 2
+		structRegistry.put(baseName, new String[] { fieldDecl, "struct", paramDecl });
 		return new None<>();
 	}
 
@@ -1147,12 +1175,19 @@ public class Executor {
 		var p = left.indexOf('{');
 		var name = left.substring(0, p).trim();
 		var body = left.substring(p + 1, left.length() - 1).trim();
-		if (!envContainsStruct(name))
+		var parsedGeneric = parseGenericName(name);
+		if (!(parsedGeneric instanceof Some<String[]>(var gn)))
 			return new None<>();
-		var structEntry = getStructEntry(name);
+		var baseName = gn[0];
+		var typeArg = gn[1];
+		if (!envContainsStruct(baseName))
+			return new None<>();
+		var structEntry = getStructEntry(baseName);
 		if (Objects.isNull(structEntry))
 			return new None<>();
 		var fieldDeclObj = structEntry[0];
+		var paramDecl = structEntry.length > 2 ? structEntry[2] : "";
+		fieldDeclObj = substituteParamInFieldDecl(fieldDeclObj, paramDecl, typeArg);
 		if (Objects.isNull(fieldDeclObj))
 			return new None<>();
 		var fieldDecl = fieldDeclObj;
