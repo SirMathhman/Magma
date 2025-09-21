@@ -436,6 +436,18 @@ public class Executor {
 		var between = rest.substring(close + 1, arrow).trim();
 		var body = rest.substring(arrow + 2).trim();
 		var paramDecl = paramsRaw.isEmpty() ? "" : paramsRaw.replaceAll("\\s+", "");
+		// Validate duplicate parameter names at function-definition time
+		if (!paramsRaw.isEmpty()) {
+			var seen = new java.util.HashSet<String>();
+			var parts = paramsRaw.split(",");
+			for (var p : parts) {
+				var colon = p.indexOf(':');
+				var pname = colon > 0 ? p.substring(0, colon).trim() : p.trim();
+				if (seen.contains(pname))
+					return createErr("Duplicate parameter");
+				seen.add(pname);
+			}
+		}
 		// optional return type between params and =>, e.g. ": I32"
 		var returnType = "";
 		if (between.startsWith(":")) {
@@ -443,7 +455,8 @@ public class Executor {
 		}
 		// Store the function body as a special entry in env with suffix "fn",
 		// paramDecl and optional return type
-		// If the name is already bound, behave like duplicate let-binding and return an error
+		// If the name is already bound, behave like duplicate let-binding and return an
+		// error
 		if (env.containsKey(name))
 			return createErr("Duplicate binding");
 		env.put(name, new String[] { body, "fn", paramDecl, returnType });
@@ -507,6 +520,9 @@ public class Executor {
 			var pd = params[idx];
 			var colon = pd.indexOf(':');
 			var paramName = colon > 0 ? pd.substring(0, colon).trim() : pd.trim();
+			// reject duplicate parameter names
+			if (local.containsKey(paramName))
+				return new None<>();
 			var declaredType = colon > 0 ? pd.substring(colon + 1).trim() : "";
 			var firstArg = argPairs.get(idx);
 			if (!isParamCompatible(declaredType, firstArg))

@@ -289,6 +289,12 @@ public class ExecutorTest {
 		assertInvalid("fn first() : I32 => 100; fn first() : I32 => 100;");
 	}
 
+	@Test
+	public void functionDefinitionWithDuplicateParamNamesReturnsErr() {
+		// Define a function with duplicate parameter names -> should be an error
+		assertInvalid("fn first(first : I32, first : I32) : I32 => 100; first()");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
