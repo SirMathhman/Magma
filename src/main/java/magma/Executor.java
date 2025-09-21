@@ -1,5 +1,7 @@
 package magma;
 
+import magma.Option.None;
+import magma.Option.Some;
 import magma.Result.Err;
 import magma.Result.Ok;
 
@@ -13,11 +15,15 @@ public class Executor {
 	private record PlusOperands(String sum, String leftSuffix, String rightSuffix) {}
 
 	public static Result<String, String> execute(String input) {
-		var opt = new Optional.Some<>(input).filter(s -> !s.isEmpty());
-		if (opt instanceof Optional.None<String>) {
+		Some<String> stringOption = new Some<>(input);
+		var opt = !stringOption.value().isEmpty() ? stringOption : new None<String>();
+		if (opt instanceof None<String>) {
 			return new Ok<>("");
 		}
-		var s = opt.get().trim();
+		var s = (switch (opt) {
+			case Option.None<String> _ -> null;
+			case Some<String>(String value) -> value;
+		}).trim();
 		// If the whole input is a braced block (matching braces), evaluate the inner
 		// sequence directly
 		if (s.startsWith("{") && matchingClosingBraceIndex(s) == s.length() - 1) {
@@ -27,20 +33,20 @@ public class Executor {
 		return runSequence(s);
 	}
 
-	private static Optional<Result<String, String>> processNonFinalStatements(List<String> nonEmpty,
-																																						Map<String, String[]> env) {
-		if (nonEmpty.size() <= 1) return new Optional.None<>();
+	private static Option<Result<String, String>> processNonFinalStatements(List<String> nonEmpty,
+																																					Map<String, String[]> env) {
+		if (nonEmpty.size() <= 1) return new None<>();
 		var toProcess = nonEmpty.subList(0, nonEmpty.size() - 1);
 		return processStatements(toProcess, env);
 	}
 
-	private static Optional<PlusOperands> parseAndSumStrings(String aStr, String bStr, String aSuffix, String bSuffix) {
+	private static Option<PlusOperands> parseAndSumStrings(String aStr, String bStr, String aSuffix, String bSuffix) {
 		try {
 			var a = Integer.parseInt(aStr);
 			var b = Integer.parseInt(bStr);
-			return new Optional.Some<>(new PlusOperands(String.valueOf(a + b), aSuffix, bSuffix));
+			return new Some<>(new PlusOperands(String.valueOf(a + b), aSuffix, bSuffix));
 		} catch (NumberFormatException ex) {
-			return new Optional.None<>();
+			return new None<>();
 		}
 	}
 
@@ -54,16 +60,16 @@ public class Executor {
 		return nonEmpty;
 	}
 
-	private static Optional<Result<String, String>> handleAllBindingsCase(List<String> nonEmpty,
-																																				Map<String, String[]> env) {
-		if (nonEmpty.isEmpty()) return new Optional.None<>();
+	private static Option<Result<String, String>> handleAllBindingsCase(List<String> nonEmpty,
+																																			Map<String, String[]> env) {
+		if (nonEmpty.isEmpty()) return new None<>();
 		var last = nonEmpty.getLast();
 		if (last.startsWith("let ") || isAssignmentStatement(last)) {
 			var buildErr = processStatements(nonEmpty, env);
-			if (buildErr instanceof Optional.Some<Result<String, String>>) return buildErr;
-			return new Optional.Some<>(new Ok<>(""));
+			if (buildErr instanceof Some<Result<String, String>>) return buildErr;
+			return new Some<>(new Ok<>(""));
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
 	private static Result<String, String> runSequence(String s) {
@@ -71,27 +77,33 @@ public class Executor {
 		var env = new HashMap<String, String[]>();
 		if (nonEmpty.isEmpty()) return new Ok<>("");
 		var maybe = handleAllBindingsCase(nonEmpty, env);
-		if (maybe instanceof Optional.Some<Result<String, String>>) return maybe.get();
+		if (maybe instanceof Some<Result<String, String>>) return switch (maybe) {
+			case Option.None<Result<String, String>> _ -> null;
+			case Some<Result<String, String>>(Result<String, String> value) -> value;
+		};
 		var buildErr = processNonFinalStatements(nonEmpty, env);
-		return buildErr.orElseGet(() -> evaluateFinal(nonEmpty.getLast(), env));
+		return switch (buildErr) {
+			case None<Result<String, String>> _ -> evaluateFinal(nonEmpty.getLast(), env);
+			case Some<Result<String, String>>(Result<String, String> value) -> value;
+		};
 	}
 
-	private static Optional<Result<String, String>> processStatements(List<String> stmts, Map<String, String[]> env) {
+	private static Option<Result<String, String>> processStatements(List<String> stmts, Map<String, String[]> env) {
 		for (var stmt : stmts) {
-			Optional<Result<String, String>> err;
+			Option<Result<String, String>> err;
 			if (stmt.startsWith("let ")) {
 				err = processSingleLet(stmt, env);
 			} else if (isAssignmentStatement(stmt)) {
 				err = processAssignment(stmt, env);
 			} else {
-				err = new Optional.Some<>(new Err<>("Invalid statement: " + stmt));
+				err = new Some<>(new Err<>("Invalid statement: " + stmt));
 			}
-			if (err instanceof Optional.Some<Result<String, String>>) return err;
+			if (err instanceof Some<Result<String, String>>) return err;
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
-	private static Optional<Result<String, String>> processSingleLet(String stmt, Map<String, String[]> env) {
+	private static Option<Result<String, String>> processSingleLet(String stmt, Map<String, String[]> env) {
 		if (!stmt.startsWith("let ")) return createErr("Expected 'let' declaration");
 		var eq = stmt.indexOf('=', 4);
 		var afterLet = stmt.substring(4, (eq > 4 ? eq : stmt.length())).trim();
@@ -117,71 +129,77 @@ public class Executor {
 			var mut = isMutable ? "mutable" : "deferred";
 			var entry = new String[]{"", declared, mut};
 			env.put(ident, entry);
-			return new Optional.None<>();
+			return new None<>();
 		}
 		var rhs = stmt.substring(eq + 1).trim();
 		var evalResult = evaluateAndValidateRhs(rhs, declared, env);
-		if (evalResult instanceof Optional.Some<Result<String, String>>) return evalResult;
+		if (evalResult instanceof Some<Result<String, String>>) return evalResult;
 		final var strings = evaluateRhsExpression(rhs, env);
-		if (strings instanceof Optional.None<String[]>) return new Optional.None<>();
-		var pair = strings.get(); // Safe since we validated above
+		if (strings instanceof None<String[]>) return new None<>();
+		var pair = switch (strings) {
+			case Option.None<String[]> _ -> null;
+			case Some<String[]>(String[] value) -> value;
+		}; // Safe since we validated above
 		// Store [value, suffix, mutability]
 		var entry = new String[]{pair[0], pair[1], isMutable ? "mutable" : "immutable"};
 		env.put(ident, entry);
-		return new Optional.None<>();
+		return new None<>();
 	}
 
-	private static Optional<Result<String, String>> evaluateAndValidateRhs(String rhs,
-																																				 String declared,
-																																				 Map<String, String[]> env) {
+	private static Option<Result<String, String>> evaluateAndValidateRhs(String rhs,
+																																			 String declared,
+																																			 Map<String, String[]> env) {
 		var rhsResult = evaluateRhsExpression(rhs, env);
-		if (rhsResult instanceof Optional.None<String[]>) return rhsError(rhs);
-		var pair = rhsResult.get();
+		if (rhsResult instanceof None<String[]>) return rhsError(rhs);
+		var pair = switch (rhsResult) {
+			case Option.None<String[]> _ -> null;
+			case Some<String[]>(String[] value) -> value;
+		};
 		var suffix = pair[1];
 		// If declared is present and RHS has no suffix (e.g. literal like true), accept
 		// it
 		if (!Objects.isNull(declared) && !declared.isEmpty()) {
 			if (Objects.isNull(suffix) || suffix.isEmpty()) {
-				return new Optional.None<>();
+				return new None<>();
 			}
 		}
 		if (isNotDeclaredCompatible(declared, suffix)) return createErr("Declared type does not match expression suffix");
-		return new Optional.None<>();
+		return new None<>();
 	}
 
-	private static Optional<String[]> evaluateRhsExpression(String rhs, Map<String, String[]> env) {
-		if (rhs.isEmpty()) return new Optional.None<>();
+	private static Option<String[]> evaluateRhsExpression(String rhs, Map<String, String[]> env) {
+		if (rhs.isEmpty()) return new None<>();
 		return parseRhsPair(rhs, env);
 	}
 
-	private static Optional<String[]> parseRhsPair(String rhs, Map<String, String[]> env) {
+	private static Option<String[]> parseRhsPair(String rhs, Map<String, String[]> env) {
 		if (rhs.startsWith("&")) {
 			// support &mut and & (immutable) references
 			if (rhs.startsWith("&mut")) {
 				var pointee = rhs.substring(4).trim();
-				if (!env.containsKey(pointee)) return new Optional.None<>();
+				if (!env.containsKey(pointee)) return new None<>();
 				var pointeeSuffix = env.get(pointee)[1];
-				return new Optional.Some<>(new String[]{pointee, "*mut " + pointeeSuffix});
+				return new Some<>(new String[]{pointee, "*mut " + pointeeSuffix});
 			}
 			var pointee = rhs.substring(1).trim();
-			if (!env.containsKey(pointee)) return new Optional.None<>();
+			if (!env.containsKey(pointee)) return new None<>();
 			var pointeeSuffix = env.get(pointee)[1];
-			return new Optional.Some<>(new String[]{pointee, "*" + pointeeSuffix});
+			return new Some<>(new String[]{pointee, "*" + pointeeSuffix});
 		}
 		var rhsOpt = evaluateSingleWithSuffix(rhs);
-		if (rhsOpt instanceof Optional.Some<String[]>) return rhsOpt;
-		if (!env.containsKey(rhs)) return new Optional.None<>();
+		if (rhsOpt instanceof Some<String[]>) return rhsOpt;
+		if (!env.containsKey(rhs)) return new None<>();
 		// Return only [value, suffix] from environment entry
 		var entry = env.get(rhs);
-		return new Optional.Some<>(new String[]{entry[0], entry[1]});
+		return new Some<>(new String[]{entry[0], entry[1]});
 	}
 
-	private static Optional<Result<String, String>> rhsError(String rhs) {
-		return new Optional.Some<>(new Err<>("Invalid RHS expression: '" + rhs + "'"));
+	private static Option<Result<String, String>> rhsError(String rhs) {
+		return new Some<>(new Err<>("Invalid RHS expression: '" + rhs + "'"));
 	}
 
-	private static Optional<Result<String, String>> createErr(String msg) {
-		return new Optional.Some<>(new Err<>(msg));
+	private static Option<Result<String, String>> createErr(String msg) {
+		return new Some<>(new Err<>(msg));
 	}
 
 	private static boolean isNotDeclaredCompatible(String declared, String suffix) {
@@ -219,7 +237,7 @@ public class Executor {
 		return lhs.matches("[a-zA-Z_][a-zA-Z0-9_]*");
 	}
 
-	private static Optional<Result<String, String>> processAssignment(String stmt, Map<String, String[]> env) {
+	private static Option<Result<String, String>> processAssignment(String stmt, Map<String, String[]> env) {
 		var eq = stmt.indexOf('=');
 		if (eq <= 0) return createErr("Invalid assignment syntax");
 		var ident = stmt.substring(0, eq).trim();
@@ -230,12 +248,15 @@ public class Executor {
 		if (!isLhsAssignable(entry)) return createErr("Assignment target is not assignable");
 		var rhs = stmt.substring(eq + 1).trim();
 		var rhsEval = evaluateRhsExpression(rhs, env);
-		if (rhsEval instanceof Optional.None<String[]>) return rhsError(rhs);
-		var pair = rhsEval.get();
+		if (rhsEval instanceof None<String[]>) return rhsError(rhs);
+		var pair = switch (rhsEval) {
+			case Option.None<String[]> _ -> null;
+			case Some<String[]>(String[] value) -> value;
+		};
 		var rhsSuffix = pair[1];
 		var declaredSuffix = entry[1];
 		var compatErr = validateDeclaredCompatibility(declaredSuffix, rhsSuffix);
-		if (compatErr instanceof Optional.Some<Result<String, String>>) return compatErr;
+		if (compatErr instanceof Some<Result<String, String>>) return compatErr;
 		// If the LHS is a pointer variable with '*mut' suffix, update the pointee
 		// instead
 		if (!Objects.isNull(lhsSuffix) && lhsSuffix.startsWith("*mut")) {
@@ -246,12 +267,12 @@ public class Executor {
 		var newMut = "immutable".equals(mutFlag) ? "immutable" : ("deferred".equals(mutFlag) ? "immutable" : "mutable");
 		var newEntry = new String[]{pair[0], pair[1], newMut};
 		env.put(ident, newEntry);
-		return new Optional.None<>();
+		return new None<>();
 	}
 
-	private static Optional<Result<String, String>> handleDerefAssignment(String[] pointerEntry,
-																																				String[] rhsPair,
-																																				Map<String, String[]> env) {
+	private static Option<Result<String, String>> handleDerefAssignment(String[] pointerEntry,
+																																			String[] rhsPair,
+																																			Map<String, String[]> env) {
 		// pointerEntry[0] holds the pointee name
 		var pointeeName = pointerEntry[0];
 		if (Objects.isNull(pointeeName) || pointeeName.isEmpty()) return createErr("Pointer target not specified");
@@ -260,7 +281,7 @@ public class Executor {
 		// update pointee value and set its suffix to RHS suffix, keep mutability
 		var updated = new String[]{rhsPair[0], rhsPair[1], pointeeEntry[2]};
 		env.put(pointeeName, updated);
-		return new Optional.None<>();
+		return new None<>();
 	}
 
 	private static boolean isLhsAssignable(String[] entry) {
@@ -271,22 +292,24 @@ public class Executor {
 		return "mutable".equals(mutFlag) || "deferred".equals(mutFlag);
 	}
 
-	private static Optional<Result<String, String>> validateDeclaredCompatibility(String declaredSuffix,
-																																								String rhsSuffix) {
+	private static Option<Result<String, String>> validateDeclaredCompatibility(String declaredSuffix, String rhsSuffix) {
 		if (!Objects.isNull(declaredSuffix) && !declaredSuffix.isEmpty()) {
 			// If RHS has a suffix, enforce compatibility; if RHS suffix is empty, accept
 			// and rely on declared type
 			if (!Objects.isNull(rhsSuffix) && !rhsSuffix.isEmpty()) {
-				if (isNotDeclaredCompatible(declaredSuffix, rhsSuffix)) return new Optional.Some<>(
-						new Err<>("Declared type does not match expression suffix"));
+				if (isNotDeclaredCompatible(declaredSuffix, rhsSuffix))
+					return new Some<>(new Err<>("Declared type does not match expression suffix"));
 			}
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
 	private static Result<String, String> evaluateFinal(String stmt, Map<String, String[]> env) {
 		var br = evaluateBracedFinal(stmt, env);
-		if (br instanceof Optional.Some<Result<String, String>>) return br.get();
+		if (br instanceof Some<Result<String, String>>) return switch (br) {
+			case Option.None<Result<String, String>> _ -> null;
+			case Some<Result<String, String>>(Result<String, String> value) -> value;
+		};
 		// if it's an identifier, return its value from env
 		if (env.containsKey(stmt)) {
 			var entry = env.get(stmt);
@@ -314,26 +337,32 @@ public class Executor {
 		return evaluateSingle(stmt);
 	}
 
-	private static Optional<Result<String, String>> evaluateBracedFinal(String stmt, Map<String, String[]> env) {
-		if (!stmt.startsWith("{") || matchingClosingBraceIndex(stmt) != stmt.length() - 1) return new Optional.None<>();
+	private static Option<Result<String, String>> evaluateBracedFinal(String stmt, Map<String, String[]> env) {
+		if (!stmt.startsWith("{") || matchingClosingBraceIndex(stmt) != stmt.length() - 1) return new None<>();
 		var inner = stmt.substring(1, stmt.length() - 1).trim();
 		var nonEmpty = splitNonEmptyStatements(inner);
-		if (nonEmpty.isEmpty()) return new Optional.Some<>(new Ok<>(""));
+		if (nonEmpty.isEmpty()) return new Some<>(new Ok<>(""));
 		var maybe = handleAllBindingsCase(nonEmpty, env);
-		if (maybe instanceof Optional.Some<Result<String, String>>) return maybe;
+		if (maybe instanceof Some<Result<String, String>>) return maybe;
 		var buildErr = processNonFinalStatements(nonEmpty, env);
-		if (buildErr instanceof Optional.Some<Result<String, String>>) return buildErr;
-		return new Optional.Some<>(evaluateFinal(nonEmpty.getLast(), env));
+		if (buildErr instanceof Some<Result<String, String>>) return buildErr;
+		return new Some<>(evaluateFinal(nonEmpty.getLast(), env));
 	}
 
 	private static Result<String, String> evaluateSingle(String s) {
 		var resOpt = evaluateArithmeticOrLeading(s);
-		if (resOpt instanceof Optional.Some<Result<String, String>>) return resOpt.get();
+		if (resOpt instanceof Some<Result<String, String>>) return switch (resOpt) {
+			case Option.None<Result<String, String>> _ -> null;
+			case Some<Result<String, String>>(Result<String, String> value) -> value;
+		};
 		// try single-expression forms that also return a suffix (booleans, if-expr,
 		// leading with suffix)
 		var pairOpt = evaluateSingleWithSuffix(s);
-		if (pairOpt instanceof Optional.Some<String[]>) {
-			var pair = pairOpt.get();
+		if (pairOpt instanceof Some<String[]>) {
+			var pair = switch (pairOpt) {
+				case Option.None<String[]> _ -> null;
+				case Some<String[]>(String[] value) -> value;
+			};
 			return new Ok<>(pair[0]);
 		}
 		return new Err<>("Invalid expression: '" + s + "'");
@@ -345,55 +374,64 @@ public class Executor {
 	 * [1]=suffix
 	 * (empty string if none). Returns empty Optional if evaluation failed.
 	 */
-	private static Optional<String[]> evaluateSingleWithSuffix(String s) {
+	private static Option<String[]> evaluateSingleWithSuffix(String s) {
 		// Try arithmetic or leading-digit parsing and also provide suffix
 		var arithOpt = evaluateArithmeticWithSuffix(s);
-		if (arithOpt instanceof Optional.Some<String[]>) return arithOpt;
+		if (arithOpt instanceof Some<String[]>) return arithOpt;
 		// leading digits case
 		var leading = extractLeadingDigits(s);
-		if (leading instanceof Optional.Some<String[]>) {
-			return new Optional.Some<>(new String[]{leading.get()[0], leading.get()[1]});
+		if (leading instanceof Some<String[]>) {
+			return new Some<>(new String[]{(switch (leading) {
+				case Option.None<String[]> _1 -> null;
+				case Some<String[]>(String[] value1) -> value1;
+			})[0], (switch (leading) {
+				case Option.None<String[]> _ -> null;
+				case Some<String[]>(String[] value) -> value;
+			})[1]});
 		}
 		// boolean literals
 		if ("true".equals(s) || "false".equals(s)) {
-			return new Optional.Some<>(new String[]{s, ""});
+			return new Some<>(new String[]{s, ""});
 		}
 		var ifOpt = evaluateIfWithSuffix(s);
-		if (ifOpt instanceof Optional.Some<String[]>) return ifOpt;
+		if (ifOpt instanceof Some<String[]>) return ifOpt;
 		return evaluateBracedWithSuffix(s);
 	}
 
-	private static Optional<String[]> evaluateIfWithSuffix(String s) {
-		if (!s.startsWith("if (")) return new Optional.None<>();
+	private static Option<String[]> evaluateIfWithSuffix(String s) {
+		if (!s.startsWith("if (")) return new None<>();
 		var close = s.indexOf(')', 4);
-		if (close <= 4) return new Optional.None<>();
+		if (close <= 4) return new None<>();
 		var condExpr = s.substring(4, close).trim();
 		var rest = s.substring(close + 1).trim();
 		var elseIdx = rest.indexOf("else");
-		if (elseIdx <= 0) return new Optional.None<>();
+		if (elseIdx <= 0) return new None<>();
 		var thenExpr = rest.substring(0, elseIdx).trim();
 		var elseExpr = rest.substring(elseIdx + 4).trim();
 		var condPairOpt = evaluateSingleWithSuffix(condExpr);
-		if (condPairOpt instanceof Optional.Some<String[]>) {
-			var condPair = condPairOpt.get();
+		if (condPairOpt instanceof Some<String[]>) {
+			var condPair = switch (condPairOpt) {
+				case Option.None<String[]> _ -> null;
+				case Some<String[]>(String[] value) -> value;
+			};
 			var condVal = condPair[0];
 			var takeThen = "true".equals(condVal);
 			var chosen = takeThen ? thenExpr : elseExpr;
 			return evaluateSingleWithSuffix(chosen);
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
-	private static Optional<String[]> evaluateBracedWithSuffix(String s) {
-		if (!s.startsWith("{") || !s.endsWith("}")) return new Optional.None<>();
+	private static Option<String[]> evaluateBracedWithSuffix(String s) {
+		if (!s.startsWith("{") || !s.endsWith("}")) return new None<>();
 		var inner = s.substring(1, s.length() - 1).trim();
-		if (inner.isEmpty()) return new Optional.None<>();
+		if (inner.isEmpty()) return new None<>();
 		if (inner.contains(";") || inner.startsWith("let ")) {
 			var res = runSequence(inner);
 			if (res instanceof Ok(Object value)) {
-				return new Optional.Some<>(new String[]{String.valueOf(value), ""});
+				return new Some<>(new String[]{String.valueOf(value), ""});
 			}
-			return new Optional.None<>();
+			return new None<>();
 		}
 		return evaluateSingleWithSuffix(inner);
 	}
@@ -414,34 +452,43 @@ public class Executor {
 	// Helper that consolidates arithmetic and leading-digit handling returning
 	// Optional<Result> empty when not applicable. This removes duplication detected
 	// by CPD.
-	private static Optional<Result<String, String>> evaluateArithmeticOrLeading(String s) {
+	private static Option<Result<String, String>> evaluateArithmeticOrLeading(String s) {
 		// arithmetic case handled by shared parser
 		var opOpt = parsePlusOperands(s);
-		if (opOpt instanceof Optional.Some<PlusOperands>) {
-			var op = opOpt.get();
+		if (opOpt instanceof Some<PlusOperands>) {
+			var op = switch (opOpt) {
+				case Option.None<PlusOperands> _ -> null;
+				case Some<PlusOperands>(PlusOperands value) -> value;
+			};
 			if (!op.leftSuffix.equals(op.rightSuffix)) {
-				return new Optional.Some<>(new Err<>("Mismatched operand suffixes"));
+				return new Some<>(new Err<>("Mismatched operand suffixes"));
 			}
-			return new Optional.Some<>(new Ok<>(op.sum));
+			return new Some<>(new Ok<>(op.sum));
 		}
 		// leading digits
 		var leading = extractLeadingDigits(s);
-		return leading.map(strings -> new Ok<>(strings[0]));
+		return switch (leading) {
+			case None<String[]> _ -> new None<>();
+			case Some<String[]>(String[] value) -> new Some<>(new Ok<>(value[0]));
+		};
 	}
 
 	// Helper that evaluates arithmetic and returns Optional of [value,suffix]
 	// empty when not applicable
-	private static Optional<String[]> evaluateArithmeticWithSuffix(String s) {
+	private static Option<String[]> evaluateArithmeticWithSuffix(String s) {
 		var opOpt = parsePlusOperands(s);
-		if (opOpt instanceof Optional.None<PlusOperands>) return new Optional.None<>();
-		var op = opOpt.get();
-		if (!op.leftSuffix.equals(op.rightSuffix)) return new Optional.None<>();
-		return new Optional.Some<>(new String[]{op.sum, op.leftSuffix});
+		if (opOpt instanceof None<PlusOperands>) return new None<>();
+		var op = switch (opOpt) {
+			case Option.None<PlusOperands> _ -> null;
+			case Some<PlusOperands>(PlusOperands value) -> value;
+		};
+		if (!op.leftSuffix.equals(op.rightSuffix)) return new None<>();
+		return new Some<>(new String[]{op.sum, op.leftSuffix});
 	}
 
 	// Parse a plus expression like "1U8 + 2U8" and return sum and suffixs when
 	// parsable
-	private static Optional<PlusOperands> parsePlusOperands(String s) {
+	private static Option<PlusOperands> parsePlusOperands(String s) {
 		var plusIndex = s.indexOf('+');
 		if (plusIndex >= 0 && plusIndex == s.lastIndexOf('+')) {
 			var left = s.substring(0, plusIndex).trim();
@@ -456,10 +503,16 @@ public class Executor {
 			// Try evaluating each side as a full expression (handles braced expressions)
 			var leftPairOpt = evaluateSingleWithSuffix(left);
 			var rightPairOpt = evaluateSingleWithSuffix(right);
-			if (leftPairOpt instanceof Optional.Some<String[]>) {
-				if (rightPairOpt instanceof Optional.Some<String[]>) {
-					var leftPair = leftPairOpt.get();
-					var rightPair = rightPairOpt.get();
+			if (leftPairOpt instanceof Some<String[]>) {
+				if (rightPairOpt instanceof Some<String[]>) {
+					var leftPair = switch (leftPairOpt) {
+						case Option.None<String[]> _1 -> null;
+						case Some<String[]>(String[] value1) -> value1;
+					};
+					var rightPair = switch (rightPairOpt) {
+						case Option.None<String[]> _ -> null;
+						case Some<String[]>(String[] value) -> value;
+					};
 					var leftVal = leftPair[0];
 					var rightVal = rightPair[0];
 					var leftSuffix = leftPair[1];
@@ -468,7 +521,7 @@ public class Executor {
 				}
 			}
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
 	private static String leadingInteger(String s) {
@@ -486,8 +539,8 @@ public class Executor {
 		return s.substring(0, idx);
 	}
 
-	private static Optional<String[]> extractLeadingDigits(String s) {
-		if (Objects.isNull(s) || s.isEmpty()) return new Optional.None<>();
+	private static Option<String[]> extractLeadingDigits(String s) {
+		if (Objects.isNull(s) || s.isEmpty()) return new None<>();
 		var i = 0;
 		while (i < s.length() && Character.isDigit(s.charAt(i))) {
 			i++;
@@ -495,9 +548,9 @@ public class Executor {
 		if (i > 0) {
 			var num = s.substring(0, i);
 			var suffix = s.substring(i);
-			return new Optional.Some<>(new String[]{num, suffix});
+			return new Some<>(new String[]{num, suffix});
 		}
-		return new Optional.None<>();
+		return new None<>();
 	}
 
 	private static String extractIdentFromLhs(String lhs) {
