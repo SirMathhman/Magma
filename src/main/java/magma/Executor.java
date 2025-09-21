@@ -497,6 +497,13 @@ public class Executor {
 		// strip any generic parameters like name<T> -> name
 		var genStart = rawName.indexOf('<');
 		var name = genStart > 0 ? rawName.substring(0, genStart).trim() : rawName;
+		var genericParams = "";
+		if (genStart > 0) {
+			var genClose = rawName.indexOf('>', genStart);
+			if (genClose > genStart) {
+				genericParams = rawName.substring(genStart + 1, genClose).replaceAll("\\s+", "");
+			}
+		}
 		var close = matchingClosingParenIndex(rest, nameEnd);
 		if (close < 0)
 			return createErr("Invalid function syntax");
@@ -530,7 +537,11 @@ public class Executor {
 		// error
 		if (env.containsKey(name))
 			return createErr("Duplicate binding");
-		env.put(name, new String[] { body, "fn", paramDecl, returnType });
+		// store generic param names at index 4 if present
+		if (genericParams.isEmpty())
+			env.put(name, new String[] { body, "fn", paramDecl, returnType });
+		else
+			env.put(name, new String[] { body, "fn", paramDecl, returnType, genericParams });
 		return new None<>();
 	}
 
@@ -555,22 +566,36 @@ public class Executor {
 
 	private static Option<String[]> evaluateFunctionCall(String name, java.util.List<String[]> argPairs,
 			Map<String, String[]> env) {
-		if (!env.containsKey(name))
+		// support explicit instantiation like name<I32>(args)
+		var parsed = parseGenericName(name);
+		var baseName = name;
+		var typeArg = "";
+		if (parsed instanceof Some<String[]>(var gn)) {
+			baseName = gn[0];
+			typeArg = gn[1];
+		}
+		if (!env.containsKey(baseName))
 			return new None<>();
-		var entry = env.get(name);
+		var entry = env.get(baseName);
 		if (!"fn".equals(entry[1]))
 			return new None<>();
 		var body = entry[0];
 		var paramDecl = entry.length > 2 ? entry[2] : "";
+		var declaredRet = entry.length > 3 ? entry[3] : "";
+		// If this function was defined with generic params (stored at index 4), and
+		// the call provided a concrete typeArg, substitute the type variable in
+		// paramDecl and declaredRet
+		if (entry.length > 4 && !typeArg.isEmpty()) {
+			var genericParams = entry[4];
+			// single param substitution for now
+			paramDecl = paramDecl.replace(genericParams, typeArg);
+			declaredRet = declaredRet.replace(genericParams, typeArg);
+		}
 		// Bind parameters into a local environment; validation occurs in helper
 		var bindOpt = bindFunctionParameters(paramDecl, argPairs);
 		if (!(bindOpt instanceof Some<Map<String, String[]>>(var local)))
 			return new None<>();
 		var callRes = executeFunctionBody(body, env, local);
-		// If the function declared a return type (stored at index 3), and the
-		// evaluated body returned a value without a suffix, propagate the declared
-		// return type as the call-site suffix so callers can perform type checks.
-		var declaredRet = entry.length > 3 ? entry[3] : "";
 		if (callRes instanceof Some<String[]>(var pair)) {
 			if (!Objects.isNull(declaredRet) && !declaredRet.isEmpty()
 					&& (Objects.isNull(pair[1]) || pair[1].isEmpty())) {
