@@ -418,10 +418,14 @@ public class Executor {
 	private static Option<Result<String, String>> processFunctionDef(String stmt, Map<String, String[]> env) {
 		// minimal parser: fn name(params) : Type => { body }
 		var rest = stmt.substring(2).trim();
+		// allow optional generics on function name, e.g. name<T>
 		var nameEnd = rest.indexOf('(');
 		if (nameEnd <= 0)
 			return createErr("Invalid function syntax");
-		var name = rest.substring(0, nameEnd).trim();
+		var rawName = rest.substring(0, nameEnd).trim();
+		// strip any generic parameters like name<T> -> name
+		var genStart = rawName.indexOf('<');
+		var name = genStart > 0 ? rawName.substring(0, genStart).trim() : rawName;
 		var close = matchingClosingParenIndex(rest, nameEnd);
 		if (close < 0)
 			return createErr("Invalid function syntax");
@@ -525,7 +529,9 @@ public class Executor {
 				return new Some<>(new String[] { String.valueOf(value), "" });
 			return new None<>();
 		}
-		var resOpt = evaluateSingleWithSuffix(body);
+		// For expression-bodied functions, evaluate the expression with the local
+		// parameter bindings so identifiers like parameter names resolve.
+		var resOpt = evaluateRhsExpressionWithLocal(body, env, local);
 		return normalizePairOpt(resOpt);
 	}
 
