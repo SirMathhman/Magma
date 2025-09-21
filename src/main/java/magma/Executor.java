@@ -15,6 +15,75 @@ public class Executor {
 	private record PlusOperands(String sum, String leftSuffix, String rightSuffix) {
 	}
 
+	private record StructData(java.util.List<String> fieldNames, java.util.List<String[]> argPairs) {
+	}
+
+	// struct field extraction moved to magma.Structs utility to reduce complexity
+
+	private static Option<String[]> buildStructInstance(String rhs) {
+		var parsed = parseCtorBaseTypeBody(rhs);
+		var baseName = parsed[0];
+		var typeArg = parsed[1];
+		var body = parsed[2];
+		var parsedStructOpt = parseStructConstructor(baseName, typeArg, body);
+		if (!(parsedStructOpt instanceof Some<StructData>(var sd)))
+			return new None<>();
+		var fieldNames = sd.fieldNames();
+		var argPairs = sd.argPairs();
+		return new Some<>(encodeStructValue(baseName, typeArg, fieldNames, argPairs));
+	}
+
+	private static String[] parseCtorBaseTypeBody(String s) {
+		var p = s.indexOf('{');
+		var name = s.substring(0, p).trim();
+		var body = s.substring(p + 1, s.length() - 1).trim();
+		var bt = getBaseAndType(name);
+		return new String[] { bt[0], bt[1], body };
+	}
+
+	private static String[] encodeStructValue(String baseName, String typeArg, java.util.List<String> fieldNames,
+			java.util.List<String[]> argPairs) {
+		var suffix = baseName + (typeArg.isEmpty() ? "" : "<" + typeArg + ">");
+		var sb = new StringBuilder();
+		sb.append("STRUCT:").append(suffix).append("|");
+		for (var i = 0; i < fieldNames.size(); i++) {
+			var fname = fieldNames.get(i);
+			var pair = argPairs.get(i);
+			sb.append(fname).append("=").append(pair[0]).append("#").append(Objects.isNull(pair[1]) ? "" : pair[1]);
+			if (i < fieldNames.size() - 1)
+				sb.append(";");
+		}
+		return new String[] { sb.toString(), suffix };
+	}
+
+	private static Option<StructData> parseStructConstructor(String baseName, String typeArg, String body) {
+		var structEntry = getStructEntry(baseName);
+		if (!envContainsStruct(baseName) || Objects.isNull(structEntry))
+			return new None<>();
+		var fieldDecl = structEntry[0];
+		var paramDecl = structEntry.length > 2 ? structEntry[2] : "";
+		if (!paramDecl.isEmpty() && !typeArg.isEmpty()) {
+			fieldDecl = substituteParamInFieldDecl(fieldDecl, paramDecl, typeArg);
+		}
+		var fields = fieldDecl.isEmpty() ? new String[0] : fieldDecl.split(",");
+		var fieldNames = parseFieldNames(fields);
+		if (fieldNames.isEmpty())
+			return new None<>();
+		var argPairs = parseAndEvalArgPairs(body, Map.of());
+		if (argPairs.isEmpty() || argPairs.size() != fieldNames.size())
+			return new None<>();
+		if (!validateConstructorArgs(fields, argPairs))
+			return new None<>();
+		return new Some<>(new StructData(fieldNames, argPairs));
+	}
+
+	private static String[] getBaseAndType(String rawName) {
+		var parsed = parseGenericName(rawName);
+		if (parsed instanceof Some<String[]>(var gn))
+			return new String[] { gn[0], gn[1] };
+		return new String[] { rawName, "" };
+	}
+
 	private static Option<String[]> parseGenericName(String name) {
 		var genStart = name.indexOf('<');
 		if (genStart <= 0)
@@ -56,6 +125,9 @@ public class Executor {
 	public static Result<String, String> execute(String input) {
 		Some<String> stringOption = new Some<>(input);
 		var opt = !stringOption.value().isEmpty() ? stringOption : new None<String>();
+		// Clear any shared struct registry between separate execute invocations so
+		// tests and callers remain isolated.
+		structRegistry.clear();
 		if (opt instanceof None<String>) {
 			return new Ok<>("");
 		}
@@ -406,6 +478,9 @@ public class Executor {
 		var rhsOpt = evaluateSingleWithSuffix(rhs);
 		if (rhsOpt instanceof Some<String[]>)
 			return rhsOpt;
+		if (rhs.contains("{") && rhs.endsWith("}")) {
+			return buildStructInstance(rhs);
+		}
 		// function call form: name(arg1, arg2, ...)
 		var p = rhs.indexOf('(');
 		if (p > 0) {
@@ -567,13 +642,9 @@ public class Executor {
 	private static Option<String[]> evaluateFunctionCall(String name, java.util.List<String[]> argPairs,
 			Map<String, String[]> env) {
 		// support explicit instantiation like name<I32>(args)
-		var parsed = parseGenericName(name);
-		var baseName = name;
-		var typeArg = "";
-		if (parsed instanceof Some<String[]>(var gn)) {
-			baseName = gn[0];
-			typeArg = gn[1];
-		}
+		var bt = getBaseAndType(name);
+		var baseName = bt[0];
+		var typeArg = bt[1];
 		if (!env.containsKey(baseName))
 			return new None<>();
 		var entry = env.get(baseName);
@@ -839,6 +910,18 @@ public class Executor {
 				return new Err<>("Uninitialized variable '" + stmt + "'");
 			}
 			return new Ok<>(entry[0]);
+		}
+		if (stmt.contains(".")) {
+			var dot = stmt.indexOf('.');
+			var id = stmt.substring(0, dot).trim();
+			var fld = stmt.substring(dot + 1).trim();
+			if (env.containsKey(id)) {
+				var entry = env.get(id);
+				var val = entry[0];
+				var fieldOpt = Structs.getFieldFromStructValue(val, fld);
+				if (fieldOpt instanceof Some<String>(var fieldVal))
+					return new Ok<>(fieldVal);
+			}
 		}
 		// pointer dereference expression like *y
 		if (stmt.startsWith("*")) {
@@ -1218,35 +1301,14 @@ public class Executor {
 		var p = left.indexOf('{');
 		var name = left.substring(0, p).trim();
 		var body = left.substring(p + 1, left.length() - 1).trim();
-		var parsedGeneric = parseGenericName(name);
-		if (!(parsedGeneric instanceof Some<String[]>(var gn)))
+		var bt = getBaseAndType(name);
+		var baseName = bt[0];
+		var typeArg = bt[1];
+		var parsed = parseStructConstructor(baseName, typeArg, body);
+		if (!(parsed instanceof Some<StructData>(var sdata)))
 			return new None<>();
-		var baseName = gn[0];
-		var typeArg = gn[1];
-		if (!envContainsStruct(baseName))
-			return new None<>();
-		var structEntry = getStructEntry(baseName);
-		if (Objects.isNull(structEntry))
-			return new None<>();
-		var fieldDeclObj = structEntry[0];
-		var paramDecl = structEntry.length > 2 ? structEntry[2] : "";
-		fieldDeclObj = substituteParamInFieldDecl(fieldDeclObj, paramDecl, typeArg);
-		if (Objects.isNull(fieldDeclObj))
-			return new None<>();
-		var fieldDecl = fieldDeclObj;
-		var fields = fieldDecl.isEmpty() ? new String[0] : fieldDecl.split(",");
-		var fieldNames = parseFieldNames(fields);
-		if (fieldNames.isEmpty())
-			return new None<>();
-		var argPairs = parseAndEvalArgPairs(body, Map.of());
-		if (argPairs.isEmpty())
-			return new None<>();
-		if (argPairs.size() != fieldNames.size())
-			return new None<>();
-		if (!validateConstructorArgs(fields, argPairs))
-			return new None<>();
-
-		// end of evaluateConstructorFieldAccess
+		var fieldNames = sdata.fieldNames();
+		var argPairs = sdata.argPairs();
 		var idx = fieldNames.indexOf(field);
 		if (idx < 0)
 			return new None<>();

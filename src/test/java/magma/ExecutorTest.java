@@ -326,6 +326,13 @@ public class ExecutorTest {
 		assertInvalid("struct Wrapper { field : I32 } Wrapper { true }.field");
 	}
 
+	@Test
+	public void storedStructFieldAccessEvaluates() {
+		// Define a generic struct, construct it, store in a variable with declared
+		// generic type, and access its field
+		assertValid("struct Wrapper<T> { field : T } let x : Wrapper<Bool> = Wrapper<Bool> { true }; x.field", "true");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
