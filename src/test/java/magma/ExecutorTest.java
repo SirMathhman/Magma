@@ -308,6 +308,18 @@ public class ExecutorTest {
 		assertValid("struct Wrapper { field : I32 } Wrapper { 100 }.field", "100");
 	}
 
+	@Test
+	public void duplicateStructDefinitionsReturnError() {
+		// Defining the same struct twice should return an error
+		assertInvalid("struct First {} struct First {}");
+	}
+
+	@Test
+	public void duplicateStructFieldNamesReturnError() {
+		// Struct with duplicate field names should be an error
+		assertInvalid("struct Point { x : I32, x : I32 }");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
