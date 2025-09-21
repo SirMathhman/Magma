@@ -252,7 +252,8 @@ public class ExecutorTest {
 
 	@Test
 	public void callingFunctionWithoutRequiredArgIsError() {
-		// Define a single-parameter function but call it without args -> should be error
+		// Define a single-parameter function but call it without args -> should be
+		// error
 		assertInvalid("fn first(value : I32) : I32 => { return value; } first()", "Invalid expression");
 	}
 
@@ -267,6 +268,18 @@ public class ExecutorTest {
 		// Expression-bodied function should return the expression value even when
 		// terminated with a semicolon
 		assertValid("fn get() : I32 => 100; get()", "100");
+	}
+
+	@Test
+	public void functionWithGenericParamPassesArgumentBack() {
+		// Support function definitions with generics in the name (e.g. fn pass<T>)
+		assertValid("fn pass<T>(value : T) => value; pass(100)", "100");
+	}
+
+	@Test
+	public void duplicateFunctionDefinitionsReturnError() {
+		// Defining the same function twice should return a duplicate-binding error
+		assertInvalid("fn first() : I32 => 100; fn first() : I32 => 100;", "Duplicate binding");
 	}
 
 	private static void assertValid(String input, String expected) {
