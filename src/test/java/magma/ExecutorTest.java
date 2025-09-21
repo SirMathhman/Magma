@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 // ...existing imports...
 import static org.junit.jupiter.api.Assertions.fail;
 
+import magma.Result.Ok;
+import magma.Result.Err;
+
 public class ExecutorTest {
 	@Test
 	public void emptyInputReturnsEmpty() {
@@ -176,15 +179,15 @@ public class ExecutorTest {
 
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
-			case Result.Ok(var value) -> assertEquals(expected, value);
-			case Result.Err(var error) -> fail(error);
+			case Ok(var value) -> assertEquals(expected, value);
+			case Err(var error) -> fail(error);
 		}
 	}
 
 	private static void assertInvalid(String input, String expectedError) {
 		switch (Executor.execute(input)) {
-			case Result.Ok(var value) -> fail(value);
-			case Result.Err(var error) -> assertNotNull(error);
+			case Ok(var value) -> fail(value);
+			case Err(var error) -> assertNotNull(error);
 		}
 	}
 }

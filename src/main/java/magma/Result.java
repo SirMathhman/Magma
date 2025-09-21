@@ -1,6 +1,6 @@
 package magma;
 
-public sealed interface Result<T, E> permits Result.Ok, Result.Err {
+public sealed interface Result<T, E> {
 	record Ok<T, E>(T value) implements Result<T, E> {
 	}
 
