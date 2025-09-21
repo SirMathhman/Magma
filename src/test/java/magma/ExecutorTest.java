@@ -251,6 +251,13 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void functionReturnAssignedToDifferentTypeReturnsErr() {
+		// Define a function that returns I32 then assign to a Bool-typed binding
+		// Expect an error due to type mismatch
+		assertInvalid("fn first() : I32 => 100; let x : Bool = first();", "Declared type does not match expression suffix");
+	}
+
+	@Test
 	public void callingFunctionWithoutRequiredArgIsError() {
 		// Define a single-parameter function but call it without args -> should be
 		// error

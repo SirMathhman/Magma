@@ -433,14 +433,20 @@ public class Executor {
 		var arrow = rest.indexOf("=>", close);
 		if (arrow < 0)
 			return createErr("Invalid function syntax");
+		var between = rest.substring(close + 1, arrow).trim();
 		var body = rest.substring(arrow + 2).trim();
 		var paramDecl = paramsRaw.isEmpty() ? "" : paramsRaw.replaceAll("\\s+", "");
-		// Store the function body as a special entry in env with suffix "fn" and
-		// paramDecl
+		// optional return type between params and =>, e.g. ": I32"
+		var returnType = "";
+		if (between.startsWith(":")) {
+			returnType = between.substring(1).trim();
+		}
+		// Store the function body as a special entry in env with suffix "fn",
+		// paramDecl and optional return type
 		// If the name is already bound, behave like duplicate let-binding and return an error
 		if (env.containsKey(name))
 			return createErr("Duplicate binding");
-		env.put(name, new String[] { body, "fn", paramDecl });
+		env.put(name, new String[] { body, "fn", paramDecl, returnType });
 		return new None<>();
 	}
 
@@ -476,7 +482,19 @@ public class Executor {
 		var bindOpt = bindFunctionParameters(paramDecl, argPairs);
 		if (!(bindOpt instanceof Some<Map<String, String[]>>(var local)))
 			return new None<>();
-		return executeFunctionBody(body, env, local);
+		var callRes = executeFunctionBody(body, env, local);
+		// If the function declared a return type (stored at index 3), and the
+		// evaluated body returned a value without a suffix, propagate the declared
+		// return type as the call-site suffix so callers can perform type checks.
+		var declaredRet = entry.length > 3 ? entry[3] : "";
+		if (callRes instanceof Some<String[]>(var pair)) {
+			if (!Objects.isNull(declaredRet) && !declaredRet.isEmpty()
+					&& (Objects.isNull(pair[1]) || pair[1].isEmpty())) {
+				return new Some<>(new String[] { pair[0], declaredRet });
+			}
+			return new Some<>(new String[] { pair[0], pair[1] });
+		}
+		return new None<>();
 	}
 
 	private static Option<Map<String, String[]>> bindFunctionParameters(String paramDecl,
