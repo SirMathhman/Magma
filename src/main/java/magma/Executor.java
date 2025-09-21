@@ -148,12 +148,83 @@ public class Executor {
 				err = processSingleLet(stmt, env);
 			} else if (isAssignmentStatement(stmt)) {
 				err = processAssignment(stmt, env);
+			} else if (stmt.startsWith("while ") || stmt.startsWith("while(")) {
+				err = processWhile(stmt, env);
 			} else {
 				err = new Some<>(new Err<>("Invalid statement: " + stmt));
 			}
 			if (err instanceof Some<Result<String, String>>)
 				return err;
 		}
+		return new None<>();
+	}
+
+	private static int matchingClosingParenIndex(String s, int openPos) {
+		var depth = 0;
+		for (var i = openPos; i < s.length(); i++) {
+			var c = s.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')') {
+				depth--;
+				if (depth == 0)
+					return i;
+			}
+		}
+		return -1;
+	}
+
+	private static Option<Result<String, String>> processWhile(String stmt, Map<String, String[]> env) {
+		// parse while (cond) body
+		var p = stmt.indexOf('(');
+		if (p < 0)
+			return createErr("Invalid while syntax");
+		var close = matchingClosingParenIndex(stmt, p);
+		if (close < 0)
+			return createErr("Invalid while syntax");
+		var cond = stmt.substring(p + 1, close).trim();
+		var body = stmt.substring(close + 1).trim();
+		if (body.isEmpty())
+			return createErr("Missing while body");
+		List<String> bodyStmts;
+		if (body.startsWith("{") && matchingClosingBraceIndex(body) == body.length() - 1) {
+			var inner = body.substring(1, body.length() - 1).trim();
+			bodyStmts = splitNonEmptyStatements(inner);
+		} else {
+			bodyStmts = List.of(body);
+		}
+		// loop
+		while (true) {
+			var condBoolOpt = evaluateCondition(cond, env);
+			if (!(condBoolOpt instanceof Some<Boolean>(var condBool)))
+				return createErr("Invalid condition expression: '" + cond + "'");
+			if (!condBool)
+				break;
+			var err = processStatements(bodyStmts, env);
+			if (err instanceof Some<Result<String, String>>)
+				return err;
+		}
+		return new None<>();
+	}
+
+	private static Option<Boolean> evaluateCondition(String cond, Map<String, String[]> env) {
+		// Support single '<' comparison where operands may be identifiers or
+		// expressions
+		var idx = cond.indexOf('<');
+		if (idx >= 0 && cond.indexOf('<', idx + 1) < 0) {
+			var cmp = compareAt(cond, idx, env);
+			if (!(cmp instanceof Some<Integer>(var cmpResult)))
+				return new None<>();
+			return new Some<>(cmpResult < 0);
+		}
+		// otherwise expect boolean-like expression or identifier
+		var pairOpt = evaluateRhsExpression(cond, env);
+		if (!(pairOpt instanceof Some<String[]>(var pair)))
+			return new None<>();
+		if ("true".equals(pair[0]))
+			return new Some<>(true);
+		if ("false".equals(pair[0]))
+			return new Some<>(false);
 		return new None<>();
 	}
 
@@ -477,7 +548,6 @@ public class Executor {
 			return new Some<>(new String[] { value[0], value[1] });
 		}
 
-        
 		// boolean literals
 		if ("true".equals(s) || "false".equals(s)) {
 			return new Some<>(new String[] { s, "" });
@@ -527,6 +597,32 @@ public class Executor {
 		return evaluateSingleWithSuffix(inner);
 	}
 
+	private static Option<Integer> tryCompareInts(String left, String right, Map<String, String[]> env) {
+		var lValOpt = evalInt(left, env);
+		if (!(lValOpt instanceof Some<Integer>(var lVal)))
+			return new None<>();
+		var rValOpt = evalInt(right, env);
+		if (!(rValOpt instanceof Some<Integer>(var rVal)))
+			return new None<>();
+		return new Some<>(Integer.compare(lVal, rVal));
+	}
+
+	private static Option<Integer> evalInt(String expr, Map<String, String[]> env) {
+		Option<String[]> opt;
+		if (Objects.isNull(env)) {
+			opt = evaluateSingleWithSuffix(expr);
+		} else {
+			opt = evaluateRhsExpression(expr, env);
+		}
+		if (!(opt instanceof Some<String[]>(var pair)))
+			return new None<>();
+		try {
+			return new Some<>(Integer.parseInt(pair[0]));
+		} catch (NumberFormatException ex) {
+			return new None<>();
+		}
+	}
+
 	private static Option<String[]> evaluateComparisonWithSuffix(String s) {
 		// Only support single '<' comparison for now
 		var idx = s.indexOf('<');
@@ -535,24 +631,44 @@ public class Executor {
 		// ensure single '<'
 		if (s.indexOf('<', idx + 1) >= 0)
 			return new None<>();
-		var left = s.substring(0, idx).trim();
-		var right = s.substring(idx + 1).trim();
-		if (left.isEmpty() || right.isEmpty())
+		var cmp = compareAt(s, idx, Map.of());
+		if (!(cmp instanceof Some<Integer>(var cmpResult)))
 			return new None<>();
-		var leftOpt = evaluateSingleWithSuffix(left);
-		var rightOpt = evaluateSingleWithSuffix(right);
-		if (!(leftOpt instanceof Some<String[]>(var lpair)))
+		var res = cmpResult < 0 ? "true" : "false";
+		return new Some<>(new String[] { res, "" });
+	}
+
+	private static Option<Integer> tryCompareInts(String left, String right) {
+		var lOpt = evaluateSingleWithSuffix(left);
+		var rOpt = evaluateSingleWithSuffix(right);
+		if (!(lOpt instanceof Some<String[]>(var lpair)))
 			return new None<>();
-		if (!(rightOpt instanceof Some<String[]>(var rpair)))
+		if (!(rOpt instanceof Some<String[]>(var rpair)))
 			return new None<>();
 		try {
 			var l = Integer.parseInt(lpair[0]);
 			var r = Integer.parseInt(rpair[0]);
-			var res = l < r ? "true" : "false";
-			return new Some<>(new String[] { res, "" });
+			return new Some<>(Integer.compare(l, r));
 		} catch (NumberFormatException ex) {
 			return new None<>();
 		}
+	}
+
+	private static Option<String[]> parseComparisonOperands(String s, int idx) {
+		var left = s.substring(0, idx).trim();
+		var right = s.substring(idx + 1).trim();
+		if (left.isEmpty() || right.isEmpty())
+			return new None<>();
+		return new Some<>(new String[] { left, right });
+	}
+
+	private static Option<Integer> compareAt(String s, int idx, Map<String, String[]> env) {
+		var opsOpt = parseComparisonOperands(s, idx);
+		if (!(opsOpt instanceof Some<String[]>(var ops)))
+			return new None<>();
+		if (Objects.isNull(env))
+			return tryCompareInts(ops[0], ops[1]);
+		return tryCompareInts(ops[0], ops[1], env);
 	}
 
 	private static int matchingClosingBraceIndex(String s) {

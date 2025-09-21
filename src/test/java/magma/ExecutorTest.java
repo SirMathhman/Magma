@@ -129,6 +129,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void whileLoopIncrementsMutableUntilConditionFalse() {
+		// While loop should iterate and update mutable variable
+		assertValid("let mut x = 0; while (x < 4) x += 1; x", "4");
+	}
+
+	@Test
 	public void readingDeclaredButUninitializedIsInvalid() {
 		// declaring without initializer then reading should be invalid
 		assertInvalid("let x : I32; x", "Non-empty input not allowed");
