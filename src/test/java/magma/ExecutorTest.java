@@ -117,6 +117,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void compoundAssignmentOnImmutableIsError() {
+		// Using '+=' on an immutable binding should be an error
+		assertInvalid("let x = 0; x += 10; x", "Assignment target is not assignable");
+	}
+
+	@Test
 	public void readingDeclaredButUninitializedIsInvalid() {
 		// declaring without initializer then reading should be invalid
 		assertInvalid("let x : I32; x", "Non-empty input not allowed");
