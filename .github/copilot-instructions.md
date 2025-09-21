@@ -22,7 +22,7 @@ Short, focused guidance for AI coding agents working in this repository.
   - Note: project uses Java release 24 (see `pom.xml`), so ensure the agent targets that language level for code examples.
 
 - Project-specific patterns and conventions
-  - Use `java.util.Optional` for simple null/empty checks, as shown in `Executor.execute`.
+  - Use the project's `magma.Option<T>` sealed interface for simple null/empty checks, as shown in `Executor.execute`.
   - Tests use JUnit 5 and assert instance types (`instanceof Result.Ok`) and then cast to access record components.
   - Keep implementations concise and idiomatic for modern Java (records, sealed interfaces, `var`).
 
@@ -32,8 +32,8 @@ Short, focused guidance for AI coding agents working in this repository.
 
 - Examples (use these to guide edits)
   - To return an empty Ok for null/empty input (existing behavior):
-    - `var opt = java.util.Optional.ofNullable(input).filter(s -> !s.isEmpty());`
-    - `if (opt.isEmpty()) return new Result.Ok<>("");`
+    - Use the `Some<T>` and `None<T>` variants directly for presence/absence checks. For example, construct `new Some<>(value)` or `new None<>()`, and use pattern matching (`instanceof`) to inspect.
+    - `if (valueIsMissing) return new Result.Ok<>("");`
   - To add a new `Result`-returning method, follow the same patterns (use `Result.Ok`/`Result.Err` records).
 
 - Casting, pattern matching, and style
