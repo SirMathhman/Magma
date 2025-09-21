@@ -237,6 +237,13 @@ public class ExecutorTest {
 		assertValid("fn pass(first : I32, second : I32) => { return first + second; } pass(3, 4)", "7");
 	}
 
+	@Test
+	public void multipleFunctionDefinitionsCallFirst() {
+		// Define two functions and call the first one; expect its return value
+		assertValid("fn first() : I32 => { return 100; } fn second() : I32 => { return 200; } first()",
+				"100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
