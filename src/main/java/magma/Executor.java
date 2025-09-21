@@ -80,16 +80,26 @@ public class Executor {
 		for (var i = 0; i < s.length(); i++) {
 			var c = s.charAt(i);
 			depth = updateBraceDepth(depth, c);
-			if (isSemicolonAtTopLevel(c, depth) || isClosingBraceAtTopLevel(c, depth)) {
+			if (isSemicolonAtTopLevel(c, depth)) {
 				var statement = s.substring(start, i).trim();
-				// include the closing brace in the statement when splitting on '}'
-				if (isClosingBraceAtTopLevel(c, depth)) {
-					statement = s.substring(start, i + 1).trim();
-				}
 				if (!statement.isEmpty()) {
 					nonEmpty.add(statement);
 				}
 				start = i + 1;
+			} else if (c == '}' && depth == 0) {
+				// Only split on a top-level closing brace if it's followed by a semicolon or
+				// end-of-input
+				var next = i + 1;
+				while (next < s.length() && Character.isWhitespace(s.charAt(next))) {
+					next++;
+				}
+				if (next >= s.length() || s.charAt(next) == ';' || Character.isLetter(s.charAt(next))) {
+					var statement = s.substring(start, i + 1).trim();
+					if (!statement.isEmpty()) {
+						nonEmpty.add(statement);
+					}
+					start = i + 1;
+				}
 			}
 		}
 
@@ -370,39 +380,6 @@ public class Executor {
 		return segments.toArray(new String[0]);
 	}
 
-	private static Option<String[]> evaluateFunctionCall(String name, java.util.List<String[]> argPairs,
-			Map<String, String[]> env) {
-		if (!env.containsKey(name))
-			return new None<>();
-		var entry = env.get(name);
-		if (!"fn".equals(entry[1]))
-			return new None<>();
-		var body = entry[0];
-		var paramDecl = entry.length > 2 ? entry[2] : "";
-		// support single-parameter functions
-		var local = new HashMap<String, String[]>();
-		if (!Objects.isNull(paramDecl) && !paramDecl.isEmpty() && argPairs.size() > 0) {
-			var colon = paramDecl.indexOf(':');
-			var paramName = colon > 0 ? paramDecl.substring(0, colon).trim() : paramDecl.trim();
-			var firstArg = argPairs.get(0);
-			local.put(paramName, new String[] { firstArg[0], firstArg[1], "immutable" });
-		}
-		if (body.startsWith("{") && body.endsWith("}")) {
-			var inner = body.substring(1, body.length() - 1).trim();
-			if (inner.startsWith("return ") && inner.endsWith(";")) {
-				var expr = inner.substring(7, inner.length() - 1).trim();
-				var res = evaluateRhsExpressionWithLocal(expr, env, local);
-				return normalizePairOpt(res);
-			}
-			var res = runSequence(inner);
-			if (res instanceof Ok(var value))
-				return new Some<>(new String[] { String.valueOf(value), "" });
-			return new None<>();
-		}
-		var resOpt = evaluateSingleWithSuffix(body);
-		return normalizePairOpt(resOpt);
-	}
-
 	private static Option<String[]> normalizePairOpt(Option<String[]> opt) {
 		if (opt instanceof Some<String[]>(var pair))
 			return new Some<>(new String[] { pair[0], pair[1] });
@@ -413,7 +390,29 @@ public class Executor {
 			Map<String, String[]> local) {
 		if (local.containsKey(expr))
 			return new Some<>(new String[] { local.get(expr)[0], local.get(expr)[1] });
-		return evaluateRhsExpression(expr, outerEnv);
+		// Merge local and outer env with locals taking precedence
+		var merged = new HashMap<String, String[]>();
+		if (!Objects.isNull(outerEnv))
+			merged.putAll(outerEnv);
+		merged.putAll(local);
+		// Handle simple top-level plus expressions specially so that operands can be
+		// resolved from the merged env (e.g., 'first + second')
+		var plusIdx = expr.indexOf('+');
+		if (plusIdx >= 0 && expr.indexOf('+', plusIdx + 1) < 0) {
+			var left = expr.substring(0, plusIdx).trim();
+			var right = expr.substring(plusIdx + 1).trim();
+			var leftOpt = evaluateRhsExpression(left, merged);
+			if (!(leftOpt instanceof Some<String[]>(var leftPair)))
+				return new None<>();
+			var rightOpt = evaluateRhsExpression(right, merged);
+			if (!(rightOpt instanceof Some<String[]>(var rightPair)))
+				return new None<>();
+			var sumOpt = parseAndSumStrings(leftPair[0], rightPair[0], leftPair[1], rightPair[1]);
+			if (sumOpt instanceof Some<PlusOperands>(var po))
+				return new Some<>(new String[] { po.sum, po.leftSuffix });
+			return new None<>();
+		}
+		return evaluateRhsExpression(expr, merged);
 	}
 
 	private static Option<Result<String, String>> processFunctionDef(String stmt, Map<String, String[]> env) {
@@ -455,6 +454,43 @@ public class Executor {
 			argPairs.add(pair);
 		}
 		return argPairs;
+	}
+
+	private static Option<String[]> evaluateFunctionCall(String name, java.util.List<String[]> argPairs,
+			Map<String, String[]> env) {
+		if (!env.containsKey(name))
+			return new None<>();
+		var entry = env.get(name);
+		if (!"fn".equals(entry[1]))
+			return new None<>();
+		var body = entry[0];
+		var paramDecl = entry.length > 2 ? entry[2] : "";
+		// support multiple-parameter functions by parsing paramDecl as comma-separated
+		var local = new HashMap<String, String[]>();
+		if (!Objects.isNull(paramDecl) && !paramDecl.isEmpty() && argPairs.size() > 0) {
+			var params = paramDecl.split(",");
+			for (var idx = 0; idx < params.length && idx < argPairs.size(); idx++) {
+				var pd = params[idx];
+				var colon = pd.indexOf(':');
+				var paramName = colon > 0 ? pd.substring(0, colon).trim() : pd.trim();
+				var firstArg = argPairs.get(idx);
+				local.put(paramName, new String[] { firstArg[0], firstArg[1], "immutable" });
+			}
+		}
+		if (body.startsWith("{") && body.endsWith("}")) {
+			var inner = body.substring(1, body.length() - 1).trim();
+			if (inner.startsWith("return ") && inner.endsWith(";")) {
+				var expr = inner.substring(7, inner.length() - 1).trim();
+				var res = evaluateRhsExpressionWithLocal(expr, env, local);
+				return normalizePairOpt(res);
+			}
+			var res = runSequence(inner);
+			if (res instanceof Ok(var value))
+				return new Some<>(new String[] { String.valueOf(value), "" });
+			return new None<>();
+		}
+		var resOpt = evaluateSingleWithSuffix(body);
+		return normalizePairOpt(resOpt);
 	}
 
 	private static Option<Result<String, String>> rhsError(String rhs) {

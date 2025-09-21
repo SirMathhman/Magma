@@ -231,6 +231,12 @@ public class ExecutorTest {
 		assertValid("fn pass(value : I32) => { return value; } pass(3 + 4)", "7");
 	}
 
+	@Test
+	public void functionWithTwoParamsAddsThem() {
+		// Test a function that takes two parameters and returns their sum
+		assertValid("fn pass(first : I32, second : I32) => { return first + second; } pass(3, 4)", "7");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
