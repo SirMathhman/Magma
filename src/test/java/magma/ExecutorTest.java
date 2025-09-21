@@ -226,6 +226,12 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void functionDefinitionReturnWithoutSemicolonEvaluates() {
+		// Function body uses 'return' without trailing semicolon inside braces
+		assertValid("fn get() : I32 => { return 100 } get()", "100");
+	}
+
+	@Test
 	public void functionWithParamPassesArgumentBack() {
 		// Test a function that takes a parameter and returns it
 		assertValid("fn pass(value : I32) => { return value; } pass(3 + 4)", "7");

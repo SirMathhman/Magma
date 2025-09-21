@@ -508,9 +508,16 @@ public class Executor {
 			Map<String, String[]> local) {
 		if (body.startsWith("{") && body.endsWith("}")) {
 			var inner = body.substring(1, body.length() - 1).trim();
-			if (inner.startsWith("return ") && inner.endsWith(";")) {
-				var expr = inner.substring(7, inner.length() - 1).trim();
-				var res = evaluateRhsExpressionWithLocal(expr, env, local);
+			// Allow a single 'return' statement inside the braced body. Accept both
+			// forms with and without a trailing semicolon (e.g. "return 100;" and
+			// "return 100") but reject multi-statement bodies here.
+			var stmts = splitNonEmptyStatements(inner);
+			if (stmts.size() == 1 && stmts.get(0).startsWith("return ")) {
+				var retStmt = stmts.get(0).substring(7).trim();
+				// strip optional trailing semicolon if present
+				if (retStmt.endsWith(";"))
+					retStmt = retStmt.substring(0, retStmt.length() - 1).trim();
+				var res = evaluateRhsExpressionWithLocal(retStmt, env, local);
 				return normalizePairOpt(res);
 			}
 			var res = runSequence(inner);
