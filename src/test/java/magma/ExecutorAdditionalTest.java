@@ -7,7 +7,6 @@ import magma.Result.Ok;
 import magma.Result.Err;
 
 public class ExecutorAdditionalTest {
-
 	@Test
 	void execute_should_return_numeric_result_for_pass_expression() {
 		// The prompt implies that a simple pass function should evaluate to the passed

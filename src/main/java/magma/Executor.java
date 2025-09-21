@@ -437,6 +437,9 @@ public class Executor {
 		var paramDecl = paramsRaw.isEmpty() ? "" : paramsRaw.replaceAll("\\s+", "");
 		// Store the function body as a special entry in env with suffix "fn" and
 		// paramDecl
+		// If the name is already bound, behave like duplicate let-binding and return an error
+		if (env.containsKey(name))
+			return createErr("Duplicate binding");
 		env.put(name, new String[] { body, "fn", paramDecl });
 		return new None<>();
 	}
