@@ -262,6 +262,13 @@ public class ExecutorTest {
 		assertInvalid("fn first(value : I32) : I32 => { return value; } first(true)", "Invalid expression");
 	}
 
+	@Test
+	public void expressionBodiedFunctionWithSemicolonEvaluates() {
+		// Expression-bodied function should return the expression value even when
+		// terminated with a semicolon
+		assertValid("fn get() : I32 => 100; get()", "100");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
