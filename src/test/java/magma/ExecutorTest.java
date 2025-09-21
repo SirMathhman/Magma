@@ -168,6 +168,13 @@ public class ExecutorTest {
 	}
 
 	@Test
+	public void bracedSequenceThenFreeVariableIsError() {
+		// A braced sequence that defines a local 'y' should not expose 'y' after the
+		// block. Referencing 'y' after the block must be an error.
+		assertInvalid("{let y = 10;} y", "Undefined variable y");
+	}
+
+	@Test
 	public void plusWithBracedOperandsEvaluates() {
 		assertValid("{1} + {2}", "3");
 	}
