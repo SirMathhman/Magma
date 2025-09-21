@@ -244,6 +244,18 @@ public class ExecutorTest {
 				"100");
 	}
 
+	@Test
+	public void callingFunctionWithoutRequiredArgIsError() {
+		// Define a single-parameter function but call it without args -> should be error
+		assertInvalid("fn first(value : I32) : I32 => { return value; } first()", "Invalid expression");
+	}
+
+	@Test
+	public void callingFunctionWithWrongArgTypeIsError() {
+		// Call function expecting I32 with a boolean literal -> should error
+		assertInvalid("fn first(value : I32) : I32 => { return value; } first(true)", "Invalid expression");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);

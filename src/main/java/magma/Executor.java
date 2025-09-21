@@ -465,18 +465,47 @@ public class Executor {
 			return new None<>();
 		var body = entry[0];
 		var paramDecl = entry.length > 2 ? entry[2] : "";
-		// support multiple-parameter functions by parsing paramDecl as comma-separated
+		// Bind parameters into a local environment; validation occurs in helper
+		var bindOpt = bindFunctionParameters(paramDecl, argPairs);
+		if (!(bindOpt instanceof Some<Map<String, String[]>>(var local)))
+			return new None<>();
+		return executeFunctionBody(body, env, local);
+	}
+
+	private static Option<Map<String, String[]>> bindFunctionParameters(String paramDecl,
+			java.util.List<String[]> argPairs) {
 		var local = new HashMap<String, String[]>();
-		if (!Objects.isNull(paramDecl) && !paramDecl.isEmpty() && argPairs.size() > 0) {
-			var params = paramDecl.split(",");
-			for (var idx = 0; idx < params.length && idx < argPairs.size(); idx++) {
-				var pd = params[idx];
-				var colon = pd.indexOf(':');
-				var paramName = colon > 0 ? pd.substring(0, colon).trim() : pd.trim();
-				var firstArg = argPairs.get(idx);
-				local.put(paramName, new String[] { firstArg[0], firstArg[1], "immutable" });
-			}
+		if (Objects.isNull(paramDecl) || paramDecl.isEmpty() || argPairs.isEmpty())
+			return new Some<>(local);
+		var params = paramDecl.split(",");
+		for (var idx = 0; idx < params.length && idx < argPairs.size(); idx++) {
+			var pd = params[idx];
+			var colon = pd.indexOf(':');
+			var paramName = colon > 0 ? pd.substring(0, colon).trim() : pd.trim();
+			var declaredType = colon > 0 ? pd.substring(colon + 1).trim() : "";
+			var firstArg = argPairs.get(idx);
+			if (!isParamCompatible(declaredType, firstArg))
+				return new None<>();
+			local.put(paramName, new String[] { firstArg[0], firstArg[1], "immutable" });
 		}
+		return new Some<>(local);
+	}
+
+	private static boolean isParamCompatible(String declaredType, String[] arg) {
+		if (Objects.isNull(declaredType) || declaredType.isEmpty())
+			return true;
+		var argSuffix = arg[1];
+		if (!Objects.isNull(argSuffix) && !argSuffix.isEmpty()) {
+			return !isNotDeclaredCompatible(declaredType, argSuffix);
+		}
+		var v = arg[0];
+		if ("true".equals(v) || "false".equals(v))
+			return declaredType.equals("Bool");
+		return true;
+	}
+
+	private static Option<String[]> executeFunctionBody(String body, Map<String, String[]> env,
+			Map<String, String[]> local) {
 		if (body.startsWith("{") && body.endsWith("}")) {
 			var inner = body.substring(1, body.length() - 1).trim();
 			if (inner.startsWith("return ") && inner.endsWith(";")) {
