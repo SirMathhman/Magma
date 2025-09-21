@@ -302,7 +302,16 @@ public class Executor {
 		// it
 		if (!Objects.isNull(declared) && !declared.isEmpty()) {
 			if (Objects.isNull(suffix) || suffix.isEmpty()) {
-				return new None<>();
+				// Accept boolean literals without suffix (e.g., 'true'/'false') for a
+				// declared type. For other cases (including function calls that return
+				// an empty suffix), require an explicit suffix so compatibility checks can
+				// detect mismatches.
+				var v = pair[0];
+				if ("true".equals(v) || "false".equals(v)) {
+					return new None<>();
+				}
+				// otherwise fall through so that validateDeclaredCompatibility will
+				// produce an error when suffix is missing
 			}
 		}
 		if (isNotDeclaredCompatible(declared, suffix))

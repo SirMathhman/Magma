@@ -295,6 +295,12 @@ public class ExecutorTest {
 		assertInvalid("fn first(first : I32, first : I32) : I32 => 100; first()");
 	}
 
+	@Test
+	public void genericFunctionReturnAssignedToDifferentDeclaredTypeReturnsErr() {
+		// Generic function returns T; calling with an I32 and assigning to Bool should error
+		assertInvalid("fn pass<T>(value : T) : T => value; let result : Bool = pass(100)");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);
