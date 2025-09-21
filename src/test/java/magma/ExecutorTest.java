@@ -320,6 +320,12 @@ public class ExecutorTest {
 		assertInvalid("struct Point { x : I32, x : I32 }");
 	}
 
+	@Test
+	public void structConstructorWithWrongTypedFieldReturnsErr() {
+		// Constructing a Wrapper with a bool where field expects I32 should error
+		assertInvalid("struct Wrapper { field : I32 } Wrapper { true }.field");
+	}
+
 	private static void assertValid(String input, String expected) {
 		switch (Executor.execute(input)) {
 			case Ok(var value) -> assertEquals(expected, value);

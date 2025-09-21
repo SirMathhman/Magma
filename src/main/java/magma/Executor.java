@@ -1157,28 +1157,76 @@ public class Executor {
 			return new None<>();
 		var fieldDecl = fieldDeclObj;
 		var fields = fieldDecl.isEmpty() ? new String[0] : fieldDecl.split(",");
+		var fieldNames = parseFieldNames(fields);
+		if (fieldNames.isEmpty())
+			return new None<>();
+		var argPairs = parseAndEvalArgPairs(body, Map.of());
+		if (argPairs.isEmpty())
+			return new None<>();
+		if (argPairs.size() != fieldNames.size())
+			return new None<>();
+		if (!validateConstructorArgs(fields, argPairs))
+			return new None<>();
+
+		// end of evaluateConstructorFieldAccess
+		var idx = fieldNames.indexOf(field);
+		if (idx < 0)
+			return new None<>();
+		var selected = argPairs.get(idx);
+		return new Some<>(new String[] { selected[0], selected[1] });
+	}
+
+	private static java.util.List<String> parseFieldNames(String[] fields) {
 		var fieldNames = new java.util.ArrayList<String>();
 		for (var f : fields) {
 			var c = f.indexOf(':');
 			var fname = c > 0 ? f.substring(0, c).trim() : f.trim();
 			fieldNames.add(fname);
 		}
-		var argExprs = splitTopLevelArgs(body);
-		if (argExprs.length != fieldNames.size())
-			return new None<>();
-		var argPairs = new java.util.ArrayList<String[]>();
-		for (var ae : argExprs) {
-			if (ae.isEmpty())
-				return new None<>();
-			var ap = evaluateRhsExpression(ae, Map.of());
-			if (!(ap instanceof Some<String[]>(var pair)))
-				return new None<>();
-			argPairs.add(pair);
+		return fieldNames;
+	}
+
+	private static boolean validateConstructorArgs(String[] fields, java.util.List<String[]> argPairs) {
+		for (var i = 0; i < fields.length; i++) {
+			var fdecl = fields[i];
+			var colon = fdecl.indexOf(':');
+			var declaredType = colon > 0 ? fdecl.substring(colon + 1).trim() : "";
+			if (!Objects.isNull(declaredType) && !declaredType.isEmpty()) {
+				var argSuffix = argPairs.get(i)[1];
+				if (Objects.isNull(argSuffix) || argSuffix.isEmpty()) {
+					var v = argPairs.get(i)[0];
+					if ("true".equals(v) || "false".equals(v)) {
+						if (!declaredType.equals("Bool"))
+							return false;
+					} else if (isIntegerLiteral(v)) {
+						if (!(declaredType.startsWith("I") || declaredType.startsWith("U")))
+							return false;
+					} else {
+						return false;
+					}
+				} else {
+					if (isNotDeclaredCompatible(declaredType, argSuffix))
+						return false;
+				}
+			}
 		}
-		var idx = fieldNames.indexOf(field);
-		if (idx < 0)
-			return new None<>();
-		var selected = argPairs.get(idx);
-		return new Some<>(new String[] { selected[0], selected[1] });
+		return true;
+	}
+
+	private static boolean isIntegerLiteral(String v) {
+		if (Objects.isNull(v) || v.isEmpty())
+			return false;
+		var i = 0;
+		var c = v.charAt(0);
+		if (c == '+' || c == '-')
+			i = 1;
+		if (i >= v.length())
+			return false;
+		while (i < v.length()) {
+			if (!Character.isDigit(v.charAt(i)))
+				return false;
+			i++;
+		}
+		return true;
 	}
 }
