@@ -32,7 +32,9 @@ public class Runner {
 						java.nio.charset.StandardCharsets.UTF_8);
 				int compileExit = compileProc.waitFor();
 				if (compileExit != 0) {
-					return Result.err(new RunError(compileOutput));
+					// Attach the compile output as a cause so callers can inspect it
+					return Result.err(new RunError(compileOutput,
+							new ThrowableError(new RuntimeException(compileOutput))));
 				}
 
 				// Run the produced executable by absolute path so the file sits in the temp dir
@@ -53,13 +55,14 @@ public class Runner {
 				int runExit = runProc.waitFor();
 				return Result.ok(Tuple.of(runOutput, runExit));
 			} catch (java.io.IOException e) {
-				return Result.err(new RunError("IO error writing temp file: " + e.getMessage()));
+				return Result.err(new RunError("IO error writing temp file: " + e.getMessage(), new ThrowableError(e)));
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				return Result.err(new RunError("Interrupted: " + e.getMessage()));
+				return Result.err(new RunError("Interrupted: " + e.getMessage(), new ThrowableError(e)));
 			}
 		} else if (result instanceof Result.Err<String, CompileError> err) {
-			return Result.err(new RunError(String.valueOf(err.error().display())));
+			// Preserve the CompileError as the cause instead of inlining its message
+			return Result.err(new RunError("Compilation failed", err.error()));
 		} else {
 			return Result.err(new RunError("unknown"));
 		}

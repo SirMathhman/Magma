@@ -204,7 +204,16 @@ public class CompilerTest {
 		var res = Runner.run(fullProgram, "");
 		switch (res) {
 			case Result.Ok(var value) -> fail("Expected an error but got Ok: " + value);
-			case Result.Err(var error) -> assertNotNull(error);
+			case Result.Err(var error) -> {
+				var causeOpt = error.getCause();
+				switch (causeOpt) {
+					case Option.Ok(var cause) -> {
+						if (!(cause instanceof CompileError))
+							fail("Expected a CompileError cause but got: " + cause);
+					}
+					case Option.Err() -> fail("Expected a CompileError cause but none was present; RunError=" + error);
+				}
+			}
 		}
 	}
 
