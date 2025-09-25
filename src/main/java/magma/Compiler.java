@@ -319,6 +319,17 @@ public class Compiler {
 				if (inlineMutOpt instanceof Option.Ok)
 					return inlineMutOpt;
 			}
+			// Support a single-line inline function without braces, e.g.
+			// fn add(a : I32, b : I32) => return a + b; add(readInt(), readInt())
+			int semi = expression.indexOf(';');
+			if (semi != -1) {
+				String decl = expression.substring(0, semi + 1).trim();
+				String rest = expression.substring(semi + 1).trim();
+				var inlineOpt = tryHandleInlineFn(decl, rest);
+				if (inlineOpt instanceof Option.Ok) {
+					return inlineOpt;
+				}
+			}
 		}
 		// function declared in the declaration section and invoked as expression
 		return tryHandleDeclaredFn(declaration, expression);
@@ -637,19 +648,21 @@ public class Compiler {
 		var leftInfo = parseLetLeft(s.substring(3, eq).trim());
 		boolean isMut = leftInfo.isMut;
 		String name = leftInfo.name;
-	Option<String> declaredType = leftInfo.type;
+		Option<String> declaredType = leftInfo.type;
 
-	// Duplicate name check: fail early if the same variable name was already declared
-	if (info.vars.contains(name) || info.types.containsKey(name) || (info.compositeLetName instanceof Option.Ok<String> cln
-		&& cln.value().equals(name))) {
+		// Duplicate name check: fail early if the same variable name was already
+		// declared
+		if (info.vars.contains(name) || info.types.containsKey(name)
+				|| (info.compositeLetName instanceof Option.Ok<String> cln
+						&& cln.value().equals(name))) {
 			info.finalExpr = Option.ok("__PARSE_ERROR__");
 			return false;
 		}
 		var readOpt = extractRhsIfReadInt(s);
-			if (readOpt instanceof Option.Ok<String>) {
-				addVarMeta(info, name, isMut, declaredType, true);
-				return true;
-			} else {
+		if (readOpt instanceof Option.Ok<String>) {
+			addVarMeta(info, name, isMut, declaredType, true);
+			return true;
+		} else {
 			var partsOpt = parseAssignment(s);
 			if (partsOpt instanceof Option.Ok<String[]> parts) {
 				String rhs = parts.value()[1];

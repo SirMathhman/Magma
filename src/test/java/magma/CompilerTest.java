@@ -173,6 +173,13 @@ public class CompilerTest {
 	}
 
 	@Test
+	public void singleLineArrowReturnFunctionAdds() {
+		// single-line arrow-return syntax
+		assertValid("fn add(first : I32, second : I32) => return first + second; add(readInt(), readInt())",
+				"1\r\n41", new Tuple<>("", 42));
+	}
+
+	@Test
 	public void mutVarUpdatedByDeclaredFunction() {
 		assertValid("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x", "100",
 				new Tuple<>("", 100));
