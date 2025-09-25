@@ -112,6 +112,11 @@ public class CompilerTest {
 		assertInvalid("if (5) 3 else 5");
 	}
 
+	@Test
+	public void mutLetAssignmentReadInt() {
+		assertValid("let mut x = 0; x = readInt(); x", "100", new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

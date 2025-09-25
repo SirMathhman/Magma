@@ -56,7 +56,23 @@ public class Compiler {
 		} catch (Exception e) {
 			return Result.err("Compilation error: " + e.getMessage());
 		}
+	}
 
+	// removed duplicate helper: use extractRhsIfReadInt instead
+
+	private String buildCForCompositeWithAssignment(String name) {
+		StringBuilder c = new StringBuilder();
+		c.append("#include <stdio.h>\n");
+		c.append("#include <stdlib.h>\n\n");
+		c.append("int main(void) {\n");
+
+		c.append("    int " + name + ";\n");
+		c.append("    if (scanf(\"%d\", &" + name + ") == 1) {\n");
+		c.append("        exit(" + name + ");\n");
+		c.append(C_ERR_EXIT_BLOCK);
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
 	}
 
 	private Option<Result<String, String>> handleCompositeRhs(String compRhs) {
@@ -125,12 +141,7 @@ public class Compiler {
 		if (info.compositeLetRhs instanceof Option.Ok<String> compRhsOpt
 				&& info.compositeLetName instanceof Option.Ok<String> compNameOpt
 				&& info.finalExpr instanceof Option.Ok<String> finOpt) {
-			String compRhs = compRhsOpt.value();
-			String compName = compNameOpt.value();
-			String fin = finOpt.value();
-			if (fin.equals(compName)) {
-				return handleCompositeRhs(compRhs);
-			}
+			return handleCompositeFinal(info, compRhsOpt.value(), compNameOpt.value(), finOpt.value());
 		}
 
 		// If there's a composite let (constant or expression) but no final expression,
@@ -139,6 +150,17 @@ public class Compiler {
 				&& info.compositeLetRhs instanceof Option.Ok
 				&& info.finalExpr instanceof Option.Err) {
 			return Option.ok(Result.ok(buildCForComposite(info)));
+		}
+
+		// If there's an assignment after lets, handle simple mut assignment patterns
+		if (!info.assignments.isEmpty()) {
+			// only support single assignment of form `x = readInt();` for now
+			String asg = info.assignments.get(0).trim();
+			var lhsOpt = extractRhsIfReadInt(asg);
+			if (lhsOpt instanceof Option.Ok<String> lhs && info.compositeLetName instanceof Option.Ok<String> nameOpt
+					&& nameOpt.value().equals(lhs.value())) {
+				return Option.ok(Result.ok(buildCForCompositeWithAssignment(nameOpt.value())));
+			}
 		}
 
 		// Build C for simple vars (readInt() variables)
@@ -166,8 +188,24 @@ public class Compiler {
 		return c.toString();
 	}
 
+	private Option<Result<String, String>> handleCompositeFinal(LetInfo info, String compRhs, String compName,
+			String fin) {
+		if (!fin.equals(compName))
+			return Option.ok(Result.err("Final expression does not reference composite"));
+		// If there is an assignment later that assigns to this composite name,
+		// prefer emitting code that performs the assignment (e.g., x = readInt()).
+		for (String asg : info.assignments) {
+			var targetOpt = extractRhsIfReadInt(asg);
+			if (targetOpt instanceof Option.Ok<String> to && to.value().equals(compName)) {
+				return Option.ok(Result.ok(buildCForCompositeWithAssignment(compName)));
+			}
+		}
+		return handleCompositeRhs(compRhs);
+	}
+
 	private static final class LetInfo {
 		final java.util.List<String> vars = new java.util.ArrayList<>();
+		final java.util.List<String> assignments = new java.util.ArrayList<>();
 		Option<String> finalExpr = Option.err();
 		Option<String> compositeLetName = Option.err();
 		Option<String> compositeLetRhs = Option.err();
@@ -190,22 +228,68 @@ public class Compiler {
 					return info;
 				}
 				String left = s.substring(3, eq).trim();
+				// support `let mut x = ...` by stripping leading mut
+				if (left.startsWith("mut ")) {
+					left = left.substring(4).trim();
+				}
 				int colon = left.indexOf(':');
 				String name = (colon == -1) ? left.trim() : left.substring(0, colon).trim();
-				String rhs = s.substring(eq + 1).trim();
-				if (rhs.endsWith(";"))
-					rhs = rhs.substring(0, rhs.length() - 1).trim();
-				if (rhs.equals("readInt()")) {
+				var readOpt = extractRhsIfReadInt(s);
+				if (readOpt instanceof Option.Ok<String>) {
 					info.vars.add(name);
 				} else {
-					info.compositeLetName = Option.ok(name);
-					info.compositeLetRhs = Option.ok(rhs);
+					var partsOpt = parseAssignment(s);
+					if (partsOpt instanceof Option.Ok<String[]> parts) {
+						String rhs = parts.value()[1];
+						info.compositeLetName = Option.ok(name);
+						info.compositeLetRhs = Option.ok(rhs);
+					} else {
+						// failed to parse assignment
+						info.finalExpr = Option.ok("__PARSE_ERROR__");
+						return info;
+					}
 				}
 			} else {
-				info.finalExpr = Option.ok(s);
+				// Non-let statements: if they contain '=' treat them as assignments otherwise
+				// final expression
+				if (s.contains("=")) {
+					var rhsLhsOpt = extractRhsIfReadInt(s);
+					if (rhsLhsOpt instanceof Option.Ok<String> lhs) {
+						info.assignments.add(lhs.value() + " = readInt();");
+					} else {
+						var partsOpt2 = parseAssignment(s);
+						if (partsOpt2 instanceof Option.Ok<String[]> p2) {
+							info.assignments.add(p2.value()[0] + " = " + p2.value()[1] + ";");
+						}
+					}
+				} else {
+					info.finalExpr = Option.ok(s);
+				}
 			}
 		}
 		return info;
+	}
+
+	private Option<String[]> parseAssignment(String s) {
+		int eq = s.indexOf('=');
+		if (eq == -1)
+			return Option.err();
+		String left = s.substring(0, eq).trim();
+		String right = s.substring(eq + 1).trim();
+		if (right.endsWith(";"))
+			right = right.substring(0, right.length() - 1).trim();
+		return Option.ok(new String[] { left, right });
+	}
+
+	private Option<String> extractRhsIfReadInt(String asg) {
+		var parts = parseAssignment(asg);
+		if (parts instanceof Option.Ok<String[]> p) {
+			String lhs = p.value()[0];
+			String rhs = p.value()[1];
+			if (rhs.equals("readInt()"))
+				return Option.ok(lhs);
+		}
+		return Option.err();
 	}
 
 	private String buildCForVars(LetInfo info) {
