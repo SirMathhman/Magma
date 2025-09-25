@@ -40,23 +40,26 @@ public class Compiler {
 		c.append("\n");
 		c.append("int main(void) {\n");
 
-		// Simple expression parsing - handle readInt() calls and addition
+		// Simple expression parsing - handle readInt() calls, addition and subtraction
 		if (expression.equals("readInt()")) {
 			// Single readInt() call
-			appendReadIntLogic(c, 1);
-		} else if (expression.contains(" + ")) {
-			// Handle addition expressions
-			String[] additionParts = expression.split(" \\+ ");
-			if (additionParts.length == 2 &&
-					additionParts[0].trim().equals("readInt()") &&
-					additionParts[1].trim().equals("readInt()")) {
-				// readInt() + readInt()
-				appendReadIntLogic(c, 2);
-			} else {
-				return Result.err("Unsupported addition expression: " + expression);
-			}
+			appendReadIntLogic(c, 1, "");
 		} else {
-			return Result.err("Unsupported expression: " + expression);
+			// detect operator
+			String op = null;
+			if (expression.contains(" + ")) op = " + ";
+			else if (expression.contains(" - ")) op = " - ";
+
+			if (op != null) {
+				String[] partsOp = expression.split(java.util.regex.Pattern.quote(op));
+				if (partsOp.length == 2 && partsOp[0].trim().equals("readInt()") && partsOp[1].trim().equals("readInt()")) {
+					appendReadIntLogic(c, 2, op);
+				} else {
+					return Result.err("Unsupported expression: " + expression);
+				}
+			} else {
+				return Result.err("Unsupported expression: " + expression);
+			}
 		}
 
 		c.append("    return 0;\n");
@@ -65,7 +68,7 @@ public class Compiler {
 		return Result.ok(c.toString());
 	}
 
-	private void appendReadIntLogic(StringBuilder c, int count) {
+	private void appendReadIntLogic(StringBuilder c, int count, String op) {
 		if (count <= 0) {
 			c.append("    exit(1);\n");
 			return;
@@ -99,7 +102,7 @@ public class Compiler {
 		} else {
 			for (int i = 1; i <= count; i++) {
 				c.append("value" + i);
-				if (i < count) c.append(" + ");
+				if (i < count) c.append(op);
 			}
 		}
 		c.append(");\n");
