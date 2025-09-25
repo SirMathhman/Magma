@@ -7,9 +7,8 @@ import static org.junit.jupiter.api.Assertions.*;
 public class CompilerTest {
 
 	@Test
-	public void runnerReturnsOkTupleForFive() {
-		// Expect Runner.run("5", "") to compile/run and return Ok(("", 5))
-		var res = Runner.run("5", "");
+	public void read() {
+		var res = Runner.run("intrinsic fn readInt() : I32; readInt()", "5");
 		switch (res) {
 			case Result.Ok(var value) -> {
 				assertEquals(new Tuple<>("", 5), value);
