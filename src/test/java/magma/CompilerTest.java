@@ -107,6 +107,11 @@ public class CompilerTest {
 		assertValid("let result = if (readInt() == readInt()) 100 else 20; result", "3\r\n3", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void ifNonBooleanIsError() {
+		assertInvalid("if (5) 3 else 5");
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
