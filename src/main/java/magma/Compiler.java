@@ -41,9 +41,7 @@ public class Compiler {
 
 	private Option<Result<String, String>> tryHandleLets(String expression) {
 		LetInfo info = parseLetStatements(expression);
-		if (info.finalExpr instanceof Option.Err)
-			return Option.ok(Result.err("No final expression after let statements"));
-		// Composite RHS delegation
+		// Composite RHS delegation (when final expression refers to the composite let name)
 		if (info.compositeLetRhs instanceof Option.Ok<String> compRhsOpt
 				&& info.compositeLetName instanceof Option.Ok<String> compNameOpt
 				&& info.finalExpr instanceof Option.Ok<String> finOpt) {
@@ -54,10 +52,38 @@ public class Compiler {
 				return Option.ok(compileReadIntExpression(compRhs));
 			}
 		}
-		// Build C for simple vars
+
+		// If there's a composite let (constant or expression) but no final expression,
+		// generate a simple C program that initialises the variable and returns 0.
+	if (info.compositeLetName instanceof Option.Ok
+		&& info.compositeLetRhs instanceof Option.Ok
+		&& info.finalExpr instanceof Option.Err) {
+			return Option.ok(Result.ok(buildCForComposite(info)));
+		}
+
+		// Build C for simple vars (readInt() variables)
 		if (info.vars.isEmpty())
 			return Option.ok(Result.err("No let variables found"));
 		return Option.ok(Result.ok(buildCForVars(info)));
+	}
+
+	private String buildCForComposite(LetInfo info) {
+		String name = "_x";
+		String rhs = "0";
+		if (info.compositeLetName instanceof Option.Ok<String> n)
+			name = n.value();
+		if (info.compositeLetRhs instanceof Option.Ok<String> r)
+			rhs = r.value();
+
+		StringBuilder c = new StringBuilder();
+		c.append("#include <stdio.h>\n");
+		c.append("#include <stdlib.h>\n\n");
+		c.append("int main(void) {\n");
+		c.append("    int " + name + " = " + rhs + ";\n");
+		c.append("    (void)" + name + ";\n");
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
 	}
 
 	private static final class LetInfo {

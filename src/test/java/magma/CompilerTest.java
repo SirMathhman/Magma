@@ -57,6 +57,22 @@ public class CompilerTest {
 		assertValid("let x : I32 = readInt(); let y : I32 = readInt(); x + y", "1\r\n2", new Tuple<>("", 3));
 	}
 
+	@Test
+	public void duplicateLetNameIsError() {
+		String program = "let x : I32 = readInt(); let x : I32 = readInt();";
+		String fullProgram = DECL + program;
+		var res = Runner.run(fullProgram, "");
+		switch (res) {
+			case Result.Ok(var value) -> fail("Expected an error but got Ok: " + value);
+			case Result.Err(var error) -> assertNotNull(error);
+		}
+	}
+
+	@Test
+	public void loneConstantLetReturnsZero() {
+		assertValid("let x : I32 = 100;", "", new Tuple<>("", 0));
+	}
+
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, input);
