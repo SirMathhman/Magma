@@ -15,7 +15,14 @@ public class Runner {
 	 * @return a Tuple of (stdout, exitCode)
 	 */
 	public static Tuple<String, Integer> run(String source, String stdIn) {
-		// TODO: implement real execution
-		return Tuple.of("", 0);
+		Compiler compiler = new Compiler();
+		var result = compiler.compile(source);
+		if (result instanceof Result.Ok<String, String> ok) {
+			return Tuple.of(ok.value(), 0);
+		} else if (result instanceof Result.Err<String, String> err) {
+			return Tuple.of(String.valueOf(err.error()), 1);
+		} else {
+			return Tuple.of("", 1);
+		}
 	}
 }
