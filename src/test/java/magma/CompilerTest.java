@@ -87,6 +87,11 @@ public class CompilerTest {
 		assertInvalid("let y : I32 = 0; let x : Bool = y;");
 	}
 
+	@Test
+	public void readIntLetsReturnFirst() {
+		assertValid("let x = readInt(); let y = readInt(); x", "10\r\n20", new Tuple<>("", 10));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
