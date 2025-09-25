@@ -41,7 +41,7 @@ public class Runner {
 						.redirectErrorStream(true);
 				Process runProc = runPb.start();
 				// write stdIn to the process stdin
-				if (stdIn != null && !stdIn.isEmpty()) {
+				if (stdIn instanceof String && !stdIn.isEmpty()) {
 					try (java.io.OutputStream os = runProc.getOutputStream()) {
 						os.write(stdIn.getBytes(java.nio.charset.StandardCharsets.UTF_8));
 						os.flush();

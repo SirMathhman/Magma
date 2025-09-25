@@ -47,6 +47,16 @@ public class CompilerTest {
 		assertValid("readInt() + readInt() * readInt()", "1\r\n6\r\n5", new Tuple<>("", 31));
 	}
 
+	@Test
+	public void readLetAssignment() {
+		assertValid("let result : I32 = readInt() + readInt() * readInt(); result", "1\r\n6\r\n5", new Tuple<>("", 31));
+	}
+
+	@Test
+	public void readLetTwoVars() {
+		assertValid("let x : I32 = readInt(); let y : I32 = readInt(); x + y", "1\r\n2", new Tuple<>("", 3));
+	}
+
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, input);
