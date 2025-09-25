@@ -17,7 +17,7 @@ public class Runner {
 	public static Result<Tuple<String, Integer>, String> run(String source, String stdIn) {
 		Compiler compiler = new Compiler();
 		var result = compiler.compile(source);
-		if (result instanceof Result.Ok<String, String> ok) {
+		if (result instanceof Result.Ok<String, CompileError> ok) {
 			String stdout = ok.value();
 			try {
 				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("magma-run-");
@@ -58,8 +58,8 @@ public class Runner {
 				Thread.currentThread().interrupt();
 				return Result.err("Interrupted: " + e.getMessage());
 			}
-		} else if (result instanceof Result.Err<String, String> err) {
-			return Result.err(String.valueOf(err.error()));
+		} else if (result instanceof Result.Err<String, CompileError> err) {
+			return Result.err(String.valueOf(err.error().getMessage()));
 		} else {
 			return Result.err("unknown");
 		}

@@ -9,7 +9,7 @@ public class Compiler {
 	 * @param input the input string
 	 * @return an Ok Result holding the generated C code, or Err with error message
 	 */
-	public Result<String, String> compile(String input) {
+	public Result<String, CompileError> compile(String input) {
 		try {
 			// Parse intrinsic declarations and expressions
 			String trimmed = input.trim();
@@ -17,7 +17,7 @@ public class Compiler {
 			// Split on the first semicolon to separate declaration from the rest
 			int firstSemi = trimmed.indexOf(';');
 			if (firstSemi == -1) {
-				return Result.err("Expected both declaration and expression");
+				return Result.err(new CompileError("Expected both declaration and expression"));
 			}
 			String declaration = trimmed.substring(0, firstSemi).trim();
 			String expression = trimmed.substring(firstSemi + 1).trim();
@@ -34,9 +34,14 @@ public class Compiler {
 				}
 			}
 
-			return processParsed(trimmed, declaration, expression);
+			var res = processParsed(trimmed, declaration, expression);
+			if (res instanceof Result.Ok<String, String> ok)
+				return Result.ok(ok.value());
+			if (res instanceof Result.Err<String, String> err)
+				return Result.err(new CompileError(err.error()));
+			return Result.err(new CompileError("Unknown compile result"));
 		} catch (Exception e) {
-			return Result.err("Compilation error: " + e.getMessage());
+			return Result.err(new CompileError("Compilation error: " + e.getMessage()));
 		}
 
 	}
