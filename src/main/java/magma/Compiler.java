@@ -62,17 +62,19 @@ public class Compiler {
 
 	private String buildCForCompositeWithAssignment(String name) {
 		StringBuilder c = new StringBuilder();
-		c.append("#include <stdio.h>\n");
-		c.append("#include <stdlib.h>\n\n");
-		c.append("int main(void) {\n");
-
-		c.append("    int " + name + ";\n");
-		c.append("    if (scanf(\"%d\", &" + name + ") == 1) {\n");
-		c.append("        exit(" + name + ");\n");
-		c.append(C_ERR_EXIT_BLOCK);
+		c.append(buildCompositeHeader(name, "0").replace(" = 0;\n", ";\n"));
+		c.append("    int __tmp;\n");
+		c.append(emitScanfExitBlock(name, "="));
 		c.append("    return 0;\n");
 		c.append("}\n");
 		return c.toString();
+	}
+
+	private Option<Result<String, String>> checkMutableThen(LetInfo info, String lhs,
+			java.util.function.Supplier<Option<Result<String, String>>> onMutable) {
+		if (!info.mutables.contains(lhs))
+			return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs));
+		return onMutable.get();
 	}
 
 	private Option<Result<String, String>> handleCompositeRhs(String compRhs) {
@@ -136,40 +138,55 @@ public class Compiler {
 
 	private Option<Result<String, String>> tryHandleLets(String expression) {
 		LetInfo info = parseLetStatements(expression);
-		// Composite RHS delegation (when final expression refers to the composite let
-		// name)
+		// Try composite-final handling
+		var compRes = tryHandleCompositeCase(info);
+		if (compRes instanceof Option.Ok)
+			return compRes;
+		// Try assignment-after-lets handling
+		var asgRes = tryHandleAssignmentAfterLets(info);
+		if (asgRes instanceof Option.Ok)
+			return asgRes;
+		// Build C for simple vars (readInt() variables)
+		if (info.vars.isEmpty())
+			return Option.ok(Result.err("No let variables found"));
+		return Option.ok(Result.ok(buildCForVars(info)));
+	}
+
+	private Option<Result<String, String>> tryHandleCompositeCase(LetInfo info) {
 		if (info.compositeLetRhs instanceof Option.Ok<String> compRhsOpt
 				&& info.compositeLetName instanceof Option.Ok<String> compNameOpt
 				&& info.finalExpr instanceof Option.Ok<String> finOpt) {
 			return handleCompositeFinal(info, compRhsOpt.value(), compNameOpt.value(), finOpt.value());
 		}
-
-		// If there's a composite let (constant or expression) but no final expression,
-		// generate a simple C program that initialises the variable and returns 0.
 		if (info.compositeLetName instanceof Option.Ok
 				&& info.compositeLetRhs instanceof Option.Ok
 				&& info.finalExpr instanceof Option.Err) {
 			return Option.ok(Result.ok(buildCForComposite(info)));
 		}
+		return Option.err();
+	}
 
-		// If there's an assignment after lets, handle simple mut assignment patterns
-		if (!info.assignments.isEmpty()) {
-			// only support single assignment of form `x = readInt();` for now
-			String asg = info.assignments.get(0).trim();
-			var lhsOpt = extractRhsIfReadInt(asg);
-			if (lhsOpt instanceof Option.Ok<String> lhs && info.compositeLetName instanceof Option.Ok<String> nameOpt
-					&& nameOpt.value().equals(lhs.value())) {
-				// assignment target must be mutable
-				if (!info.mutables.contains(lhs.value()))
-					return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs.value()));
-				return Option.ok(Result.ok(buildCForCompositeWithAssignment(nameOpt.value())));
+	private Option<Result<String, String>> tryHandleAssignmentAfterLets(LetInfo info) {
+		if (info.assignments.isEmpty())
+			return Option.err();
+		// only support single assignment of form `x = readInt();` for now
+		String asg = info.assignments.get(0).trim();
+		var partsOpt = parseAssignmentWithOp(asg);
+		if (partsOpt instanceof Option.Ok<String[]> p && info.compositeLetName instanceof Option.Ok<String> nameOpt) {
+			String lhs = p.value()[0];
+			String op = p.value()[1];
+			if (lhs.equals(nameOpt.value())) {
+				if (!info.mutables.contains(lhs))
+					return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs));
+				if (op.equals("readInt()") || op.equals("=")) {
+					return Option.ok(Result.ok(buildCForCompositeWithAssignment(nameOpt.value())));
+				}
+				if (op.equals("+=") || op.equals("-=") || op.equals("*=") || op.equals("/=")) {
+					return Option.ok(Result.ok(buildCForCompositeWithCompoundAssignment(info, nameOpt.value(), op)));
+				}
 			}
 		}
-
-		// Build C for simple vars (readInt() variables)
-		if (info.vars.isEmpty())
-			return Option.ok(Result.err("No let variables found"));
-		return Option.ok(Result.ok(buildCForVars(info)));
+		return Option.err();
 	}
 
 	private String buildCForComposite(LetInfo info) {
@@ -179,15 +196,20 @@ public class Compiler {
 			name = n.value();
 		if (info.compositeLetRhs instanceof Option.Ok<String> r)
 			rhs = r.value();
+		StringBuilder c = new StringBuilder();
+		c.append(buildCompositeHeader(name, rhs));
+		c.append("    (void)" + name + ";\n");
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
+	}
 
+	private String buildCompositeHeader(String name, String rhs) {
 		StringBuilder c = new StringBuilder();
 		c.append("#include <stdio.h>\n");
 		c.append("#include <stdlib.h>\n\n");
 		c.append("int main(void) {\n");
 		c.append("    int " + name + " = " + rhs + ";\n");
-		c.append("    (void)" + name + ";\n");
-		c.append("    return 0;\n");
-		c.append("}\n");
 		return c.toString();
 	}
 
@@ -198,14 +220,18 @@ public class Compiler {
 		// If there is an assignment later that assigns to this composite name,
 		// prefer emitting code that performs the assignment (e.g., x = readInt()).
 		for (String asg : info.assignments) {
-			var targetOpt = extractRhsIfReadInt(asg);
-			if (targetOpt instanceof Option.Ok<String> to) {
-				String lhs = to.value();
-				if (!info.mutables.contains(lhs)) {
-					return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs));
+			var partsOpt = parseAssignmentWithOp(asg);
+			if (partsOpt instanceof Option.Ok<String[]> p) {
+				String lhs = p.value()[0];
+				String op = p.value()[1].equals("readInt()") ? "=" : p.value()[1];
+				// If RHS is readInt() and lhs is mutable
+				if (op.equals("=") && lhs.equals(compName)) {
+					return checkMutableThen(info, lhs, () -> Option.ok(Result.ok(buildCForCompositeWithAssignment(compName))));
 				}
-				if (lhs.equals(compName)) {
-					return Option.ok(Result.ok(buildCForCompositeWithAssignment(compName)));
+				// support compound ops like += where p.value()[1] == "+=" with RHS readInt()
+				if ((op.equals("+=") || op.equals("-=") || op.equals("*=") || op.equals("/=")) && lhs.equals(compName)) {
+					return checkMutableThen(info, lhs,
+							() -> Option.ok(Result.ok(buildCForCompositeWithCompoundAssignment(info, compName, op))));
 				}
 			}
 		}
@@ -269,15 +295,8 @@ public class Compiler {
 				// Non-let statements: if they contain '=' treat them as assignments otherwise
 				// final expression
 				if (s.contains("=")) {
-					var rhsLhsOpt = extractRhsIfReadInt(s);
-					if (rhsLhsOpt instanceof Option.Ok<String> lhs) {
-						info.assignments.add(lhs.value() + " = readInt();");
-					} else {
-						var partsOpt2 = parseAssignment(s);
-						if (partsOpt2 instanceof Option.Ok<String[]> p2) {
-							info.assignments.add(p2.value()[0] + " = " + p2.value()[1] + ";");
-						}
-					}
+					// preserve the original assignment form (including compound ops like +=)
+					info.assignments.add(s + ";");
 				} else {
 					info.finalExpr = Option.ok(s);
 				}
@@ -287,14 +306,71 @@ public class Compiler {
 	}
 
 	private Option<String[]> parseAssignment(String s) {
+		// legacy: return [lhs, rhs]
 		int eq = s.indexOf('=');
 		if (eq == -1)
 			return Option.err();
 		String left = s.substring(0, eq).trim();
-		String right = s.substring(eq + 1).trim();
-		if (right.endsWith(";"))
-			right = right.substring(0, right.length() - 1).trim();
+		String right = trimSemicolon(s.substring(eq + 1).trim());
 		return Option.ok(new String[] { left, right });
+	}
+
+	private Option<String[]> parseAssignmentWithOp(String s) {
+		// returns [lhs, op, rhs] where op is one of =, +=, -=, *=, /=
+		for (String op : new String[] { "+=", "-=", "*=", "/=" }) {
+			int idx = s.indexOf(op);
+			if (idx != -1) {
+				String left = s.substring(0, idx).trim();
+				String right = trimSemicolon(s.substring(idx + 2).trim());
+				return Option.ok(new String[] { left, op, right });
+			}
+		}
+		// fallback to simple assignment
+		var simple = parseAssignment(s);
+		if (simple instanceof Option.Ok<String[]> p) {
+			return Option.ok(new String[] { p.value()[0], "=", p.value()[1] });
+		}
+		return Option.err();
+	}
+
+	private String buildCForCompositeWithCompoundAssignment(LetInfo info, String name, String op) {
+		String init = "0";
+		if (info.compositeLetRhs instanceof Option.Ok<String> r)
+			init = r.value();
+		StringBuilder c = new StringBuilder();
+		c.append(buildCompositeHeader(name, init));
+		c.append("    int __tmp;\n");
+		c.append(emitScanfExitBlock(name, op));
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
+	}
+
+	private String trimSemicolon(String s) {
+		if (s.endsWith(";"))
+			return s.substring(0, s.length() - 1).trim();
+		return s;
+	}
+
+	private String emitScanfExitBlock(String name, String op) {
+		StringBuilder c = new StringBuilder();
+		c.append("    if (scanf(\"%d\", &__tmp) == 1) {\n");
+		c.append(buildOpLine(name, op));
+		c.append("        exit(" + name + ");\n");
+		c.append(C_ERR_EXIT_BLOCK);
+		return c.toString();
+	}
+
+	private String buildOpLine(String name, String op) {
+		if ("+=".equals(op))
+			return "        " + name + " += __tmp;\n";
+		if ("-=".equals(op))
+			return "        " + name + " -= __tmp;\n";
+		if ("*=".equals(op))
+			return "        " + name + " *= __tmp;\n";
+		if ("/=".equals(op))
+			return "        " + name + " /= __tmp;\n";
+		return "        " + name + " = __tmp;\n";
 	}
 
 	private Option<String> extractRhsIfReadInt(String asg) {
