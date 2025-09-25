@@ -26,6 +26,11 @@ public class CompilerTest {
 		assertOkEquals("intrinsic fn readInt() : I32; readInt()", "-1", new Tuple<>("", -1));
 	}
 
+	@Test
+	public void readTripleAdd() {
+		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt() + readInt()", "1\r\n2\r\n3", new Tuple<>("", 6));
+	}
+
 	private void assertOkEquals(String program, String input, Tuple<String, Integer> expected) {
 		var res = Runner.run(program, input);
 		switch (res) {

@@ -52,8 +52,14 @@ public class Compiler {
 
 			if (op != null) {
 				String[] partsOp = expression.split(java.util.regex.Pattern.quote(op));
-				if (partsOp.length == 2 && partsOp[0].trim().equals("readInt()") && partsOp[1].trim().equals("readInt()")) {
-					appendReadIntLogic(c, 2, op);
+				// ensure all parts are readInt() and support N-term expressions
+				int count = partsOp.length;
+				boolean ok = count > 0;
+				for (int i = 0; i < partsOp.length && ok; i++) {
+					if (!partsOp[i].trim().equals("readInt()")) ok = false;
+				}
+				if (ok) {
+					appendReadIntLogic(c, count, op);
 				} else {
 					return Result.err("Unsupported expression: " + expression);
 				}
