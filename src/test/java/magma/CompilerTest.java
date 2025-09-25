@@ -160,6 +160,11 @@ public class CompilerTest {
 			"100\r\n200", new Tuple<>("", 300));
 	}
 
+	@Test
+	public void functionWithDuplicateParameterNamesIsError() {
+		assertInvalid("fn add(first : I32, first : I32) : I32 => { return first + first; }");
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
