@@ -23,10 +23,31 @@ public class Runner {
 				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("magma-run-");
 				java.nio.file.Path file = dir.resolve("main.c");
 				java.nio.file.Files.writeString(file, stdout, java.nio.charset.StandardCharsets.UTF_8);
-				// return stdout and exit code 0
-				return Result.ok(Tuple.of(stdout, 0));
+				// Build using clang; always produce main.exe in the temp directory
+				String exeName = "main.exe";
+				java.util.List<String> cmd = java.util.Arrays.asList("clang", file.getFileName().toString(), "-o", exeName);
+				ProcessBuilder pb = new ProcessBuilder(cmd).directory(dir.toFile()).redirectErrorStream(true);
+				Process compileProc = pb.start();
+				String compileOutput = new String(compileProc.getInputStream().readAllBytes(),
+						java.nio.charset.StandardCharsets.UTF_8);
+				int compileExit = compileProc.waitFor();
+				if (compileExit != 0) {
+					return Result.err(compileOutput);
+				}
+
+				// Run the produced executable by absolute path so the file sits in the temp dir
+				String exePath = dir.resolve(exeName).toAbsolutePath().toString();
+				ProcessBuilder runPb = new ProcessBuilder(java.util.Arrays.asList(exePath)).directory(dir.toFile())
+						.redirectErrorStream(true);
+				Process runProc = runPb.start();
+				String runOutput = new String(runProc.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+				int runExit = runProc.waitFor();
+				return Result.ok(Tuple.of(runOutput, runExit));
 			} catch (java.io.IOException e) {
 				return Result.err("IO error writing temp file: " + e.getMessage());
+			} catch (InterruptedException e) {
+				Thread.currentThread().interrupt();
+				return Result.err("Interrupted: " + e.getMessage());
 			}
 		} else if (result instanceof Result.Err<String, String> err) {
 			return Result.err(String.valueOf(err.error()));
