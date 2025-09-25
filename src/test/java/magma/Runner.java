@@ -40,6 +40,15 @@ public class Runner {
 				ProcessBuilder runPb = new ProcessBuilder(java.util.Arrays.asList(exePath)).directory(dir.toFile())
 						.redirectErrorStream(true);
 				Process runProc = runPb.start();
+				// write stdIn to the process stdin
+				if (stdIn != null && !stdIn.isEmpty()) {
+					try (java.io.OutputStream os = runProc.getOutputStream()) {
+						os.write(stdIn.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+						os.flush();
+					}
+				} else {
+					runProc.getOutputStream().close();
+				}
 				String runOutput = new String(runProc.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
 				int runExit = runProc.waitFor();
 				return Result.ok(Tuple.of(runOutput, runExit));
