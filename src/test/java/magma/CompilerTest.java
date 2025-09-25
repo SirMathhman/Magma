@@ -92,6 +92,11 @@ public class CompilerTest {
 		assertValid("let x = readInt(); let y = readInt(); x", "10\r\n20", new Tuple<>("", 10));
 	}
 
+	@Test
+	public void readIntEqualsReadInt() {
+		assertValid("readInt() == readInt()", "3\r\n3", new Tuple<>("", 1));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

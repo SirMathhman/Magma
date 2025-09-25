@@ -51,6 +51,18 @@ public class Compiler {
 		}
 	}
 
+	private Option<String> mapTokenToOp(String t) {
+		if (t.equals("+"))
+			return Option.ok(" + ");
+		if (t.equals("-"))
+			return Option.ok(" - ");
+		if (t.equals("*"))
+			return Option.ok(" * ");
+		if (t.equals("=="))
+			return Option.ok(" == ");
+		return Option.err();
+	}
+
 	private Option<Result<String, String>> tryHandleLets(String expression) {
 		LetInfo info = parseLetStatements(expression);
 		// Composite RHS delegation (when final expression refers to the composite let
@@ -231,13 +243,10 @@ public class Compiler {
 					}
 				} else {
 					String t = tokens[i].trim();
-					if (t.equals("+"))
-						ops[(i - 1) / 2] = " + ";
-					else if (t.equals("-"))
-						ops[(i - 1) / 2] = " - ";
-					else if (t.equals("*"))
-						ops[(i - 1) / 2] = " * ";
-					else {
+					var mappedOpt = mapTokenToOp(t);
+					if (mappedOpt instanceof Option.Ok<String> mo) {
+						ops[(i - 1) / 2] = mo.value();
+					} else {
 						ok = false;
 						break;
 					}
