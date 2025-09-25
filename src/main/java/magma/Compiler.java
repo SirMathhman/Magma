@@ -44,11 +44,12 @@ public class Compiler {
 		if (info.finalExpr instanceof Option.Err)
 			return Option.ok(Result.err("No final expression after let statements"));
 		// Composite RHS delegation
-		if (info.compositeLetRhs instanceof Option.Ok && info.compositeLetName instanceof Option.Ok
-				&& info.finalExpr instanceof Option.Ok) {
-			String compRhs = ((Option.Ok<String>) info.compositeLetRhs).value();
-			String compName = ((Option.Ok<String>) info.compositeLetName).value();
-			String fin = ((Option.Ok<String>) info.finalExpr).value();
+		if (info.compositeLetRhs instanceof Option.Ok<String> compRhsOpt
+				&& info.compositeLetName instanceof Option.Ok<String> compNameOpt
+				&& info.finalExpr instanceof Option.Ok<String> finOpt) {
+			String compRhs = compRhsOpt.value();
+			String compName = compNameOpt.value();
+			String fin = finOpt.value();
 			if (fin.equals(compName)) {
 				return Option.ok(compileReadIntExpression(compRhs));
 			}
@@ -126,7 +127,7 @@ public class Compiler {
 		// exit expression using finalExpr (assume variables and operators are
 		// C-compatible)
 		c.append("        exit(");
-		String finVal = ((Option.Ok<String>) info.finalExpr).value();
+		String finVal = (info.finalExpr instanceof Option.Ok<String> fv) ? fv.value() : "0";
 		c.append(finVal);
 		c.append(");\n");
 		c.append("    } else {\n");

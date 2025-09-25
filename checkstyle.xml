@@ -14,5 +14,10 @@
 		<module name="CyclomaticComplexity">
 			<property name="max" value="15"/>
 		</module>
+
+		<!-- Ban explicit typecasts: prefer pattern matching / object destructuring -->
+		<module name="IllegalToken">
+			<property name="tokens" value="TYPECAST"/>
+		</module>
 	</module>
 </module>
