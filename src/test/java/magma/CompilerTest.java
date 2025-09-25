@@ -186,6 +186,11 @@ public class CompilerTest {
 		assertValid("let x = readInt(); {x}", "100", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void nestedBracedLetUsesOuterVar() {
+		assertValid("let x = readInt(); {let y = x; y}", "100", new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

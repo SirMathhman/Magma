@@ -711,7 +711,18 @@ public class Compiler {
 			if (val.startsWith("{") && val.endsWith("}")) {
 				String inner = val.substring(1, val.length() - 1).trim();
 				if (!inner.isEmpty()) {
-					val = inner;
+					// If inner is a tiny block like `let y = x; y` we can simplify
+					// it to the RHS `x` so later emitters (which expect an
+					// expression) produce valid C. Match pattern: let NAME = VAR; NAME
+					java.util.regex.Pattern p = java.util.regex.Pattern.compile(
+							"^let\\s+([a-zA-Z_][\\w]*)\\s*(?::[^=]+)?=\\s*([a-zA-Z_][\\w]*)\\s*;\\s*([a-zA-Z_][\\w]*)\\s*$");
+					java.util.regex.Matcher m = p.matcher(inner);
+					if (m.matches() && m.group(1).equals(m.group(3))) {
+						// replace final expr with the simple RHS variable
+						val = m.group(2);
+					} else {
+						val = inner;
+					}
 				}
 			}
 			info.finalExpr = Option.ok(val);
