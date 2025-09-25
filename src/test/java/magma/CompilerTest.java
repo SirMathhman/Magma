@@ -143,6 +143,17 @@ public class CompilerTest {
 		assertValid("fn get() : I32 => { return readInt(); } get()", "100", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void duplicateFunctionDeclarationIsError() {
+		assertInvalid("fn get() : I32 => { return readInt(); } fn get() : I32 => { return 100; }");
+	}
+
+	@Test
+	public void oneParamPassThroughFunctionWithReadIntArg() {
+		assertValid("fn pass(value : I32) : I32 => { return value; } pass(readInt())", "100",
+			new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

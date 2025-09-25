@@ -1,6 +1,5 @@
 package magma;
 
-
 public class Compiler {
 	private static final String C_ERR_EXIT_BLOCK = "    } else {\n        exit(1);\n    }\n";
 
@@ -95,24 +94,23 @@ public class Compiler {
 		}
 		// If RHS is a simple integer literal, emit C that exits with that value
 		if (cr.matches("-?\\d+")) {
-			StringBuilder c = new StringBuilder();
-			c.append("#include <stdlib.h>\n\n");
-			c.append("int main(void) {\n");
-			c.append("    exit(").append(cr).append(");\n");
-			c.append("}\n");
-			return Option.ok(Result.ok(c.toString()));
+			return Option.ok(Result.ok(buildExitWithInt(cr)));
 		}
 		// If RHS is boolean literal, emit C that exits with 1 for true, 0 for false
 		if (cr.equals("true") || cr.equals("false")) {
-			StringBuilder c = new StringBuilder();
-			c.append("#include <stdlib.h>\n\n");
-			c.append("int main(void) {\n");
-			c.append("    exit(").append(cr.equals("true") ? "1" : "0").append(");\n");
-			c.append("}\n");
-			return Option.ok(Result.ok(c.toString()));
+			return Option.ok(Result.ok(buildExitWithInt(cr.equals("true") ? "1" : "0")));
 		}
 		// Otherwise unsupported for now
 		return Option.ok(Result.err("Unsupported composite RHS: " + compRhs));
+	}
+
+	private String buildExitWithInt(String n) {
+		StringBuilder c = new StringBuilder();
+		c.append("#include <stdlib.h>\n\n");
+		c.append("int main(void) {\n");
+		c.append("    exit(").append(n).append(");\n");
+		c.append("}\n");
+		return c.toString();
 	}
 
 	private int findMatchingParen(String s, int openIndex) {
@@ -132,38 +130,92 @@ public class Compiler {
 
 	private boolean isSimpleFnThatReturnsReadInt(String decl, String rest) {
 		int paren = decl.indexOf('(');
-		if (paren <= 3) return false;
+		if (paren <= 3)
+			return false;
 		String fname = decl.substring(3, paren).trim();
 		return decl.contains("readInt()") && rest.equals(fname + "()");
+	}
+
+	private Option<Result<String, String>> tryHandleInlineFn(String decl, String rest) {
+		// reuse simple zero-arg readInt case
+		if (isSimpleFnThatReturnsReadInt(decl, rest))
+			return Option.ok(compileReadIntExpression("readInt()"));
+
+		int openParen = decl.indexOf('(');
+		int closeParen = decl.indexOf(')');
+		String fname = "";
+		if (openParen > 3)
+			fname = decl.substring(3, openParen).trim();
+		if (openParen == -1 || closeParen <= openParen || fname.isEmpty() || rest.isEmpty())
+			return Option.err();
+
+		if (!(extractSingleParamNameIfReturns(decl, openParen, closeParen) instanceof Option.Ok))
+			return Option.err();
+
+		if (!(extractCallArgIfNameMatches(rest, fname) instanceof Option.Ok<String> argOk))
+			return Option.err();
+		String arg = argOk.value();
+		if (arg.equals("readInt()"))
+			return Option.ok(compileReadIntExpression("readInt()"));
+		if (arg.matches("-?\\d+"))
+			return Option.ok(Result.ok(buildExitWithInt(arg)));
+		return Option.err();
+	}
+
+	private Option<String> extractSingleParamNameIfReturns(String decl, int openParen, int closeParen) {
+		if (openParen == -1 || closeParen <= openParen)
+			return Option.err();
+		String params = decl.substring(openParen + 1, closeParen).trim();
+		if (params.isEmpty())
+			return Option.err();
+		String first = params.split(",")[0].trim();
+		int colon = first.indexOf(':');
+		String paramName = (colon == -1) ? first : first.substring(0, colon).trim();
+		if (paramName.isEmpty() || !decl.contains("return " + paramName))
+			return Option.err();
+		return Option.ok(paramName);
+	}
+
+	private Option<String> extractCallArgIfNameMatches(String rest, String fname) {
+		int argOpen = rest.indexOf('(');
+		int argClose = findMatchingParen(rest, argOpen);
+		if (argOpen == -1 || argClose <= argOpen)
+			return Option.err();
+		String callName = rest.substring(0, argOpen).trim();
+		if (!callName.equals(fname))
+			return Option.err();
+		String arg = rest.substring(argOpen + 1, argClose).trim();
+		return Option.ok(arg);
 	}
 
 	private Option<Result<String, String>> tryHandleSimpleFn(String declaration, String expression) {
 		// Handle function declared as top-level declaration, e.g.
 		// fn get() : I32 => { return readInt(); } and called by `get()` as the
 		// expression. Also handle inline function in expression.
-	if (declaration.startsWith("fn ") && expression.trim().isEmpty()) {
-			// nothing to do here for top-level decl alone
-			return Option.err();
-		}
 		// inline function inside expression
 		if (expression.startsWith("fn ")) {
 			int closeBrace = expression.indexOf('}');
 			if (closeBrace != -1) {
 				String decl = expression.substring(0, closeBrace + 1).trim();
 				String rest = expression.substring(closeBrace + 1).trim();
-				if (isSimpleFnThatReturnsReadInt(decl, rest)) {
-					return Option.ok(compileReadIntExpression("readInt()"));
+				var inlineOpt = tryHandleInlineFn(decl, rest);
+				if (inlineOpt instanceof Option.Ok) {
+					return inlineOpt;
 				}
 			}
 		}
 		// function declared in the declaration section and invoked as expression
-	if (declaration.startsWith("fn ") && !expression.trim().isEmpty()) {
-			int parenIdx = declaration.indexOf('(');
-			if (parenIdx > 3) {
-				String fname = declaration.substring(3, parenIdx).trim();
-				if (declaration.contains("readInt()") && expression.trim().equals(fname + "()")) {
-					return Option.ok(compileReadIntExpression("readInt()"));
-				}
+		return tryHandleDeclaredFn(declaration, expression);
+	}
+
+	private Option<Result<String, String>> tryHandleDeclaredFn(String declaration, String expression) {
+		if (!declaration.startsWith("fn ") || expression.trim().isEmpty())
+			return Option.err();
+		int parenIdx = declaration.indexOf('(');
+		if (parenIdx > 3) {
+			String fname = declaration.substring(3, parenIdx).trim();
+			if (declaration.contains("readInt()") && expression.trim().equals(fname + "()")) {
+				return Option.ok(compileReadIntExpression("readInt()"));
 			}
 		}
 		return Option.err();
