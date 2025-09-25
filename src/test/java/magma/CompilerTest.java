@@ -73,6 +73,11 @@ public class CompilerTest {
 		assertValid("let x : I32 = 100;", "", new Tuple<>("", 0));
 	}
 
+	@Test
+	public void compositeLetLiteralReturned() {
+		assertValid("let x = 100; x", "", new Tuple<>("", 100));
+	}
+
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, input);

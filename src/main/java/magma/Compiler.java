@@ -41,7 +41,8 @@ public class Compiler {
 
 	private Option<Result<String, String>> tryHandleLets(String expression) {
 		LetInfo info = parseLetStatements(expression);
-		// Composite RHS delegation (when final expression refers to the composite let name)
+		// Composite RHS delegation (when final expression refers to the composite let
+		// name)
 		if (info.compositeLetRhs instanceof Option.Ok<String> compRhsOpt
 				&& info.compositeLetName instanceof Option.Ok<String> compNameOpt
 				&& info.finalExpr instanceof Option.Ok<String> finOpt) {
@@ -49,15 +50,30 @@ public class Compiler {
 			String compName = compNameOpt.value();
 			String fin = finOpt.value();
 			if (fin.equals(compName)) {
-				return Option.ok(compileReadIntExpression(compRhs));
+				String cr = compRhs.trim();
+				// If RHS is a readInt expression or contains readInt(), delegate
+				if (cr.equals("readInt()") || cr.contains("readInt()")) {
+					return Option.ok(compileReadIntExpression(compRhs));
+				}
+				// If RHS is a simple integer literal, emit C that exits with that value
+				if (cr.matches("-?\\d+")) {
+					StringBuilder c = new StringBuilder();
+					c.append("#include <stdlib.h>\n\n");
+					c.append("int main(void) {\n");
+					c.append("    exit(").append(cr).append(");\n");
+					c.append("}\n");
+					return Option.ok(Result.ok(c.toString()));
+				}
+				// Otherwise unsupported for now
+				return Option.ok(Result.err("Unsupported composite RHS: " + compRhs));
 			}
 		}
 
 		// If there's a composite let (constant or expression) but no final expression,
 		// generate a simple C program that initialises the variable and returns 0.
-	if (info.compositeLetName instanceof Option.Ok
-		&& info.compositeLetRhs instanceof Option.Ok
-		&& info.finalExpr instanceof Option.Err) {
+		if (info.compositeLetName instanceof Option.Ok
+				&& info.compositeLetRhs instanceof Option.Ok
+				&& info.finalExpr instanceof Option.Err) {
 			return Option.ok(Result.ok(buildCForComposite(info)));
 		}
 
