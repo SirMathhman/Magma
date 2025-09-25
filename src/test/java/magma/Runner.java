@@ -18,7 +18,16 @@ public class Runner {
 		Compiler compiler = new Compiler();
 		var result = compiler.compile(source);
 		if (result instanceof Result.Ok<String, String> ok) {
-			return Result.ok(Tuple.of(ok.value(), 0));
+			String stdout = ok.value();
+			try {
+				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("magma-run-");
+				java.nio.file.Path file = dir.resolve("main.c");
+				java.nio.file.Files.writeString(file, stdout, java.nio.charset.StandardCharsets.UTF_8);
+				// return stdout and exit code 0
+				return Result.ok(Tuple.of(stdout, 0));
+			} catch (java.io.IOException e) {
+				return Result.err("IO error writing temp file: " + e.getMessage());
+			}
 		} else if (result instanceof Result.Err<String, String> err) {
 			return Result.err(String.valueOf(err.error()));
 		} else {
