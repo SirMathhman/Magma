@@ -706,7 +706,15 @@ public class Compiler {
 		if (s.startsWith("while") || s.endsWith("++") || s.contains("(")) {
 			info.others.add(s + ";");
 		} else {
-			info.finalExpr = Option.ok(s);
+			// unwrap a single pair of surrounding braces for final expressions
+			String val = s;
+			if (val.startsWith("{") && val.endsWith("}")) {
+				String inner = val.substring(1, val.length() - 1).trim();
+				if (!inner.isEmpty()) {
+					val = inner;
+				}
+			}
+			info.finalExpr = Option.ok(val);
 		}
 	}
 
