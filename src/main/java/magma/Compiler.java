@@ -1,6 +1,7 @@
 package magma;
 
 public class Compiler {
+	private static final String C_ERR_EXIT_BLOCK = "    } else {\n        exit(1);\n    }\n";
 	/**
 	 * Compiles the custom language to C code.
 	 *
@@ -40,6 +41,11 @@ public class Compiler {
 				return Result.ok(c.toString());
 			}
 
+			// Support simple if expressions: if (COND) THEN else ELSE
+			if (expression.startsWith("if (") || expression.startsWith("if(")) {
+				return compileIfExpression(expression);
+			}
+
 			// Check if it's a readInt intrinsic declaration
 			if (declaration.startsWith("intrinsic fn readInt()")) {
 				return compileReadIntExpression(expression);
@@ -49,6 +55,20 @@ public class Compiler {
 		} catch (Exception e) {
 			return Result.err("Compilation error: " + e.getMessage());
 		}
+
+	}
+
+	private int findMatchingParen(String s, int openIndex) {
+		int depth = 0;
+		for (int i = openIndex; i < s.length(); i++) {
+			char ch = s.charAt(i);
+			if (ch == '(') depth++;
+			else if (ch == ')') {
+				depth--;
+				if (depth == 0) return i;
+			}
+		}
+		return -1;
 	}
 
 	private Option<String> mapTokenToOp(String t) {
@@ -205,9 +225,7 @@ public class Compiler {
 		String finVal = (info.finalExpr instanceof Option.Ok<String> fv) ? fv.value() : "0";
 		c.append(finVal);
 		c.append(");\n");
-		c.append("    } else {\n");
-		c.append("        exit(1);\n");
-		c.append("    }\n");
+		c.append(C_ERR_EXIT_BLOCK);
 		c.append("    return 0;\n");
 		c.append("}\n");
 		return c.toString();
@@ -263,6 +281,47 @@ public class Compiler {
 		return Result.ok(c.toString());
 	}
 
+	private Result<String, String> compileIfExpression(String expression) {
+		// Very small and strict parser for patterns like: if (A == B) X else Y
+		String s = expression.trim();
+		// Remove leading if and surrounding parentheses
+		int startCond = s.indexOf('(');
+		if (startCond == -1)
+			return Result.err("Unsupported if expression: " + expression);
+		int endCond = findMatchingParen(s, startCond);
+		if (endCond == -1)
+			return Result.err("Unsupported if expression: missing closing ) for " + expression);
+		String cond = s.substring(startCond + 1, endCond).trim();
+		String rest = s.substring(endCond + 1).trim();
+		// Expect pattern: THEN else ELSE
+		int elseIdx = rest.indexOf("else");
+		if (elseIdx == -1)
+			return Result.err("Unsupported if expression (no else): " + expression);
+		String thenPart = rest.substring(0, elseIdx).trim();
+		String elsePart = rest.substring(elseIdx + 4).trim();
+
+		// For now support cond: readInt() == readInt()
+		if (!cond.equals("readInt() == readInt()"))
+			return Result.err("Unsupported condition: " + cond);
+
+		// thenPart and elsePart should be integer literals (or simple expressions)
+		String thenVal = thenPart;
+		String elseVal = elsePart;
+
+		// Build C that reads two ints and branches
+		StringBuilder c = new StringBuilder();
+		c.append("#include <stdio.h>\n");
+		c.append("#include <stdlib.h>\n\n");
+		c.append("int main(void) {\n");
+		c.append("    int a, b;\n");
+		c.append("    if (scanf(\"%d%d\", &a, &b) == 2) {\n");
+		c.append("        if (a == b) exit(").append(thenVal).append(");\n");
+		c.append("        else exit(").append(elseVal).append(");\n");
+		c.append(C_ERR_EXIT_BLOCK);
+		c.append("}\n");
+		return Result.ok(c.toString());
+	}
+
 	private void appendReadIntLogic(StringBuilder c, int count, String[] ops) {
 		if (count <= 0) {
 			c.append("    exit(1);\n");
@@ -307,8 +366,6 @@ public class Compiler {
 			}
 		}
 		c.append(");\n");
-		c.append("    } else {\n");
-		c.append("        exit(1);\n");
-		c.append("    }\n");
+		c.append(C_ERR_EXIT_BLOCK);
 	}
 }

@@ -97,6 +97,11 @@ public class CompilerTest {
 		assertValid("readInt() == readInt()", "3\r\n3", new Tuple<>("", 1));
 	}
 
+	@Test
+	public void ifReadIntEqualsThenElse() {
+		assertValid("if (readInt() == readInt()) 100 else 20", "3\r\n3", new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
