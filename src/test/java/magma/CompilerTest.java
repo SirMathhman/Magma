@@ -166,9 +166,10 @@ public class CompilerTest {
 	}
 
 	@Test
-	public void shortenedFunctionSyntaxIsError() {
-		// New syntax variant without explicit return type before arrow should be invalid
-		assertInvalid("fn add(first : I32, first : I32) => { return first + first; }");
+	public void newFunctionSyntaxAddReturnsSum() {
+		// using the new short function arrow syntax (no explicit return type here)
+		assertValid("fn add(first : I32, second : I32) => { return first + second; } add(readInt(), readInt())",
+				"40\r\n2", new Tuple<>("", 42));
 	}
 
 	@Test
