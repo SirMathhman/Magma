@@ -8,27 +8,19 @@ public class CompilerTest {
 
 	@Test
 	public void read() {
-		var res = Runner.run("intrinsic fn readInt() : I32; readInt()", "5");
-		switch (res) {
-			case Result.Ok(var value) -> {
-				assertEquals(new Tuple<>("", 5), value);
-			}
-			case Result.Err(var error) -> {
-				fail(error);
-			}
-		}
+		assertOkEquals("intrinsic fn readInt() : I32; readInt()", "5", new Tuple<>("", 5));
 	}
 
 	@Test
 	public void readAndAdd() {
-		var res = Runner.run("intrinsic fn readInt() : I32; readInt() + readInt()", "3\r\n4");
+		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt()", "3\r\n4", new Tuple<>("", 7));
+	}
+
+	private void assertOkEquals(String program, String input, Tuple<String, Integer> expected) {
+		var res = Runner.run(program, input);
 		switch (res) {
-			case Result.Ok(var value) -> {
-				assertEquals(new Tuple<>("", 7), value);
-			}
-			case Result.Err(var error) -> {
-				fail(error);
-			}
+			case Result.Ok(var value) -> assertEquals(expected, value);
+			case Result.Err(var error) -> fail(error);
 		}
 	}
 }

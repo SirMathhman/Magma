@@ -43,12 +43,7 @@ public class Compiler {
 		// Simple expression parsing - handle readInt() calls and addition
 		if (expression.equals("readInt()")) {
 			// Single readInt() call
-			c.append("    int value;\n");
-			c.append("    if (scanf(\"%d\", &value) == 1) {\n");
-			c.append("        exit(value);\n");
-			c.append("    } else {\n");
-			c.append("        exit(1);\n");
-			c.append("    }\n");
+			appendReadIntLogic(c, 1);
 		} else if (expression.contains(" + ")) {
 			// Handle addition expressions
 			String[] additionParts = expression.split(" \\+ ");
@@ -56,12 +51,7 @@ public class Compiler {
 					additionParts[0].trim().equals("readInt()") &&
 					additionParts[1].trim().equals("readInt()")) {
 				// readInt() + readInt()
-				c.append("    int value1, value2;\n");
-				c.append("    if (scanf(\"%d\", &value1) == 1 && scanf(\"%d\", &value2) == 1) {\n");
-				c.append("        exit(value1 + value2);\n");
-				c.append("    } else {\n");
-				c.append("        exit(1);\n");
-				c.append("    }\n");
+				appendReadIntLogic(c, 2);
 			} else {
 				return Result.err("Unsupported addition expression: " + expression);
 			}
@@ -73,5 +63,48 @@ public class Compiler {
 		c.append("}\n");
 
 		return Result.ok(c.toString());
+	}
+
+	private void appendReadIntLogic(StringBuilder c, int count) {
+		if (count <= 0) {
+			c.append("    exit(1);\n");
+			return;
+		}
+
+		// Declare variables: value or value1, value2, ...
+		if (count == 1) {
+			c.append("    int value;\n");
+		} else {
+			c.append("    int ");
+			for (int i = 1; i <= count; i++) {
+				c.append("value" + i);
+				if (i < count) c.append(", ");
+				else c.append(";\n");
+			}
+		}
+
+		// Build scanf condition
+		c.append("    if (");
+		for (int i = 1; i <= count; i++) {
+			if (i > 1) c.append(" && ");
+			String varName = (count == 1) ? "value" : ("value" + i);
+			c.append("scanf(\"%d\", &" + varName + ") == 1");
+		}
+		c.append(") {\n");
+
+		// Build exit expression
+		c.append("        exit(");
+		if (count == 1) {
+			c.append("value");
+		} else {
+			for (int i = 1; i <= count; i++) {
+				c.append("value" + i);
+				if (i < count) c.append(" + ");
+			}
+		}
+		c.append(");\n");
+		c.append("    } else {\n");
+		c.append("        exit(1);\n");
+		c.append("    }\n");
 	}
 }

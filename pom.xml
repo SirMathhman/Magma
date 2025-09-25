@@ -40,6 +40,31 @@
 					<release>${maven.compiler.source}</release>
 				</configuration>
 			</plugin>
+			<!-- PMD CPD plugin to detect copy/paste duplicates -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-pmd-plugin</artifactId>
+				<version>3.21.0</version>
+				<configuration>
+					<!-- CPD configuration applied to all goals -->
+					<minimumTokens>35</minimumTokens>
+					<includeTests>true</includeTests>
+					<!-- ignore string literal duplications -->
+					<ignoreLiterals>true</ignoreLiterals>
+					<language>java</language>
+					<!-- report as build failure when duplicates found -->
+					<failOnViolation>true</failOnViolation>
+				</configuration>
+				<executions>
+					<execution>
+						<id>cpd-check</id>
+						<phase>test</phase>
+						<goals>
+							<goal>cpd-check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
