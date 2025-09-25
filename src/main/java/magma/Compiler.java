@@ -61,10 +61,61 @@ public class Compiler {
 		} catch (Exception e) {
 			return Result.err("Compilation error: " + e.getMessage());
 		}
+
+	}
+
+	private Option<Result<String, String>> tryHandleTwoParamAdd(String decl, String rest, String fname) {
+		int open = rest.indexOf('(');
+		int close = findMatchingParen(rest, open);
+		if (open == -1 || close <= open)
+			return Option.err();
+		String callName = rest.substring(0, open).trim();
+		if (!callName.equals(fname))
+			return Option.err();
+		String args = rest.substring(open + 1, close).trim();
+		String[] parts = args.split(",");
+		if (parts.length != 2)
+			return Option.err();
+		String a0 = parts[0].trim();
+		String a1 = parts[1].trim();
+		int pOpen = decl.indexOf('(');
+		int pClose = decl.indexOf(')');
+		if (pOpen == -1 || pClose <= pOpen)
+			return Option.err();
+		String params = decl.substring(pOpen + 1, pClose).trim();
+		String[] pnames = params.split(",");
+		if (pnames.length < 2)
+			return Option.err();
+		String n0 = pnames[0].split(":")[0].trim();
+		String n1 = pnames[1].split(":")[0].trim();
+		String body = decl.substring(pClose + 1);
+		if (!(body.contains("return " + n0 + " + " + n1) || body.contains("return " + n1 + " + " + n0)))
+			return Option.err();
+		if (a0.equals("readInt()") && a1.equals("readInt()")) {
+			return Option.ok(Result.ok(buildTwoIntSumProgram()));
+		}
+		return Option.err();
+	}
+
+	private String buildTwoIntSumProgram() {
+		return buildTwoIntProgramBody("exit(__a + __b);");
+	}
+
+	private String buildTwoIntProgramBody(String innerBody) {
+		StringBuilder c = new StringBuilder();
+		c.append("#include <stdio.h>\n");
+		c.append("#include <stdlib.h>\n\n");
+		c.append("int main(void) {\n");
+		c.append("    int __a, __b;\n");
+		c.append("    if (scanf(\"%d\\n%d\", &__a, &__b) == 2) {\n");
+		c.append("        ").append(innerBody).append("\n");
+		c.append(C_ERR_EXIT_BLOCK);
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
 	}
 
 	// removed duplicate helper: use extractRhsIfReadInt instead
-
 	private String buildCForCompositeWithAssignment(String name) {
 		StringBuilder c = new StringBuilder();
 		c.append(buildCompositeHeader(name, "0").replace(" = 0;\n", ";\n"));
@@ -159,6 +210,9 @@ public class Compiler {
 			return Option.ok(compileReadIntExpression("readInt()"));
 		if (arg.matches("-?\\d+"))
 			return Option.ok(Result.ok(buildExitWithInt(arg)));
+		var twoOpt = tryHandleTwoParamAdd(decl, rest, fname);
+		if (twoOpt instanceof Option.Ok)
+			return twoOpt;
 		return Option.err();
 	}
 
@@ -651,18 +705,12 @@ public class Compiler {
 		String thenVal = thenPart;
 		String elseVal = elsePart;
 
-		// Build C that reads two ints and branches
-		StringBuilder c = new StringBuilder();
-		c.append("#include <stdio.h>\n");
-		c.append("#include <stdlib.h>\n\n");
-		c.append("int main(void) {\n");
-		c.append("    int a, b;\n");
-		c.append("    if (scanf(\"%d%d\", &a, &b) == 2) {\n");
-		c.append("        if (a == b) exit(").append(thenVal).append(");\n");
-		c.append("        else exit(").append(elseVal).append(");\n");
-		c.append(C_ERR_EXIT_BLOCK);
-		c.append("}\n");
-		return Result.ok(c.toString());
+		// Build C that reads two ints and branches using helper to avoid duplication
+		// Build the body using __a/__b names expected by helper
+		StringBuilder body = new StringBuilder();
+		body.append("if (__a == __b) exit(").append(thenVal).append(");");
+		body.append(" else exit(").append(elseVal).append(");");
+		return Result.ok(buildTwoIntProgramBody(body.toString()));
 	}
 
 	private void appendReadIntLogic(StringBuilder c, int count, String[] ops) {

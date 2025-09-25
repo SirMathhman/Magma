@@ -154,6 +154,12 @@ public class CompilerTest {
 			new Tuple<>("", 100));
 	}
 
+	@Test
+	public void twoParamAddFunctionWithReadIntArgs() {
+		assertValid("fn add(first : I32, second : I32) : I32 => { return first + second; } add(readInt(), readInt())",
+			"100\r\n200", new Tuple<>("", 300));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
