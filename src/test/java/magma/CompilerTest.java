@@ -176,6 +176,11 @@ public class CompilerTest {
 		assertValid("{readInt()}", "100", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void bracedLetReadInt() {
+		assertValid("{let x = readInt(); x}", "100", new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

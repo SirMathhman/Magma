@@ -26,8 +26,10 @@ public class Compiler {
 			// trimming a single pair of surrounding braces if present.
 			if (expression.startsWith("{") && expression.endsWith("}")) {
 				String inner = expression.substring(1, expression.length() - 1).trim();
-				// only strip if inner looks like a single expression (no top-level ';')
-				if (!inner.contains(";")) {
+				if (!inner.isEmpty()) {
+					// Replace the outer braces with the inner content so we can parse
+					// blocks like `{let x = readInt(); x}`. The parsing helpers expect
+					// a straight expression sequence, so leave inner as-is (with ';').
 					expression = inner;
 				}
 			}
