@@ -14,15 +14,15 @@ public class Runner {
 	 * @param stdIn  stdin to provide to the run
 	 * @return a Tuple of (stdout, exitCode)
 	 */
-	public static Tuple<String, Integer> run(String source, String stdIn) {
+	public static Result<Tuple<String, Integer>, String> run(String source, String stdIn) {
 		Compiler compiler = new Compiler();
 		var result = compiler.compile(source);
 		if (result instanceof Result.Ok<String, String> ok) {
-			return Tuple.of(ok.value(), 0);
+			return Result.ok(Tuple.of(ok.value(), 0));
 		} else if (result instanceof Result.Err<String, String> err) {
-			return Tuple.of(String.valueOf(err.error()), 1);
+			return Result.err(String.valueOf(err.error()));
 		} else {
-			return Tuple.of("", 1);
+			return Result.err("unknown");
 		}
 	}
 }
