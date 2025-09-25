@@ -5,49 +5,51 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CompilerTest {
+	private static final String DECL = "intrinsic fn readInt() : I32; ";
 
 	@Test
 	public void read() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt()", "5", new Tuple<>("", 5));
+		assertValid("readInt()", "5", new Tuple<>("", 5));
 	}
 
 	@Test
 	public void readAndAdd() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt()", "3\r\n4", new Tuple<>("", 7));
+		assertValid("readInt() + readInt()", "3\r\n4", new Tuple<>("", 7));
 	}
 
 	@Test
 	public void readMinusRead() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() - readInt()", "3\r\n2", new Tuple<>("", 1));
+		assertValid("readInt() - readInt()", "3\r\n2", new Tuple<>("", 1));
 	}
 
 	@Test
 	public void readNegative() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt()", "-1", new Tuple<>("", -1));
+		assertValid("readInt()", "-1", new Tuple<>("", -1));
 	}
 
 	@Test
 	public void readTripleAdd() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt() + readInt()", "1\r\n2\r\n3", new Tuple<>("", 6));
+		assertValid("readInt() + readInt() + readInt()", "1\r\n2\r\n3", new Tuple<>("", 6));
 	}
 
 	@Test
 	public void readMixedOperators() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt() - readInt()", "6\r\n5\r\n3", new Tuple<>("", 8));
+		assertValid("readInt() + readInt() - readInt()", "6\r\n5\r\n3", new Tuple<>("", 8));
 	}
 
 	@Test
 	public void readMultiply() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() * readInt()", "6\r\n5", new Tuple<>("", 30));
+		assertValid("readInt() * readInt()", "6\r\n5", new Tuple<>("", 30));
 	}
 
 	@Test
 	public void readPrecedence() {
-		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt() * readInt()", "1\r\n6\r\n5", new Tuple<>("", 31));
+		assertValid("readInt() + readInt() * readInt()", "1\r\n6\r\n5", new Tuple<>("", 31));
 	}
 
-	private void assertOkEquals(String program, String input, Tuple<String, Integer> expected) {
-		var res = Runner.run(program, input);
+	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
+		String fullProgram = DECL + program;
+		var res = Runner.run(fullProgram, input);
 		switch (res) {
 			case Result.Ok(var value) -> assertEquals(expected, value);
 			case Result.Err(var error) -> fail(error);
