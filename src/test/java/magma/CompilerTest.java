@@ -78,6 +78,16 @@ public class CompilerTest {
 		assertValid("let x = 100; x", "", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void literalTrueReturnsOne() {
+		assertValid("true", "", new Tuple<>("", 1));
+	}
+
+	@Test
+	public void compositeLetBooleanReturned() {
+		assertValid("let x = true; x", "", new Tuple<>("", 1));
+	}
+
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, input);

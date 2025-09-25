@@ -28,6 +28,18 @@ public class Compiler {
 				}
 			}
 
+			// Support boolean literals true/false as top-level expressions
+			if (expression.equals("true") || expression.equals("false")) {
+				StringBuilder c = new StringBuilder();
+				c.append("#include <stdlib.h>\n\n");
+				c.append("int main(void) {\n");
+				c.append("    exit(");
+				c.append(expression.equals("true") ? "1" : "0");
+				c.append(");\n");
+				c.append("}\n");
+				return Result.ok(c.toString());
+			}
+
 			// Check if it's a readInt intrinsic declaration
 			if (declaration.startsWith("intrinsic fn readInt()")) {
 				return compileReadIntExpression(expression);
@@ -61,6 +73,15 @@ public class Compiler {
 					c.append("#include <stdlib.h>\n\n");
 					c.append("int main(void) {\n");
 					c.append("    exit(").append(cr).append(");\n");
+					c.append("}\n");
+					return Option.ok(Result.ok(c.toString()));
+				}
+				// If RHS is boolean literal, emit C that exits with 1 for true, 0 for false
+				if (cr.equals("true") || cr.equals("false")) {
+					StringBuilder c = new StringBuilder();
+					c.append("#include <stdlib.h>\n\n");
+					c.append("int main(void) {\n");
+					c.append("    exit(").append(cr.equals("true") ? "1" : "0").append(");\n");
 					c.append("}\n");
 					return Option.ok(Result.ok(c.toString()));
 				}
