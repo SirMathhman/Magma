@@ -213,7 +213,7 @@ public class CompilerTest {
 		var res = Runner.run(fullProgram, input);
 		switch (res) {
 			case Result.Ok(var value) -> assertEquals(expected, value);
-			case Result.Err(var error) -> fail(error);
+			case Result.Err(var error) -> fail(error.toString());
 		}
 	}
 }

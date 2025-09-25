@@ -14,7 +14,7 @@ public class Runner {
 	 * @param stdIn  stdin to provide to the run
 	 * @return a Tuple of (stdout, exitCode)
 	 */
-	public static Result<Tuple<String, Integer>, String> run(String source, String stdIn) {
+	public static Result<Tuple<String, Integer>, RunError> run(String source, String stdIn) {
 		Compiler compiler = new Compiler();
 		var result = compiler.compile(source);
 		if (result instanceof Result.Ok<String, CompileError> ok) {
@@ -32,7 +32,7 @@ public class Runner {
 						java.nio.charset.StandardCharsets.UTF_8);
 				int compileExit = compileProc.waitFor();
 				if (compileExit != 0) {
-					return Result.err(compileOutput);
+					return Result.err(new RunError(compileOutput));
 				}
 
 				// Run the produced executable by absolute path so the file sits in the temp dir
@@ -53,15 +53,15 @@ public class Runner {
 				int runExit = runProc.waitFor();
 				return Result.ok(Tuple.of(runOutput, runExit));
 			} catch (java.io.IOException e) {
-				return Result.err("IO error writing temp file: " + e.getMessage());
+				return Result.err(new RunError("IO error writing temp file: " + e.getMessage()));
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
-				return Result.err("Interrupted: " + e.getMessage());
+				return Result.err(new RunError("Interrupted: " + e.getMessage()));
 			}
 		} else if (result instanceof Result.Err<String, CompileError> err) {
-			return Result.err(String.valueOf(err.error().getMessage()));
+			return Result.err(new RunError(String.valueOf(err.error().display())));
 		} else {
-			return Result.err("unknown");
+			return Result.err(new RunError("unknown"));
 		}
 	}
 }
