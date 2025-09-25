@@ -165,6 +165,12 @@ public class CompilerTest {
 		assertInvalid("fn add(first : I32, first : I32) : I32 => { return first + first; }");
 	}
 
+	@Test
+	public void mutVarUpdatedByDeclaredFunction() {
+		assertValid("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x", "100",
+			new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
