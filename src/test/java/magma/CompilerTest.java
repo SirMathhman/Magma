@@ -209,7 +209,7 @@ public class CompilerTest {
 				switch (causeOpt) {
 					case Option.Ok(var cause) -> {
 						if (!(cause instanceof CompileError))
-							fail("Expected a CompileError cause but got: " + cause);
+							fail("Expected a CompileError cause but got: " + ((MagmaError) cause).display());
 					}
 					case Option.Err() -> fail("Expected a CompileError cause but none was present; RunError=" + error);
 				}

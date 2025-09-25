@@ -32,6 +32,12 @@ public class Runner {
 						java.nio.charset.StandardCharsets.UTF_8);
 				int compileExit = compileProc.waitFor();
 				if (compileExit != 0) {
+					// Temporarily print the compiler output to stderr to help diagnose
+					// invalid C emission from our Compiler. This will be removed once
+					// the underlying problem is fixed.
+					System.err.println("--- clang output ---");
+					System.err.println(compileOutput);
+					System.err.println("--- end clang output ---");
 					// Attach the compile output as a cause so callers can inspect it
 					return Result.err(new RunError(compileOutput,
 							new ThrowableError(new RuntimeException(compileOutput))));

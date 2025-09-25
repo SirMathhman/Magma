@@ -388,6 +388,11 @@ public class Compiler {
 	private Option<Result<String, String>> tryHandleLets(String expression) {
 		LetInfo info = parseLetStatements(expression);
 
+		// If parsing produced a sentinel parse error, return a compile error
+		if (info.finalExpr instanceof Option.Ok<String> fe && "__PARSE_ERROR__".equals(fe.value())) {
+			return Option.ok(Result.err("Parse error in let statements"));
+		}
+
 		// Try composite-final handling
 		var compRes = tryHandleCompositeCase(info);
 		if (compRes instanceof Option.Ok)
@@ -580,6 +585,7 @@ public class Compiler {
 		Option<String> finalExpr = Option.err();
 		Option<String> compositeLetName = Option.err();
 		Option<String> compositeLetRhs = Option.err();
+		final java.util.Map<String, String> types = new java.util.HashMap<>();
 	}
 
 	private LetInfo parseLetStatements(String expression) {
@@ -631,20 +637,33 @@ public class Compiler {
 		var leftInfo = parseLetLeft(s.substring(3, eq).trim());
 		boolean isMut = leftInfo.isMut;
 		String name = leftInfo.name;
+	Option<String> declaredType = leftInfo.type;
+
+	// Duplicate name check: fail early if the same variable name was already declared
+	if (info.vars.contains(name) || info.types.containsKey(name) || (info.compositeLetName instanceof Option.Ok<String> cln
+		&& cln.value().equals(name))) {
+			info.finalExpr = Option.ok("__PARSE_ERROR__");
+			return false;
+		}
 		var readOpt = extractRhsIfReadInt(s);
-		if (readOpt instanceof Option.Ok<String>) {
-			info.vars.add(name);
-			if (isMut)
-				info.mutables.add(name);
-			return true;
-		} else {
+			if (readOpt instanceof Option.Ok<String>) {
+				addVarMeta(info, name, isMut, declaredType, true);
+				return true;
+			} else {
 			var partsOpt = parseAssignment(s);
 			if (partsOpt instanceof Option.Ok<String[]> parts) {
 				String rhs = parts.value()[1];
+				// If rhs is a previously-declared variable, check simple type compatibility
+				if (info.types.containsKey(rhs) && declaredType instanceof Option.Ok<String> dt) {
+					String prevType = info.types.get(rhs);
+					if (!prevType.equals(dt.value())) {
+						info.finalExpr = Option.ok("__PARSE_ERROR__");
+						return false;
+					}
+				}
 				info.compositeLetName = Option.ok(name);
 				info.compositeLetRhs = Option.ok(rhs);
-				if (isMut)
-					info.mutables.add(name);
+				addVarMeta(info, name, isMut, declaredType, false);
 				return true;
 			} else {
 				info.finalExpr = Option.ok("__PARSE_ERROR__");
@@ -653,13 +672,24 @@ public class Compiler {
 		}
 	}
 
+	private void addVarMeta(LetInfo info, String name, boolean isMut, Option<String> declaredType, boolean addToVars) {
+		if (addToVars)
+			info.vars.add(name);
+		if (isMut)
+			info.mutables.add(name);
+		if (declaredType instanceof Option.Ok<String> dt)
+			info.types.put(name, dt.value());
+	}
+
 	private static final class LetLeft {
 		final boolean isMut;
 		final String name;
+		final Option<String> type;
 
-		LetLeft(boolean isMut, String name) {
+		LetLeft(boolean isMut, String name, Option<String> type) {
 			this.isMut = isMut;
 			this.name = name;
+			this.type = type;
 		}
 	}
 
@@ -671,7 +701,8 @@ public class Compiler {
 		}
 		int colon = left.indexOf(':');
 		String name = (colon == -1) ? left.trim() : left.substring(0, colon).trim();
-		return new LetLeft(isMut, name);
+		Option<String> type = (colon == -1) ? Option.err() : Option.ok(left.substring(colon + 1).trim());
+		return new LetLeft(isMut, name, type);
 	}
 
 	private void handleNonLetStatement(String s, LetInfo info) {
