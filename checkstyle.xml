@@ -8,4 +8,11 @@
 			value="Usage of 'null' is banned; use Option&lt;T&gt; (Ok/Err) instead." />
 		<property name="severity" value="error" />
 	</module>
+
+	<!-- Cyclomatic complexity check -->
+	<module name="TreeWalker">
+		<module name="CyclomaticComplexity">
+			<property name="max" value="15"/>
+		</module>
+	</module>
 </module>
