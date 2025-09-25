@@ -41,6 +41,11 @@ public class CompilerTest {
 		assertOkEquals("intrinsic fn readInt() : I32; readInt() * readInt()", "6\r\n5", new Tuple<>("", 30));
 	}
 
+	@Test
+	public void readPrecedence() {
+		assertOkEquals("intrinsic fn readInt() : I32; readInt() + readInt() * readInt()", "1\r\n6\r\n5", new Tuple<>("", 31));
+	}
+
 	private void assertOkEquals(String program, String input, Tuple<String, Integer> expected) {
 		var res = Runner.run(program, input);
 		switch (res) {
