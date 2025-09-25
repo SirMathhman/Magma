@@ -159,6 +159,9 @@ public class Compiler {
 			var lhsOpt = extractRhsIfReadInt(asg);
 			if (lhsOpt instanceof Option.Ok<String> lhs && info.compositeLetName instanceof Option.Ok<String> nameOpt
 					&& nameOpt.value().equals(lhs.value())) {
+				// assignment target must be mutable
+				if (!info.mutables.contains(lhs.value()))
+					return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs.value()));
 				return Option.ok(Result.ok(buildCForCompositeWithAssignment(nameOpt.value())));
 			}
 		}
@@ -196,8 +199,14 @@ public class Compiler {
 		// prefer emitting code that performs the assignment (e.g., x = readInt()).
 		for (String asg : info.assignments) {
 			var targetOpt = extractRhsIfReadInt(asg);
-			if (targetOpt instanceof Option.Ok<String> to && to.value().equals(compName)) {
-				return Option.ok(Result.ok(buildCForCompositeWithAssignment(compName)));
+			if (targetOpt instanceof Option.Ok<String> to) {
+				String lhs = to.value();
+				if (!info.mutables.contains(lhs)) {
+					return Option.ok(Result.err("Assignment to non-mutable variable: " + lhs));
+				}
+				if (lhs.equals(compName)) {
+					return Option.ok(Result.ok(buildCForCompositeWithAssignment(compName)));
+				}
 			}
 		}
 		return handleCompositeRhs(compRhs);
@@ -206,6 +215,7 @@ public class Compiler {
 	private static final class LetInfo {
 		final java.util.List<String> vars = new java.util.ArrayList<>();
 		final java.util.List<String> assignments = new java.util.ArrayList<>();
+		final java.util.Set<String> mutables = new java.util.HashSet<>();
 		Option<String> finalExpr = Option.err();
 		Option<String> compositeLetName = Option.err();
 		Option<String> compositeLetRhs = Option.err();
@@ -228,8 +238,10 @@ public class Compiler {
 					return info;
 				}
 				String left = s.substring(3, eq).trim();
-				// support `let mut x = ...` by stripping leading mut
+				// support `let mut x = ...` by stripping leading mut and recording mutables
+				boolean isMut = false;
 				if (left.startsWith("mut ")) {
+					isMut = true;
 					left = left.substring(4).trim();
 				}
 				int colon = left.indexOf(':');
@@ -237,12 +249,16 @@ public class Compiler {
 				var readOpt = extractRhsIfReadInt(s);
 				if (readOpt instanceof Option.Ok<String>) {
 					info.vars.add(name);
+					if (isMut)
+						info.mutables.add(name);
 				} else {
 					var partsOpt = parseAssignment(s);
 					if (partsOpt instanceof Option.Ok<String[]> parts) {
 						String rhs = parts.value()[1];
 						info.compositeLetName = Option.ok(name);
 						info.compositeLetRhs = Option.ok(rhs);
+						if (isMut)
+							info.mutables.add(name);
 					} else {
 						// failed to parse assignment
 						info.finalExpr = Option.ok("__PARSE_ERROR__");
