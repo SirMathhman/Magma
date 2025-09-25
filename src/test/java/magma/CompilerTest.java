@@ -166,6 +166,12 @@ public class CompilerTest {
 	}
 
 	@Test
+	public void shortenedFunctionSyntaxIsError() {
+		// New syntax variant without explicit return type before arrow should be invalid
+		assertInvalid("fn add(first : I32, first : I32) => { return first + first; }");
+	}
+
+	@Test
 	public void mutVarUpdatedByDeclaredFunction() {
 		assertValid("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x", "100",
 				new Tuple<>("", 100));
