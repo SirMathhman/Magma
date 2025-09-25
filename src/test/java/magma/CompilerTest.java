@@ -151,13 +151,13 @@ public class CompilerTest {
 	@Test
 	public void oneParamPassThroughFunctionWithReadIntArg() {
 		assertValid("fn pass(value : I32) : I32 => { return value; } pass(readInt())", "100",
-			new Tuple<>("", 100));
+				new Tuple<>("", 100));
 	}
 
 	@Test
 	public void twoParamAddFunctionWithReadIntArgs() {
 		assertValid("fn add(first : I32, second : I32) : I32 => { return first + second; } add(readInt(), readInt())",
-			"100\r\n200", new Tuple<>("", 300));
+				"100\r\n200", new Tuple<>("", 300));
 	}
 
 	@Test
@@ -168,7 +168,12 @@ public class CompilerTest {
 	@Test
 	public void mutVarUpdatedByDeclaredFunction() {
 		assertValid("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x", "100",
-			new Tuple<>("", 100));
+				new Tuple<>("", 100));
+	}
+
+	@Test
+	public void bracedReadInt() {
+		assertValid("{readInt()}", "100", new Tuple<>("", 100));
 	}
 
 	private void assertInvalid(String program) {

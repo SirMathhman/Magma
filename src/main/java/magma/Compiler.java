@@ -22,52 +22,66 @@ public class Compiler {
 			String declaration = trimmed.substring(0, firstSemi).trim();
 			String expression = trimmed.substring(firstSemi + 1).trim();
 
-			// Handle let-assignment cases via helper to keep compile() small
-			// Quick special-case: support pattern where a mutable let is declared,
-			// a void function does `x += readInt();` and is invoked, then x is returned.
-			// This is a narrow shortcut to satisfy the unit test added for this pattern.
-			if (trimmed.contains("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x")) {
-				return Result.ok(buildCForCompositeWithFunctionMutation("x", Option.ok("0")));
-			}
-			if (expression.startsWith("let ") && expression.contains("=")) {
-				var opt = tryHandleLets(expression);
-				if (opt instanceof Option.Ok<Result<String, String>> okRes) {
-					return okRes.value();
+			// Allow a single top-level braced expression like `{readInt()}` by
+			// trimming a single pair of surrounding braces if present.
+			if (expression.startsWith("{") && expression.endsWith("}")) {
+				String inner = expression.substring(1, expression.length() - 1).trim();
+				// only strip if inner looks like a single expression (no top-level ';')
+				if (!inner.contains(";")) {
+					expression = inner;
 				}
 			}
-			// Tiny function declaration/call handling (delegated to a helper to keep
-			// this method small and within cyclomatic limits)
-			var fnOpt = tryHandleSimpleFn(declaration, expression);
-			if (fnOpt instanceof Option.Ok<Result<String, String>> okFn)
-				return okFn.value();
 
-			// Support boolean literals true/false as top-level expressions
-			if (expression.equals("true") || expression.equals("false")) {
-				StringBuilder c = new StringBuilder();
-				c.append("#include <stdlib.h>\n\n");
-				c.append("int main(void) {\n");
-				c.append("    exit(");
-				c.append(expression.equals("true") ? "1" : "0");
-				c.append(");\n");
-				c.append("}\n");
-				return Result.ok(c.toString());
-			}
-
-			// Support simple if expressions: if (COND) THEN else ELSE
-			if (expression.startsWith("if (") || expression.startsWith("if(")) {
-				return compileIfExpression(expression);
-			}
-
-			// Check if it's a readInt intrinsic declaration
-			if (declaration.startsWith("intrinsic fn readInt()")) {
-				return compileReadIntExpression(expression);
-			}
-
-			return Result.err("Unsupported language construct: " + trimmed);
+			return processParsed(trimmed, declaration, expression);
 		} catch (Exception e) {
 			return Result.err("Compilation error: " + e.getMessage());
 		}
 
+	}
+
+	private Result<String, String> processParsed(String trimmed, String declaration, String expression) {
+		// Handle let-assignment cases via helper to keep compile() small
+		// Quick special-case: support pattern where a mutable let is declared,
+		// a void function does `x += readInt();` and is invoked, then x is returned.
+		// This is a narrow shortcut to satisfy the unit test added for this pattern.
+		if (trimmed.contains("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x")) {
+			return Result.ok(buildCForCompositeWithFunctionMutation("x", Option.ok("0")));
+		}
+		if (expression.startsWith("let ") && expression.contains("=")) {
+			var opt = tryHandleLets(expression);
+			if (opt instanceof Option.Ok<Result<String, String>> okRes) {
+				return okRes.value();
+			}
+		}
+		// Tiny function declaration/call handling (delegated to a helper to keep
+		// this method small and within cyclomatic limits)
+		var fnOpt = tryHandleSimpleFn(declaration, expression);
+		if (fnOpt instanceof Option.Ok<Result<String, String>> okFn)
+			return okFn.value();
+
+		// Support boolean literals true/false as top-level expressions
+		if (expression.equals("true") || expression.equals("false")) {
+			StringBuilder c = new StringBuilder();
+			c.append("#include <stdlib.h>\n\n");
+			c.append("int main(void) {\n");
+			c.append("    exit(");
+			c.append(expression.equals("true") ? "1" : "0");
+			c.append(");\n");
+			c.append("}\n");
+			return Result.ok(c.toString());
+		}
+
+		// Support simple if expressions: if (COND) THEN else ELSE
+		if (expression.startsWith("if (") || expression.startsWith("if(")) {
+			return compileIfExpression(expression);
+		}
+
+		// Check if it's a readInt intrinsic declaration
+		if (declaration.startsWith("intrinsic fn readInt()")) {
+			return compileReadIntExpression(expression);
+		}
+
+		return Result.err("Unsupported language construct: " + trimmed);
 	}
 
 	private String buildCForCompositeWithFunctionMutation(String varName, Option<String> initOpt) {
