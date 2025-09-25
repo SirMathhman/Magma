@@ -43,29 +43,39 @@ public class Compiler {
 		// Simple expression parsing - handle readInt() calls, addition and subtraction
 		if (expression.equals("readInt()")) {
 			// Single readInt() call
-			appendReadIntLogic(c, 1, "");
+			appendReadIntLogic(c, 1, new String[0]);
 		} else {
-			// detect operator
-			String op = null;
-			if (expression.contains(" + ")) op = " + ";
-			else if (expression.contains(" - ")) op = " - ";
-
-			if (op != null) {
-				String[] partsOp = expression.split(java.util.regex.Pattern.quote(op));
-				// ensure all parts are readInt() and support N-term expressions
-				int count = partsOp.length;
-				boolean ok = count > 0;
-				for (int i = 0; i < partsOp.length && ok; i++) {
-					if (!partsOp[i].trim().equals("readInt()")) ok = false;
-				}
-				if (ok) {
-					appendReadIntLogic(c, count, op);
-				} else {
-					return Result.err("Unsupported expression: " + expression);
-				}
-			} else {
+			// Tokenize by spaces to allow mixed operators like: readInt() + readInt() -
+			// readInt()
+			String[] tokens = expression.split(" ");
+			// tokens should be odd length: readInt(), op, readInt(), op, readInt(), ...
+			if (tokens.length < 3 || tokens.length % 2 == 0) {
 				return Result.err("Unsupported expression: " + expression);
 			}
+			int count = (tokens.length + 1) / 2;
+			String[] ops = new String[count - 1];
+			boolean ok = true;
+			for (int i = 0; i < tokens.length; i++) {
+				if (i % 2 == 0) {
+					if (!tokens[i].trim().equals("readInt()")) {
+						ok = false;
+						break;
+					}
+				} else {
+					String t = tokens[i].trim();
+					if (t.equals("+"))
+						ops[(i - 1) / 2] = " + ";
+					else if (t.equals("-"))
+						ops[(i - 1) / 2] = " - ";
+					else {
+						ok = false;
+						break;
+					}
+				}
+			}
+			if (!ok)
+				return Result.err("Unsupported expression: " + expression);
+			appendReadIntLogic(c, count, ops);
 		}
 
 		c.append("    return 0;\n");
@@ -74,7 +84,7 @@ public class Compiler {
 		return Result.ok(c.toString());
 	}
 
-	private void appendReadIntLogic(StringBuilder c, int count, String op) {
+	private void appendReadIntLogic(StringBuilder c, int count, String[] ops) {
 		if (count <= 0) {
 			c.append("    exit(1);\n");
 			return;
@@ -87,15 +97,18 @@ public class Compiler {
 			c.append("    int ");
 			for (int i = 1; i <= count; i++) {
 				c.append("value" + i);
-				if (i < count) c.append(", ");
-				else c.append(";\n");
+				if (i < count)
+					c.append(", ");
+				else
+					c.append(";\n");
 			}
 		}
 
 		// Build scanf condition
 		c.append("    if (");
 		for (int i = 1; i <= count; i++) {
-			if (i > 1) c.append(" && ");
+			if (i > 1)
+				c.append(" && ");
 			String varName = (count == 1) ? "value" : ("value" + i);
 			c.append("scanf(\"%d\", &" + varName + ") == 1");
 		}
@@ -108,7 +121,10 @@ public class Compiler {
 		} else {
 			for (int i = 1; i <= count; i++) {
 				c.append("value" + i);
-				if (i < count) c.append(op);
+				if (i < count) {
+					String op = ops != null && ops.length >= i ? ops[i - 1] : " + ";
+					c.append(op);
+				}
 			}
 		}
 		c.append(");\n");
