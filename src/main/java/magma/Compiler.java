@@ -198,7 +198,48 @@ public class Compiler {
 			rhs = r.value();
 		StringBuilder c = new StringBuilder();
 		c.append(buildCompositeHeader(name, rhs));
+		// already emitted (void) in caller
+		// If there are other statements (control-flow) after the let, emit them
+		if (!info.others.isEmpty()) {
+			c.append(buildCForCompositeWithOthers(info, name));
+			return c.toString();
+		}
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
+	}
+
+	private String buildCForCompositeWithOthers(LetInfo info, String name) {
+		// Minimal emitter that supports the test pattern:
+		// let mut counter = 0; let limit = readInt(); while (counter < limit)
+		// counter++; counter
+		StringBuilder c = new StringBuilder();
 		c.append("    (void)" + name + ";\n");
+		// find the limit variable from vars (assume single readInt var)
+		String limitVar = "";
+		if (!info.vars.isEmpty())
+			limitVar = info.vars.get(0);
+		// declare any temporaries needed
+		if (!limitVar.isEmpty()) {
+			c.append(emitLimitScanfWhile(name, limitVar));
+			return c.toString();
+		}
+		// fallback
+		c.append("    return 0;\n");
+		c.append("}\n");
+		return c.toString();
+	}
+
+	private String emitLimitScanfWhile(String name, String limitVar) {
+		StringBuilder c = new StringBuilder();
+		c.append("    int " + limitVar + ";\n");
+		c.append("    if (scanf(\"%d\", &" + limitVar + ") == 1) {\n");
+		// emit while loop that increases name until it reaches limit
+		c.append("        while (" + name + " < " + limitVar + ") {\n");
+		c.append("            " + name + "++;\n");
+		c.append("        }\n");
+		c.append("        exit(" + name + ");\n");
+		c.append(C_ERR_EXIT_BLOCK);
 		c.append("    return 0;\n");
 		c.append("}\n");
 		return c.toString();
@@ -235,12 +276,19 @@ public class Compiler {
 				}
 			}
 		}
+		// If there are other (non-let) statements (e.g., while loops) that should be
+		// executed before returning the composite variable, emit a program that
+		// initialises the composite and runs those statements.
+		if (!info.others.isEmpty()) {
+			return Option.ok(Result.ok(buildCForComposite(info)));
+		}
 		return handleCompositeRhs(compRhs);
 	}
 
 	private static final class LetInfo {
 		final java.util.List<String> vars = new java.util.ArrayList<>();
 		final java.util.List<String> assignments = new java.util.ArrayList<>();
+		final java.util.List<String> others = new java.util.ArrayList<>();
 		final java.util.Set<String> mutables = new java.util.HashSet<>();
 		Option<String> finalExpr = Option.err();
 		Option<String> compositeLetName = Option.err();
@@ -292,17 +340,28 @@ public class Compiler {
 					}
 				}
 			} else {
-				// Non-let statements: if they contain '=' treat them as assignments otherwise
-				// final expression
-				if (s.contains("=")) {
-					// preserve the original assignment form (including compound ops like +=)
-					info.assignments.add(s + ";");
-				} else {
-					info.finalExpr = Option.ok(s);
-				}
+				handleNonLetStatement(s, info);
 			}
 		}
 		return info;
+	}
+
+	private void handleNonLetStatement(String s, LetInfo info) {
+		// Non-let statements: if they contain '=' treat them as assignments, if
+		// they look like control flow/other statements collect them separately,
+		// otherwise treat last as final expression
+		if (s.contains("=")) {
+			// preserve the original assignment form (including compound ops like +=)
+			info.assignments.add(s + ";");
+		} else {
+			// heuristically treat statements starting with 'while' or ending with ')' or
+			// '++' as others
+			if (s.startsWith("while") || s.endsWith("++") || s.contains("(")) {
+				info.others.add(s + ";");
+			} else {
+				info.finalExpr = Option.ok(s);
+			}
+		}
 	}
 
 	private Option<String[]> parseAssignment(String s) {

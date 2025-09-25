@@ -132,6 +132,11 @@ public class CompilerTest {
 		assertInvalid("let x = 5; x += readInt(); x");
 	}
 
+	@Test
+	public void whileLoopCounterToLimit() {
+		assertValid("let mut counter = 0; let limit = readInt(); while (counter < limit) counter++; counter", "100", new Tuple<>("", 100));
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
