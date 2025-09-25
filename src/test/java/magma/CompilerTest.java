@@ -57,6 +57,17 @@ public class CompilerTest {
 		assertValid("let x : I32 = readInt(); let y : I32 = readInt(); x + y", "1\r\n2", new Tuple<>("", 3));
 	}
 
+	@Test
+	public void readLetNoFinalExpr() {
+		String program = "let x : I32 = 0; let y : I32 = 0;";
+		String fullProgram = DECL + program;
+		var res = Runner.run(fullProgram, "");
+		switch (res) {
+			case Result.Ok(var value) -> fail("Expected Err but got Ok: " + value);
+			case Result.Err(var error) -> assertNotNull(error);
+		}
+	}
+
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, input);
