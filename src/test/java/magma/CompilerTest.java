@@ -18,4 +18,17 @@ public class CompilerTest {
 			}
 		}
 	}
+
+	@Test
+	public void readAndAdd() {
+		var res = Runner.run("intrinsic fn readInt() : I32; readInt() + readInt()", "3\r\n4");
+		switch (res) {
+			case Result.Ok(var value) -> {
+				assertEquals(new Tuple<>("", 7), value);
+			}
+			case Result.Err(var error) -> {
+				fail(error);
+			}
+		}
+	}
 }
