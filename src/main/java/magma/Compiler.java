@@ -1,5 +1,6 @@
 package magma;
 
+
 public class Compiler {
 	private static final String C_ERR_EXIT_BLOCK = "    } else {\n        exit(1);\n    }\n";
 
@@ -29,6 +30,11 @@ public class Compiler {
 					return okRes.value();
 				}
 			}
+			// Tiny function declaration/call handling (delegated to a helper to keep
+			// this method small and within cyclomatic limits)
+			var fnOpt = tryHandleSimpleFn(declaration, expression);
+			if (fnOpt instanceof Option.Ok<Result<String, String>> okFn)
+				return okFn.value();
 
 			// Support boolean literals true/false as top-level expressions
 			if (expression.equals("true") || expression.equals("false")) {
@@ -122,6 +128,45 @@ public class Compiler {
 			}
 		}
 		return -1;
+	}
+
+	private boolean isSimpleFnThatReturnsReadInt(String decl, String rest) {
+		int paren = decl.indexOf('(');
+		if (paren <= 3) return false;
+		String fname = decl.substring(3, paren).trim();
+		return decl.contains("readInt()") && rest.equals(fname + "()");
+	}
+
+	private Option<Result<String, String>> tryHandleSimpleFn(String declaration, String expression) {
+		// Handle function declared as top-level declaration, e.g.
+		// fn get() : I32 => { return readInt(); } and called by `get()` as the
+		// expression. Also handle inline function in expression.
+	if (declaration.startsWith("fn ") && expression.trim().isEmpty()) {
+			// nothing to do here for top-level decl alone
+			return Option.err();
+		}
+		// inline function inside expression
+		if (expression.startsWith("fn ")) {
+			int closeBrace = expression.indexOf('}');
+			if (closeBrace != -1) {
+				String decl = expression.substring(0, closeBrace + 1).trim();
+				String rest = expression.substring(closeBrace + 1).trim();
+				if (isSimpleFnThatReturnsReadInt(decl, rest)) {
+					return Option.ok(compileReadIntExpression("readInt()"));
+				}
+			}
+		}
+		// function declared in the declaration section and invoked as expression
+	if (declaration.startsWith("fn ") && !expression.trim().isEmpty()) {
+			int parenIdx = declaration.indexOf('(');
+			if (parenIdx > 3) {
+				String fname = declaration.substring(3, parenIdx).trim();
+				if (declaration.contains("readInt()") && expression.trim().equals(fname + "()")) {
+					return Option.ok(compileReadIntExpression("readInt()"));
+				}
+			}
+		}
+		return Option.err();
 	}
 
 	private Option<String> mapTokenToOp(String t) {

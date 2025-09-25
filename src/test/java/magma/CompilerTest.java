@@ -134,7 +134,13 @@ public class CompilerTest {
 
 	@Test
 	public void whileLoopCounterToLimit() {
-		assertValid("let mut counter = 0; let limit = readInt(); while (counter < limit) counter++; counter", "100", new Tuple<>("", 100));
+		assertValid("let mut counter = 0; let limit = readInt(); while (counter < limit) counter++; counter", "100",
+				new Tuple<>("", 100));
+	}
+
+	@Test
+	public void simpleFunctionReturningReadInt() {
+		assertValid("fn get() : I32 => { return readInt(); } get()", "100", new Tuple<>("", 100));
 	}
 
 	private void assertInvalid(String program) {
