@@ -2,6 +2,7 @@ package magma;
 
 public class Compiler {
 	private static final String C_ERR_EXIT_BLOCK = "    } else {\n        exit(1);\n    }\n";
+
 	/**
 	 * Compiles the custom language to C code.
 	 *
@@ -58,14 +59,48 @@ public class Compiler {
 
 	}
 
+	private Option<Result<String, String>> handleCompositeRhs(String compRhs) {
+		String cr = compRhs.trim();
+		// If RHS is an if-expression, delegate to compileIfExpression
+		if (cr.startsWith("if(") || cr.startsWith("if (")) {
+			return Option.ok(compileIfExpression(compRhs));
+		}
+		// If RHS is a readInt expression or contains readInt(), delegate
+		if (cr.equals("readInt()") || cr.contains("readInt()")) {
+			return Option.ok(compileReadIntExpression(compRhs));
+		}
+		// If RHS is a simple integer literal, emit C that exits with that value
+		if (cr.matches("-?\\d+")) {
+			StringBuilder c = new StringBuilder();
+			c.append("#include <stdlib.h>\n\n");
+			c.append("int main(void) {\n");
+			c.append("    exit(").append(cr).append(");\n");
+			c.append("}\n");
+			return Option.ok(Result.ok(c.toString()));
+		}
+		// If RHS is boolean literal, emit C that exits with 1 for true, 0 for false
+		if (cr.equals("true") || cr.equals("false")) {
+			StringBuilder c = new StringBuilder();
+			c.append("#include <stdlib.h>\n\n");
+			c.append("int main(void) {\n");
+			c.append("    exit(").append(cr.equals("true") ? "1" : "0").append(");\n");
+			c.append("}\n");
+			return Option.ok(Result.ok(c.toString()));
+		}
+		// Otherwise unsupported for now
+		return Option.ok(Result.err("Unsupported composite RHS: " + compRhs));
+	}
+
 	private int findMatchingParen(String s, int openIndex) {
 		int depth = 0;
 		for (int i = openIndex; i < s.length(); i++) {
 			char ch = s.charAt(i);
-			if (ch == '(') depth++;
+			if (ch == '(')
+				depth++;
 			else if (ch == ')') {
 				depth--;
-				if (depth == 0) return i;
+				if (depth == 0)
+					return i;
 			}
 		}
 		return -1;
@@ -94,31 +129,7 @@ public class Compiler {
 			String compName = compNameOpt.value();
 			String fin = finOpt.value();
 			if (fin.equals(compName)) {
-				String cr = compRhs.trim();
-				// If RHS is a readInt expression or contains readInt(), delegate
-				if (cr.equals("readInt()") || cr.contains("readInt()")) {
-					return Option.ok(compileReadIntExpression(compRhs));
-				}
-				// If RHS is a simple integer literal, emit C that exits with that value
-				if (cr.matches("-?\\d+")) {
-					StringBuilder c = new StringBuilder();
-					c.append("#include <stdlib.h>\n\n");
-					c.append("int main(void) {\n");
-					c.append("    exit(").append(cr).append(");\n");
-					c.append("}\n");
-					return Option.ok(Result.ok(c.toString()));
-				}
-				// If RHS is boolean literal, emit C that exits with 1 for true, 0 for false
-				if (cr.equals("true") || cr.equals("false")) {
-					StringBuilder c = new StringBuilder();
-					c.append("#include <stdlib.h>\n\n");
-					c.append("int main(void) {\n");
-					c.append("    exit(").append(cr.equals("true") ? "1" : "0").append(");\n");
-					c.append("}\n");
-					return Option.ok(Result.ok(c.toString()));
-				}
-				// Otherwise unsupported for now
-				return Option.ok(Result.err("Unsupported composite RHS: " + compRhs));
+				return handleCompositeRhs(compRhs);
 			}
 		}
 
