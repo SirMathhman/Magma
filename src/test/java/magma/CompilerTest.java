@@ -127,6 +127,11 @@ public class CompilerTest {
 		assertValid("let mut x = 5; x += readInt(); x", "100", new Tuple<>("", 105));
 	}
 
+	@Test
+	public void compoundAddAssignToNonMutIsError() {
+		assertInvalid("let x = 5; x += readInt(); x");
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");
