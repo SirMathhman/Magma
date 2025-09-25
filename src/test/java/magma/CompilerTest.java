@@ -59,13 +59,7 @@ public class CompilerTest {
 
 	@Test
 	public void duplicateLetNameIsError() {
-		String program = "let x : I32 = readInt(); let x : I32 = readInt();";
-		String fullProgram = DECL + program;
-		var res = Runner.run(fullProgram, "");
-		switch (res) {
-			case Result.Ok(var value) -> fail("Expected an error but got Ok: " + value);
-			case Result.Err(var error) -> assertNotNull(error);
-		}
+		assertInvalid("let x : I32 = readInt(); let x : I32 = readInt();");
 	}
 
 	@Test
@@ -86,6 +80,20 @@ public class CompilerTest {
 	@Test
 	public void compositeLetBooleanReturned() {
 		assertValid("let x = true; x", "", new Tuple<>("", 1));
+	}
+
+	@Test
+	public void typeMismatchLetIsError() {
+		assertInvalid("let y : I32 = 0; let x : Bool = y;");
+	}
+
+	private void assertInvalid(String program) {
+		String fullProgram = DECL + program;
+		var res = Runner.run(fullProgram, "");
+		switch (res) {
+			case Result.Ok(var value) -> fail("Expected an error but got Ok: " + value);
+			case Result.Err(var error) -> assertNotNull(error);
+		}
 	}
 
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
