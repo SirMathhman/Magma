@@ -191,6 +191,14 @@ public class CompilerTest {
 		assertValid("let x = readInt(); {let y = x; y}", "100", new Tuple<>("", 100));
 	}
 
+	@Test
+	public void invalidBracedDeclarationThenUse() {
+		// `{let x = 0;} x` should be invalid because the braced let does not
+		// expose the declared variable to the outer expression in this simple
+		// compilation model.
+		assertInvalid("{let x = 0;} x");
+	}
+
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
 		var res = Runner.run(fullProgram, "");

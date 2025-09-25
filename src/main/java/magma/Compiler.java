@@ -511,6 +511,13 @@ public class Compiler {
 		var othRes = tryHandleCompositeOthers(info, fin);
 		if (othRes instanceof Option.Ok)
 			return othRes;
+		// If there are other statements (e.g. a while loop) after the composite
+		// let, emit the specialized composite-with-others program which handles
+		// reading a limit and looping. This covers patterns like the failing
+		// test: let mut counter = 0; let limit = readInt(); while (...) ...
+		if (!info.others.isEmpty()) {
+			return Option.ok(Result.ok(buildCForComposite(info)));
+		}
 		return handleCompositeRhs(compRhs);
 	}
 
