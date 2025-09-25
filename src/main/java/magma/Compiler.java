@@ -67,6 +67,8 @@ public class Compiler {
 						ops[(i - 1) / 2] = " + ";
 					else if (t.equals("-"))
 						ops[(i - 1) / 2] = " - ";
+					else if (t.equals("*"))
+						ops[(i - 1) / 2] = " * ";
 					else {
 						ok = false;
 						break;
