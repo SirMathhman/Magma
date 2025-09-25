@@ -2,6 +2,9 @@ package magma;
 
 public class Compiler {
 	private static final String C_ERR_EXIT_BLOCK = "    } else {\n        exit(1);\n    }\n";
+	private static final String[] INDEXED_VARS = new String[] { "__a", "__b", "__c", "__d", "__e", "__f", "__g",
+			"__h", "__i", "__j", "__k", "__l", "__m", "__n", "__o", "__p", "__q", "__r", "__s",
+			"__t", "__u", "__v", "__w", "__x", "__y", "__z" };
 
 	/**
 	 * Compiles the custom language to C code.
@@ -105,23 +108,46 @@ public class Compiler {
 	}
 
 	private String emitCompositeScanfProgram(int addTo) {
+		String decls = "int main(void) {\n" + "    int __r;\n    if (scanf(\"%d\", &__r) == 1) {\n        exit(__r + "
+				+ addTo + ");\n" + C_ERR_EXIT_BLOCK + "    return 0;\n";
+		return emitSimpleCProgram(decls, "");
+	}
+
+	private String emitSimpleCProgram(String declarationsAndBody, String trailing) {
 		StringBuilder c = new StringBuilder();
-		String[] inc = new String[] { "#include <stdio.h>", "#include <stdlib.h>" };
-		for (String line : inc) {
-			c.append(line).append("\n");
-		}
-		c.append("\n");
-		c.append("int main(void) {\n");
-		c.append("    int __r;\n");
-		c.append("    if (scanf(\"%d\", &__r) == 1) {\n");
-		c.append("        exit(__r + " + addTo + ");\n");
-		c.append(C_ERR_EXIT_BLOCK);
-		c.append("    return 0;\n");
+		c.append("#include <stdio.h>\n");
+		c.append("#include <stdlib.h>\n\n");
+		c.append(declarationsAndBody);
+		c.append(trailing);
 		c.append("}\n");
 		return c.toString();
 	}
 
-	private Option<Result<String, String>> tryHandleTwoParamAdd(String decl, String rest, String fname) {
+	private Option<Result<String, String>> tryHandleNParamAdd(String decl, String rest, String fname) {
+		var aargsOpt = parseCallArgsOpt(rest, fname);
+		if (!(aargsOpt instanceof Option.Ok<String[]> ao))
+			return Option.err();
+		String[] aargs = ao.value();
+		if (aargs.length < 1)
+			return Option.err();
+		var namesOpt = parseDeclParamNamesOpt(decl);
+		if (!(namesOpt instanceof Option.Ok<String[]> no))
+			return Option.err();
+		String[] names = no.value();
+		if (names.length != aargs.length)
+			return Option.err();
+		String body = extractDeclBody(decl);
+		String sumExpr = String.join(" + ", java.util.Arrays.asList(names));
+		if (!(body.contains("return " + sumExpr) || body.contains(sumExpr)))
+			return Option.err();
+		for (String a : aargs) {
+			if (!a.equals("readInt()"))
+				return Option.err();
+		}
+		return Option.ok(Result.ok(buildNIntSumProgram(aargs.length)));
+	}
+
+	private Option<String[]> parseCallArgsOpt(String rest, String fname) {
 		int open = rest.indexOf('(');
 		int close = findMatchingParen(rest, open);
 		if (open == -1 || close <= open)
@@ -130,46 +156,84 @@ public class Compiler {
 		if (!callName.equals(fname))
 			return Option.err();
 		String args = rest.substring(open + 1, close).trim();
+		if (args.isEmpty())
+			return Option.ok(new String[0]);
 		String[] parts = args.split(",");
-		if (parts.length != 2)
-			return Option.err();
-		String a0 = parts[0].trim();
-		String a1 = parts[1].trim();
+		for (int i = 0; i < parts.length; i++)
+			parts[i] = parts[i].trim();
+		return Option.ok(parts);
+	}
+
+	private Option<String[]> parseDeclParamNamesOpt(String decl) {
 		int pOpen = decl.indexOf('(');
 		int pClose = decl.indexOf(')');
 		if (pOpen == -1 || pClose <= pOpen)
 			return Option.err();
 		String params = decl.substring(pOpen + 1, pClose).trim();
+		if (params.isEmpty())
+			return Option.ok(new String[0]);
 		String[] pnames = params.split(",");
-		if (pnames.length < 2)
-			return Option.err();
-		String n0 = pnames[0].split(":")[0].trim();
-		String n1 = pnames[1].split(":")[0].trim();
-		String body = decl.substring(pClose + 1);
-		if (!(body.contains("return " + n0 + " + " + n1) || body.contains("return " + n1 + " + " + n0)))
-			return Option.err();
-		if (a0.equals("readInt()") && a1.equals("readInt()")) {
-			return Option.ok(Result.ok(buildTwoIntSumProgram()));
+		for (int i = 0; i < pnames.length; i++) {
+			String first = pnames[i].trim();
+			int colon = first.indexOf(':');
+			pnames[i] = (colon == -1) ? first : first.substring(0, colon).trim();
 		}
-		return Option.err();
+		return Option.ok(pnames);
 	}
 
-	private String buildTwoIntSumProgram() {
-		return buildTwoIntProgramBody("exit(__a + __b);");
+	private String extractDeclBody(String decl) {
+		int pClose = decl.indexOf(')');
+		if (pClose == -1)
+			return "";
+		return decl.substring(pClose + 1);
 	}
 
-	private String buildTwoIntProgramBody(String innerBody) {
-		StringBuilder c = new StringBuilder();
-		c.append("#include <stdio.h>\n");
-		c.append("#include <stdlib.h>\n\n");
-		c.append("int main(void) {\n");
-		c.append("    int __a, __b;\n");
-		c.append("    if (scanf(\"%d\\n%d\", &__a, &__b) == 2) {\n");
-		c.append("        ").append(innerBody).append("\n");
-		c.append(C_ERR_EXIT_BLOCK);
-		c.append("    return 0;\n");
-		c.append("}\n");
-		return c.toString();
+	private String buildNIntSumProgram(int n) {
+		String sum = indexedNames(n, " + ");
+		return buildNIntProgramBody(n, "exit(" + sum + ");");
+	}
+
+	private String buildNIntProgramBody(int n, String innerBody) {
+		StringBuilder decls = new StringBuilder();
+		decls.append("int main(void) {\n");
+		// declare variables and build scanf block using helpers
+		decls.append("    int ").append(indexedNames(n, ", ")).append(";\n");
+		// build scanf format and args
+		decls.append("    if (scanf(\"");
+		for (int i = 0; i < n; i++) {
+			if (i > 0)
+				decls.append("\\n");
+			decls.append("%d");
+		}
+		decls.append("\"");
+		decls.append(addressArgs(n));
+		decls.append(") == ").append(n).append(") {\n");
+		decls.append("        ").append(innerBody).append("\n");
+		decls.append(C_ERR_EXIT_BLOCK);
+		decls.append("    return 0;\n");
+		return emitSimpleCProgram(decls.toString(), "");
+	}
+
+	private String indexedNames(int n, String sep) {
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < n; i++) {
+			if (i > 0)
+				sb.append(sep);
+			sb.append(INDEXED_VARS[i]);
+		}
+		return sb.toString();
+	}
+
+	private String addressArgs(int n) {
+		if (n <= 0)
+			return "";
+		StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < n; i++) {
+			if (i > 0)
+				sb.append(", ");
+			sb.append("&").append(INDEXED_VARS[i]);
+		}
+		return ", " + sb.toString();
 	}
 
 	// removed duplicate helper: use extractRhsIfReadInt instead
@@ -257,19 +321,23 @@ public class Compiler {
 		if (openParen == -1 || closeParen <= openParen || fname.isEmpty() || rest.isEmpty())
 			return Option.err();
 
-		if (!(extractSingleParamNameIfReturns(decl, openParen, closeParen) instanceof Option.Ok))
-			return Option.err();
-
-		if (!(extractCallArgIfNameMatches(rest, fname) instanceof Option.Ok<String> argOk))
-			return Option.err();
-		String arg = argOk.value();
-		if (arg.equals("readInt()"))
-			return Option.ok(compileReadIntExpression("readInt()"));
-		if (arg.matches("-?\\d+"))
-			return Option.ok(Result.ok(buildExitWithInt(arg)));
-		var twoOpt = tryHandleTwoParamAdd(decl, rest, fname);
-		if (twoOpt instanceof Option.Ok)
-			return twoOpt;
+		// Try to detect single-param `return` forms, but if that doesn't match
+		// allow falling through so two-parameter expression-bodied forms like
+		// `=> first + second;` can still be matched by tryHandleTwoParamAdd.
+		Option<String> singleParamOpt = extractSingleParamNameIfReturns(decl, openParen, closeParen);
+		if (singleParamOpt instanceof Option.Ok) {
+			if (!(extractCallArgIfNameMatches(rest, fname) instanceof Option.Ok<String> argOk))
+				return Option.err();
+			String arg = argOk.value();
+			if (arg.equals("readInt()"))
+				return Option.ok(compileReadIntExpression("readInt()"));
+			if (arg.matches("-?\\d+"))
+				return Option.ok(Result.ok(buildExitWithInt(arg)));
+			// If single-param handling didn't return, continue to try two-param
+		}
+		var nOpt = tryHandleNParamAdd(decl, rest, fname);
+		if (nOpt instanceof Option.Ok)
+			return nOpt;
 		return Option.err();
 	}
 
@@ -980,7 +1048,7 @@ public class Compiler {
 		StringBuilder body = new StringBuilder();
 		body.append("if (__a == __b) exit(").append(thenVal).append(");");
 		body.append(" else exit(").append(elseVal).append(");");
-		return Result.ok(buildTwoIntProgramBody(body.toString()));
+		return Result.ok(buildNIntProgramBody(2, body.toString()));
 	}
 
 	private void appendReadIntLogic(StringBuilder c, int count, String[] ops) {

@@ -180,6 +180,13 @@ public class CompilerTest {
 	}
 
 	@Test
+	public void threeParamAddReturnsSum() {
+		// test expression-bodied function with three parameters
+		assertValid("fn add(a : I32, b : I32, c : I32) => a + b + c; add(readInt(), readInt(), readInt())",
+				"10\r\n20\r\n12", new Tuple<>("", 42));
+	}
+
+	@Test
 	public void mutVarUpdatedByDeclaredFunction() {
 		assertValid("let mut x = 0; fn add() : Void => { x += readInt(); } add(); x", "100",
 				new Tuple<>("", 100));
