@@ -13,19 +13,19 @@ import java.util.Map;
 
 public final class SemanticAnalyzer {
 	public record AnalysisResult(Ast.Program program, IdentityHashMap<Ast.Expression, Type> expressionTypes,
-															 IdentityHashMap<Ast.IdentifierExpression, VariableSymbol> identifierBindings,
-															 IdentityHashMap<Ast.LetStatement, VariableSymbol> letBindings,
-															 LinkedHashMap<String, VariableSymbol> globalVariables,
-															 LinkedHashMap<String, FunctionSymbol> functions, Type finalType,
-															 Option<Ast.Expression> finalExpression, List<String> errors) {}
-
-	private static final class State {
+																					 IdentityHashMap<Ast.IdentifierExpression, VariableSymbol> identifierBindings,
+																					 IdentityHashMap<Ast.LetStatement, VariableSymbol> letBindings,
+																					 LinkedHashMap<String, VariableSymbol> globalVariables,
+																					 LinkedHashMap<String, FunctionSymbol> functions,
+																					 LinkedHashMap<String, Type.StructType> structTypes, Type finalType,
+																					 Option<Ast.Expression> finalExpression, List<String> errors) {}	private static final class State {
 		final Ast.Program program;
 		final IdentityHashMap<Ast.Expression, Type> expressionTypes = new IdentityHashMap<>();
 		final IdentityHashMap<Ast.IdentifierExpression, VariableSymbol> identifierBindings = new IdentityHashMap<>();
 		final IdentityHashMap<Ast.LetStatement, VariableSymbol> letBindings = new IdentityHashMap<>();
 		final LinkedHashMap<String, VariableSymbol> globalVariables = new LinkedHashMap<>();
 		final LinkedHashMap<String, FunctionSymbol> functions = new LinkedHashMap<>();
+		final LinkedHashMap<String, Type.StructType> structTypes = new LinkedHashMap<>();
 		final Deque<Map<String, VariableSymbol>> scopes = new ArrayDeque<>();
 		final List<String> errors = new ArrayList<>();
 		Type currentReturnType;
@@ -78,7 +78,7 @@ public final class SemanticAnalyzer {
 		state.popScope();
 
 		return new AnalysisResult(program, state.expressionTypes, state.identifierBindings, state.letBindings,
-															state.globalVariables, state.functions, finalType, finalExpr, state.errors);
+															state.globalVariables, state.functions, state.structTypes, finalType, finalExpr, state.errors);
 	}
 
 	private void registerIntrinsics(State state) {
@@ -199,6 +199,8 @@ public final class SemanticAnalyzer {
 			analyzeExpression(expression, state);
 		} else if (statement instanceof Ast.ReturnStatement returnStatement) {
 			analyzeReturn(returnStatement, state);
+		} else if (statement instanceof Ast.StructDecl structDecl) {
+			analyzeStructDecl(structDecl, state);
 		}
 	}
 
@@ -341,6 +343,8 @@ public final class SemanticAnalyzer {
 				type = thenType;
 			}
 			case Ast.BlockExpression blockExpression -> type = analyzeBlockExpression(blockExpression.block(), state);
+			case Ast.StructLiteralExpression structLiteral -> type = analyzeStructLiteral(structLiteral, state);
+			case Ast.FieldAccessExpression fieldAccess -> type = analyzeFieldAccess(fieldAccess, state);
 			case null, default -> type = Type.I32;
 		}
 		state.expressionTypes.put(expression, type);
@@ -451,6 +455,9 @@ public final class SemanticAnalyzer {
 				yield Type.VOID;
 			}
 			default -> {
+				if (state.structTypes.containsKey(typeRef.name())) {
+					yield state.structTypes.get(typeRef.name());
+				}
 				state.errors.add("Unknown type '" + typeRef.name() + "'");
 				yield Type.I32;
 			}
@@ -467,5 +474,73 @@ public final class SemanticAnalyzer {
 			return "magma_readInt";
 		}
 		return name;
+	}
+	
+	private void analyzeStructDecl(Ast.StructDecl structDecl, State state) {
+		if (state.structTypes.containsKey(structDecl.name())) {
+			state.errors.add("Struct '" + structDecl.name() + "' is already defined");
+			return;
+		}
+		
+		List<Type.StructField> fields = new ArrayList<>();
+		for (Ast.StructField field : structDecl.fields()) {
+			Type fieldType = resolveTypeRef(field.type(), false, state);
+			fields.add(new Type.StructField(field.name(), fieldType));
+		}
+		
+		Type.StructType structType = new Type.StructType(structDecl.name(), fields);
+		state.structTypes.put(structDecl.name(), structType);
+	}
+	
+	private Type analyzeStructLiteral(Ast.StructLiteralExpression structLiteral, State state) {
+		if (!state.structTypes.containsKey(structLiteral.structName())) {
+			state.errors.add("Unknown struct '" + structLiteral.structName() + "'");
+			// Still analyze field values for error checking
+			for (Ast.Expression fieldValue : structLiteral.fieldValues()) {
+				analyzeExpression(fieldValue, state);
+			}
+			return Type.I32;
+		}
+		
+		Type.StructType structType = state.structTypes.get(structLiteral.structName());
+		if (structType.fields().size() != structLiteral.fieldValues().size()) {
+			state.errors.add("Struct '" + structLiteral.structName() + "' expects " + 
+							structType.fields().size() + " fields but got " + structLiteral.fieldValues().size());
+		}
+		
+		int limit = Math.min(structType.fields().size(), structLiteral.fieldValues().size());
+		for (int i = 0; i < limit; i++) {
+			Type expectedType = structType.fields().get(i).type();
+			Type actualType = analyzeExpression(structLiteral.fieldValues().get(i), state);
+			if (actualType != expectedType) {
+				state.errors.add("Field " + (i + 1) + " of struct '" + structLiteral.structName() + 
+								"' has type " + actualType + " but expected " + expectedType);
+			}
+		}
+		
+		// Analyze remaining field values for error checking
+		for (int i = limit; i < structLiteral.fieldValues().size(); i++) {
+			analyzeExpression(structLiteral.fieldValues().get(i), state);
+		}
+		
+		return structType;
+	}
+	
+	private Type analyzeFieldAccess(Ast.FieldAccessExpression fieldAccess, State state) {
+		Type objectType = analyzeExpression(fieldAccess.object(), state);
+		
+		if (!(objectType instanceof Type.StructType structType)) {
+			state.errors.add("Cannot access field '" + fieldAccess.fieldName() + "' on non-struct type " + objectType);
+			return Type.I32;
+		}
+		
+		for (Type.StructField field : structType.fields()) {
+			if (field.name().equals(fieldAccess.fieldName())) {
+				return field.type();
+			}
+		}
+		
+		state.errors.add("Struct '" + structType.name() + "' has no field named '" + fieldAccess.fieldName() + "'");
+		return Type.I32;
 	}
 }

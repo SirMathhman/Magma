@@ -22,6 +22,7 @@ public enum TokenType {
     I32,
     BOOL,
     VOID,
+    STRUCT,
 
     // Symbols
     LEFT_PAREN,
@@ -31,6 +32,7 @@ public enum TokenType {
     COLON,
     COMMA,
     SEMICOLON,
+    DOT,
 
     // Operators
     PLUS,

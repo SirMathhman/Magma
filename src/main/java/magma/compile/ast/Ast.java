@@ -8,11 +8,11 @@ import java.util.Objects;
 public final class Ast {
 	public sealed interface Statement
 			permits LetStatement, AssignmentStatement, IncrementStatement, WhileStatement, BlockStatement,
-			ExpressionStatement, ReturnStatement {}
+			ExpressionStatement, ReturnStatement, StructDecl {}
 
 	public sealed interface Expression
 			permits IdentifierExpression, LiteralIntExpression, LiteralBoolExpression, UnaryExpression, BinaryExpression,
-			CallExpression, IfExpression, BlockExpression {}
+			CallExpression, IfExpression, BlockExpression, StructLiteralExpression, FieldAccessExpression {}
 
 	public record Program(List<IntrinsicDecl> intrinsics, List<FunctionDecl> functions, List<Statement> statements,
 												Option<Expression> finalExpression) {
@@ -68,6 +68,15 @@ public final class Ast {
 
 	public record ReturnStatement(Option<Expression> expression) implements Statement {}
 
+	public record StructDecl(String name, List<StructField> fields) implements Statement {
+		public StructDecl(String name, List<StructField> fields) {
+			this.name = name;
+			this.fields = List.copyOf(fields);
+		}
+	}
+
+	public record StructField(String name, TypeRef type) {}
+
 	public record IdentifierExpression(String name) implements Expression {}
 
 	public record LiteralIntExpression(int value) implements Expression {}
@@ -84,6 +93,15 @@ public final class Ast {
 			implements Expression {}
 
 	public record BlockExpression(Block block) implements Expression {}
+
+	public record StructLiteralExpression(String structName, List<Expression> fieldValues) implements Expression {
+		public StructLiteralExpression(String structName, List<Expression> fieldValues) {
+			this.structName = structName;
+			this.fieldValues = List.copyOf(fieldValues);
+		}
+	}
+
+	public record FieldAccessExpression(Expression object, String fieldName) implements Expression {}
 
 	private Ast() {
 	}

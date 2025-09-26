@@ -17,7 +17,8 @@ public final class Lexer {
             ':', TokenType.COLON,
             ',', TokenType.COMMA,
             ';', TokenType.SEMICOLON,
-            '<', TokenType.LESS);
+            '<', TokenType.LESS,
+            '.', TokenType.DOT);
 
     private final String source;
     private final List<Token> tokens = new ArrayList<>();
@@ -182,6 +183,7 @@ public final class Lexer {
             case "I32" -> TokenType.I32;
             case "Bool" -> TokenType.BOOL;
             case "Void" -> TokenType.VOID;
+            case "struct" -> TokenType.STRUCT;
             default -> TokenType.IDENTIFIER;
         };
     }

@@ -136,6 +136,9 @@ public final class Parser {
 		if (match(TokenType.LET)) {
 			return StatementOrFinal.ofStatement(parseLet());
 		}
+		if (match(TokenType.STRUCT)) {
+			return StatementOrFinal.ofStatement(parseStructDecl());
+		}
 		if (match(TokenType.RETURN)) {
 			return StatementOrFinal.ofStatement(parseReturnStatement());
 		}
@@ -327,6 +330,9 @@ public final class Parser {
 		while (true) {
 			if (match(TokenType.LEFT_PAREN)) {
 				expr = finishCall(expr);
+			} else if (match(TokenType.DOT)) {
+				String fieldName = consume(TokenType.IDENTIFIER, "Expected field name after '.'").lexeme();
+				expr = new Ast.FieldAccessExpression(expr, fieldName);
 			} else {
 				break;
 			}
@@ -367,7 +373,12 @@ public final class Parser {
 			return new Ast.LiteralBoolExpression(false);
 		}
 		if (match(TokenType.IDENTIFIER)) {
-			return new Ast.IdentifierExpression(previous().lexeme());
+			String name = previous().lexeme();
+			// Check if this is a struct literal
+			if (match(TokenType.LEFT_BRACE)) {
+				return parseStructLiteral(name);
+			}
+			return new Ast.IdentifierExpression(name);
 		}
 		if (match(TokenType.LEFT_PAREN)) {
 			Ast.Expression expr = parseExpression();
@@ -444,6 +455,37 @@ public final class Parser {
 
 	private Token previous() {
 		return tokens.get(current - 1);
+	}
+
+	private Ast.Statement parseStructDecl() {
+		String name = consume(TokenType.IDENTIFIER, "Expected struct name").lexeme();
+		consume(TokenType.LEFT_BRACE, "Expected '{' after struct name");
+		List<Ast.StructField> fields = new ArrayList<>();
+		
+		if (!check(TokenType.RIGHT_BRACE)) {
+			do {
+				String fieldName = consume(TokenType.IDENTIFIER, "Expected field name").lexeme();
+				consume(TokenType.COLON, "Expected ':' after field name");
+				Ast.TypeRef fieldType = parseTypeRef();
+				fields.add(new Ast.StructField(fieldName, fieldType));
+			} while (match(TokenType.COMMA));
+		}
+		
+		consume(TokenType.RIGHT_BRACE, "Expected '}' after struct fields");
+		return new Ast.StructDecl(name, fields);
+	}
+	
+	private Ast.Expression parseStructLiteral(String structName) {
+		List<Ast.Expression> fieldValues = new ArrayList<>();
+		
+		if (!check(TokenType.RIGHT_BRACE)) {
+			do {
+				fieldValues.add(parseExpression());
+			} while (match(TokenType.COMMA));
+		}
+		
+		consume(TokenType.RIGHT_BRACE, "Expected '}' after struct literal fields");
+		return new Ast.StructLiteralExpression(structName, fieldValues);
 	}
 
 	private void error(Token token, String message) {

@@ -39,6 +39,7 @@ public final class CodeGenerator {
 		builder.appendLine("#include <stdio.h>");
 		builder.appendLine("#include <stdlib.h>");
 		builder.newLine();
+		emitStructDeclarations();
 	}
 
 	private void emitIntrinsics() {
@@ -318,6 +319,10 @@ public final class CodeGenerator {
 			}
 			case Ast.BlockExpression blockExpression ->
 				expressionText = emitBlockExpression(blockExpression.block(), type, prefix);
+			case Ast.StructLiteralExpression structLiteral ->
+				expressionText = emitStructLiteral(structLiteral, type, prefix);
+			case Ast.FieldAccessExpression fieldAccess ->
+				expressionText = emitFieldAccess(fieldAccess, prefix);
 			case null, default -> expressionText = "0";
 		}
 
@@ -400,10 +405,16 @@ public final class CodeGenerator {
 	}
 
 	private String cType(Type type) {
-		return switch (type) {
-			case I32, BOOL -> "int";
-			case VOID -> "void";
-		};
+		if (type instanceof Type.PrimitiveType primitive) {
+			return switch (primitive.name()) {
+				case "I32", "BOOL" -> "int";
+				case "VOID" -> "void";
+				default -> "int";
+			};
+		} else if (type instanceof Type.StructType structType) {
+			return "struct " + structType.name();
+		}
+		return "int";
 	}
 
 	private String parameterList(FunctionSymbol symbol) {
@@ -462,12 +473,47 @@ public final class CodeGenerator {
 		}
 	}
 
+	private void emitStructDeclarations() {
+		for (Type.StructType structType : analysis.structTypes().values()) {
+			builder.appendLine("struct " + structType.name() + " {");
+			builder.increaseIndent();
+			for (Type.StructField field : structType.fields()) {
+				builder.appendLine(cType(field.type()) + " " + field.name() + ";");
+			}
+			builder.decreaseIndent();
+			builder.appendLine("};");
+			builder.newLine();
+		}
+	}
+	
+	private String emitStructLiteral(Ast.StructLiteralExpression structLiteral, Type type, List<Runnable> prefix) {
+		final String tempName = freshTempName();
+		prefix.add(() -> {
+			builder.appendLine(cType(type) + " " + tempName + ";");
+			for (int i = 0; i < structLiteral.fieldValues().size(); i++) {
+				if (type instanceof Type.StructType structType && i < structType.fields().size()) {
+					ExpressionResult fieldValue = emitExpression(structLiteral.fieldValues().get(i));
+					fieldValue.emitPrefix();
+					String fieldName = structType.fields().get(i).name();
+					builder.appendLine(tempName + "." + fieldName + " = " + valueForType(fieldValue) + ";");
+				}
+			}
+		});
+		return tempName;
+	}
+	
+	private String emitFieldAccess(Ast.FieldAccessExpression fieldAccess, List<Runnable> prefix) {
+		ExpressionResult object = emitExpression(fieldAccess.object());
+		prefix.addAll(object.prefix);
+		return object.expression + "." + fieldAccess.fieldName();
+	}
+
 	private record ExpressionResult(List<Runnable> prefix, String expression, Type type) {
 
 		void emitPrefix() {
-			for (Runnable runnable : prefix) {
-				runnable.run();
+				for (Runnable runnable : prefix) {
+					runnable.run();
+				}
 			}
 		}
-	}
 }
