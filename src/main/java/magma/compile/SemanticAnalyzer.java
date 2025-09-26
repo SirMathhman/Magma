@@ -165,7 +165,7 @@ public final class SemanticAnalyzer {
 		} else {
 			if (finalExpr instanceof Option.Some<Ast.Expression>) {
 				Type resultType = state.expressionTypes.getOrDefault(finalExpr.get(), Type.PrimitiveType.I32);
-				if (resultType != symbol.returnType()) {
+				if (!resultType.equals(symbol.returnType())) {
 					state.errors.add(
 							"Function '" + symbol.name() + "' final expression has type " + resultType + " but expected " +
 							symbol.returnType());
@@ -215,7 +215,7 @@ public final class SemanticAnalyzer {
 			state.errors.add("Variable '" + let.name() + "' cannot have type Void");
 			declaredType = Type.PrimitiveType.I32;
 		}
-		if (initializerType != declaredType) {
+		if (!initializerType.equals(declaredType)) {
 			state.errors.add(
 					"Type mismatch: cannot assign " + initializerType + " to variable '" + let.name() + "' of type " +
 					declaredType);
@@ -248,7 +248,7 @@ public final class SemanticAnalyzer {
 		Type expressionType = analyzeExpression(assignment.expression(), state);
 		switch (assignment.op()) {
 			case ASSIGN -> {
-				if (expressionType != symbol.type()) {
+				if (!expressionType.equals(symbol.type())) {
 					state.errors.add("Type mismatch assigning to '" + assignment.name() + "'");
 				}
 			}
@@ -292,7 +292,7 @@ public final class SemanticAnalyzer {
 			Type exprType = analyzeExpression(returnStatement.expression().get(), state);
 			if (state.currentReturnType == Type.PrimitiveType.VOID) {
 				state.errors.add("Void function cannot return a value");
-			} else if (exprType != state.currentReturnType) {
+			} else if (!exprType.equals(state.currentReturnType)) {
 				state.errors.add("Return type mismatch: expected " + state.currentReturnType + " but found " + exprType);
 			}
 		} else {
@@ -308,14 +308,20 @@ public final class SemanticAnalyzer {
 			case Ast.LiteralIntExpression _ -> type = Type.PrimitiveType.I32;
 			case Ast.LiteralBoolExpression _ -> type = Type.PrimitiveType.BOOL;
 			case Ast.IdentifierExpression identifier -> {
-				Option<VariableSymbol> symbolOpt =
-						variableOrReport(identifier.name(), state, "Unknown variable '" + identifier.name() + "'");
-				if (symbolOpt.isEmpty()) {
-					type = Type.PrimitiveType.I32;
-				} else {
-					VariableSymbol symbol = symbolOpt.get();
+				Option<VariableSymbol> symbolOpt = resolveVariable(identifier.name(), state);
+				if (symbolOpt instanceof Option.Some<VariableSymbol>(VariableSymbol symbol)) {
 					state.identifierBindings.put(identifier, symbol);
 					type = symbol.type();
+				} else {
+					// Check if it's a function reference
+					FunctionSymbol functionSymbol = state.functions.get(identifier.name());
+					if (functionSymbol != null) {
+						// Create function type
+						type = new Type.FunctionType(functionSymbol.parameterTypes(), functionSymbol.returnType());
+					} else {
+						state.errors.add("Unknown variable or function '" + identifier.name() + "'");
+						type = Type.PrimitiveType.I32;
+					}
 				}
 			}
 			case Ast.UnaryExpression unary -> {
@@ -338,7 +344,7 @@ public final class SemanticAnalyzer {
 				}
 				Type thenType = analyzeExpression(ifExpr.thenBranch(), state);
 				Type elseType = analyzeExpression(ifExpr.elseBranch(), state);
-				if (thenType != elseType) {
+				if (!thenType.equals(elseType)) {
 					state.errors.add("If branches must have the same type");
 				}
 				type = thenType;
@@ -374,32 +380,52 @@ public final class SemanticAnalyzer {
 	}
 
 	private Type analyzeCall(Ast.CallExpression call, State state) {
-		if (!state.functions.containsKey(call.callee())) {
-			state.errors.add("Unknown function '" + call.callee() + "'");
-			for (Ast.Expression argument : call.arguments()) {
-				analyzeExpression(argument, state);
-			}
-			return Type.PrimitiveType.I32;
+		// First check if it's a direct function call
+		if (state.functions.containsKey(call.callee())) {
+			FunctionSymbol symbol = state.functions.get(call.callee());
+			return analyzeCallWithSignature(call, symbol.parameterTypes(), symbol.returnType(), state);
 		}
-		FunctionSymbol symbol = state.functions.get(call.callee());
-		if (symbol.parameterTypes().size() != call.arguments().size()) {
+		
+		// Then check if it's a function variable call
+		Option<VariableSymbol> variableOpt = resolveVariable(call.callee(), state);
+		if (variableOpt instanceof Option.Some<VariableSymbol>(VariableSymbol variable)) {
+			if (variable.type() instanceof Type.FunctionType functionType) {
+				return analyzeCallWithSignature(call, functionType.parameterTypes(), functionType.returnType(), state);
+			} else {
+				state.errors.add("'" + call.callee() + "' is not a function");
+				for (Ast.Expression argument : call.arguments()) {
+					analyzeExpression(argument, state);
+				}
+				return Type.PrimitiveType.I32;
+			}
+		}
+		
+		state.errors.add("Unknown function or function variable '" + call.callee() + "'");
+		for (Ast.Expression argument : call.arguments()) {
+			analyzeExpression(argument, state);
+		}
+		return Type.PrimitiveType.I32;
+	}
+	
+	private Type analyzeCallWithSignature(Ast.CallExpression call, List<Type> parameterTypes, Type returnType, State state) {
+		if (parameterTypes.size() != call.arguments().size()) {
 			state.errors.add(
-					"Function '" + call.callee() + "' expects " + symbol.parameterTypes().size() + " arguments but got " +
+					"Function '" + call.callee() + "' expects " + parameterTypes.size() + " arguments but got " +
 					call.arguments().size());
 		}
-		int limit = Math.min(symbol.parameterTypes().size(), call.arguments().size());
+		int limit = Math.min(parameterTypes.size(), call.arguments().size());
 		for (int i = 0; i < limit; i++) {
 			Type argType = analyzeExpression(call.arguments().get(i), state);
-			if (argType != symbol.parameterTypes().get(i)) {
+			if (!argType.equals(parameterTypes.get(i))) {
 				state.errors.add(
 						"Argument " + (i + 1) + " for function '" + call.callee() + "' has type " + argType + " but expected " +
-						symbol.parameterTypes().get(i));
+						parameterTypes.get(i));
 			}
 		}
 		for (int i = limit; i < call.arguments().size(); i++) {
 			analyzeExpression(call.arguments().get(i), state);
 		}
-		return symbol.returnType();
+		return returnType;
 	}
 
 	private Type analyzeBinary(Ast.BinaryExpression binary, Type left, Type right, State state) {
@@ -411,7 +437,7 @@ public final class SemanticAnalyzer {
 				yield Type.PrimitiveType.I32;
 			}
 			case EQUALS -> {
-				if (left != right) {
+				if (!left.equals(right)) {
 					state.errors.add("Equality operands must have the same type");
 				}
 				yield Type.PrimitiveType.BOOL;
@@ -468,6 +494,11 @@ public final class SemanticAnalyzer {
 			return new Type.PointerType(pointeeType);
 		}
 		
+		// Handle function types: (Type, Type) => ReturnType
+		if (typeName.startsWith("(") && typeName.contains(" => ")) {
+			return parseFunctionType(typeName, allowVoid, state);
+		}
+		
 		return switch (typeName) {
 			case "I32" -> Type.PrimitiveType.I32;
 			case "Bool" -> Type.PrimitiveType.BOOL;
@@ -486,6 +517,64 @@ public final class SemanticAnalyzer {
 				yield Type.PrimitiveType.I32;
 			}
 		};
+	}
+
+	private Type parseFunctionType(String functionTypeString, boolean allowVoid, State state) {
+		// Parse function type string like "(I32, Bool) => Void"
+		int arrowIndex = functionTypeString.indexOf(" => ");
+		if (arrowIndex == -1) {
+			state.errors.add("Invalid function type syntax: " + functionTypeString);
+			return Type.PrimitiveType.I32;
+		}
+		
+		String paramsPart = functionTypeString.substring(1, arrowIndex).trim();
+		if (paramsPart.endsWith(")")) {
+			paramsPart = paramsPart.substring(0, paramsPart.length() - 1);
+		}
+		String returnTypePart = functionTypeString.substring(arrowIndex + 4);
+		
+		List<Type> parameterTypes = new ArrayList<>();
+		if (!paramsPart.trim().isEmpty()) {
+			String[] paramTypeNames = paramsPart.split(",");
+			for (String paramTypeName : paramTypeNames) {
+				String trimmedName = paramTypeName.trim();
+				Type paramType = switch (trimmedName) {
+					case "I32" -> Type.PrimitiveType.I32;
+					case "Bool" -> Type.PrimitiveType.BOOL;
+					case "Void" -> Type.PrimitiveType.VOID;
+					default -> {
+						if (state.structTypes.containsKey(trimmedName)) {
+							yield state.structTypes.get(trimmedName);
+						} else if (trimmedName.startsWith("*")) {
+							// Handle pointer parameters
+							yield resolveTypeRef(new Ast.TypeRef(trimmedName), false, state);
+						} else {
+							state.errors.add("Unknown parameter type '" + trimmedName + "' in function type");
+							yield Type.PrimitiveType.I32;
+						}
+					}
+				};
+				parameterTypes.add(paramType);
+			}
+		}
+		
+		Type returnType = switch (returnTypePart.trim()) {
+			case "I32" -> Type.PrimitiveType.I32;
+			case "Bool" -> Type.PrimitiveType.BOOL;
+			case "Void" -> allowVoid ? Type.PrimitiveType.VOID : Type.PrimitiveType.I32;
+			default -> {
+				if (state.structTypes.containsKey(returnTypePart.trim())) {
+					yield state.structTypes.get(returnTypePart.trim());
+				} else if (returnTypePart.trim().startsWith("*")) {
+					yield resolveTypeRef(new Ast.TypeRef(returnTypePart.trim()), allowVoid, state);
+				} else {
+					state.errors.add("Unknown return type '" + returnTypePart.trim() + "' in function type");
+					yield Type.PrimitiveType.I32;
+				}
+			}
+		};
+		
+		return new Type.FunctionType(parameterTypes, returnType);
 	}
 
 	private String generateGlobalName(String name, State state) {
@@ -536,7 +625,7 @@ public final class SemanticAnalyzer {
 		for (int i = 0; i < limit; i++) {
 			Type expectedType = structType.fields().get(i).type();
 			Type actualType = analyzeExpression(structLiteral.fieldValues().get(i), state);
-			if (actualType != expectedType) {
+			if (!actualType.equals(expectedType)) {
 				state.errors.add("Field " + (i + 1) + " of struct '" + structLiteral.structName() + 
 								"' has type " + actualType + " but expected " + expectedType);
 			}

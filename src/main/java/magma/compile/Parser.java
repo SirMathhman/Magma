@@ -95,7 +95,7 @@ public final class Parser {
 		if (match(TokenType.COLON)) {
 			returnType = Option.of(parseTypeRef());
 		}
-		consume(TokenType.ARROW, "Expected '=>' before function body");
+		consume(TokenType.DOUBLE_ARROW, "Expected '=>' before function body");
 
 		Ast.Block body;
 		if (match(TokenType.LEFT_BRACE)) {
@@ -122,6 +122,26 @@ public final class Parser {
 		if (match(TokenType.STAR)) {
 			Ast.TypeRef pointeeType = parseTypeRef();
 			return new Ast.TypeRef("*" + pointeeType.name());
+		}
+		if (match(TokenType.LEFT_PAREN)) {
+			// Function type: (Type, Type) => ReturnType
+			List<String> parameterTypes = new ArrayList<>();
+			if (!check(TokenType.RIGHT_PAREN)) {
+				do {
+					parameterTypes.add(parseTypeRef().name());
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.RIGHT_PAREN, "Expected ')' after function parameter types");
+			consume(TokenType.DOUBLE_ARROW, "Expected '=>' after function parameter types");
+			Ast.TypeRef returnType = parseTypeRef();
+			
+			String functionTypeName;
+			if (parameterTypes.isEmpty()) {
+				functionTypeName = "() => " + returnType.name();
+			} else {
+				functionTypeName = "(" + String.join(", ", parameterTypes) + ") => " + returnType.name();
+			}
+			return new Ast.TypeRef(functionTypeName);
 		}
 		Token token = advance();
 		return switch (token.type()) {

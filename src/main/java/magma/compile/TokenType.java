@@ -43,6 +43,7 @@ public enum TokenType {
     AMPERSAND,
     DOUBLE_EQUAL,
     ARROW,
+    DOUBLE_ARROW,
     PLUS_EQUAL,
     MINUS_EQUAL,
     STAR_EQUAL,

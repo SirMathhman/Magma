@@ -145,7 +145,7 @@ public final class Lexer {
         if (match('=')) {
             addToken(TokenType.DOUBLE_EQUAL);
         } else if (match('>')) {
-            addToken(TokenType.ARROW);
+            addToken(TokenType.DOUBLE_ARROW);
         } else {
             addToken(TokenType.EQUAL);
         }

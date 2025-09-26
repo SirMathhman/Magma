@@ -69,7 +69,7 @@ public final class CodeGenerator {
 			return;
 		}
 		for (VariableSymbol symbol : analysis.globalVariables().values()) {
-			builder.appendLine("static " + cType(symbol.type()) + " " + symbol.cName() + ";");
+			builder.appendLine("static " + variableDeclaration(symbol.type(), symbol.cName()) + ";");
 		}
 		builder.newLine();
 	}
@@ -194,7 +194,7 @@ public final class CodeGenerator {
 		if (symbol.global()) {
 			builder.appendLine(symbol.cName() + " = " + value + ";");
 		} else {
-			builder.appendLine(cType(symbol.type()) + " " + symbol.cName() + " = " + value + ";");
+			builder.appendLine(variableDeclaration(symbol.type(), symbol.cName()) + " = " + value + ";");
 			currentScope().put(symbol.name(), symbol);
 		}
 	}
@@ -272,6 +272,10 @@ public final class CodeGenerator {
 				if (analysis.identifierBindings().containsKey(identifier)) {
 					VariableSymbol symbol = analysis.identifierBindings().get(identifier);
 					expressionText = symbol.cName();
+				} else if (type instanceof Type.FunctionType && analysis.functions().containsKey(identifier.name())) {
+					// Function reference - use function name directly (function pointers in C don't need &)
+					FunctionSymbol functionSymbol = analysis.functions().get(identifier.name());
+					expressionText = functionSymbol.cName();
 				} else {
 					expressionText = identifier.name();
 				}
@@ -303,7 +307,13 @@ public final class CodeGenerator {
 				if (analysis.functions().containsKey(call.callee())) {
 					calleeName = analysis.functions().get(call.callee()).cName();
 				} else {
-					calleeName = call.callee();
+					// Check if it's a function variable
+					Option<VariableSymbol> variableOpt = lookupVariable(call.callee());
+					if (variableOpt instanceof Option.Some<VariableSymbol>(VariableSymbol variable)) {
+						calleeName = variable.cName();
+					} else {
+						calleeName = call.callee();
+					}
 				}
 				expressionText = calleeName + "(" + joiner + ")";
 			}
@@ -419,8 +429,37 @@ public final class CodeGenerator {
 			return "struct " + structType.name();
 		} else if (type instanceof Type.PointerType pointerType) {
 			return cType(pointerType.pointeeType()) + "*";
+		} else if (type instanceof Type.FunctionType) {
+			// For function types in expressions, we just return the function name
+			// Function pointer declarations are handled by variableDeclaration method
+			return "function_ptr";
 		}
 		return "int";
+	}
+
+	private String variableDeclaration(Type type, String variableName) {
+		if (type instanceof Type.FunctionType functionType) {
+			// Function pointer: returnType (*variableName)(paramType1, paramType2, ...)
+			StringBuilder sb = new StringBuilder();
+			sb.append(cType(functionType.returnType()));
+			sb.append(" (*");
+			sb.append(variableName);
+			sb.append(")(");
+			if (functionType.parameterTypes().isEmpty()) {
+				sb.append("void");
+			} else {
+				StringJoiner joiner = new StringJoiner(", ");
+				for (Type paramType : functionType.parameterTypes()) {
+					joiner.add(cType(paramType));
+				}
+				sb.append(joiner.toString());
+			}
+			sb.append(")");
+			return sb.toString();
+		} else {
+			// Regular variable: type variableName
+			return cType(type) + " " + variableName;
+		}
 	}
 
 	private String parameterList(FunctionSymbol symbol) {

@@ -3,7 +3,7 @@ package magma.compile;
 import java.util.List;
 import java.util.Objects;
 
-public sealed interface Type permits Type.PrimitiveType, Type.StructType, Type.PointerType {
+public sealed interface Type permits Type.PrimitiveType, Type.StructType, Type.PointerType, Type.FunctionType {
 	
 	record PrimitiveType(String name) implements Type {
 		public static final PrimitiveType I32 = new PrimitiveType("I32");
@@ -63,6 +63,33 @@ public sealed interface Type permits Type.PrimitiveType, Type.StructType, Type.P
 		@Override
 		public int hashCode() {
 			return Objects.hash(pointeeType);
+		}
+	}
+	
+	record FunctionType(List<Type> parameterTypes, Type returnType) implements Type {
+		public FunctionType(List<Type> parameterTypes, Type returnType) {
+			this.parameterTypes = List.copyOf(parameterTypes);
+			this.returnType = Objects.requireNonNull(returnType);
+		}
+		
+		@Override
+		public String toString() {
+			if (parameterTypes.isEmpty()) {
+				return "() => " + returnType;
+			}
+			return "(" + String.join(", ", parameterTypes.stream().map(Type::toString).toList()) + ") => " + returnType;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (!(obj instanceof FunctionType other)) return false;
+			return Objects.equals(parameterTypes, other.parameterTypes) && Objects.equals(returnType, other.returnType);
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hash(parameterTypes, returnType);
 		}
 	}
 	

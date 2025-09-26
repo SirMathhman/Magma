@@ -8,33 +8,37 @@ import java.util.Objects;
 public final class Ast {
 	public sealed interface Statement
 			permits LetStatement, AssignmentStatement, IncrementStatement, WhileStatement, BlockStatement,
-			ExpressionStatement, ReturnStatement, StructDecl {}
+			ExpressionStatement, ReturnStatement, StructDecl {
+	}
 
 	public sealed interface Expression
 			permits IdentifierExpression, LiteralIntExpression, LiteralBoolExpression, UnaryExpression, BinaryExpression,
 			CallExpression, IfExpression, BlockExpression, StructLiteralExpression, FieldAccessExpression,
-			ReferenceExpression, DereferenceExpression {}
+			ReferenceExpression, DereferenceExpression, FunctionReferenceExpression {
+	}
 
 	public record Program(List<IntrinsicDecl> intrinsics, List<FunctionDecl> functions, List<Statement> statements,
-												Option<Expression> finalExpression) {
+			Option<Expression> finalExpression) {
 		public Program(List<IntrinsicDecl> intrinsics,
-									 List<FunctionDecl> functions,
-									 List<Statement> statements,
-									 Option<Expression> finalExpression) {
+				List<FunctionDecl> functions,
+				List<Statement> statements,
+				Option<Expression> finalExpression) {
 			this.intrinsics = List.copyOf(intrinsics);
 			this.functions = List.copyOf(functions);
 			this.statements = List.copyOf(statements);
 			this.finalExpression = Objects.requireNonNull(finalExpression);
 		}
 
-
 	}
 
-	public record IntrinsicDecl(String name, TypeRef returnType, List<TypeRef> parameterTypes) {}
+	public record IntrinsicDecl(String name, TypeRef returnType, List<TypeRef> parameterTypes) {
+	}
 
-	public record TypeRef(String name) {}
+	public record TypeRef(String name) {
+	}
 
-	public record Parameter(String name, TypeRef type) {}
+	public record Parameter(String name, TypeRef type) {
+	}
 
 	public record FunctionDecl(String name, List<Parameter> parameters, Option<TypeRef> returnType, Block body) {
 		public FunctionDecl(String name, List<Parameter> parameters, Option<TypeRef> returnType, Block body) {
@@ -51,23 +55,29 @@ public final class Ast {
 			this.result = Objects.requireNonNull(result);
 		}
 
-
 	}
 
 	public record LetStatement(boolean mutable, String name, Option<TypeRef> typeAnnotation, Expression initializer)
-			implements Statement {}
+			implements Statement {
+	}
 
-	public record AssignmentStatement(String name, AssignmentOp op, Expression expression) implements Statement {}
+	public record AssignmentStatement(String name, AssignmentOp op, Expression expression) implements Statement {
+	}
 
-	public record IncrementStatement(String name) implements Statement {}
+	public record IncrementStatement(String name) implements Statement {
+	}
 
-	public record WhileStatement(Expression condition, Statement body) implements Statement {}
+	public record WhileStatement(Expression condition, Statement body) implements Statement {
+	}
 
-	public record BlockStatement(Block block) implements Statement {}
+	public record BlockStatement(Block block) implements Statement {
+	}
 
-	public record ExpressionStatement(Expression expression) implements Statement {}
+	public record ExpressionStatement(Expression expression) implements Statement {
+	}
 
-	public record ReturnStatement(Option<Expression> expression) implements Statement {}
+	public record ReturnStatement(Option<Expression> expression) implements Statement {
+	}
 
 	public record StructDecl(String name, List<StructField> fields) implements Statement {
 		public StructDecl(String name, List<StructField> fields) {
@@ -76,24 +86,33 @@ public final class Ast {
 		}
 	}
 
-	public record StructField(String name, TypeRef type) {}
+	public record StructField(String name, TypeRef type) {
+	}
 
-	public record IdentifierExpression(String name) implements Expression {}
+	public record IdentifierExpression(String name) implements Expression {
+	}
 
-	public record LiteralIntExpression(int value) implements Expression {}
+	public record LiteralIntExpression(int value) implements Expression {
+	}
 
-	public record LiteralBoolExpression(boolean value) implements Expression {}
+	public record LiteralBoolExpression(boolean value) implements Expression {
+	}
 
-	public record UnaryExpression(UnaryOperator operator, Expression expression) implements Expression {}
+	public record UnaryExpression(UnaryOperator operator, Expression expression) implements Expression {
+	}
 
-	public record BinaryExpression(Expression left, BinaryOperator operator, Expression right) implements Expression {}
+	public record BinaryExpression(Expression left, BinaryOperator operator, Expression right) implements Expression {
+	}
 
-	public record CallExpression(String callee, List<Expression> arguments) implements Expression {}
+	public record CallExpression(String callee, List<Expression> arguments) implements Expression {
+	}
 
 	public record IfExpression(Expression condition, Expression thenBranch, Expression elseBranch)
-			implements Expression {}
+			implements Expression {
+	}
 
-	public record BlockExpression(Block block) implements Expression {}
+	public record BlockExpression(Block block) implements Expression {
+	}
 
 	public record StructLiteralExpression(String structName, List<Expression> fieldValues) implements Expression {
 		public StructLiteralExpression(String structName, List<Expression> fieldValues) {
@@ -102,11 +121,17 @@ public final class Ast {
 		}
 	}
 
-	public record FieldAccessExpression(Expression object, String fieldName) implements Expression {}
+	public record FieldAccessExpression(Expression object, String fieldName) implements Expression {
+	}
 
-	public record ReferenceExpression(Expression expression) implements Expression {}
+	public record ReferenceExpression(Expression expression) implements Expression {
+	}
 
-	public record DereferenceExpression(Expression expression) implements Expression {}
+	public record DereferenceExpression(Expression expression) implements Expression {
+	}
+
+	public record FunctionReferenceExpression(String functionName) implements Expression {
+	}
 
 	private Ast() {
 	}
