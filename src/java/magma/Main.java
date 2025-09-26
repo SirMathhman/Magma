@@ -114,18 +114,18 @@ public class Main {
 
 	private static String compileDefinition(String input) {
 		final String strip = input.strip();
+
 		final int i = strip.lastIndexOf(" ");
-		if (i >= 0) {
-			final String beforeName = strip.substring(0, i);
-			final String name = strip.substring(i + " ".length());
-			final int i1 = beforeName.lastIndexOf(" ");
-			if (i1 >= 0) {
-				final String beforeType = beforeName.substring(0, i1);
-				final String type = beforeName.substring(i1 + " ".length());
-				return wrap(beforeType) + name + " : " + wrap(type);
-			}
-		}
-		return wrap(strip);
+		if (i < 0) return wrap(strip);
+		final String beforeName = strip.substring(0, i);
+		final String name = strip.substring(i + " ".length());
+
+		final int i1 = beforeName.lastIndexOf(" ");
+		if (i1 < 0) return wrap(strip);
+		final String beforeType = beforeName.substring(0, i1);
+		final String type = beforeName.substring(i1 + " ".length());
+
+		return wrap(beforeType) + name + " : " + wrap(type);
 	}
 
 	private static Stream<String> divide(String input) {
