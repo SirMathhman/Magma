@@ -1,6 +1,97 @@
 /*public */class Main {
+	/*private interface Collector<T, C> {
+		C createInitial();
+
+		C fold(C current, T element);
+	}*/
+	/*private interface Stream<T> {
+		<R> Stream<R> map(Function<T, R> mapper);
+
+		<C> C collect(Collector<T, C> collector);
+	}*/
+	/*private interface List<T> {
+		Stream<T> stream();
+
+		List<T> add(T element);
+	}*/
+	/*private interface Head<T> {
+		Optional<T> next();
+	}*/
+	/*private record HeadedStream<T>(Head<T> head) implements Stream<T> {
+		@Override
+		public <R> Stream<R> map(Function<T, R> mapper) {
+			return new HeadedStream<>(() -> head.next().map(mapper));
+		}
+
+		@Override
+		public <C> C collect(Collector<T, C> collector) {
+			return this.fold(collector.createInitial(), collector::fold);
+		}
+
+		private <C> C fold(C initial, BiFunction<C, T, C> folder) {
+			C current = initial;
+			while (true) {
+				C finalCurrent = current;
+				final Optional<C> folded = head.next().map(next -> folder.apply(finalCurrent, next));
+				if (folded.isPresent()) current = folded.get();
+				else return current;
+			}
+		}
+	}*/
+	/*private static final */class ArrayHead<T> implements Head<T> {
+		/*private final T[] array;*/
+		/*private final int size;*/
+		/*private*/counter : /*int*/ = /* 0*/;
+		/*private ArrayHead(T[] array, int size) {
+			this.array = array;
+			this.size = size;
+		}*/
+		/*@Override
+		public Optional<T> next() {
+			if (counter >= size) return Optional.empty();
+			final T element = array[counter];
+			counter++;
+			return Optional.of(element);
+		}*/
+		/**/}
+	/*private record ArrayList<T>(T[] array, int size) implements List<T> {
+		public ArrayList() {
+			//noinspection unchecked
+			this((T[]) new Object[10], 0);
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return new HeadedStream<>(new ArrayHead<>(array, size));
+		}
+
+		@Override
+		public List<T> add(T element) {
+			return set(size, element);
+		}
+
+		private List<T> set(int index, T element) {
+			final T[] capacity = resize(index);
+			final int newSize = Math.max(size, index + 1);
+			capacity[index] = element;
+			return new ArrayList<>(capacity, newSize);
+		}
+
+		private T[] resize(int index) {
+			int oldCapacity = array.length;
+			if (index < oldCapacity) return array;
+
+			int newCapacity = oldCapacity;
+			while (!(index < newCapacity)) newCapacity *= 2;
+
+			final Object[] destination = new Object[newCapacity];
+			System.arraycopy(array, 0, destination, 0, oldCapacity);
+			//noinspection unchecked
+			return (T[]) destination;
+		}
+	}*/
 	/*private static */class State {
-		/*private final*/segments : /*Collection<String>*/ = /* new ArrayList<>()*/;
+		/*private*/segments : /*List<String>*/ = /* new ArrayList<>()*/;
 		/*private*/buffer : /*StringBuilder*/ = /* new StringBuilder()*/;
 		/*private*/depth : /*int*/ = /* 0*/;
 		/*private boolean isLevel() {
@@ -21,13 +112,23 @@
 			return this;
 		}*/
 		/*private State advance() {
-			segments.add(buffer.toString());
+			this.segments = segments.add(buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}*/
 		/*private State append(char c) {
 			buffer.append(c);
 			return this;
+		}*/
+		/**/}
+	/*private static */class Joiner implements Collector<String, Optional<String>> {
+		/*@Override
+		public Optional<String> createInitial() {
+			return Optional.empty();
+		}*/
+		/*@Override
+		public Optional<String> fold(Optional<String> current, String element) {
+			return Optional.of(current.map(inner -> inner + element).orElse(element));
 		}*/
 		/**/}
 	/*public static void main(String[] args) {
@@ -43,7 +144,7 @@
 		return compileStatements(input, Main::compileRootSegment);
 	}*/
 	/*private static String compileStatements(String input, Function<String, String> mapper) {
-		return divide(input).map(mapper).collect(Collectors.joining());
+		return divide(input).map(mapper).collect(new Joiner()).orElse("");
 	}*/
 	/*private static String compileRootSegment(String input) {
 		final String strip = input.strip();
@@ -96,17 +197,14 @@
 	private static String compileDefinition(String input) {
 		final*/strip : /*String*/ = /* input.strip()*/;
 		/*final*/i : /*int*/ = /* strip.lastIndexOf(" ")*/;
-		/*if (i >= 0) {
-			final String beforeName = strip.substring(0, i);
-			final String name = strip.substring(i + " ".length());
-			final int i1 = beforeName.lastIndexOf(" ");
-			if (i1 >= 0) {
-				final String beforeType = beforeName.substring(0, i1);
-				final String type = beforeName.substring(i1 + " ".length());
-				return wrap(beforeType) + name + " : " + wrap(type);
-			}
-		}*/
-		/*return wrap(strip);*/
+		/*if (i < 0) return wrap(strip);*/
+		/*final*/beforeName : /*String*/ = /* strip.substring(0, i)*/;
+		/*final*/name : /*String*/ = /* strip.substring(i + " ".length())*/;
+		/*final*/i1 : /*int*/ = /* beforeName.lastIndexOf(" ")*/;
+		/*if (i1 < 0) return wrap(strip);*/
+		/*final*/beforeType : /*String*/ = /* beforeName.substring(0, i1)*/;
+		/*final*/type : /*String*/ = /* beforeName.substring(i1 + " ".length())*/;
+		/*return wrap(beforeType) + name + " : " + wrap(type);*/
 		/*}
 
 	private static Stream<String> divide(String input)*/current : /*{

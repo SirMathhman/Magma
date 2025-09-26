@@ -84,7 +84,7 @@ public class Main {
 
 		@Override
 		public List<T> add(T element) {
-			return set(array.length, element);
+			return set(size, element);
 		}
 
 		private List<T> set(int index, T element) {
