@@ -1,5 +1,9 @@
 package magma;
 
+import magma.api.Option;
+import magma.api.Result;
+import magma.api.Tuple;
+import magma.compile.CompileError;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -227,17 +231,17 @@ public class CompilerTest {
 
 	private void assertInvalid(String program) {
 		String fullProgram = DECL + program;
-		var res = Runner.run(fullProgram, "");
+		Result<Tuple<String, Integer>, RunError> res = Runner.run(fullProgram, "");
 		switch (res) {
-			case Result.Ok(var value) -> fail("Expected an error but got Ok: " + value);
-			case Result.Err(var error) -> {
-				var causeOpt = error.getCause();
+			case Result.Ok(Tuple<String, Integer> value) -> fail("Expected an error but got Ok: " + value);
+			case Result.Err(RunError error) -> {
+				Option<MagmaError> causeOpt = error.getCause();
 				switch (causeOpt) {
-					case Option.Ok(var cause) -> {
+					case Option.Some(MagmaError cause) -> {
 						if (!(cause instanceof CompileError))
-							fail("Expected a CompileError cause but got: " + ((MagmaError) cause).display());
+							fail("Expected a CompileError cause but got: " + cause.display());
 					}
-					case Option.Err() -> fail("Expected a CompileError cause but none was present; RunError=" + error);
+					case Option.None() -> fail("Expected a CompileError cause but none was present; RunError=" + error);
 				}
 			}
 		}
@@ -245,10 +249,10 @@ public class CompilerTest {
 
 	private void assertValid(String program, String input, Tuple<String, Integer> expected) {
 		String fullProgram = DECL + program;
-		var res = Runner.run(fullProgram, input);
+		Result<Tuple<String, Integer>, RunError> res = Runner.run(fullProgram, input);
 		switch (res) {
-			case Result.Ok(var value) -> assertEquals(expected, value);
-			case Result.Err(var error) -> fail(error.toString());
+			case Result.Ok(Tuple<String, Integer> value) -> assertEquals(expected, value);
+			case Result.Err(RunError error) -> fail(error.toString());
 		}
 	}
 }

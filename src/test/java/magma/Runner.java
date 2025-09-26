@@ -1,5 +1,19 @@
 package magma;
 
+import magma.api.Result;
+import magma.api.ThrowableError;
+import magma.api.Tuple;
+import magma.compile.CompileError;
+import magma.compile.Compiler;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Test helper runner stub.
  */
@@ -16,20 +30,18 @@ public class Runner {
 	 */
 	public static Result<Tuple<String, Integer>, RunError> run(String source, String stdIn) {
 		Compiler compiler = new Compiler();
-		var result = compiler.compile(source);
-		if (result instanceof Result.Ok<String, CompileError> ok) {
-			String stdout = ok.value();
+		Result<String, CompileError> result = compiler.compile(source);
+		if (result instanceof Result.Ok<String, CompileError>(String value)) {
 			try {
-				java.nio.file.Path dir = java.nio.file.Files.createTempDirectory("magma-run-");
-				java.nio.file.Path file = dir.resolve("main.c");
-				java.nio.file.Files.writeString(file, stdout, java.nio.charset.StandardCharsets.UTF_8);
+				Path dir = Files.createTempDirectory("magma-run-");
+				Path file = dir.resolve("main.c");
+				Files.writeString(file, value, StandardCharsets.UTF_8);
 				// Build using clang; always produce main.exe in the temp directory
 				String exeName = "main.exe";
-				java.util.List<String> cmd = java.util.Arrays.asList("clang", file.getFileName().toString(), "-o", exeName);
+				List<String> cmd = Arrays.asList("clang", file.getFileName().toString(), "-o", exeName);
 				ProcessBuilder pb = new ProcessBuilder(cmd).directory(dir.toFile()).redirectErrorStream(true);
 				Process compileProc = pb.start();
-				String compileOutput = new String(compileProc.getInputStream().readAllBytes(),
-						java.nio.charset.StandardCharsets.UTF_8);
+				String compileOutput = new String(compileProc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 				int compileExit = compileProc.waitFor();
 				if (compileExit != 0) {
 					// Temporarily print the compiler output to stderr to help diagnose
@@ -39,36 +51,34 @@ public class Runner {
 					System.err.println(compileOutput);
 					System.err.println("--- end clang output ---");
 					// Attach the compile output as a cause so callers can inspect it
-					return Result.err(new RunError(compileOutput,
-							new ThrowableError(new RuntimeException(compileOutput))));
+					return Result.err(new RunError(compileOutput, new ThrowableError(new RuntimeException(compileOutput))));
 				}
 
 				// Run the produced executable by absolute path so the file sits in the temp dir
 				String exePath = dir.resolve(exeName).toAbsolutePath().toString();
-				ProcessBuilder runPb = new ProcessBuilder(java.util.Arrays.asList(exePath)).directory(dir.toFile())
-						.redirectErrorStream(true);
+				ProcessBuilder runPb = new ProcessBuilder(List.of(exePath)).directory(dir.toFile()).redirectErrorStream(true);
 				Process runProc = runPb.start();
 				// write stdIn to the process stdin
-				if (stdIn instanceof String && !stdIn.isEmpty()) {
-					try (java.io.OutputStream os = runProc.getOutputStream()) {
-						os.write(stdIn.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+				if (!stdIn.isEmpty()) {
+					try (OutputStream os = runProc.getOutputStream()) {
+						os.write(stdIn.getBytes(StandardCharsets.UTF_8));
 						os.flush();
 					}
 				} else {
 					runProc.getOutputStream().close();
 				}
-				String runOutput = new String(runProc.getInputStream().readAllBytes(), java.nio.charset.StandardCharsets.UTF_8);
+				String runOutput = new String(runProc.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
 				int runExit = runProc.waitFor();
 				return Result.ok(Tuple.of(runOutput, runExit));
-			} catch (java.io.IOException e) {
+			} catch (IOException e) {
 				return Result.err(new RunError("IO error writing temp file: " + e.getMessage(), new ThrowableError(e)));
 			} catch (InterruptedException e) {
 				Thread.currentThread().interrupt();
 				return Result.err(new RunError("Interrupted: " + e.getMessage(), new ThrowableError(e)));
 			}
-		} else if (result instanceof Result.Err<String, CompileError> err) {
+		} else if (result instanceof Result.Err<String, CompileError>(CompileError error)) {
 			// Preserve the CompileError as the cause instead of inlining its message
-			return Result.err(new RunError("Compilation failed", err.error()));
+			return Result.err(new RunError("Compilation failed", error));
 		} else {
 			return Result.err(new RunError("unknown"));
 		}

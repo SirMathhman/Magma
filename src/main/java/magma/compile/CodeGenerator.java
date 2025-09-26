@@ -1,4 +1,4 @@
-package magma.compiler;
+package magma.compile;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -6,12 +6,11 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.Option;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
 
-import magma.Option;
-import magma.compiler.ast.Ast;
+import magma.compile.ast.Ast;
 
 public final class CodeGenerator {
 	private SemanticAnalyzer.AnalysisResult analysis;
@@ -142,7 +141,7 @@ public final class CodeGenerator {
 
 		emitStatements(analysis.program().statements());
 
-		if (analysis.finalExpression().isPresent()) {
+		if (analysis.finalExpression() instanceof magma.api.Option.Some<Ast.Expression>) {
 			ExpressionResult result = emitExpression(analysis.finalExpression().get());
 			result.emitPrefix();
 			builder.appendLine("exit(" + valueForType(result) + ");");
@@ -173,10 +172,10 @@ public final class CodeGenerator {
 			emitIncrement(increment);
 		} else if (statement instanceof Ast.WhileStatement whileStmt) {
 			emitWhile(whileStmt);
-		} else if (statement instanceof Ast.BlockStatement blockStatement) {
-			emitBlock(blockStatement.block());
-		} else if (statement instanceof Ast.ExpressionStatement expressionStatement) {
-			emitExpressionStatement(expressionStatement.expression());
+		} else if (statement instanceof Ast.BlockStatement(Ast.Block block)) {
+			emitBlock(block);
+		} else if (statement instanceof Ast.ExpressionStatement(Ast.Expression expression)) {
+			emitExpressionStatement(expression);
 		} else if (statement instanceof Ast.ReturnStatement returnStatement) {
 			emitReturn(returnStatement);
 		}
@@ -199,7 +198,7 @@ public final class CodeGenerator {
 	}
 
 	private void emitAssignment(Ast.AssignmentStatement assignment) {
-		Optional<VariableSymbol> symbolOpt = resolveForEmission(assignment.name());
+		Option<VariableSymbol> symbolOpt = resolveForEmission(assignment.name());
 		if (symbolOpt.isEmpty()) {
 			return;
 		}
@@ -215,7 +214,7 @@ public final class CodeGenerator {
 	}
 
 	private void emitIncrement(Ast.IncrementStatement increment) {
-		Optional<VariableSymbol> symbolOpt = resolveForEmission(increment.name());
+		Option<VariableSymbol> symbolOpt = resolveForEmission(increment.name());
 		if (symbolOpt.isEmpty()) {
 			return;
 		}
@@ -229,8 +228,8 @@ public final class CodeGenerator {
 		builder.appendLine("while (" + condValue(condition) + ") {");
 		builder.increaseIndent();
 		pushScope(new LinkedHashMap<>());
-		if (whileStmt.body() instanceof Ast.BlockStatement blockStatement) {
-			emitBlock(blockStatement.block());
+		if (whileStmt.body() instanceof Ast.BlockStatement(Ast.Block block)) {
+			emitBlock(block);
 		} else {
 			emitStatement(whileStmt.body());
 		}
@@ -250,7 +249,7 @@ public final class CodeGenerator {
 	}
 
 	private void emitReturn(Ast.ReturnStatement returnStatement) {
-		if (returnStatement.expression().isPresent()) {
+		if (returnStatement.expression() instanceof magma.api.Option.Some<Ast.Expression>) {
 			ExpressionResult expr = emitExpression(returnStatement.expression().get());
 			expr.emitPrefix();
 			builder.appendLine("return " + valueForType(expr) + ";");
@@ -264,59 +263,62 @@ public final class CodeGenerator {
 		List<Runnable> prefix = new ArrayList<>();
 		String expressionText;
 
-		if (expression instanceof Ast.LiteralIntExpression literalInt) {
-			expressionText = Integer.toString(literalInt.value());
-		} else if (expression instanceof Ast.LiteralBoolExpression literalBool) {
-			expressionText = literalBool.value() ? "1" : "0";
-		} else if (expression instanceof Ast.IdentifierExpression identifier) {
-			if (analysis.identifierBindings().containsKey(identifier)) {
-				VariableSymbol symbol = analysis.identifierBindings().get(identifier);
-				expressionText = symbol.cName();
-			} else {
-				expressionText = identifier.name();
+		switch (expression) {
+			case Ast.LiteralIntExpression literalInt -> expressionText = Integer.toString(literalInt.value());
+			case Ast.LiteralBoolExpression literalBool -> expressionText = literalBool.value() ? "1" : "0";
+			case Ast.IdentifierExpression identifier -> {
+				if (analysis.identifierBindings().containsKey(identifier)) {
+					VariableSymbol symbol = analysis.identifierBindings().get(identifier);
+					expressionText = symbol.cName();
+				} else {
+					expressionText = identifier.name();
+				}
 			}
-		} else if (expression instanceof Ast.UnaryExpression unary) {
-			ExpressionResult operand = emitExpression(unary.expression());
-			prefix.addAll(operand.prefix);
-			expressionText = "(-(" + operand.expression + "))";
-		} else if (expression instanceof Ast.BinaryExpression binary) {
-			ExpressionResult left = emitExpression(binary.left());
-			ExpressionResult right = emitExpression(binary.right());
-			prefix.addAll(left.prefix);
-			prefix.addAll(right.prefix);
-			expressionText = emitBinaryExpression(binary.operator(), left.expression, right.expression, left.type,
-					right.type);
-		} else if (expression instanceof Ast.CallExpression call) {
-			List<ExpressionResult> args = new ArrayList<>();
-			for (Ast.Expression argExpr : call.arguments()) {
-				ExpressionResult arg = emitExpression(argExpr);
-				prefix.addAll(arg.prefix);
-				args.add(arg);
+			case Ast.UnaryExpression unary -> {
+				ExpressionResult operand = emitExpression(unary.expression());
+				prefix.addAll(operand.prefix);
+				expressionText = "(-(" + operand.expression + "))";
 			}
-			StringJoiner joiner = new StringJoiner(", ");
-			for (ExpressionResult arg : args) {
-				joiner.add(valueForType(arg));
+			case Ast.BinaryExpression binary -> {
+				ExpressionResult left = emitExpression(binary.left());
+				ExpressionResult right = emitExpression(binary.right());
+				prefix.addAll(left.prefix);
+				prefix.addAll(right.prefix);
+				expressionText =
+						emitBinaryExpression(binary.operator(), left.expression, right.expression);
 			}
-			String calleeName;
-			if (analysis.functions().containsKey(call.callee())) {
-				calleeName = analysis.functions().get(call.callee()).cName();
-			} else {
-				calleeName = call.callee();
+			case Ast.CallExpression call -> {
+				List<ExpressionResult> args = new ArrayList<>();
+				for (Ast.Expression argExpr : call.arguments()) {
+					ExpressionResult arg = emitExpression(argExpr);
+					prefix.addAll(arg.prefix);
+					args.add(arg);
+				}
+				StringJoiner joiner = new StringJoiner(", ");
+				for (ExpressionResult arg : args) {
+					joiner.add(valueForType(arg));
+				}
+				String calleeName;
+				if (analysis.functions().containsKey(call.callee())) {
+					calleeName = analysis.functions().get(call.callee()).cName();
+				} else {
+					calleeName = call.callee();
+				}
+				expressionText = calleeName + "(" + joiner + ")";
 			}
-			expressionText = calleeName + "(" + joiner + ")";
-		} else if (expression instanceof Ast.IfExpression ifExpression) {
-			ExpressionResult cond = emitExpression(ifExpression.condition());
-			ExpressionResult thenExpr = emitExpression(ifExpression.thenBranch());
-			ExpressionResult elseExpr = emitExpression(ifExpression.elseBranch());
-			prefix.addAll(cond.prefix);
-			prefix.addAll(thenExpr.prefix);
-			prefix.addAll(elseExpr.prefix);
-			expressionText = "((" + condValue(cond) + ") ? (" + valueForType(thenExpr) + ") : (" + valueForType(elseExpr)
-					+ "))";
-		} else if (expression instanceof Ast.BlockExpression blockExpression) {
-			expressionText = emitBlockExpression(blockExpression.block(), type, prefix);
-		} else {
-			expressionText = "0";
+			case Ast.IfExpression ifExpression -> {
+				ExpressionResult cond = emitExpression(ifExpression.condition());
+				ExpressionResult thenExpr = emitExpression(ifExpression.thenBranch());
+				ExpressionResult elseExpr = emitExpression(ifExpression.elseBranch());
+				prefix.addAll(cond.prefix);
+				prefix.addAll(thenExpr.prefix);
+				prefix.addAll(elseExpr.prefix);
+				expressionText =
+						"((" + condValue(cond) + ") ? (" + valueForType(thenExpr) + ") : (" + valueForType(elseExpr) + "))";
+			}
+			case Ast.BlockExpression blockExpression ->
+					expressionText = emitBlockExpression(blockExpression.block(), type, prefix);
+			case null, default -> expressionText = "0";
 		}
 
 		return new ExpressionResult(prefix, expressionText, type);
@@ -346,8 +348,7 @@ public final class CodeGenerator {
 		builder.appendLine("}");
 	}
 
-	private String emitBinaryExpression(Ast.BinaryOperator operator, String left, String right, Type leftType,
-			Type rightType) {
+	private String emitBinaryExpression(Ast.BinaryOperator operator, String left, String right) {
 		return switch (operator) {
 			case ADD -> "((" + left + ") + (" + right + "))";
 			case SUBTRACT -> "((" + left + ") - (" + right + "))";
@@ -360,21 +361,21 @@ public final class CodeGenerator {
 	private Option<VariableSymbol> lookupVariable(String name) {
 		for (Map<String, VariableSymbol> scope : scopeStack) {
 			if (scope.containsKey(name)) {
-				return Option.ok(scope.get(name));
+				return Option.some(scope.get(name));
 			}
 		}
 		if (analysis.globalVariables().containsKey(name)) {
-			return Option.ok(analysis.globalVariables().get(name));
+			return Option.some(analysis.globalVariables().get(name));
 		}
-		return Option.err();
+		return Option.none();
 	}
 
-	private Optional<VariableSymbol> resolveForEmission(String name) {
+	private Option<VariableSymbol> resolveForEmission(String name) {
 		Option<VariableSymbol> resolved = lookupVariable(name);
-		if (resolved instanceof Option.Ok<VariableSymbol> ok) {
-			return Optional.of(ok.value());
+		if (resolved instanceof Option.Some<VariableSymbol> some) {
+			return Option.of(some.value());
 		}
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private Map<String, VariableSymbol> currentScope() {
@@ -461,21 +462,12 @@ public final class CodeGenerator {
 		}
 	}
 
-	private static final class ExpressionResult {
-		final List<Runnable> prefix;
-		final String expression;
-		final Type type;
-
-		ExpressionResult(List<Runnable> prefix, String expression, Type type) {
-			this.prefix = prefix;
-			this.expression = expression;
-			this.type = type;
-		}
+	private record ExpressionResult(List<Runnable> prefix, String expression, Type type) {
 
 		void emitPrefix() {
-			for (Runnable runnable : prefix) {
-				runnable.run();
+				for (Runnable runnable : prefix) {
+					runnable.run();
+				}
 			}
 		}
-	}
 }

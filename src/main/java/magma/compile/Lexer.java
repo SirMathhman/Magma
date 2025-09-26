@@ -1,4 +1,4 @@
-package magma.compiler;
+package magma.compile;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,25 +73,29 @@ public final class Lexer {
     }
 
     private boolean handleOperatorToken(char c) {
-        switch (c) {
-            case '+':
-                handlePlusToken();
-                return true;
-            case '-':
-                handleMinusToken();
-                return true;
-            case '*':
-                handleStarToken();
-                return true;
-            case '/':
-                handleSlashToken();
-                return true;
-            case '=':
-                handleEqualToken();
-                return true;
-            default:
-                return false;
-        }
+			return switch (c) {
+				case '+' -> {
+					handlePlusToken();
+					yield true;
+				}
+				case '-' -> {
+					handleMinusToken();
+					yield true;
+				}
+				case '*' -> {
+					handleStarToken();
+					yield true;
+				}
+				case '/' -> {
+					handleSlashToken();
+					yield true;
+				}
+				case '=' -> {
+					handleEqualToken();
+					yield true;
+				}
+				default -> false;
+			};
     }
 
     private void handlePlusToken() {

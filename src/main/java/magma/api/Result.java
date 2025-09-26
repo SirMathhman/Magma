@@ -1,4 +1,4 @@
-package magma;
+package magma.api;
 
 /**
  * Lightweight Result type: either Ok(value) or Err(error).

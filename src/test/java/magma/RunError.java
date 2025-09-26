@@ -1,8 +1,11 @@
 package magma;
 
+import magma.api.MagmaError;
+import magma.api.Option;
+
 /**
  * Simple wrapper for errors produced during test runs (compile or execution).
- * Optionally carries a cause which is another MagmaError.
+ * Optionly carries a cause which is another MagmaError.
  */
 public final class RunError implements MagmaError {
 	private final String message;
@@ -10,12 +13,12 @@ public final class RunError implements MagmaError {
 
 	public RunError(String message) {
 		this.message = message;
-		this.cause = Option.err();
+		this.cause = Option.empty();
 	}
 
 	public RunError(String message, MagmaError cause) {
 		this.message = message;
-		this.cause = Option.ok(cause);
+		this.cause = Option.of(cause);
 	}
 
 	public Option<MagmaError> getCause() {
@@ -24,9 +27,8 @@ public final class RunError implements MagmaError {
 
 	@Override
 	public String display() {
-		if (cause instanceof Option.Ok<MagmaError> ok) {
-			MagmaError c = ok.value();
-			return message + " (cause: " + c.display() + ")";
+		if (cause instanceof Option.Some<MagmaError>(MagmaError value)) {
+			return message + " (cause: " + value.display() + ")";
 		}
 		return message;
 	}

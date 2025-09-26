@@ -1,4 +1,7 @@
-package magma.compiler;
+package magma.compile;
+
+import magma.api.Option;
+import magma.compile.ast.Ast;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -7,22 +10,14 @@ import java.util.IdentityHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
-
-import magma.compiler.ast.Ast;
-import magma.Option;
 
 public final class SemanticAnalyzer {
-	public record AnalysisResult(Ast.Program program,
-			IdentityHashMap<Ast.Expression, Type> expressionTypes,
-			IdentityHashMap<Ast.IdentifierExpression, VariableSymbol> identifierBindings,
-			IdentityHashMap<Ast.LetStatement, VariableSymbol> letBindings,
-			LinkedHashMap<String, VariableSymbol> globalVariables,
-			LinkedHashMap<String, FunctionSymbol> functions,
-			Type finalType,
-			Optional<Ast.Expression> finalExpression,
-			List<String> errors) {
-	}
+	public record AnalysisResult(Ast.Program program, IdentityHashMap<Ast.Expression, Type> expressionTypes,
+															 IdentityHashMap<Ast.IdentifierExpression, VariableSymbol> identifierBindings,
+															 IdentityHashMap<Ast.LetStatement, VariableSymbol> letBindings,
+															 LinkedHashMap<String, VariableSymbol> globalVariables,
+															 LinkedHashMap<String, FunctionSymbol> functions, Type finalType,
+															 Option<Ast.Expression> finalExpression, List<String> errors) {}
 
 	private static final class State {
 		final Ast.Program program;
@@ -57,41 +52,34 @@ public final class SemanticAnalyzer {
 		boolean inGlobalScope() {
 			return scopes.size() == 1;
 		}
+	}
+
+	public AnalysisResult analyze(Ast.Program program) {
+		State state = new State(program);
+		registerIntrinsics(state);
+		registerFunctionSignatures(state);
+
+		state.pushScope(); // global scope
+		for (Ast.Statement statement : program.statements()) {
+			analyzeStatement(statement, state);
+		}
+		Type finalType = Type.I32;
+		Option<Ast.Expression> finalExpr = program.finalExpression();
+		if (finalExpr instanceof Option.Some<Ast.Expression>) {
+			finalType = analyzeExpression(finalExpr.get(), state);
+			if (finalType == Type.VOID) {
+				state.errors.add("Final expression cannot be void");
+				finalType = Type.I32;
+			}
 		}
 
-		public AnalysisResult analyze(Ast.Program program) {
-			State state = new State(program);
-			registerIntrinsics(state);
-			registerFunctionSignatures(state);
+		analyzeFunctionBodies(state);
 
-			state.pushScope(); // global scope
-			for (Ast.Statement statement : program.statements()) {
-				analyzeStatement(statement, state);
-			}
-			Type finalType = Type.I32;
-			Optional<Ast.Expression> finalExpr = program.finalExpression();
-			if (finalExpr.isPresent()) {
-				finalType = analyzeExpression(finalExpr.get(), state);
-				if (finalType == Type.VOID) {
-					state.errors.add("Final expression cannot be void");
-					finalType = Type.I32;
-				}
-			}
+		state.popScope();
 
-			analyzeFunctionBodies(state);
-
-			state.popScope();
-
-			return new AnalysisResult(program,
-					state.expressionTypes,
-					state.identifierBindings,
-					state.letBindings,
-					state.globalVariables,
-					state.functions,
-					finalType,
-					finalExpr,
-					state.errors);
-		}
+		return new AnalysisResult(program, state.expressionTypes, state.identifierBindings, state.letBindings,
+															state.globalVariables, state.functions, finalType, finalExpr, state.errors);
+	}
 
 	private void registerIntrinsics(State state) {
 		for (Ast.IntrinsicDecl decl : state.program.intrinsics()) {
@@ -105,7 +93,8 @@ public final class SemanticAnalyzer {
 				paramNames.add("arg" + i);
 			}
 			String cName = intrinsicCName(decl.name());
-			FunctionSymbol symbol = new FunctionSymbol(decl.name(), params, paramNames, returnType, true, Optional.empty(), cName);
+			FunctionSymbol symbol =
+					new FunctionSymbol(decl.name(), params, paramNames, returnType, true, Option.empty(), cName);
 			if (state.functions.containsKey(decl.name())) {
 				state.errors.add("Duplicate intrinsic declaration for function '" + decl.name() + "'");
 			} else {
@@ -133,10 +122,10 @@ public final class SemanticAnalyzer {
 				parameterTypes.add(paramType);
 				parameterNames.add(parameter.name());
 			}
-			Type returnType = function.returnType().map(typeRef -> resolveTypeRef(typeRef, true, state))
-					.orElse(Type.I32);
-			FunctionSymbol symbol = new FunctionSymbol(function.name(), parameterTypes, parameterNames, returnType, false,
-					Optional.of(function), function.name());
+			Type returnType = function.returnType().map(typeRef -> resolveTypeRef(typeRef, true, state)).orElse(Type.I32);
+			FunctionSymbol symbol =
+					new FunctionSymbol(function.name(), parameterTypes, parameterNames, returnType, false, Option.of(function),
+														 function.name());
 			state.functions.put(function.name(), symbol);
 		}
 	}
@@ -150,7 +139,7 @@ public final class SemanticAnalyzer {
 	}
 
 	private void analyzeFunction(FunctionSymbol symbol, State state) {
-		Optional<Ast.FunctionDecl> declarationOpt = symbol.declaration();
+		Option<Ast.FunctionDecl> declarationOpt = symbol.declaration();
 		if (declarationOpt.isEmpty()) {
 			return;
 		}
@@ -168,17 +157,18 @@ public final class SemanticAnalyzer {
 			state.currentScope().put(paramName, variableSymbol);
 		}
 		analyzeBlock(declaration.body(), state);
-		Optional<Ast.Expression> finalExpr = declaration.body().result();
+		Option<Ast.Expression> finalExpr = declaration.body().result();
 		if (symbol.returnType() == Type.VOID) {
-			if (finalExpr.isPresent()) {
+			if (finalExpr instanceof Option.Some<Ast.Expression>) {
 				state.errors.add("Void function '" + symbol.name() + "' cannot have a final expression");
 			}
 		} else {
-			if (finalExpr.isPresent()) {
+			if (finalExpr instanceof Option.Some<Ast.Expression>) {
 				Type resultType = state.expressionTypes.getOrDefault(finalExpr.get(), Type.I32);
 				if (resultType != symbol.returnType()) {
-					state.errors.add("Function '" + symbol.name() + "' final expression has type " + resultType
-							+ " but expected " + symbol.returnType());
+					state.errors.add(
+							"Function '" + symbol.name() + "' final expression has type " + resultType + " but expected " +
+							symbol.returnType());
 				}
 			} else if (!state.functionSawReturn) {
 				state.errors.add("Function '" + symbol.name() + "' must return a value");
@@ -203,10 +193,10 @@ public final class SemanticAnalyzer {
 			analyzeIncrement(inc, state);
 		} else if (statement instanceof Ast.WhileStatement whileStmt) {
 			analyzeWhile(whileStmt, state);
-		} else if (statement instanceof Ast.BlockStatement blockStatement) {
-			analyzeBlock(blockStatement.block(), state);
-		} else if (statement instanceof Ast.ExpressionStatement expressionStatement) {
-			analyzeExpression(expressionStatement.expression(), state);
+		} else if (statement instanceof Ast.BlockStatement(Ast.Block block)) {
+			analyzeBlock(block, state);
+		} else if (statement instanceof Ast.ExpressionStatement(Ast.Expression expression)) {
+			analyzeExpression(expression, state);
 		} else if (statement instanceof Ast.ReturnStatement returnStatement) {
 			analyzeReturn(returnStatement, state);
 		}
@@ -217,15 +207,16 @@ public final class SemanticAnalyzer {
 			state.errors.add("Variable '" + let.name() + "' is already defined in this scope");
 		}
 		Type initializerType = analyzeExpression(let.initializer(), state);
-		Type declaredType = let.typeAnnotation().map(typeRef -> resolveTypeRef(typeRef, false, state))
-				.orElse(initializerType);
+		Type declaredType =
+				let.typeAnnotation().map(typeRef -> resolveTypeRef(typeRef, false, state)).orElse(initializerType);
 		if (declaredType == Type.VOID) {
 			state.errors.add("Variable '" + let.name() + "' cannot have type Void");
 			declaredType = Type.I32;
 		}
 		if (initializerType != declaredType) {
-			state.errors.add("Type mismatch: cannot assign " + initializerType + " to variable '" + let.name() + "' of type "
-					+ declaredType);
+			state.errors.add(
+					"Type mismatch: cannot assign " + initializerType + " to variable '" + let.name() + "' of type " +
+					declaredType);
 		}
 		boolean global = state.inGlobalScope();
 		String cName = global ? generateGlobalName(let.name(), state) : let.name();
@@ -242,14 +233,14 @@ public final class SemanticAnalyzer {
 	}
 
 	private void analyzeAssignment(Ast.AssignmentStatement assignment, State state) {
-		Optional<VariableSymbol> symbolOpt = variableOrReport(assignment.name(), state,
-				"Unknown variable '" + assignment.name() + "'");
+		Option<VariableSymbol> symbolOpt =
+				variableOrReport(assignment.name(), state, "Unknown variable '" + assignment.name() + "'");
 		if (symbolOpt.isEmpty()) {
 			analyzeExpression(assignment.expression(), state);
 			return;
 		}
 		VariableSymbol symbol = symbolOpt.get();
-		if (!symbol.mutable()) {
+		if (symbol.isImmutable()) {
 			state.errors.add("Cannot assign to immutable variable '" + assignment.name() + "'");
 		}
 		Type expressionType = analyzeExpression(assignment.expression(), state);
@@ -260,7 +251,7 @@ public final class SemanticAnalyzer {
 				}
 			}
 			case PLUS_ASSIGN, MINUS_ASSIGN, STAR_ASSIGN, SLASH_ASSIGN -> {
-				if (!symbol.type().isNumeric() || !expressionType.isNumeric()) {
+				if (symbol.type().isNonNumeric() || expressionType.isNonNumeric()) {
 					state.errors.add("Compound assignment requires numeric types for '" + assignment.name() + "'");
 				}
 			}
@@ -268,23 +259,22 @@ public final class SemanticAnalyzer {
 	}
 
 	private void analyzeIncrement(Ast.IncrementStatement inc, State state) {
-		Optional<VariableSymbol> symbolOpt = variableOrReport(inc.name(), state,
-				"Unknown variable '" + inc.name() + "'");
+		Option<VariableSymbol> symbolOpt = variableOrReport(inc.name(), state, "Unknown variable '" + inc.name() + "'");
 		if (symbolOpt.isEmpty()) {
 			return;
 		}
 		VariableSymbol symbol = symbolOpt.get();
-		if (!symbol.mutable()) {
+		if (symbol.isImmutable()) {
 			state.errors.add("Cannot increment immutable variable '" + inc.name() + "'");
 		}
-		if (!symbol.type().isNumeric()) {
+		if (symbol.type().isNonNumeric()) {
 			state.errors.add("Increment requires numeric variable for '" + inc.name() + "'");
 		}
 	}
 
 	private void analyzeWhile(Ast.WhileStatement whileStmt, State state) {
 		Type condType = analyzeExpression(whileStmt.condition(), state);
-		if (!condType.isBoolean()) {
+		if (condType.isNonBoolean()) {
 			state.errors.add("While condition must be boolean");
 		}
 		analyzeStatement(whileStmt.body(), state);
@@ -296,7 +286,7 @@ public final class SemanticAnalyzer {
 			return;
 		}
 		state.functionSawReturn = true;
-		if (returnStatement.expression().isPresent()) {
+		if (returnStatement.expression() instanceof Option.Some<Ast.Expression>) {
 			Type exprType = analyzeExpression(returnStatement.expression().get(), state);
 			if (state.currentReturnType == Type.VOID) {
 				state.errors.add("Void function cannot return a value");
@@ -312,47 +302,46 @@ public final class SemanticAnalyzer {
 
 	private Type analyzeExpression(Ast.Expression expression, State state) {
 		Type type;
-		if (expression instanceof Ast.LiteralIntExpression) {
-			type = Type.I32;
-		} else if (expression instanceof Ast.LiteralBoolExpression) {
-			type = Type.BOOL;
-		} else if (expression instanceof Ast.IdentifierExpression identifier) {
-			Optional<VariableSymbol> symbolOpt = variableOrReport(identifier.name(), state,
-					"Unknown variable '" + identifier.name() + "'");
-			if (symbolOpt.isEmpty()) {
+		switch (expression) {
+			case Ast.LiteralBoolExpression _ -> type = Type.BOOL;
+			case Ast.IdentifierExpression identifier -> {
+				Option<VariableSymbol> symbolOpt =
+						variableOrReport(identifier.name(), state, "Unknown variable '" + identifier.name() + "'");
+				if (symbolOpt.isEmpty()) {
+					type = Type.I32;
+				} else {
+					VariableSymbol symbol = symbolOpt.get();
+					state.identifierBindings.put(identifier, symbol);
+					type = symbol.type();
+				}
+			}
+			case Ast.UnaryExpression unary -> {
+				Type operand = analyzeExpression(unary.expression(), state);
+				if (operand.isNonNumeric()) {
+					state.errors.add("Unary '-' requires numeric operand");
+				}
 				type = Type.I32;
-			} else {
-				VariableSymbol symbol = symbolOpt.get();
-				state.identifierBindings.put(identifier, symbol);
-				type = symbol.type();
 			}
-		} else if (expression instanceof Ast.UnaryExpression unary) {
-			Type operand = analyzeExpression(unary.expression(), state);
-			if (!operand.isNumeric()) {
-				state.errors.add("Unary '-' requires numeric operand");
+			case Ast.BinaryExpression binary -> {
+				Type left = analyzeExpression(binary.left(), state);
+				Type right = analyzeExpression(binary.right(), state);
+				type = analyzeBinary(binary, left, right, state);
 			}
-			type = Type.I32;
-		} else if (expression instanceof Ast.BinaryExpression binary) {
-			Type left = analyzeExpression(binary.left(), state);
-			Type right = analyzeExpression(binary.right(), state);
-			type = analyzeBinary(binary, left, right, state);
-		} else if (expression instanceof Ast.CallExpression call) {
-			type = analyzeCall(call, state);
-		} else if (expression instanceof Ast.IfExpression ifExpr) {
-			Type condType = analyzeExpression(ifExpr.condition(), state);
-			if (!condType.isBoolean()) {
-				state.errors.add("If condition must be boolean");
+			case Ast.CallExpression call -> type = analyzeCall(call, state);
+			case Ast.IfExpression ifExpr -> {
+				Type condType = analyzeExpression(ifExpr.condition(), state);
+				if (condType.isNonBoolean()) {
+					state.errors.add("If condition must be boolean");
+				}
+				Type thenType = analyzeExpression(ifExpr.thenBranch(), state);
+				Type elseType = analyzeExpression(ifExpr.elseBranch(), state);
+				if (thenType != elseType) {
+					state.errors.add("If branches must have the same type");
+				}
+				type = thenType;
 			}
-			Type thenType = analyzeExpression(ifExpr.thenBranch(), state);
-			Type elseType = analyzeExpression(ifExpr.elseBranch(), state);
-			if (thenType != elseType) {
-				state.errors.add("If branches must have the same type");
-			}
-			type = thenType;
-		} else if (expression instanceof Ast.BlockExpression blockExpression) {
-			type = analyzeBlockExpression(blockExpression.block(), state);
-		} else {
-			type = Type.I32;
+			case Ast.BlockExpression blockExpression -> type = analyzeBlockExpression(blockExpression.block(), state);
+			case null, default -> type = Type.I32;
 		}
 		state.expressionTypes.put(expression, type);
 		return type;
@@ -368,7 +357,7 @@ public final class SemanticAnalyzer {
 			analyzeStatement(statement, state);
 		}
 		Type resultType = Type.VOID;
-		if (block.result().isPresent()) {
+		if (block.result() instanceof Option.Some<Ast.Expression>) {
 			resultType = analyzeExpression(block.result().get(), state);
 		} else if (requireResult) {
 			state.errors.add("Block expression requires a final expression");
@@ -387,15 +376,17 @@ public final class SemanticAnalyzer {
 		}
 		FunctionSymbol symbol = state.functions.get(call.callee());
 		if (symbol.parameterTypes().size() != call.arguments().size()) {
-			state.errors.add("Function '" + call.callee() + "' expects " + symbol.parameterTypes().size()
-					+ " arguments but got " + call.arguments().size());
+			state.errors.add(
+					"Function '" + call.callee() + "' expects " + symbol.parameterTypes().size() + " arguments but got " +
+					call.arguments().size());
 		}
 		int limit = Math.min(symbol.parameterTypes().size(), call.arguments().size());
 		for (int i = 0; i < limit; i++) {
 			Type argType = analyzeExpression(call.arguments().get(i), state);
 			if (argType != symbol.parameterTypes().get(i)) {
-				state.errors.add("Argument " + (i + 1) + " for function '" + call.callee() + "' has type " + argType
-						+ " but expected " + symbol.parameterTypes().get(i));
+				state.errors.add(
+						"Argument " + (i + 1) + " for function '" + call.callee() + "' has type " + argType + " but expected " +
+						symbol.parameterTypes().get(i));
 			}
 		}
 		for (int i = limit; i < call.arguments().size(); i++) {
@@ -407,7 +398,7 @@ public final class SemanticAnalyzer {
 	private Type analyzeBinary(Ast.BinaryExpression binary, Type left, Type right, State state) {
 		return switch (binary.operator()) {
 			case ADD, SUBTRACT, MULTIPLY -> {
-				if (!left.isNumeric() || !right.isNumeric()) {
+				if (left.isNonNumeric() || right.isNonNumeric()) {
 					state.errors.add("Arithmetic operators require numeric operands");
 				}
 				yield Type.I32;
@@ -419,7 +410,7 @@ public final class SemanticAnalyzer {
 				yield Type.BOOL;
 			}
 			case LESS -> {
-				if (!left.isNumeric() || !right.isNumeric()) {
+				if (left.isNonNumeric() || right.isNonNumeric()) {
 					state.errors.add("Comparison '<' requires numeric operands");
 				}
 				yield Type.BOOL;
@@ -430,22 +421,22 @@ public final class SemanticAnalyzer {
 	private Option<VariableSymbol> resolveVariable(String name, State state) {
 		for (Map<String, VariableSymbol> scope : state.scopes) {
 			if (scope.containsKey(name)) {
-				return Option.ok(scope.get(name));
+				return Option.some(scope.get(name));
 			}
 		}
 		if (state.globalVariables.containsKey(name)) {
-			return Option.ok(state.globalVariables.get(name));
+			return Option.some(state.globalVariables.get(name));
 		}
-		return Option.err();
+		return Option.none();
 	}
 
-	private Optional<VariableSymbol> variableOrReport(String name, State state, String errorMessage) {
+	private Option<VariableSymbol> variableOrReport(String name, State state, String errorMessage) {
 		Option<VariableSymbol> resolved = resolveVariable(name, state);
-		if (resolved instanceof Option.Ok<VariableSymbol> ok) {
-			return Optional.of(ok.value());
+		if (resolved instanceof Option.Some<VariableSymbol>(VariableSymbol value)) {
+			return Option.of(value);
 		}
 		state.errors.add(errorMessage);
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private Type resolveTypeRef(Ast.TypeRef typeRef, boolean allowVoid, State state) {

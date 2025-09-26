@@ -1,14 +1,23 @@
-package magma.compiler;
+package magma.compile;
+
+import magma.api.Option;
+import magma.compile.ast.Ast;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
-
-import magma.compiler.ast.Ast;
 
 public final class Parser {
-	public record Result(Ast.Program program, List<String> errors) {
+	public record Result(Ast.Program program, List<String> errors) {}
+
+	private record StatementOrFinal(Option<Ast.Statement> statement, Option<Ast.Expression> finalExpression) {
+		private static StatementOrFinal ofStatement(Ast.Statement statement) {
+			return new StatementOrFinal(Option.of(statement), Option.empty());
+		}
+
+		private static StatementOrFinal ofFinal(Ast.Expression expression) {
+			return new StatementOrFinal(Option.empty(), Option.of(expression));
+		}
 	}
 
 	private final List<Token> tokens;
@@ -23,7 +32,7 @@ public final class Parser {
 		List<Ast.IntrinsicDecl> intrinsics = new ArrayList<>();
 		List<Ast.FunctionDecl> functions = new ArrayList<>();
 		List<Ast.Statement> statements = new ArrayList<>();
-		Optional<Ast.Expression> finalExpression = Optional.empty();
+		Option<Ast.Expression> finalExpression = Option.empty();
 
 		while (!isAtEnd()) {
 			if (match(TokenType.INTRINSIC)) {
@@ -32,8 +41,11 @@ public final class Parser {
 				functions.add(parseFunction());
 			} else {
 				StatementOrFinal sof = parseStatementOrFinal();
-				sof.statement.ifPresent(statements::add);
-				if (sof.finalExpression.isPresent()) {
+				if (sof.statement instanceof Option.Some<Ast.Statement>(Ast.Statement value)) {
+					statements.add(value);
+				}
+
+				if (sof.finalExpression instanceof Option.Some<Ast.Expression>) {
 					finalExpression = sof.finalExpression;
 					if (!check(TokenType.EOF) && !check(TokenType.RIGHT_BRACE)) {
 						error(peek(), "Unexpected tokens after final expression");
@@ -48,7 +60,7 @@ public final class Parser {
 
 	private Ast.IntrinsicDecl parseIntrinsic() {
 		consume(TokenType.FN, "Expected 'fn' after 'intrinsic'");
-		Token ident = consume(TokenType.IDENTIFIER, "Expected intrinsic function name");
+		Token identifier = consume(TokenType.IDENTIFIER, "Expected intrinsic function name");
 		consume(TokenType.LEFT_PAREN, "Expected '(' after intrinsic name");
 		List<Ast.TypeRef> params = new ArrayList<>();
 		if (!check(TokenType.RIGHT_PAREN)) {
@@ -57,12 +69,15 @@ public final class Parser {
 			} while (match(TokenType.COMMA));
 		}
 		consume(TokenType.RIGHT_PAREN, "Expected ')' after intrinsic parameters");
-		Optional<Ast.TypeRef> ret = Optional.empty();
+		Option<Ast.TypeRef> ret = Option.empty();
 		if (match(TokenType.COLON)) {
-			ret = Optional.of(parseTypeRef());
+			ret = Option.of(parseTypeRef());
 		}
 		consume(TokenType.SEMICOLON, "Expected ';' after intrinsic declaration");
-		return new Ast.IntrinsicDecl(ident.lexeme(), ret.orElse(new Ast.TypeRef("Void")), params);
+		return new Ast.IntrinsicDecl(identifier.lexeme(), switch (ret) {
+			case Option.Some(Ast.TypeRef value) -> value;
+			case Option.None() -> new Ast.TypeRef("Void");
+		}, params);
 	}
 
 	private Ast.FunctionDecl parseFunction() {
@@ -76,22 +91,22 @@ public final class Parser {
 		}
 		consume(TokenType.RIGHT_PAREN, "Expected ')' after parameter list");
 
-		Optional<Ast.TypeRef> returnType = Optional.empty();
+		Option<Ast.TypeRef> returnType = Option.empty();
 		if (match(TokenType.COLON)) {
-			returnType = Optional.of(parseTypeRef());
+			returnType = Option.of(parseTypeRef());
 		}
 		consume(TokenType.ARROW, "Expected '=>' before function body");
 
 		Ast.Block body;
 		if (match(TokenType.LEFT_BRACE)) {
-			body = parseBlockContents(true);
+			body = parseBlockContents();
 		} else if (match(TokenType.RETURN)) {
 			Ast.Statement stmt = parseReturnStatement();
-			body = new Ast.Block(List.of(stmt), Optional.empty());
+			body = new Ast.Block(List.of(stmt), Option.empty());
 		} else {
 			Ast.Expression expr = parseExpression();
 			consume(TokenType.SEMICOLON, "Expected ';' after function expression body");
-			body = new Ast.Block(List.of(), Optional.of(expr));
+			body = new Ast.Block(List.of(), Option.of(expr));
 		}
 		return new Ast.FunctionDecl(name, parameters, returnType, body);
 	}
@@ -144,9 +159,9 @@ public final class Parser {
 	private Ast.Statement parseLet() {
 		boolean mutable = match(TokenType.MUT);
 		String name = consume(TokenType.IDENTIFIER, "Expected identifier after let").lexeme();
-		Optional<Ast.TypeRef> type = Optional.empty();
+		Option<Ast.TypeRef> type = Option.empty();
 		if (match(TokenType.COLON)) {
-			type = Optional.of(parseTypeRef());
+			type = Option.of(parseTypeRef());
 		}
 		consume(TokenType.EQUAL, "Expected '=' in let statement");
 		Ast.Expression initializer = parseExpression();
@@ -156,11 +171,11 @@ public final class Parser {
 
 	private Ast.Statement parseReturnStatement() {
 		if (match(TokenType.SEMICOLON)) {
-			return new Ast.ReturnStatement(Optional.empty());
+			return new Ast.ReturnStatement(Option.empty());
 		}
 		Ast.Expression expr = parseExpression();
 		consume(TokenType.SEMICOLON, "Expected ';' after return statement");
-		return new Ast.ReturnStatement(Optional.of(expr));
+		return new Ast.ReturnStatement(Option.of(expr));
 	}
 
 	private Ast.Statement parseWhileStatement() {
@@ -173,7 +188,7 @@ public final class Parser {
 
 	private Ast.Statement parseLoopBody() {
 		if (match(TokenType.LEFT_BRACE)) {
-			Ast.Block block = parseBlockContents(true);
+			Ast.Block block = parseBlockContents();
 			return new Ast.BlockStatement(block);
 		}
 		if (match(TokenType.LET)) {
@@ -219,13 +234,15 @@ public final class Parser {
 		return new Ast.IncrementStatement(name);
 	}
 
-	private Ast.Block parseBlockContents(boolean leftBraceConsumed) {
+	private Ast.Block parseBlockContents() {
 		List<Ast.Statement> statements = new ArrayList<>();
-		Optional<Ast.Expression> result = Optional.empty();
+		Option<Ast.Expression> result = Option.empty();
 		while (!check(TokenType.RIGHT_BRACE) && !isAtEnd()) {
 			StatementOrFinal sof = parseStatementOrFinal();
-			sof.statement.ifPresent(statements::add);
-			if (sof.finalExpression.isPresent()) {
+			if(sof.statement instanceof Option.Some<Ast.Statement>(Ast.Statement statement)) {
+				statements.add(statement);
+			}
+			if (sof.finalExpression instanceof Option.Some<Ast.Expression>) {
 				result = sof.finalExpression;
 				break;
 			}
@@ -239,8 +256,8 @@ public final class Parser {
 			return false;
 		}
 		TokenType next = peekNext().type();
-		return next == TokenType.EQUAL || next == TokenType.PLUS_EQUAL || next == TokenType.MINUS_EQUAL
-				|| next == TokenType.STAR_EQUAL || next == TokenType.SLASH_EQUAL;
+		return next == TokenType.EQUAL || next == TokenType.PLUS_EQUAL || next == TokenType.MINUS_EQUAL ||
+					 next == TokenType.STAR_EQUAL || next == TokenType.SLASH_EQUAL;
 	}
 
 	private boolean isIncrementStart() {
@@ -325,8 +342,8 @@ public final class Parser {
 			} while (match(TokenType.COMMA));
 		}
 		consume(TokenType.RIGHT_PAREN, "Expected ')' after arguments");
-		if (callee instanceof Ast.IdentifierExpression ident) {
-			return new Ast.CallExpression(ident.name(), args);
+		if (callee instanceof Ast.IdentifierExpression(String name)) {
+			return new Ast.CallExpression(name, args);
 		}
 		error(previous(), "Only function names can be called");
 		return callee;
@@ -361,7 +378,7 @@ public final class Parser {
 			return parseIfExpression();
 		}
 		if (match(TokenType.LEFT_BRACE)) {
-			Ast.Block block = parseBlockContents(true);
+			Ast.Block block = parseBlockContents();
 			return new Ast.BlockExpression(block);
 		}
 		error(peek(), "Unexpected token in expression");
@@ -420,7 +437,7 @@ public final class Parser {
 
 	private Token peekNext() {
 		if (current + 1 >= tokens.size()) {
-			return tokens.get(tokens.size() - 1);
+			return tokens.getLast();
 		}
 		return tokens.get(current + 1);
 	}
@@ -431,15 +448,5 @@ public final class Parser {
 
 	private void error(Token token, String message) {
 		errors.add(message + " at position " + token.position());
-	}
-
-	private record StatementOrFinal(Optional<Ast.Statement> statement, Optional<Ast.Expression> finalExpression) {
-		private static StatementOrFinal ofStatement(Ast.Statement statement) {
-			return new StatementOrFinal(Optional.of(statement), Optional.empty());
-		}
-
-		private static StatementOrFinal ofFinal(Ast.Expression expression) {
-			return new StatementOrFinal(Optional.empty(), Optional.of(expression));
-		}
 	}
 }

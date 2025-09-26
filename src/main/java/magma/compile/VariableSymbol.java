@@ -1,4 +1,4 @@
-package magma.compiler;
+package magma.compile;
 
 public final class VariableSymbol {
 	private final String name;
@@ -23,8 +23,8 @@ public final class VariableSymbol {
 		return type;
 	}
 
-	public boolean mutable() {
-		return mutable;
+	public boolean isImmutable() {
+		return !mutable;
 	}
 
 	public boolean global() {

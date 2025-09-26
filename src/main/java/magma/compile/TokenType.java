@@ -1,9 +1,8 @@
-package magma.compiler;
+package magma.compile;
 
 public enum TokenType {
     // Special
     EOF,
-    ERROR,
 
     // Identifiers and literals
     IDENTIFIER,

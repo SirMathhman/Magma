@@ -1,11 +1,8 @@
-package magma;
+package magma.compile;
 
 import java.util.List;
 
-import magma.compiler.CodeGenerator;
-import magma.compiler.Lexer;
-import magma.compiler.Parser;
-import magma.compiler.SemanticAnalyzer;
+import magma.api.Result;
 
 /**
  * High-level compiler entry point that transforms Magma source into C code.

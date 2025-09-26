@@ -1,4 +1,4 @@
-package magma;
+package magma.api;
 
 /**
  * A simple generic immutable pair.

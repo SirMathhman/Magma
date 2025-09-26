@@ -1,4 +1,6 @@
-package magma;
+package magma.compile;
+
+import magma.api.MagmaError;
 
 /**
  * Simple compile error wrapper used as the error type from Compiler.compile.
