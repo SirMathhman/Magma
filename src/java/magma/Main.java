@@ -8,51 +8,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Main {
-	private sealed interface Option<T> permits Option.Some, Option.None {
-		record Some<T>(T value) implements Option<T> {
-			@Override
-			public <R> Option<R> map(Function<T, R> mapper) {
-				return new Some<>(mapper.apply(value));
-			}
-
-			@Override
-			public Tuple<Boolean, T> toTuple(T other) {
-				return new Tuple<>(true, value);
-			}
-
-			@Override
-			public T orElse(T other) {
-				return value;
-			}
-
-			@Override
-			public T orElseGet(Supplier<T> other) {
-				return value;
-			}
-		}
-
-		record None<T>() implements Option<T> {
-			@Override
-			public <R> Option<R> map(Function<T, R> mapper) {
-				return new None<>();
-			}
-
-			@Override
-			public Tuple<Boolean, T> toTuple(T other) {
-				return new Tuple<>(false, other);
-			}
-
-			@Override
-			public T orElse(T other) {
-				return other;
-			}
-
-			@Override
-			public T orElseGet(Supplier<T> other) {
-				return other.get();
-			}
-		}
-
+	private interface Option<T> {
 		<R> Option<R> map(Function<T, R> mapper);
 
 		Tuple<Boolean, T> toTuple(T other);
@@ -120,10 +76,10 @@ public class Main {
 
 		@Override
 		public Option<T> next() {
-			if (counter >= elementsInitializedCount) return new Option.None<>();
+			if (counter >= elementsInitializedCount) return new None<>();
 			final T element = array[counter];
 			counter++;
-			return new Option.Some<>(element);
+			return new Some<>(element);
 		}
 	}
 
@@ -157,10 +113,9 @@ public class Main {
 		private void resize(int minCapacity) {
 			int capacity = array.length;
 
-			// Double capacity until it's sufficient
+			// Double capacity until it's enough
 			while (capacity < minCapacity) capacity *= 2;
 
-			// Copy to new array
 			T[] newArray = (T[]) new Object[capacity];
 			System.arraycopy(array, 0, newArray, 0, size);
 			array = newArray;
@@ -209,12 +164,56 @@ public class Main {
 	private static class Joiner implements Collector<String, Option<String>> {
 		@Override
 		public Option<String> createInitial() {
-			return new Option.None<>();
+			return new None<>();
 		}
 
 		@Override
 		public Option<String> fold(Option<String> current, String element) {
-			return new Option.Some<>(current.map(inner -> inner + element).orElse(element));
+			return new Some<>(current.map(inner -> inner + element).orElse(element));
+		}
+	}
+
+	private record Some<T>(T value) implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new Main.Some<>(mapper.apply(value));
+		}
+
+		@Override
+		public Tuple<Boolean, T> toTuple(T other) {
+			return new Tuple<>(true, value);
+		}
+
+		@Override
+		public T orElse(T other) {
+			return value;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return value;
+		}
+	}
+
+	private record None<T>() implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new Main.None<>();
+		}
+
+		@Override
+		public Tuple<Boolean, T> toTuple(T other) {
+			return new Tuple<>(false, other);
+		}
+
+		@Override
+		public T orElse(T other) {
+			return other;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return other.get();
 		}
 	}
 
@@ -244,19 +243,19 @@ public class Main {
 
 	private static Option<String> compileClass(String input, int depth) {
 		final int i = input.indexOf("class ");
-		if (i < 0) return new Option.None<>();
+		if (i < 0) return new None<>();
 		final String modifiers = input.substring(0, i);
 		final String afterKeyword = input.substring(i + "class ".length());
 
 		final int i1 = afterKeyword.indexOf("{");
-		if (i1 < 0) return new Option.None<>();
+		if (i1 < 0) return new None<>();
 		final String name = afterKeyword.substring(0, i1).strip();
 		final String substring = afterKeyword.substring(i1 + "{".length()).strip();
 
-		if (!substring.endsWith("}")) return new Option.None<>();
+		if (!substring.endsWith("}")) return new None<>();
 		final String content = substring.substring(0, substring.length() - 1);
-		return new Option.Some<>(wrap(modifiers) + "class " + name + " {" +
-														 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "}");
+		return new Some<>(wrap(modifiers) + "class " + name + " {" +
+											compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "}");
 	}
 
 	private static String compileClassSegment(String input, int depth) {
@@ -269,15 +268,15 @@ public class Main {
 	}
 
 	private static Option<String> compileField(String input) {
-		if (!input.endsWith(";")) return new Option.None<>();
+		if (!input.endsWith(";")) return new None<>();
 		final String substring = input.substring(0, input.length() - ";".length());
 
 		final int i = substring.indexOf("=");
-		if (i < 0) return new Option.None<>();
+		if (i < 0) return new None<>();
 		final String substring1 = substring.substring(0, i);
 		final String substring2 = substring.substring(i + "=".length());
 
-		return new Option.Some<>(compileDefinition(substring1) + " = " + wrap(substring2) + ";");
+		return new Some<>(compileDefinition(substring1) + " = " + wrap(substring2) + ";");
 	}
 
 	private static String compileDefinition(String input) {
