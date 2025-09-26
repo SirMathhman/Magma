@@ -1,5 +1,6 @@
 package magma;
 
+import magma.api.MagmaError;
 import magma.api.Option;
 import magma.api.Result;
 import magma.api.Tuple;

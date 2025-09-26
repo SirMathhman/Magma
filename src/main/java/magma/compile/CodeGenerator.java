@@ -6,9 +6,10 @@ import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Option;
 import java.util.StringJoiner;
 import java.util.function.Consumer;
+
+import magma.api.Option;
 
 import magma.compile.ast.Ast;
 
@@ -284,8 +285,7 @@ public final class CodeGenerator {
 				ExpressionResult right = emitExpression(binary.right());
 				prefix.addAll(left.prefix);
 				prefix.addAll(right.prefix);
-				expressionText =
-						emitBinaryExpression(binary.operator(), left.expression, right.expression);
+				expressionText = emitBinaryExpression(binary.operator(), left.expression, right.expression);
 			}
 			case Ast.CallExpression call -> {
 				List<ExpressionResult> args = new ArrayList<>();
@@ -313,11 +313,11 @@ public final class CodeGenerator {
 				prefix.addAll(cond.prefix);
 				prefix.addAll(thenExpr.prefix);
 				prefix.addAll(elseExpr.prefix);
-				expressionText =
-						"((" + condValue(cond) + ") ? (" + valueForType(thenExpr) + ") : (" + valueForType(elseExpr) + "))";
+				expressionText = "((" + condValue(cond) + ") ? (" + valueForType(thenExpr) + ") : (" + valueForType(elseExpr)
+						+ "))";
 			}
 			case Ast.BlockExpression blockExpression ->
-					expressionText = emitBlockExpression(blockExpression.block(), type, prefix);
+				expressionText = emitBlockExpression(blockExpression.block(), type, prefix);
 			case null, default -> expressionText = "0";
 		}
 
@@ -465,9 +465,9 @@ public final class CodeGenerator {
 	private record ExpressionResult(List<Runnable> prefix, String expression, Type type) {
 
 		void emitPrefix() {
-				for (Runnable runnable : prefix) {
-					runnable.run();
-				}
+			for (Runnable runnable : prefix) {
+				runnable.run();
 			}
 		}
+	}
 }
