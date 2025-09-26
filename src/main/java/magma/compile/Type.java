@@ -3,7 +3,7 @@ package magma.compile;
 import java.util.List;
 import java.util.Objects;
 
-public sealed interface Type permits Type.PrimitiveType, Type.StructType {
+public sealed interface Type permits Type.PrimitiveType, Type.StructType, Type.PointerType {
 	
 	record PrimitiveType(String name) implements Type {
 		public static final PrimitiveType I32 = new PrimitiveType("I32");
@@ -40,6 +40,29 @@ public sealed interface Type permits Type.PrimitiveType, Type.StructType {
 		public StructField(String name, Type type) {
 			this.name = Objects.requireNonNull(name);
 			this.type = Objects.requireNonNull(type);
+		}
+	}
+	
+	record PointerType(Type pointeeType) implements Type {
+		public PointerType(Type pointeeType) {
+			this.pointeeType = Objects.requireNonNull(pointeeType);
+		}
+		
+		@Override
+		public String toString() {
+			return "*" + pointeeType;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj) return true;
+			if (!(obj instanceof PointerType other)) return false;
+			return Objects.equals(pointeeType, other.pointeeType);
+		}
+		
+		@Override
+		public int hashCode() {
+			return Objects.hash(pointeeType);
 		}
 	}
 	

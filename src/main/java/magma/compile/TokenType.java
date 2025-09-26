@@ -40,6 +40,7 @@ public enum TokenType {
     STAR,
     SLASH,
     EQUAL,
+    AMPERSAND,
     DOUBLE_EQUAL,
     ARROW,
     PLUS_EQUAL,

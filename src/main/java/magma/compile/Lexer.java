@@ -95,6 +95,10 @@ public final class Lexer {
 					handleEqualToken();
 					yield true;
 				}
+				case '&' -> {
+					addToken(TokenType.AMPERSAND);
+					yield true;
+				}
 				default -> false;
 			};
     }

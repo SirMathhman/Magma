@@ -119,7 +119,7 @@ public final class CodeGenerator {
 				builder.appendLine("return " + valueForType(result) + ";");
 			});
 
-			if (symbol.returnType() == Type.VOID && declaration.body().result().isEmpty()) {
+			if (symbol.returnType() == Type.PrimitiveType.VOID && declaration.body().result().isEmpty()) {
 				builder.appendLine("return;");
 			}
 
@@ -261,7 +261,7 @@ public final class CodeGenerator {
 	}
 
 	private ExpressionResult emitExpression(Ast.Expression expression) {
-		Type type = analysis.expressionTypes().getOrDefault(expression, Type.I32);
+		Type type = analysis.expressionTypes().getOrDefault(expression, Type.PrimitiveType.I32);
 		List<Runnable> prefix = new ArrayList<>();
 		String expressionText;
 
@@ -323,6 +323,10 @@ public final class CodeGenerator {
 				expressionText = emitStructLiteral(structLiteral, type, prefix);
 			case Ast.FieldAccessExpression fieldAccess ->
 				expressionText = emitFieldAccess(fieldAccess, prefix);
+			case Ast.ReferenceExpression reference ->
+				expressionText = emitReference(reference, prefix);
+			case Ast.DereferenceExpression dereference ->
+				expressionText = emitDereference(dereference, prefix);
 			case null, default -> expressionText = "0";
 		}
 
@@ -413,6 +417,8 @@ public final class CodeGenerator {
 			};
 		} else if (type instanceof Type.StructType structType) {
 			return "struct " + structType.name();
+		} else if (type instanceof Type.PointerType pointerType) {
+			return cType(pointerType.pointeeType()) + "*";
 		}
 		return "int";
 	}
@@ -436,7 +442,7 @@ public final class CodeGenerator {
 	}
 
 	private String condValue(ExpressionResult result) {
-		if (result.type == Type.BOOL) {
+		if (result.type == Type.PrimitiveType.BOOL) {
 			return "(" + valueForType(result) + ")";
 		}
 		return "(" + result.expression + ")";
@@ -506,6 +512,18 @@ public final class CodeGenerator {
 		ExpressionResult object = emitExpression(fieldAccess.object());
 		prefix.addAll(object.prefix);
 		return object.expression + "." + fieldAccess.fieldName();
+	}
+	
+	private String emitReference(Ast.ReferenceExpression reference, List<Runnable> prefix) {
+		ExpressionResult expr = emitExpression(reference.expression());
+		prefix.addAll(expr.prefix);
+		return "&(" + expr.expression + ")";
+	}
+	
+	private String emitDereference(Ast.DereferenceExpression dereference, List<Runnable> prefix) {
+		ExpressionResult expr = emitExpression(dereference.expression());
+		prefix.addAll(expr.prefix);
+		return "*(" + expr.expression + ")";
 	}
 
 	private record ExpressionResult(List<Runnable> prefix, String expression, Type type) {

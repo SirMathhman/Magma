@@ -119,6 +119,10 @@ public final class Parser {
 	}
 
 	private Ast.TypeRef parseTypeRef() {
+		if (match(TokenType.STAR)) {
+			Ast.TypeRef pointeeType = parseTypeRef();
+			return new Ast.TypeRef("*" + pointeeType.name());
+		}
 		Token token = advance();
 		return switch (token.type()) {
 			case I32 -> new Ast.TypeRef("I32");
@@ -321,6 +325,14 @@ public final class Parser {
 		if (match(TokenType.MINUS)) {
 			Ast.Expression right = parseUnary();
 			return new Ast.UnaryExpression(Ast.UnaryOperator.NEGATE, right);
+		}
+		if (match(TokenType.AMPERSAND)) {
+			Ast.Expression right = parseUnary();
+			return new Ast.ReferenceExpression(right);
+		}
+		if (match(TokenType.STAR)) {
+			Ast.Expression right = parseUnary();
+			return new Ast.DereferenceExpression(right);
 		}
 		return parseCall();
 	}

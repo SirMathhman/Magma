@@ -63,13 +63,13 @@ public final class SemanticAnalyzer {
 		for (Ast.Statement statement : program.statements()) {
 			analyzeStatement(statement, state);
 		}
-		Type finalType = Type.I32;
+		Type finalType = Type.PrimitiveType.I32;
 		Option<Ast.Expression> finalExpr = program.finalExpression();
 		if (finalExpr instanceof Option.Some<Ast.Expression>) {
 			finalType = analyzeExpression(finalExpr.get(), state);
-			if (finalType == Type.VOID) {
+			if (finalType == Type.PrimitiveType.VOID) {
 				state.errors.add("Final expression cannot be void");
-				finalType = Type.I32;
+				finalType = Type.PrimitiveType.I32;
 			}
 		}
 
@@ -122,7 +122,7 @@ public final class SemanticAnalyzer {
 				parameterTypes.add(paramType);
 				parameterNames.add(parameter.name());
 			}
-			Type returnType = function.returnType().map(typeRef -> resolveTypeRef(typeRef, true, state)).orElse(Type.I32);
+			Type returnType = function.returnType().map(typeRef -> resolveTypeRef(typeRef, true, state)).orElse(Type.PrimitiveType.I32);
 			FunctionSymbol symbol =
 					new FunctionSymbol(function.name(), parameterTypes, parameterNames, returnType, false, Option.of(function),
 														 function.name());
@@ -158,13 +158,13 @@ public final class SemanticAnalyzer {
 		}
 		analyzeBlock(declaration.body(), state);
 		Option<Ast.Expression> finalExpr = declaration.body().result();
-		if (symbol.returnType() == Type.VOID) {
+		if (symbol.returnType() == Type.PrimitiveType.VOID) {
 			if (finalExpr instanceof Option.Some<Ast.Expression>) {
 				state.errors.add("Void function '" + symbol.name() + "' cannot have a final expression");
 			}
 		} else {
 			if (finalExpr instanceof Option.Some<Ast.Expression>) {
-				Type resultType = state.expressionTypes.getOrDefault(finalExpr.get(), Type.I32);
+				Type resultType = state.expressionTypes.getOrDefault(finalExpr.get(), Type.PrimitiveType.I32);
 				if (resultType != symbol.returnType()) {
 					state.errors.add(
 							"Function '" + symbol.name() + "' final expression has type " + resultType + " but expected " +
@@ -211,9 +211,9 @@ public final class SemanticAnalyzer {
 		Type initializerType = analyzeExpression(let.initializer(), state);
 		Type declaredType =
 				let.typeAnnotation().map(typeRef -> resolveTypeRef(typeRef, false, state)).orElse(initializerType);
-		if (declaredType == Type.VOID) {
+		if (declaredType == Type.PrimitiveType.VOID) {
 			state.errors.add("Variable '" + let.name() + "' cannot have type Void");
-			declaredType = Type.I32;
+			declaredType = Type.PrimitiveType.I32;
 		}
 		if (initializerType != declaredType) {
 			state.errors.add(
@@ -290,13 +290,13 @@ public final class SemanticAnalyzer {
 		state.functionSawReturn = true;
 		if (returnStatement.expression() instanceof Option.Some<Ast.Expression>) {
 			Type exprType = analyzeExpression(returnStatement.expression().get(), state);
-			if (state.currentReturnType == Type.VOID) {
+			if (state.currentReturnType == Type.PrimitiveType.VOID) {
 				state.errors.add("Void function cannot return a value");
 			} else if (exprType != state.currentReturnType) {
 				state.errors.add("Return type mismatch: expected " + state.currentReturnType + " but found " + exprType);
 			}
 		} else {
-			if (state.currentReturnType != Type.VOID) {
+			if (state.currentReturnType != Type.PrimitiveType.VOID) {
 				state.errors.add("Non-void function must return a value");
 			}
 		}
@@ -305,12 +305,13 @@ public final class SemanticAnalyzer {
 	private Type analyzeExpression(Ast.Expression expression, State state) {
 		Type type;
 		switch (expression) {
-			case Ast.LiteralBoolExpression _ -> type = Type.BOOL;
+			case Ast.LiteralIntExpression _ -> type = Type.PrimitiveType.I32;
+			case Ast.LiteralBoolExpression _ -> type = Type.PrimitiveType.BOOL;
 			case Ast.IdentifierExpression identifier -> {
 				Option<VariableSymbol> symbolOpt =
 						variableOrReport(identifier.name(), state, "Unknown variable '" + identifier.name() + "'");
 				if (symbolOpt.isEmpty()) {
-					type = Type.I32;
+					type = Type.PrimitiveType.I32;
 				} else {
 					VariableSymbol symbol = symbolOpt.get();
 					state.identifierBindings.put(identifier, symbol);
@@ -322,7 +323,7 @@ public final class SemanticAnalyzer {
 				if (operand.isNonNumeric()) {
 					state.errors.add("Unary '-' requires numeric operand");
 				}
-				type = Type.I32;
+				type = Type.PrimitiveType.I32;
 			}
 			case Ast.BinaryExpression binary -> {
 				Type left = analyzeExpression(binary.left(), state);
@@ -345,7 +346,9 @@ public final class SemanticAnalyzer {
 			case Ast.BlockExpression blockExpression -> type = analyzeBlockExpression(blockExpression.block(), state);
 			case Ast.StructLiteralExpression structLiteral -> type = analyzeStructLiteral(structLiteral, state);
 			case Ast.FieldAccessExpression fieldAccess -> type = analyzeFieldAccess(fieldAccess, state);
-			case null, default -> type = Type.I32;
+			case Ast.ReferenceExpression reference -> type = analyzeReference(reference, state);
+			case Ast.DereferenceExpression dereference -> type = analyzeDereference(dereference, state);
+			case null, default -> type = Type.PrimitiveType.I32;
 		}
 		state.expressionTypes.put(expression, type);
 		return type;
@@ -360,7 +363,7 @@ public final class SemanticAnalyzer {
 		for (Ast.Statement statement : block.statements()) {
 			analyzeStatement(statement, state);
 		}
-		Type resultType = Type.VOID;
+		Type resultType = Type.PrimitiveType.VOID;
 		if (block.result() instanceof Option.Some<Ast.Expression>) {
 			resultType = analyzeExpression(block.result().get(), state);
 		} else if (requireResult) {
@@ -376,7 +379,7 @@ public final class SemanticAnalyzer {
 			for (Ast.Expression argument : call.arguments()) {
 				analyzeExpression(argument, state);
 			}
-			return Type.I32;
+			return Type.PrimitiveType.I32;
 		}
 		FunctionSymbol symbol = state.functions.get(call.callee());
 		if (symbol.parameterTypes().size() != call.arguments().size()) {
@@ -405,19 +408,19 @@ public final class SemanticAnalyzer {
 				if (left.isNonNumeric() || right.isNonNumeric()) {
 					state.errors.add("Arithmetic operators require numeric operands");
 				}
-				yield Type.I32;
+				yield Type.PrimitiveType.I32;
 			}
 			case EQUALS -> {
 				if (left != right) {
 					state.errors.add("Equality operands must have the same type");
 				}
-				yield Type.BOOL;
+				yield Type.PrimitiveType.BOOL;
 			}
 			case LESS -> {
 				if (left.isNonNumeric() || right.isNonNumeric()) {
 					state.errors.add("Comparison '<' requires numeric operands");
 				}
-				yield Type.BOOL;
+				yield Type.PrimitiveType.BOOL;
 			}
 		};
 	}
@@ -444,22 +447,43 @@ public final class SemanticAnalyzer {
 	}
 
 	private Type resolveTypeRef(Ast.TypeRef typeRef, boolean allowVoid, State state) {
-		return switch (typeRef.name()) {
-			case "I32" -> Type.I32;
-			case "Bool" -> Type.BOOL;
+		String typeName = typeRef.name();
+		
+		// Handle pointer types
+		if (typeName.startsWith("*")) {
+			String pointeeTypeName = typeName.substring(1);
+			// Resolve pointee type directly to ensure we get the same instances
+			Type pointeeType = switch (pointeeTypeName) {
+				case "I32" -> Type.PrimitiveType.I32;
+				case "Bool" -> Type.PrimitiveType.BOOL;
+				case "Void" -> Type.PrimitiveType.VOID;
+				default -> {
+					if (state.structTypes.containsKey(pointeeTypeName)) {
+						yield state.structTypes.get(pointeeTypeName);
+					}
+					state.errors.add("Unknown type '" + pointeeTypeName + "'");
+					yield Type.PrimitiveType.I32;
+				}
+			};
+			return new Type.PointerType(pointeeType);
+		}
+		
+		return switch (typeName) {
+			case "I32" -> Type.PrimitiveType.I32;
+			case "Bool" -> Type.PrimitiveType.BOOL;
 			case "Void" -> {
 				if (!allowVoid) {
 					state.errors.add("Void type not allowed here");
-					yield Type.I32;
+					yield Type.PrimitiveType.I32;
 				}
-				yield Type.VOID;
+				yield Type.PrimitiveType.VOID;
 			}
 			default -> {
-				if (state.structTypes.containsKey(typeRef.name())) {
-					yield state.structTypes.get(typeRef.name());
+				if (state.structTypes.containsKey(typeName)) {
+					yield state.structTypes.get(typeName);
 				}
-				state.errors.add("Unknown type '" + typeRef.name() + "'");
-				yield Type.I32;
+				state.errors.add("Unknown type '" + typeName + "'");
+				yield Type.PrimitiveType.I32;
 			}
 		};
 	}
@@ -499,7 +523,7 @@ public final class SemanticAnalyzer {
 			for (Ast.Expression fieldValue : structLiteral.fieldValues()) {
 				analyzeExpression(fieldValue, state);
 			}
-			return Type.I32;
+			return Type.PrimitiveType.I32;
 		}
 		
 		Type.StructType structType = state.structTypes.get(structLiteral.structName());
@@ -531,7 +555,7 @@ public final class SemanticAnalyzer {
 		
 		if (!(objectType instanceof Type.StructType structType)) {
 			state.errors.add("Cannot access field '" + fieldAccess.fieldName() + "' on non-struct type " + objectType);
-			return Type.I32;
+			return Type.PrimitiveType.I32;
 		}
 		
 		for (Type.StructField field : structType.fields()) {
@@ -541,6 +565,22 @@ public final class SemanticAnalyzer {
 		}
 		
 		state.errors.add("Struct '" + structType.name() + "' has no field named '" + fieldAccess.fieldName() + "'");
-		return Type.I32;
+		return Type.PrimitiveType.I32;
+	}
+	
+	private Type analyzeReference(Ast.ReferenceExpression reference, State state) {
+		Type exprType = analyzeExpression(reference.expression(), state);
+		return new Type.PointerType(exprType);
+	}
+	
+	private Type analyzeDereference(Ast.DereferenceExpression dereference, State state) {
+		Type exprType = analyzeExpression(dereference.expression(), state);
+		
+		if (!(exprType instanceof Type.PointerType pointerType)) {
+			state.errors.add("Cannot dereference non-pointer type " + exprType);
+			return Type.PrimitiveType.I32;
+		}
+		
+		return pointerType.pointeeType();
 	}
 }

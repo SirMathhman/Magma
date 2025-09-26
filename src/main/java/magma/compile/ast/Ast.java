@@ -12,7 +12,8 @@ public final class Ast {
 
 	public sealed interface Expression
 			permits IdentifierExpression, LiteralIntExpression, LiteralBoolExpression, UnaryExpression, BinaryExpression,
-			CallExpression, IfExpression, BlockExpression, StructLiteralExpression, FieldAccessExpression {}
+			CallExpression, IfExpression, BlockExpression, StructLiteralExpression, FieldAccessExpression,
+			ReferenceExpression, DereferenceExpression {}
 
 	public record Program(List<IntrinsicDecl> intrinsics, List<FunctionDecl> functions, List<Statement> statements,
 												Option<Expression> finalExpression) {
@@ -102,6 +103,10 @@ public final class Ast {
 	}
 
 	public record FieldAccessExpression(Expression object, String fieldName) implements Expression {}
+
+	public record ReferenceExpression(Expression expression) implements Expression {}
+
+	public record DereferenceExpression(Expression expression) implements Expression {}
 
 	private Ast() {
 	}
