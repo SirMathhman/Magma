@@ -1,4 +1,57 @@
 /*public */class Main {
+	/*private sealed interface Option<T> permits Option.Some, Option.None {
+		record Some<T>(T value) implements Option<T> {
+			@Override
+			public <R> Option<R> map(Function<T, R> mapper) {
+				return new Some<>(mapper.apply(value));
+			}
+
+			@Override
+			public Tuple<Boolean, T> toTuple(T other) {
+				return new Tuple<>(true, value);
+			}
+
+			@Override
+			public T orElse(T other) {
+				return value;
+			}
+
+			@Override
+			public T orElseGet(Supplier<T> other) {
+				return value;
+			}
+		}
+
+		record None<T>() implements Option<T> {
+			@Override
+			public <R> Option<R> map(Function<T, R> mapper) {
+				return new None<>();
+			}
+
+			@Override
+			public Tuple<Boolean, T> toTuple(T other) {
+				return new Tuple<>(false, other);
+			}
+
+			@Override
+			public T orElse(T other) {
+				return other;
+			}
+
+			@Override
+			public T orElseGet(Supplier<T> other) {
+				return other.get();
+			}
+		}
+
+		<R> Option<R> map(Function<T, R> mapper);
+
+		Tuple<Boolean, T> toTuple(T other);
+
+		T orElse(T other);
+
+		T orElseGet(Supplier<T> other);
+	}*/
 	/*private interface Collector<T, C> {
 		C createInitial();
 
@@ -15,8 +68,9 @@
 		List<T> add(T element);
 	}*/
 	/*private interface Head<T> {
-		Optional<T> next();
+		Option<T> next();
 	}*/
+	/*private record Tuple<A, B>(A left, B right) {}*/
 	/*private record HeadedStream<T>(Head<T> head) implements Stream<T> {
 		@Override
 		public <R> Stream<R> map(Function<T, R> mapper) {
@@ -32,26 +86,26 @@
 			C current = initial;
 			while (true) {
 				C finalCurrent = current;
-				final Optional<C> folded = head.next().map(next -> folder.apply(finalCurrent, next));
-				if (folded.isPresent()) current = folded.get();
+				final Tuple<Boolean, C> folded = head.next().map(next -> folder.apply(finalCurrent, next)).toTuple(current);
+				if (folded.left) current = folded.right;
 				else return current;
 			}
 		}
 	}*/
 	/*private static final */class ArrayHead<T> implements Head<T> {
 		/*private final T[] array;*/
-		/*private final int size;*/
+		/*private final int elementsInitializedCount;*/
 		/*private*/counter : /*int*/ = /* 0*/;
-		/*private ArrayHead(T[] array, int size) {
+		/*private ArrayHead(T[] array, int elementsInitializedCount) {
 			this.array = array;
-			this.size = size;
+			this.elementsInitializedCount = elementsInitializedCount;
 		}*/
 		/*@Override
-		public Optional<T> next() {
-			if (counter >= size) return Optional.empty();
+		public Option<T> next() {
+			if (counter >= elementsInitializedCount) return new Option.None<>();
 			final T element = array[counter];
 			counter++;
-			return Optional.of(element);
+			return new Option.Some<>(element);
 		}*/
 		/**/}
 	/*private static */class ArrayList<T> implements List<T> {
@@ -119,14 +173,14 @@
 			return this;
 		}*/
 		/**/}
-	/*private static */class Joiner implements Collector<String, Optional<String>> {
+	/*private static */class Joiner implements Collector<String, Option<String>> {
 		/*@Override
-		public Optional<String> createInitial() {
-			return Optional.empty();
+		public Option<String> createInitial() {
+			return new Option.None<>();
 		}*/
 		/*@Override
-		public Optional<String> fold(Optional<String> current, String element) {
-			return Optional.of(current.map(inner -> inner + element).orElse(element));
+		public Option<String> fold(Option<String> current, String element) {
+			return new Option.Some<>(current.map(inner -> inner + element).orElse(element));
 		}*/
 		/**/}
 	/*public static void main(String[] args) {
@@ -149,24 +203,24 @@
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
 		return compileClass(strip, 0).orElseGet(() -> wrap(strip));
 	}*/
-	/*private static Optional<String> compileClass(String input, int depth) {
+	/*private static Option<String> compileClass(String input, int depth) {
 		final int i = input.indexOf("*/class ");
-		if (i < 0) return Optional.empty();
+		if (i < 0) return new Option.None<>();
 		final String modifiers = input.substring(0, i);
 		final String afterKeyword = input.substring(i + "class ".length());
 
 		final int i1 = afterKeyword.indexOf(" {
 		/*");*/
-		/*if (i1 < 0) return Optional.empty();*/
+		/*if (i1 < 0) return new Option.None<>();*/
 		/*final*/name : /*String*/ = /* afterKeyword.substring(0, i1).strip()*/;
 		/*final String substring = afterKeyword.substring(i1 + "{".length()).strip();
 
 		if (!substring.endsWith("}*/
-		/*")) return Optional.empty();*/
+		/*")) return new Option.None<>();*/
 		/*final*/content : /*String*/ = /* substring.substring(0, substring.length() - 1)*/;
-		/*return Optional.of(wrap(modifiers) + "*/class " + name + " {
+		/*return new Option.Some<>(wrap(modifiers) + "*/class " + name + " {
 			/*" +
-											 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "*/}
+														 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "*/}
 		/*");*/
 		/*}
 
@@ -179,16 +233,16 @@
 		return compileField(input).orElseGet(() -> compileClass(input, depth).orElseGet(() -> wrap(input)));*/
 		/*}
 
-	private static Optional<String> compileField(String input) {
+	private static Option<String> compileField(String input) {
 		if (!input.endsWith(";*/
-		/*")) return Optional.empty();*/
+		/*")) return new Option.None<>();*/
 		/*final*/substring : /*String*/ = /* input.substring(0, input.length() - "*/;
 		/*".length());*/
 		/*final*/i : /*int*/ = /* substring.indexOf("=")*/;
-		/*if (i < 0) return Optional.empty();*/
+		/*if (i < 0) return new Option.None<>();*/
 		/*final*/substring1 : /*String*/ = /* substring.substring(0, i)*/;
 		/*final*/substring2 : /*String*/ = /* substring.substring(i + "=".length())*/;
-		/*return Optional.of(compileDefinition(substring1)*/" : /*+*/ = /* " + wrap(substring2) + "*/;
+		/*return new Option.Some<>(compileDefinition(substring1)*/" : /*+*/ = /* " + wrap(substring2) + "*/;
 		/*");*/
 		/*}
 
