@@ -213,6 +213,11 @@ public class CompilerTest {
 	}
 
 	@Test
+	public void blockExpressionInitializer() {
+		assertValid("let result = { let inner = readInt(); inner } + 2; result", "3", new Tuple<>("", 5));
+	}
+
+	@Test
 	public void invalidBracedDeclarationThenUse() {
 		// `{let x = 0;} x` should be invalid because the braced let does not
 		// expose the declared variable to the outer expression in this simple
