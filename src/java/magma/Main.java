@@ -71,10 +71,14 @@ public class Main {
 		}
 	}
 
-	private record ArrayList<T>(T[] array, int size) implements List<T> {
+	private static class ArrayList<T> implements List<T> {
+		private T[] array;
+		private int size;
+
+		@SuppressWarnings("unchecked")
 		public ArrayList() {
-			//noinspection unchecked
-			this((T[]) new Object[10], 0);
+			this.array = (T[]) new Object[10];
+			this.size = 0;
 		}
 
 		@Override
@@ -84,27 +88,26 @@ public class Main {
 
 		@Override
 		public List<T> add(T element) {
-			return set(size, element);
+			ensureCapacity(size + 1);
+			array[size++] = element;
+			return this; // Enable chaining: list.add(1).add(2).add(3)
 		}
 
-		private List<T> set(int index, T element) {
-			final T[] capacity = resize(index);
-			final int newSize = Math.max(size, index + 1);
-			capacity[index] = element;
-			return new ArrayList<>(capacity, newSize);
+		private void ensureCapacity(int minCapacity) {
+			if (minCapacity > array.length) resize(minCapacity);
 		}
 
-		private T[] resize(int index) {
-			int oldCapacity = array.length;
-			if (index < oldCapacity) return array;
+		@SuppressWarnings("unchecked")
+		private void resize(int minCapacity) {
+			int capacity = array.length;
 
-			int newCapacity = oldCapacity;
-			while (!(index < newCapacity)) newCapacity *= 2;
+			// Double capacity until it's sufficient
+			while (capacity < minCapacity) capacity *= 2;
 
-			final Object[] destination = new Object[newCapacity];
-			System.arraycopy(array, 0, destination, 0, oldCapacity);
-			//noinspection unchecked
-			return (T[]) destination;
+			// Copy to new array
+			T[] newArray = (T[]) new Object[capacity];
+			System.arraycopy(array, 0, newArray, 0, size);
+			array = newArray;
 		}
 	}
 
