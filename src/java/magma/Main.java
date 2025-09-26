@@ -71,10 +71,10 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final String strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return compileClass(strip).orElseGet(() -> wrap(strip));
+		return compileClass(strip, 0).orElseGet(() -> wrap(strip));
 	}
 
-	private static Optional<String> compileClass(String input) {
+	private static Optional<String> compileClass(String input, int depth) {
 		final int i = input.indexOf("class ");
 		if (i < 0) return Optional.empty();
 		final String modifiers = input.substring(0, i);
@@ -87,12 +87,13 @@ public class Main {
 
 		if (!substring.endsWith("}")) return Optional.empty();
 		final String content = substring.substring(0, substring.length() - 1);
-		return Optional.of(
-				wrap(modifiers) + "class " + name + " {" + compileStatements(content, Main::compileClassSegment) + "}");
+		return Optional.of(wrap(modifiers) + "class " + name + " {" +
+											 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "}");
 	}
 
-	private static String compileClassSegment(String input) {
-		return wrap(input.strip());
+	private static String compileClassSegment(String input, int depth) {
+		final String strip = input.strip();
+		return System.lineSeparator() + "\t".repeat(depth) + compileClass(strip, depth).orElseGet(() -> wrap(strip));
 	}
 
 	private static Stream<String> divide(String input) {
