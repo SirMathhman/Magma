@@ -1,8 +1,8 @@
 /*public */class Main {
 	/*private static */class State {
-		/*private final Collection<String> segments */ = /* new ArrayList<>()*/;
-		/*private StringBuilder buffer */ = /* new StringBuilder()*/;
-		/*private int depth */ = /* 0*/;
+		/*private final*/segments : /*Collection<String>*/ = /* new ArrayList<>()*/;
+		/*private*/buffer : /*StringBuilder*/ = /* new StringBuilder()*/;
+		/*private*/depth : /*int*/ = /* 0*/;
 		/*private boolean isLevel() {
 			return depth == 0;
 		}*/
@@ -59,12 +59,12 @@
 		final int i1 = afterKeyword.indexOf(" {
 		/*");*/
 		/*if (i1 < 0) return Optional.empty();*/
-		/*final String name */ = /* afterKeyword.substring(0, i1).strip()*/;
+		/*final*/name : /*String*/ = /* afterKeyword.substring(0, i1).strip()*/;
 		/*final String substring = afterKeyword.substring(i1 + "{".length()).strip();
 
 		if (!substring.endsWith("}*/
 		/*")) return Optional.empty();*/
-		/*final String content */ = /* substring.substring(0, substring.length() - 1)*/;
+		/*final*/content : /*String*/ = /* substring.substring(0, substring.length() - 1)*/;
 		/*return Optional.of(wrap(modifiers) + "*/class " + name + " {
 			/*" +
 											 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "*/}
@@ -72,7 +72,7 @@
 		/*}
 
 	private static String compileClassSegment(String input, int depth) {
-		final String strip */ = /* input.strip()*/;
+		final*/strip : /*String*/ = /* input.strip()*/;
 		/*return System.lineSeparator() + "\t".repeat(depth) + compileClassSegmentValue(depth, strip);*/
 		/*}
 
@@ -83,19 +83,35 @@
 	private static Optional<String> compileField(String input) {
 		if (!input.endsWith(";*/
 		/*")) return Optional.empty();*/
-		/*final String substring */ = /* input.substring(0, input.length() - "*/;
+		/*final*/substring : /*String*/ = /* input.substring(0, input.length() - "*/;
 		/*".length());*/
-		/*final int i */ = /* substring.indexOf("=")*/;
+		/*final*/i : /*int*/ = /* substring.indexOf("=")*/;
 		/*if (i < 0) return Optional.empty();*/
-		/*final String substring1 */ = /* substring.substring(0, i)*/;
-		/*final String substring2 */ = /* substring.substring(i + "=".length())*/;
-		/*return Optional.of(wrap(substring1) + " */ = /* " + wrap(substring2) + "*/;
+		/*final*/substring1 : /*String*/ = /* substring.substring(0, i)*/;
+		/*final*/substring2 : /*String*/ = /* substring.substring(i + "=".length())*/;
+		/*return Optional.of(compileDefinition(substring1)*/" : /*+*/ = /* " + wrap(substring2) + "*/;
 		/*");*/
 		/*}
 
-	private static Stream<String> divide(String input) {
-		State current */ = /* new State()*/;
-		/*for (int i */ = /* 0*/;
+	private static String compileDefinition(String input) {
+		final*/strip : /*String*/ = /* input.strip()*/;
+		/*final*/i : /*int*/ = /* strip.lastIndexOf(" ")*/;
+		/*if (i >= 0) {
+			final String beforeName = strip.substring(0, i);
+			final String name = strip.substring(i + " ".length());
+			final int i1 = beforeName.lastIndexOf(" ");
+			if (i1 >= 0) {
+				final String beforeType = beforeName.substring(0, i1);
+				final String type = beforeName.substring(i1 + " ".length());
+				return wrap(beforeType) + name + " : " + wrap(type);
+			}
+		}*/
+		/*return wrap(strip);*/
+		/*}
+
+	private static Stream<String> divide(String input)*/current : /*{
+		State*/ = /* new State()*/;
+		/*for*/i : /*(int*/ = /* 0*/;
 		/*i < input.length();*/
 		/*i++) {
 			final char c = input.charAt(i);
@@ -105,12 +121,12 @@
 		/*}
 
 	private static State fold(State state, char c) {
-		final State appended */ = /* state.append(c)*/;
-		/*if (c */ = /*= '*/;
+		final*/appended : /*State*/ = /* state.append(c)*/;
+		/*if (c*/ = /*= '*/;
 		/*' && appended.isLevel()) return appended.advance();*/
-		/*if (c */ = /*= '}' && appended.isShallow()) return appended.advance().exit();
+		/*if (c*/ = /*= '}' && appended.isShallow()) return appended.advance().exit();
 		if (c == '{') return appended.enter()*/;
-		/*if (c */ = /*= '}') return appended.exit();
+		/*if (c*/ = /*= '}') return appended.exit();
 		return appended*/;}
 	/*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");

@@ -109,7 +109,23 @@ public class Main {
 		final String substring1 = substring.substring(0, i);
 		final String substring2 = substring.substring(i + "=".length());
 
-		return Optional.of(wrap(substring1) + " = " + wrap(substring2) + ";");
+		return Optional.of(compileDefinition(substring1) + " = " + wrap(substring2) + ";");
+	}
+
+	private static String compileDefinition(String input) {
+		final String strip = input.strip();
+		final int i = strip.lastIndexOf(" ");
+		if (i >= 0) {
+			final String beforeName = strip.substring(0, i);
+			final String name = strip.substring(i + " ".length());
+			final int i1 = beforeName.lastIndexOf(" ");
+			if (i1 >= 0) {
+				final String beforeType = beforeName.substring(0, i1);
+				final String type = beforeName.substring(i1 + " ".length());
+				return wrap(beforeType) + name + " : " + wrap(type);
+			}
+		}
+		return wrap(strip);
 	}
 
 	private static Stream<String> divide(String input) {
