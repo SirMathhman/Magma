@@ -10,55 +10,33 @@ import java.util.stream.Stream;
 
 public class Main {
 	private static class State {
-		private final Collection<String> segments;
-		private StringBuilder buffer;
-		private int depth;
-
-		private State(StringBuilder buffer, int depth, Collection<String> segments) {
-			this.buffer = buffer;
-			this.depth = depth;
-			this.segments = segments;
-		}
+		private final Collection<String> segments = new ArrayList<>();
+		private StringBuilder buffer = new StringBuilder();
+		private int depth = 0;
 
 		private Stream<String> stream() {
 			return segments.stream();
 		}
 
 		private State exit() {
-			setDepth(getDepth() - 1);
+			this.depth = depth - 1;
 			return this;
 		}
 
 		private State enter() {
-			setDepth(getDepth() + 1);
+			this.depth = depth + 1;
 			return this;
 		}
 
 		private State advance() {
-			segments.add(getBuffer().toString());
-			setBuffer(new StringBuilder());
+			segments.add(buffer.toString());
+			this.buffer = new StringBuilder();
 			return this;
 		}
 
 		private State append(char c) {
-			getBuffer().append(c);
+			buffer.append(c);
 			return this;
-		}
-
-		public StringBuilder getBuffer() {
-			return buffer;
-		}
-
-		public void setBuffer(StringBuilder buffer) {
-			this.buffer = buffer;
-		}
-
-		public int getDepth() {
-			return depth;
-		}
-
-		public void setDepth(int depth) {
-			this.depth = depth;
 		}
 	}
 
@@ -80,25 +58,18 @@ public class Main {
 	}
 
 	private static Stream<String> divide(String input) {
-		final ArrayList<String> segments = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
-		int depth = 0;
-		return getStringStream(input, new State(buffer, depth, segments));
-	}
-
-	private static Stream<String> getStringStream(String input, State state) {
-		State current = state;
+		State current = new State();
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
-			current = extracted(current, c);
+			current = fold(current, c);
 		}
 
 		return current.advance().stream();
 	}
 
-	private static State extracted(State state, char c) {
+	private static State fold(State state, char c) {
 		final State appended = state.append(c);
-		if (c == ';' && appended.getDepth() == 0) return appended.advance();
+		if (c == ';' && appended.depth == 0) return appended.advance();
 		if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit();
 		return appended;
