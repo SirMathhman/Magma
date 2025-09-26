@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -53,8 +54,28 @@ public class Main {
 	private static String compile(String input) {
 		return divide(input).map(String::strip)
 												.filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-												.map(Main::wrap)
+												.map(Main::compileRootSegment)
 												.collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		return compileClass(input).orElseGet(() -> wrap(input));
+	}
+
+	private static Optional<String> compileClass(String input) {
+		final int i = input.indexOf("class ");
+		if (i < 0) return Optional.empty();
+		final String modifiers = input.substring(0, i);
+		final String afterKeyword = input.substring(i + "class ".length());
+
+		final int i1 = afterKeyword.indexOf("{");
+		if (i1 < 0) return Optional.empty();
+		final String name = afterKeyword.substring(0, i1).strip();
+		final String substring = afterKeyword.substring(i1).strip();
+
+		if (!substring.endsWith("}")) return Optional.empty();
+		final String content = substring.substring(0, substring.length() - 1);
+		return Optional.of(wrap(modifiers) + "class " + name + " {" + wrap(content) + "}");
 	}
 
 	private static Stream<String> divide(String input) {
