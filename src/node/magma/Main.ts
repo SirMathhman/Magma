@@ -1,8 +1,8 @@
 /*public */class Main {
 	/*private static */class State {
-		/*private final Collection<String> segments = new ArrayList<>();*/
-		/*private StringBuilder buffer = new StringBuilder();*/
-		/*private int depth = 0;*/
+		/*private final Collection<String> segments */ = /* new ArrayList<>()*/;
+		/*private StringBuilder buffer */ = /* new StringBuilder()*/;
+		/*private int depth */ = /* 0*/;
 		/*private boolean isLevel() {
 			return depth == 0;
 		}*/
@@ -59,12 +59,12 @@
 		final int i1 = afterKeyword.indexOf(" {
 		/*");*/
 		/*if (i1 < 0) return Optional.empty();*/
-		/*final String name = afterKeyword.substring(0, i1).strip();*/
+		/*final String name */ = /* afterKeyword.substring(0, i1).strip()*/;
 		/*final String substring = afterKeyword.substring(i1 + "{".length()).strip();
 
 		if (!substring.endsWith("}*/
 		/*")) return Optional.empty();*/
-		/*final String content = substring.substring(0, substring.length() - 1);*/
+		/*final String content */ = /* substring.substring(0, substring.length() - 1)*/;
 		/*return Optional.of(wrap(modifiers) + "*/class " + name + " {
 			/*" +
 											 compileStatements(content, input1 -> compileClassSegment(input1, depth + 1)) + "*/}
@@ -72,13 +72,30 @@
 		/*}
 
 	private static String compileClassSegment(String input, int depth) {
-		final String strip = input.strip();*/
-		/*return System.lineSeparator() + "\t".repeat(depth) + compileClass(strip, depth).orElseGet(() -> wrap(strip));*/
+		final String strip */ = /* input.strip()*/;
+		/*return System.lineSeparator() + "\t".repeat(depth) + compileClassSegmentValue(depth, strip);*/
+		/*}
+
+	private static String compileClassSegmentValue(int depth, String input) {
+		return compileField(input).orElseGet(() -> compileClass(input, depth).orElseGet(() -> wrap(input)));*/
+		/*}
+
+	private static Optional<String> compileField(String input) {
+		if (!input.endsWith(";*/
+		/*")) return Optional.empty();*/
+		/*final String substring */ = /* input.substring(0, input.length() - "*/;
+		/*".length());*/
+		/*final int i */ = /* substring.indexOf("=")*/;
+		/*if (i < 0) return Optional.empty();*/
+		/*final String substring1 */ = /* substring.substring(0, i)*/;
+		/*final String substring2 */ = /* substring.substring(i + "=".length())*/;
+		/*return Optional.of(wrap(substring1) + " */ = /* " + wrap(substring2) + "*/;
+		/*");*/
 		/*}
 
 	private static Stream<String> divide(String input) {
-		State current = new State();*/
-		/*for (int i = 0;*/
+		State current */ = /* new State()*/;
+		/*for (int i */ = /* 0*/;
 		/*i < input.length();*/
 		/*i++) {
 			final char c = input.charAt(i);
@@ -88,13 +105,13 @@
 		/*}
 
 	private static State fold(State state, char c) {
-		final State appended = state.append(c);*/
-		/*if (c == ';*/
+		final State appended */ = /* state.append(c)*/;
+		/*if (c */ = /*= '*/;
 		/*' && appended.isLevel()) return appended.advance();*/
-		/*if (c == '}' && appended.isShallow()) return appended.advance().exit();
-		if (c == '{') return appended.enter();*/
-		/*if (c == '}') return appended.exit();
-		return appended;*/}
+		/*if (c */ = /*= '}' && appended.isShallow()) return appended.advance().exit();
+		if (c == '{') return appended.enter()*/;
+		/*if (c */ = /*= '}') return appended.exit();
+		return appended*/;}
 	/*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";

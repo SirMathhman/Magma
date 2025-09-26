@@ -93,7 +93,23 @@ public class Main {
 
 	private static String compileClassSegment(String input, int depth) {
 		final String strip = input.strip();
-		return System.lineSeparator() + "\t".repeat(depth) + compileClass(strip, depth).orElseGet(() -> wrap(strip));
+		return System.lineSeparator() + "\t".repeat(depth) + compileClassSegmentValue(depth, strip);
+	}
+
+	private static String compileClassSegmentValue(int depth, String input) {
+		return compileField(input).orElseGet(() -> compileClass(input, depth).orElseGet(() -> wrap(input)));
+	}
+
+	private static Optional<String> compileField(String input) {
+		if (!input.endsWith(";")) return Optional.empty();
+		final String substring = input.substring(0, input.length() - ";".length());
+
+		final int i = substring.indexOf("=");
+		if (i < 0) return Optional.empty();
+		final String substring1 = substring.substring(0, i);
+		final String substring2 = substring.substring(i + "=".length());
+
+		return Optional.of(wrap(substring1) + " = " + wrap(substring2) + ";");
 	}
 
 	private static Stream<String> divide(String input) {
