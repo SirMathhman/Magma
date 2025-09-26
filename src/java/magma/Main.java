@@ -45,7 +45,7 @@ public class Main {
 	private record HeadedStream<T>(Head<T> head) implements Stream<T> {
 		@Override
 		public <R> Stream<R> map(Function<T, R> mapper) {
-			return new HeadedStream<>(() -> head.next().map(mapper));
+			return new HeadedStream<>(() -> this.head.next().map(mapper));
 		}
 
 		@Override
@@ -57,7 +57,7 @@ public class Main {
 			C current = initial;
 			while (true) {
 				C finalCurrent = current;
-				final Tuple<Boolean, C> folded = head.next().map(next -> folder.apply(finalCurrent, next)).toTuple(current);
+				final Tuple<Boolean, C> folded = this.head.next().map(next -> folder.apply(finalCurrent, next)).toTuple(current);
 				if (folded.left) current = folded.right;
 				else return current;
 			}
@@ -76,9 +76,9 @@ public class Main {
 
 		@Override
 		public Option<T> next() {
-			if (counter >= elementsInitializedCount) return new None<>();
-			final T element = array[counter];
-			counter++;
+			if (this.counter >= this.elementsInitializedCount) return new None<>();
+			final T element = this.array[this.counter];
+			this.counter++;
 			return new Some<>(element);
 		}
 	}
@@ -95,30 +95,30 @@ public class Main {
 
 		@Override
 		public Stream<T> stream() {
-			return new HeadedStream<>(new ArrayHead<>(array, size));
+			return new HeadedStream<>(new ArrayHead<>(this.array, this.size));
 		}
 
 		@Override
 		public List<T> add(T element) {
-			ensureCapacity(size + 1);
-			array[size++] = element;
+			this.ensureCapacity(this.size + 1);
+			this.array[this.size++] = element;
 			return this; // Enable chaining: list.add(1).add(2).add(3)
 		}
 
 		private void ensureCapacity(int minCapacity) {
-			if (minCapacity > array.length) resize(minCapacity);
+			if (minCapacity > this.array.length) this.resize(minCapacity);
 		}
 
 		@SuppressWarnings("unchecked")
 		private void resize(int minCapacity) {
-			int capacity = array.length;
+			int capacity = this.array.length;
 
 			// Double capacity until it's enough
 			while (capacity < minCapacity) capacity *= 2;
 
 			T[] newArray = (T[]) new Object[capacity];
-			System.arraycopy(array, 0, newArray, 0, size);
-			array = newArray;
+			System.arraycopy(this.array, 0, newArray, 0, this.size);
+			this.array = newArray;
 		}
 	}
 
@@ -128,35 +128,35 @@ public class Main {
 		private int depth = 0;
 
 		private boolean isLevel() {
-			return depth == 0;
+			return this.depth == 0;
 		}
 
 		private boolean isShallow() {
-			return depth == 1;
+			return this.depth == 1;
 		}
 
 		private Stream<String> stream() {
-			return segments.stream();
+			return this.segments.stream();
 		}
 
 		private State exit() {
-			this.depth = depth - 1;
+			this.depth = this.depth - 1;
 			return this;
 		}
 
 		private State enter() {
-			this.depth = depth + 1;
+			this.depth = this.depth + 1;
 			return this;
 		}
 
 		private State advance() {
-			this.segments = segments.add(buffer.toString());
+			this.segments = this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
 
 		private State append(char c) {
-			buffer.append(c);
+			this.buffer.append(c);
 			return this;
 		}
 	}
@@ -176,22 +176,22 @@ public class Main {
 	private record Some<T>(T value) implements Option<T> {
 		@Override
 		public <R> Option<R> map(Function<T, R> mapper) {
-			return new Main.Some<>(mapper.apply(value));
+			return new Main.Some<>(mapper.apply(this.value));
 		}
 
 		@Override
 		public Tuple<Boolean, T> toTuple(T other) {
-			return new Tuple<>(true, value);
+			return new Tuple<>(true, this.value);
 		}
 
 		@Override
 		public T orElse(T other) {
-			return value;
+			return this.value;
 		}
 
 		@Override
 		public T orElseGet(Supplier<T> other) {
-			return value;
+			return this.value;
 		}
 	}
 
