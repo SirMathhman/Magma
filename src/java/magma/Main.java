@@ -54,17 +54,17 @@ public class Main {
 
 	private static final class ArrayHead<T> implements Head<T> {
 		private final T[] array;
-		private final int size;
+		private final int elementsInitializedCount;
 		private int counter = 0;
 
-		private ArrayHead(T[] array, int size) {
+		private ArrayHead(T[] array, int elementsInitializedCount) {
 			this.array = array;
-			this.size = size;
+			this.elementsInitializedCount = elementsInitializedCount;
 		}
 
 		@Override
 		public Optional<T> next() {
-			if (counter >= size) return Optional.empty();
+			if (counter >= elementsInitializedCount) return Optional.empty();
 			final T element = array[counter];
 			counter++;
 			return Optional.of(element);
