@@ -1,8 +1,15 @@
-/*public */class Main {/*{
-	private static class State {
+/*public */class Main {/*private static class State {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
+
+		private boolean isLevel() {
+			return depth == 0;
+		}
+
+		private boolean isShallow() {
+			return depth == 1;
+		}
 
 		private Stream<String> stream() {
 			return segments.stream();
@@ -28,9 +35,7 @@
 			buffer.append(c);
 			return this;
 		}
-	}
-
-	public static void main(String[] args) {
+	}*//*public static void main(String[] args) {
 		try {
 			final String input = Files.readString(Paths.get(".", "src", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "node", "magma", "Main.ts"), compile(input));
@@ -38,32 +43,33 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}
-
-	private static String compile(String input) {
-		return divide(input).map(String::strip)
-												.filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-												.map(Main::compileRootSegment)
-												.collect(Collectors.joining());
-	}
-
-	private static String compileRootSegment(String input) {
+	}*//*private static String compile(String input) {
+		return compileStatements(input, Main::compileRootSegment);
+	}*//*private static String compileStatements(String input, Function<String, String> mapper) {
+		return divide(input).map(mapper).collect(Collectors.joining());
+	}*//*private static String compileRootSegment(String input) {
+		final String strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return compileClass(strip).orElseGet(() -> wrap(strip));
+	}*//*private static Optional<String> compileClass(String input) {
 		final int i = input.indexOf("class ");
-		if (i >= 0) {
-			final String modifiers = input.substring(0, i);
-			final String afterKeyword = input.substring(i + "class ".length());
-			final int i1 = afterKeyword.indexOf("{");
-			if (i1 >= 0) {
-				final String name = afterKeyword.substring(0, i1).strip();
-				final String substring = afterKeyword.substring(i1).strip();
-				if (substring.endsWith("}")) {
-					final String content = substring.substring(0, substring.length() - 1);
-					return wrap(modifiers) + "class " + name + " {" + wrap(content) + "}";
-				}
-			}
-		}
+		if (i < 0) return Optional.empty();
+		final String modifiers = input.substring(0, i);
+		final String afterKeyword = input.substring(i + "class ".length());
 
-		return wrap(input);
+		final int i1 = afterKeyword.indexOf("{");
+		if (i1 < 0) return Optional.empty();
+		final String name = afterKeyword.substring(0, i1).strip();
+		final String substring = afterKeyword.substring(i1 + "{".length()).strip();
+
+		if (!substring.endsWith("}")) return Optional.empty();
+		final String content = substring.substring(0, substring.length() - 1);
+		return Optional.of(
+				wrap(modifiers) + "class " + name + " {" + compileStatements(content, Main::compileClassSegment) + "}");
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input.strip());
 	}
 
 	private static Stream<String> divide(String input) {
@@ -78,14 +84,12 @@
 
 	private static State fold(State state, char c) {
 		final State appended = state.append(c);
-		if (c == ';' && appended.depth == 0) return appended.advance();
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '}' && appended.isShallow()) return appended.advance().exit();
 		if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit();
 		return appended;
-	}
-
-	private static String wrap(String input) {
+	}*//*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
-	}
-*/}
+	}*//**/}/**/

@@ -6,6 +6,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -14,6 +15,14 @@ public class Main {
 		private final Collection<String> segments = new ArrayList<>();
 		private StringBuilder buffer = new StringBuilder();
 		private int depth = 0;
+
+		private boolean isLevel() {
+			return depth == 0;
+		}
+
+		private boolean isShallow() {
+			return depth == 1;
+		}
 
 		private Stream<String> stream() {
 			return segments.stream();
@@ -52,14 +61,17 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return divide(input).map(String::strip)
-												.filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-												.map(Main::compileRootSegment)
-												.collect(Collectors.joining());
+		return compileStatements(input, Main::compileRootSegment);
+	}
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
+		return divide(input).map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
-		return compileClass(input).orElseGet(() -> wrap(input));
+		final String strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return compileClass(strip).orElseGet(() -> wrap(strip));
 	}
 
 	private static Optional<String> compileClass(String input) {
@@ -71,11 +83,16 @@ public class Main {
 		final int i1 = afterKeyword.indexOf("{");
 		if (i1 < 0) return Optional.empty();
 		final String name = afterKeyword.substring(0, i1).strip();
-		final String substring = afterKeyword.substring(i1).strip();
+		final String substring = afterKeyword.substring(i1 + "{".length()).strip();
 
 		if (!substring.endsWith("}")) return Optional.empty();
 		final String content = substring.substring(0, substring.length() - 1);
-		return Optional.of(wrap(modifiers) + "class " + name + " {" + wrap(content) + "}");
+		return Optional.of(
+				wrap(modifiers) + "class " + name + " {" + compileStatements(content, Main::compileClassSegment) + "}");
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input.strip());
 	}
 
 	private static Stream<String> divide(String input) {
@@ -90,7 +107,8 @@ public class Main {
 
 	private static State fold(State state, char c) {
 		final State appended = state.append(c);
-		if (c == ';' && appended.depth == 0) return appended.advance();
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '}' && appended.isShallow()) return appended.advance().exit();
 		if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit();
 		return appended;
