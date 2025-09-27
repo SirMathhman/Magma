@@ -102,7 +102,12 @@ function compileRootSegmentValue(input: string): [string, string[]] {
       const typeSeparator = afterName.indexOf(':');
       if (typeSeparator >= 0) {
         const withType = afterName.substring(typeSeparator + ':'.length);
-        return ['', [name + '()' + wrap(withType)]];
+        const contentStart = withType.indexOf('{');
+        if (contentStart) {
+          const type = withType.substring(0, contentStart).trim();
+          const content = withType.substring(contentStart + '{'.length);
+          return ['', [type + ' ' + name + '(){' + wrap(content)]];
+        }
       }
     }
   }

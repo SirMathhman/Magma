@@ -1,6 +1,6 @@
 #include "index.h"
 void handle(){}
-run()/* Promise<void> {
+Promise<void> run(){/*
   const source = joinPath('.', 'index.ts');
   const target = joinPath('.', 'main.c');
 
@@ -8,13 +8,13 @@ run()/* Promise<void> {
   const input = inputBuffer.toString();
   const output = compile(input);
   await writeString(target, output);
-}*/joinPath()/* string[]) {
+}*/string[]) joinPath(){/*
   return path.join(...segments);
-}*/writeString()/* string, output: string) {
+}*/string, output: string) writeString(){/*
   await fs.writeFile(target, output);
-}*/readString()/* string) {
+}*/string) readString(){/*
   return await fs.readFile(source);
-}*/compile()/* string): string {
+}*/string): string compile(){/*
   const segments: string[] = [];
   let buffer: string[] = [];
   let depth = 0;
@@ -38,14 +38,6 @@ run()/* Promise<void> {
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  }*/compileRootStatementValue()/* string): [string, string[]] {
-  if (input.startsWith('await ')) {
-    const result = input.substring('await '.length);
-    return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
-  }*/compileExpression()/* string): string {
-  if (input.endsWith('()')) {
-    const inner = input.substring(0, input.length - 2);
-    return compileExpression(inner) + '()';
   }*/int main(){
 	run()(handle);
 
@@ -91,25 +83,4 @@ function compileRootSegmentValue(input: string): [string, string[]] {
     return [result[0] + ';', result[1]];
   }*/
 /*const index = input.indexOf('function ')*/;
-/*if (index >= 0) {
-    const afterFunctionKeyword = input.substring(index + 'function'.length);
-    const paramStart = afterFunctionKeyword.indexOf('(');
-    if (paramStart >= 0) {
-      const name = afterFunctionKeyword.substring(0, paramStart).trim();
-      const afterName = afterFunctionKeyword.substring(paramStart + '('.length);
-      const typeSeparator = afterName.indexOf(':');
-      if (typeSeparator >= 0) {
-        const withType = afterName.substring(typeSeparator + ':'.length);
-        return ['', [name + '()' + wrap(withType)]];
-      }
-    }
-  }*/
-/*return [wrap(input), []]*/;
-
-/*return [wrap(input), []]*/;
-
-/*if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
-    return input;
-  }*/
-/*return wrap(input)*/;
 }
