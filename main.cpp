@@ -41,8 +41,7 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  */}/*Function): string*/ generateFunction(){/*
-  return type + ' ' + name + '(){' + content + '*/}/*string): [string, string[]]*/ compileRootStatementValue(){/*
+  */}/*string): [string, string[]]*/ compileRootStatementValue(){/*
   if (input.startsWith('await ')) {
     const result = input.substring('await '.length);
     return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
@@ -131,12 +130,59 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 /*return [wrap(input), []]*/;
 /*}
 
-interface Function {
+interface Function extends Record<string, string> {
   type: string*/;
 /*name: string*/;
 /*content: string*/;
+/*}
 
+function generateFunction(node: Function): string {
+  const newLocal = generate(node)*/;
+/*const newLocal_1 =
+    newLocal + '(){' + new StringRule('content').generate(node);
+  return newLocal_1 + '}*/
 /*'*/;
+/*}
+
+interface Rule {
+  generate(node: Function): string | undefined*/;
+/*}
+
+class StringRule implements Rule {
+  private readonly key: string*/;
+/*constructor(key: string) {
+    this.key = key;
+  }*/
+/*generate(node: Function): string | undefined {
+    return node[this.key];
+  }*/
+/*}
+
+function generate(node: Function): string | undefined {
+  // Use InfixRule to combine two rules (left and right) with a separator
+  const infix = new InfixRule(
+    new StringRule('type'),
+    new StringRule('name'),
+    ' ',
+  )*/;
+/*return infix.generate(node)*/;
+/*}
+
+class InfixRule implements Rule {
+  private readonly leftRule: Rule*/;
+/*private readonly rightRule: Rule*/;
+/*private readonly separator: string*/;
+/*constructor(leftRule: Rule, rightRule: Rule, separator: string) {
+    this.leftRule = leftRule;
+    this.rightRule = rightRule;
+    this.separator = separator;
+  }*/
+/*generate(node: Function): string | undefined {
+    const left = this.leftRule.generate(node);
+    const right = this.rightRule.generate(node);
+    if (!left || !right) return undefined;
+    return left + this.separator + right;
+  }*/
 
 /*return [wrap(input), []]*/;
 
