@@ -1,6 +1,5 @@
 /*import * as path from "path";*/
 /*import * as fs from "fs/promises";*/
-/*await main();*/
 /*async function main() {
 	const inputBuffer = await fs.readFile(path.join(".", "index.ts"));*/
 /*const input = inputBuffer.toString();*/
@@ -32,3 +31,6 @@ function wrap(input: string): string {
 
 function compileRootSegment(value: string): string {
 	return wrap(value.trim()) + "\r\n";*/
+/*}
+
+await main();*/
