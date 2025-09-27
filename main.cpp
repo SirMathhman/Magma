@@ -41,11 +41,8 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  */}/*string,
-  name: string,
-  outputContent: string,
-): string*/ generateFunction(){/*
-  return type + ' ' + name + '(){' + outputContent + '*/}/*string): [string, string[]]*/ compileRootStatementValue(){/*
+  */}/*Function): string*/ generateFunction(){/*
+  return type + ' ' + name + '(){' + content + '*/}/*string): [string, string[]]*/ compileRootStatementValue(){/*
   if (input.startsWith('await ')) {
     const result = input.substring('await '.length);
     return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
@@ -122,13 +119,22 @@ function compileRootSegmentValue(input: string): [string, string[]] {
             );
             const type = compileType(inputType);
             const outputContent = wrap(content);
-            return ['', [generateFunction(type, name, outputContent)]];
+            return [
+              '',
+              [generateFunction({ type, name, content: outputContent })],
+            ];
           }
         }
       }
     }
   }*/
 /*return [wrap(input), []]*/;
+/*}
+
+interface Function {
+  type: string*/;
+/*name: string*/;
+/*content: string*/;
 
 /*'*/;
 
