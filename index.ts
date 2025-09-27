@@ -1,6 +1,8 @@
 import * as path from "path";
 import * as fs from "fs/promises";
 
+await main();
+
 async function main(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
@@ -62,7 +64,9 @@ function wrap(input: string): string {
 function compileRootSegment(value: string): string {
 	const trimmed = value.trim();
 	if (trimmed.startsWith("import")) return "";
-	return wrap(trimmed) + "\r\n";
+	return compileRootSegmentValue(trimmed) + "\r\n";
 }
 
-await main();
+function compileRootSegmentValue(trimmed: string) {
+	return wrap(trimmed);
+}
