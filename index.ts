@@ -1,9 +1,9 @@
 import * as path from "path";
 import * as fs from "fs/promises";
 
-await main();
+await run();
 
-async function main(): Promise<void> {
+async function run(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
@@ -54,14 +54,17 @@ function compile(input: string): string {
 		if (c == '}') depth--;
 	}
 
-	let joined: string[] = [];
+	let functions: string[] = [];
+	let topLevelStatements: string[] = [];
+
 	segments.forEach(segment => {
 		const compiled = compileRootSegment(segment);
-		joined.push(...compiled[1]);
-		joined.push(compiled[0]);
+		functions.push(...compiled[1]);
+
+		topLevelStatements.push(compiled[0]);
 	});
 
-	return "#include \"index.h\"\r\n" + joined.join("");
+	return "#include \"index.h\"\r\n" + functions.join("") + "int main(){\r\n\t" + topLevelStatements.join("") + "}";
 }
 
 function wrap(input: string): string {

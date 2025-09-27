@@ -1,7 +1,8 @@
 #include "index.h"
 void empty(){}
-main()(empty);
-/*async function main(): Promise<void> {
+int main(){
+	run()(empty);
+/*async function run(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
@@ -47,14 +48,17 @@ async function readString(source: string) {
 		if (c == '{') depth++;
 		if (c == '}') depth--;
 	}*/
-/*let joined: string[] = []*/;
+/*let functions: string[] = []*/;
+/*let topLevelStatements: string[] = []*/;
 /*segments.forEach(segment => {
 		const compiled = compileRootSegment(segment);
-		joined.push(...compiled[1]);
-		joined.push(compiled[0]);
+		functions.push(...compiled[1]);
+
+		topLevelStatements.push(compiled[0]);
 	}*/
 /*)*/;
-/*return "#include \"index.h\"\r\n" + joined.join("")*/;
+/*return "#include \"index.h\"\r\n" + functions.join("") + "int main(){\r\n\t" + topLevelStatements.join("") + "}*/
+/*"*/;
 /*}
 
 function wrap(input: string): string {
@@ -95,3 +99,4 @@ function compileExpression(input: string): string {
 		return input;
 	}*/
 /*return wrap(input)*/;
+}
