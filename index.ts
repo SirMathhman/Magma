@@ -1,7 +1,7 @@
 import * as path from "path";
 import * as fs from "fs/promises";
 
-async function main() {
+async function main(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
