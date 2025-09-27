@@ -132,20 +132,7 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 interface Node extends Record<string, string | Node | Node[]> {}
 
 function generateFunction(node: Node): string {
-  // Build the function signature using rules:
-  // - combine type and name with a space (InfixRule)
-  // - append '(){' after the signature (SuffixRule)
-  // - append the content
-
-  const rule = new SuffixRule(
-    new InfixRule(
-      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
-      '{',
-      new StringRule('content'),
-    ),
-    '}',
-  );
-  return rule.generate(node) ?? '';
+  return createFunctionRule().generate(node) ?? '';
 }
 
 class SuffixRule implements Rule {
@@ -201,6 +188,17 @@ class InfixRule implements Rule {
     if (!left || !right) return undefined;
     return left + this.separator + right;
   }
+}
+
+function createFunctionRule() {
+  return new SuffixRule(
+    new InfixRule(
+      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
+      '(){',
+      new StringRule('content'),
+    ),
+    '}',
+  );
 }
 
 function compileRootStatementValue(input: string): [string, string[]] {
