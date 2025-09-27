@@ -1,5 +1,5 @@
 #include "index.h"
-/*await main();*/
+/*await main()*/;
 /*async function main(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
@@ -46,18 +46,26 @@ async function readString(source: string) {
 		if (c == '{') depth++;
 		if (c == '}') depth--;
 	}*/
-/*return "#include \"index.h\"\r\n" + segments.map(compileRootSegment).join("");*/
+/*return "#include \"index.h\"\r\n" + segments.map(compileRootSegment).join("")*/;
 /*}
 
 function wrap(input: string): string {
-	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end";*/
+	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end"*/;
 /*}
 
 function compileRootSegment(value: string): string {
-	const trimmed = value.trim();*/
-/*if (trimmed.startsWith("import")) return "";*/
-/*return compileRootSegmentValue(trimmed) + "\r\n";*/
+	const trimmed = value.trim()*/;
+/*if (trimmed.startsWith("import")) return ""*/;
+/*return compileRootSegmentValue(trimmed) + "\r\n"*/;
 /*}
 
-function compileRootSegmentValue(trimmed: string) {
-	return wrap(trimmed);*/
+function compileRootSegmentValue(input: string) {
+	if (input.endsWith("*/;
+/*")) {
+		const result = input.substring(0, input.length - ";".length);
+		return compileRootStatementValue(result) + ";";
+	}*/
+/*return wrap(input)*/;
+/*}
+function compileRootStatementValue(result: string) {
+	return wrap(result)*/;

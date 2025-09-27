@@ -67,6 +67,14 @@ function compileRootSegment(value: string): string {
 	return compileRootSegmentValue(trimmed) + "\r\n";
 }
 
-function compileRootSegmentValue(trimmed: string) {
-	return wrap(trimmed);
+function compileRootSegmentValue(input: string) {
+	if (input.endsWith(";")) {
+		const result = input.substring(0, input.length - ";".length);
+		return compileRootStatementValue(result) + ";";
+	}
+	return wrap(input);
 }
+function compileRootStatementValue(result: string) {
+	return wrap(result);
+}
+
