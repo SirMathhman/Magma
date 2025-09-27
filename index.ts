@@ -2,9 +2,21 @@ import * as path from "path";
 import * as fs from "fs/promises";
 
 async function main() {
-	const inputBuffer = await fs.readFile(path.join(".", "index.ts"));
+	const source = path.join(".", "index.ts");
+	const target = path.join(".", "main.c");
+
+	const inputBuffer = await readString(source);
 	const input = inputBuffer.toString();
-	await fs.writeFile(path.join(".", "main.c"), compile(input));
+	const output = compile(input);
+	await writeString(target, output);
+}
+
+async function writeString(target: string, output: string) {
+	await fs.writeFile(target, output);
+}
+
+async function readString(source: string) {
+	return await fs.readFile(source);
 }
 
 function compile(input: string): string {
