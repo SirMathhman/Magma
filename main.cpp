@@ -41,7 +41,11 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  */}/*string): [string, string[]]*/ compileRootStatementValue(){/*
+  */}/*string,
+  name: string,
+  outputContent: string,
+): string*/ generateFunction(){/*
+  return type + ' ' + name + '(){' + outputContent + '*/}/*string): [string, string[]]*/ compileRootStatementValue(){/*
   if (input.startsWith('await ')) {
     const result = input.substring('await '.length);
     return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
@@ -118,13 +122,15 @@ function compileRootSegmentValue(input: string): [string, string[]] {
             );
             const type = compileType(inputType);
             const outputContent = wrap(content);
-            return ['', [type + ' ' + name + '(){' + outputContent + '}']];
+            return ['', [generateFunction(type, name, outputContent)]];
           }
         }
       }
     }
   }*/
 /*return [wrap(input), []]*/;
+
+/*'*/;
 
 /*return [wrap(input), []]*/;
 

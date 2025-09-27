@@ -116,7 +116,7 @@ function compileRootSegmentValue(input: string): [string, string[]] {
             );
             const type = compileType(inputType);
             const outputContent = wrap(content);
-            return ['', [type + ' ' + name + '(){' + outputContent + '}']];
+            return ['', [generateFunction(type, name, outputContent)]];
           }
         }
       }
@@ -124,6 +124,14 @@ function compileRootSegmentValue(input: string): [string, string[]] {
   }
 
   return [wrap(input), []];
+}
+
+function generateFunction(
+  type: string,
+  name: string,
+  outputContent: string,
+): string {
+  return type + ' ' + name + '(){' + outputContent + '}';
 }
 
 function compileRootStatementValue(input: string): [string, string[]] {
