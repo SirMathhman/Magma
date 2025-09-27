@@ -3,7 +3,7 @@ template<typename T>
 using Promise = void(*)(void(*)(T));
 using PromiseVoid = void(*)(void(*)());
 void handle(){}
-/*Promise<void>*/ run(){/*
+/*Promise<void>*/ run{/*
   const source = joinPath('.', 'index.ts');
   const target = joinPath('.', 'main.cpp');
 
@@ -11,13 +11,13 @@ void handle(){}
   const input = inputBuffer.toString();
   const output = compile(input);
   await writeString(target, output);
-*/}/*string[])*/ joinPath(){/*
+*/}/*string[])*/ joinPath{/*
   return path.join(...segments);
-*/}/*string, output: string)*/ writeString(){/*
+*/}/*string, output: string)*/ writeString{/*
   await fs.writeFile(target, output);
-*/}/*string)*/ readString(){/*
+*/}/*string)*/ readString{/*
   return await fs.readFile(source);
-*/}/*string): string*/ compile(){/*
+*/}/*string): string*/ compile{/*
   const segments: string[] = [];
   let buffer: string[] = [];
   let depth = 0;
@@ -41,15 +41,42 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  */}/*string): [string, string[]]*/ compileRootStatementValue(){/*
+  */}/*Node): string*/ generateFunction{/*
+  // Build the function signature using rules:
+  // - combine type and name with a space (InfixRule)
+  // - append '(){' after the signature (SuffixRule)
+  // - append the content
+
+  const rule = new SuffixRule(
+    new InfixRule(
+      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
+      '{',
+      new StringRule('content'),
+    ),
+    '}',
+  );
+  return rule.generate(node) ?? '';
+*/}/*string): [string, string[]]*/ compileRootStatementValue{/*
   if (input.startsWith('await ')) {
     const result = input.substring('await '.length);
     return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
-  */}/*string): string*/ compileExpression(){/*
+  }
+
+  return [wrap(input), []];
+*/}/*string): string*/ compileExpression{/*
   if (input.endsWith('()')) {
     const inner = input.substring(0, input.length - 2);
     return compileExpression(inner) + '()';
-  */}int main(){
+  }
+
+  if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
+    return input;
+  }
+
+  return wrap(input);
+*/}/*string): string*/ compileType{/*
+  return wrap(type);
+*/}int main(){
 	run()(handle);
 
 
@@ -128,63 +155,59 @@ function compileRootSegmentValue(input: string): [string, string[]] {
     }
   }*/
 /*return [wrap(input), []]*/;
-/*}
 
-interface Node extends Record<string, string | Node | Node[]> {}
+/*class SuffixRule implements Rule {
+  private readonly inner: Rule;
+  private readonly suffix: string;
 
-function generateFunction(node: Node): string {
-  const newLocal = new InfixRule(
-    new StringRule('type'),
-    new StringRule('name'),
-    ' ',
-  ).generate(node)*/;
-/*const newLocal_1 =
-    newLocal + '(){' + new StringRule('content').generate(node);
-  return newLocal_1 + '}*/
-/*'*/;
-/*}
+  constructor(inner: Rule, suffix: string) {
+    this.inner = inner;
+    this.suffix = suffix;
+  }
 
-interface Rule {
-  generate(node: Node): string | undefined*/;
-/*}
+  generate(node: Node): string | undefined {
+    const base = this.inner.generate(node);
+    if (base === undefined) return undefined;
+    return base + this.suffix;
+  }
+}*/
+/*interface Rule {
+  generate(node: Node): string | undefined;
+}*/
+/*class StringRule implements Rule {
+  private readonly key: string;
 
-class StringRule implements Rule {
-  private readonly key: string*/;
-/*constructor(key: string) {
+  constructor(key: string) {
     this.key = key;
-  }*/
-/*generate(node: Node): string | undefined {
+  }
+
+  generate(node: Node): string | undefined {
     const result = node[this.key];
     if (typeof result === 'string') {
       return result;
     }
     return undefined;
-  }*/
-/*}
+  }
+}*/
+/*class InfixRule implements Rule {
+  private readonly leftRule: Rule;
+  private readonly separator: string;
+  private readonly rightRule: Rule;
 
-class InfixRule implements Rule {
-  private readonly leftRule: Rule*/;
-/*private readonly rightRule: Rule*/;
-/*private readonly separator: string*/;
-/*constructor(leftRule: Rule, rightRule: Rule, separator: string) {
+  constructor(leftRule: Rule, separator: string, rightRule: Rule) {
     this.leftRule = leftRule;
-    this.rightRule = rightRule;
     this.separator = separator;
-  }*/
-/*generate(node: Node): string | undefined {
+    this.rightRule = rightRule;
+  }
+
+  generate(node: Node): string | undefined {
     const left = this.leftRule.generate(node);
     const right = this.rightRule.generate(node);
     if (!left || !right) return undefined;
     return left + this.separator + right;
-  }*/
+  }
+}*/
 
-/*return [wrap(input), []]*/;
 
-/*if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
-    return input;
-  }*/
-/*return wrap(input)*/;
-/*}
-function compileType(type: string): string {
-  return wrap(type)*/;
+
 }

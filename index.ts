@@ -132,15 +132,36 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 interface Node extends Record<string, string | Node | Node[]> {}
 
 function generateFunction(node: Node): string {
-  const newLocal = new InfixRule(
-    new StringRule('type'),
-    new StringRule('name'),
-    ' ',
-  ).generate(node);
+  // Build the function signature using rules:
+  // - combine type and name with a space (InfixRule)
+  // - append '(){' after the signature (SuffixRule)
+  // - append the content
 
-  const newLocal_1 =
-    newLocal + '(){' + new StringRule('content').generate(node);
-  return newLocal_1 + '}';
+  const rule = new SuffixRule(
+    new InfixRule(
+      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
+      '{',
+      new StringRule('content'),
+    ),
+    '}',
+  );
+  return rule.generate(node) ?? '';
+}
+
+class SuffixRule implements Rule {
+  private readonly inner: Rule;
+  private readonly suffix: string;
+
+  constructor(inner: Rule, suffix: string) {
+    this.inner = inner;
+    this.suffix = suffix;
+  }
+
+  generate(node: Node): string | undefined {
+    const base = this.inner.generate(node);
+    if (base === undefined) return undefined;
+    return base + this.suffix;
+  }
 }
 
 interface Rule {
@@ -165,13 +186,13 @@ class StringRule implements Rule {
 
 class InfixRule implements Rule {
   private readonly leftRule: Rule;
-  private readonly rightRule: Rule;
   private readonly separator: string;
+  private readonly rightRule: Rule;
 
-  constructor(leftRule: Rule, rightRule: Rule, separator: string) {
+  constructor(leftRule: Rule, separator: string, rightRule: Rule) {
     this.leftRule = leftRule;
-    this.rightRule = rightRule;
     this.separator = separator;
+    this.rightRule = rightRule;
   }
 
   generate(node: Node): string | undefined {
