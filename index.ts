@@ -96,11 +96,13 @@ function compileRootSegmentValue(input: string): [string, string[]] {
   if (index >= 0) {
     const afterFunctionKeyword = input.substring(index + 'function'.length);
     const paramStart = afterFunctionKeyword.indexOf('(');
-    if (paramStart) {
+    if (paramStart >= 0) {
       const name = afterFunctionKeyword.substring(0, paramStart).trim();
       const afterName = afterFunctionKeyword.substring(paramStart + '('.length);
-      if (afterName) {
-        return ['', [name + '(' + wrap(afterName)]];
+      const typeSeparator = afterName.indexOf(':');
+      if (typeSeparator >= 0) {
+        const withType = afterName.substring(typeSeparator + ':'.length);
+        return ['', [name + '()' + wrap(withType)]];
       }
     }
   }
