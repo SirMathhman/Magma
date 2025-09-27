@@ -1,11 +1,6 @@
 #include "index.h"
-void empty(){}
-/*s: string[] = []*//* wrap(input: string): string {
-	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end"*//* compileRootSegment(value: string): [string, string[]] {
-	const trimmed = value.trim()*//* compileRootSegmentValue(input: string): [string, string[]] {
-	if (input.endsWith("*//*")*/int main(){
-	run()(empty);
-/*async function run(): Promise<void> {
+void handle(){}
+/* run(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
@@ -13,20 +8,13 @@ void empty(){}
 	const input = inputBuffer.toString();
 	const output = compile(input);
 	await writeString(target, output);
-}*/
-/*// @Actual
-function joinPath(...segments: string[]) {
+}*//* joinPath(...segments: string[]) {
 	return path.join(...segments);
-}*/
-/*// @Actual
-async function writeString(target: string, output: string) {
+}*//* writeString(target: string, output: string) {
 	await fs.writeFile(target, output);
-}*/
-/*// Actual
-async function readString(source: string) {
+}*//* readString(source: string) {
 	return await fs.readFile(source);
-}*/
-/*function compile(input: string): string {
+}*//* compile(input: string): string {
 	const segments: string[] = [];
 	let buffer: string[] = [];
 	let depth = 0;
@@ -50,8 +38,22 @@ async function readString(source: string) {
 
 		if (c == '{') depth++;
 		if (c == '}') depth--;
-	}*/
-;
+	}*//* compileRootStatementValue(input: string): [string, string[]] {
+	if (input.startsWith("await ")) {
+		const result = input.substring("await ".length);
+		return [compileExpression(result) + "(handle)", ["void handle(){}\r\n"]];
+	}*//* compileExpression(input: string): string {
+	if (input.endsWith("()")) {
+		const inner = input.substring(0, input.length - 2);
+		return compileExpression(inner) + "()";
+	}*/int main(){
+	run()(handle);
+
+
+
+
+
+/*let functions: string[] = []*/;
 /*let topLevelStatements: string[] = []*/;
 /*segments.forEach(segment => {
 		const compiled = compileRootSegment(segment);
@@ -62,26 +64,27 @@ async function readString(source: string) {
 /*)*/;
 /*return "#include \"index.h\"\r\n" + functions.join("") + "int main(){\r\n\t" + topLevelStatements.join("") + "}*/
 /*"*/;
-;
-;
+/*}
+
+function wrap(input: string): string {
+	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end"*/;
+/*}
+
+function compileRootSegment(value: string): [string, string[]] {
+	const trimmed = value.trim()*/;
 /*if (trimmed.startsWith("import")) return ["", []]*/;
 /*const result = compileRootSegmentValue(trimmed)*/;
 /*return [result[0] + "\r\n", result[1]]*/;
-;
+/*}
+
+function compileRootSegmentValue(input: string): [string, string[]] {
+	if (input.endsWith("*/;
 /*")) {
 		const slice = input.substring(0, input.length - ";".length);
 		const result = compileRootStatementValue(slice);
 		return [result[0] + ";", result[1]];
 	}*/
-/*return [wrap(input), []]*/;
-/*}
-
-function compileRootStatementValue(input: string): [string, string[]] {
-	if (input.startsWith("await ")) {
-		const result = input.substring("await ".length);
-		return [compileExpression(result) + "(empty)", ["void empty(){}\r\n"]];
-	}*/
-;
+/*const index = input.indexOf("function ")*/;
 /*if (index >= 0) {
 		const first = input.substring(0, index);
 		const second = input.substring(index + "function".length);
@@ -89,13 +92,9 @@ function compileRootStatementValue(input: string): [string, string[]] {
 		return ["", [wrap(second)]];
 	}*/
 /*return [wrap(input), []]*/;
-/*}
 
-function compileExpression(input: string): string {
-	if (input.endsWith("()")) {
-		const inner = input.substring(0, input.length - 2);
-		return compileExpression(inner) + "()";
-	}*/
+/*return [wrap(input), []]*/;
+
 /*if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
 		return input;
 	}*/

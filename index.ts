@@ -85,21 +85,22 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 		const result = compileRootStatementValue(slice);
 		return [result[0] + ";", result[1]];
 	}
+
+	const index = input.indexOf("function ");
+	if (index >= 0) {
+		const first = input.substring(0, index);
+		const second = input.substring(index + "function".length);
+
+		return ["", [wrap(second)]];
+	}
+
 	return [wrap(input), []];
 }
 
 function compileRootStatementValue(input: string): [string, string[]] {
 	if (input.startsWith("await ")) {
 		const result = input.substring("await ".length);
-		return [compileExpression(result) + "(empty)", ["void empty(){}\r\n"]];
-	}
-
-	const index = input.indexOf("function");
-	if (index >= 0) {
-		const first = input.substring(0, index);
-		const second = input.substring(index + "function".length);
-
-		return ["", [wrap(second)]];
+		return [compileExpression(result) + "(handle)", ["void handle(){}\r\n"]];
 	}
 
 	return [wrap(input), []];
