@@ -3,7 +3,7 @@ template<typename T>
 using Promise = void(*)(void(*)(T));
 using PromiseVoid = void(*)(void(*)());
 void handle(){}
-/*Promise<void>*/ run{/*
+/*Promise<void>*/ run(){/*
   const source = joinPath('.', 'index.ts');
   const target = joinPath('.', 'main.cpp');
 
@@ -11,13 +11,13 @@ void handle(){}
   const input = inputBuffer.toString();
   const output = compile(input);
   await writeString(target, output);
-*/}/*string[])*/ joinPath{/*
+*/}/*string[])*/ joinPath(){/*
   return path.join(...segments);
-*/}/*string, output: string)*/ writeString{/*
+*/}/*string, output: string)*/ writeString(){/*
   await fs.writeFile(target, output);
-*/}/*string)*/ readString{/*
+*/}/*string)*/ readString(){/*
   return await fs.readFile(source);
-*/}/*string): string*/ compile{/*
+*/}/*string): string*/ compile(){/*
   const segments: string[] = [];
   let buffer: string[] = [];
   let depth = 0;
@@ -41,18 +41,11 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  */}/*Node): string*/ generateFunction{/*
-  const rule = new SuffixRule(
-    new InfixRule(
-      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
-      '{',
-      new StringRule('content'),
-    ),
-    '*/}/*string): [string, string[]]*/ compileRootStatementValue{/*
+  */}/*string): [string, string[]]*/ compileRootStatementValue(){/*
   if (input.startsWith('await ')) {
     const result = input.substring('await '.length);
     return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
-  */}/*string): string*/ compileExpression{/*
+  */}/*string): string*/ compileExpression(){/*
   if (input.endsWith('()')) {
     const inner = input.substring(0, input.length - 2);
     return compileExpression(inner) + '()';
@@ -127,7 +120,16 @@ function compileRootSegmentValue(input: string): [string, string[]] {
             const outputContent = wrap(content);
             return [
               '',
-              [generateFunction({ type, name, content: outputContent })],
+              [
+                ((): string => {
+                  const node: Node = {
+                    type,
+                    name,
+                    content: outputContent,
+                  };
+                  return createFunctionRule().generate(node) ?? '';
+                })(),
+              ],
             ];
           }
         }
@@ -135,11 +137,9 @@ function compileRootSegmentValue(input: string): [string, string[]] {
     }
   }*/
 /*return [wrap(input), []]*/;
-
-/*',
-  )*/;
-/*return rule.generate(node) ?? ''*/;
 /*}
+
+interface Node extends Record<string, string | Node | Node[]> {}
 
 class SuffixRule implements Rule {
   private readonly inner: Rule*/;

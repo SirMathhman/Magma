@@ -118,7 +118,16 @@ function compileRootSegmentValue(input: string): [string, string[]] {
             const outputContent = wrap(content);
             return [
               '',
-              [generateFunction({ type, name, content: outputContent })],
+              [
+                ((): string => {
+                  const node: Node = {
+                    type,
+                    name,
+                    content: outputContent,
+                  };
+                  return createFunctionRule().generate(node) ?? '';
+                })(),
+              ],
             ];
           }
         }
@@ -130,19 +139,6 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 }
 
 interface Node extends Record<string, string | Node | Node[]> {}
-
-function generateFunction(node: Node): string {
-  const rule = new SuffixRule(
-    new InfixRule(
-      new InfixRule(new StringRule('type'), ' ', new StringRule('name')),
-      '{',
-      new StringRule('content'),
-    ),
-    '}',
-  );
-
-  return rule.generate(node) ?? '';
-}
 
 class SuffixRule implements Rule {
   private readonly inner: Rule;
