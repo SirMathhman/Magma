@@ -23,9 +23,13 @@ function compile(input: string): string {
 		}
 	}
 
-	return segments.map(wrap).join("");
+	return segments.map(compileRootSegment).join("");
 }
 
 function wrap(input: string): string {
 	return "/*" + input.replaceAll("/*", "start").replaceAll("*/", "end") + "*/";
+}
+
+function compileRootSegment(value: string): string {
+	return wrap(value.trim()) + "\r\n";
 }
