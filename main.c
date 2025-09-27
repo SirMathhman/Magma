@@ -1,6 +1,6 @@
 #include "index.h"
 void handle(){}
-/* run(): Promise<void> {
+run(/*): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
@@ -8,13 +8,13 @@ void handle(){}
 	const input = inputBuffer.toString();
 	const output = compile(input);
 	await writeString(target, output);
-}*//* joinPath(...segments: string[]) {
+}*/joinPath(/*...segments: string[]) {
 	return path.join(...segments);
-}*//* writeString(target: string, output: string) {
+}*/writeString(/*target: string, output: string) {
 	await fs.writeFile(target, output);
-}*//* readString(source: string) {
+}*/readString(/*source: string) {
 	return await fs.readFile(source);
-}*//* compile(input: string): string {
+}*/compile(/*input: string): string {
 	const segments: string[] = [];
 	let buffer: string[] = [];
 	let depth = 0;
@@ -38,11 +38,11 @@ void handle(){}
 
 		if (c == '{') depth++;
 		if (c == '}') depth--;
-	}*//* compileRootStatementValue(input: string): [string, string[]] {
+	}*/compileRootStatementValue(/*input: string): [string, string[]] {
 	if (input.startsWith("await ")) {
 		const result = input.substring("await ".length);
 		return [compileExpression(result) + "(handle)", ["void handle(){}\r\n"]];
-	}*//* compileExpression(input: string): string {
+	}*/compileExpression(/*input: string): string {
 	if (input.endsWith("()")) {
 		const inner = input.substring(0, input.length - 2);
 		return compileExpression(inner) + "()";
@@ -86,10 +86,13 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 	}*/
 /*const index = input.indexOf("function ")*/;
 /*if (index >= 0) {
-		const first = input.substring(0, index);
-		const second = input.substring(index + "function".length);
-
-		return ["", [wrap(second)]];
+		const afterFunctionKeyword = input.substring(index + "function".length);
+		const paramStart = afterFunctionKeyword.indexOf("(");
+		if (paramStart) {
+			const name = afterFunctionKeyword.substring(0, paramStart).trim();
+			const afterName = afterFunctionKeyword.substring(paramStart + "(".length);
+			return ["", [name + "(" + wrap(afterName)]];
+		}
 	}*/
 /*return [wrap(input), []]*/;
 
