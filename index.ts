@@ -22,6 +22,13 @@ function compile(input: string): string {
 			continue;
 		}
 
+		if (c == '}' && depth === 1) {
+			segments.push(buffer.join(""));
+			buffer = [];
+			depth--;
+			continue;
+		}
+
 		if (c == '{') depth++;
 		if (c == '}') depth--;
 	}

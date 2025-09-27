@@ -2,9 +2,8 @@
 	const inputBuffer = await fs.readFile(path.join(".", "index.ts"));
 	const input = inputBuffer.toString();
 	await fs.writeFile(path.join(".", "main.c"), compile(input));
-}
-
-function compile(input: string): string {
+}*/
+/*function compile(input: string): string {
 	const segments: string[] = [];
 	let buffer: string[] = [];
 	let depth = 0;
@@ -19,21 +18,24 @@ function compile(input: string): string {
 			continue;
 		}
 
+		if (c == '}' && depth === 1) {
+			segments.push(buffer.join(""));
+			buffer = [];
+			depth--;
+			continue;
+		}
+
 		if (c == '{') depth++;
 		if (c == '}') depth--;
-	}
-
-	return segments.map(compileRootSegment).join("");
-}
+	}*/
+/*return segments.map(compileRootSegment).join("");*/
+/*}
 
 function wrap(input: string): string {
-	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end";
-}
+	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end";*/
+/*}
 
 function compileRootSegment(value: string): string {
-	const trimmed = value.trim();
-	if (trimmed.startsWith("import")) return "";
-	return wrap(trimmed) + "\r\n";
-}
-
-await main();*/
+	const trimmed = value.trim();*/
+/*if (trimmed.startsWith("import")) return "";*/
+/*return wrap(trimmed) + "\r\n";*/
