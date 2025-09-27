@@ -54,27 +54,43 @@ function compile(input: string): string {
 		if (c == '}') depth--;
 	}
 
-	return "#include \"index.h\"\r\n" + segments.map(compileRootSegment).join("");
+	let joined: string[] = [];
+	segments.forEach(segment => {
+		const compiled = compileRootSegment(segment);
+		joined.push(...compiled[1]);
+		joined.push(compiled[0]);
+	});
+
+	return "#include \"index.h\"\r\n" + joined.join("");
 }
 
 function wrap(input: string): string {
 	return "/*" + input.replaceAll("/*", "start").replaceAll("*/", "end") + "*/";
 }
 
-function compileRootSegment(value: string): string {
+function compileRootSegment(value: string): [string, string[]] {
 	const trimmed = value.trim();
-	if (trimmed.startsWith("import")) return "";
-	return compileRootSegmentValue(trimmed) + "\r\n";
+	if (trimmed.startsWith("import")) return ["", []];
+
+	const result = compileRootSegmentValue(trimmed);
+	return [result[0] + "\r\n", result[1]];
 }
 
-function compileRootSegmentValue(input: string) {
+function compileRootSegmentValue(input: string): [string, string[]] {
 	if (input.endsWith(";")) {
-		const result = input.substring(0, input.length - ";".length);
-		return compileRootStatementValue(result) + ";";
+		const slice = input.substring(0, input.length - ";".length);
+		const result = compileRootStatementValue(slice);
+		return [result[0] + ";", result[1]];
 	}
-	return wrap(input);
+	return [wrap(input), []];
 }
-function compileRootStatementValue(result: string) {
-	return wrap(result);
+
+function compileRootStatementValue(input: string): [string, string[]] {
+	if (input.startsWith("await ")) {
+		const result = input.substring("await ".length);
+		return [wrap(result) + "(empty)", ["void empty(){}\r\n"]];
+	}
+
+	return [wrap(input), []];
 }
 
