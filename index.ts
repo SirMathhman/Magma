@@ -11,10 +11,12 @@ async function main() {
 	await writeString(target, output);
 }
 
+// @Actual
 async function writeString(target: string, output: string) {
 	await fs.writeFile(target, output);
 }
 
+// Actual
 async function readString(source: string) {
 	return await fs.readFile(source);
 }
