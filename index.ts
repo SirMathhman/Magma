@@ -52,7 +52,7 @@ function compile(input: string): string {
 		if (c == '}') depth--;
 	}
 
-	return segments.map(compileRootSegment).join("");
+	return "#include \"index.h\"\r\n" + segments.map(compileRootSegment).join("");
 }
 
 function wrap(input: string): string {

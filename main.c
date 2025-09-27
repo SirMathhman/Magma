@@ -1,4 +1,5 @@
-/*async function main() {
+#include "index.h"
+/*async function main(): Promise<void> {
 	const source = joinPath(".", "index.ts");
 	const target = joinPath(".", "main.c");
 
@@ -44,7 +45,7 @@ async function readString(source: string) {
 		if (c == '{') depth++;
 		if (c == '}') depth--;
 	}*/
-/*return segments.map(compileRootSegment).join("");*/
+/*return "#include \"index.h\"\r\n" + segments.map(compileRootSegment).join("");*/
 /*}
 
 function wrap(input: string): string {
