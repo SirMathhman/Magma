@@ -11,13 +11,13 @@ void handle(){}
   const input = inputBuffer.toString();
   const output = compile(input);
   await writeString(target, output);
-}*//*string[])*/ joinPath(){/*
+*/}/*string[])*/ joinPath(){/*
   return path.join(...segments);
-}*//*string, output: string)*/ writeString(){/*
+*/}/*string, output: string)*/ writeString(){/*
   await fs.writeFile(target, output);
-}*//*string)*/ readString(){/*
+*/}/*string)*/ readString(){/*
   return await fs.readFile(source);
-}*//*string): string*/ compile(){/*
+*/}/*string): string*/ compile(){/*
   const segments: string[] = [];
   let buffer: string[] = [];
   let depth = 0;
@@ -41,7 +41,15 @@ void handle(){}
 
     if (c == '{') depth++;
     if (c == '}') depth--;
-  }*/int main(){
+  */}/*string): [string, string[]]*/ compileRootStatementValue(){/*
+  if (input.startsWith('await ')) {
+    const result = input.substring('await '.length);
+    return [compileExpression(result) + '(handle)', ['void handle(){}\r\n']];
+  */}/*string): string*/ compileExpression(){/*
+  if (input.endsWith('()')) {
+    const inner = input.substring(0, input.length - 2);
+    return compileExpression(inner) + '()';
+  */}int main(){
 	run()(handle);
 
 
@@ -90,4 +98,41 @@ function compileRootSegmentValue(input: string): [string, string[]] {
     return [result[0] + ';', result[1]];
   }*/
 /*const index = input.indexOf('function ')*/;
+/*if (index >= 0) {
+    const afterFunctionKeyword = input.substring(index + 'function'.length);
+    const paramStart = afterFunctionKeyword.indexOf('(');
+    if (paramStart >= 0) {
+      const name = afterFunctionKeyword.substring(0, paramStart).trim();
+      const afterName = afterFunctionKeyword.substring(paramStart + '('.length);
+      const typeSeparator = afterName.indexOf(':');
+      if (typeSeparator >= 0) {
+        const withType = afterName.substring(typeSeparator + ':'.length);
+        const contentStart = withType.indexOf('{');
+        if (contentStart) {
+          const inputType = withType.substring(0, contentStart).trim();
+          const withoutEnd = withType.substring(contentStart + '{'.length);
+          if (withoutEnd.endsWith('}')) {
+            const content = withoutEnd.substring(
+              0,
+              withoutEnd.length - '}'.length,
+            );
+            const type = compileType(inputType);
+            const outputContent = wrap(content);
+            return ['', [type + ' ' + name + '(){' + outputContent + '}']];
+          }
+        }
+      }
+    }
+  }*/
+/*return [wrap(input), []]*/;
+
+/*return [wrap(input), []]*/;
+
+/*if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
+    return input;
+  }*/
+/*return wrap(input)*/;
+/*}
+function compileType(type: string): string {
+  return wrap(type)*/;
 }
