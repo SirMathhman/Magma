@@ -29,7 +29,9 @@ function wrap(input: string): string {
 }
 
 function compileRootSegment(value: string): string {
-	return wrap(value.trim()) + "\r\n";
+	const trimmed = value.trim();
+	if (trimmed.startsWith("import")) return "";
+	return wrap(trimmed) + "\r\n";
 }
 
 await main();
