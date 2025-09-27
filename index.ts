@@ -2,13 +2,18 @@ import * as path from "path";
 import * as fs from "fs/promises";
 
 async function main() {
-	const source = path.join(".", "index.ts");
-	const target = path.join(".", "main.c");
+	const source = joinPath(".", "index.ts");
+	const target = joinPath(".", "main.c");
 
 	const inputBuffer = await readString(source);
 	const input = inputBuffer.toString();
 	const output = compile(input);
 	await writeString(target, output);
+}
+
+// @Actual
+function joinPath(...segments: string[]) {
+	return path.join(...segments);
 }
 
 // @Actual
