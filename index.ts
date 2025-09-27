@@ -94,6 +94,14 @@ function compileRootStatementValue(input: string): [string, string[]] {
 		return [compileExpression(result) + "(empty)", ["void empty(){}\r\n"]];
 	}
 
+	const index = input.indexOf("function");
+	if (index >= 0) {
+		const first = input.substring(0, index);
+		const second = input.substring(index + "function".length);
+
+		return ["", [wrap(second)]];
+	}
+
 	return [wrap(input), []];
 }
 

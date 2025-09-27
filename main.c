@@ -1,6 +1,9 @@
 #include "index.h"
 void empty(){}
-int main(){
+/*s: string[] = []*//* wrap(input: string): string {
+	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end"*//* compileRootSegment(value: string): [string, string[]] {
+	const trimmed = value.trim()*//* compileRootSegmentValue(input: string): [string, string[]] {
+	if (input.endsWith("*//*")*/int main(){
 	run()(empty);
 /*async function run(): Promise<void> {
 	const source = joinPath(".", "index.ts");
@@ -48,7 +51,7 @@ async function readString(source: string) {
 		if (c == '{') depth++;
 		if (c == '}') depth--;
 	}*/
-/*let functions: string[] = []*/;
+;
 /*let topLevelStatements: string[] = []*/;
 /*segments.forEach(segment => {
 		const compiled = compileRootSegment(segment);
@@ -59,21 +62,12 @@ async function readString(source: string) {
 /*)*/;
 /*return "#include \"index.h\"\r\n" + functions.join("") + "int main(){\r\n\t" + topLevelStatements.join("") + "}*/
 /*"*/;
-/*}
-
-function wrap(input: string): string {
-	return "start" + input.replaceAll("start", "start").replaceAll("end", "end") + "end"*/;
-/*}
-
-function compileRootSegment(value: string): [string, string[]] {
-	const trimmed = value.trim()*/;
+;
+;
 /*if (trimmed.startsWith("import")) return ["", []]*/;
 /*const result = compileRootSegmentValue(trimmed)*/;
 /*return [result[0] + "\r\n", result[1]]*/;
-/*}
-
-function compileRootSegmentValue(input: string): [string, string[]] {
-	if (input.endsWith("*/;
+;
 /*")) {
 		const slice = input.substring(0, input.length - ";".length);
 		const result = compileRootStatementValue(slice);
@@ -86,6 +80,13 @@ function compileRootStatementValue(input: string): [string, string[]] {
 	if (input.startsWith("await ")) {
 		const result = input.substring("await ".length);
 		return [compileExpression(result) + "(empty)", ["void empty(){}\r\n"]];
+	}*/
+;
+/*if (index >= 0) {
+		const first = input.substring(0, index);
+		const second = input.substring(index + "function".length);
+
+		return ["", [wrap(second)]];
 	}*/
 /*return [wrap(input), []]*/;
 /*}
