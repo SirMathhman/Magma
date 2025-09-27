@@ -5,7 +5,7 @@ await run();
 
 async function run(): Promise<void> {
   const source = joinPath('.', 'index.ts');
-  const target = joinPath('.', 'main.c');
+  const target = joinPath('.', 'main.cpp');
 
   const inputBuffer = await readString(source);
   const input = inputBuffer.toString();
@@ -66,6 +66,9 @@ function compile(input: string): string {
 
   return (
     '#include "index.h"\r\n' +
+    `template<typename T>
+using Promise = void(*)(void(*)(T));
+using PromiseVoid = void(*)(void(*)());\r\n` +
     functions.join('') +
     'int main(){\r\n\t' +
     topLevelStatements.join('') +
@@ -106,7 +109,7 @@ function compileRootSegmentValue(input: string): [string, string[]] {
         if (contentStart) {
           const type = withType.substring(0, contentStart).trim();
           const content = withType.substring(contentStart + '{'.length);
-          return ['', [type + ' ' + name + '(){' + wrap(content)]];
+          return ['', [compileType(type) + ' ' + name + '(){' + wrap(content)]];
         }
       }
     }
@@ -135,4 +138,7 @@ function compileExpression(input: string): string {
   }
 
   return wrap(input);
+}
+function compileType(type: string): string {
+  return wrap(type);
 }

@@ -1,8 +1,11 @@
 #include "index.h"
+template<typename T>
+using Promise = void(*)(void(*)(T));
+using PromiseVoid = void(*)(void(*)());
 void handle(){}
 /*Promise<void>*/ run(){/*
   const source = joinPath('.', 'index.ts');
-  const target = joinPath('.', 'main.c');
+  const target = joinPath('.', 'main.cpp');
 
   const inputBuffer = await readString(source);
   const input = inputBuffer.toString();
@@ -56,6 +59,10 @@ void handle(){}
 /*)*/;
 /*return (
     '#include "index.h"\r\n' +
+    `template<typename T>
+using Promise = void(*)(void(*)(T))*/;
+/*using PromiseVoid = void(*)(void(*)())*/;
+/*\r\n` +
     functions.join('') +
     'int main(){\r\n\t' +
     topLevelStatements.join('') +
