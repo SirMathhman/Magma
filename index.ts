@@ -88,9 +88,22 @@ function compileRootSegmentValue(input: string): [string, string[]] {
 function compileRootStatementValue(input: string): [string, string[]] {
 	if (input.startsWith("await ")) {
 		const result = input.substring("await ".length);
-		return [wrap(result) + "(empty)", ["void empty(){}\r\n"]];
+		return [compileExpression(result) + "(empty)", ["void empty(){}\r\n"]];
 	}
 
 	return [wrap(input), []];
+}
+
+function compileExpression(input: string): string {
+	if (input.endsWith("()")) {
+		const inner = input.substring(0, input.length - 2);
+		return compileExpression(inner) + "()";
+	}
+
+	if (/^[a-zA-Z_$][a-zA-Z0-9_$]*$/.test(input)) {
+		return input;
+	}
+
+	return wrap(input);
 }
 
