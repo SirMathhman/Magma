@@ -129,14 +129,14 @@ function compileRootSegmentValue(input: string): [string, string[]] {
   return [wrap(input), []];
 }
 
-interface Function extends Record<string, string> {
-  type: string;
-  name: string;
-  content: string;
-}
+interface Node extends Record<string, string | Node | Node[]> {}
 
-function generateFunction(node: Function): string {
-  const newLocal = generate(node);
+function generateFunction(node: Node): string {
+  const newLocal = new InfixRule(
+    new StringRule('type'),
+    new StringRule('name'),
+    ' ',
+  ).generate(node);
 
   const newLocal_1 =
     newLocal + '(){' + new StringRule('content').generate(node);
@@ -144,7 +144,7 @@ function generateFunction(node: Function): string {
 }
 
 interface Rule {
-  generate(node: Function): string | undefined;
+  generate(node: Node): string | undefined;
 }
 
 class StringRule implements Rule {
@@ -154,19 +154,13 @@ class StringRule implements Rule {
     this.key = key;
   }
 
-  generate(node: Function): string | undefined {
-    return node[this.key];
+  generate(node: Node): string | undefined {
+    const result = node[this.key];
+    if (typeof result === 'string') {
+      return result;
+    }
+    return undefined;
   }
-}
-
-function generate(node: Function): string | undefined {
-  // Use InfixRule to combine two rules (left and right) with a separator
-  const infix = new InfixRule(
-    new StringRule('type'),
-    new StringRule('name'),
-    ' ',
-  );
-  return infix.generate(node);
 }
 
 class InfixRule implements Rule {
@@ -180,7 +174,7 @@ class InfixRule implements Rule {
     this.separator = separator;
   }
 
-  generate(node: Function): string | undefined {
+  generate(node: Node): string | undefined {
     const left = this.leftRule.generate(node);
     const right = this.rightRule.generate(node);
     if (!left || !right) return undefined;
