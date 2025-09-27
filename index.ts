@@ -10,15 +10,20 @@ async function main() {
 function compile(input: string): string {
 	const segments: string[] = [];
 	let buffer: string[] = [];
+	let depth = 0;
 	for (let index = 0; index < input.length; index++) {
 		const c = input[index];
 		if (!c) break;
 
 		buffer.push(c);
-		if (c[0] == ';') {
+		if (c == ';' && depth === 0) {
 			segments.push(buffer.join(""));
 			buffer = [];
+			continue;
 		}
+
+		if (c == '{') depth++;
+		if (c == '}') depth--;
 	}
 
 	return segments.map(compileRootSegment).join("");
