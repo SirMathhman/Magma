@@ -166,20 +166,25 @@ public class Main {
 	}
 
 	private static String compileRootSegmentValue(String input) {
-		if (input.endsWith("}")) {
-			final String slice = input.substring(0, input.length() - "}".length());
-			final int contentStart = slice.indexOf("{");
-			if (contentStart >= 0) {
-				final String beforeBraces = slice.substring(0, contentStart);
-				final String afterBraces = slice.substring(contentStart + "{".length());
-				return createClassHeaderRule().lex(beforeBraces)
-																			.flatMap(inner -> createStructHeaderRule().generate(inner))
-																			.orElseGet(() -> wrap(beforeBraces)) + " {};" + System.lineSeparator() +
-							 compileAll(afterBraces, Main::compileClassSegment);
-			}
-		}
+		return compileClass(input).orElseGet(() -> wrap(input));
+	}
 
-		return wrap(input);
+	private static Optional<String> compileClass(String input) {
+		if (!input.endsWith("}")) return Optional.empty();
+		final String slice = input.substring(0, input.length() - "}".length());
+
+		final int contentStart = slice.indexOf("{");
+		if (contentStart < 0) return Optional.empty();
+		final String beforeBraces = slice.substring(0, contentStart);
+		final String afterBraces = slice.substring(contentStart + "{".length());
+
+		final var s = createClassHeaderRule().lex(beforeBraces)
+																				 .flatMap(inner -> createStructHeaderRule().generate(inner))
+																				 .orElseGet(() -> wrap(beforeBraces));
+		
+		return Optional.of(s + " {};" + System.lineSeparator() +
+											 compileAll(afterBraces, Main::compileClassSegment));
+
 	}
 
 	private static String compileClassSegment(String input) {
