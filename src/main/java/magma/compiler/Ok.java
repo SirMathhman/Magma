@@ -8,17 +8,12 @@ public final class Ok<T, E> implements Result<T, E> {
 	}
 
 	@Override
-	public boolean isOk() {
-		return true;
+	public java.util.Optional<T> asOptional() {
+		return java.util.Optional.ofNullable(value);
 	}
 
 	@Override
-	public T unwrap() {
-		return value;
-	}
-
-	@Override
-	public E getError() {
-		return null;
+	public java.util.Optional<E> asErrorOptional() {
+		return java.util.Optional.empty();
 	}
 }

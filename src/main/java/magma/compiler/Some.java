@@ -8,12 +8,7 @@ public final class Some<T> implements Option<T> {
 	}
 
 	@Override
-	public boolean isPresent() {
-		return true;
-	}
-
-	@Override
-	public T get() {
-		return value;
+	public java.util.Optional<T> asOptional() {
+		return java.util.Optional.ofNullable(value);
 	}
 }

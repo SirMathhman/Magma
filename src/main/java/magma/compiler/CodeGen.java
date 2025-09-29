@@ -3,10 +3,9 @@ package magma.compiler;
 import magma.compiler.ast.*;
 
 import java.io.FileWriter;
-import java.io.IOException;
 
 public class CodeGen {
-	public static void generateC(magma.compiler.ast.Program program, String outPath) throws IOException {
+	public static Result<Unit, java.io.IOException> generateC(magma.compiler.ast.Program program, String outPath) {
 		try (FileWriter fw = new FileWriter(outPath)) {
 			fw.write("#include <stdio.h>\n\n");
 			fw.write("int main() {\n");
@@ -22,6 +21,9 @@ public class CodeGen {
 			}
 			fw.write("    return 0;\n");
 			fw.write("}\n");
+			return Result.ok(Unit.instance());
+		} catch (java.io.IOException ex) {
+			return Result.err(ex);
 		}
 	}
 

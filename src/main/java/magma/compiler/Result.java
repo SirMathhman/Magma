@@ -1,11 +1,18 @@
 package magma.compiler;
 
+import java.util.Optional;
+
 public sealed interface Result<T, E> permits Ok, Err {
-	boolean isOk();
+	/**
+	 * Return the success value as an Optional. Prefer pattern matching on the
+	 * sealed types rather than using this when possible.
+	 */
+	Optional<T> asOptional();
 
-	T unwrap();
-
-	E getError();
+	/**
+	 * Return the error as an Optional.
+	 */
+	Optional<E> asErrorOptional();
 
 	static <T, E> Result<T, E> ok(T value) {
 		return new Ok<>(value);

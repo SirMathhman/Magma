@@ -8,17 +8,12 @@ public final class Err<T, E> implements Result<T, E> {
 	}
 
 	@Override
-	public boolean isOk() {
-		return false;
+	public java.util.Optional<T> asOptional() {
+		return java.util.Optional.empty();
 	}
 
 	@Override
-	public T unwrap() {
-		throw new java.util.NoSuchElementException("Err.unwrap()");
-	}
-
-	@Override
-	public E getError() {
-		return error;
+	public java.util.Optional<E> asErrorOptional() {
+		return java.util.Optional.ofNullable(error);
 	}
 }

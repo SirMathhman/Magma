@@ -13,28 +13,41 @@ public class Parser {
 		this.tokens = tokens;
 	}
 
-	public magma.compiler.ast.Program parse() {
+	public Result<magma.compiler.ast.Program, String> parse() {
 		List<Stmt> stmts = new ArrayList<>();
 		while (!match(TokenType.EOF)) {
-			Option<Stmt> sOpt = parseStatement();
-			if (sOpt.isPresent()) {
-				stmts.add(sOpt.get());
+			Result<Option<Stmt>, String> r = parseStatement();
+			if (r instanceof Err<?, ?> err) {
+				// propagate parser error
+				return Result.err((String) err.asErrorOptional().get());
+			} else if (r instanceof Ok<?, ?> ok) {
+				java.util.Optional<?> opt = ok.asOptional();
+				if (opt.isPresent()) {
+					stmts.add((Stmt) opt.get());
+				}
 			}
 		}
-		return new magma.compiler.ast.Program(stmts);
+		return Result.ok(new magma.compiler.ast.Program(stmts));
 	}
 
-	private Option<Stmt> parseStatement() {
+	private Result<Option<Stmt>, String> parseStatement() {
 		if (match(TokenType.PRINT)) {
 			// consume the 'print' token
 			advance();
-			Token t = consume(TokenType.STRING, "Expected string after print");
-			consume(TokenType.SEMICOLON, "Expected ';' after print statement");
-			return Option.some(new PrintStmt(new StringLiteral(t.lexeme)));
+			Result<Token, String> tRes = consume(TokenType.STRING, "Expected string after print");
+			if (tRes instanceof Err<?, ?> err) {
+				return Result.err((String) err.asErrorOptional().get());
+			}
+			Token t = (Token) ((Ok<?, ?>) tRes).asOptional().get();
+			Result<Token, String> semiRes = consume(TokenType.SEMICOLON, "Expected ';' after print statement");
+			if (semiRes instanceof Err<?, ?> err2) {
+				return Result.err((String) err2.asErrorOptional().get());
+			}
+			return Result.ok(Option.some(new PrintStmt(new StringLiteral(t.lexeme))));
 		}
 		// unknown or skip
 		advance();
-		return Option.none();
+		return Result.ok(Option.none());
 	}
 
 	private boolean match(TokenType type) {
@@ -43,12 +56,12 @@ public class Parser {
 		return false;
 	}
 
-	private Token consume(TokenType type, String msg) {
+	private Result<Token, String> consume(TokenType type, String msg) {
 		Token t = peek();
 		if (t.type != type)
-			throw new RuntimeException(msg + ", got: " + t);
+			return Result.err(msg + ", got: " + t);
 		advance();
-		return t;
+		return Result.ok(t);
 	}
 
 	private Token peek() {

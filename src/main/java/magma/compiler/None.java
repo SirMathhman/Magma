@@ -11,12 +11,7 @@ public final class None implements Option<Object> {
 	}
 
 	@Override
-	public boolean isPresent() {
-		return false;
-	}
-
-	@Override
-	public Object get() {
-		throw new java.util.NoSuchElementException("None.get()");
+	public java.util.Optional<Object> asOptional() {
+		return java.util.Optional.empty();
 	}
 }
