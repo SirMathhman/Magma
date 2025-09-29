@@ -1,4 +1,4 @@
-package com.example.compiler;
+package magma.compiler;
 
 import java.io.IOException;
 

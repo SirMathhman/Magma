@@ -1,4 +1,4 @@
-package com.example.compiler;
+package magma.compiler;
 
 public class Program {
     private final String message;
