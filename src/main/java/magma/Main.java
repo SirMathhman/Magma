@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 	private interface Rule {
@@ -161,27 +162,7 @@ public class Main {
 	}
 
 	private static String compileAll(String input, Function<String, String> mapper) {
-		final ArrayList<String> segments = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
-		int depth = 0;
-		for (int i = 0; i < input.length(); i++) {
-			final char c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			} else if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-			} else {
-				if (c == '{') depth++;
-				if (c == '}') depth--;
-			}
-		}
-
-		segments.add(buffer.toString());
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return divide(input).map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
@@ -207,12 +188,40 @@ public class Main {
 																						.flatMap(inner -> createStructHeaderRule().generate(inner))
 																						.orElseGet(() -> wrap(beforeBraces));
 
-		return Optional.of(s + " {};" + System.lineSeparator() + compileAll(afterBraces, Main::compileClassSegment));
+		return Optional.of(s + " {};" + System.lineSeparator() + getString(afterBraces));
 
 	}
 
-	private static String compileClassSegment(String input) {
-		return createJavaClassSegmentRule().lex(input).flatMap(node -> createCRootSegmentRule().generate(node)).orElse("");
+	private static String getString(String afterBraces) {
+		return divide(afterBraces).map(input -> createJavaClassSegmentRule().lex(input))
+															.flatMap(Optional::stream)
+															.map(node -> createCRootSegmentRule().generate(node))
+															.flatMap(Optional::stream)
+															.collect(Collectors.joining());
+	}
+
+	private static Stream<String> divide(String afterBraces) {
+		final ArrayList<String> segments = new ArrayList<>();
+		StringBuilder buffer = new StringBuilder();
+		int depth = 0;
+		for (int i = 0; i < afterBraces.length(); i++) {
+			final char c = afterBraces.charAt(i);
+			buffer.append(c);
+			if (c == ';' && depth == 0) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
+			} else {
+				if (c == '{') depth++;
+				if (c == '}') depth--;
+			}
+		}
+
+		segments.add(buffer.toString());
+		return segments.stream();
 	}
 
 	private static SuffixRule createCRootSegmentRule() {
