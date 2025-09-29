@@ -209,16 +209,12 @@ public class Main {
 																						.flatMap(inner -> createStructHeaderRule().generate(inner))
 																						.orElseGet(() -> wrap(beforeBraces));
 
-		return Optional.of(s + " {};" + System.lineSeparator() + getString(afterBraces));
+		final DivideRule children = new DivideRule("children", createJavaClassSegmentRule());
+		final DivideRule children1 = new DivideRule("children", createCRootSegmentRule());
 
-	}
+		return Optional.of(
+				s + " {};" + System.lineSeparator() + children.lex(afterBraces).flatMap(children1::generate).orElse(""));
 
-	private static String getString(String afterBraces) {
-		return new DivideRule("children", createJavaClassSegmentRule()).lex(afterBraces)
-																																	 .flatMap(value -> new DivideRule("children",
-																																																		createCRootSegmentRule()).generate(
-																																			 value))
-																																	 .orElse("");
 	}
 
 	private static Stream<String> divide(String afterBraces) {
