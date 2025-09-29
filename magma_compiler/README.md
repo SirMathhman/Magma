@@ -3,6 +3,7 @@
 Prototype compiler for the Magma programming language.
 
 Features:
+
 - Minimal lexer/tokenizer
 - Basic AST skeleton
 - CLI to print tokens
