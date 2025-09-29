@@ -11,5 +11,23 @@
 			<property name="ignoreComments" value="true" />
 			<property name="severity" value="warning" />
 		</module>
+
+		<module name="RegexpSinglelineJava">
+			<!-- match whole-word throw -->
+			<property name="format" value="\bthrow\b" />
+			<property name="message"
+				value="Avoid using 'throw' statements; prefer returning a sealed Result&lt;T, E&gt; with Ok and Err variants." />
+			<property name="ignoreComments" value="true" />
+			<property name="severity" value="warning" />
+		</module>
+
+		<module name="RegexpSinglelineJava">
+			<!-- match whole-word throws (in signatures) -->
+			<property name="format" value="\bthrows\b" />
+			<property name="message"
+				value="Avoid declaring 'throws' on methods; prefer returning a sealed Result&lt;T, E&gt; with Ok and Err variants." />
+			<property name="ignoreComments" value="true" />
+			<property name="severity" value="warning" />
+		</module>
 	</module>
 </module>
