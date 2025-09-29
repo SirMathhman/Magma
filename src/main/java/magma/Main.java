@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
@@ -120,6 +121,30 @@ public class Main {
 		}
 	}
 
+	private record OrRule(List<Rule> rules) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			return rules.stream().map(rule -> rule.lex(content)).flatMap(Optional::stream).findFirst();
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return rules.stream().map(rule -> rule.generate(node)).flatMap(Optional::stream).findFirst();
+		}
+	}
+
+	private record StripRule(Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			return rule.lex(content.strip());
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return rule.generate(node);
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -178,25 +203,32 @@ public class Main {
 		final String beforeBraces = slice.substring(0, contentStart);
 		final String afterBraces = slice.substring(contentStart + "{".length());
 
-		final var s = createClassHeaderRule().lex(beforeBraces)
-																				 .flatMap(inner -> createStructHeaderRule().generate(inner))
-																				 .orElseGet(() -> wrap(beforeBraces));
-		
-		return Optional.of(s + " {};" + System.lineSeparator() +
-											 compileAll(afterBraces, Main::compileClassSegment));
+		final String s = createClassHeaderRule().lex(beforeBraces)
+																						.flatMap(inner -> createStructHeaderRule().generate(inner))
+																						.orElseGet(() -> wrap(beforeBraces));
+
+		return Optional.of(s + " {};" + System.lineSeparator() + compileAll(afterBraces, Main::compileClassSegment));
 
 	}
 
 	private static String compileClassSegment(String input) {
-		return compileClassSegmentValue(input.strip()) + System.lineSeparator();
+		return createJavaClassSegmentRule().lex(input).flatMap(node -> createCRootSegmentRule().generate(node)).orElse("");
 	}
 
-	private static String compileClassSegmentValue(String input) {
-		return compileMethod(input).orElseGet(() -> wrap(input));
+	private static SuffixRule createCRootSegmentRule() {
+		return new SuffixRule(createClassSegmentRule(), System.lineSeparator());
 	}
 
-	private static Optional<String> compileMethod(String input) {
-		return createBlockRule().lex(input).flatMap(node -> createBlockRule().generate(node));
+	private static StripRule createJavaClassSegmentRule() {
+		return new StripRule(createClassSegmentRule());
+	}
+
+	private static OrRule createClassSegmentRule() {
+		return new OrRule(List.of(createBlockRule(), createContentRule()));
+	}
+
+	private static PlaceholderRule createContentRule() {
+		return new PlaceholderRule(new StringRule("input"));
 	}
 
 	private static SuffixRule createBlockRule() {
