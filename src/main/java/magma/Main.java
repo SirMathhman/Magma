@@ -32,7 +32,11 @@ public class Main {
 		}
 		segments.add(buffer.toString());
 
-		return segments.stream().map(Main::wrap).collect(Collectors.joining());
+		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		return wrap(input.strip()) + System.lineSeparator();
 	}
 
 	private static String wrap(String input) {
