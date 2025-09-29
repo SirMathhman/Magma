@@ -21,26 +21,30 @@ public class Main {
 	}
 
 	private static final class Node {
-		private final Map<String, String> strings;
-
-		private Node(Map<String, String> strings) {this.strings = strings;}
-
-		public Node() {
-			this(new HashMap<>());
-		}
+		private final Map<String, String> strings = new HashMap<>();
+		private final Map<String, List<Node>> nodeLists = new HashMap<>();
 
 		private Node withString(String key, String value) {
 			strings.put(key, value);
 			return this;
 		}
 
-		private Optional<String> find(String key) {
+		private Optional<String> findString(String key) {
 			return Optional.ofNullable(strings.get(key));
 		}
 
 		public Node merge(Node node) {
 			this.strings.putAll(node.strings);
 			return this;
+		}
+
+		public Node withNodeList(String key, List<Node> values) {
+			nodeLists.put(key, values);
+			return this;
+		}
+
+		public Optional<List<Node>> findNodeList(String key) {
+			return Optional.ofNullable(nodeLists.get(key));
 		}
 	}
 
@@ -52,7 +56,7 @@ public class Main {
 
 		@Override
 		public Optional<String> generate(Node node) {
-			return node.find(key);
+			return node.findString(key);
 		}
 
 		public String getKey() {
@@ -146,6 +150,23 @@ public class Main {
 		}
 	}
 
+	private record DivideRule(String key, Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String input) {
+			final List<Node> children = divide(input).map(rule()::lex).flatMap(Optional::stream).toList();
+			return Optional.of(new Node().withNodeList(key, children));
+		}
+
+		@Override
+		public Optional<String> generate(Node value) {
+			return value.findNodeList(key())
+									.map(list -> list.stream()
+																	 .map(rule()::generate)
+																	 .flatMap(Optional::stream)
+																	 .collect(Collectors.joining()));
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -193,11 +214,11 @@ public class Main {
 	}
 
 	private static String getString(String afterBraces) {
-		return divide(afterBraces).map(input -> createJavaClassSegmentRule().lex(input))
-															.flatMap(Optional::stream)
-															.map(node -> createCRootSegmentRule().generate(node))
-															.flatMap(Optional::stream)
-															.collect(Collectors.joining());
+		return new DivideRule("children", createJavaClassSegmentRule()).lex(afterBraces)
+																																	 .flatMap(value -> new DivideRule("children",
+																																																		createCRootSegmentRule()).generate(
+																																			 value))
+																																	 .orElse("");
 	}
 
 	private static Stream<String> divide(String afterBraces) {
