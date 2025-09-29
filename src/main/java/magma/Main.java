@@ -42,8 +42,21 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+		return compileRootSegmentValue(stripped) + System.lineSeparator();
+	}
 
-		return wrap(stripped) + System.lineSeparator();
+	private static String compileRootSegmentValue(String input) {
+		if (input.endsWith("}")) {
+			final String slice = input.substring(0, input.length() - "}".length());
+			final int contentStart = slice.indexOf("{");
+			if (contentStart >= 0) {
+				final String beforeBraces = slice.substring(0, contentStart);
+				final String afterBraces = slice.substring(contentStart + "{".length());
+				return wrap(beforeBraces) + "{};" + wrap(afterBraces);
+			}
+		}
+
+		return wrap(input);
 	}
 
 	private static String wrap(String input) {
