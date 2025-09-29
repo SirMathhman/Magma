@@ -70,7 +70,21 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
-		return wrap(input.strip()) + System.lineSeparator();
+		return compileClassSegmentValue(input.strip()) + System.lineSeparator();
+	}
+
+	private static String compileClassSegmentValue(String input) {
+		if (input.endsWith("}")) {
+			final String slice = input.substring(0, input.length() - "}".length());
+			final int i = slice.indexOf("{");
+			if (i >= 0) {
+				final String beforeContent = slice.substring(0, i);
+				final String content = slice.substring(i + "{".length());
+				return wrap(beforeContent) + "{" + wrap(content) + "}";
+			}
+		}
+
+		return wrap(input);
 	}
 
 	private static String compileClasHeader(String input) {

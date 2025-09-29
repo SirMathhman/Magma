@@ -1,5 +1,5 @@
 struct Main {};
-/*public static void main(String[] args) {
+/*public static void main(String[] args) */{/*
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -8,11 +8,11 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*/
-/*private static String compile(String input) {
+	*/}
+/*private static String compile(String input) */{/*
 		return compileAll(input, Main::compileRootSegment);
-	}*/
-/*private static String compileAll(String input, Function<String, String> mapper) {
+	*/}
+/*private static String compileAll(String input, Function<String, String> mapper) */{/*
 		final ArrayList<String> segments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -30,7 +30,7 @@ struct Main {};
 				if (c == '{') depth++;
 				if (c == '}') depth--;
 			}
-		}*/
+		*/}
 /*segments.add(buffer.toString());*/
 /*return segments.stream().map(mapper).collect(Collectors.joining());*/
 /**/
@@ -50,25 +50,44 @@ struct Main {};
 /*".length());*/
 /*final int contentStart = slice.indexOf("*/ {};
 /*");*/
-/*if (contentStart >= 0) {
+/*if (contentStart >= 0) */{/*
 				final String beforeBraces = slice.substring(0, contentStart);
 				final String afterBraces = slice.substring(contentStart + "{".length());
-				return compileClasHeader(beforeBraces) + " {};" + System.lineSeparator() + compileAll(afterBraces, Main::compileClassSegment);
+				return compileClasHeader(beforeBraces) + " {};" + System.lineSeparator() +
+							 compileAll(afterBraces, Main::compileClassSegment);
 			}
-		}*/
+		*/}
 /*return wrap(input);*/
 /**/
 
 /*private static String compileClassSegment(String input) */ {};
-/*return wrap(input.strip()) + System.lineSeparator();*/
+/*return compileClassSegmentValue(input.strip()) + System.lineSeparator();*/
+/**/
+
+/*private static String compileClassSegmentValue(String input) */ {};
+/*if (input.endsWith("*/
+
+/*")) */ {};
+/*final String slice = input.substring(0, input.length() - "*/
+
+/*".length());*/
+/*final int i = slice.indexOf("*/ {};
+/*");*/
+/*if (i >= 0) */{/*
+				final String beforeContent = slice.substring(0, i);
+				final String content = slice.substring(i + "{".length());
+				return wrap(beforeContent) + "{" + wrap(content) + "}";
+			}
+		*/}
+/*return wrap(input);*/
 /**/
 
 /*private static String compileClasHeader(String input) */ {};
 /*final int index = input.indexOf("class ");*/
-/*if (index >= 0) {
+/*if (index >= 0) */{/*
 			final String slice = input.substring(index + "class ".length());
 			return "struct " + slice.strip();
-		}*/
+		*/}
 /*return wrap(input);*/
 /**/
 
