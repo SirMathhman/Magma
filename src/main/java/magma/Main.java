@@ -20,7 +20,7 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		final ArrayList<String> segments = new ArrayList<String>();
+		final ArrayList<String> segments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
 		int depth = 0;
 		for (int i = 0; i < input.length(); i++) {
@@ -52,8 +52,18 @@ public class Main {
 			if (contentStart >= 0) {
 				final String beforeBraces = slice.substring(0, contentStart);
 				final String afterBraces = slice.substring(contentStart + "{".length());
-				return wrap(beforeBraces) + "{};" + wrap(afterBraces);
+				return compileClasHeader(beforeBraces) + " {};" + wrap(afterBraces);
 			}
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileClasHeader(String input) {
+		final int index = input.indexOf("class ");
+		if (index >= 0) {
+			final String slice = input.substring(index + "class ".length());
+			return "struct " + slice.strip();
 		}
 
 		return wrap(input);
