@@ -16,24 +16,25 @@ public class Parser {
 	public magma.compiler.ast.Program parse() {
 		List<Stmt> stmts = new ArrayList<>();
 		while (!match(TokenType.EOF)) {
-			Stmt s = parseStatement();
-			if (s != null)
-				stmts.add(s);
+			Option<Stmt> sOpt = parseStatement();
+			if (sOpt.isPresent()) {
+				stmts.add(sOpt.get());
+			}
 		}
 		return new magma.compiler.ast.Program(stmts);
 	}
 
-	private Stmt parseStatement() {
+	private Option<Stmt> parseStatement() {
 		if (match(TokenType.PRINT)) {
 			// consume the 'print' token
 			advance();
 			Token t = consume(TokenType.STRING, "Expected string after print");
 			consume(TokenType.SEMICOLON, "Expected ';' after print statement");
-			return new PrintStmt(new StringLiteral(t.lexeme));
+			return Option.some(new PrintStmt(new StringLiteral(t.lexeme)));
 		}
 		// unknown or skip
 		advance();
-		return null;
+		return Option.none();
 	}
 
 	private boolean match(TokenType type) {
