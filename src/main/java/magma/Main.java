@@ -5,10 +5,32 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+	private static final class Node {
+		private final Map<String, String> strings;
+
+		private Node(Map<String, String> strings) {this.strings = strings;}
+
+		public Node() {
+			this(new HashMap<>());
+		}
+
+		private Node withString(String key, String value) {
+			strings.put(key, value);
+			return this;
+		}
+
+		private Optional<String> find(String key) {
+			return Optional.ofNullable(strings.get(key));
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -80,11 +102,15 @@ public class Main {
 			if (i >= 0) {
 				final String beforeContent = slice.substring(0, i);
 				final String content = slice.substring(i + "{".length());
-				return wrap(beforeContent) + "{" + wrap(content) + "}";
+				return generate(new Node().withString("header", beforeContent).withString("content", content));
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String generate(Node node) {
+		return wrap(node.find("header").orElse("")) + "{" + wrap(node.find("content").orElse("")) + "}";
 	}
 
 	private static String compileClasHeader(String input) {
