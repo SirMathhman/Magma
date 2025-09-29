@@ -12,6 +12,10 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+	private interface Rule {
+		Optional<String> generate(Node node);
+	}
+
 	private static final class Node {
 		private final Map<String, String> strings;
 
@@ -28,6 +32,42 @@ public class Main {
 
 		private Optional<String> find(String key) {
 			return Optional.ofNullable(strings.get(key));
+		}
+
+		public Node merge(Node node) {
+			this.strings.putAll(node.strings);
+			return this;
+		}
+	}
+
+	private record StringRule(String key) implements Rule {
+		@Override
+		public Optional<String> generate(Node node) {
+			return node.find(key);
+		}
+	}
+
+	private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+		@Override
+		public Optional<String> generate(Node node) {
+			return leftRule().generate(node).flatMap(inner -> {
+				return rightRule().generate(node).map(other -> {
+					return inner + infix() + other;
+				});
+			});
+		}
+	}
+
+	private record PlaceholderRule(Rule rule) implements Rule {
+		@Override
+		public Optional<String> generate(Node node) {
+			return rule().generate(node).map(Main::wrap);
+		}
+	}
+
+	private record SuffixRule(String suffix) {
+		private Optional<String> generate(Node node) {
+			return createBlockRule().generate(node).map(value -> value + suffix());
 		}
 	}
 
@@ -96,21 +136,31 @@ public class Main {
 	}
 
 	private static String compileClassSegmentValue(String input) {
-		if (input.endsWith("}")) {
-			final String slice = input.substring(0, input.length() - "}".length());
-			final int i = slice.indexOf("{");
-			if (i >= 0) {
-				final String beforeContent = slice.substring(0, i);
-				final String content = slice.substring(i + "{".length());
-				return generate(new Node().withString("header", beforeContent).withString("content", content));
-			}
-		}
-
-		return wrap(input);
+		return compileMethod(input).orElseGet(() -> wrap(input));
 	}
 
-	private static String generate(Node node) {
-		return wrap(node.find("header").orElse("")) + "{" + wrap(node.find("content").orElse("")) + "}";
+	private static Optional<String> compileMethod(String input) {
+		if (!input.endsWith("}")) return Optional.empty();
+		final String slice = input.substring(0, input.length() - "}".length());
+
+		final int index = slice.indexOf("{");
+		if (index < 0) return Optional.empty();
+		final String beforeContent = slice.substring(0, index);
+		final Node header = getContent(beforeContent, "header");
+
+		final String content = slice.substring(index + "{".length());
+		final Node content1 = getContent(content, "content");
+		Node node = header.merge(content1);
+		return new SuffixRule("}").generate(node);
+	}
+
+	private static InfixRule createBlockRule() {
+		return new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
+												 new PlaceholderRule(new StringRule("content")));
+	}
+
+	private static Node getContent(String content, String key) {
+		return new Node().withString(key, content);
 	}
 
 	private static String compileClasHeader(String input) {

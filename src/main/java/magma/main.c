@@ -1,4 +1,32 @@
 struct Main {};
+/*private static final class Node */{/*
+		private final Map<String, String> strings;
+
+		private Node(Map<String, String> strings) {this.strings = strings;}
+
+		public Node() {
+			this(new HashMap<>());
+		}
+
+		private Node withString(String key, String value) {
+			strings.put(key, value);
+			return this;
+		}
+
+		private Optional<String> find(String key) {
+			return Optional.ofNullable(strings.get(key));
+		}
+
+		public Node merge(Node node) {
+			this.strings.putAll(node.strings);
+			return this;
+		}
+	*/}
+/*private record StringRule(String key) */{/*
+		private Optional<String> generate(Node node) {
+			return node.find(key);
+		}
+	*/}
 /*public static void main(String[] args) */{/*
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -65,21 +93,43 @@ struct Main {};
 /**/
 
 /*private static String compileClassSegmentValue(String input) */ {};
-/*if (input.endsWith("*/
-
-/*")) */ {};
-/*final String slice = input.substring(0, input.length() - "*/
-
-/*".length());*/
-/*final int i = slice.indexOf("*/ {};
-/*");*/
-/*if (i >= 0) */{/*
-				final String beforeContent = slice.substring(0, i);
-				final String content = slice.substring(i + "{".length());
-				return wrap(beforeContent) + "{" + wrap(content) + "}";
-			}
-		*/}
+/*final Optional<String> header = compileMethod(input);*/
+/*if (header.isPresent()) return header.get();*/
 /*return wrap(input);*/
+/**/
+
+/*private static Optional<String> compileMethod(String input) */ {};
+/*if (!input.endsWith("*/
+
+/*")) return Optional.empty();*/
+/*final String slice = input.substring(0, input.length() - "}".length());
+
+		final int index = slice.indexOf("{");*/
+/*if (index < 0) return Optional.empty();*/
+/*final String beforeContent = slice.substring(0, index);*/
+/*final Node header = getContent(beforeContent, "header");*/
+/*final String content = slice.substring(index + "*/ {};
+/*".length());*/
+/*final Node content1 = getContent(content, "content");*/
+/*Node node = header.merge(content1);*/
+/*return generate(node);*/
+/**/
+
+/*private static Optional<String> generate(Node node) */ {};
+/*return getString(new StringRule("header"), new StringRule("content"), node).map(value -> value + "*/
+
+/*");*/
+/*}
+
+	private static Optional<String> getString(StringRule leftRule, StringRule rightRule, Node node) */ {};
+/*return leftRule.generate(node).map(Main::wrap).flatMap(inner -> {
+			return rightRule.generate(node).map(Main::wrap).map(other -> {
+				return inner + "{" + other;
+			});
+		});*/
+
+/*private static Node getContent(String content, String key) */ {};
+/*return new Node().withString(key, content);*/
 /**/
 
 /*private static String compileClasHeader(String input) */ {};
