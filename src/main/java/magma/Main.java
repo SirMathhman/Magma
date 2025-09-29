@@ -36,7 +36,10 @@ public class Main {
 	}
 
 	private static String compileRootSegment(String input) {
-		return wrap(input.strip()) + System.lineSeparator();
+		final String stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		return wrap(stripped) + System.lineSeparator();
 	}
 
 	private static String wrap(String input) {
