@@ -13,8 +13,7 @@ public sealed interface Option<T> permits Some, None {
 		return new Some<>(value);
 	}
 
-	@SuppressWarnings("unchecked")
 	static <T> Option<T> none() {
-		return (Option<T>) None.instance();
+		return new None<>();
 	}
 }

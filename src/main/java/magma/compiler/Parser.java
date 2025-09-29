@@ -17,15 +17,10 @@ public class Parser {
 		List<Stmt> stmts = new ArrayList<>();
 		while (!match(TokenType.EOF)) {
 			Result<Option<Stmt>, String> r = parseStatement();
-			if (r instanceof Err<?, ?> err) {
-				// propagate parser error
-				return Result.err((String) err.asErrorOptional().get());
-			} else if (r instanceof Ok<?, ?> ok) {
-				java.util.Optional<?> opt = ok.asOptional();
-				if (opt.isPresent()) {
-					stmts.add((Stmt) opt.get());
-				}
+			if (r.asErrorOptional().isPresent()) {
+				return Result.err(r.asErrorOptional().get());
 			}
+			r.asOptional().ifPresent(opt -> opt.asOptional().ifPresent(stmts::add));
 		}
 		return Result.ok(new magma.compiler.ast.Program(stmts));
 	}
@@ -35,13 +30,13 @@ public class Parser {
 			// consume the 'print' token
 			advance();
 			Result<Token, String> tRes = consume(TokenType.STRING, "Expected string after print");
-			if (tRes instanceof Err<?, ?> err) {
-				return Result.err((String) err.asErrorOptional().get());
+			if (tRes.asErrorOptional().isPresent()) {
+				return Result.err(tRes.asErrorOptional().get());
 			}
-			Token t = (Token) ((Ok<?, ?>) tRes).asOptional().get();
+			Token t = tRes.asOptional().get();
 			Result<Token, String> semiRes = consume(TokenType.SEMICOLON, "Expected ';' after print statement");
-			if (semiRes instanceof Err<?, ?> err2) {
-				return Result.err((String) err2.asErrorOptional().get());
+			if (semiRes.asErrorOptional().isPresent()) {
+				return Result.err(semiRes.asErrorOptional().get());
 			}
 			return Result.ok(Option.some(new PrintStmt(new StringLiteral(t.lexeme))));
 		}

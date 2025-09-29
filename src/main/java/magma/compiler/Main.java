@@ -29,7 +29,7 @@ public class Main {
 				System.err.println("Parse error: " + perr.asErrorOptional().get());
 				return;
 			}
-			magma.compiler.ast.Program program = ((Ok<magma.compiler.ast.Program, String>) pr).asOptional().get();
+			magma.compiler.ast.Program program = pr.asOptional().get();
 
 			SemanticAnalyzer.analyze(program);
 

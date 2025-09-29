@@ -1,17 +1,11 @@
 package magma.compiler;
 
-public final class None implements Option<Object> {
-	private static final None INSTANCE = new None();
-
-	private None() {
-	}
-
-	public static None instance() {
-		return INSTANCE;
+public final class None<T> implements Option<T> {
+	public None() {
 	}
 
 	@Override
-	public java.util.Optional<Object> asOptional() {
+	public java.util.Optional<T> asOptional() {
 		return java.util.Optional.empty();
 	}
 }

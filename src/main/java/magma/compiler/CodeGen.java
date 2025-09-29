@@ -10,11 +10,9 @@ public class CodeGen {
 			fw.write("#include <stdio.h>\n\n");
 			fw.write("int main() {\n");
 			for (Stmt s : program.getStatements()) {
-				if (s instanceof PrintStmt) {
-					PrintStmt ps = (PrintStmt) s;
+				if (s instanceof PrintStmt ps) {
 					Expr e = ps.getExpr();
-					if (e instanceof StringLiteral) {
-						StringLiteral sl = (StringLiteral) e;
+					if (e instanceof StringLiteral sl) {
 						fw.write("    printf(\"" + escapeForC(sl.getValue()) + "\");\n");
 					}
 				}

@@ -29,5 +29,15 @@
 			<property name="ignoreComments" value="true" />
 			<property name="severity" value="warning" />
 		</module>
+
+		<!-- Flag explicit casts like (Type)expr using a regex to avoid catching other parentheses usage -->
+		<module name="RegexpSinglelineJava">
+			<!-- match typical explicit cast patterns: (Type)variable or (Type)methodCall -->
+			<property name="format" value="\([A-Za-z0-9_.$&lt;&gt;\[\]]+\)\s*[A-Za-z0-9_\(]" />
+			<property name="message"
+				value="Avoid explicit casts; prefer pattern matching (instanceof) or using inheritance/composition." />
+			<property name="ignoreComments" value="true" />
+			<property name="severity" value="warning" />
+		</module>
 	</module>
 </module>
