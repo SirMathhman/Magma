@@ -65,9 +65,9 @@ public class Main {
 		}
 	}
 
-	private record SuffixRule(String suffix) {
+	private record SuffixRule(Rule rule, String suffix) {
 		private Optional<String> generate(Node node) {
-			return createBlockRule().generate(node).map(value -> value + suffix());
+			return rule.generate(node).map(value -> value + suffix());
 		}
 	}
 
@@ -151,7 +151,7 @@ public class Main {
 		final String content = slice.substring(index + "{".length());
 		final Node content1 = getContent(content, "content");
 		Node node = header.merge(content1);
-		return new SuffixRule("}").generate(node);
+		return new SuffixRule(createBlockRule(),"}").generate(node);
 	}
 
 	private static InfixRule createBlockRule() {
