@@ -107,6 +107,19 @@ public class Main {
 		}
 	}
 
+	private record PrefixRule(String prefix, Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
+			else return Optional.empty();
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return rule.generate(node).map(inner -> prefix + inner);
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -159,7 +172,9 @@ public class Main {
 			if (contentStart >= 0) {
 				final String beforeBraces = slice.substring(0, contentStart);
 				final String afterBraces = slice.substring(contentStart + "{".length());
-				return compileClasHeader(beforeBraces) + " {};" + System.lineSeparator() +
+				return createClassHeaderRule().lex(beforeBraces)
+																			.flatMap(inner -> createStructHeaderRule().generate(inner))
+																			.orElseGet(() -> wrap(beforeBraces)) + " {};" + System.lineSeparator() +
 							 compileAll(afterBraces, Main::compileClassSegment);
 			}
 		}
@@ -184,14 +199,12 @@ public class Main {
 																				new PlaceholderRule(new StringRule("content"))), "}");
 	}
 
-	private static String compileClasHeader(String input) {
-		final int index = input.indexOf("class ");
-		if (index >= 0) {
-			final String slice = input.substring(index + "class ".length());
-			return "struct " + slice.strip();
-		}
+	private static PrefixRule createStructHeaderRule() {
+		return new PrefixRule("struct ", new StringRule("name"));
+	}
 
-		return wrap(input);
+	private static InfixRule createClassHeaderRule() {
+		return new InfixRule(new StringRule("temp"), "class ", new StringRule("name"));
 	}
 
 	private static String wrap(String input) {
