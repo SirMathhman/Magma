@@ -22,16 +22,20 @@ public class Main {
 	private static String compile(String input) {
 		final ArrayList<String> segments = new ArrayList<String>();
 		StringBuilder buffer = new StringBuilder();
+		int depth = 0;
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
 			buffer.append(c);
-			if (c == ';') {
+			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else {
+				if (c == '{') depth++;
+				if (c == '}') depth--;
 			}
 		}
-		segments.add(buffer.toString());
 
+		segments.add(buffer.toString());
 		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
 	}
 
