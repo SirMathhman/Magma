@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -20,6 +21,10 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		return compileAll(input, Main::compileRootSegment);
+	}
+
+	private static String compileAll(String input, Function<String, String> mapper) {
 		final ArrayList<String> segments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -29,6 +34,10 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
 			} else {
 				if (c == '{') depth++;
 				if (c == '}') depth--;
@@ -36,7 +45,7 @@ public class Main {
 		}
 
 		segments.add(buffer.toString());
-		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
@@ -52,11 +61,16 @@ public class Main {
 			if (contentStart >= 0) {
 				final String beforeBraces = slice.substring(0, contentStart);
 				final String afterBraces = slice.substring(contentStart + "{".length());
-				return compileClasHeader(beforeBraces) + " {};" + wrap(afterBraces);
+				return compileClasHeader(beforeBraces) + " {};" + System.lineSeparator() +
+							 compileAll(afterBraces, Main::compileClassSegment);
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input.strip()) + System.lineSeparator();
 	}
 
 	private static String compileClasHeader(String input) {

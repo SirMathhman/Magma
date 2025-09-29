@@ -1,5 +1,5 @@
-struct Main {};/*
-	public static void main(String[] args) {
+struct Main {};
+/*public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -8,9 +8,11 @@ struct Main {};/*
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}
-
-	private static String compile(String input) {
+	}*/
+/*private static String compile(String input) {
+		return compileAll(input, Main::compileRootSegment);
+	}*/
+/*private static String compileAll(String input, Function<String, String> mapper) {
 		final ArrayList<String> segments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -20,47 +22,58 @@ struct Main {};/*
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
 			} else {
 				if (c == '{') depth++;
 				if (c == '}') depth--;
 			}
-		}
+		}*/
+/*segments.add(buffer.toString());*/
+/*return segments.stream().map(mapper).collect(Collectors.joining());*/
+/**/
 
-		segments.add(buffer.toString());
-		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
-	}
+/*private static String compileRootSegment(String input) */ {};
+/*final String stripped = input.strip();*/
+/*if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";*/
+/*return compileRootSegmentValue(stripped) + System.lineSeparator();*/
+/**/
 
-	private static String compileRootSegment(String input) {
-		final String stripped = input.strip();
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
-		return compileRootSegmentValue(stripped) + System.lineSeparator();
-	}
+/*private static String compileRootSegmentValue(String input) */ {};
+/*if (input.endsWith("*/
 
-	private static String compileRootSegmentValue(String input) {
-		if (input.endsWith("}")) {
-			final String slice = input.substring(0, input.length() - "}".length());
-			final int contentStart = slice.indexOf("{");
-			if (contentStart >= 0) {
+/*")) */ {};
+/*final String slice = input.substring(0, input.length() - "*/
+
+/*".length());*/
+/*final int contentStart = slice.indexOf("*/ {};
+/*");*/
+/*if (contentStart >= 0) {
 				final String beforeBraces = slice.substring(0, contentStart);
 				final String afterBraces = slice.substring(contentStart + "{".length());
-				return compileClasHeader(beforeBraces) + " {};" + wrap(afterBraces);
+				return compileClasHeader(beforeBraces) + " {};" + System.lineSeparator() + compileAll(afterBraces, Main::compileClassSegment);
 			}
-		}
+		}*/
+/*return wrap(input);*/
+/**/
 
-		return wrap(input);
-	}
+/*private static String compileClassSegment(String input) */ {};
+/*return wrap(input.strip()) + System.lineSeparator();*/
+/**/
 
-	private static String compileClasHeader(String input) {
-		final int index = input.indexOf("class ");
-		if (index >= 0) {
+/*private static String compileClasHeader(String input) */ {};
+/*final int index = input.indexOf("class ");*/
+/*if (index >= 0) {
 			final String slice = input.substring(index + "class ".length());
 			return "struct " + slice.strip();
-		}
+		}*/
+/*return wrap(input);*/
+/**/
 
-		return wrap(input);
-	}
+/*private static String wrap(String input) */ {};
+/*return "start" + input.replace("start", "start").replace("end", "end") + "end";*/
+/**/
 
-	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
-*/
+/*}*/
