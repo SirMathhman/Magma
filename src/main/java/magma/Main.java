@@ -13,6 +13,8 @@ import java.util.stream.Collectors;
 
 public class Main {
 	private interface Rule {
+		Optional<Node> lex(String content);
+
 		Optional<String> generate(Node node);
 	}
 
@@ -42,32 +44,66 @@ public class Main {
 
 	private record StringRule(String key) implements Rule {
 		@Override
+		public Optional<Node> lex(String content) {
+			return Optional.of(new Node().withString(getKey(), content));
+		}
+
+		@Override
 		public Optional<String> generate(Node node) {
 			return node.find(key);
+		}
+
+		public String getKey() {
+			return key;
 		}
 	}
 
 	private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 		@Override
-		public Optional<String> generate(Node node) {
-			return leftRule().generate(node).flatMap(inner -> {
-				return rightRule().generate(node).map(other -> {
-					return inner + infix() + other;
-				});
-			});
+		public Optional<Node> lex(String slice) {
+			final int index = slice.indexOf(infix());
+			if (index < 0) return Optional.empty();
+
+			final String beforeContent = slice.substring(0, index);
+			final String content = slice.substring(index + infix().length());
+
+			return leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
 		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return leftRule.generate(node).flatMap(inner -> rightRule.generate(node).map(other -> inner + infix + other));
+		}
+
 	}
 
 	private record PlaceholderRule(Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			return rule.lex(content);
+		}
+
 		@Override
 		public Optional<String> generate(Node node) {
 			return rule().generate(node).map(Main::wrap);
 		}
 	}
 
-	private record SuffixRule(Rule rule, String suffix) {
-		private Optional<String> generate(Node node) {
+	private record SuffixRule(Rule rule, String suffix) implements Rule {
+		@Override
+		public Optional<Node> lex(String input) {
+			if (!input.endsWith(suffix())) return Optional.empty();
+			final String slice = input.substring(0, input.length() - suffix().length());
+			return getRule().lex(slice);
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
 			return rule.generate(node).map(value -> value + suffix());
+		}
+
+		public Rule getRule() {
+			return rule;
 		}
 	}
 
@@ -140,27 +176,12 @@ public class Main {
 	}
 
 	private static Optional<String> compileMethod(String input) {
-		if (!input.endsWith("}")) return Optional.empty();
-		final String slice = input.substring(0, input.length() - "}".length());
-
-		final int index = slice.indexOf("{");
-		if (index < 0) return Optional.empty();
-		final String beforeContent = slice.substring(0, index);
-		final Node header = getContent(beforeContent, "header");
-
-		final String content = slice.substring(index + "{".length());
-		final Node content1 = getContent(content, "content");
-		Node node = header.merge(content1);
-		return new SuffixRule(createBlockRule(),"}").generate(node);
+		return createBlockRule().lex(input).flatMap(node -> createBlockRule().generate(node));
 	}
 
-	private static InfixRule createBlockRule() {
-		return new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-												 new PlaceholderRule(new StringRule("content")));
-	}
-
-	private static Node getContent(String content, String key) {
-		return new Node().withString(key, content);
+	private static SuffixRule createBlockRule() {
+		return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
+																				new PlaceholderRule(new StringRule("content"))), "}");
 	}
 
 	private static String compileClasHeader(String input) {
