@@ -76,7 +76,7 @@ public class Main {
 				yield Stream.concat(Stream.of(structure), aClass.children().stream().map(self -> getSelf(self)));
 			}
 			case Content content -> Stream.of(content);
-			case Whitespace _ -> Stream.empty();
+			default -> Stream.empty();
 		};
 	}
 

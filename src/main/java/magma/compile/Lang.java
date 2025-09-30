@@ -46,6 +46,12 @@ public class Lang {
 
 	public record CRoot(List<CRootSegment> children) {}
 
+	@Tag("import")
+	public record Import(String value) implements JavaRootSegment {}
+
+	@Tag("package")
+	public record Package(String value) implements JavaRootSegment {}
+
 	public static Rule createCRootRule() {
 		return Statements("children", Or(Struct(), Content()));
 	}
