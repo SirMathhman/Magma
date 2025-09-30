@@ -1,6 +1,5 @@
 package magma.compile;
 
-import magma.compile.rule.InfixRule;
 import magma.compile.rule.Rule;
 
 import java.util.List;
@@ -8,7 +7,9 @@ import java.util.Optional;
 
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
+import static magma.compile.rule.InfixRule.Last;
 import static magma.compile.rule.NodeListRule.NodeList;
+import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
@@ -31,6 +32,9 @@ public class Lang {
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
 
+	@Tag("whitespace")
+	public record Whitespace() implements JavaRootSegment {}
+
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
 	public record CRoot(List<CRootSegment> children) {}
@@ -48,7 +52,12 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return NodeList("children", Or(Class(), Tag("whitespace", Strip(Empty))));
+		return NodeList("children",
+										Or(Namespace("package"), Namespace("import"), Class(), Tag("whitespace", Strip(Empty))));
+	}
+
+	private static Rule Namespace(String type) {
+		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
 	}
 
 	private static Rule Class() {
@@ -62,8 +71,12 @@ public class Lang {
 
 	private static Rule ClassMember() {
 		return Or(Tag("method", Strip(Suffix(
-				First(Strip(Suffix(InfixRule.Last(String("definition"), "(", String("params")), ")")), "{", String("body")),
+				First(Strip(Suffix(Last(Node("definition", Definition()), "(", String("params")), ")")), "{", String("body")),
 				"}"))), Content());
+	}
+
+	private static Rule Definition() {
+		return Last(Last(String("modifiers"), " ", String("type")), " ", String("name"));
 	}
 
 	private static Rule Content() {
