@@ -466,14 +466,14 @@ public class Main {
 		final List<Node> newChildren = node.findNodeList("children")
 																			 .orElse(Collections.emptyList())
 																			 .stream()
-																			 .map(Main::getNode)
+																			 .map(Main::transformRootChild)
 																			 .flatMap(Optional::stream)
 																			 .toList();
 
 		return node.withNodeList("children", newChildren);
 	}
 
-	private static Optional<Node> getNode(Node node) {
+	private static Optional<Node> transformRootChild(Node node) {
 		if (node.is("package") || node.is("import")) return Optional.empty();
 		else if (node.is("class")) {
 			final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
