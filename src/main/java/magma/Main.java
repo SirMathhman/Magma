@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.StringJoiner;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -31,7 +31,7 @@ public class Main {
 	}
 
 	private interface Context {
-		String display();
+		String display(int depth);
 	}
 
 	private interface Error {
@@ -64,15 +64,15 @@ public class Main {
 
 	private record StringContext(String context) implements Context {
 		@Override
-		public String display() {
+		public String display(int depth) {
 			return context;
 		}
 	}
 
 	private record NodeContext(Node node) implements Context {
 		@Override
-		public String display() {
-			return node.display();
+		public String display(int depth) {
+			return node.format(depth);
 		}
 	}
 
@@ -87,15 +87,16 @@ public class Main {
 		}
 
 		private String format(int depth, int index) {
-			StringJoiner joiner = new StringJoiner(System.lineSeparator());
+			StringBuilder joiner = new StringBuilder();
 			for (int i = 0; i < causes.size(); i++) {
 				CompileError error = causes.get(i);
 				String format = error.format(depth + 1, i);
-				joiner.add(format);
+				joiner.append(format);
 			}
 
 			final String formattedChildren = joiner.toString();
-			return "\t".repeat(depth) + index + ") " + reason + ": " + context.display() + formattedChildren;
+			final String s = depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth);
+			return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;
 		}
 	}
 
@@ -148,13 +149,14 @@ public class Main {
 			return this.maybeType.isPresent() && maybeType.get().equals(type);
 		}
 
-		public String display() {
-			return format(0);
-		}
-
 		private String format(int depth) {
-			return maybeType.map(inner -> inner + " ").orElse("") + "{" + "strings=" + strings + ", nodes=" + nodes +
-						 ", nodeLists=" + nodeLists + '}';
+			final String collect = strings.entrySet()
+																		.stream()
+																		.map(entry -> entry.getKey() + ": " + entry.getValue())
+																		.collect(Collectors.joining());
+
+			final String collect1 = Stream.of(collect).filter(value -> !value.isEmpty()).collect(Collectors.joining());
+			return maybeType.map(inner -> inner + " ").orElse("") + "{" + collect1 + "}";
 		}
 	}
 
