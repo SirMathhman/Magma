@@ -65,6 +65,6 @@ public class Main {
 	}
 
 	private static Result<Lang.CRoot, CompileError> transform(Lang.JavaRoot node) {
-		return new Ok<>(new Lang.CRoot(node.value()));
+		return new Ok<>(new Lang.CRoot(node.children()));
 	}
 }

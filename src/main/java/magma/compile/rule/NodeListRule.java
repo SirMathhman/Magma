@@ -11,7 +11,7 @@ import magma.result.Result;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
-public record DivideRule(String key, Rule rule) implements Rule {
+public record NodeListRule(String key, Rule rule) implements Rule {
 	private static Stream<String> divide(String afterBraces) {
 		final ArrayList<String> segments = new ArrayList<>();
 		StringBuilder buffer = new StringBuilder();
