@@ -2,6 +2,7 @@ package magma.compile;
 
 import magma.compile.rule.NodeListRule;
 import magma.compile.rule.Rule;
+import magma.compile.rule.StringRule;
 import magma.option.Optional;
 
 import java.util.List;
@@ -32,10 +33,10 @@ public class Lang {
 	public record Generic(String base, List<Type> arguments) implements Type {}
 
 	@Tag("definition")
-	public record Definition(String name, Type type) {}
+	public record JavaDefinition(String name, Type type) {}
 
 	@Tag("method")
-	public record Method(Definition definition, Optional<List<Definition>> params, String body)
+	public record Method(JavaDefinition definition, Optional<List<JavaDefinition>> params, String body)
 			implements JavaClassMember {}
 
 	@Tag("content")
@@ -61,11 +62,18 @@ public class Lang {
 	@Tag("package")
 	public record Package(String value) implements JavaRootSegment {}
 
+	@Tag("definition")
+	public record CDefinition() {}
+
 	@Tag("function")
-	public record Function() implements CRootSegment {}
+	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}
 
 	public static Rule createCRootRule() {
-		return Statements("children", Or(Struct(), Content()));
+		return Statements("children", Or(Struct(), Function(), Content()));
+	}
+
+	public static Rule Function() {
+		return Tag("function", new StringRule("test"));
 	}
 
 	private static Rule Struct() {

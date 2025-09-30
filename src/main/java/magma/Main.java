@@ -4,6 +4,7 @@ import magma.compile.Serialize;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
+import magma.option.None;
 import magma.option.Optional;
 import magma.option.Some;
 import magma.result.Err;
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Collections;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static magma.compile.Lang.*;
@@ -85,7 +88,20 @@ public class Main {
 
 	private static CRootSegment getSelf(JavaClassMember self) {
 		return switch (self) {
-			case Content content -> content; case Method method -> new Function();
+			case Content content -> content; case Method method -> transformMethod(method);
 		};
+	}
+
+	private static Function transformMethod(Method method) {
+		final List<JavaDefinition> oldParams = switch (method.params()) {
+			case None<List<JavaDefinition>> v -> Collections.emptyList(); case Some<List<JavaDefinition>> v -> v.value();
+		};
+
+		final List<CDefinition> newParams = oldParams.stream().map(_ -> new CDefinition()).toList();
+		return new Function(getDefinition(method), newParams, method.body());
+	}
+
+	private static CDefinition getDefinition(Method method) {
+		return new CDefinition();
 	}
 }
