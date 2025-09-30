@@ -269,14 +269,25 @@ public class Main {
 	}
 
 	private static Node transform(Node node) {
-		if (node.is("package") || node.is("import")) return null;
+		final List<Node> newChildren = node.findNodeList("children")
+																			 .orElse(Collections.emptyList())
+																			 .stream()
+																			 .map(Main::getNode)
+																			 .flatMap(Optional::stream)
+																			 .toList();
+
+		return node.withNodeList("children", newChildren);
+	}
+
+	private static Optional<Node> getNode(Node node) {
+		if (node.is("package") || node.is("import")) return Optional.empty();
 		else if (node.is("class")) {
 			final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
 			final ArrayList<Node> copy0 = new ArrayList<>();
 			copy0.add(node.findNode("header").orElse(new Node()));
 			copy0.addAll(copy);
-			return node.withNodeList("children", copy0);
-		} else return node;
+			return Optional.of(node.withNodeList("children", copy0));
+		} else return Optional.of(node);
 	}
 
 	private static Rule createClassRule() {
