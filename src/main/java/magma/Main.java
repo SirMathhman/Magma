@@ -1,6 +1,8 @@
 package magma;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -11,6 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -27,7 +30,13 @@ public class Main {
 		Result<String, CompileError> generate(Node node);
 	}
 
-	private interface Context {}
+	private interface Context {
+		String display();
+	}
+
+	private interface Error {
+		String display();
+	}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {
 		@Override
@@ -53,13 +62,29 @@ public class Main {
 		}
 	}
 
-	private record StringContext(String context) implements Context {}
+	private record StringContext(String context) implements Context {
+		@Override
+		public String display() {
+			return context;
+		}
+	}
 
-	private record NodeContext(Node node) implements Context {}
+	private record NodeContext(Node node) implements Context {
+		@Override
+		public String display() {
+			return node.display();
+		}
+	}
 
-	private record CompileError(String reason, Context sourceCode, List<CompileError> causes) {
+	private record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
 		public CompileError(String reason, Context sourceCode) {
 			this(reason, sourceCode, Collections.emptyList());
+		}
+
+		@Override
+		public String display() {
+			return reason + ": " + context.display() +
+						 causes.stream().map(CompileError::display).collect(Collectors.joining());
 		}
 	}
 
@@ -110,6 +135,10 @@ public class Main {
 
 		public boolean is(String type) {
 			return this.maybeType.isPresent() && maybeType.get().equals(type);
+		}
+
+		public String display() {
+			return toString();
 		}
 	}
 
@@ -344,20 +373,57 @@ public class Main {
 		}
 	}
 
-	public static void main(String[] args) {
-		try {
-			extracted();
-		} catch (IOException e) {
-			// noinspection CallToPrintStackTrace
-			e.printStackTrace();
+	private record ThrowableError(Throwable e) implements Error {
+		@Override
+		public String display() {
+			final StringWriter writer = new StringWriter();
+			e.printStackTrace(new PrintWriter(writer));
+			return writer.toString();
 		}
 	}
 
-	private static void extracted() throws IOException {
+	private record ApplicationError(Error error) implements Error {
+		public String display() {
+			return error.display();
+		}
+	}
+
+	public static void main(String[] args) {
+		extracted().ifPresent(error -> System.out.println(error.display()));
+	}
+
+	private static Optional<ApplicationError> extracted() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-		final String input = Files.readString(source);
-		final var result = compile(input);
-		Files.writeString(source.resolveSibling("main.c"), result);
+		return switch (readString(source)) {
+			case Err<String, ThrowableError>(ThrowableError error) -> Optional.of(new ApplicationError(error));
+			case Ok<String, ThrowableError>(String input) -> {
+				final Result<String, CompileError> result = compile(input);
+				yield switch (result) {
+					case Err<String, CompileError> v -> Optional.of(new ApplicationError(v.error));
+					case Ok<String, CompileError> v -> {
+						final Path path = source.resolveSibling("main.c");
+						yield writeString(path, v.value).map(ThrowableError::new).map(ApplicationError::new);
+					}
+				};
+			}
+		};
+	}
+
+	private static Optional<IOException> writeString(Path path, String result) {
+		try {
+			Files.writeString(path, result);
+			return Optional.empty();
+		} catch (IOException e) {
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, ThrowableError> readString(Path source) {
+		try {
+			return new Ok<>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<>(new ThrowableError(e));
+		}
 	}
 
 	private static Result<String, CompileError> compile(String input) {
