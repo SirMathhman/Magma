@@ -9,8 +9,7 @@ import java.util.Optional;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
 import static magma.compile.rule.InfixRule.Last;
-import static magma.compile.rule.NodeListRule.Delimited;
-import static magma.compile.rule.NodeListRule.Statements;
+import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
@@ -72,9 +71,10 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		return Or(Tag("method", Strip(Suffix(
-				First(Strip(Suffix(Last(Node("definition", Definition()), "(", String("params")), ")")), "{", String("body")),
-				"}"))), Content());
+		final Rule params = Or(Values("params", Definition()), Strip(Empty));
+		return Or(Tag("method", Strip(
+				Suffix(First(Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")")), "{", String("body")),
+							 "}"))), Content());
 	}
 
 	private static Rule Definition() {
@@ -83,7 +83,9 @@ public class Lang {
 	}
 
 	private static Rule Type() {
-		return Or(Tag("generic", Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">"))), Content());
+		return Or(Tag("generic",
+									Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">"))),
+							Content());
 	}
 
 	private static Rule Content() {
