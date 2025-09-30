@@ -1,10 +1,11 @@
 package magma.compile;
 
+import magma.option.Optional;
+import magma.option.Some;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import magma.option.Optional;
-import magma.option.Some;
 
 public final class Node {
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
@@ -14,10 +15,10 @@ public final class Node {
 
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
-				.replace("\"", "\\\"")
-				.replace("\n", "\\n")
-				.replace("\r", "\\r")
-				.replace("\t", "\\t");
+								.replace("\"", "\\\"")
+								.replace("\n", "\\n")
+								.replace("\r", "\\r")
+								.replace("\t", "\\t");
 	}
 
 	public Node withString(String key, String value) {
@@ -77,26 +78,26 @@ public final class Node {
 		builder.append("{");
 		boolean hasFields = false;
 
-		if (maybeType instanceof Some<String>) {
-			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(maybeType.orElse(""))).append("\"");
+		if (maybeType instanceof Some<String>(String value)) {
+			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(value)).append("\"");
 			hasFields = true;
 		}
 
-		final List<Map.Entry<String, String>> sortedStrings = strings.entrySet().stream().sorted(Map.Entry.comparingByKey())
-				.toList();
+		final List<Map.Entry<String, String>> sortedStrings =
+				strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 		for (Map.Entry<String, String> entry : sortedStrings) {
 			builder.append(hasFields ? ",\n" : "\n");
 			builder.append(childIndent)
-					.append('"')
-					.append(escape(entry.getKey()))
-					.append("\": \"")
-					.append(escape(entry.getValue()))
-					.append("\"");
+						 .append('"')
+						 .append(escape(entry.getKey()))
+						 .append("\": \"")
+						 .append(escape(entry.getValue()))
+						 .append("\"");
 			hasFields = true;
 		}
 
-		final List<Map.Entry<String, Node>> sortedNodes = nodes.entrySet().stream().sorted(Map.Entry.comparingByKey())
-				.toList();
+		final List<Map.Entry<String, Node>> sortedNodes =
+				nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 		for (Map.Entry<String, Node> entry : sortedNodes) {
 			builder.append(hasFields ? ",\n" : "\n");
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
@@ -104,8 +105,8 @@ public final class Node {
 			hasFields = true;
 		}
 
-		final List<Map.Entry<String, List<Node>>> sortedLists = nodeLists.entrySet().stream()
-				.sorted(Map.Entry.comparingByKey()).toList();
+		final List<Map.Entry<String, List<Node>>> sortedLists =
+				nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 		for (Map.Entry<String, List<Node>> entry : sortedLists) {
 			builder.append(hasFields ? ",\n" : "\n");
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
@@ -115,10 +116,8 @@ public final class Node {
 				for (int i = 0; i < list.size(); i++) {
 					builder.append("\t".repeat(depth + 2));
 					list.get(i).appendJson(builder, depth + 2);
-					if (i < list.size() - 1)
-						builder.append(",\n");
-					else
-						builder.append("\n");
+					if (i < list.size() - 1) builder.append(",\n");
+					else builder.append("\n");
 				}
 				builder.append(childIndent);
 			}
@@ -126,8 +125,7 @@ public final class Node {
 			hasFields = true;
 		}
 
-		if (hasFields)
-			builder.append("\n").append(indent);
+		if (hasFields) builder.append("\n").append(indent);
 		builder.append("}");
 	}
 }

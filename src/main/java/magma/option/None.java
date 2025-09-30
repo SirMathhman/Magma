@@ -22,7 +22,6 @@ public final class None<T> implements Optional<T> {
 		return false;
 	}
 
-	@Override
 	public T orElse(T other) {
 		return other;
 	}

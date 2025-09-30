@@ -21,8 +21,6 @@ public sealed interface Optional<T> permits Some, None {
 
 	Optional<T> or(Supplier<Optional<T>> other);
 
-	T orElse(T other);
-
 	<R> Optional<R> map(Function<T, R> mapper);
 
 	T orElseGet(Supplier<T> supplier);

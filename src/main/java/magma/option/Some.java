@@ -23,7 +23,6 @@ public record Some<T>(T value) implements Optional<T> {
 		return true;
 	}
 
-	@Override
 	public T orElse(T other) {
 		return value;
 	}
