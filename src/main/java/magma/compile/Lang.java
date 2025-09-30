@@ -74,7 +74,7 @@ public class Lang {
 
 	private static Rule createBlockRule() {
 		return new TypeRule("block", new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-				new PlaceholderRule(new StringRule("content"))), "}"));
+																															new PlaceholderRule(new StringRule("content"))), "}"));
 	}
 
 	private static Rule createStructHeaderRule() {
@@ -91,11 +91,11 @@ public class Lang {
 
 	private static Rule createJavaRootSegmentRule() {
 		return new StripRule(new OrRule(
-				List.of(createClassRule(), createPrefixRule("package"), createPrefixRule("import"),
+				List.of(createClassRule(), createNamespaceRule("package"), createNamespaceRule("import"),
 								createContentRule())));
 	}
 
-	private static Rule createPrefixRule(String type) {
-		return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
+	private static Rule createNamespaceRule(String type) {
+		return new TypeRule(type, new PrefixRule(type + " ", new SuffixRule(new StringRule("content"), ";")));
 	}
 }
