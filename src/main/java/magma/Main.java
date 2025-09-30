@@ -106,6 +106,10 @@ public class Main {
 	}
 
 	private record PlaceholderRule(Rule rule) implements Rule {
+		private static String wrap(String input) {
+			return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+		}
+
 		@Override
 		public Optional<Node> lex(String content) {
 			return rule.lex(content);
@@ -113,7 +117,7 @@ public class Main {
 
 		@Override
 		public Optional<String> generate(Node node) {
-			return rule().generate(node).map(Main::wrap);
+			return rule().generate(node).map(PlaceholderRule::wrap);
 		}
 	}
 
@@ -252,14 +256,14 @@ public class Main {
 		return createJavaRootRule().lex(input)
 															 .map(Main::transform)
 															 .flatMap(createCRootRule()::generate)
-															 .orElseGet(() -> wrap(input));
+															 .orElseGet(() -> PlaceholderRule.wrap(input));
 	}
 
-	private static DivideRule createJavaRootRule() {
+	private static Rule createJavaRootRule() {
 		return new DivideRule("children", createJavaRootSegmentRule());
 	}
 
-	private static StripRule createJavaRootSegmentRule() {
+	private static Rule createJavaRootSegmentRule() {
 		return new StripRule(new OrRule(
 				List.of(createClassRule(), createPrefixRule("package"), createPrefixRule("import"), createContentRule())));
 	}
@@ -296,7 +300,7 @@ public class Main {
 		return new TypeRule("class", new SuffixRule(new InfixRule(orRule, "{", children), "}"));
 	}
 
-	private static DivideRule createCRootRule() {
+	private static Rule createCRootRule() {
 		return new DivideRule("children", createCRootSegmentRule());
 	}
 
@@ -304,32 +308,28 @@ public class Main {
 		return new OrRule(List.of(new SuffixRule(createClassSegmentRule(), System.lineSeparator()), createContentRule()));
 	}
 
-	private static StripRule createJavaClassSegmentRule() {
+	private static Rule createJavaClassSegmentRule() {
 		return new StripRule(createClassSegmentRule());
 	}
 
-	private static OrRule createClassSegmentRule() {
+	private static Rule createClassSegmentRule() {
 		return new OrRule(List.of(createStructHeaderRule(), createBlockRule(), createContentRule()));
 	}
 
-	private static PlaceholderRule createContentRule() {
-		return new PlaceholderRule(new StringRule("input"));
+	private static Rule createContentRule() {
+		return new TypeRule("content", new PlaceholderRule(new StringRule("input")));
 	}
 
-	private static SuffixRule createBlockRule() {
+	private static Rule createBlockRule() {
 		return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
 																				new PlaceholderRule(new StringRule("content"))), "}");
 	}
 
-	private static PrefixRule createStructHeaderRule() {
-		return new PrefixRule("struct ", new SuffixRule(new StringRule("name"), " {};"));
+	private static Rule createStructHeaderRule() {
+		return new TypeRule("struct", new PrefixRule("struct ", new SuffixRule(new StringRule("name"), " {};")));
 	}
 
-	private static InfixRule createClassHeaderRule() {
+	private static Rule createClassHeaderRule() {
 		return new InfixRule(new StringRule("temp"), "class ", new StripRule(new StringRule("name")));
-	}
-
-	private static String wrap(String input) {
-		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
