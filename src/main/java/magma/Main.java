@@ -38,6 +38,12 @@ public class Main {
 		String display();
 	}
 
+	private sealed interface JavaRootSegment {}
+
+	private sealed interface CRootSegment {}
+
+	private sealed interface JavaClassSegment {}
+
 	private record Ok<T, X>(T value) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> map(Function<T, R> fn) {
@@ -407,9 +413,27 @@ public class Main {
 		}
 	}
 
-	private record JavaRoot() {}
+	private record JavaRoot(List<JavaRootSegment> children) {}
 
-	private record CRoot() {}
+	private record CRoot(List<CRootSegment> children) {}
+
+	private @interface Type {
+		String value();
+	}
+
+	@Type("class")
+	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {}
+
+	@Type("import")
+	private record JavaImport(String value) {
+	}
+
+	@Type("package")
+	private record JavaPackage(String value) {
+	}
+
+	@Type("structure")
+	private record CStructure(String name) implements CRootSegment {}
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
@@ -450,7 +474,7 @@ public class Main {
 	}
 
 	private static Result<String, CompileError> compile(String input) {
-		return createJavaRootRule().lex(input).map(Main::transform).flatMap(createCRootRule()::generate);
+		return createJavaRootRule().lex(input).flatMap(Main::transform).flatMap(createCRootRule()::generate);
 	}
 
 	private static Rule createJavaRootRule() {
@@ -466,26 +490,36 @@ public class Main {
 		return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
 	}
 
-	private static Node transform(Node node) {
-		final List<Node> newChildren = node.findNodeList("children")
-																			 .orElse(Collections.emptyList())
-																			 .stream()
-																			 .map(Main::transformRootChild)
-																			 .flatMap(Optional::stream)
-																			 .toList();
-
-		return node.withNodeList("children", newChildren);
+	private static <T> Result<T, CompileError> deserialize(Class<T> clazz, Node node) {
+		// TODO
+		return null;
 	}
 
-	private static Optional<Node> transformRootChild(Node node) {
-		if (node.is("package") || node.is("import")) return Optional.empty();
-		else if (node.is("class")) {
-			final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
-			final ArrayList<Node> copy0 = new ArrayList<>();
-			copy0.add(node.findNode("header").orElse(new Node()));
-			copy0.addAll(copy);
-			return Optional.of(node.withNodeList("children", copy0));
-		} else return Optional.of(node);
+	private static <T> Result<Node, CompileError> serialize(Class<T> clazz, T node) {
+		// TODO
+		return null;
+	}
+
+	private static Result<Node, CompileError> transform(Node node) {
+		return switch (deserialize(JavaRoot.class, node)) {
+			case Err<JavaRoot, CompileError> v -> new Err<>(v.error);
+			case Ok<JavaRoot, CompileError> v -> getNodeCompileErrorResult(v.value).flatMap(n -> serialize(CRoot.class, n));
+		};
+	}
+
+	private static Result<CRoot, CompileError> getNodeCompileErrorResult(JavaRoot value) {
+		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
+			case JavaClass javaClass -> flattenClass(javaClass);
+		}).toList();
+		return new Ok<>(new CRoot(newChildren));
+	}
+
+	private static Stream<CRootSegment> flattenClass(JavaClass clazz) {
+		final List<CRootSegment> list = clazz.children.stream().flatMap(member -> switch (member) {
+			case JavaClass javaClass -> flattenClass(javaClass);
+		}).toList();
+
+		return Stream.concat(Stream.of(new CStructure(clazz.name)), list.stream());
 	}
 
 	private static Rule createClassRule() {
