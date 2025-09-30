@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +24,7 @@ public class Main {
 	private static final class Node {
 		private final Map<String, String> strings = new HashMap<>();
 		private final Map<String, List<Node>> nodeLists = new HashMap<>();
+		private final Map<String, Node> nodes = new HashMap<>();
 
 		private Node withString(String key, String value) {
 			strings.put(key, value);
@@ -35,6 +37,8 @@ public class Main {
 
 		public Node merge(Node node) {
 			this.strings.putAll(node.strings);
+			nodeLists.putAll(node.nodeLists);
+			nodes.putAll(node.nodes);
 			return this;
 		}
 
@@ -45,6 +49,15 @@ public class Main {
 
 		public Optional<List<Node>> findNodeList(String key) {
 			return Optional.ofNullable(nodeLists.get(key));
+		}
+
+		public Node withNode(String key, Node node) {
+			nodes.put(key, node);
+			return this;
+		}
+
+		public Optional<Node> findNode(String key) {
+			return Optional.ofNullable(nodes.get(key));
 		}
 	}
 
@@ -167,6 +180,18 @@ public class Main {
 		}
 	}
 
+	private record NodeRule(String key, Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			return rule.lex(content).map(node -> new Node().withNode(key, node));
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return Optional.empty();
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -197,24 +222,25 @@ public class Main {
 	}
 
 	private static Optional<String> compileClass(String input) {
-		if (!input.endsWith("}")) return Optional.empty();
-		final String slice = input.substring(0, input.length() - "}".length());
+		return getString(input).map(Main::transform).flatMap(createCRootRule()::generate);
+	}
 
-		final int contentStart = slice.indexOf("{");
-		if (contentStart < 0) return Optional.empty();
-		final String beforeBraces = slice.substring(0, contentStart);
-		final String afterBraces = slice.substring(contentStart + "{".length());
+	private static Node transform(Node node) {
+		final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
+		final ArrayList<Node> copy0 = new ArrayList<>();
+		copy0.add(node.findNode("header").orElse(new Node()));
+		copy0.addAll(copy);
+		return node.withNodeList("children", copy0);
+	}
 
-		final String s = createClassHeaderRule().lex(beforeBraces)
-																						.flatMap(inner -> createStructHeaderRule().generate(inner))
-																						.orElseGet(() -> wrap(beforeBraces));
-
+	private static Optional<Node> getString(String input) {
+		final NodeRule orRule = new NodeRule("header", new OrRule(List.of(createClassHeaderRule(), createContentRule())));
 		final DivideRule children = new DivideRule("children", createJavaClassSegmentRule());
-		final DivideRule children1 = new DivideRule("children", createCRootSegmentRule());
+		return new SuffixRule(new InfixRule(orRule, "{", children), "}").lex(input);
+	}
 
-		return Optional.of(
-				s + " {};" + System.lineSeparator() + children.lex(afterBraces).flatMap(children1::generate).orElse(""));
-
+	private static DivideRule createCRootRule() {
+		return new DivideRule("children", createCRootSegmentRule());
 	}
 
 	private static Stream<String> divide(String afterBraces) {
@@ -250,7 +276,7 @@ public class Main {
 	}
 
 	private static OrRule createClassSegmentRule() {
-		return new OrRule(List.of(createBlockRule(), createContentRule()));
+		return new OrRule(List.of(createStructHeaderRule(), createBlockRule(), createContentRule()));
 	}
 
 	private static PlaceholderRule createContentRule() {
@@ -263,11 +289,11 @@ public class Main {
 	}
 
 	private static PrefixRule createStructHeaderRule() {
-		return new PrefixRule("struct ", new StringRule("name"));
+		return new PrefixRule("struct ", new SuffixRule(new StringRule("name"), " {};"));
 	}
 
 	private static InfixRule createClassHeaderRule() {
-		return new InfixRule(new StringRule("temp"), "class ", new StringRule("name"));
+		return new InfixRule(new StringRule("temp"), "class ", new StripRule(new StringRule("name")));
 	}
 
 	private static String wrap(String input) {
