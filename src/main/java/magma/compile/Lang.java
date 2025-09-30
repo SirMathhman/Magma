@@ -77,7 +77,8 @@ public class Lang {
 	}
 
 	private static Rule Definition() {
-		return Last(Last(Delimited("modifiers", Content(), " "), " ", String("type")), " ", String("name"));
+		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
+		return Last(Last(modifiers, " ", String("type")), " ", String("name"));
 	}
 
 	private static Rule Content() {
