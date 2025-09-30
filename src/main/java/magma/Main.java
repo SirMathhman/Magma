@@ -17,16 +17,26 @@ public class Main {
 	private sealed interface Result<T, X> {}
 
 	private interface Rule {
-		Optional<Node> lex(String content);
+		Result<Node, CompileError> lex(String content);
 
-		Optional<String> generate(Node node);
+		Result<String, CompileError> generate(Node node);
 	}
+
+	private interface Context {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
-	private record CompileError(String reason, String sourceCode, List<CompileError> causes) {}
+	private record StringContext(String context) implements Context {}
+
+	private record NodeContext(Node node) implements Context {}
+
+	private record CompileError(String reason, Context sourceCode, List<CompileError> causes) {
+		public CompileError(String reason, Context sourceCode) {
+			this(reason, sourceCode, Collections.emptyList());
+		}
+	}
 
 	private static final class Node {
 		private final Map<String, String> strings = new HashMap<>();
@@ -80,13 +90,16 @@ public class Main {
 
 	private record StringRule(String key) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
-			return Optional.of(new Node().withString(getKey(), content));
+		public Result<Node, CompileError> lex(String content) {
+			return new Ok<>(new Node().withString(getKey(), content));
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
-			return node.findString(key);
+		public Result<String, CompileError> generate(Node node) {
+			return node.findString(key)
+								 .<Result<String, CompileError>>map(Ok::new)
+								 .orElseGet(
+										 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
 		}
 
 		public String getKey() {
@@ -96,18 +109,18 @@ public class Main {
 
 	private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
 		@Override
-		public Optional<Node> lex(String slice) {
-			final int index = slice.indexOf(infix());
-			if (index < 0) return Optional.empty();
+		public Result<Node, CompileError> lex(String input) {
+			final int index = input.indexOf(infix());
+			if (index < 0) return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
-			final String beforeContent = slice.substring(0, index);
-			final String content = slice.substring(index + infix().length());
+			final String beforeContent = input.substring(0, index);
+			final String content = input.substring(index + infix().length());
 
 			return leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return leftRule.generate(node).flatMap(inner -> rightRule.generate(node).map(other -> inner + infix + other));
 		}
 
@@ -119,26 +132,26 @@ public class Main {
 		}
 
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			return rule.lex(content);
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return rule().generate(node).map(PlaceholderRule::wrap);
 		}
 	}
 
 	private record SuffixRule(Rule rule, String suffix) implements Rule {
 		@Override
-		public Optional<Node> lex(String input) {
+		public Result<Node, CompileError> lex(String input) {
 			if (!input.endsWith(suffix())) return Optional.empty();
 			final String slice = input.substring(0, input.length() - suffix().length());
 			return getRule().lex(slice);
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return rule.generate(node).map(value -> value + suffix());
 		}
 
@@ -149,37 +162,37 @@ public class Main {
 
 	private record PrefixRule(String prefix, Rule rule) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
 			else return Optional.empty();
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return rule.generate(node).map(inner -> prefix + inner);
 		}
 	}
 
 	private record OrRule(List<Rule> rules) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			return rules.stream().map(rule -> rule.lex(content)).flatMap(Optional::stream).findFirst();
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return rules.stream().map(rule -> rule.generate(node)).flatMap(Optional::stream).findFirst();
 		}
 	}
 
 	private record StripRule(Rule rule) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			return rule.lex(content.strip());
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return rule.generate(node);
 		}
 	}
@@ -210,13 +223,13 @@ public class Main {
 		}
 
 		@Override
-		public Optional<Node> lex(String input) {
+		public Result<Node, CompileError> lex(String input) {
 			final List<Node> children = divide(input).map(rule()::lex).flatMap(Optional::stream).toList();
 			return Optional.of(new Node().withNodeList(key, children));
 		}
 
 		@Override
-		public Optional<String> generate(Node value) {
+		public Result<String, CompileError> generate(Node value) {
 			return value.findNodeList(key())
 									.map(list -> list.stream()
 																	 .map(rule()::generate)
@@ -227,24 +240,24 @@ public class Main {
 
 	private record NodeRule(String key, Rule rule) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			return rule.lex(content).map(node -> new Node().withNode(key, node));
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return Optional.empty();
 		}
 	}
 
 	private record TypeRule(String type, Rule rule) implements Rule {
 		@Override
-		public Optional<Node> lex(String content) {
+		public Result<Node, CompileError> lex(String content) {
 			return rule.lex(content).map(node -> node.retype(type));
 		}
 
 		@Override
-		public Optional<String> generate(Node node) {
+		public Result<String, CompileError> generate(Node node) {
 			return Optional.empty();
 		}
 	}
