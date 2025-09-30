@@ -97,11 +97,11 @@ public class Main {
 			case None<List<JavaDefinition>> v -> Collections.emptyList(); case Some<List<JavaDefinition>> v -> v.value();
 		};
 
-		final List<CDefinition> newParams = oldParams.stream().map(_ -> new CDefinition()).toList();
-		return new Function(getDefinition(method), newParams, method.body());
+		final List<CDefinition> newParams = oldParams.stream().map(Main::getDefinition).toList();
+		return new Function(getDefinition(method.definition()), newParams, method.body());
 	}
 
-	private static CDefinition getDefinition(Method method) {
-		return new CDefinition();
+	private static CDefinition getDefinition(JavaDefinition definition) {
+		return new CDefinition(definition.name());
 	}
 }

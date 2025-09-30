@@ -1,6 +1,7 @@
 package magma.compile;
 
 import magma.compile.rule.NodeListRule;
+import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.StringRule;
 import magma.option.Optional;
@@ -63,7 +64,7 @@ public class Lang {
 	public record Package(String value) implements JavaRootSegment {}
 
 	@Tag("definition")
-	public record CDefinition() {}
+	public record CDefinition(String name) {}
 
 	@Tag("function")
 	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}
@@ -73,7 +74,7 @@ public class Lang {
 	}
 
 	public static Rule Function() {
-		return Tag("function", new StringRule("test"));
+		return Tag("function", new NodeRule("definition", new StringRule("name")));
 	}
 
 	private static Rule Struct() {

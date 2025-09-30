@@ -4,7 +4,7 @@ struct Main {};/*
 		if (run() instanceof Some<ApplicationError>(
 				ApplicationError value
 		)) System.out.println(value.display());
-	}*//*temp*//*
+	}*/run/*
 
 	private static Optional<IOException> writeString(Path path, String result) {
 		try {
@@ -49,7 +49,21 @@ struct Main {};/*
 	private static CRootSegment getSelf(JavaClassMember self) {
 		return switch (self) {
 			case Content content -> content;
-			case Method method -> new Content("temp");
+			case Method method -> transformMethod(method);
 		};
+	}*//*
+
+	private static Function transformMethod(Method method) {
+		final List<JavaDefinition> oldParams = switch (method.params()) {
+			case None<List<JavaDefinition>> v -> Collections.emptyList();
+			case Some<List<JavaDefinition>> v -> v.value();
+		};
+
+		final List<CDefinition> newParams = oldParams.stream().map(Main::getDefinition).toList();
+		return new Function(getDefinition(method.definition()), newParams, method.body());
+	}*//*
+
+	private static CDefinition getDefinition(JavaDefinition definition) {
+		return new CDefinition(definition.name());
 	}*//*
 */
