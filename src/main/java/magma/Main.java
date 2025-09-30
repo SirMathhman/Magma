@@ -21,19 +21,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.Objects;
-import java.util.function.Function;
+import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Main {
-	private sealed interface Result<T, X> {
-		<R> Result<R, X> map(Function<T, R> fn);
-
-		<R> Result<R, X> flatMap(Function<T, Result<R, X>> fn);
-
-	}
-
 	private interface Rule {
 		Result<Node, CompileError> lex(String content);
 
@@ -48,43 +40,16 @@ public class Main {
 		String display();
 	}
 
-	private sealed interface JavaRootSegment permits JavaClass, Content, JavaImport, JavaPackage {
-	}
+	private sealed interface JavaRootSegment permits JavaClass, Content, JavaImport, JavaPackage {}
 
-	private sealed interface CRootSegment permits CStructure, Content {
-	}
+	private sealed interface CRootSegment permits CStructure, Content {}
 
-	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, Content, JavaStruct {
-	}
+	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, Content, JavaStruct {}
 
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
 	private @interface Type {
 		String value();
-	}
-
-	private record Ok<T, X>(T value) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> map(Function<T, R> fn) {
-			return new Ok<>(fn.apply(this.value));
-		}
-
-		@Override
-		public <R> Result<R, X> flatMap(Function<T, Result<R, X>> fn) {
-			return fn.apply(this.value);
-		}
-	}
-
-	private record Err<T, X>(X error) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> map(Function<T, R> fn) {
-			return new Err<>(error);
-		}
-
-		@Override
-		public <R> Result<R, X> flatMap(Function<T, Result<R, X>> fn) {
-			return new Err<>(error);
-		}
 	}
 
 	private record StringContext(String context) implements Context {
@@ -133,10 +98,10 @@ public class Main {
 
 		private static String escape(String value) {
 			return value.replace("\\", "\\\\")
-					.replace("\"", "\\\"")
-					.replace("\n", "\\n")
-					.replace("\r", "\\r")
-					.replace("\t", "\\t");
+									.replace("\"", "\\\"")
+									.replace("\n", "\\n")
+									.replace("\r", "\\r")
+									.replace("\t", "\\t");
 		}
 
 		private Node withString(String key, String value) {
@@ -199,21 +164,21 @@ public class Main {
 				hasFields = true;
 			}
 
-			final List<Map.Entry<String, String>> sortedStrings = strings.entrySet().stream()
-					.sorted(Map.Entry.comparingByKey()).toList();
+			final List<Map.Entry<String, String>> sortedStrings =
+					strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 			for (Map.Entry<String, String> entry : sortedStrings) {
 				builder.append(hasFields ? ",\n" : "\n");
 				builder.append(childIndent)
-						.append('"')
-						.append(escape(entry.getKey()))
-						.append("\": \"")
-						.append(escape(entry.getValue()))
-						.append("\"");
+							 .append('"')
+							 .append(escape(entry.getKey()))
+							 .append("\": \"")
+							 .append(escape(entry.getValue()))
+							 .append("\"");
 				hasFields = true;
 			}
 
-			final List<Map.Entry<String, Node>> sortedNodes = nodes.entrySet().stream().sorted(Map.Entry.comparingByKey())
-					.toList();
+			final List<Map.Entry<String, Node>> sortedNodes =
+					nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 			for (Map.Entry<String, Node> entry : sortedNodes) {
 				builder.append(hasFields ? ",\n" : "\n");
 				builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
@@ -221,8 +186,8 @@ public class Main {
 				hasFields = true;
 			}
 
-			final List<Map.Entry<String, List<Node>>> sortedLists = nodeLists.entrySet().stream()
-					.sorted(Map.Entry.comparingByKey()).toList();
+			final List<Map.Entry<String, List<Node>>> sortedLists =
+					nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
 			for (Map.Entry<String, List<Node>> entry : sortedLists) {
 				builder.append(hasFields ? ",\n" : "\n");
 				builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
@@ -232,10 +197,8 @@ public class Main {
 					for (int i = 0; i < list.size(); i++) {
 						builder.append("\t".repeat(depth + 2));
 						list.get(i).appendJson(builder, depth + 2);
-						if (i < list.size() - 1)
-							builder.append(",\n");
-						else
-							builder.append("\n");
+						if (i < list.size() - 1) builder.append(",\n");
+						else builder.append("\n");
 					}
 					builder.append(childIndent);
 				}
@@ -243,8 +206,7 @@ public class Main {
 				hasFields = true;
 			}
 
-			if (hasFields)
-				builder.append("\n").append(indent);
+			if (hasFields) builder.append("\n").append(indent);
 			builder.append("}");
 		}
 	}
@@ -258,9 +220,9 @@ public class Main {
 		@Override
 		public Result<String, CompileError> generate(Node node) {
 			return node.findString(key)
-					.<Result<String, CompileError>>map(Ok::new)
-					.orElseGet(
-							() -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
+								 .<Result<String, CompileError>>map(Ok::new)
+								 .orElseGet(
+										 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
 		}
 
 		public String getKey() {
@@ -272,8 +234,7 @@ public class Main {
 		@Override
 		public Result<Node, CompileError> lex(String input) {
 			final int index = input.indexOf(infix());
-			if (index < 0)
-				return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
+			if (index < 0) return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
 			final String beforeContent = input.substring(0, index);
 			final String content = input.substring(index + infix().length());
@@ -326,10 +287,8 @@ public class Main {
 	private record PrefixRule(String prefix, Rule rule) implements Rule {
 		@Override
 		public Result<Node, CompileError> lex(String content) {
-			if (content.startsWith(prefix))
-				return rule.lex(content.substring(prefix.length()));
-			else
-				return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(content)));
+			if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
+			else return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(content)));
 		}
 
 		@Override
@@ -342,18 +301,13 @@ public class Main {
 		@Override
 		public Result<Node, CompileError> lex(String content) {
 			final ArrayList<CompileError> errors = new ArrayList<>();
-			for (Rule rule : rules) {
-				Result<Node, CompileError> res = rule.lex(content);
-				if (res instanceof Ok<?, ?> ok) {
-					@SuppressWarnings("unchecked")
-					Ok<Node, CompileError> nodeOk = (Ok<Node, CompileError>) ok;
-					return nodeOk;
-				} else if (res instanceof Err<?, ?> err) {
-					@SuppressWarnings("unchecked")
-					Err<Node, CompileError> nodeErr = (Err<Node, CompileError>) err;
-					errors.add(nodeErr.error());
+			for (Rule rule : rules)
+				switch (rule.lex(content)) {
+					case Ok<Node, CompileError> ok -> {
+						return ok;
+					}
+					case Err<Node, CompileError>(CompileError error) -> errors.add(error);
 				}
-			}
 			return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
 		}
 
@@ -362,15 +316,8 @@ public class Main {
 			final ArrayList<CompileError> errors = new ArrayList<>();
 			for (Rule rule : rules) {
 				Result<String, CompileError> res = rule.generate(node);
-				if (res instanceof Ok<?, ?> ok) {
-					@SuppressWarnings("unchecked")
-					Ok<String, CompileError> strOk = (Ok<String, CompileError>) ok;
-					return strOk;
-				} else if (res instanceof Err<?, ?> err) {
-					@SuppressWarnings("unchecked")
-					Err<String, CompileError> strErr = (Err<String, CompileError>) err;
-					errors.add(strErr.error());
-				}
+				if (res instanceof Ok<String, CompileError> ok) return ok;
+				else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
 			}
 			return new Err<>(new CompileError("No generator matched for node", new NodeContext(node), errors));
 		}
@@ -404,10 +351,8 @@ public class Main {
 					buffer = new StringBuilder();
 					depth--;
 				} else {
-					if (c == '{')
-						depth++;
-					if (c == '}')
-						depth--;
+					if (c == '{') depth++;
+					if (c == '}') depth--;
 				}
 			}
 
@@ -421,20 +366,11 @@ public class Main {
 			final ArrayList<CompileError> errors = new ArrayList<>();
 			divide(input).forEach(segment -> {
 				Result<Node, CompileError> res = rule().lex(segment);
-				if (res instanceof Ok<?, ?> ok) {
-					@SuppressWarnings("unchecked")
-					Ok<Node, CompileError> nodeOk = (Ok<Node, CompileError>) ok;
-					children.add(nodeOk.value());
-				} else if (res instanceof Err<?, ?> err) {
-					@SuppressWarnings("unchecked")
-					Err<Node, CompileError> nodeErr = (Err<Node, CompileError>) err;
-					errors.add(nodeErr.error());
-				}
+				if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
+				else if (res instanceof Err<Node, CompileError>(CompileError error)) errors.add(error);
 			});
-			if (!errors.isEmpty())
-				return new Err<>(
-						new CompileError("Errors while lexing divided segments for '" + key + "'", new StringContext(input),
-								errors));
+			if (!errors.isEmpty()) return new Err<>(
+					new CompileError("Errors while lexing divided segments for '" + key + "'", new StringContext(input), errors));
 			return new Ok<>(new Node().withNodeList(key, children));
 		}
 
@@ -445,20 +381,12 @@ public class Main {
 				final ArrayList<CompileError> errors = new ArrayList<>();
 				for (Node child : list) {
 					Result<String, CompileError> res = rule().generate(child);
-					if (res instanceof Ok<?, ?> ok) {
-						@SuppressWarnings("unchecked")
-						Ok<String, CompileError> strOk = (Ok<String, CompileError>) ok;
-						sb.append(strOk.value());
-					} else if (res instanceof Err<?, ?> err) {
-						@SuppressWarnings("unchecked")
-						Err<String, CompileError> strErr = (Err<String, CompileError>) err;
-						errors.add(strErr.error());
-					}
+					if (res instanceof Ok<String, CompileError>(String value1)) sb.append(value1);
+					else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
 				}
-				if (!errors.isEmpty())
-					return new Err<>(
-							new CompileError("Errors while generating divided segments for '" + key + "'", new NodeContext(value),
-									errors));
+				if (!errors.isEmpty()) return new Err<>(
+						new CompileError("Errors while generating divided segments for '" + key + "'", new NodeContext(value),
+														 errors));
 				return new Ok<>(sb.toString());
 			}).orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
 		}
@@ -484,10 +412,8 @@ public class Main {
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			if (node.is(type))
-				return rule.generate(node);
-			else
-				return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
+			if (node.is(type)) return rule.generate(node);
+			else return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
 		}
 	}
 
@@ -506,39 +432,30 @@ public class Main {
 		}
 	}
 
-	private record JavaRoot(List<JavaRootSegment> children) {
-	}
+	private record JavaRoot(List<JavaRootSegment> children) {}
 
-	private record CRoot(List<CRootSegment> children) {
-	}
+	private record CRoot(List<CRootSegment> children) {}
 
 	@Type("class")
-	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {
-	}
+	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {}
 
 	@Type("import")
-	private record JavaImport(String content) implements JavaRootSegment {
-	}
+	private record JavaImport(String content) implements JavaRootSegment {}
 
 	@Type("package")
-	private record JavaPackage(String content) implements JavaRootSegment {
-	}
+	private record JavaPackage(String content) implements JavaRootSegment {}
 
 	@Type("content")
-	private record Content(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {
-	}
+	private record Content(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {}
 
 	@Type("struct")
-	private record JavaStruct(String name) implements JavaClassSegment {
-	}
+	private record JavaStruct(String name) implements JavaClassSegment {}
 
 	@Type("block")
-	private record JavaBlock(String header, String content) implements JavaClassSegment {
-	}
+	private record JavaBlock(String header, String content) implements JavaClassSegment {}
 
 	@Type("struct")
-	private record CStructure(String name) implements CRootSegment {
-	}
+	private record CStructure(String name) implements CRootSegment {}
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
@@ -551,10 +468,10 @@ public class Main {
 			case Ok<String, ThrowableError>(String input) -> {
 				final Result<String, CompileError> result = compile(input);
 				yield switch (result) {
-					case Err<String, CompileError> v -> Optional.of(new ApplicationError(v.error));
+					case Err<String, CompileError> v -> Optional.of(new ApplicationError(v.error()));
 					case Ok<String, CompileError> v -> {
 						final Path path = source.resolveSibling("main.c");
-						yield writeString(path, v.value).map(ThrowableError::new).map(ApplicationError::new);
+						yield writeString(path, v.value()).map(ThrowableError::new).map(ApplicationError::new);
 					}
 				};
 			}
@@ -601,22 +518,17 @@ public class Main {
 		if (Objects.isNull(node))
 			return new Err<>(new CompileError("Cannot deserialize absent node", new StringContext(clazz.getName())));
 
-		if (clazz.isSealed() && !clazz.isRecord())
-			return deserializeSealed(clazz, node);
-		if (!clazz.isRecord())
-			return new Err<>(
-					new CompileError("Unsupported deserialization target '" + clazz.getName() + "'", new NodeContext(node)));
+		if (clazz.isSealed() && !clazz.isRecord()) return deserializeSealed(clazz, node);
+		if (!clazz.isRecord()) return new Err<>(
+				new CompileError("Unsupported deserialization target '" + clazz.getName() + "'", new NodeContext(node)));
 
 		final Optional<String> expectedType = resolveTypeIdentifier(clazz);
 		if (expectedType.isPresent()) {
-			if (node.maybeType.isEmpty())
-				return new Err<>(
-						new CompileError("Node type information missing for '" + clazz.getSimpleName() + "'",
-								new NodeContext(node)));
-			if (!node.is(expectedType.get()))
-				return new Err<>(
-						new CompileError("Expected node type '" + expectedType.get() + "' but found '" + node.maybeType.get() + "'",
-								new NodeContext(node)));
+			if (node.maybeType.isEmpty()) return new Err<>(
+					new CompileError("Node type information missing for '" + clazz.getSimpleName() + "'", new NodeContext(node)));
+			if (!node.is(expectedType.get())) return new Err<>(
+					new CompileError("Expected node type '" + expectedType.get() + "' but found '" + node.maybeType.get() + "'",
+													 new NodeContext(node)));
 		}
 
 		final RecordComponent[] components = clazz.getRecordComponents();
@@ -626,20 +538,12 @@ public class Main {
 		for (int i = 0; i < components.length; i++) {
 			final RecordComponent component = components[i];
 			final Result<Object, CompileError> componentResult = deserializeComponent(component, node);
-			if (componentResult instanceof Ok<?, ?> ok) {
-				@SuppressWarnings("unchecked")
-				final Ok<Object, CompileError> valueOk = (Ok<Object, CompileError>) ok;
-				arguments[i] = valueOk.value();
-			} else if (componentResult instanceof Err<?, ?> err) {
-				@SuppressWarnings("unchecked")
-				final Err<Object, CompileError> valueErr = (Err<Object, CompileError>) err;
-				errors.add(valueErr.error());
-			}
+			if (componentResult instanceof Ok<Object, CompileError>(Object value)) arguments[i] = value;
+			else if (componentResult instanceof Err<Object, CompileError>(CompileError error)) errors.add(error);
 		}
 
-		if (!errors.isEmpty())
-			return new Err<>(
-					new CompileError("Failed to deserialize '" + clazz.getSimpleName() + "'", new NodeContext(node), errors));
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to deserialize '" + clazz.getSimpleName() + "'", new NodeContext(node), errors));
 
 		try {
 			final Class<?>[] parameterTypes = Arrays.stream(components).map(RecordComponent::getType).toArray(Class[]::new);
@@ -649,31 +553,29 @@ public class Main {
 			return new Ok<>(constructor.newInstance(arguments));
 		} catch (ReflectiveOperationException e) {
 			return new Err<>(new CompileError("Reflection failure while instantiating '" + clazz.getSimpleName() + "'",
-					new NodeContext(node),
-					List.of(new CompileError(e.getMessage(), new StringContext(clazz.getName())))));
+																				new NodeContext(node),
+																				List.of(new CompileError(e.getMessage(), new StringContext(clazz.getName())))));
 		}
 	}
 
 	private static <T> Result<Node, CompileError> serialize(Class<T> clazz, T node) {
 		if (Objects.isNull(clazz))
 			return new Err<>(new CompileError("Target class must not be absent", new StringContext("serialize")));
-		if (Objects.isNull(node))
-			return new Err<>(new CompileError("Cannot serialize absent instance of '" + clazz.getName() + "'",
-					new StringContext("serialize")));
+		if (Objects.isNull(node)) return new Err<>(
+				new CompileError("Cannot serialize absent instance of '" + clazz.getName() + "'",
+												 new StringContext("serialize")));
 		if (clazz.isSealed() && !clazz.isRecord()) {
 			@SuppressWarnings("unchecked")
 			final Class<? extends T> concreteClass = (Class<? extends T>) node.getClass();
-			if (!clazz.isAssignableFrom(concreteClass))
-				return new Err<>(new CompileError(
-						"Instance of type '" + concreteClass.getName() + "' is not assignable to '" + clazz.getName() + "'",
-						new StringContext(concreteClass.getName())));
+			if (!clazz.isAssignableFrom(concreteClass)) return new Err<>(new CompileError(
+					"Instance of type '" + concreteClass.getName() + "' is not assignable to '" + clazz.getName() + "'",
+					new StringContext(concreteClass.getName())));
 			return serializeRaw(concreteClass, concreteClass.cast(node));
 		}
 
-		if (!clazz.isRecord())
-			return new Err<>(
-					new CompileError("Unsupported serialization target '" + clazz.getName() + "'",
-							new StringContext(clazz.getName())));
+		if (!clazz.isRecord()) return new Err<>(
+				new CompileError("Unsupported serialization target '" + clazz.getName() + "'",
+												 new StringContext(clazz.getName())));
 
 		final Node result = new Node();
 		resolveTypeIdentifier(clazz).ifPresent(result::retype);
@@ -689,35 +591,32 @@ public class Main {
 				writeResult.ifPresent(errors::add);
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				errors.add(new CompileError("Failed to read component '" + component.getName() + "'",
-						new StringContext(clazz.getName()),
-						List.of(new CompileError(e.getMessage(), new StringContext(component.getName())))));
+																		new StringContext(clazz.getName()),
+																		List.of(new CompileError(e.getMessage(), new StringContext(component.getName())))));
 			}
 		}
-		if (!errors.isEmpty())
-			return new Err<>(
-					new CompileError("Failed to serialize '" + clazz.getSimpleName() + "'", new StringContext(clazz.getName()),
-							errors));
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to serialize '" + clazz.getSimpleName() + "'", new StringContext(clazz.getName()),
+												 errors));
 
 		return new Ok<>(result);
 	}
 
 	private static Optional<String> resolveTypeIdentifier(Class<?> clazz) {
 		Type annotation = clazz.getAnnotation(Type.class);
-		if (Objects.isNull(annotation))
-			return Optional.empty();
+		if (Objects.isNull(annotation)) return Optional.empty();
 		return Optional.of(annotation.value());
 	}
 
 	private static <T> Result<T, CompileError> deserializeSealed(Class<T> clazz, Node node) {
-		if (node.maybeType.isEmpty())
-			return new Err<>(
-					new CompileError("Missing node type for sealed type '" + clazz.getName() + "'", new NodeContext(node)));
+		if (node.maybeType.isEmpty()) return new Err<>(
+				new CompileError("Missing node type for sealed type '" + clazz.getName() + "'", new NodeContext(node)));
 
 		final String nodeType = node.maybeType.get();
 		for (Class<?> permitted : clazz.getPermittedSubclasses()) {
 			final Optional<String> identifier = resolveTypeIdentifier(permitted);
 			if (identifier.isPresent() && identifier.get().equals(nodeType)) {
-				@SuppressWarnings({ "rawtypes", "unchecked" })
+				@SuppressWarnings({"rawtypes", "unchecked"})
 				final Result<T, CompileError> cast = (Result<T, CompileError>) deserialize((Class) permitted, node);
 				return cast;
 			}
@@ -725,7 +624,7 @@ public class Main {
 
 		return new Err<>(
 				new CompileError("No permitted subtype of '" + clazz.getName() + "' matched node type '" + nodeType + "'",
-						new NodeContext(node)));
+												 new NodeContext(node)));
 	}
 
 	private static Result<Object, CompileError> deserializeComponent(RecordComponent component, Node node) {
@@ -734,16 +633,13 @@ public class Main {
 
 		if (type == String.class) {
 			final Optional<String> direct = node.findString(key);
-			if (direct.isPresent())
-				return new Ok<>(direct.get());
+			if (direct.isPresent()) return new Ok<>(direct.get());
 			final Optional<String> nested = findStringInChildren(node, key);
-			if (nested.isPresent())
-				return new Ok<>(nested.get());
+			if (nested.isPresent()) return new Ok<>(nested.get());
 			return new Err<>(missingFieldError(key, type, node));
 		}
 
-		if (List.class.isAssignableFrom(type))
-			return deserializeListComponent(component, node);
+		if (List.class.isAssignableFrom(type)) return deserializeListComponent(component, node);
 
 		return deserializeNestedComponent(component, node);
 	}
@@ -753,28 +649,26 @@ public class Main {
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
 			return new Err<>(
 					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
-							new NodeContext(node)));
+													 new NodeContext(node)));
 
 		final java.lang.reflect.Type argumentType = parameterized.getActualTypeArguments()[0];
 		final Class<?> elementClass = erase(argumentType);
 		final Optional<List<Node>> maybeList = node.findNodeList(component.getName());
-		if (maybeList.isEmpty())
-			return new Err<>(missingFieldError(component.getName(), elementClass, node));
+		if (maybeList.isEmpty()) return new Err<>(missingFieldError(component.getName(), elementClass, node));
 
 		final ArrayList<Object> results = new ArrayList<>();
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Node child : maybeList.get()) {
 			final Result<Object, CompileError> childResult = deserializeRaw(elementClass, child);
 			switch (childResult) {
-				case Err<Object, CompileError> v -> errors.add(v.error);
-				case Ok<Object, CompileError> v -> results.add(v.value);
+				case Err<Object, CompileError> v -> errors.add(v.error());
+				case Ok<Object, CompileError> v -> results.add(v.value());
 			}
 		}
 
-		if (!errors.isEmpty())
-			return new Err<>(
-					new CompileError("Failed to deserialize list component '" + component.getName() + "'", new NodeContext(node),
-							errors));
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to deserialize list component '" + component.getName() + "'", new NodeContext(node),
+												 errors));
 
 		return new Ok<>(List.copyOf(results));
 	}
@@ -782,39 +676,36 @@ public class Main {
 	private static Result<Object, CompileError> deserializeNestedComponent(RecordComponent component, Node node) {
 		final String key = component.getName();
 		final Optional<Node> maybeChild = node.findNode(key);
-		if (maybeChild.isEmpty())
-			return new Err<>(missingFieldError(key, component.getType(), node));
+		if (maybeChild.isEmpty()) return new Err<>(missingFieldError(key, component.getType(), node));
 		return deserializeRaw(component.getType(), maybeChild.get());
 	}
 
 	private static Result<Object, CompileError> deserializeRaw(Class<?> type, Node node) {
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		final Result<Object, CompileError> rawResult = (Result<Object, CompileError>) deserialize((Class) type, node);
 		return rawResult;
 	}
 
 	private static Result<Node, CompileError> serializeRaw(Class<?> clazz, Object value) {
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		final Result<Node, CompileError> result = (Result<Node, CompileError>) serialize((Class) clazz, value);
 		return result;
 	}
 
 	private static CompileError missingFieldError(String key, Class<?> type, Node node) {
 		return new CompileError("Required component '" + key + "' of type '" + type.getSimpleName() + "' not present",
-				new NodeContext(node));
+														new NodeContext(node));
 	}
 
 	private static Optional<String> findStringInChildren(Node node, String key) {
 		for (Node child : node.nodes.values()) {
 			final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
-			if (nested.isPresent())
-				return nested;
+			if (nested.isPresent()) return nested;
 		}
 		for (List<Node> children : node.nodeLists.values())
 			for (Node child : children) {
 				final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
-				if (nested.isPresent())
-					return nested;
+				if (nested.isPresent()) return nested;
 			}
 		return Optional.empty();
 	}
@@ -823,45 +714,40 @@ public class Main {
 		final String key = component.getName();
 		final Class<?> type = component.getType();
 
+		final CompileError absentError = new CompileError("Component '" + key + "' was absent", new StringContext(key));
 		if (type == String.class) {
-			if (Objects.isNull(value))
-				return Optional.of(new CompileError("Component '" + key + "' was absent", new StringContext(key)));
+			if (Objects.isNull(value)) return Optional.of(absentError);
 			target.withString(key, (String) value);
 			return Optional.empty();
 		}
 
-		if (List.class.isAssignableFrom(type))
-			return writeListComponent(target, component, value);
+		if (List.class.isAssignableFrom(type)) return writeListComponent(target, component, value);
 
-		if (Objects.isNull(value))
-			return Optional.of(new CompileError("Component '" + key + "' was absent", new StringContext(key)));
+		if (Objects.isNull(value)) return Optional.of(absentError);
 
 		final Result<Node, CompileError> nestedResult = serializeRaw(type, value);
 
 		return switch (nestedResult) {
-			case Err<Node, CompileError> v -> Optional.of(v.error);
+			case Err<Node, CompileError> v -> Optional.of(v.error());
 			case Ok<Node, CompileError> v -> {
-				target.withNode(key, v.value);
+				target.withNode(key, v.value());
 				yield Optional.empty();
 			}
 		};
 	}
 
 	private static Optional<CompileError> writeListComponent(Node target, RecordComponent component, Object value) {
-		if (Objects.isNull(value))
-			return Optional.of(
-					new CompileError("Component '" + component.getName() + "' was absent",
-							new StringContext(component.getName())));
-		if (!(value instanceof List<?> listValue))
-			return Optional.of(
-					new CompileError("Component '" + component.getName() + "' is not a List instance",
-							new StringContext(component.getName())));
+		if (Objects.isNull(value)) return Optional.of(
+				new CompileError("Component '" + component.getName() + "' was absent", new StringContext(component.getName())));
+		if (!(value instanceof List<?> listValue)) return Optional.of(
+				new CompileError("Component '" + component.getName() + "' is not a List instance",
+												 new StringContext(component.getName())));
 
 		final java.lang.reflect.Type genericType = component.getGenericType();
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
 			return Optional.of(
 					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
-							new StringContext(component.getName())));
+													 new StringContext(component.getName())));
 
 		final Class<?> elementClass = erase(parameterized.getActualTypeArguments()[0]);
 		final ArrayList<Node> serializedChildren = new ArrayList<>();
@@ -870,23 +756,21 @@ public class Main {
 		for (Object element : listValue) {
 			final Result<Node, CompileError> serialized = serializeRaw(elementClass, element);
 			switch (serialized) {
-				case Err<Node, CompileError> v -> errors.add(v.error);
-				case Ok<Node, CompileError> v -> serializedChildren.add(v.value);
+				case Err<Node, CompileError> v -> errors.add(v.error());
+				case Ok<Node, CompileError> v -> serializedChildren.add(v.value());
 			}
 		}
 
-		if (!errors.isEmpty())
-			return Optional.of(
-					new CompileError("Failed to serialize list component '" + component.getName() + "'",
-							new StringContext(component.getName()), errors));
+		if (!errors.isEmpty()) return Optional.of(
+				new CompileError("Failed to serialize list component '" + component.getName() + "'",
+												 new StringContext(component.getName()), errors));
 
 		target.withNodeList(component.getName(), List.copyOf(serializedChildren));
 		return Optional.empty();
 	}
 
 	private static Class<?> erase(java.lang.reflect.Type type) {
-		if (type instanceof Class<?> clazz)
-			return clazz;
+		if (type instanceof Class<?> clazz) return clazz;
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
 			return raw;
 		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
@@ -894,8 +778,8 @@ public class Main {
 
 	private static Result<Node, CompileError> transform(Node node) {
 		return switch (deserialize(JavaRoot.class, node)) {
-			case Err<JavaRoot, CompileError> v -> new Err<>(v.error);
-			case Ok<JavaRoot, CompileError> v -> getNodeCompileErrorResult(v.value).flatMap(n -> serialize(CRoot.class, n));
+			case Err<JavaRoot, CompileError> v -> new Err<>(v.error());
+			case Ok<JavaRoot, CompileError> v -> getNodeCompileErrorResult(v.value()).flatMap(n -> serialize(CRoot.class, n));
 		};
 	}
 
@@ -903,7 +787,7 @@ public class Main {
 		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
 			case JavaClass javaClass -> flattenClass(javaClass);
 			case Content content -> Stream.of(content);
-			case JavaImport _,JavaPackage _ -> Stream.of();
+			case JavaImport _, JavaPackage _ -> Stream.of();
 		}).toList();
 		return new Ok<>(new CRoot(newChildren));
 	}
@@ -947,7 +831,7 @@ public class Main {
 
 	private static Rule createBlockRule() {
 		return new TypeRule("block", new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-				new PlaceholderRule(new StringRule("content"))), "}"));
+																															new PlaceholderRule(new StringRule("content"))), "}"));
 	}
 
 	private static Rule createStructHeaderRule() {
