@@ -23,7 +23,7 @@ public class Lang {
 	public record Content(String value) implements JavaRootSegment, CRootSegment {}
 
 	@Tag("class")
-	public record JClass(String name) implements JavaRootSegment {}
+	public record JClass(String name, List<Content> children) implements JavaRootSegment {}
 
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
@@ -33,7 +33,15 @@ public class Lang {
 	public record CRoot(List<CRootSegment> children) {}
 
 	public static Rule createCRootRule() {
-		return NodeList("children", Or(Tag("struct", Prefix("struct ", Suffix(String("name"), "{};"))), Content()));
+		return NodeList("children", getOr());
+	}
+
+	private static Rule getOr() {
+		return Or(Struct(), Content());
+	}
+
+	private static Rule Struct() {
+		return Tag("struct", Prefix("struct ", Suffix(String("name"), "{};")));
 	}
 
 	public static Rule createJavaRootRule() {
@@ -41,8 +49,9 @@ public class Lang {
 	}
 
 	private static Rule Class() {
-		return Tag("class",
-							 Strip(Suffix(First(String("modifiers"), "class ", First(String("name"), "{", Content())), "}")));
+		return Tag("class", Strip(
+				Suffix(First(String("modifiers"), "class ", First(String("name"), "{", NodeList("children", Content()))),
+							 "}")));
 	}
 
 	private static Rule Content() {

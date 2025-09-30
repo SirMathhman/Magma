@@ -73,7 +73,7 @@ public class Main {
 		return switch (segment) {
 			case JClass aClass -> {
 				final Structure structure = new Structure(aClass.name());
-				yield Stream.of(structure);
+				yield Stream.concat(Stream.of(structure), aClass.children().stream().<CRootSegment>map(self -> self));
 			}
 			case Content content -> Stream.of(content);
 		};
