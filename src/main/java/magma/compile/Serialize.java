@@ -4,7 +4,7 @@ import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
-import magma.option.Optional;
+import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
@@ -32,7 +32,7 @@ public class Serialize {
 		if (!clazz.isRecord()) return new Err<>(
 				new CompileError("Unsupported deserialization target '" + clazz.getName() + "'", new NodeContext(node)));
 
-		final Optional<String> expectedType = resolveTypeIdentifier(clazz);
+		final Option<String> expectedType = resolveTypeIdentifier(clazz);
 		if (expectedType instanceof Some<String>(String expectedType0))
 			if (node.maybeType instanceof Some<String>(String type)) {
 				if (!node.is(expectedType0)) return new Err<>(
@@ -88,9 +88,8 @@ public class Serialize {
 				new CompileError("Unsupported serialization target '" + clazz.getName() + "'",
 												 new StringContext(clazz.getName())));
 
-		final Node result = new Node();
-		Optional<String> stringOptional = resolveTypeIdentifier(clazz);
-		if (stringOptional instanceof Some<String>(String value2)) result.retype(value2);
+		final Node result = new Node(); Option<String> stringOption = resolveTypeIdentifier(clazz);
+		if (stringOption instanceof Some<String>(String value2)) result.retype(value2);
 
 		final RecordComponent[] components = clazz.getRecordComponents();
 		final ArrayList<CompileError> errors = new ArrayList<>();
@@ -99,7 +98,7 @@ public class Serialize {
 			final Method accessor = component.getAccessor();
 			try {
 				final Object value = accessor.invoke(node);
-				final Optional<CompileError> writeResult = writeComponent(result, component, value);
+				final Option<CompileError> writeResult = writeComponent(result, component, value);
 				if (writeResult instanceof Some<CompileError>(CompileError value1)) errors.add(value1);
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				errors.add(new CompileError("Failed to read component '" + component.getName() + "'",
@@ -114,10 +113,9 @@ public class Serialize {
 		return new Ok<>(result);
 	}
 
-	private static Optional<String> resolveTypeIdentifier(Class<?> clazz) {
-		Tag annotation = clazz.getAnnotation(Tag.class);
-		if (Objects.isNull(annotation)) return Optional.empty();
-		return Optional.of(annotation.value());
+	private static Option<String> resolveTypeIdentifier(Class<?> clazz) {
+		Tag annotation = clazz.getAnnotation(Tag.class); if (Objects.isNull(annotation)) return Option.empty();
+		return Option.of(annotation.value());
 	}
 
 	private static <T> Result<T, CompileError> deserializeSealed(Class<T> clazz, Node node) {
@@ -125,7 +123,7 @@ public class Serialize {
 				new CompileError("Missing node type for sealed type '" + clazz.getName() + "'", new NodeContext(node)));
 
 		for (Class<?> permitted : clazz.getPermittedSubclasses()) {
-			final Optional<String> maybeIdentifier = resolveTypeIdentifier(permitted);
+			final Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
 			if (maybeIdentifier instanceof Some<String>(String identifier) && identifier.equals(nodeType)) {
 				@SuppressWarnings({"rawtypes", "unchecked"})
 				final Result<T, CompileError> cast = (Result<T, CompileError>) deserialize((Class) permitted, node);
@@ -143,14 +141,14 @@ public class Serialize {
 		final Class<?> type = component.getType();
 
 		if (type == String.class) {
-			final Optional<String> direct = node.findString(key);
+			final Option<String> direct = node.findString(key);
 			if (direct instanceof Some<String>(String directValue)) return new Ok<>(directValue);
-			final Optional<String> nested = findStringInChildren(node, key);
+			final Option<String> nested = findStringInChildren(node, key);
 			if (nested instanceof Some<String>(String nestedValue)) return new Ok<>(nestedValue);
 			return new Err<>(missingFieldError(key, type, node));
 		}
 
-		if (Optional.class.isAssignableFrom(type)) return deserializeOptionalComponent(component, node);
+		if (Option.class.isAssignableFrom(type)) return deserializeOptionalComponent(component, node);
 
 		if (List.class.isAssignableFrom(type)) return deserializeListComponent(component, node);
 
@@ -169,22 +167,22 @@ public class Serialize {
 		final String key = component.getName();
 
 		if (elementClass == String.class) {
-			final Optional<String> direct = node.findString(key);
+			final Option<String> direct = node.findString(key);
 			if (direct instanceof Some<String>) return new Ok<>(direct);
-			final Optional<String> nested = findStringInChildren(node, key);
+			final Option<String> nested = findStringInChildren(node, key);
 			if (nested instanceof Some<String>) return new Ok<>(nested);
 			// Return empty Optional if not found
-			return new Ok<>(Optional.empty());
+			return new Ok<>(Option.empty());
 		}
 
 		// For non-String Optional types, look for nested objects
-		final Optional<Node> maybeChild = node.findNode(key);
+		final Option<Node> maybeChild = node.findNode(key);
 		if (maybeChild instanceof Some<Node>(Node child)) {
 			final Result<Object, CompileError> childResult = deserializeRaw(elementClass, child);
-			return childResult.map(Optional::of);
+			return childResult.map(Option::of);
 		}
 
-		return new Ok<>(Optional.empty());
+		return new Ok<>(Option.empty());
 	}
 
 	private static Result<Object, CompileError> deserializeListComponent(RecordComponent component, Node node) {
@@ -196,7 +194,7 @@ public class Serialize {
 
 		final Type argumentType = parameterized.getActualTypeArguments()[0];
 		final Class<?> elementClass = erase(argumentType);
-		final Optional<List<Node>> maybeList = node.findNodeList(component.getName());
+		final Option<List<Node>> maybeList = node.findNodeList(component.getName());
 		if (!(maybeList instanceof Some<List<Node>>(List<Node> list)))
 			return new Err<>(missingFieldError(component.getName(), elementClass, node));
 
@@ -218,8 +216,7 @@ public class Serialize {
 	}
 
 	private static Result<Object, CompileError> deserializeNestedComponent(RecordComponent component, Node node) {
-		final String key = component.getName();
-		final Optional<Node> maybeChild = node.findNode(key);
+		final String key = component.getName(); final Option<Node> maybeChild = node.findNode(key);
 		if (maybeChild instanceof Some<Node>(Node child)) return deserializeRaw(component.getType(), child);
 		return new Err<>(missingFieldError(key, component.getType(), node));
 	}
@@ -241,9 +238,9 @@ public class Serialize {
 														new NodeContext(node));
 	}
 
-	private static Optional<String> findStringInChildren(Node node, String key) {
+	private static Option<String> findStringInChildren(Node node, String key) {
 		for (Node child : node.nodes.values()) {
-			final Optional<String> nested = switch (child.findString(key)) {
+			final Option<String> nested = switch (child.findString(key)) {
 				case None<String> _ -> findStringInChildren(child, key);
 				case Some<String> _ -> child.findString(key);
 			};
@@ -252,59 +249,56 @@ public class Serialize {
 		}
 		for (List<Node> children : node.nodeLists.values())
 			for (Node child : children) {
-				final Optional<String> nested = switch (child.findString(key)) {
+				final Option<String> nested = switch (child.findString(key)) {
 					case None<String> _ -> findStringInChildren(child, key);
 					case Some<String> _ -> child.findString(key);
 				};
 
 				if (nested instanceof Some<String>) return nested;
-			}
-		return Optional.empty();
+			} return Option.empty();
 	}
 
-	private static Optional<CompileError> writeComponent(Node target, RecordComponent component, Object value) {
+	private static Option<CompileError> writeComponent(Node target, RecordComponent component, Object value) {
 		final String key = component.getName();
 		final Class<?> type = component.getType();
 
 		final CompileError absentError = new CompileError("Component '" + key + "' was absent", new StringContext(key));
 		if (type == String.class) {
-			if (Objects.isNull(value)) return Optional.of(absentError);
-			target.withString(key, (String) value);
-			return Optional.empty();
+			if (Objects.isNull(value)) return Option.of(absentError);
+			target.withString(key, (String) value); return Option.empty();
 		}
 
-		if (Optional.class.isAssignableFrom(type)) return writeOptionalComponent(target, component, value);
+		if (Option.class.isAssignableFrom(type)) return writeOptionalComponent(target, component, value);
 
 		if (List.class.isAssignableFrom(type)) return writeListComponent(target, component, value);
 
-		if (Objects.isNull(value)) return Optional.of(absentError);
+		if (Objects.isNull(value)) return Option.of(absentError);
 
 		final Result<Node, CompileError> nestedResult = serializeRaw(type, value);
 
 		return switch (nestedResult) {
-			case Err<Node, CompileError> v -> Optional.of(v.error());
+			case Err<Node, CompileError> v -> Option.of(v.error());
 			case Ok<Node, CompileError> v -> {
-				target.withNode(key, v.value());
-				yield Optional.empty();
+				target.withNode(key, v.value()); yield Option.empty();
 			}
 		};
 	}
 
-	private static Optional<CompileError> writeOptionalComponent(Node target, RecordComponent component, Object value) {
-		if (Objects.isNull(value)) return Optional.of(
+	private static Option<CompileError> writeOptionalComponent(Node target, RecordComponent component, Object value) {
+		if (Objects.isNull(value)) return Option.of(
 				new CompileError("Optional component '" + component.getName() + "' was absent",
 												 new StringContext(component.getName())));
-		if (!(value instanceof Optional<?> maybeOptionalValue)) return Optional.of(
+		if (!(value instanceof Option<?> maybeOptionValue)) return Option.of(
 				new CompileError("Component '" + component.getName() + "' is not an Optional instance",
 												 new StringContext(component.getName())));
 
 		// If Optional is empty, don't write anything to the node (absence indicates
 		// empty)
-		if (!(maybeOptionalValue instanceof Some<?>(Object content))) return Optional.empty();
+		if (!(maybeOptionValue instanceof Some<?>(Object content))) return Option.empty();
 
 		final Type genericType = component.getGenericType();
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
-			return Optional.of(
+			return Option.of(
 					new CompileError("Optional component '" + component.getName() + "' must declare a single generic parameter",
 													 new StringContext(component.getName())));
 
@@ -312,31 +306,29 @@ public class Serialize {
 		final String key = component.getName();
 
 		if (elementClass == String.class) {
-			target.withString(key, (String) content);
-			return Optional.empty();
+			target.withString(key, (String) content); return Option.empty();
 		}
 
 		// For non-String Optional types, serialize as nested objects
 		final Result<Node, CompileError> serialized = serializeRaw(elementClass, content);
 		return switch (serialized) {
-			case Err<Node, CompileError> v -> Optional.of(v.error());
+			case Err<Node, CompileError> v -> Option.of(v.error());
 			case Ok<Node, CompileError> v -> {
-				target.withNode(key, v.value());
-				yield Optional.empty();
+				target.withNode(key, v.value()); yield Option.empty();
 			}
 		};
 	}
 
-	private static Optional<CompileError> writeListComponent(Node target, RecordComponent component, Object value) {
-		if (Objects.isNull(value)) return Optional.of(
+	private static Option<CompileError> writeListComponent(Node target, RecordComponent component, Object value) {
+		if (Objects.isNull(value)) return Option.of(
 				new CompileError("Component '" + component.getName() + "' was absent", new StringContext(component.getName())));
-		if (!(value instanceof List<?> listValue)) return Optional.of(
+		if (!(value instanceof List<?> listValue)) return Option.of(
 				new CompileError("Component '" + component.getName() + "' is not a List instance",
 												 new StringContext(component.getName())));
 
 		final Type genericType = component.getGenericType();
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
-			return Optional.of(
+			return Option.of(
 					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
 													 new StringContext(component.getName())));
 
@@ -352,12 +344,11 @@ public class Serialize {
 			}
 		}
 
-		if (!errors.isEmpty()) return Optional.of(
+		if (!errors.isEmpty()) return Option.of(
 				new CompileError("Failed to serialize list component '" + component.getName() + "'",
 												 new StringContext(component.getName()), errors));
 
-		target.withNodeList(component.getName(), List.copyOf(serializedChildren));
-		return Optional.empty();
+		target.withNodeList(component.getName(), List.copyOf(serializedChildren)); return Option.empty();
 	}
 
 	private static Class<?> erase(Type type) {

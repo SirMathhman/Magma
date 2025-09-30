@@ -2,9 +2,9 @@ package magma.option;
 
 import java.util.function.Function;
 
-public record Some<T>(T value) implements Optional<T> {
+public record Some<T>(T value) implements Option<T> {
 	@Override
-	public <R> Optional<R> map(Function<T, R> mapper) {
+	public <R> Option<R> map(Function<T, R> mapper) {
 		return new Some<>(mapper.apply(value));
 	}
 }

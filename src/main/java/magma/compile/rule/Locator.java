@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
-import magma.option.Optional;
+import magma.option.Option;
 
 public interface Locator {
-	Optional<Integer> locate(String input, String infix);
+	Option<Integer> locate(String input, String infix);
 }

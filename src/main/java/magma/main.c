@@ -6,12 +6,12 @@ struct Main {};/*
 		)) System.out.println(value.display());
 	}*/run/*
 
-	private static Optional<IOException> writeString(Path path, String result) {
+	private static Option<IOException> writeString(Path path, String result) {
 		try {
 			Files.writeString(path, result);
-			return Optional.empty();
+			return Option.empty();
 		} catch (IOException e) {
-			return Optional.of(e);
+			return Option.of(e);
 		}
 	}*//*
 
@@ -48,15 +48,13 @@ struct Main {};/*
 
 	private static CRootSegment getSelf(JavaClassMember self) {
 		return switch (self) {
-			case Content content -> content;
-			case Method method -> transformMethod(method);
+			case Content content -> content; case Method method -> transformMethod(method);
 		};
 	}*//*
 
 	private static Function transformMethod(Method method) {
 		final List<JavaDefinition> oldParams = switch (method.params()) {
-			case None<List<JavaDefinition>> v -> Collections.emptyList();
-			case Some<List<JavaDefinition>> v -> v.value();
+			case None<List<JavaDefinition>> v -> Collections.emptyList(); case Some<List<JavaDefinition>> v -> v.value();
 		};
 
 		final List<CDefinition> newParams = oldParams.stream().map(Main::getDefinition).toList();

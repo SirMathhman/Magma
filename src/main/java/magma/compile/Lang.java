@@ -4,7 +4,7 @@ import magma.compile.rule.NodeListRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.StringRule;
-import magma.option.Optional;
+import magma.option.Option;
 
 import java.util.List;
 
@@ -37,14 +37,14 @@ public class Lang {
 	public record JavaDefinition(String name, Type type) {}
 
 	@Tag("method")
-	public record Method(JavaDefinition definition, Optional<List<JavaDefinition>> params, String body)
+	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, String body)
 			implements JavaClassMember {}
 
 	@Tag("content")
 	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, Type {}
 
 	@Tag("class")
-	public record JClass(Optional<String> modifiers, String name, List<JavaClassMember> children)
+	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
 			implements JavaRootSegment {}
 
 	@Tag("struct")

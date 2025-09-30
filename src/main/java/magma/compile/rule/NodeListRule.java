@@ -5,7 +5,7 @@ import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
-import magma.option.Optional;
+import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
@@ -42,7 +42,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<String, CompileError> generate(Node value) {
-		Optional<Result<String, CompileError>> resultOptional =
+		Option<Result<String, CompileError>> resultOption =
 				value.findNodeList(key()).map(list -> {
 					final StringBuilder sb = new StringBuilder();
 					for (Node child : list)
@@ -54,8 +54,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 						}
 
 					return new Ok<>(sb.toString());
-				});
-		return switch (resultOptional) {
+				}); return switch (resultOption) {
 			case None<Result<String, CompileError>> _ -> new Err<>(
 					new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;

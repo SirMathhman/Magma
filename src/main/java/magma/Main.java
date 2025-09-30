@@ -5,7 +5,7 @@ import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
 import magma.option.None;
-import magma.option.Optional;
+import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
@@ -29,14 +29,14 @@ public class Main {
 		)) System.out.println(value.display());
 	}
 
-	private static Optional<ApplicationError> run() {
+	private static Option<ApplicationError> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		return switch (readString(source)) {
-			case Err<String, ThrowableError>(ThrowableError error) -> Optional.of(new ApplicationError(error));
+			case Err<String, ThrowableError>(ThrowableError error) -> Option.of(new ApplicationError(error));
 			case Ok<String, ThrowableError>(String input) -> {
 				final Result<String, CompileError> result = compile(input);
 				yield switch (result) {
-					case Err<String, CompileError> v -> Optional.of(new ApplicationError(v.error()));
+					case Err<String, CompileError> v -> Option.of(new ApplicationError(v.error()));
 					case Ok<String, CompileError> v -> {
 						final Path path = source.resolveSibling("main.c");
 						yield writeString(path, v.value()).map(ThrowableError::new).map(ApplicationError::new);
@@ -46,12 +46,11 @@ public class Main {
 		};
 	}
 
-	private static Optional<IOException> writeString(Path path, String result) {
+	private static Option<IOException> writeString(Path path, String result) {
 		try {
-			Files.writeString(path, result);
-			return Optional.empty();
+			Files.writeString(path, result); return Option.empty();
 		} catch (IOException e) {
-			return Optional.of(e);
+			return Option.of(e);
 		}
 	}
 

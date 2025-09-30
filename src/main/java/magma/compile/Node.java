@@ -1,7 +1,7 @@
 package magma.compile;
 
 import magma.option.None;
-import magma.option.Optional;
+import magma.option.Option;
 import magma.option.Some;
 
 import java.util.HashMap;
@@ -12,7 +12,7 @@ public final class Node {
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
 	public final Map<String, Node> nodes = new HashMap<>();
 	private final Map<String, String> strings = new HashMap<>();
-	public Optional<String> maybeType = Optional.empty();
+	public Option<String> maybeType = Option.empty();
 
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
@@ -27,8 +27,8 @@ public final class Node {
 		return this;
 	}
 
-	public Optional<String> findString(String key) {
-		return Optional.ofNullable(strings.get(key));
+	public Option<String> findString(String key) {
+		return Option.ofNullable(strings.get(key));
 	}
 
 	public Node merge(Node node) {
@@ -47,8 +47,8 @@ public final class Node {
 		return this;
 	}
 
-	public Optional<List<Node>> findNodeList(String key) {
-		return Optional.ofNullable(nodeLists.get(key));
+	public Option<List<Node>> findNodeList(String key) {
+		return Option.ofNullable(nodeLists.get(key));
 	}
 
 	public Node withNode(String key, Node node) {
@@ -56,12 +56,12 @@ public final class Node {
 		return this;
 	}
 
-	public Optional<Node> findNode(String key) {
-		return Optional.ofNullable(nodes.get(key));
+	public Option<Node> findNode(String key) {
+		return Option.ofNullable(nodes.get(key));
 	}
 
 	public Node retype(String type) {
-		this.maybeType = Optional.of(type);
+		this.maybeType = Option.of(type);
 		return this;
 	}
 
