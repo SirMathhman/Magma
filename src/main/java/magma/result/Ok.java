@@ -1,8 +1,8 @@
-package magma;
+package magma.result;
 
 import java.util.function.Function;
 
-record Ok<T, X>(T value) implements Result<T, X> {
+public record Ok<T, X>(T value) implements Result<T, X> {
 	@Override
 	public <R> Result<R, X> map(Function<T, R> fn) {
 		return new Ok<>(fn.apply(this.value));

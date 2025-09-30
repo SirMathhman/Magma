@@ -1,8 +1,8 @@
-package magma;
+package magma.result;
 
 import java.util.function.Function;
 
-record Err<T, X>(X error) implements Result<T, X> {
+public record Err<T, X>(X error) implements Result<T, X> {
 	@Override
 	public <R> Result<R, X> map(Function<T, R> fn) {
 		return new Err<>(error);

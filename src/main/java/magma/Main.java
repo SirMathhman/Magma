@@ -1,12 +1,29 @@
 package magma;
 
+import magma.compile.Lang;
+import magma.compile.Node;
+import magma.compile.Type;
+import magma.compile.context.NodeContext;
+import magma.compile.context.StringContext;
+import magma.compile.error.ApplicationError;
+import magma.compile.error.CompileError;
+import magma.compile.error.ThrowableError;
+import magma.compile.rule.DivideRule;
+import magma.compile.rule.InfixRule;
+import magma.compile.rule.NodeRule;
+import magma.compile.rule.OrRule;
+import magma.compile.rule.PlaceholderRule;
+import magma.compile.rule.PrefixRule;
+import magma.compile.rule.Rule;
+import magma.compile.rule.StringRule;
+import magma.compile.rule.StripRule;
+import magma.compile.rule.SuffixRule;
+import magma.compile.rule.TypeRule;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -17,446 +34,12 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
 public class Main {
-	private interface Rule {
-		Result<Node, CompileError> lex(String content);
-
-		Result<String, CompileError> generate(Node node);
-	}
-
-	private interface Context {
-		String display(int depth);
-	}
-
-	private interface Error {
-		String display();
-	}
-
-	private sealed interface JavaRootSegment permits JavaClass, Content, JavaImport, JavaPackage {}
-
-	private sealed interface CRootSegment permits CStructure, Content {}
-
-	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, Content, JavaStruct {}
-
-	@Target(ElementType.TYPE)
-	@Retention(RetentionPolicy.RUNTIME)
-	private @interface Type {
-		String value();
-	}
-
-	private record StringContext(String context) implements Context {
-		@Override
-		public String display(int depth) {
-			return context;
-		}
-	}
-
-	private record NodeContext(Node node) implements Context {
-		@Override
-		public String display(int depth) {
-			return node.format(depth);
-		}
-	}
-
-	private record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
-		public CompileError(String reason, Context sourceCode) {
-			this(reason, sourceCode, Collections.emptyList());
-		}
-
-		@Override
-		public String display() {
-			return format(0, 0);
-		}
-
-		private String format(int depth, int index) {
-			StringBuilder joiner = new StringBuilder();
-			for (int i = 0; i < causes.size(); i++) {
-				CompileError error = causes.get(i);
-				String format = error.format(depth + 1, i);
-				joiner.append(format);
-			}
-
-			final String formattedChildren = joiner.toString();
-			final String s = depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth);
-			return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;
-		}
-	}
-
-	private static final class Node {
-		private final Map<String, String> strings = new HashMap<>();
-		private final Map<String, List<Node>> nodeLists = new HashMap<>();
-		private final Map<String, Node> nodes = new HashMap<>();
-		private Optional<String> maybeType = Optional.empty();
-
-		private static String escape(String value) {
-			return value.replace("\\", "\\\\")
-									.replace("\"", "\\\"")
-									.replace("\n", "\\n")
-									.replace("\r", "\\r")
-									.replace("\t", "\\t");
-		}
-
-		private Node withString(String key, String value) {
-			strings.put(key, value);
-			return this;
-		}
-
-		private Optional<String> findString(String key) {
-			return Optional.ofNullable(strings.get(key));
-		}
-
-		public Node merge(Node node) {
-			this.strings.putAll(node.strings);
-			nodeLists.putAll(node.nodeLists);
-			nodes.putAll(node.nodes);
-			return this;
-		}
-
-		public Node withNodeList(String key, List<Node> values) {
-			nodeLists.put(key, values);
-			return this;
-		}
-
-		public Optional<List<Node>> findNodeList(String key) {
-			return Optional.ofNullable(nodeLists.get(key));
-		}
-
-		public Node withNode(String key, Node node) {
-			nodes.put(key, node);
-			return this;
-		}
-
-		public Optional<Node> findNode(String key) {
-			return Optional.ofNullable(nodes.get(key));
-		}
-
-		public Node retype(String type) {
-			this.maybeType = Optional.of(type);
-			return this;
-		}
-
-		public boolean is(String type) {
-			return this.maybeType.isPresent() && maybeType.get().equals(type);
-		}
-
-		private String format(int depth) {
-			StringBuilder builder = new StringBuilder();
-			appendJson(builder, depth);
-			return builder.toString();
-		}
-
-		private void appendJson(StringBuilder builder, int depth) {
-			final String indent = "\t".repeat(depth);
-			final String childIndent = "\t".repeat(depth + 1);
-			builder.append(indent).append("{");
-			boolean hasFields = false;
-
-			if (maybeType.isPresent()) {
-				builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(maybeType.get())).append("\"");
-				hasFields = true;
-			}
-
-			final List<Map.Entry<String, String>> sortedStrings =
-					strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-			for (Map.Entry<String, String> entry : sortedStrings) {
-				builder.append(hasFields ? ",\n" : "\n");
-				builder.append(childIndent)
-							 .append('"')
-							 .append(escape(entry.getKey()))
-							 .append("\": \"")
-							 .append(escape(entry.getValue()))
-							 .append("\"");
-				hasFields = true;
-			}
-
-			final List<Map.Entry<String, Node>> sortedNodes =
-					nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-			for (Map.Entry<String, Node> entry : sortedNodes) {
-				builder.append(hasFields ? ",\n" : "\n");
-				builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
-				entry.getValue().appendJson(builder, depth + 1);
-				hasFields = true;
-			}
-
-			final List<Map.Entry<String, List<Node>>> sortedLists =
-					nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-			for (Map.Entry<String, List<Node>> entry : sortedLists) {
-				builder.append(hasFields ? ",\n" : "\n");
-				builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
-				List<Node> list = entry.getValue();
-				if (!list.isEmpty()) {
-					builder.append("\n");
-					for (int i = 0; i < list.size(); i++) {
-						builder.append("\t".repeat(depth + 2));
-						list.get(i).appendJson(builder, depth + 2);
-						if (i < list.size() - 1) builder.append(",\n");
-						else builder.append("\n");
-					}
-					builder.append(childIndent);
-				}
-				builder.append("]");
-				hasFields = true;
-			}
-
-			if (hasFields) builder.append("\n").append(indent);
-			builder.append("}");
-		}
-	}
-
-	private record StringRule(String key) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			return new Ok<>(new Node().withString(getKey(), content));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return node.findString(key)
-								 .<Result<String, CompileError>>map(Ok::new)
-								 .orElseGet(
-										 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
-		}
-
-		public String getKey() {
-			return key;
-		}
-	}
-
-	private record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String input) {
-			final int index = input.indexOf(infix());
-			if (index < 0) return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
-
-			final String beforeContent = input.substring(0, index);
-			final String content = input.substring(index + infix().length());
-
-			return leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return leftRule.generate(node).flatMap(inner -> rightRule.generate(node).map(other -> inner + infix + other));
-		}
-
-	}
-
-	private record PlaceholderRule(Rule rule) implements Rule {
-		private static String wrap(String input) {
-			return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
-		}
-
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			return rule.lex(content);
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return rule().generate(node).map(PlaceholderRule::wrap);
-		}
-	}
-
-	private record SuffixRule(Rule rule, String suffix) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String input) {
-			if (!input.endsWith(suffix()))
-				return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
-			final String slice = input.substring(0, input.length() - suffix().length());
-			return getRule().lex(slice);
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return rule.generate(node).map(value -> value + suffix());
-		}
-
-		public Rule getRule() {
-			return rule;
-		}
-	}
-
-	private record PrefixRule(String prefix, Rule rule) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
-			else return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(content)));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return rule.generate(node).map(inner -> prefix + inner);
-		}
-	}
-
-	private record OrRule(List<Rule> rules) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			final ArrayList<CompileError> errors = new ArrayList<>();
-			for (Rule rule : rules)
-				switch (rule.lex(content)) {
-					case Ok<Node, CompileError> ok -> {
-						return ok;
-					}
-					case Err<Node, CompileError>(CompileError error) -> errors.add(error);
-				}
-			return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			final ArrayList<CompileError> errors = new ArrayList<>();
-			for (Rule rule : rules) {
-				Result<String, CompileError> res = rule.generate(node);
-				if (res instanceof Ok<String, CompileError> ok) return ok;
-				else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
-			}
-			return new Err<>(new CompileError("No generator matched for node", new NodeContext(node), errors));
-		}
-	}
-
-	private record StripRule(Rule rule) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			return rule.lex(content.strip());
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return rule.generate(node);
-		}
-	}
-
-	private record DivideRule(String key, Rule rule) implements Rule {
-		private static Stream<String> divide(String afterBraces) {
-			final ArrayList<String> segments = new ArrayList<>();
-			StringBuilder buffer = new StringBuilder();
-			int depth = 0;
-			for (int i = 0; i < afterBraces.length(); i++) {
-				final char c = afterBraces.charAt(i);
-				buffer.append(c);
-				if (c == ';' && depth == 0) {
-					segments.add(buffer.toString());
-					buffer = new StringBuilder();
-				} else if (c == '}' && depth == 1) {
-					segments.add(buffer.toString());
-					buffer = new StringBuilder();
-					depth--;
-				} else {
-					if (c == '{') depth++;
-					if (c == '}') depth--;
-				}
-			}
-
-			segments.add(buffer.toString());
-			return segments.stream();
-		}
-
-		@Override
-		public Result<Node, CompileError> lex(String input) {
-			final ArrayList<Node> children = new ArrayList<>();
-			final ArrayList<CompileError> errors = new ArrayList<>();
-			divide(input).forEach(segment -> {
-				Result<Node, CompileError> res = rule().lex(segment);
-				if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
-				else if (res instanceof Err<Node, CompileError>(CompileError error)) errors.add(error);
-			});
-			if (!errors.isEmpty()) return new Err<>(
-					new CompileError("Errors while lexing divided segments for '" + key + "'", new StringContext(input), errors));
-			return new Ok<>(new Node().withNodeList(key, children));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node value) {
-			return value.findNodeList(key()).<Result<String, CompileError>>map(list -> {
-				final StringBuilder sb = new StringBuilder();
-				final ArrayList<CompileError> errors = new ArrayList<>();
-				for (Node child : list) {
-					Result<String, CompileError> res = rule().generate(child);
-					if (res instanceof Ok<String, CompileError>(String value1)) sb.append(value1);
-					else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
-				}
-				if (!errors.isEmpty()) return new Err<>(
-						new CompileError("Errors while generating divided segments for '" + key + "'", new NodeContext(value),
-														 errors));
-				return new Ok<>(sb.toString());
-			}).orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
-		}
-	}
-
-	private record NodeRule(String key, Rule rule) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			return rule.lex(content).map(node -> new Node().withNode(key, node));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			return new Err<>(new CompileError("Cannot generate for node group '" + key + "'", new NodeContext(node)));
-		}
-	}
-
-	private record TypeRule(String type, Rule rule) implements Rule {
-		@Override
-		public Result<Node, CompileError> lex(String content) {
-			return rule.lex(content).map(node -> node.retype(type));
-		}
-
-		@Override
-		public Result<String, CompileError> generate(Node node) {
-			if (node.is(type)) return rule.generate(node);
-			else return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
-		}
-	}
-
-	private record ThrowableError(Throwable e) implements Error {
-		@Override
-		public String display() {
-			final StringWriter writer = new StringWriter();
-			e.printStackTrace(new PrintWriter(writer));
-			return writer.toString();
-		}
-	}
-
-	private record ApplicationError(Error error) implements Error {
-		public String display() {
-			return error.display();
-		}
-	}
-
-	private record JavaRoot(List<JavaRootSegment> children) {}
-
-	private record CRoot(List<CRootSegment> children) {}
-
-	@Type("class")
-	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {}
-
-	@Type("import")
-	private record JavaImport(String content) implements JavaRootSegment {}
-
-	@Type("package")
-	private record JavaPackage(String content) implements JavaRootSegment {}
-
-	@Type("content")
-	private record Content(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {}
-
-	@Type("struct")
-	private record JavaStruct(String name) implements JavaClassSegment {}
-
-	@Type("block")
-	private record JavaBlock(String header, String content) implements JavaClassSegment {}
-
-	@Type("struct")
-	private record CStructure(String name) implements CRootSegment {}
-
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
 	}
@@ -777,30 +360,31 @@ public class Main {
 	}
 
 	private static Result<Node, CompileError> transform(Node node) {
-		return switch (deserialize(JavaRoot.class, node)) {
-			case Err<JavaRoot, CompileError> v -> new Err<>(v.error());
-			case Ok<JavaRoot, CompileError> v -> getNodeCompileErrorResult(v.value()).flatMap(n -> serialize(CRoot.class, n));
+		return switch (deserialize(Lang.JavaRoot.class, node)) {
+			case Err<Lang.JavaRoot, CompileError> v -> new Err<>(v.error());
+			case Ok<Lang.JavaRoot, CompileError> v ->
+					getNodeCompileErrorResult(v.value()).flatMap(n -> serialize(Lang.CRoot.class, n));
 		};
 	}
 
-	private static Result<CRoot, CompileError> getNodeCompileErrorResult(JavaRoot value) {
-		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
-			case JavaClass javaClass -> flattenClass(javaClass);
-			case Content content -> Stream.of(content);
-			case JavaImport _, JavaPackage _ -> Stream.of();
+	private static Result<Lang.CRoot, CompileError> getNodeCompileErrorResult(Lang.JavaRoot value) {
+		final List<Lang.CRootSegment> newChildren = value.children().stream().flatMap(segment -> switch (segment) {
+			case Lang.JavaClass javaClass -> flattenClass(javaClass);
+			case Lang.Content content -> Stream.of(content);
+			case Lang.JavaImport _, Lang.JavaPackage _ -> Stream.of();
 		}).toList();
-		return new Ok<>(new CRoot(newChildren));
+		return new Ok<>(new Lang.CRoot(newChildren));
 	}
 
-	private static Stream<CRootSegment> flattenClass(JavaClass clazz) {
-		final Stream<CRootSegment> nested = clazz.children.stream().flatMap(member -> switch (member) {
-			case JavaClass javaClass -> flattenClass(javaClass);
-			case JavaStruct struct -> Stream.of(new CStructure(struct.name()));
-			case Content content -> Stream.of(content);
-			case JavaBlock _ -> Stream.of();
+	private static Stream<Lang.CRootSegment> flattenClass(Lang.JavaClass clazz) {
+		final Stream<Lang.CRootSegment> nested = clazz.children().stream().flatMap(member -> switch (member) {
+			case Lang.JavaClass javaClass -> flattenClass(javaClass);
+			case Lang.JavaStruct struct -> Stream.of(new Lang.CStructure(struct.name()));
+			case Lang.Content content -> Stream.of(content);
+			case Lang.JavaBlock _ -> Stream.of();
 		});
 
-		return Stream.concat(Stream.of(new CStructure(clazz.name())), nested);
+		return Stream.concat(Stream.of(new Lang.CStructure(clazz.name())), nested);
 	}
 
 	private static Rule createClassRule() {
