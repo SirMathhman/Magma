@@ -1,6 +1,6 @@
 package magma.compile.rule;
 
-import java.util.Optional;
+import magma.option.Optional;
 
 public record LastLocator() implements Locator {
 	@Override

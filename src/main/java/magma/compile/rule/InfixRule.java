@@ -3,10 +3,11 @@ package magma.compile.rule;
 import magma.compile.Node;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.option.None;
+import magma.option.Optional;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Result;
-
-import java.util.Optional;
 
 public record InfixRule(Rule leftRule, String infix, Rule rightRule, Locator locator) implements Rule {
 	public static Rule First(Rule left, String infix, Rule right) {
@@ -19,15 +20,16 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule, Locator loc
 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
-		final Optional<Integer> maybeIndex = locator.locate(input, infix);
-		if (maybeIndex.isEmpty())
-			return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
+		return switch (locator.locate(input, infix)) {
+			case None<Integer> _ ->
+					new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
+			case Some<Integer>(Integer index) -> {
+				final String beforeContent = input.substring(0, index);
+				final String content = input.substring(index + infix.length());
 
-		int index = maybeIndex.get();
-		final String beforeContent = input.substring(0, index);
-		final String content = input.substring(index + infix.length());
-
-		return leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
+				yield leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
+			}
+		};
 	}
 
 	@Override

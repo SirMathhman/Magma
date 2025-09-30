@@ -4,7 +4,7 @@ import magma.compile.rule.NodeListRule;
 import magma.compile.rule.Rule;
 
 import java.util.List;
-import java.util.Optional;
+import magma.option.Optional;
 
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;

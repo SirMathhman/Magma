@@ -3,7 +3,8 @@ package magma.compile;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import magma.option.Optional;
+import magma.option.Some;
 
 public final class Node {
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
@@ -60,7 +61,7 @@ public final class Node {
 	}
 
 	public boolean is(String type) {
-		return this.maybeType.isPresent() && maybeType.get().equals(type);
+		return this.maybeType.map(inner -> inner.equals(type)) instanceof Some<Boolean>;
 	}
 
 	public String format(int depth) {
@@ -76,8 +77,8 @@ public final class Node {
 		builder.append("{");
 		boolean hasFields = false;
 
-		if (maybeType.isPresent()) {
-			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(maybeType.get())).append("\"");
+		if (maybeType instanceof Some<String>) {
+			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(maybeType.orElse(""))).append("\"");
 			hasFields = true;
 		}
 
