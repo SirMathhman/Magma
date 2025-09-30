@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -25,6 +24,7 @@ public class Main {
 		private final Map<String, String> strings = new HashMap<>();
 		private final Map<String, List<Node>> nodeLists = new HashMap<>();
 		private final Map<String, Node> nodes = new HashMap<>();
+		private Optional<String> maybeType = Optional.empty();
 
 		private Node withString(String key, String value) {
 			strings.put(key, value);
@@ -58,6 +58,15 @@ public class Main {
 
 		public Optional<Node> findNode(String key) {
 			return Optional.ofNullable(nodes.get(key));
+		}
+
+		public Node retype(String type) {
+			this.maybeType = Optional.of(type);
+			return this;
+		}
+
+		public boolean is(String type) {
+			return this.maybeType.isPresent() && maybeType.get().equals(type);
 		}
 	}
 
@@ -192,6 +201,18 @@ public class Main {
 		}
 	}
 
+	private record TypeRule(String type, Rule rule) implements Rule {
+		@Override
+		public Optional<Node> lex(String content) {
+			return rule.lex(content).map(node -> node.retype(type));
+		}
+
+		@Override
+		public Optional<String> generate(Node node) {
+			return Optional.empty();
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -204,39 +225,40 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return compileAll(input, Main::compileRootSegment);
+		return createJavaRootRule().lex(input)
+															 .map(Main::transform)
+															 .flatMap(createCRootRule()::generate)
+															 .orElseGet(() -> wrap(input));
 	}
 
-	private static String compileAll(String input, Function<String, String> mapper) {
-		return divide(input).map(mapper).collect(Collectors.joining());
+	private static DivideRule createJavaRootRule() {
+		return new DivideRule("children", createJavaRootSegmentRule());
 	}
 
-	private static String compileRootSegment(String input) {
-		final String stripped = input.strip();
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
-		return compileRootSegmentValue(stripped) + System.lineSeparator();
+	private static StripRule createJavaRootSegmentRule() {
+		return new StripRule(new OrRule(
+				List.of(createClassRule(), createPrefixRule("package"), createPrefixRule("import"), createContentRule())));
 	}
 
-	private static String compileRootSegmentValue(String input) {
-		return compileClass(input).orElseGet(() -> wrap(input));
-	}
-
-	private static Optional<String> compileClass(String input) {
-		return getString(input).map(Main::transform).flatMap(createCRootRule()::generate);
+	private static Rule createPrefixRule(String type) {
+		return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
 	}
 
 	private static Node transform(Node node) {
-		final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
-		final ArrayList<Node> copy0 = new ArrayList<>();
-		copy0.add(node.findNode("header").orElse(new Node()));
-		copy0.addAll(copy);
-		return node.withNodeList("children", copy0);
+		if (node.is("package") || node.is("import")) return null;
+		else if (node.is("class")) {
+			final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
+			final ArrayList<Node> copy0 = new ArrayList<>();
+			copy0.add(node.findNode("header").orElse(new Node()));
+			copy0.addAll(copy);
+			return node.withNodeList("children", copy0);
+		} else return node;
 	}
 
-	private static Optional<Node> getString(String input) {
+	private static Rule createClassRule() {
 		final NodeRule orRule = new NodeRule("header", new OrRule(List.of(createClassHeaderRule(), createContentRule())));
 		final DivideRule children = new DivideRule("children", createJavaClassSegmentRule());
-		return new SuffixRule(new InfixRule(orRule, "{", children), "}").lex(input);
+		return new TypeRule("class", new SuffixRule(new InfixRule(orRule, "{", children), "}"));
 	}
 
 	private static DivideRule createCRootRule() {
@@ -267,8 +289,8 @@ public class Main {
 		return segments.stream();
 	}
 
-	private static SuffixRule createCRootSegmentRule() {
-		return new SuffixRule(createClassSegmentRule(), System.lineSeparator());
+	private static Rule createCRootSegmentRule() {
+		return new OrRule(List.of(new SuffixRule(createClassSegmentRule(), System.lineSeparator()), createContentRule()));
 	}
 
 	private static StripRule createJavaClassSegmentRule() {
