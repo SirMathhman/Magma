@@ -59,10 +59,10 @@ public class Main {
 
 	private static Result<String, CompileError> compile(String input) {
 		return createJavaRootRule().lex(input)
-				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-				.flatMap(Main::transform)
-				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-				.flatMap(createCRootRule()::generate);
+															 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+															 .flatMap(Main::transform)
+															 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+															 .flatMap(createCRootRule()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -73,10 +73,17 @@ public class Main {
 		return switch (segment) {
 			case JClass aClass -> {
 				final Structure structure = new Structure(aClass.name());
-				yield Stream.concat(Stream.of(structure), aClass.children().stream().<CRootSegment>map(self -> self));
+				yield Stream.concat(Stream.of(structure), aClass.children().stream().map(self -> getSelf(self)));
 			}
 			case Content content -> Stream.of(content);
 			case Whitespace _ -> Stream.empty();
+		};
+	}
+
+	private static CRootSegment getSelf(JavaClassMember self) {
+		return switch (self) {
+			case Content content -> new Content("?");
+			case Method method -> new Content("temp");
 		};
 	}
 }

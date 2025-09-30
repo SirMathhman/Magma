@@ -24,11 +24,17 @@ public class Lang {
 
 	sealed public interface CRootSegment {}
 
+	public sealed interface JavaClassMember {}
+
+	@Tag("method")
+	public record Method() implements JavaClassMember {}
+
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, CRootSegment {}
+	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment {}
 
 	@Tag("class")
-	public record JClass(Optional<String> modifiers, String name, List<Content> children) implements JavaRootSegment {}
+	public record JClass(Optional<String> modifiers, String name, List<JavaClassMember> children)
+			implements JavaRootSegment {}
 
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
@@ -41,11 +47,7 @@ public class Lang {
 	public record CRoot(List<CRootSegment> children) {}
 
 	public static Rule createCRootRule() {
-		return Statements("children", getOr());
-	}
-
-	private static Rule getOr() {
-		return Or(Struct(), Content());
+		return Statements("children", Or(Struct(), Content()));
 	}
 
 	private static Rule Struct() {
