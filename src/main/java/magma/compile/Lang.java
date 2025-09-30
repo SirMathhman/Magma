@@ -47,6 +47,14 @@ public class Lang {
 	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
 			implements JavaRootSegment {}
 
+	@Tag("interface")
+	public record Interface(Option<String> modifiers, String name, List<JavaClassMember> children)
+			implements JavaRootSegment {}
+
+	@Tag("record")
+	public record Record(Option<String> modifiers, String name, List<JavaClassMember> children)
+			implements JavaRootSegment {}
+
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
 
@@ -82,28 +90,38 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return Statements("children", Or(Namespace("package"), Namespace("import"), Class(), Content(),
-																		 Tag("whitespace", Strip(Empty))));
+		final Rule segment = Or(Namespace("package"),
+														Namespace("import"),
+														Structure("class"),
+														Structure("interface"),
+														Structure("record"),
+														Tag("whitespace", Strip(Empty)));
+
+		return Statements("children", segment);
 	}
 
 	private static Rule Namespace(String type) {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
 	}
 
-	private static Rule Class() {
+	private static Rule Structure(String type) {
 		final Rule modifiers = String("modifiers");
 		final Rule name = String("name");
 		final Rule children = Statements("children", ClassMember());
 
-		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), "class ", name), "{", children);
-		return Tag("class", Strip(Suffix(aClass, "}")));
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
+		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 
 	private static Rule ClassMember() {
-		final Rule params = Or(Values("params", Definition()), Strip(Empty));
-		return Or(Tag("method", Strip(
-				Suffix(First(Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")")), "{", String("body")),
-							 "}"))), Content());
+		final Rule params = Or(Values("params", Definition()), Strip(Empty)); return Or(Tag("method",
+																																												Strip(Suffix(First(Strip(Suffix(
+																																																				 Last(Node("definition",
+																																																									 Definition()),
+																																																							"(",
+																																																							params),
+																																																				 ")")), "{", String("body")),
+																																																		 "}"))), Content());
 	}
 
 	private static Rule Definition() {

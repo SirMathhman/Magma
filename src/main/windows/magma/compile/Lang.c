@@ -24,6 +24,14 @@ struct Lang {};/*
 	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
 			implements JavaRootSegment {}*//*
 
+	@Tag("interface")
+	public record Interface(Option<String> modifiers, String name, List<JavaClassMember> children)
+			implements JavaRootSegment {}*//*
+
+	@Tag("record")
+	public record Record(Option<String> modifiers, String name, List<JavaClassMember> children)
+			implements JavaRootSegment {}*//*
+
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}*//*
 
@@ -48,6 +56,14 @@ struct Lang {};/*
 
 	private static Rule Namespace(String type) {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
-	}*/ClassClassMemberDefinitionTypeContent/*
-*//*
+	}*//*
+
+	private static Rule Structure(String type) {
+		final Rule modifiers = String("modifiers");
+		final Rule name = String("name");
+		final Rule children = Statements("children", ClassMember());
+
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
+		return Tag(type, Strip(Suffix(aClass, "}")));
+	}*/ClassMemberDefinitionTypeContent/*
 */
