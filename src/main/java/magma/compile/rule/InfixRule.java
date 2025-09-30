@@ -19,13 +19,13 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule, Locator loc
 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
-		final Optional<Integer> maybeIndex = locator.locate(input, input);
+		final Optional<Integer> maybeIndex = locator.locate(input, infix);
 		if (maybeIndex.isEmpty())
 			return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
 		int index = maybeIndex.get();
 		final String beforeContent = input.substring(0, index);
-		final String content = input.substring(index + infix().length());
+		final String content = input.substring(index + infix.length());
 
 		return leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
 	}

@@ -4,6 +4,7 @@ import magma.compile.rule.InfixRule;
 import magma.compile.rule.Rule;
 
 import java.util.List;
+import java.util.Optional;
 
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
@@ -25,7 +26,7 @@ public class Lang {
 	public record Content(String value) implements JavaRootSegment, CRootSegment {}
 
 	@Tag("class")
-	public record JClass(String name, List<Content> children) implements JavaRootSegment {}
+	public record JClass(Optional<String> modifiers, String name, List<Content> children) implements JavaRootSegment {}
 
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
@@ -55,7 +56,8 @@ public class Lang {
 		final Rule name = String("name");
 		final Rule children = NodeList("children", ClassMember());
 
-		return Tag("class", Strip(Suffix(First(modifiers, "class ", First(name, "{", children)), "}")));
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), "class ", name), "{", children);
+		return Tag("class", Strip(Suffix(aClass, "}")));
 	}
 
 	private static Rule ClassMember() {
