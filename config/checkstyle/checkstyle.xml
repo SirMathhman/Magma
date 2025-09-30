@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!DOCTYPE module PUBLIC "-//Checkstyle//DTD Checkstyle Configuration 1.3//EN" "https://checkstyle.org/dtds/configuration_1_3.dtd">
+<module name="Checker">
+	<!-- Ban literal `null` usages. Recommend java.util.Optional instead. -->
+	<module name="TreeWalker">
+		<!-- AST-level check to catch null literals -->
+		<module name="IllegalToken">
+			<property name="tokens" value="LITERAL_NULL" />
+		</module>
+
+		<!-- Regexp-based check to provide a custom message and ignore comments -->
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="\bnull\b" />
+			<property name="message"
+				value="Avoid using literal 'null'; prefer java.util.Optional for absent values." />
+			<property name="ignoreComments" value="true" />
+		</module>
+	</module>
+</module>

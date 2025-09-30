@@ -47,11 +47,11 @@ public class Main {
 		String display();
 	}
 
-	private sealed interface JavaRootSegment permits JavaClass, JavaContent, JavaImport, JavaPackage {}
+	private sealed interface JavaRootSegment permits JavaClass, Content, JavaImport, JavaPackage {}
 
-	private sealed interface CRootSegment permits CStructure, JavaContent {}
+	private sealed interface CRootSegment permits CStructure, Content {}
 
-	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, JavaContent, JavaStruct {}
+	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, Content, JavaStruct {}
 
 	@Target(ElementType.TYPE)
 	@Retention(RetentionPolicy.RUNTIME)
@@ -503,7 +503,7 @@ public class Main {
 	private record JavaPackage(String content) implements JavaRootSegment {}
 
 	@Type("content")
-	private record JavaContent(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {}
+	private record Content(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {}
 
 	@Type("struct")
 	private record JavaStruct(String name) implements JavaClassSegment {}
@@ -852,7 +852,7 @@ public class Main {
 	private static Result<CRoot, CompileError> getNodeCompileErrorResult(JavaRoot value) {
 		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
 			case JavaClass javaClass -> flattenClass(javaClass);
-			case JavaContent content -> Stream.of(content);
+			case Content content -> Stream.of(content);
 			case JavaImport _, JavaPackage _ -> Stream.of();
 		}).toList();
 		return new Ok<>(new CRoot(newChildren));
@@ -862,7 +862,7 @@ public class Main {
 		final Stream<CRootSegment> nested = clazz.children.stream().flatMap(member -> switch (member) {
 			case JavaClass javaClass -> flattenClass(javaClass);
 			case JavaStruct struct -> Stream.of(new CStructure(struct.name()));
-			case JavaContent content -> Stream.of(content);
+			case Content content -> Stream.of(content);
 			case JavaBlock _ -> Stream.of();
 		});
 
