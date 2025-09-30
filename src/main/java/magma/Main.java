@@ -3,6 +3,10 @@ package magma;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -19,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -44,15 +47,17 @@ public class Main {
 		String display();
 	}
 
-	private sealed interface JavaRootSegment permits JavaClass {
+	private sealed interface JavaRootSegment permits JavaClass, JavaContent, JavaImport, JavaPackage {
 	}
 
-	private sealed interface CRootSegment permits CStructure {
+	private sealed interface CRootSegment permits CStructure, JavaContent {
 	}
 
-	private sealed interface JavaClassSegment permits JavaClass {
+	private sealed interface JavaClassSegment permits JavaBlock, JavaClass, JavaContent, JavaStruct {
 	}
 
+	@Target(ElementType.TYPE)
+	@Retention(RetentionPolicy.RUNTIME)
 	private @interface Type {
 		String value();
 	}
@@ -169,13 +174,84 @@ public class Main {
 		}
 
 		private String format(int depth) {
-			final String collect = strings.entrySet()
-					.stream()
-					.map(entry -> entry.getKey() + ": " + entry.getValue())
-					.collect(Collectors.joining());
+			StringBuilder builder = new StringBuilder();
+			appendJson(builder, depth);
+			return builder.toString();
+		}
 
-			final String collect1 = Stream.of(collect).filter(value -> !value.isEmpty()).collect(Collectors.joining());
-			return maybeType.map(inner -> inner + " ").orElse("") + "{" + collect1 + "}";
+		private void appendJson(StringBuilder builder, int depth) {
+			final String indent = "\t".repeat(depth);
+			final String childIndent = "\t".repeat(depth + 1);
+			builder.append(indent).append("{");
+			boolean hasFields = false;
+
+			if (maybeType.isPresent()) {
+				builder.append("\n").append(childIndent)
+						.append("\"@type\": \"").append(escape(maybeType.get())).append("\"");
+				hasFields = true;
+			}
+
+			final List<Map.Entry<String, String>> sortedStrings = strings.entrySet()
+					.stream()
+					.sorted(Map.Entry.comparingByKey())
+					.toList();
+			for (Map.Entry<String, String> entry : sortedStrings) {
+				builder.append(hasFields ? ",\n" : "\n");
+				builder.append(childIndent)
+						.append('"').append(escape(entry.getKey())).append("\": \"")
+						.append(escape(entry.getValue())).append("\"");
+				hasFields = true;
+			}
+
+			final List<Map.Entry<String, Node>> sortedNodes = nodes.entrySet()
+					.stream()
+					.sorted(Map.Entry.comparingByKey())
+					.toList();
+			for (Map.Entry<String, Node> entry : sortedNodes) {
+				builder.append(hasFields ? ",\n" : "\n");
+				builder.append(childIndent)
+						.append('"').append(escape(entry.getKey())).append("\": ");
+				entry.getValue().appendJson(builder, depth + 1);
+				hasFields = true;
+			}
+
+			final List<Map.Entry<String, List<Node>>> sortedLists = nodeLists.entrySet()
+					.stream()
+					.sorted(Map.Entry.comparingByKey())
+					.toList();
+			for (Map.Entry<String, List<Node>> entry : sortedLists) {
+				builder.append(hasFields ? ",\n" : "\n");
+				builder.append(childIndent)
+						.append('"').append(escape(entry.getKey())).append("\": [");
+				List<Node> list = entry.getValue();
+				if (!list.isEmpty()) {
+					builder.append("\n");
+					for (int i = 0; i < list.size(); i++) {
+						builder.append("\t".repeat(depth + 2));
+						list.get(i).appendJson(builder, depth + 2);
+						if (i < list.size() - 1)
+							builder.append(",\n");
+						else
+							builder.append("\n");
+					}
+					builder.append(childIndent);
+				}
+				builder.append("]");
+				hasFields = true;
+			}
+
+			if (hasFields)
+				builder.append("\n").append(indent);
+			builder.append("}");
+		}
+
+		private static String escape(String value) {
+			return value
+					.replace("\\", "\\\\")
+					.replace("\"", "\\\"")
+					.replace("\n", "\\n")
+					.replace("\r", "\\r")
+					.replace("\t", "\\t");
 		}
 	}
 
@@ -443,20 +519,27 @@ public class Main {
 	}
 
 	@Type("class")
-	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {
-	}
+	private record JavaClass(String name, List<JavaClassSegment> children)
+			implements JavaRootSegment, JavaClassSegment {}
 
 	@Type("import")
-	private record JavaImport(String value) {
-	}
+	private record JavaImport(String content) implements JavaRootSegment {}
 
 	@Type("package")
-	private record JavaPackage(String value) {
-	}
+	private record JavaPackage(String content) implements JavaRootSegment {}
+
+	@Type("content")
+	private record JavaContent(String input)
+			implements JavaRootSegment, JavaClassSegment, CRootSegment {}
 
 	@Type("struct")
-	private record CStructure(String name) implements CRootSegment {
-	}
+	private record JavaStruct(String name) implements JavaClassSegment {}
+
+	@Type("block")
+	private record JavaBlock(String header, String content) implements JavaClassSegment {}
+
+	@Type("struct")
+	private record CStructure(String name) implements CRootSegment {}
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
@@ -748,6 +831,13 @@ public class Main {
 			if (nested.isPresent())
 				return nested;
 		}
+		for (List<Node> children : node.nodeLists.values()) {
+			for (Node child : children) {
+				final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
+				if (nested.isPresent())
+					return nested;
+			}
+		}
 		return Optional.empty();
 	}
 
@@ -840,22 +930,38 @@ public class Main {
 	private static Result<CRoot, CompileError> getNodeCompileErrorResult(JavaRoot value) {
 		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
 			case JavaClass javaClass -> flattenClass(javaClass);
+			case JavaContent content -> Stream.of(content);
+			case JavaImport javaImport -> {
+				javaImport.content();
+				yield Stream.<CRootSegment>of();
+			}
+			case JavaPackage javaPackage -> {
+				javaPackage.content();
+				yield Stream.<CRootSegment>of();
+			}
 		}).toList();
 		return new Ok<>(new CRoot(newChildren));
 	}
 
 	private static Stream<CRootSegment> flattenClass(JavaClass clazz) {
-		final List<CRootSegment> list = clazz.children.stream().flatMap(member -> switch (member) {
+		final Stream<CRootSegment> nested = clazz.children.stream().flatMap(member -> switch (member) {
 			case JavaClass javaClass -> flattenClass(javaClass);
-		}).toList();
+			case JavaStruct struct -> Stream.of(new CStructure(struct.name()));
+			case JavaContent content -> Stream.of(content);
+			case JavaBlock block -> {
+				block.header();
+				block.content();
+				yield Stream.<CRootSegment>of();
+			}
+		});
 
-		return Stream.concat(Stream.of(new CStructure(clazz.name)), list.stream());
+		return Stream.concat(Stream.of(new CStructure(clazz.name())), nested);
 	}
 
 	private static Rule createClassRule() {
-		final NodeRule orRule = new NodeRule("header", new OrRule(List.of(createClassHeaderRule(), createContentRule())));
+		final NodeRule header = new NodeRule("header", createClassHeaderRule());
 		final DivideRule children = new DivideRule("children", createJavaClassSegmentRule());
-		return new TypeRule("class", new SuffixRule(new InfixRule(orRule, "{", children), "}"));
+		return new TypeRule("class", new SuffixRule(new InfixRule(header, "{", children), "}"));
 	}
 
 	private static Rule createCRootRule() {
@@ -879,8 +985,9 @@ public class Main {
 	}
 
 	private static Rule createBlockRule() {
-		return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-				new PlaceholderRule(new StringRule("content"))), "}");
+		return new TypeRule("block",
+				new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
+						new PlaceholderRule(new StringRule("content"))), "}"));
 	}
 
 	private static Rule createStructHeaderRule() {
