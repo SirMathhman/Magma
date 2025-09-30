@@ -6,17 +6,6 @@ import magma.compile.Serialize;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
-import magma.compile.rule.DivideRule;
-import magma.compile.rule.InfixRule;
-import magma.compile.rule.NodeRule;
-import magma.compile.rule.OrRule;
-import magma.compile.rule.PlaceholderRule;
-import magma.compile.rule.PrefixRule;
-import magma.compile.rule.Rule;
-import magma.compile.rule.StringRule;
-import magma.compile.rule.StripRule;
-import magma.compile.rule.SuffixRule;
-import magma.compile.rule.TypeRule;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -69,27 +58,14 @@ public class Main {
 	}
 
 	private static Result<String, CompileError> compile(String input) {
-		return createJavaRootRule().lex(input).flatMap(Main::transform).flatMap(createCRootRule()::generate);
-	}
-
-	private static Rule createJavaRootRule() {
-		return new DivideRule("children", createJavaRootSegmentRule());
-	}
-
-	private static Rule createJavaRootSegmentRule() {
-		return new StripRule(new OrRule(
-				List.of(createClassRule(), createPrefixRule("package"), createPrefixRule("import"), createContentRule())));
-	}
-
-	private static Rule createPrefixRule(String type) {
-		return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
+		return Lang.createJavaRootRule().lex(input).flatMap(Main::transform).flatMap(Lang.createCRootRule()::generate);
 	}
 
 	private static Result<Node, CompileError> transform(Node node) {
 		return switch (Serialize.deserialize(Lang.JavaRoot.class, node)) {
 			case Err<Lang.JavaRoot, CompileError> v -> new Err<>(v.error());
 			case Ok<Lang.JavaRoot, CompileError> v ->
-				getNodeCompileErrorResult(v.value()).flatMap(n -> Serialize.serialize(Lang.CRoot.class, n));
+					getNodeCompileErrorResult(v.value()).flatMap(n -> Serialize.serialize(Lang.CRoot.class, n));
 		};
 	}
 
@@ -109,48 +85,9 @@ public class Main {
 			case Lang.JavaStruct struct -> Stream.of(new Lang.CStructure(struct.name()));
 			case Lang.Content content -> Stream.of(content);
 			case Lang.JavaBlock javaBlock ->
-				Stream.of(new Lang.Content(javaBlock.header() + " {\n" + javaBlock.content() + "\n}"));
+					Stream.of(new Lang.Content(javaBlock.header() + " {\n" + javaBlock.content() + "\n}"));
 		});
 
 		return Stream.concat(Stream.of(new Lang.CStructure(clazz.name())), nested);
-	}
-
-	private static Rule createClassRule() {
-		final NodeRule header = new NodeRule("header", createClassHeaderRule());
-		final DivideRule children = new DivideRule("children", createJavaClassSegmentRule());
-		return new TypeRule("class", new SuffixRule(new InfixRule(header, "{", children), "}"));
-	}
-
-	private static Rule createCRootRule() {
-		return new DivideRule("children", createCRootSegmentRule());
-	}
-
-	private static Rule createCRootSegmentRule() {
-		return new OrRule(List.of(new SuffixRule(createClassSegmentRule(), System.lineSeparator()), createContentRule()));
-	}
-
-	private static Rule createJavaClassSegmentRule() {
-		return new StripRule(createClassSegmentRule());
-	}
-
-	private static Rule createClassSegmentRule() {
-		return new OrRule(List.of(createStructHeaderRule(), createBlockRule(), createContentRule()));
-	}
-
-	private static Rule createContentRule() {
-		return new TypeRule("content", new PlaceholderRule(new StringRule("input")));
-	}
-
-	private static Rule createBlockRule() {
-		return new TypeRule("block", new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-				new PlaceholderRule(new StringRule("content"))), "}"));
-	}
-
-	private static Rule createStructHeaderRule() {
-		return new TypeRule("struct", new PrefixRule("struct ", new SuffixRule(new StringRule("name"), " {};")));
-	}
-
-	private static Rule createClassHeaderRule() {
-		return new InfixRule(new StringRule("temp"), "class ", new StripRule(new StringRule("name")));
 	}
 }
