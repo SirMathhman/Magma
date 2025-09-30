@@ -2,6 +2,7 @@ package magma.compile.rule;
 
 import magma.compile.Node;
 import magma.compile.context.NodeContext;
+import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -14,7 +15,8 @@ public record StringRule(String key) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		return new Ok<>(new Node().withString(getKey(), content));
+		if (content.isEmpty()) return new Err<>(new CompileError("Content cannot be empty", new StringContext(content)));
+		return new Ok<>(new Node().withString(key, content));
 	}
 
 	@Override
@@ -23,9 +25,5 @@ public record StringRule(String key) implements Rule {
 							 .<Result<String, CompileError>>map(Ok::new)
 							 .orElseGet(
 									 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
-	}
-
-	public String getKey() {
-		return key;
 	}
 }

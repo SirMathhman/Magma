@@ -6,16 +6,24 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
 
-public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+import java.util.Optional;
+
+public record InfixRule(Rule leftRule, String infix, Rule rightRule, Locator locator) implements Rule {
 	public static Rule First(Rule left, String infix, Rule right) {
-		return new InfixRule(left, infix, right);
+		return new InfixRule(left, infix, right, new FirstLocator());
+	}
+
+	public static Rule Last(Rule leftRule, String infix, Rule rightRule) {
+		return new InfixRule(leftRule, infix, rightRule, new LastLocator());
 	}
 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
-		final int index = input.indexOf(infix());
-		if (index < 0) return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
+		final Optional<Integer> maybeIndex = locator.locate(input, input);
+		if (maybeIndex.isEmpty())
+			return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
+		int index = maybeIndex.get();
 		final String beforeContent = input.substring(0, index);
 		final String content = input.substring(index + infix().length());
 

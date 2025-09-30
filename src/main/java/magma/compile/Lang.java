@@ -1,9 +1,11 @@
 package magma.compile;
 
+import magma.compile.rule.InfixRule;
 import magma.compile.rule.Rule;
 
 import java.util.List;
 
+import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
 import static magma.compile.rule.NodeListRule.NodeList;
 import static magma.compile.rule.OrRule.Or;
@@ -45,7 +47,7 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return NodeList("children", Or(Class(), Content()));
+		return NodeList("children", Or(Class(), Tag("whitespace", Strip(Empty))));
 	}
 
 	private static Rule Class() {
@@ -57,9 +59,9 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		return Or(Tag("method", Strip(
-				Suffix(First(Strip(Suffix(First(String("definition"), "(", String("params")), ")")), "{", String("body")),
-							 "}"))), Content());
+		return Or(Tag("method", Strip(Suffix(
+				First(Strip(Suffix(InfixRule.Last(String("definition"), "(", String("params")), ")")), "{", String("body")),
+				"}"))), Content());
 	}
 
 	private static Rule Content() {

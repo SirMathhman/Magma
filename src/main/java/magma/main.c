@@ -15,11 +15,13 @@ import java.nio.file.Paths;*//*
 import java.util.Optional;*//*
 import java.util.stream.Stream;*//*
 
-import static magma.compile.Lang.*;*/struct Main {};/*
+import static magma.compile.Lang.*;*//*
+
+public class Main {
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
-	}*//*
+	}
 
 	private static Optional<ApplicationError> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -36,7 +38,7 @@ import static magma.compile.Lang.*;*/struct Main {};/*
 				};
 			}
 		};
-	}*//*
+	}
 
 	private static Optional<IOException> writeString(Path path, String result) {
 		try {
@@ -45,7 +47,7 @@ import static magma.compile.Lang.*;*/struct Main {};/*
 		} catch (IOException e) {
 			return Optional.of(e);
 		}
-	}*//*
+	}
 
 	private static Result<String, ThrowableError> readString(Path source) {
 		try {
@@ -53,7 +55,7 @@ import static magma.compile.Lang.*;*/struct Main {};/*
 		} catch (IOException e) {
 			return new Err<>(new ThrowableError(e));
 		}
-	}*//*
+	}
 
 	private static Result<String, CompileError> compile(String input) {
 		return createJavaRootRule().lex(input)
@@ -61,11 +63,11 @@ import static magma.compile.Lang.*;*/struct Main {};/*
 															 .flatMap(Main::transform)
 															 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
 															 .flatMap(createCRootRule()::generate);
-	}*//*
+	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
 		return new Ok<>(new CRoot(node.children().stream().flatMap(Main::flattenRootSegment).toList()));
-	}*//*
+	}
 
 	private static Stream<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
@@ -75,6 +77,6 @@ import static magma.compile.Lang.*;*/struct Main {};/*
 			}
 			case Content content -> Stream.of(content);
 		};
-	}*//*
-*//*
+	}
+}*//*
 */
