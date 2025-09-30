@@ -7,6 +7,10 @@ import magma.result.Err;
 import magma.result.Result;
 
 public record PrefixRule(String prefix, Rule rule) implements Rule {
+	public static Rule Prefix(String prefix, Rule rule) {
+		return new PrefixRule(prefix, rule);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));

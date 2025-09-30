@@ -1,6 +1,5 @@
 package magma;
 
-import magma.compile.Lang;
 import magma.compile.Serialize;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
@@ -14,6 +13,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.stream.Stream;
+
+import static magma.compile.Lang.*;
 
 public class Main {
 
@@ -56,15 +58,24 @@ public class Main {
 	}
 
 	private static Result<String, CompileError> compile(String input) {
-		return Lang.createJavaRootRule()
-							 .lex(input)
-							 .flatMap(node -> Serialize.deserialize(Lang.JavaRoot.class, node))
-							 .flatMap(Main::transform)
-							 .flatMap(cRoot -> Serialize.serialize(Lang.CRoot.class, cRoot))
-							 .flatMap(Lang.createCRootRule()::generate);
+		return createJavaRootRule().lex(input)
+															 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+															 .flatMap(Main::transform)
+															 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+															 .flatMap(createCRootRule()::generate);
 	}
 
-	private static Result<Lang.CRoot, CompileError> transform(Lang.JavaRoot node) {
-		return new Ok<>(new Lang.CRoot(node.children()));
+	private static Result<CRoot, CompileError> transform(JavaRoot node) {
+		return new Ok<>(new CRoot(node.children().stream().flatMap(Main::flattenRootSegment).toList()));
+	}
+
+	private static Stream<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
+		return switch (segment) {
+			case JClass aClass -> {
+				final Structure structure = new Structure(aClass.name());
+				yield Stream.of(structure);
+			}
+			case Content content -> Stream.of(content);
+		};
 	}
 }

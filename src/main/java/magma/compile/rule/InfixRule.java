@@ -7,6 +7,10 @@ import magma.result.Err;
 import magma.result.Result;
 
 public record InfixRule(Rule leftRule, String infix, Rule rightRule) implements Rule {
+	public static Rule First(Rule left, String infix, Rule right) {
+		return new InfixRule(left, infix, right);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		final int index = input.indexOf(infix());
