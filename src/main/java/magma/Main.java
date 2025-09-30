@@ -85,8 +85,7 @@ public class Main {
 
 	private static CRootSegment getSelf(JavaClassMember self) {
 		return switch (self) {
-			case Content content -> content;
-			case Method method -> new Content("temp");
+			case Content content -> content; case Method method -> new Function();
 		};
 	}
 }

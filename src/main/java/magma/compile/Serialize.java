@@ -33,14 +33,13 @@ public class Serialize {
 				new CompileError("Unsupported deserialization target '" + clazz.getName() + "'", new NodeContext(node)));
 
 		final Optional<String> expectedType = resolveTypeIdentifier(clazz);
-		if (expectedType instanceof Some<String>(String expectedType0)) {
-			if (!(node.maybeType instanceof Some<String>(String type))) return new Err<>(
+		if (expectedType instanceof Some<String>(String expectedType0))
+			if (node.maybeType instanceof Some<String>(String type)) {
+				if (!node.is(expectedType0)) return new Err<>(
+						new CompileError("Expected node type '" + expectedType0 + "' but found '" + type + "'",
+														 new NodeContext(node)));
+			} else return new Err<>(
 					new CompileError("Node type information missing for '" + clazz.getSimpleName() + "'", new NodeContext(node)));
-
-			if (!node.is(expectedType0)) return new Err<>(
-					new CompileError("Expected node type '" + expectedType0 + "' but found '" + type + "'",
-													 new NodeContext(node)));
-		}
 
 		final RecordComponent[] components = clazz.getRecordComponents();
 		final Object[] arguments = new Object[components.length];
