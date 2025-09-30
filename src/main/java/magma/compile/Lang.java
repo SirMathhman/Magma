@@ -8,6 +8,8 @@ import static magma.compile.rule.NodeListRule.NodeList;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.StringRule.String;
+import static magma.compile.rule.StripRule.Strip;
+import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
@@ -23,7 +25,7 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return NodeList("children", Or(Content()));
+		return NodeList("children", Or(Strip(Suffix(Content(), "}")), Content()));
 	}
 
 	private static Rule Content() {

@@ -7,6 +7,10 @@ import magma.result.Err;
 import magma.result.Result;
 
 public record SuffixRule(Rule rule, String suffix) implements Rule {
+	public static Rule Suffix(Rule rule, String suffix) {
+		return new SuffixRule(rule, suffix);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		if (!input.endsWith(suffix()))

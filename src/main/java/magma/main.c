@@ -13,9 +13,7 @@ import java.io.IOException;*//*
 import java.nio.file.Files;*//*
 import java.nio.file.Path;*//*
 import java.nio.file.Paths;*//*
-import java.util.Optional;*//*
-
-public class Main {
+import java.util.Optional;*//*public class Main {
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
@@ -67,5 +65,5 @@ public class Main {
 	private static Result<Lang.CRoot, CompileError> transform(Lang.JavaRoot node) {
 		return new Ok<>(new Lang.CRoot(node.children()));
 	}
-}*//*
+*//*
 */
