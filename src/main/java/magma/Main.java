@@ -1,10 +1,10 @@
 package magma;
 
+import magma.compile.Lang;
 import magma.compile.Serialize;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
-import magma.compile.rule.StringRule;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -16,9 +16,6 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 public class Main {
-	public record JavaRoot(String value) {}
-
-	public record CRoot(String value) {}
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
@@ -59,14 +56,15 @@ public class Main {
 	}
 
 	private static Result<String, CompileError> compile(String input) {
-		return new StringRule("value").lex(input)
-																	.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-																	.flatMap(Main::transform)
-																	.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-																	.flatMap(new StringRule("value")::generate);
+		return Lang.createJavaRootRule()
+							 .lex(input)
+							 .flatMap(node -> Serialize.deserialize(Lang.JavaRoot.class, node))
+							 .flatMap(Main::transform)
+							 .flatMap(cRoot -> Serialize.serialize(Lang.CRoot.class, cRoot))
+							 .flatMap(Lang.createCRootRule()::generate);
 	}
 
-	private static Result<CRoot, CompileError> transform(JavaRoot node) {
-		return new Ok<>(new CRoot(node.value));
+	private static Result<Lang.CRoot, CompileError> transform(Lang.JavaRoot node) {
+		return new Ok<>(new Lang.CRoot(node.value()));
 	}
 }

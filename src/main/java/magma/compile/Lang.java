@@ -15,4 +15,15 @@ import magma.compile.rule.TypeRule;
 import java.util.List;
 
 public class Lang {
+	public record JavaRoot(String value) {}
+
+	public record CRoot(String value) {}
+
+	public static StringRule createCRootRule() {
+		return new StringRule("value");
+	}
+
+	public static StringRule createJavaRootRule() {
+		return new StringRule("value");
+	}
 }
