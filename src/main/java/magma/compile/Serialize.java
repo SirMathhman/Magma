@@ -38,8 +38,9 @@ public class Serialize {
 				if (!node.is(expectedType0)) return new Err<>(
 						new CompileError("Expected node type '" + expectedType0 + "' but found '" + type + "'",
 														 new NodeContext(node)));
-			} else return new Err<>(
-					new CompileError("Node type information missing for '" + clazz.getSimpleName() + "'", new NodeContext(node)));
+			} else return new Err<>(new CompileError(
+					"Node '@type' property missing for '" + clazz.getSimpleName() + "' (expected '@type': '" + expectedType0 +
+					"')", new NodeContext(node)));
 
 		final RecordComponent[] components = clazz.getRecordComponents();
 		final Object[] arguments = new Object[components.length];

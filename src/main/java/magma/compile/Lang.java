@@ -96,7 +96,7 @@ public class Lang {
 
 	private static Rule Definition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		return Last(Last(modifiers, " ", Node("type", Type())), " ", String("name"));
+		return Tag("definition", Last(Last(modifiers, " ", Node("type", Type())), " ", String("name")));
 	}
 
 	private static Rule Type() {
