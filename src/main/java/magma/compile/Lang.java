@@ -26,7 +26,10 @@ public class Lang {
 
 	public sealed interface JavaClassMember {}
 
-	public interface Type {}
+	public sealed interface Type {}
+
+	@Tag("generic")
+	public record Generic(String base, List<Type> arguments) implements Type {}
 
 	@Tag("definition")
 	public record Definition(String name, Type type) {}
@@ -36,7 +39,7 @@ public class Lang {
 			implements JavaClassMember {}
 
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment {}
+	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, Type {}
 
 	@Tag("class")
 	public record JClass(Optional<String> modifiers, String name, List<JavaClassMember> children)
