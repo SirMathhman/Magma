@@ -51,10 +51,10 @@ public class Main {
 			for (Path javaFile : javaFiles) {
 				System.out.println("Compiling: " + javaFile);
 				Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
-				// Continue with other files instead of stopping
-				if (result instanceof Some<ApplicationError>(ApplicationError error))
+				if (result instanceof Some<ApplicationError>(ApplicationError error)) {
 					System.err.println("Failed to compile " + javaFile + ": " + error.display());
-				else System.out.println("Successfully compiled: " + javaFile);
+					return result; // Fail fast - return the error immediately
+				} System.out.println("Successfully compiled: " + javaFile);
 			}
 
 			return Option.empty();
