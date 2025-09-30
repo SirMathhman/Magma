@@ -5,7 +5,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public final class None<T> implements Optional<T> {
-	@Override
 	public void ifPresent(Consumer<T> consumer) {
 	}
 

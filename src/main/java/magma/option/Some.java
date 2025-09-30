@@ -5,7 +5,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record Some<T>(T value) implements Optional<T> {
-	@Override
 	public void ifPresent(Consumer<T> consumer) {
 		consumer.accept(value);
 	}

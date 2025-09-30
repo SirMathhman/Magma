@@ -1,7 +1,9 @@
 struct Main {};/*
 
 	public static void main(String[] args) {
-		run().ifPresent(error -> System.out.println(error.display()));
+		if (run() instanceof Some<ApplicationError>(
+				ApplicationError value
+		)) System.out.println(value.display());
 	}*//*temp*//*
 
 	private static Optional<IOException> writeString(Path path, String result) {

@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class Serialize {
 	public static <T> Result<T, CompileError> deserialize(Class<T> clazz, Node node) {
@@ -88,7 +89,8 @@ public class Serialize {
 												 new StringContext(clazz.getName())));
 
 		final Node result = new Node();
-		resolveTypeIdentifier(clazz).ifPresent(result::retype);
+		Optional<String> stringOptional = resolveTypeIdentifier(clazz);
+		if (stringOptional instanceof Some<String>(String value2)) ((Consumer<String>) result::retype).accept(value2);
 
 		final RecordComponent[] components = clazz.getRecordComponents();
 		final ArrayList<CompileError> errors = new ArrayList<>();
@@ -98,7 +100,8 @@ public class Serialize {
 			try {
 				final Object value = accessor.invoke(node);
 				final Optional<CompileError> writeResult = writeComponent(result, component, value);
-				writeResult.ifPresent(errors::add);
+				if (writeResult instanceof Some<CompileError>(CompileError value1)) ((Consumer<CompileError>) errors::add).accept(
+						value1);
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				errors.add(new CompileError("Failed to read component '" + component.getName() + "'",
 																		new StringContext(clazz.getName()),

@@ -5,6 +5,7 @@ import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
 import magma.option.Optional;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -20,7 +21,9 @@ import static magma.compile.Lang.*;
 public class Main {
 
 	public static void main(String[] args) {
-		run().ifPresent(error -> System.out.println(error.display()));
+		if (run() instanceof Some<ApplicationError>(
+				ApplicationError value
+		)) System.out.println(value.display());
 	}
 
 	private static Optional<ApplicationError> run() {
