@@ -19,10 +19,8 @@ struct Main {};
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			if (node.is(type))
-				return rule.generate(node);
-			else
-				return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
+			if (node.is(type)) return rule.generate(node);
+			else return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
 		}
 	}*/
 /*private record ThrowableError(Throwable e) implements Error {
@@ -38,20 +36,16 @@ struct Main {};
 			return error.display();
 		}
 	}*/
-/*private record JavaRoot(List<JavaRootSegment> children) {
-	}*/
-/*private record CRoot(List<CRootSegment> children) {
-	}*/
+/*private record JavaRoot(List<JavaRootSegment> children) {}*/
+/*private record CRoot(List<CRootSegment> children) {}*/
 /*@Type("class")
-	private record JavaClass(String name, List<JavaClassSegment> children)
-			implements JavaRootSegment, JavaClassSegment {}*/
+	private record JavaClass(String name, List<JavaClassSegment> children) implements JavaRootSegment, JavaClassSegment {}*/
 /*@Type("import")
 	private record JavaImport(String content) implements JavaRootSegment {}*/
 /*@Type("package")
 	private record JavaPackage(String content) implements JavaRootSegment {}*/
 /*@Type("content")
-	private record JavaContent(String input)
-			implements JavaRootSegment, JavaClassSegment, CRootSegment {}*/
+	private record JavaContent(String input) implements JavaRootSegment, JavaClassSegment, CRootSegment {}*/
 /*@Type("struct")
 	private record JavaStruct(String name) implements JavaClassSegment {}*/
 /*@Type("block")
@@ -106,30 +100,21 @@ struct Main {};
 		return new TypeRule(type, new PrefixRule(type + " ", new StringRule("content")));
 	}*/
 /*private static <T> Result<T, CompileError> deserialize(Class<T> clazz, Node node) {
-		if (clazz == null)
-			return new Err<>(new CompileError("Target class must not be null", new NodeContext(node)));
+		if (clazz == null) return new Err<>(new CompileError("Target class must not be null", new NodeContext(node)));
 		if (node == null)
 			return new Err<>(new CompileError("Cannot deserialize null node", new StringContext(clazz.getName())));
 
-		if (clazz.isSealed() && !clazz.isRecord()) {
-			return deserializeSealed(clazz, node);
-		}
-
-		if (!clazz.isRecord()) {
-			return new Err<>(new CompileError("Unsupported deserialization target '" + clazz.getName() + "'",
-					new NodeContext(node)));
-		}
+		if (clazz.isSealed() && !clazz.isRecord()) return deserializeSealed(clazz, node);
+		if (!clazz.isRecord()) return new Err<>(
+				new CompileError("Unsupported deserialization target '" + clazz.getName() + "'", new NodeContext(node)));
 
 		final Optional<String> expectedType = resolveTypeIdentifier(clazz);
 		if (expectedType.isPresent()) {
-			if (node.maybeType.isEmpty())
-				return new Err<>(new CompileError(
-						"Node type information missing for '" + clazz.getSimpleName() + "'",
-						new NodeContext(node)));
-			if (!node.is(expectedType.get()))
-				return new Err<>(new CompileError(
-						"Expected node type '" + expectedType.get() + "' but found '" + node.maybeType.get() + "'",
-						new NodeContext(node)));
+			if (node.maybeType.isEmpty()) return new Err<>(
+					new CompileError("Node type information missing for '" + clazz.getSimpleName() + "'", new NodeContext(node)));
+			if (!node.is(expectedType.get())) return new Err<>(
+					new CompileError("Expected node type '" + expectedType.get() + "' but found '" + node.maybeType.get() + "'",
+													 new NodeContext(node)));
 		}
 
 		final RecordComponent[] components = clazz.getRecordComponents();
@@ -150,45 +135,38 @@ struct Main {};
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			return new Err<>(new CompileError("Failed to deserialize '" + clazz.getSimpleName() + "'",
-					new NodeContext(node), errors));
-		}
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to deserialize '" + clazz.getSimpleName() + "'", new NodeContext(node), errors));
 
 		try {
 			final Class<?>[] parameterTypes = Arrays.stream(components).map(RecordComponent::getType).toArray(Class[]::new);
 			final Constructor<T> constructor = clazz.getDeclaredConstructor(parameterTypes);
-			if (!constructor.canAccess(null))
-				constructor.setAccessible(true);
+			if (!constructor.canAccess(null)) constructor.setAccessible(true);
 			return new Ok<>(constructor.newInstance(arguments));
 		} catch (ReflectiveOperationException e) {
-			return new Err<>(new CompileError(
-					"Reflection failure while instantiating '" + clazz.getSimpleName() + "'",
-					new NodeContext(node), List.of(new CompileError(e.getMessage(), new StringContext(clazz.getName())))));
+			return new Err<>(new CompileError("Reflection failure while instantiating '" + clazz.getSimpleName() + "'",
+																				new NodeContext(node),
+																				List.of(new CompileError(e.getMessage(), new StringContext(clazz.getName())))));
 		}
 	}*/
 /*private static <T> Result<Node, CompileError> serialize(Class<T> clazz, T node) {
 		if (clazz == null)
 			return new Err<>(new CompileError("Target class must not be null", new StringContext("serialize")));
-		if (node == null)
-			return new Err<>(new CompileError("Cannot serialize null instance of '" + clazz.getName() + "'",
-					new StringContext("serialize")));
+		if (node == null) return new Err<>(new CompileError("Cannot serialize null instance of '" + clazz.getName() + "'",
+																												new StringContext("serialize")));
 
 		if (clazz.isSealed() && !clazz.isRecord()) {
 			@SuppressWarnings("unchecked")
 			final Class<? extends T> concreteClass = (Class<? extends T>) node.getClass();
-			if (!clazz.isAssignableFrom(concreteClass)) {
-				return new Err<>(new CompileError(
-						"Instance of type '" + concreteClass.getName() + "' is not assignable to '" + clazz.getName() + "'",
-						new StringContext(concreteClass.getName())));
-			}
+			if (!clazz.isAssignableFrom(concreteClass)) return new Err<>(new CompileError(
+					"Instance of type '" + concreteClass.getName() + "' is not assignable to '" + clazz.getName() + "'",
+					new StringContext(concreteClass.getName())));
 			return serializeRaw(concreteClass, concreteClass.cast(node));
 		}
 
-		if (!clazz.isRecord()) {
-			return new Err<>(new CompileError("Unsupported serialization target '" + clazz.getName() + "'",
-					new StringContext(clazz.getName())));
-		}
+		if (!clazz.isRecord()) return new Err<>(
+				new CompileError("Unsupported serialization target '" + clazz.getName() + "'",
+												 new StringContext(clazz.getName())));
 
 		final Node result = new Node();
 		resolveTypeIdentifier(clazz).ifPresent(result::retype);
@@ -208,43 +186,39 @@ struct Main {};
 				}
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				errors.add(new CompileError("Failed to read component '" + component.getName() + "'",
-						new StringContext(clazz.getName()),
-						List.of(new CompileError(e.getMessage(), new StringContext(component.getName())))));
+																		new StringContext(clazz.getName()),
+																		List.of(new CompileError(e.getMessage(), new StringContext(component.getName())))));
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			return new Err<>(new CompileError("Failed to serialize '" + clazz.getSimpleName() + "'",
-					new StringContext(clazz.getName()), errors));
-		}
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to serialize '" + clazz.getSimpleName() + "'", new StringContext(clazz.getName()),
+												 errors));
 
 		return new Ok<>(result);
 	}*/
 /*private static Optional<String> resolveTypeIdentifier(Class<?> clazz) {
 		Type annotation = clazz.getAnnotation(Type.class);
-		if (annotation == null)
-			return Optional.empty();
+		if (annotation == null) return Optional.empty();
 		return Optional.of(annotation.value());
 	}*/
 /*private static <T> Result<T, CompileError> deserializeSealed(Class<T> clazz, Node node) {
-		if (node.maybeType.isEmpty()) {
-			return new Err<>(new CompileError("Missing node type for sealed type '" + clazz.getName() + "'",
-					new NodeContext(node)));
-		}
+		if (node.maybeType.isEmpty()) return new Err<>(
+				new CompileError("Missing node type for sealed type '" + clazz.getName() + "'", new NodeContext(node)));
 
 		final String nodeType = node.maybeType.get();
 		for (Class<?> permitted : clazz.getPermittedSubclasses()) {
 			final Optional<String> identifier = resolveTypeIdentifier(permitted);
 			if (identifier.isPresent() && identifier.get().equals(nodeType)) {
-				@SuppressWarnings({ "rawtypes", "unchecked" })
+				@SuppressWarnings({"rawtypes", "unchecked"})
 				final Result<T, CompileError> cast = (Result<T, CompileError>) deserialize((Class) permitted, node);
 				return cast;
 			}
 		}
 
-		return new Err<>(new CompileError(
-				"No permitted subtype of '" + clazz.getName() + "' matched node type '" + nodeType + "'",
-				new NodeContext(node)));
+		return new Err<>(
+				new CompileError("No permitted subtype of '" + clazz.getName() + "' matched node type '" + nodeType + "'",
+												 new NodeContext(node)));
 	}*/
 /*private static Result<Object, CompileError> deserializeComponent(RecordComponent component, Node node) {
 		final String key = component.getName();
@@ -252,91 +226,74 @@ struct Main {};
 
 		if (type == String.class) {
 			final Optional<String> direct = node.findString(key);
-			if (direct.isPresent())
-				return new Ok<>(direct.get());
+			if (direct.isPresent()) return new Ok<>(direct.get());
 			final Optional<String> nested = findStringInChildren(node, key);
-			if (nested.isPresent())
-				return new Ok<>(nested.get());
+			if (nested.isPresent()) return new Ok<>(nested.get());
 			return new Err<>(missingFieldError(key, type, node));
 		}
 
-		if (List.class.isAssignableFrom(type)) {
-			return deserializeListComponent(component, node);
-		}
+		if (List.class.isAssignableFrom(type)) return deserializeListComponent(component, node);
 
 		return deserializeNestedComponent(component, node);
 	}*/
 /*private static Result<Object, CompileError> deserializeListComponent(RecordComponent component, Node node) {
 		final java.lang.reflect.Type genericType = component.getGenericType();
-		if (!(genericType instanceof ParameterizedType parameterized)
-				|| parameterized.getActualTypeArguments().length != 1) {
-			return new Err<>(new CompileError(
-					"Component '" + component.getName() + "' must declare a single generic parameter",
-					new NodeContext(node)));
-		}
+		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
+			return new Err<>(
+					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
+													 new NodeContext(node)));
 
 		final java.lang.reflect.Type argumentType = parameterized.getActualTypeArguments()[0];
 		final Class<?> elementClass = erase(argumentType);
 		final Optional<List<Node>> maybeList = node.findNodeList(component.getName());
-		if (maybeList.isEmpty()) {
-			return new Err<>(missingFieldError(component.getName(), elementClass, node));
-		}
+		if (maybeList.isEmpty()) return new Err<>(missingFieldError(component.getName(), elementClass, node));
 
 		final ArrayList<Object> results = new ArrayList<>();
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Node child : maybeList.get()) {
 			final Result<Object, CompileError> childResult = deserializeRaw(elementClass, child);
-			if (childResult instanceof Ok<?, ?> ok) {
-				results.add(ok.value());
-			} else if (childResult instanceof Err<?, ?> err) {
-				errors.add((CompileError) err.error());
+			switch (childResult) {
+				case Err<Object, CompileError> v -> errors.add(v.error);
+				case Ok<Object, CompileError> v -> results.add(v.value);
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			return new Err<>(new CompileError(
-					"Failed to deserialize list component '" + component.getName() + "'",
-					new NodeContext(node), errors));
-		}
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to deserialize list component '" + component.getName() + "'", new NodeContext(node),
+												 errors));
 
 		return new Ok<>(List.copyOf(results));
 	}*/
 /*private static Result<Object, CompileError> deserializeNestedComponent(RecordComponent component, Node node) {
 		final String key = component.getName();
 		final Optional<Node> maybeChild = node.findNode(key);
-		if (maybeChild.isEmpty()) {
-			return new Err<>(missingFieldError(key, component.getType(), node));
-		}
+		if (maybeChild.isEmpty()) return new Err<>(missingFieldError(key, component.getType(), node));
 		return deserializeRaw(component.getType(), maybeChild.get());
 	}*/
 /*private static Result<Object, CompileError> deserializeRaw(Class<?> type, Node node) {
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		final Result<Object, CompileError> rawResult = (Result<Object, CompileError>) deserialize((Class) type, node);
 		return rawResult;
 	}*/
 /*private static Result<Node, CompileError> serializeRaw(Class<?> clazz, Object value) {
-		@SuppressWarnings({ "rawtypes", "unchecked" })
+		@SuppressWarnings({"rawtypes", "unchecked"})
 		final Result<Node, CompileError> result = (Result<Node, CompileError>) serialize((Class) clazz, value);
 		return result;
 	}*/
 /*private static CompileError missingFieldError(String key, Class<?> type, Node node) {
-		return new CompileError(
-				"Required component '" + key + "' of type '" + type.getSimpleName() + "' not present",
-				new NodeContext(node));
+		return new CompileError("Required component '" + key + "' of type '" + type.getSimpleName() + "' not present",
+														new NodeContext(node));
 	}*/
 /*private static Optional<String> findStringInChildren(Node node, String key) {
 		for (Node child : node.nodes.values()) {
 			final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
-			if (nested.isPresent())
-				return nested;
+			if (nested.isPresent()) return nested;
 		}
-		for (List<Node> children : node.nodeLists.values()) {
+		for (List<Node> children : node.nodeLists.values())
 			for (Node child : children) {
 				final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
-				if (nested.isPresent())
-					return nested;
+				if (nested.isPresent()) return nested;
 			}
-		}
 		return Optional.empty();
 	}*/
 /*private static Result<Void, CompileError> writeComponent(Node target, RecordComponent component, Object value) {
@@ -344,47 +301,37 @@ struct Main {};
 		final Class<?> type = component.getType();
 
 		if (type == String.class) {
-			if (value == null)
-				return new Err<>(new CompileError("Component '" + key + "' was null", new StringContext(key)));
+			if (value == null) return new Err<>(new CompileError("Component '" + key + "' was null", new StringContext(key)));
 			target.withString(key, (String) value);
 			return new Ok<>(null);
 		}
 
-		if (List.class.isAssignableFrom(type)) {
-			return writeListComponent(target, component, value);
-		}
+		if (List.class.isAssignableFrom(type)) return writeListComponent(target, component, value);
 
-		if (value == null)
-			return new Err<>(new CompileError("Component '" + key + "' was null", new StringContext(key)));
+		if (value == null) return new Err<>(new CompileError("Component '" + key + "' was null", new StringContext(key)));
 
 		final Result<Node, CompileError> nestedResult = serializeRaw(type, value);
-		if (nestedResult instanceof Ok<?, ?> ok) {
-			target.withNode(key, (Node) ok.value());
-			return new Ok<>(null);
-		} else if (nestedResult instanceof Err<?, ?> err) {
-			return new Err<>((CompileError) err.error());
-		}
-		return new Err<>(new CompileError("Unknown result while serializing component '" + key + "'",
-				new StringContext(key)));
+
+		return switch (nestedResult) {
+			case Err<Node, CompileError> v -> new Err<>(v.error);
+			case Ok<Node, CompileError> v -> {
+				target.withNode(key, v.value);
+				yield new Ok<>(null);
+			}
+		};
 	}*/
 /*private static Result<Void, CompileError> writeListComponent(Node target, RecordComponent component, Object value) {
-		if (value == null) {
-			return new Err<>(new CompileError("Component '" + component.getName() + "' was null",
-					new StringContext(component.getName())));
-		}
-		if (!(value instanceof List<?> listValue)) {
-			return new Err<>(new CompileError(
-					"Component '" + component.getName() + "' is not a List instance",
-					new StringContext(component.getName())));
-		}
+		if (value == null) return new Err<>(
+				new CompileError("Component '" + component.getName() + "' was null", new StringContext(component.getName())));
+		if (!(value instanceof List<?> listValue)) return new Err<>(
+				new CompileError("Component '" + component.getName() + "' is not a List instance",
+												 new StringContext(component.getName())));
 
 		final java.lang.reflect.Type genericType = component.getGenericType();
-		if (!(genericType instanceof ParameterizedType parameterized)
-				|| parameterized.getActualTypeArguments().length != 1) {
-			return new Err<>(new CompileError(
-					"Component '" + component.getName() + "' must declare a single generic parameter",
-					new StringContext(component.getName())));
-		}
+		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
+			return new Err<>(
+					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
+													 new StringContext(component.getName())));
 
 		final Class<?> elementClass = erase(parameterized.getActualTypeArguments()[0]);
 		final ArrayList<Node> serializedChildren = new ArrayList<>();
@@ -392,25 +339,21 @@ struct Main {};
 
 		for (Object element : listValue) {
 			final Result<Node, CompileError> serialized = serializeRaw(elementClass, element);
-			if (serialized instanceof Ok<?, ?> ok) {
-				serializedChildren.add((Node) ok.value());
-			} else if (serialized instanceof Err<?, ?> err) {
-				errors.add((CompileError) err.error());
+			switch (serialized) {
+				case Err<Node, CompileError> v -> errors.add(v.error);
+				case Ok<Node, CompileError> v -> serializedChildren.add(v.value);
 			}
 		}
 
-		if (!errors.isEmpty()) {
-			return new Err<>(new CompileError(
-					"Failed to serialize list component '" + component.getName() + "'",
-					new StringContext(component.getName()), errors));
-		}
+		if (!errors.isEmpty()) return new Err<>(
+				new CompileError("Failed to serialize list component '" + component.getName() + "'",
+												 new StringContext(component.getName()), errors));
 
 		target.withNodeList(component.getName(), List.copyOf(serializedChildren));
 		return new Ok<>(null);
 	}*/
 /*private static Class<?> erase(java.lang.reflect.Type type) {
-		if (type instanceof Class<?> clazz)
-			return clazz;
+		if (type instanceof Class<?> clazz) return clazz;
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
 			return raw;
 		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
@@ -425,14 +368,7 @@ struct Main {};
 		final List<CRootSegment> newChildren = value.children.stream().flatMap(segment -> switch (segment) {
 			case JavaClass javaClass -> flattenClass(javaClass);
 			case JavaContent content -> Stream.of(content);
-			case JavaImport javaImport -> {
-				javaImport.content();
-				yield Stream.<CRootSegment>of();
-			}
-			case JavaPackage javaPackage -> {
-				javaPackage.content();
-				yield Stream.<CRootSegment>of();
-			}
+			case JavaImport _, JavaPackage _ -> Stream.of();
 		}).toList();
 		return new Ok<>(new CRoot(newChildren));
 	}*/
@@ -444,7 +380,7 @@ struct Main {};
 			case JavaBlock block -> {
 				block.header();
 				block.content();
-				yield Stream.<CRootSegment>of();
+				yield Stream.of();
 			}
 		});
 
@@ -471,9 +407,8 @@ struct Main {};
 		return new TypeRule("content", new PlaceholderRule(new StringRule("input")));
 	}*/
 /*private static Rule createBlockRule() {
-		return new TypeRule("block",
-				new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-						new PlaceholderRule(new StringRule("content"))), "}"));
+		return new TypeRule("block", new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
+																															new PlaceholderRule(new StringRule("content"))), "}"));
 	}*/
 /*private static Rule createStructHeaderRule() {
 		return new TypeRule("struct", new PrefixRule("struct ", new SuffixRule(new StringRule("name"), " {};")));
