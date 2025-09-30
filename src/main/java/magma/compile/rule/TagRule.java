@@ -6,9 +6,9 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
 
-public record TypeRule(String type, Rule rule) implements Rule {
-	public static Rule Type(String type, Rule rule) {
-		return new TypeRule(type, rule);
+public record TagRule(String type, Rule rule) implements Rule {
+	public static Rule Tag(String type, Rule rule) {
+		return new TagRule(type, rule);
 	}
 
 	@Override
