@@ -15,7 +15,7 @@ import java.util.ArrayList;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
 	public static Rule Statements(String key, Rule rule) {
-		return new NodeListRule(key, rule, new StatementDivider());
+		return new NodeListRule(key, rule, new FoldingDivider(new StatementFolder()));
 	}
 
 	public static Rule Delimited(String key, Rule rule, String delimiter) {
