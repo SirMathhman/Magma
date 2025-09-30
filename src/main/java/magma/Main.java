@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 public class Main {
@@ -19,11 +18,6 @@ public class Main {
 		<R> Result<R, X> map(Function<T, R> fn);
 
 		<R> Result<R, X> flatMap(Function<T, Result<R, X>> fn);
-
-		default T orElseGet(Supplier<? extends T> supplier) {
-			if (this instanceof Ok<T, X>(T value)) return value;
-			return supplier.get();
-		}
 
 	}
 
@@ -352,20 +346,22 @@ public class Main {
 
 	public static void main(String[] args) {
 		try {
-			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-			final String input = Files.readString(source);
-			Files.writeString(source.resolveSibling("main.c"), compile(input));
+			extracted();
 		} catch (IOException e) {
 			// noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
 
-	private static String compile(String input) {
-		return createJavaRootRule().lex(input)
-															 .map(Main::transform)
-															 .flatMap(createCRootRule()::generate)
-															 .orElseGet(() -> PlaceholderRule.wrap(input));
+	private static void extracted() throws IOException {
+		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final String input = Files.readString(source);
+		final var result = compile(input);
+		Files.writeString(source.resolveSibling("main.c"), result);
+	}
+
+	private static Result<String, CompileError> compile(String input) {
+		return createJavaRootRule().lex(input).map(Main::transform).flatMap(createCRootRule()::generate);
 	}
 
 	private static Rule createJavaRootRule() {
