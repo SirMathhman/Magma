@@ -24,8 +24,7 @@ import static magma.compile.Lang.*;
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(ApplicationError value))
-			System.out.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.out.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {
@@ -44,22 +43,18 @@ public class Main {
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles = paths
-					.filter(Files::isRegularFile)
-					.filter(path -> path.toString().endsWith(".java"))
-					.toList();
+			List<Path> javaFiles =
+					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
 			for (Path javaFile : javaFiles) {
 				System.out.println("Compiling: " + javaFile);
 				Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
-				if (result instanceof Some<ApplicationError>(ApplicationError error)) {
+				// Continue with other files instead of stopping
+				if (result instanceof Some<ApplicationError>(ApplicationError error))
 					System.err.println("Failed to compile " + javaFile + ": " + error.display());
-					// Continue with other files instead of stopping
-				} else {
-					System.out.println("Successfully compiled: " + javaFile);
-				}
+				else System.out.println("Successfully compiled: " + javaFile);
 			}
 
 			return Option.empty();
@@ -85,18 +80,15 @@ public class Main {
 		}
 
 		Result<String, ThrowableError> readResult = readString(javaFile);
-		if (readResult instanceof Err<String, ThrowableError>(ThrowableError error)) {
+		if (readResult instanceof Err<String, ThrowableError>(ThrowableError error))
 			return Option.of(new ApplicationError(error));
-		}
 
 		if (readResult instanceof Ok<String, ThrowableError>(String input)) {
 			Result<String, CompileError> compileResult = compile(input);
-			if (compileResult instanceof Err<String, CompileError>(CompileError error)) {
+			if (compileResult instanceof Err<String, CompileError>(CompileError error))
 				return Option.of(new ApplicationError(error));
-			}
-			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
+			if (compileResult instanceof Ok<String, CompileError>(String compiled))
 				return writeString(cFilePath, compiled).map(ThrowableError::new).map(ApplicationError::new);
-			}
 		}
 
 		return Option.empty();
@@ -121,10 +113,10 @@ public class Main {
 
 	private static Result<String, CompileError> compile(String input) {
 		return createJavaRootRule().lex(input)
-				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-				.flatMap(Main::transform)
-				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-				.flatMap(createCRootRule()::generate);
+															 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+															 .flatMap(Main::transform)
+															 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+															 .flatMap(createCRootRule()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -151,7 +143,7 @@ public class Main {
 
 	private static Function transformMethod(Method method) {
 		final List<JavaDefinition> oldParams = switch (method.params()) {
-			case None<List<JavaDefinition>> v -> Collections.emptyList();
+			case None<List<JavaDefinition>> _ -> Collections.emptyList();
 			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
