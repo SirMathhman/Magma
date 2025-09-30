@@ -12,9 +12,39 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Main {
-	private sealed interface Result<T, X> {}
+	private sealed interface Result<T, X> {
+		default <R> Result<R, X> map(Function<? super T, ? extends R> fn) {
+			if (this instanceof Ok<T, X> ok)
+				return new Ok<>(fn.apply(ok.value()));
+			@SuppressWarnings("unchecked")
+			Result<R, X> self = (Result<R, X>) this; // safe: Err doesn't carry T
+			return self;
+		}
+
+		default <R> Result<R, X> flatMap(Function<? super T, ? extends Result<R, X>> fn) {
+			if (this instanceof Ok<T, X> ok)
+				return fn.apply(ok.value());
+			@SuppressWarnings("unchecked")
+			Result<R, X> self = (Result<R, X>) this; // safe: Err doesn't carry T
+			return self;
+		}
+
+		default T orElseGet(Supplier<? extends T> supplier) {
+			if (this instanceof Ok<T, X> ok)
+				return ok.value();
+			return supplier.get();
+		}
+
+		default Stream<T> stream() {
+			if (this instanceof Ok<T, X> ok)
+				return Stream.of(ok.value());
+			return Stream.empty();
+		}
+	}
 
 	private interface Rule {
 		Result<Node, CompileError> lex(String content);
@@ -22,15 +52,20 @@ public class Main {
 		Result<String, CompileError> generate(Node node);
 	}
 
-	private interface Context {}
+	private interface Context {
+	}
 
-	private record Ok<T, X>(T value) implements Result<T, X> {}
+	private record Ok<T, X>(T value) implements Result<T, X> {
+	}
 
-	private record Err<T, X>(X error) implements Result<T, X> {}
+	private record Err<T, X>(X error) implements Result<T, X> {
+	}
 
-	private record StringContext(String context) implements Context {}
+	private record StringContext(String context) implements Context {
+	}
 
-	private record NodeContext(Node node) implements Context {}
+	private record NodeContext(Node node) implements Context {
+	}
 
 	private record CompileError(String reason, Context sourceCode, List<CompileError> causes) {
 		public CompileError(String reason, Context sourceCode) {
@@ -97,9 +132,9 @@ public class Main {
 		@Override
 		public Result<String, CompileError> generate(Node node) {
 			return node.findString(key)
-								 .<Result<String, CompileError>>map(Ok::new)
-								 .orElseGet(
-										 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
+					.<Result<String, CompileError>>map(Ok::new)
+					.orElseGet(
+							() -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
 		}
 
 		public String getKey() {
@@ -111,7 +146,8 @@ public class Main {
 		@Override
 		public Result<Node, CompileError> lex(String input) {
 			final int index = input.indexOf(infix());
-			if (index < 0) return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
+			if (index < 0)
+				return new Err<>(new CompileError("Infix '" + infix + "' not present", new StringContext(input)));
 
 			final String beforeContent = input.substring(0, index);
 			final String content = input.substring(index + infix().length());
@@ -145,7 +181,8 @@ public class Main {
 	private record SuffixRule(Rule rule, String suffix) implements Rule {
 		@Override
 		public Result<Node, CompileError> lex(String input) {
-			if (!input.endsWith(suffix())) return Optional.empty();
+			if (!input.endsWith(suffix()))
+				return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
 			final String slice = input.substring(0, input.length() - suffix().length());
 			return getRule().lex(slice);
 		}
@@ -163,8 +200,10 @@ public class Main {
 	private record PrefixRule(String prefix, Rule rule) implements Rule {
 		@Override
 		public Result<Node, CompileError> lex(String content) {
-			if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
-			else return Optional.empty();
+			if (content.startsWith(prefix))
+				return rule.lex(content.substring(prefix.length()));
+			else
+				return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(content)));
 		}
 
 		@Override
@@ -176,12 +215,22 @@ public class Main {
 	private record OrRule(List<Rule> rules) implements Rule {
 		@Override
 		public Result<Node, CompileError> lex(String content) {
-			return rules.stream().map(rule -> rule.lex(content)).flatMap(Optional::stream).findFirst();
+			return rules.stream()
+					.map(rule -> rule.lex(content))
+					.flatMap(Result::stream)
+					.findFirst()
+					.<Result<Node, CompileError>>map(Ok::new)
+					.orElseGet(() -> new Err<>(new CompileError("No alternative matched for input", new StringContext(content))));
 		}
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			return rules.stream().map(rule -> rule.generate(node)).flatMap(Optional::stream).findFirst();
+			return rules.stream()
+					.map(rule -> rule.generate(node))
+					.flatMap(Result::stream)
+					.findFirst()
+					.<Result<String, CompileError>>map(Ok::new)
+					.orElseGet(() -> new Err<>(new CompileError("No generator matched for node", new NodeContext(node))));
 		}
 	}
 
@@ -213,8 +262,10 @@ public class Main {
 					buffer = new StringBuilder();
 					depth--;
 				} else {
-					if (c == '{') depth++;
-					if (c == '}') depth--;
+					if (c == '{')
+						depth++;
+					if (c == '}')
+						depth--;
 				}
 			}
 
@@ -224,17 +275,18 @@ public class Main {
 
 		@Override
 		public Result<Node, CompileError> lex(String input) {
-			final List<Node> children = divide(input).map(rule()::lex).flatMap(Optional::stream).toList();
-			return Optional.of(new Node().withNodeList(key, children));
+			final List<Node> children = divide(input).map(rule()::lex).flatMap(Result::stream).toList();
+			return new Ok<>(new Node().withNodeList(key, children));
 		}
 
 		@Override
 		public Result<String, CompileError> generate(Node value) {
 			return value.findNodeList(key())
-									.map(list -> list.stream()
-																	 .map(rule()::generate)
-																	 .flatMap(Optional::stream)
-																	 .collect(Collectors.joining()));
+					.<Result<String, CompileError>>map(list -> new Ok<>(list.stream()
+							.map(rule()::generate)
+							.flatMap(Result::stream)
+							.collect(Collectors.joining())))
+					.orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
 		}
 	}
 
@@ -246,7 +298,7 @@ public class Main {
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			return Optional.empty();
+			return new Err<>(new CompileError("Cannot generate for node group '" + key + "'", new NodeContext(node)));
 		}
 	}
 
@@ -258,7 +310,7 @@ public class Main {
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			return Optional.empty();
+			return new Err<>(new CompileError("Cannot generate for type '" + type + "'", new NodeContext(node)));
 		}
 	}
 
@@ -268,16 +320,16 @@ public class Main {
 			final String input = Files.readString(source);
 			Files.writeString(source.resolveSibling("main.c"), compile(input));
 		} catch (IOException e) {
-			//noinspection CallToPrintStackTrace
+			// noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
 
 	private static String compile(String input) {
 		return createJavaRootRule().lex(input)
-															 .map(Main::transform)
-															 .flatMap(createCRootRule()::generate)
-															 .orElseGet(() -> PlaceholderRule.wrap(input));
+				.map(Main::transform)
+				.flatMap(createCRootRule()::generate)
+				.orElseGet(() -> PlaceholderRule.wrap(input));
 	}
 
 	private static Rule createJavaRootRule() {
@@ -295,24 +347,26 @@ public class Main {
 
 	private static Node transform(Node node) {
 		final List<Node> newChildren = node.findNodeList("children")
-																			 .orElse(Collections.emptyList())
-																			 .stream()
-																			 .map(Main::getNode)
-																			 .flatMap(Optional::stream)
-																			 .toList();
+				.orElse(Collections.emptyList())
+				.stream()
+				.map(Main::getNode)
+				.flatMap(Optional::stream)
+				.toList();
 
 		return node.withNodeList("children", newChildren);
 	}
 
 	private static Optional<Node> getNode(Node node) {
-		if (node.is("package") || node.is("import")) return Optional.empty();
+		if (node.is("package") || node.is("import"))
+			return Optional.empty();
 		else if (node.is("class")) {
 			final List<Node> copy = node.findNodeList("children").orElse(Collections.emptyList());
 			final ArrayList<Node> copy0 = new ArrayList<>();
 			copy0.add(node.findNode("header").orElse(new Node()));
 			copy0.addAll(copy);
 			return Optional.of(node.withNodeList("children", copy0));
-		} else return Optional.of(node);
+		} else
+			return Optional.of(node);
 	}
 
 	private static Rule createClassRule() {
@@ -343,7 +397,7 @@ public class Main {
 
 	private static Rule createBlockRule() {
 		return new SuffixRule(new InfixRule(new PlaceholderRule(new StringRule("header")), "{",
-																				new PlaceholderRule(new StringRule("content"))), "}");
+				new PlaceholderRule(new StringRule("content"))), "}");
 	}
 
 	private static Rule createStructHeaderRule() {
