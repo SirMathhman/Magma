@@ -24,7 +24,7 @@ import static magma.compile.Lang.*;
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.out.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {

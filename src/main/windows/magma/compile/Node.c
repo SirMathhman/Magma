@@ -122,4 +122,5 @@ struct Node {};/*
 		if (hasFields) builder.append("\n").append(indent);
 		builder.append("}");
 	}*//*
+*//*
 */

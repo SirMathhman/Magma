@@ -49,4 +49,5 @@ struct Lang {};/*
 	private static Rule Namespace(String type) {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
 	}*/ClassClassMemberDefinitionTypeContent/*
+*//*
 */

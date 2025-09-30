@@ -1,74 +1,66 @@
 struct Main {};/*
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(
-				ApplicationError value
-		)) System.out.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	}*/run/*
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles = paths
-					.filter(Files::isRegularFile)
-					.filter(path -> path.toString().endsWith(".java"))
-					.toList();
-			
+			List<Path> javaFiles =
+					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
+
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
-			
+
 			for (Path javaFile : javaFiles) {
 				System.out.println("Compiling: " + javaFile);
 				Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
 				if (result instanceof Some<ApplicationError>(ApplicationError error)) {
 					System.err.println("Failed to compile " + javaFile + ": " + error.display());
-					// Continue with other files instead of stopping
-				} else {
-					System.out.println("Successfully compiled: " + javaFile);
-				}
+					return result; // Fail fast - return the error immediately
+				} System.out.println("Successfully compiled: " + javaFile);
 			}
-			
+
 			return Option.empty();
 		} catch (IOException e) {
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}
 	}*//*
-	
+
 	private static Option<ApplicationError> compileJavaFile(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {
 		// Calculate relative path from source root
 		Path relativePath = javaSourceRoot.relativize(javaFile);
-		
+
 		// Change extension from .java to .c
 		String fileName = relativePath.getFileName().toString();
 		String cFileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".c";
 		Path cFilePath = cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);
-		
+
 		// Ensure output directory exists
 		try {
 			Files.createDirectories(cFilePath.getParent());
 		} catch (IOException e) {
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}
-		
+
 		Result<String, ThrowableError> readResult = readString(javaFile);
-		if (readResult instanceof Err<String, ThrowableError>(ThrowableError error)) {
+		if (readResult instanceof Err<String, ThrowableError>(ThrowableError error))
 			return Option.of(new ApplicationError(error));
-		}
-		
+
 		if (readResult instanceof Ok<String, ThrowableError>(String input)) {
 			Result<String, CompileError> compileResult = compile(input);
-			if (compileResult instanceof Err<String, CompileError>(CompileError error)) {
+			if (compileResult instanceof Err<String, CompileError>(CompileError error))
 				return Option.of(new ApplicationError(error));
-			}
-			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
+			if (compileResult instanceof Ok<String, CompileError>(String compiled))
 				return writeString(cFilePath, compiled).map(ThrowableError::new).map(ApplicationError::new);
-			}
 		}
-		
+
 		return Option.empty();
 	}*//*
-	
+
 	private static Option<IOException> writeString(Path path, String result) {
 		try {
-			Files.writeString(path, result); return Option.empty();
+			Files.writeString(path, result);
+			return Option.empty();
 		} catch (IOException e) {
 			return Option.of(e);
 		}
@@ -107,13 +99,15 @@ struct Main {};/*
 
 	private static CRootSegment getSelf(JavaClassMember self) {
 		return switch (self) {
-			case Content content -> content; case Method method -> transformMethod(method);
+			case Content content -> content;
+			case Method method -> transformMethod(method);
 		};
 	}*//*
 
 	private static Function transformMethod(Method method) {
 		final List<JavaDefinition> oldParams = switch (method.params()) {
-			case None<List<JavaDefinition>> v -> Collections.emptyList(); case Some<List<JavaDefinition>> v -> v.value();
+			case None<List<JavaDefinition>> _ -> Collections.emptyList();
+			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
 		final List<CDefinition> newParams = oldParams.stream().map(Main::getDefinition).toList();
@@ -123,4 +117,5 @@ struct Main {};/*
 	private static CDefinition getDefinition(JavaDefinition definition) {
 		return new CDefinition(definition.name());
 	}*//*
+*//*
 */

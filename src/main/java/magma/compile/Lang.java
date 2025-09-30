@@ -82,8 +82,8 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return Statements("children",
-											Or(Namespace("package"), Namespace("import"), Class(), Tag("whitespace", Strip(Empty))));
+		return Statements("children", Or(Namespace("package"), Namespace("import"), Class(), Content(),
+																		 Tag("whitespace", Strip(Empty))));
 	}
 
 	private static Rule Namespace(String type) {

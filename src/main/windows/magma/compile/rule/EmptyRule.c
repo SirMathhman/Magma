@@ -11,4 +11,5 @@ struct EmptyRule implements Rule {};/*
 	public Result<String, CompileError> generate(Node node) {
 		return new Ok<>("");
 	}*//*
+*//*
 */

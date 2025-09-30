@@ -3,4 +3,5 @@ struct None<T> implements Option<T> {};/*
 	public <R> Option<R> map(Function<T, R> mapper) {
 		return new None<>();
 	}*//*
+*//*
 */
