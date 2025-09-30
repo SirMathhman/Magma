@@ -3,6 +3,7 @@ package magma.compile;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.option.None;
 import magma.option.Optional;
 import magma.option.Some;
 import magma.result.Err;
@@ -19,7 +20,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.function.Consumer;
 
 public class Serialize {
 	public static <T> Result<T, CompileError> deserialize(Class<T> clazz, Node node) {
@@ -90,7 +90,7 @@ public class Serialize {
 
 		final Node result = new Node();
 		Optional<String> stringOptional = resolveTypeIdentifier(clazz);
-		if (stringOptional instanceof Some<String>(String value2)) ((Consumer<String>) result::retype).accept(value2);
+		if (stringOptional instanceof Some<String>(String value2)) result.retype(value2);
 
 		final RecordComponent[] components = clazz.getRecordComponents();
 		final ArrayList<CompileError> errors = new ArrayList<>();
@@ -100,8 +100,7 @@ public class Serialize {
 			try {
 				final Object value = accessor.invoke(node);
 				final Optional<CompileError> writeResult = writeComponent(result, component, value);
-				if (writeResult instanceof Some<CompileError>(CompileError value1)) ((Consumer<CompileError>) errors::add).accept(
-						value1);
+				if (writeResult instanceof Some<CompileError>(CompileError value1)) errors.add(value1);
 			} catch (IllegalAccessException | InvocationTargetException e) {
 				errors.add(new CompileError("Failed to read component '" + component.getName() + "'",
 																		new StringContext(clazz.getName()),
@@ -244,12 +243,20 @@ public class Serialize {
 
 	private static Optional<String> findStringInChildren(Node node, String key) {
 		for (Node child : node.nodes.values()) {
-			final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
+			final Optional<String> nested = switch (child.findString(key)) {
+				case None<String> _ -> findStringInChildren(child, key);
+				case Some<String> _ -> child.findString(key);
+			};
+
 			if (nested instanceof Some<String>) return nested;
 		}
 		for (List<Node> children : node.nodeLists.values())
 			for (Node child : children) {
-				final Optional<String> nested = child.findString(key).or(() -> findStringInChildren(child, key));
+				final Optional<String> nested = switch (child.findString(key)) {
+					case None<String> _ -> findStringInChildren(child, key);
+					case Some<String> _ -> child.findString(key);
+				};
+
 				if (nested instanceof Some<String>) return nested;
 			}
 		return Optional.empty();

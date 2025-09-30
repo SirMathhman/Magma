@@ -4,9 +4,14 @@ import magma.compile.Node;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.option.None;
+import magma.option.Optional;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+
+import java.util.function.Supplier;
 
 public record StringRule(String key) implements Rule {
 	public static Rule String(String key) {
@@ -21,9 +26,12 @@ public record StringRule(String key) implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return node.findString(key)
-							 .<Result<String, CompileError>>map(Ok::new)
-							 .orElseGet(
-									 () -> new Err<>(new CompileError("String '" + key + "' not present.", new NodeContext(node))));
+		Optional<Result<String, CompileError>> resultOptional = node.findString(key)
+																																.<Result<String, CompileError>>map(Ok::new);
+		return switch (resultOptional) {
+			case None<Result<String, CompileError>> _ -> ((Supplier<Result<String, CompileError>>) () -> new Err<>(
+					new CompileError("String '" + key + "' not present.", new NodeContext(node)))).get();
+			case Some<Result<String, CompileError>>(Result<String, CompileError> value) -> value;
+		};
 	}
 }

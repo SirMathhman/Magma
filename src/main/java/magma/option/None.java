@@ -12,7 +12,6 @@ public final class None<T> implements Optional<T> {
 		return true;
 	}
 
-	@Override
 	public Optional<T> or(Supplier<Optional<T>> other) {
 		return other.get();
 	}
@@ -30,7 +29,6 @@ public final class None<T> implements Optional<T> {
 		return new None<>();
 	}
 
-	@Override
 	public T orElseGet(Supplier<T> supplier) {
 		return supplier.get();
 	}

@@ -4,11 +4,15 @@ import magma.compile.Node;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.option.None;
+import magma.option.Optional;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
+import java.util.function.Supplier;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
 	public static Rule Statements(String key, Rule rule) {
@@ -39,17 +43,23 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<String, CompileError> generate(Node value) {
-		return value.findNodeList(key()).<Result<String, CompileError>>map(list -> {
-			final StringBuilder sb = new StringBuilder();
-			for (Node child : list)
-				switch (this.rule.generate(child)) {
-					case Ok<String, CompileError>(String value1) -> sb.append(value1);
-					case Err<String, CompileError>(CompileError error) -> {
-						return new Err<>(error);
-					}
-				}
+		Optional<Result<String, CompileError>> resultOptional =
+				value.findNodeList(key()).<Result<String, CompileError>>map(list -> {
+					final StringBuilder sb = new StringBuilder();
+					for (Node child : list)
+						switch (this.rule.generate(child)) {
+							case Ok<String, CompileError>(String value1) -> sb.append(value1);
+							case Err<String, CompileError>(CompileError error) -> {
+								return new Err<>(error);
+							}
+						}
 
-			return new Ok<>(sb.toString());
-		}).orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
+					return new Ok<>(sb.toString());
+				});
+		return switch (resultOptional) {
+			case None<Result<String, CompileError>> _ -> ((Supplier<Result<String, CompileError>>) () -> new Err<>(
+					new CompileError("Node list '" + key + "' not present", new NodeContext(value)))).get();
+			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
+		};
 	}
 }

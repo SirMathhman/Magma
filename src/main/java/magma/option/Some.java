@@ -13,7 +13,6 @@ public record Some<T>(T value) implements Optional<T> {
 		return false;
 	}
 
-	@Override
 	public Optional<T> or(Supplier<Optional<T>> other) {
 		return this;
 	}
@@ -31,7 +30,6 @@ public record Some<T>(T value) implements Optional<T> {
 		return new Some<>(mapper.apply(value));
 	}
 
-	@Override
 	public T orElseGet(Supplier<T> supplier) {
 		return value;
 	}
