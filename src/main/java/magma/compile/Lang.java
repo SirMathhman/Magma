@@ -1,5 +1,6 @@
 package magma.compile;
 
+import magma.compile.rule.NodeListRule;
 import magma.compile.rule.Rule;
 
 import java.util.List;
@@ -78,7 +79,11 @@ public class Lang {
 
 	private static Rule Definition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		return Last(Last(modifiers, " ", String("type")), " ", String("name"));
+		return Last(Last(modifiers, " ", Node("type", Type())), " ", String("name"));
+	}
+
+	private static Rule Type() {
+		return Or(Tag("generic", Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">"))), Content());
 	}
 
 	private static Rule Content() {

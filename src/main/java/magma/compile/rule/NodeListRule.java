@@ -19,6 +19,10 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return new NodeListRule(key, rule, new DelimitedRule(delimiter));
 	}
 
+	public static Rule Values(String key, Rule rule) {
+		return new NodeListRule(key, rule, new ValueDivider());
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		final ArrayList<Node> children = new ArrayList<>();
