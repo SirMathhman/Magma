@@ -59,10 +59,10 @@ public class Main {
 
 	private static Result<String, CompileError> compile(String input) {
 		return createJavaRootRule().lex(input)
-															 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-															 .flatMap(Main::transform)
-															 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-															 .flatMap(createCRootRule()::generate);
+				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+				.flatMap(Main::transform)
+				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+				.flatMap(createCRootRule()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -76,6 +76,7 @@ public class Main {
 				yield Stream.concat(Stream.of(structure), aClass.children().stream().<CRootSegment>map(self -> self));
 			}
 			case Content content -> Stream.of(content);
+			case Whitespace _ -> Stream.empty();
 		};
 	}
 }

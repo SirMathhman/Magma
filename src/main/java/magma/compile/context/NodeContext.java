@@ -5,6 +5,6 @@ import magma.compile.Node;
 public record NodeContext(Node node) implements Context {
 	@Override
 	public String display(int depth) {
-		return node.format(depth);
+		return "\n" + node.format(depth + 1);
 	}
 }
