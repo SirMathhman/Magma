@@ -863,11 +863,7 @@ public class Main {
 			case JavaClass javaClass -> flattenClass(javaClass);
 			case JavaStruct struct -> Stream.of(new CStructure(struct.name()));
 			case JavaContent content -> Stream.of(content);
-			case JavaBlock block -> {
-				block.header();
-				block.content();
-				yield Stream.of();
-			}
+			case JavaBlock _ -> Stream.of();
 		});
 
 		return Stream.concat(Stream.of(new CStructure(clazz.name())), nested);
