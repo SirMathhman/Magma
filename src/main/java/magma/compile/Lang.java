@@ -49,9 +49,17 @@ public class Lang {
 	}
 
 	private static Rule Class() {
-		return Tag("class", Strip(
-				Suffix(First(String("modifiers"), "class ", First(String("name"), "{", NodeList("children", Content()))),
-							 "}")));
+		final Rule modifiers = String("modifiers");
+		final Rule name = String("name");
+		final Rule children = NodeList("children", ClassMember());
+
+		return Tag("class", Strip(Suffix(First(modifiers, "class ", First(name, "{", children)), "}")));
+	}
+
+	private static Rule ClassMember() {
+		return Or(Tag("method", Strip(
+				Suffix(First(Strip(Suffix(First(String("definition"), "(", String("params")), ")")), "{", String("body")),
+							 "}"))), Content());
 	}
 
 	private static Rule Content() {
