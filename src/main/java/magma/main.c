@@ -1,6 +1,6 @@
 package magma;
 
-import magma.compile.Node;
+import magma.compile.Serialize;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
@@ -16,6 +16,10 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 public class Main {
+	public record JavaRoot(String value) {}
+
+	public record CRoot(String value) {}
+
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
 	}
@@ -55,10 +59,14 @@ public class Main {
 	}
 
 	private static Result<String, CompileError> compile(String input) {
-		return new StringRule("value").lex(input).flatMap(Main::transform).flatMap(new StringRule("value")::generate);
+		return new StringRule("value").lex(input)
+																	.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+																	.flatMap(Main::transform)
+																	.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+																	.flatMap(new StringRule("value")::generate);
 	}
 
-	private static Result<Node, CompileError> transform(Node node) {
-		return new Ok<>(node);
+	private static Result<CRoot, CompileError> transform(JavaRoot node) {
+		return new Ok<>(new CRoot(node.value));
 	}
 }

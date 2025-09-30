@@ -16,9 +16,9 @@ import java.nio.file.Paths;
 import java.util.Optional;
 
 public class Main {
-	private record JavaRoot(String value) {}
+	public record JavaRoot(String value) {}
 
-	private record CRoot(String value) {}
+	public record CRoot(String value) {}
 
 	public static void main(String[] args) {
 		run().ifPresent(error -> System.out.println(error.display()));
