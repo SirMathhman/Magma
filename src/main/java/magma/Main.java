@@ -12,8 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
@@ -83,8 +83,19 @@ public class Main {
 
 		@Override
 		public String display() {
-			return reason + ": " + context.display() +
-						 causes.stream().map(CompileError::display).collect(Collectors.joining());
+			return format(0, 0);
+		}
+
+		private String format(int depth, int index) {
+			StringJoiner joiner = new StringJoiner(System.lineSeparator());
+			for (int i = 0; i < causes.size(); i++) {
+				CompileError error = causes.get(i);
+				String format = error.format(depth + 1, i);
+				joiner.add(format);
+			}
+
+			final String formattedChildren = joiner.toString();
+			return "\t".repeat(depth) + index + ") " + reason + ": " + context.display() + formattedChildren;
 		}
 	}
 
@@ -138,7 +149,12 @@ public class Main {
 		}
 
 		public String display() {
-			return toString();
+			return format(0);
+		}
+
+		private String format(int depth) {
+			return maybeType.map(inner -> inner + " ").orElse("") + "{" + "strings=" + strings + ", nodes=" + nodes +
+						 ", nodeLists=" + nodeLists + '}';
 		}
 	}
 
@@ -369,7 +385,8 @@ public class Main {
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			return new Err<>(new CompileError("Cannot generate for type '" + type + "'", new NodeContext(node)));
+			if (node.is(type)) return rule.generate(node);
+			else return new Err<>(new CompileError("Type '" + type + "' not present", new NodeContext(node)));
 		}
 	}
 
