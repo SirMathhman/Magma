@@ -58,15 +58,14 @@ public record NodeListRule(String key, Rule rule) implements Rule {
 	public Result<String, CompileError> generate(Node value) {
 		return value.findNodeList(key()).<Result<String, CompileError>>map(list -> {
 			final StringBuilder sb = new StringBuilder();
-			final ArrayList<CompileError> errors = new ArrayList<>();
-			for (Node child : list) {
-				Result<String, CompileError> res = rule().generate(child);
-				if (res instanceof Ok<String, CompileError>(String value1)) sb.append(value1);
-				else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
-			}
-			if (!errors.isEmpty()) return new Err<>(
-					new CompileError("Errors while generating divided segments for '" + key + "'", new NodeContext(value),
-													 errors));
+			for (Node child : list)
+				switch (this.rule.generate(child)) {
+					case Ok<String, CompileError>(String value1) -> sb.append(value1);
+					case Err<String, CompileError>(CompileError error) -> {
+						return new Err<>(error);
+					}
+				}
+
 			return new Ok<>(sb.toString());
 		}).orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
 	}
