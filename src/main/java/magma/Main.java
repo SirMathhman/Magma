@@ -14,11 +14,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+	private sealed interface Result<T, X> {}
+
 	private interface Rule {
 		Optional<Node> lex(String content);
 
 		Optional<String> generate(Node node);
 	}
+
+	private record Ok<T, X>(T value) implements Result<T, X> {}
+
+	private record Err<T, X>(X error) implements Result<T, X> {}
+
+	private record CompileError(String reason, String sourceCode, List<CompileError> causes) {}
 
 	private static final class Node {
 		private final Map<String, String> strings = new HashMap<>();
