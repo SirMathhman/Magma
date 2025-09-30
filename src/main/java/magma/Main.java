@@ -10,7 +10,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -39,11 +38,6 @@ public class Main {
 			return supplier.get();
 		}
 
-		default Stream<T> stream() {
-			if (this instanceof Ok<T, X> ok)
-				return Stream.of(ok.value());
-			return Stream.empty();
-		}
 	}
 
 	private interface Rule {
@@ -215,22 +209,38 @@ public class Main {
 	private record OrRule(List<Rule> rules) implements Rule {
 		@Override
 		public Result<Node, CompileError> lex(String content) {
-			return rules.stream()
-					.map(rule -> rule.lex(content))
-					.flatMap(Result::stream)
-					.findFirst()
-					.<Result<Node, CompileError>>map(Ok::new)
-					.orElseGet(() -> new Err<>(new CompileError("No alternative matched for input", new StringContext(content))));
+			final ArrayList<CompileError> errors = new ArrayList<>();
+			for (Rule rule : rules) {
+				Result<Node, CompileError> res = rule.lex(content);
+				if (res instanceof Ok<?, ?> ok) {
+					@SuppressWarnings("unchecked")
+					Ok<Node, CompileError> nodeOk = (Ok<Node, CompileError>) ok;
+					return nodeOk;
+				} else if (res instanceof Err<?, ?> err) {
+					@SuppressWarnings("unchecked")
+					Err<Node, CompileError> nodeErr = (Err<Node, CompileError>) err;
+					errors.add(nodeErr.error());
+				}
+			}
+			return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
 		}
 
 		@Override
 		public Result<String, CompileError> generate(Node node) {
-			return rules.stream()
-					.map(rule -> rule.generate(node))
-					.flatMap(Result::stream)
-					.findFirst()
-					.<Result<String, CompileError>>map(Ok::new)
-					.orElseGet(() -> new Err<>(new CompileError("No generator matched for node", new NodeContext(node))));
+			final ArrayList<CompileError> errors = new ArrayList<>();
+			for (Rule rule : rules) {
+				Result<String, CompileError> res = rule.generate(node);
+				if (res instanceof Ok<?, ?> ok) {
+					@SuppressWarnings("unchecked")
+					Ok<String, CompileError> strOk = (Ok<String, CompileError>) ok;
+					return strOk;
+				} else if (res instanceof Err<?, ?> err) {
+					@SuppressWarnings("unchecked")
+					Err<String, CompileError> strErr = (Err<String, CompileError>) err;
+					errors.add(strErr.error());
+				}
+			}
+			return new Err<>(new CompileError("No generator matched for node", new NodeContext(node), errors));
 		}
 	}
 
@@ -275,17 +285,51 @@ public class Main {
 
 		@Override
 		public Result<Node, CompileError> lex(String input) {
-			final List<Node> children = divide(input).map(rule()::lex).flatMap(Result::stream).toList();
+			final ArrayList<Node> children = new ArrayList<>();
+			final ArrayList<CompileError> errors = new ArrayList<>();
+			divide(input).forEach(segment -> {
+				Result<Node, CompileError> res = rule().lex(segment);
+				if (res instanceof Ok<?, ?> ok) {
+					@SuppressWarnings("unchecked")
+					Ok<Node, CompileError> nodeOk = (Ok<Node, CompileError>) ok;
+					children.add(nodeOk.value());
+				} else if (res instanceof Err<?, ?> err) {
+					@SuppressWarnings("unchecked")
+					Err<Node, CompileError> nodeErr = (Err<Node, CompileError>) err;
+					errors.add(nodeErr.error());
+				}
+			});
+			if (!errors.isEmpty()) {
+				return new Err<>(new CompileError("Errors while lexing divided segments for '" + key + "'",
+						new StringContext(input), errors));
+			}
 			return new Ok<>(new Node().withNodeList(key, children));
 		}
 
 		@Override
 		public Result<String, CompileError> generate(Node value) {
 			return value.findNodeList(key())
-					.<Result<String, CompileError>>map(list -> new Ok<>(list.stream()
-							.map(rule()::generate)
-							.flatMap(Result::stream)
-							.collect(Collectors.joining())))
+					.<Result<String, CompileError>>map(list -> {
+						final StringBuilder sb = new StringBuilder();
+						final ArrayList<CompileError> errors = new ArrayList<>();
+						for (Node child : list) {
+							Result<String, CompileError> res = rule().generate(child);
+							if (res instanceof Ok<?, ?> ok) {
+								@SuppressWarnings("unchecked")
+								Ok<String, CompileError> strOk = (Ok<String, CompileError>) ok;
+								sb.append(strOk.value());
+							} else if (res instanceof Err<?, ?> err) {
+								@SuppressWarnings("unchecked")
+								Err<String, CompileError> strErr = (Err<String, CompileError>) err;
+								errors.add(strErr.error());
+							}
+						}
+						if (!errors.isEmpty()) {
+							return new Err<>(new CompileError("Errors while generating divided segments for '" + key + "'",
+									new NodeContext(value), errors));
+						}
+						return new Ok<>(sb.toString());
+					})
 					.orElseGet(() -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value))));
 		}
 	}
