@@ -8,7 +8,8 @@ import java.util.Optional;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
 import static magma.compile.rule.InfixRule.Last;
-import static magma.compile.rule.NodeListRule.NodeList;
+import static magma.compile.rule.NodeListRule.Delimited;
+import static magma.compile.rule.NodeListRule.Statements;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
@@ -40,7 +41,7 @@ public class Lang {
 	public record CRoot(List<CRootSegment> children) {}
 
 	public static Rule createCRootRule() {
-		return NodeList("children", getOr());
+		return Statements("children", getOr());
 	}
 
 	private static Rule getOr() {
@@ -52,8 +53,8 @@ public class Lang {
 	}
 
 	public static Rule createJavaRootRule() {
-		return NodeList("children",
-										Or(Namespace("package"), Namespace("import"), Class(), Tag("whitespace", Strip(Empty))));
+		return Statements("children",
+											Or(Namespace("package"), Namespace("import"), Class(), Tag("whitespace", Strip(Empty))));
 	}
 
 	private static Rule Namespace(String type) {
@@ -63,7 +64,7 @@ public class Lang {
 	private static Rule Class() {
 		final Rule modifiers = String("modifiers");
 		final Rule name = String("name");
-		final Rule children = NodeList("children", ClassMember());
+		final Rule children = Statements("children", ClassMember());
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), "class ", name), "{", children);
 		return Tag("class", Strip(Suffix(aClass, "}")));
@@ -76,7 +77,7 @@ public class Lang {
 	}
 
 	private static Rule Definition() {
-		return Last(Last(String("modifiers"), " ", String("type")), " ", String("name"));
+		return Last(Last(Delimited("modifiers", Content(), " "), " ", String("type")), " ", String("name"));
 	}
 
 	private static Rule Content() {

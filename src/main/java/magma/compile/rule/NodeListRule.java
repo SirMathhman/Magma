@@ -9,42 +9,21 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
-import java.util.stream.Stream;
 
-public record NodeListRule(String key, Rule rule) implements Rule {
-	private static Stream<String> divide(String afterBraces) {
-		final ArrayList<String> segments = new ArrayList<>();
-		StringBuilder buffer = new StringBuilder();
-		int depth = 0;
-		for (int i = 0; i < afterBraces.length(); i++) {
-			final char c = afterBraces.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			} else if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-			} else {
-				if (c == '{') depth++;
-				if (c == '}') depth--;
-			}
-		}
-
-		segments.add(buffer.toString());
-		return segments.stream();
+public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
+	public static Rule Statements(String key, Rule rule) {
+		return new NodeListRule(key, rule, new StatementDivider());
 	}
 
-	public static Rule NodeList(String key, Rule rule) {
-		return new NodeListRule(key, rule);
+	public static Rule Delimited(String key, Rule rule, String delimiter) {
+		return new NodeListRule(key, rule, new DelimitedRule(delimiter));
 	}
 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		final ArrayList<Node> children = new ArrayList<>();
 		final ArrayList<CompileError> errors = new ArrayList<>();
-		divide(input).forEach(segment -> {
+		divider.divide(input).forEach(segment -> {
 			Result<Node, CompileError> res = rule().lex(segment);
 			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
 			else if (res instanceof Err<Node, CompileError>(CompileError error)) errors.add(error);
