@@ -4,7 +4,6 @@ import magma.compile.Node;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
-import magma.option.Optional;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Result;

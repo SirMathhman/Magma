@@ -7,7 +7,6 @@ import magma.option.Some;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 
 public final class Node {
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
@@ -34,7 +33,7 @@ public final class Node {
 
 	public Node merge(Node node) {
 		maybeType = switch (maybeType) {
-			case None<String> _ -> ((Supplier<Optional<String>>) () -> node.maybeType).get();
+			case None<String> _ -> node.maybeType;
 			case Some<String> _ -> maybeType;
 		};
 		this.strings.putAll(node.strings);

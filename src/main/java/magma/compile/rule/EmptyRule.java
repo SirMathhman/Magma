@@ -8,7 +8,7 @@ import magma.result.Ok;
 import magma.result.Result;
 
 public class EmptyRule implements Rule {
-	public static Rule Empty = new EmptyRule();
+	public static final Rule Empty = new EmptyRule();
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {

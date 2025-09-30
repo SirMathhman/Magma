@@ -12,7 +12,6 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
-import java.util.function.Supplier;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
 	public static Rule Statements(String key, Rule rule) {
@@ -44,7 +43,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<String, CompileError> generate(Node value) {
 		Optional<Result<String, CompileError>> resultOptional =
-				value.findNodeList(key()).<Result<String, CompileError>>map(list -> {
+				value.findNodeList(key()).map(list -> {
 					final StringBuilder sb = new StringBuilder();
 					for (Node child : list)
 						switch (this.rule.generate(child)) {
@@ -57,8 +56,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 					return new Ok<>(sb.toString());
 				});
 		return switch (resultOptional) {
-			case None<Result<String, CompileError>> _ -> ((Supplier<Result<String, CompileError>>) () -> new Err<>(
-					new CompileError("Node list '" + key + "' not present", new NodeContext(value)))).get();
+			case None<Result<String, CompileError>> _ -> new Err<>(
+					new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
 	}

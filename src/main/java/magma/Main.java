@@ -76,7 +76,7 @@ public class Main {
 		return switch (segment) {
 			case JClass aClass -> {
 				final Structure structure = new Structure(aClass.name());
-				yield Stream.concat(Stream.of(structure), aClass.children().stream().map(self -> getSelf(self)));
+				yield Stream.concat(Stream.of(structure), aClass.children().stream().map(Main::getSelf));
 			}
 			case Content content -> Stream.of(content);
 			default -> Stream.empty();
