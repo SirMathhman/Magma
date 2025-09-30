@@ -11,6 +11,7 @@ import static magma.compile.rule.StringRule.String;
 import static magma.compile.rule.TypeRule.Type;
 
 public class Lang {
+	@Tag("content")
 	public record Content(String value) {}
 
 	public record JavaRoot(List<Content> children) {}

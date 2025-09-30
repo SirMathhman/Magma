@@ -12,6 +12,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.RecordComponent;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -110,7 +111,7 @@ public class Serialize {
 	}
 
 	private static Optional<String> resolveTypeIdentifier(Class<?> clazz) {
-		Type annotation = clazz.getAnnotation(Type.class);
+		Tag annotation = clazz.getAnnotation(Tag.class);
 		if (Objects.isNull(annotation)) return Optional.empty();
 		return Optional.of(annotation.value());
 	}
@@ -152,13 +153,13 @@ public class Serialize {
 	}
 
 	private static Result<Object, CompileError> deserializeListComponent(RecordComponent component, Node node) {
-		final java.lang.reflect.Type genericType = component.getGenericType();
+		final Type genericType = component.getGenericType();
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
 			return new Err<>(
 					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
 													 new NodeContext(node)));
 
-		final java.lang.reflect.Type argumentType = parameterized.getActualTypeArguments()[0];
+		final Type argumentType = parameterized.getActualTypeArguments()[0];
 		final Class<?> elementClass = erase(argumentType);
 		final Optional<List<Node>> maybeList = node.findNodeList(component.getName());
 		if (maybeList.isEmpty()) return new Err<>(missingFieldError(component.getName(), elementClass, node));
@@ -250,7 +251,7 @@ public class Serialize {
 				new CompileError("Component '" + component.getName() + "' is not a List instance",
 												 new StringContext(component.getName())));
 
-		final java.lang.reflect.Type genericType = component.getGenericType();
+		final Type genericType = component.getGenericType();
 		if (!(genericType instanceof ParameterizedType parameterized) || parameterized.getActualTypeArguments().length != 1)
 			return Optional.of(
 					new CompileError("Component '" + component.getName() + "' must declare a single generic parameter",
@@ -276,7 +277,7 @@ public class Serialize {
 		return Optional.empty();
 	}
 
-	private static Class<?> erase(java.lang.reflect.Type type) {
+	private static Class<?> erase(Type type) {
 		if (type instanceof Class<?> clazz) return clazz;
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
 			return raw;
