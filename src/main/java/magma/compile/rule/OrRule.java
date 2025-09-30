@@ -9,9 +9,14 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public record OrRule(List<Rule> rules) implements Rule {
+	public static Rule Or(Rule... rules) {
+		return new OrRule(Arrays.asList(rules));
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		final ArrayList<CompileError> errors = new ArrayList<>();

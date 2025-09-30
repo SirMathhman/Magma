@@ -36,6 +36,10 @@ public record NodeListRule(String key, Rule rule) implements Rule {
 		return segments.stream();
 	}
 
+	public static Rule NodeList(String key, Rule rule) {
+		return new NodeListRule(key, rule);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		final ArrayList<Node> children = new ArrayList<>();

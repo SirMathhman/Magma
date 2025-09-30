@@ -7,6 +7,10 @@ import magma.result.Err;
 import magma.result.Result;
 
 public record TypeRule(String type, Rule rule) implements Rule {
+	public static Rule Type(String type, Rule rule) {
+		return new TypeRule(type, rule);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		return rule.lex(content).map(node -> node.retype(type));

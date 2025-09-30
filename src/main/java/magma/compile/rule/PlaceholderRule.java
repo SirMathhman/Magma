@@ -9,6 +9,10 @@ public record PlaceholderRule(Rule rule) implements Rule {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 
+	public static Rule Placeholder(Rule rule) {
+		return new PlaceholderRule(rule);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		return rule.lex(content);

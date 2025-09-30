@@ -1,25 +1,31 @@
 package magma.compile;
 
-import magma.compile.rule.NodeListRule;
-import magma.compile.rule.PlaceholderRule;
 import magma.compile.rule.Rule;
-import magma.compile.rule.StringRule;
 
 import java.util.List;
 
+import static magma.compile.rule.NodeListRule.NodeList;
+import static magma.compile.rule.OrRule.Or;
+import static magma.compile.rule.PlaceholderRule.Placeholder;
+import static magma.compile.rule.StringRule.String;
+import static magma.compile.rule.TypeRule.Type;
+
 public class Lang {
-	public record Content(String content) {
-	}
+	public record Content(String value) {}
 
 	public record JavaRoot(List<Content> children) {}
 
 	public record CRoot(List<Content> children) {}
 
 	public static Rule createCRootRule() {
-		return new NodeListRule("children", new PlaceholderRule(new StringRule("content")));
+		return NodeList("children", Content());
 	}
 
 	public static Rule createJavaRootRule() {
-		return new NodeListRule("children", new StringRule("content"));
+		return NodeList("children", Or(Content()));
+	}
+
+	private static Rule Content() {
+		return Type("content", Placeholder(String("value")));
 	}
 }

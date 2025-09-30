@@ -6,9 +6,9 @@ import java.util.Map;
 import java.util.Optional;
 
 public final class Node {
-	private final Map<String, String> strings = new HashMap<>();
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
 	public final Map<String, Node> nodes = new HashMap<>();
+	private final Map<String, String> strings = new HashMap<>();
 	public Optional<String> maybeType = Optional.empty();
 
 	private static String escape(String value) {
@@ -29,6 +29,7 @@ public final class Node {
 	}
 
 	public Node merge(Node node) {
+		maybeType = maybeType.or(() -> node.maybeType);
 		this.strings.putAll(node.strings);
 		nodeLists.putAll(node.nodeLists);
 		nodes.putAll(node.nodes);

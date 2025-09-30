@@ -8,6 +8,10 @@ import magma.result.Ok;
 import magma.result.Result;
 
 public record StringRule(String key) implements Rule {
+	public static Rule String(String key) {
+		return new StringRule(key);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		return new Ok<>(new Node().withString(getKey(), content));
