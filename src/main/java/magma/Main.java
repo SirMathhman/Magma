@@ -407,11 +407,15 @@ public class Main {
 		}
 	}
 
+	private record JavaRoot() {}
+
+	private record CRoot() {}
+
 	public static void main(String[] args) {
-		extracted().ifPresent(error -> System.out.println(error.display()));
+		run().ifPresent(error -> System.out.println(error.display()));
 	}
 
-	private static Optional<ApplicationError> extracted() {
+	private static Optional<ApplicationError> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		return switch (readString(source)) {
 			case Err<String, ThrowableError>(ThrowableError error) -> Optional.of(new ApplicationError(error));
