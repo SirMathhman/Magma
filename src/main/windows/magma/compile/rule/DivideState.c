@@ -1,14 +1,16 @@
 struct DivideState {};/*
 	public final List<String> segments;*//*
+	private final String input;*//*
 	private StringBuilder buffer;*//*
 	private int depth;*//*
+	private int index;*//*
 
-	public DivideState(StringBuilder buffer, int depth, List<String> segments) {
-		this.buffer = buffer; this.depth = depth; this.segments = segments;
+	public DivideState(StringBuilder buffer, int depth, List<String> segments, String input) {
+		this.buffer = buffer; this.depth = depth; this.segments = segments; this.input = input;
 	}*//*
 
-	public DivideState() {
-		this(new StringBuilder(), 0, new ArrayList<>());
+	public DivideState(String input) {
+		this(new StringBuilder(), 0, new ArrayList<>(), input);
 	}*//*
 
 	Stream<String> stream() {
@@ -37,5 +39,5 @@ struct DivideState {};/*
 
 	boolean isLevel() {
 		return depth == 0;
-	}*//*
+	}*/poppopAndAppendToTuplepopAndAppendToOption/*
 */

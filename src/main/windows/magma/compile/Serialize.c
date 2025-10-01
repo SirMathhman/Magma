@@ -334,5 +334,4 @@ struct Serialize {};/*
 			return raw;
 		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
 	}*//*
-*//*
 */

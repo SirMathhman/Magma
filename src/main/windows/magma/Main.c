@@ -117,5 +117,4 @@ struct Main {};/*
 	private static CDefinition getDefinition(JavaDefinition definition) {
 		return new CDefinition(definition.name());
 	}*//*
-*//*
 */

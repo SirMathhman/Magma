@@ -11,7 +11,7 @@ public record EscapingFolder(Folder folder) implements Folder {
 															 .flatMap(DivideState::popAndAppendToOption)
 															 .orElse(state);
 
-		return state;
+		return folder.fold(state, c);
 	}
 
 	private DivideState foldEscape(Tuple<DivideState, Character> tuple) {
