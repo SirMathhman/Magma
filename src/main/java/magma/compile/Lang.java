@@ -98,11 +98,10 @@ public class Lang {
 		return Tag("struct", Prefix("struct ", Suffix(String("name"), "{};")));
 	}
 
-	public static Rule createJavaRootRule() {
+	public static Rule JavaRoot() {
 		final Rule segment = Or(Namespace("package"),
 														Namespace("import"),
-														Structure("class"),
-														Structure("interface"), Structure("record"), Whitespace());
+														Structure("class"), Structure("interface"), Structure("record"), Whitespace());
 
 		return Statements("children", segment);
 	}
@@ -125,13 +124,13 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		final Rule params = Or(Values("params", Definition()), Strip(Empty));
-		return Or(Method(params), Whitespace(), Content());
+		final Rule params = Or(Values("params", Definition()), Strip(Empty)); return Or(Method(params), Whitespace());
 	}
 
 	private static Rule Method(Rule params) {
 		final Rule header = Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")"));
-		return Tag("method", Strip(Suffix(First(header, "{", String("body")), "}")));
+		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
+		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
 	}
 
 	private static Rule Definition() {
