@@ -9,7 +9,7 @@ template<typename R>
 Option<R> flatMap_Some(OptionR mapper) {/*
 		return mapper.apply(value);
 	*/}
-template<>
+template<typename T>
 T orElse_Some(T other) {/*
 		return value;
 	*/}

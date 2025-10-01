@@ -3,8 +3,7 @@ template<>
 struct Main{};
 template<>
 void main_Main(char** args) {/*
-		if (run() instanceof Some<ApplicationError>(ApplicationError value))
-			System.err.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	*/}
 template<>
 Option<ApplicationError> run_Main() {/*
@@ -23,8 +22,8 @@ Option<ApplicationError> run_Main() {/*
 template<>
 Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles = paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java"))
-					.toList();
+			List<Path> javaFiles =
+					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
@@ -70,8 +69,8 @@ Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot
 				return Option.of(new ApplicationError(error));
 			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
 				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-						"'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-						System.lineSeparator();
+															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+															 System.lineSeparator();
 				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 			}
 		}
@@ -98,18 +97,18 @@ template<>
 template<>
 /*CompileError>*/ compile_Main(char* input) {/*
 		return JavaRoot().lex(input)
-				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-				.flatMap(Main::transform)
-				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-				.flatMap(CRoot()::generate);
+										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+										 .flatMap(Main::transform)
+										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+										 .flatMap(CRoot()::generate);
 	*/}
 template<>
 /*CompileError>*/ transform_Main(JavaRoot node) {/*
 		return new Ok<>(new CRoot(node.children()
-				.stream()
-				.map(Main::flattenRootSegment)
-				.flatMap(Collection::stream)
-				.toList()));
+																	.stream()
+																	.map(Main::flattenRootSegment)
+																	.flatMap(Collection::stream)
+																	.toList()));
 	*/}
 template<>
 List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
@@ -127,26 +126,24 @@ List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		final ArrayList<CDefinition> fields = new ArrayList<>();
 
 		// Special handling for Record params - add them as struct fields
-		if (aClass instanceof magma.compile.Lang.Record record) {
+		if (aClass instanceof Lang.Record record) {
 			Option<List<JavaDefinition>> params = record.params();
-			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
+			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
 				for (JavaDefinition param : paramList) {
 					final CDefinition cDef = transformDefinition(param);
 					fields.add(cDef);
 				}
-			}
 		}
 
 		final String name = aClass.name();
 		for (JavaStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
-			if (tuple.right() instanceof Some<CDefinition>(CDefinition value))
-				fields.add(value);
+			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
 		}
 
-		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()),
-				aClass.typeParameters());
+		final Structure structure =
+				new Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
 		final List<CRootSegment> copy = new ArrayList<>();
 		copy.add(structure);
 		copy.addAll(segments);
@@ -176,12 +173,13 @@ Function transformMethod_Main(Method method, char* structName) {/*
 		// Extract type parameters from method signature
 		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
-		return new Function(
-				new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type(), cDefinition.typeParameters()),
-				newParams,
-				method.body().orElse(""),
-				new Some<>(System.lineSeparator()),
-				extractedTypeParams);
+		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
+																				cDefinition.type(),
+																				cDefinition.typeParameters()),
+												newParams,
+												method.body().orElse(""),
+												new Some<>(System.lineSeparator()),
+												extractedTypeParams);
 	*/}
 template<>
 Option<ListIdentifier> extractMethodTypeParameters_Main(Method method) {/*
@@ -192,23 +190,13 @@ Option<ListIdentifier> extractMethodTypeParameters_Main(Method method) {/*
 		collectTypeVariables(method.definition().type(), typeVars);
 
 		// Check parameter types for type variables
-		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
-			for (JavaDefinition param : paramList) {
-				collectTypeVariables(param.type(), typeVars);
-			}
-		}
+		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
+			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
 
-		// Filter out known class type parameters (like T from the class)
-		typeVars.remove("T"); // Remove class-level type parameter
-
-		if (typeVars.isEmpty()) {
-			return new None<>();
-		}
+		if (typeVars.isEmpty()) return new None<>();
 
 		// Convert to Identifier objects
-		final List<Identifier> identifiers = typeVars.stream()
-				.map(Identifier::new)
-				.toList();
+		final List<Identifier> identifiers = typeVars.stream().map(Identifier::new).toList();
 
 		return new Some<>(identifiers);
 	*/}
@@ -217,23 +205,19 @@ void collectTypeVariables_Main(JavaType type, SetString typeVars) {/*
 		switch (type) {
 			case Identifier ident -> {
 				// Single letter identifiers are likely type variables (R, E, etc.)
-				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0))) {
-					typeVars.add(ident.value());
-				}
+				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0))) typeVars.add(ident.value());
 			}
 			case Generic generic -> {
 				// Check base type name for type variables
-				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0))) {
+				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
-				}
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) {
-					collectTypeVariables(arg, typeVars);
-				}
+				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
-				start Other types don't contain type variables end }
+				start Other types don't contain type variables end
+			}
 		}
 	*/}
 template<>
@@ -252,8 +236,7 @@ CType transformType_Main(JavaType type) {/*
 				yield new Pointer(childType);
 			}
 			case Identifier identifier -> {
-				if (identifier.value().equals("String"))
-					yield new Pointer(new Identifier("char"));
+				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char"));
 				yield identifier;
 			}
 		};

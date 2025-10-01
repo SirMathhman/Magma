@@ -9,7 +9,7 @@ template<typename R>
 Option<R> flatMap_None(OptionR mapper) {/*
 		return new None<>();
 	*/}
-template<>
+template<typename T>
 T orElse_None(T other) {/*
 		return other;
 	*/}

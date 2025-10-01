@@ -10,7 +10,7 @@ template<>
 
 		return deserializeValue(clazz, node).mapValue(clazz::cast);
 	*/}
-template<>
+template<typename T>
 /*CompileError>*/ serialize_Serialize(ClassT clazz, T value) {/*
 		if (Objects.isNull(clazz))
 			return new Err<>(new CompileError("Target class must not be absent", new StringContext("serialize")));
