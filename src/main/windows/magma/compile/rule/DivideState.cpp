@@ -1,5 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>\nstruct DivideState<>{List<String> segments;, char* input;, StringBuilder buffer;, int depth;, int index;};
+template<>
+struct DivideState<>{List<String> segments;, char* input;, StringBuilder buffer;, int depth;, int index;};
 public DivideState_DivideState(StringBuilder buffer, int depth, ListString segments, char* input) {/*
 		this.buffer = buffer; this.depth = depth; this.segments = segments; this.input = input;
 	*/}
