@@ -1,2 +1,2 @@
 struct NodeContext(Node node) implements Context {};
-String display
+String display_NodeContext(Node node) implements Context 

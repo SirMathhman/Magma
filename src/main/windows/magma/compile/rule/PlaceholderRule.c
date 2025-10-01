@@ -1,5 +1,5 @@
 struct PlaceholderRule(Rule rule) implements Rule {};
-String wrap
-Rule Placeholder
-CompileError> lex
-CompileError> generate
+String wrap_PlaceholderRule(Rule rule) implements Rule 
+Rule Placeholder_PlaceholderRule(Rule rule) implements Rule 
+CompileError> lex_PlaceholderRule(Rule rule) implements Rule 
+CompileError> generate_PlaceholderRule(Rule rule) implements Rule 

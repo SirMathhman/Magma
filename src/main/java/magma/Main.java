@@ -117,7 +117,8 @@ public class Main {
 		return JavaRoot().lex(input)
 										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
 										 .flatMap(Main::transform)
-										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot)).flatMap(CRoot()::generate);
+										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+										 .flatMap(CRoot()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -140,39 +141,42 @@ public class Main {
 
 		final ArrayList<CRootSegment> segments = new ArrayList<>(); final ArrayList<CDefinition> fields = new ArrayList<>();
 
+		final String name = aClass.name();
 		for (JavaStructureSegment child : children) {
-			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child);
+			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
 		}
 
-		final Structure structure = new Structure(aClass.name(), fields, new Some<>(System.lineSeparator()));
-
+		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()));
 		final List<CRootSegment> copy = new ArrayList<>(); copy.add(structure); copy.addAll(segments);
 		return copy;
 	}
 
-	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self) {
+	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self,
+																																												String name) {
 		return switch (self) {
 			case Content content -> new Tuple<>(List.of(content), new None<>());
-			case Method method -> new Tuple<>(List.of(transformMethod(method)), new None<>());
+			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
 			case Whitespace _ -> new Tuple<>(Collections.emptyList(), new None<>());
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
 			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
 		};
 	}
 
-	private static Function transformMethod(Method method) {
+	private static Function transformMethod(Method method, String structName) {
 		final List<JavaDefinition> oldParams = switch (method.params()) {
 			case None<List<JavaDefinition>> _ -> Collections.emptyList();
 			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
-		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList(); return new Function(
-				transformDefinition(method.definition()),
-				newParams,
-				method.body().orElse("???"),
-				new Some<>(System.lineSeparator()));
+		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
+
+		final CDefinition cDefinition = transformDefinition(method.definition());
+		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
+												newParams,
+												method.body().orElse("???"),
+												new Some<>(System.lineSeparator()));
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {

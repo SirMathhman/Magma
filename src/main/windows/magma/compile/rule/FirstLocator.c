@@ -1,2 +1,2 @@
 struct FirstLocator() implements Locator {};
-Option<Integer> locate
+Option<Integer> locate_FirstLocator() implements Locator 

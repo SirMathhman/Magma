@@ -1,2 +1,2 @@
 struct StringContext(String context) implements Context {};
-String display
+String display_StringContext(String context) implements Context 

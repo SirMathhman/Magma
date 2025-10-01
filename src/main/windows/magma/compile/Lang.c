@@ -10,7 +10,8 @@ struct Generic(String base, List<JavaType> arguments) implements JavaType {};
 struct JavaDefinition(String name, JavaType type) {};
 struct Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
 			implements JavaStructureSegment {};
-struct Content(String value, Option<String> after) implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {};
+struct Content(String value, Option<String> after)
+			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {};
 struct JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children)
 			implements JStructure {};
 struct Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children)
@@ -24,22 +25,23 @@ struct CRoot(List<CRootSegment> children) {};
 struct Import(String value) implements JavaRootSegment {};
 struct Package(String value) implements JavaRootSegment {};
 struct CDefinition(String name, CType type) {};
-struct Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after) implements CRootSegment {};
+struct Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
+			implements CRootSegment {};
 struct Identifier(String value) implements JavaType, CType {};
-Rule CRoot
-Rule Function
-Rule CType
-Rule Struct
-Rule JavaRoot
-Rule Structures
-Rule Whitespace
-Rule Namespace
-Rule Structure
-Rule StructureMember
-Rule Statement
-Rule Method
-Rule Definition
-Rule JavaType
-Rule Identifier
-Rule Generic
-Rule Content
+Rule CRoot_Lang 
+Rule Function_Lang 
+Rule CType_Lang 
+Rule Struct_Lang 
+Rule JavaRoot_Lang 
+Rule Structures_Lang 
+Rule Whitespace_Lang 
+Rule Namespace_Lang 
+Rule Structure_Lang 
+Rule StructureMember_Lang 
+Rule Statement_Lang 
+Rule Method_Lang 
+Rule Definition_Lang 
+Rule JavaType_Lang 
+Rule Identifier_Lang 
+Rule Generic_Lang 
+Rule Content_Lang 
