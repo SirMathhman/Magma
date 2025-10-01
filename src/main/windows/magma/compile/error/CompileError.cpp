@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\error\CompileError.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct CompileError<>{char* reason;, Context context;, ListCompileError causes;};
+struct CompileError{char* reason;, Context context;, ListCompileError causes;};
 template<>
 public CompileError_CompileError(char* reason, Context sourceCode) {/*
 		this(reason, sourceCode, Collections.emptyList());

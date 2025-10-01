@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\TagRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct TagRule<>{char* tag;, Rule rule;};
+struct TagRule{char* tag;, Rule rule;};
 template<>
 Rule Tag_TagRule(char* type, Rule rule) {/*
 		return new TagRule(type, rule);

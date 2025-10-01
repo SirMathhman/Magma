@@ -1,50 +1,50 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Lang.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct Lang<>{};
+struct Lang{};
 template<>
-struct JavaType<>{};
+struct JavaType{};
 template<>
-struct CType<>{};
+struct CType{};
 template<>
-struct Field<>{JavaDefinition value;};
+struct Field{JavaDefinition value;};
 template<>
-struct Generic<>{char* base;, ListJavaType arguments;};
+struct Generic{char* base;, ListJavaType arguments;};
 template<>
-struct Array<>{JavaType child;};
+struct Array{JavaType child;};
 template<>
-struct JavaDefinition<>{char* name;, JavaType type;, OptionListModifier modifiers;, OptionListIdentifier typeParameters;};
+struct JavaDefinition{char* name;, JavaType type;, OptionListModifier modifiers;, OptionListIdentifier typeParameters;};
 template<>
-struct Modifier<>{char* value;};
+struct Modifier{char* value;};
 template<>
-struct Method<>{JavaDefinition definition;, OptionListJavaDefinition params;, OptionString body;, OptionListIdentifier typeParameters;};
+struct Method{JavaDefinition definition;, OptionListJavaDefinition params;, OptionString body;, OptionListIdentifier typeParameters;};
 template<>
-struct Invalid<>{char* value;, OptionString after;};
+struct Invalid{char* value;, OptionString after;};
 template<>
-struct JClass<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
+struct JClass{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
 template<>
-struct Interface<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
+struct Interface{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
 template<>
-struct Record<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionListJavaDefinition params;, OptionJavaType implementsClause;};
+struct Record{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionListJavaDefinition params;, OptionJavaType implementsClause;};
 template<>
-struct Structure<>{char* name;, ListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
+struct Structure{char* name;, ListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
 template<>
-struct Whitespace<>{};
+struct Whitespace{};
 template<>
-struct JavaRoot<>{ListJavaRootSegment children;};
+struct JavaRoot{ListJavaRootSegment children;};
 template<>
-struct CRoot<>{ListCRootSegment children;};
+struct CRoot{ListCRootSegment children;};
 template<>
-struct Import<>{char* value;};
+struct Import{char* value;};
 template<>
-struct Package<>{char* value;};
+struct Package{char* value;};
 template<>
-struct CDefinition<>{char* name;, CType type;, OptionListIdentifier typeParameters;};
+struct CDefinition{char* name;, CType type;, OptionListIdentifier typeParameters;};
 template<>
-struct Function<>{CDefinition definition;, ListCDefinition params;, char* body;, OptionString after;, OptionListIdentifier typeParameters;};
+struct Function{CDefinition definition;, ListCDefinition params;, char* body;, OptionString after;, OptionListIdentifier typeParameters;};
 template<>
-struct Identifier<>{char* value;};
+struct Identifier{char* value;};
 template<>
-struct Pointer<>{CType child;};
+struct Pointer{CType child;};
 template<>
 Rule CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -75,8 +75,9 @@ Rule CType_Lang() {/*
 	*/}
 template<>
 Rule CStructure_Lang() {/*
-		final Rule nameWithParams = NameWithTypeParameters();
-		final Rule structPrefix = Prefix("struct ", nameWithParams);
+		// For template structs, use plain name without type parameters in the declaration
+		final Rule plainName = StrippedIdentifier("name");
+		final Rule structPrefix = Prefix("struct ", plainName);
 		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");

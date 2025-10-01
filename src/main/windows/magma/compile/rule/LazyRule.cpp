@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\LazyRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct LazyRule<>{new None<>();};
+struct LazyRule{new None<>();};
 template<>
 void set_LazyRule(Rule rule) {/*
 		maybeChild = new Some<>(rule);

@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\PrefixRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct PrefixRule<>{char* prefix;, Rule rule;};
+struct PrefixRule{char* prefix;, Rule rule;};
 template<>
 Rule Prefix_PrefixRule(char* prefix, Rule rule) {/*
 		return new PrefixRule(prefix, rule);

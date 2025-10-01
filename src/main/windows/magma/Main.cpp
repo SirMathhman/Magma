@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct Main<>{};
+struct Main{};
 template<>
 void main_Main(char** args) {/*
 		if (run() instanceof Some<ApplicationError>(ApplicationError value))
@@ -172,10 +172,10 @@ Function transformMethod_Main(Method method, char* structName) {/*
 		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
-		
+
 		// Extract type parameters from method signature
 		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
-		
+
 		return new Function(
 				new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type(), cDefinition.typeParameters()),
 				newParams,
@@ -187,29 +187,29 @@ template<>
 Option<ListIdentifier> extractMethodTypeParameters_Main(Method method) {/*
 		// Analyze method signature to detect generic type parameters
 		final Set<String> typeVars = new HashSet<>();
-		
+
 		// Check return type for type variables
 		collectTypeVariables(method.definition().type(), typeVars);
-		
-		// Check parameter types for type variables  
+
+		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
 			for (JavaDefinition param : paramList) {
 				collectTypeVariables(param.type(), typeVars);
 			}
 		}
-		
+
 		// Filter out known class type parameters (like T from the class)
-		typeVars.remove("T");  // Remove class-level type parameter
-		
+		typeVars.remove("T"); // Remove class-level type parameter
+
 		if (typeVars.isEmpty()) {
 			return new None<>();
 		}
-		
+
 		// Convert to Identifier objects
 		final List<Identifier> identifiers = typeVars.stream()
-			.map(Identifier::new)
-			.toList();
-		
+				.map(Identifier::new)
+				.toList();
+
 		return new Some<>(identifiers);
 	*/}
 template<>
@@ -232,7 +232,8 @@ void collectTypeVariables_Main(JavaType type, SetString typeVars) {/*
 				}
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
-			default -> { start Other types don't contain type variables end }
+			default -> {
+				start Other types don't contain type variables end }
 		}
 	*/}
 template<>

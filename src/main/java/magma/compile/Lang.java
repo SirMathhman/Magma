@@ -170,8 +170,10 @@ public class Lang {
 	}
 
 	private static Rule CStructure() {
-		final Rule nameWithParams = NameWithTypeParameters();
-		final Rule structPrefix = Prefix("struct ", nameWithParams);
+		// For template structs, use plain name without type parameters in the
+		// declaration
+		final Rule plainName = StrippedIdentifier("name");
+		final Rule structPrefix = Prefix("struct ", plainName);
 		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
