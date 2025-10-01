@@ -72,7 +72,7 @@ public class Main {
 
 		// Change extension from .java to .c
 		String fileName = relativePath.getFileName().toString();
-		String cFileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".c";
+		String cFileName = fileName.substring(0, fileName.lastIndexOf('.')) + ".cpp";
 		Path cFilePath = cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);
 
 		// Ensure output directory exists
