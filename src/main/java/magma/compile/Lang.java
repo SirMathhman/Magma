@@ -126,9 +126,11 @@ public class Lang {
 
 	public static Rule Function() {
 		return Tag("function",
-							 First(Suffix(First(new NodeRule("definition", CDefinition()), "(", Delimited("params", CDefinition(), ", ")), ")"),
-										 " ", new StringRule("body")));
-	}	private static Rule CDefinition() {
+				First(Suffix(First(new NodeRule("definition", CDefinition()), "(", Values("params", CDefinition())), ")"),
+						" ", new StringRule("body")));
+	}
+
+	private static Rule CDefinition() {
 		return Last(Node("type", CType()), " ", new StringRule("name"));
 	}
 
