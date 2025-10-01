@@ -1,1 +1,1 @@
-struct StripRule(Rule rule) implements Rule {};Rule StripCompileError> lexCompileError> generate
+struct StripRule(String leftKey, Rule rule, String rightKey) implements Rule {};Rule StripCompileError> lexCompileError> generate

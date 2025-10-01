@@ -4,9 +4,9 @@ import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.result.Result;
 
-public record StripRule(Rule rule) implements Rule {
+public record StripRule(String leftKey, Rule rule, String rightKey) implements Rule {
 	public static Rule Strip(Rule rule) {
-		return new StripRule(rule);
+		return new StripRule("?", rule, "?");
 	}
 
 	@Override
@@ -16,6 +16,9 @@ public record StripRule(Rule rule) implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return rule.generate(node);
+		return rule.generate(node).mapValue(generated -> {
+			final String leftString = node.findString(leftKey).orElse("");
+			final String rightString = node.findString(rightKey).orElse(""); return leftString + generated + rightString;
+		});
 	}
 }
