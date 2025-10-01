@@ -1,0 +1,1 @@
+struct TagRule(String tag, Rule rule) implements Rule {};Rule TagCompileError> lexCompileError> generate

@@ -1,0 +1,1 @@
+struct Ok<T, X>(T value) implements Result<T, X> {};X> mapValueX> flatMapR> mapErr

@@ -1,0 +1,1 @@
+struct Err<T, X>(X error) implements Result<T, X> {};X> mapValueX> flatMapR> mapErr

@@ -1,0 +1,1 @@
+struct PlaceholderRule(Rule rule) implements Rule {};String wrapRule PlaceholderCompileError> lexCompileError> generate

@@ -27,7 +27,7 @@ public class Lang {
 
 	sealed public interface CRootSegment {}
 
-	public sealed interface JavaStructureSegment {}
+	public sealed interface JavaStructureSegment permits Content, JStructure, Method, Whitespace, Field {}
 
 	sealed public interface JavaType {}
 
@@ -40,6 +40,9 @@ public class Lang {
 
 		List<JavaStructureSegment> children();
 	}
+
+	@Tag("statement")
+	public record Field(JavaDefinition value) implements JavaStructureSegment {}
 
 	@Tag("generic")
 	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
@@ -67,7 +70,7 @@ public class Lang {
 			implements JStructure {}
 
 	@Tag("struct")
-	public record Structure(String name) implements CRootSegment {}
+	public record Structure(String name, java.util.ArrayList<CDefinition> fields) implements CRootSegment {}
 
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {}

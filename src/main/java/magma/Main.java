@@ -15,6 +15,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Stream;
@@ -120,28 +122,44 @@ public class Main {
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
-		return new Ok<>(new CRoot(node.children().stream().flatMap(Main::flattenRootSegment).toList()));
+		return new Ok<>(new CRoot(node.children()
+																	.stream()
+																	.map(Main::flattenRootSegment)
+																	.flatMap(Collection::stream)
+																	.toList()));
 	}
 
-	private static Stream<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
+	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
-			case JStructure jStructure -> {
-				yield flattenStructure(jStructure);
-			}
-			case Content content -> Stream.of(content);
-			default -> Stream.empty();
+			case JStructure jStructure -> flattenStructure(jStructure); case Content content -> List.of(content);
+			default -> Collections.emptyList();
 		};
 	}
 
-	private static Stream<CRootSegment> flattenStructure(JStructure aClass) {
-		final Structure structure = new Structure(aClass.name());
-		return Stream.concat(Stream.of(structure), aClass.children().stream().flatMap(Main::flattenStructureSegment));
+	private static List<CRootSegment> flattenStructure(JStructure aClass) {
+		final List<JavaStructureSegment> children = aClass.children();
+
+		final ArrayList<CRootSegment> segments = new ArrayList<>(); final ArrayList<CDefinition> fields = new ArrayList<>();
+
+		for (JavaStructureSegment child : children) {
+			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child);
+			segments.addAll(tuple.left());
+			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
+		}
+
+		final Structure structure = new Structure(aClass.name(), fields);
+
+		final List<CRootSegment> copy = new ArrayList<CRootSegment>(); copy.add(structure); copy.addAll(segments);
+		return copy;
 	}
 
-	private static Stream<CRootSegment> flattenStructureSegment(JavaStructureSegment self) {
+	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self) {
 		return switch (self) {
-			case Content content -> Stream.of(content); case Method method -> Stream.of(transformMethod(method));
-			case Whitespace _ -> Stream.empty(); case JStructure jClass -> flattenStructure(jClass);
+			case Content content -> new Tuple<>(List.of(content), new None<>());
+			case Method method -> new Tuple<>(List.of(transformMethod(method)), new None<>());
+			case Whitespace _ -> new Tuple<>(Collections.emptyList(), new None<>());
+			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
+			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
 		};
 	}
 

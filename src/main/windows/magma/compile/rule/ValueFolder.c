@@ -1,0 +1,1 @@
+struct ValueFolder() implements Folder {};DivideState fold

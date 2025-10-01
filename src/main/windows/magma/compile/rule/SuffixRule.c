@@ -1,0 +1,1 @@
+struct SuffixRule(Rule rule, String suffix) implements Rule {};Rule SuffixCompileError> lexCompileError> generateRule getRule

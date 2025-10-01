@@ -1,0 +1,1 @@
+struct StripRule(Rule rule) implements Rule {};Rule StripCompileError> lexCompileError> generate

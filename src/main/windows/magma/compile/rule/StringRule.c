@@ -1,0 +1,1 @@
+struct StringRule(String key) implements Rule {};Rule StringCompileError> lexCompileError> generate

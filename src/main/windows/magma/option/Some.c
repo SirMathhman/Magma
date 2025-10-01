@@ -1,0 +1,1 @@
+struct Some<T>(T value) implements Option<T> {};Option<R> mapOption<R> flatMapT orElse

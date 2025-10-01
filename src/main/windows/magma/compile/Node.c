@@ -1,1 +1,1 @@
-struct Node {};new HashMap<>new HashMap<>new HashMap<>= Option.emptyString escapeNode withStringOption<String> findStringNode mergeNode withNodeListOption<List<Node>> findNodeListNode withNodeOption<Node> findNodeNode retypeboolean isString formatvoid appendJson
+struct Node {};String escapeNode withStringOption<String> findStringNode mergeNode withNodeListOption<List<Node>> findNodeListNode withNodeOption<Node> findNodeNode retypeboolean isString formatvoid appendJson

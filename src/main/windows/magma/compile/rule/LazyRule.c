@@ -1,0 +1,1 @@
+struct LazyRule implements Rule {};void setCompileError> lexCompileError> generate

@@ -1,0 +1,1 @@
+struct FirstLocator() implements Locator {};Option<Integer> locate

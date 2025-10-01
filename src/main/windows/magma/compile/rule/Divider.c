@@ -1,1 +1,1 @@
-struct Divider {};Stream<String> divide
+struct Divider {};

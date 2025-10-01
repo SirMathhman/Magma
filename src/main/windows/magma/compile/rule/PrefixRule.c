@@ -1,0 +1,1 @@
+struct PrefixRule(String prefix, Rule rule) implements Rule {};Rule PrefixCompileError> lexCompileError> generate

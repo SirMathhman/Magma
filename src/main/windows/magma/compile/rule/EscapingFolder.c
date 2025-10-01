@@ -1,0 +1,1 @@
+struct EscapingFolder(Folder folder) implements Folder {};DivideState foldDivideState foldEscape

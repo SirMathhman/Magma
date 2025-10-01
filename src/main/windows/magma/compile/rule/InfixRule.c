@@ -1,0 +1,1 @@
+struct InfixRule(Rule leftRule, String infix, Rule rightRule, Locator locator) implements Rule {};Rule FirstRule LastCompileError> lexCompileError> generate
