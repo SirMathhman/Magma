@@ -5,8 +5,11 @@ import magma.Tuple;
 public record EscapingFolder(Folder folder) implements Folder {
 	@Override
 	public DivideState fold(DivideState state, char c) {
-		if (c == '\'')
-			return state.popAndAppendToTuple().map(this::foldEscape).flatMap(DivideState::popAndAppendToOption).orElse(state);
+		if (c == '\'') return state.append(c)
+															 .popAndAppendToTuple()
+															 .map(this::foldEscape)
+															 .flatMap(DivideState::popAndAppendToOption)
+															 .orElse(state);
 
 		return state;
 	}
