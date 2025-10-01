@@ -147,15 +147,15 @@ public class Main {
 			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
-		final List<CDefinition> newParams = oldParams.stream().map(Main::getDefinition).toList();
-		return new Function(getDefinition(method.definition()), newParams, method.body());
+		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
+		return new Function(transformDefinition(method.definition()), newParams, method.body());
 	}
 
-	private static CDefinition getDefinition(JavaDefinition definition) {
-		return new CDefinition(definition.name(), getType(definition.type()));
+	private static CDefinition transformDefinition(JavaDefinition definition) {
+		return new CDefinition(definition.name(), transformType(definition.type()));
 	}
 
-	private static CType getType(JavaType type) {
+	private static CType transformType(JavaType type) {
 		return switch (type) {
 			case Content content -> content; case Generic generic -> new Content(generic.base() + "_?");
 			case Identifier identifier -> identifier;
