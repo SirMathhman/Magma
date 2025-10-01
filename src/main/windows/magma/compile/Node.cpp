@@ -13,7 +13,7 @@ Node withString_Node(char* key, char* value) {/*
 		strings.put(key, value);
 		return this;
 	*/}
-/*Option_?*/ findString_Node(char* key) {/*
+Option<String> findString_Node(char* key) {/*
 		return Option.ofNullable(strings.get(key));
 	*/}
 Node merge_Node(Node node) {/*
@@ -30,14 +30,14 @@ Node withNodeList_Node(char* key, ListNode values) {/*
 		nodeLists.put(key, values);
 		return this;
 	*/}
-/*Option_?*/ findNodeList_Node(char* key) {/*
+Option<ListNode> findNodeList_Node(char* key) {/*
 		return Option.ofNullable(nodeLists.get(key));
 	*/}
 Node withNode_Node(char* key, Node node) {/*
 		nodes.put(key, node);
 		return this;
 	*/}
-/*Option_?*/ findNode_Node(char* key) {/*
+Option<Node> findNode_Node(char* key) {/*
 		return Option.ofNullable(nodes.get(key));
 	*/}
 Node retype_Node(char* type) {/*

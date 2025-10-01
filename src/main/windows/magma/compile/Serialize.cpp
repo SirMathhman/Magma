@@ -101,7 +101,7 @@ struct Serialize{};
 
 		return new Ok<>(result);
 	*/}
-/*Option_?*/ resolveTypeIdentifier_Serialize(/*Class?*/ clazz) {/*
+Option<String> resolveTypeIdentifier_Serialize(/*Class?*/ clazz) {/*
 		Tag annotation = clazz.getAnnotation(Tag.class);
 		if (Objects.isNull(annotation))
 			return Option.empty();
@@ -287,7 +287,7 @@ CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node)
 		return new CompileError("Required component '" + key + "' of type '" + type.getSimpleName() + "' not present",
 				new NodeContext(node));
 	*/}
-/*Option_?*/ findStringInChildren_Serialize(Node node, char* key) {/*
+Option<String> findStringInChildren_Serialize(Node node, char* key) {/*
 		for (Node child : node.nodes.values()) {
 			final Option<String> nested = switch (child.findString(key)) {
 				case None<String> _ -> findStringInChildren(child, key);
@@ -309,7 +309,7 @@ CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node)
 			}
 		return Option.empty();
 	*/}
-/*Option_?*/ writeComponent_Serialize(Node target, RecordComponent component, Object value) {/*
+Option<CompileError> writeComponent_Serialize(Node target, RecordComponent component, Object value) {/*
 		final String key = component.getName();
 		final Class<?> type = component.getType();
 
@@ -340,7 +340,7 @@ CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node)
 			}
 		};
 	*/}
-/*Option_?*/ writeOptionalComponent_Serialize(Node target, RecordComponent component, Object value) {/*
+Option<CompileError> writeOptionalComponent_Serialize(Node target, RecordComponent component, Object value) {/*
 		if (Objects.isNull(value))
 			return Option.of(new CompileError("Optional component '" + component.getName() + "' was absent",
 					new StringContext(component.getName())));
@@ -377,7 +377,7 @@ CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node)
 			}
 		};
 	*/}
-/*Option_?*/ writeListComponent_Serialize(Node target, RecordComponent component, Object value) {/*
+Option<CompileError> writeListComponent_Serialize(Node target, RecordComponent component, Object value) {/*
 		if (Objects.isNull(value))
 			return Option.of(new CompileError("Component '" + component.getName() + "' was absent",
 					new StringContext(component.getName())));
@@ -411,7 +411,7 @@ CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node)
 		target.withNodeList(component.getName(), List.copyOf(serializedChildren));
 		return Option.empty();
 	*/}
-/*Class_?*/ erase_Serialize(Type type) {/*
+Class</*?*/> erase_Serialize(Type type) {/*
 		if (type instanceof Class<?> clazz)
 			return clazz;
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)

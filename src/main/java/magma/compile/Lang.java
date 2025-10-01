@@ -49,7 +49,7 @@ public class Lang {
 	public record Field(JavaDefinition value) implements JavaStructureSegment {}
 
 	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
+	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {}
 
 	@Tag("array")
 	public record Array(JavaType child) implements JavaType {}
@@ -122,7 +122,7 @@ public class Lang {
 
 	private static Rule CType() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Invalid())); return rule;
+		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid())); return rule;
 	}
 
 	private static Rule CStructure() {
@@ -182,7 +182,8 @@ public class Lang {
 	}
 
 	private static Rule JType() {
-		final LazyRule type = new LazyRule(); type.set(Or(Generic(), Array(type), Identifier(), Invalid())); return type;
+		final LazyRule type = new LazyRule(); type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
+		return type;
 	}
 
 	private static Rule Array(Rule type) {
@@ -193,9 +194,9 @@ public class Lang {
 		return Tag("identifier", Strip(FilterRule.Identifier(String("value"))));
 	}
 
-	private static Rule Generic() {
+	private static Rule Generic(Rule type) {
 		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Invalid())), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
 	}
 
 	private static Rule Invalid() {

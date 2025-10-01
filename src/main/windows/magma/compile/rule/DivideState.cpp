@@ -5,7 +5,7 @@ public DivideState_DivideState(StringBuilder buffer, int depth, ListString segme
 public DivideState_DivideState(char* input) {/*
 		this(new StringBuilder(), 0, new ArrayList<>(), input);
 	*/}
-/*Stream_?*/ stream_DivideState() {/*
+Stream<String> stream_DivideState() {/*
 		return segments.stream();
 	*/}
 DivideState enter_DivideState() {/*
@@ -26,13 +26,13 @@ boolean isShallow_DivideState() {/*
 boolean isLevel_DivideState() {/*
 		return depth == 0;
 	*/}
-/*Option_?*/ pop_DivideState() {/*
+Option<Character> pop_DivideState() {/*
 		if (index >= input.length()) return Option.empty(); final char c = input.charAt(index); index++;
 		return Option.of(c);
 	*/}
 /*Character>>*/ popAndAppendToTuple_DivideState() {/*
 		return pop().map(popped -> new Tuple<>(append(popped), popped));
 	*/}
-/*Option_?*/ popAndAppendToOption_DivideState() {/*
+Option<DivideState> popAndAppendToOption_DivideState() {/*
 		return popAndAppendToTuple().map(Tuple::left);
 	*/}

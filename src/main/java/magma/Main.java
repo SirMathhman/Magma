@@ -178,7 +178,8 @@ public class Main {
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
-												newParams, method.body().orElse(""),
+												newParams,
+												method.body().orElse(""),
 												new Some<>(System.lineSeparator()));
 	}
 
@@ -188,8 +189,7 @@ public class Main {
 
 	private static CType transformType(JavaType type) {
 		return switch (type) {
-			case Invalid invalid -> invalid;
-			case Generic generic -> new Invalid(generic.base() + "_?", new Some<>(System.lineSeparator()));
+			case Invalid invalid -> invalid; case Generic generic -> generic;
 			case Array array -> {
 				CType childType = transformType(array.child()); yield new Pointer(childType);
 			} case Identifier identifier -> {

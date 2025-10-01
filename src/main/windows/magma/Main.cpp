@@ -2,7 +2,7 @@ struct Main{};
 void main_Main(char** args) {/*
 		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	*/}
-/*Option_?*/ run_Main() {/*
+Option<ApplicationError> run_Main() {/*
 		final Path javaSourceRoot = Paths.get(".", "src", "main", "java");
 		final Path cOutputRoot = Paths.get(".", "src", "main", "windows");
 
@@ -15,7 +15,7 @@ void main_Main(char** args) {/*
 
 		return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 	*/}
-/*Option_?*/ compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
+Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
 			List<Path> javaFiles =
 					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
@@ -37,7 +37,7 @@ void main_Main(char** args) {/*
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}
 	*/}
-/*Option_?*/ compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {/*
+Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {/*
 		// Calculate relative path from source root
 		Path relativePath = javaSourceRoot.relativize(javaFile);
 
@@ -67,7 +67,7 @@ void main_Main(char** args) {/*
 
 		return Option.empty();
 	*/}
-/*Option_?*/ writeString_Main(Path path, char* result) {/*
+Option<IOException> writeString_Main(Path path, char* result) {/*
 		try {
 			Files.writeString(path, result);
 			return Option.empty();
@@ -96,13 +96,14 @@ void main_Main(char** args) {/*
 																	.flatMap(Collection::stream)
 																	.toList()));
 	*/}
-/*List_?*/ flattenRootSegment_Main(JavaRootSegment segment) {/*
+List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 		return switch (segment) {
-			case JStructure jStructure -> flattenStructure(jStructure); case Invalid invalid -> List.of(invalid);
+			case JStructure jStructure -> flattenStructure(jStructure);
+			case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
 		};
 	*/}
-/*List_?*/ flattenStructure_Main(JStructure aClass) {/*
+List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		final List<JavaStructureSegment> children = aClass.children();
 
 		final ArrayList<CRootSegment> segments = new ArrayList<>();
@@ -121,7 +122,7 @@ void main_Main(char** args) {/*
 		copy.addAll(segments);
 		return copy;
 	*/}
-/*Option_?*/ flattenStructureSegment_Main(JavaStructureSegment self, char* name) {/*
+Option<CDefinition> flattenStructureSegment_Main(JavaStructureSegment self, char* name) {/*
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
@@ -140,7 +141,8 @@ Function transformMethod_Main(Method method, char* structName) {/*
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
-												newParams, method.body().orElse(""),
+												newParams,
+												method.body().orElse(""),
 												new Some<>(System.lineSeparator()));
 	*/}
 CDefinition transformDefinition_Main(JavaDefinition definition) {/*
@@ -149,11 +151,14 @@ CDefinition transformDefinition_Main(JavaDefinition definition) {/*
 CType transformType_Main(JavaType type) {/*
 		return switch (type) {
 			case Invalid invalid -> invalid;
-			case Generic generic -> new Invalid(generic.base() + "_?", new Some<>(System.lineSeparator()));
+			case Generic generic -> generic;
 			case Array array -> {
-				CType childType = transformType(array.child()); yield new Pointer(childType);
-			} case Identifier identifier -> {
-				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char")); yield identifier;
+				CType childType = transformType(array.child());
+				yield new Pointer(childType);
+			}
+			case Identifier identifier -> {
+				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char"));
+				yield identifier;
 			}
 		};
 	*/}

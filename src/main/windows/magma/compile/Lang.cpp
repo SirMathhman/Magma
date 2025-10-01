@@ -6,7 +6,7 @@ struct JavaType{};
 struct CType{};
 struct JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record{};
 struct Field(JavaDefinition value) implements JavaStructureSegment{};
-struct Generic(String base, List<JavaType> arguments) implements JavaType{};
+struct Generic(String base, List<JavaType> arguments) implements JavaType, CType{};
 struct Array(JavaType child) implements JavaType{};
 struct JavaDefinition(String name, JavaType type){};
 struct Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
@@ -35,7 +35,8 @@ Rule CRoot_Lang() {/*
 	*/}
 Rule Function_Lang() {/*
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Values("params", CDefinition()); final Rule body = Placeholder(new StringRule("body"));
+		final Rule params = Values("params", CDefinition());
+		final Rule body = Placeholder(new StringRule("body"));
 		return Tag("function", First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}")));
 	*/}
 Rule CDefinition_Lang() {/*
@@ -43,7 +44,8 @@ Rule CDefinition_Lang() {/*
 	*/}
 Rule CType_Lang() {/*
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Invalid())); return rule;
+		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		return rule;
 	*/}
 Rule CStructure_Lang() {/*
 		return Tag("struct", Prefix("struct ", Suffix(String("name"), "{};")));
@@ -92,7 +94,9 @@ Rule JDefinition_Lang() {/*
 		return Tag("definition", Last(Or(last, type), " ", String("name")));
 	*/}
 Rule JType_Lang() {/*
-		final LazyRule type = new LazyRule(); type.set(Or(Generic(), Array(type), Identifier(), Invalid())); return type;
+		final LazyRule type = new LazyRule();
+		type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
+		return type;
 	*/}
 Rule Array_Lang(Rule type) {/*
 		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
@@ -100,9 +104,9 @@ Rule Array_Lang(Rule type) {/*
 Rule Identifier_Lang() {/*
 		return Tag("identifier", Strip(FilterRule.Identifier(String("value"))));
 	*/}
-Rule Generic_Lang() {/*
+Rule Generic_Lang(Rule type) {/*
 		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Invalid())), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
 	*/}
 Rule Invalid_Lang() {/*
 		return Tag("invalid", Placeholder(String("value")));
