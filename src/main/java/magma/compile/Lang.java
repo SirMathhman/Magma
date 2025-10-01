@@ -42,6 +42,8 @@ public class Lang {
 
 		String name();
 
+		Option<List<String>> typeParameters();
+
 		List<JavaStructureSegment> children();
 	}
 
@@ -66,19 +68,23 @@ public class Lang {
 			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
-	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children,
+											 Option<List<String>> typeParameters)
 			implements JStructure {}
 
 	@Tag("interface")
-	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children,
+													Option<List<String>> typeParameters)
 			implements JStructure {}
 
 	@Tag("record")
-	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children,
+											 Option<List<String>> typeParameters)
 			implements JStructure {}
 
 	@Tag("struct")
-	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after) implements CRootSegment {}
+	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after,
+													Option<List<String>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {}
@@ -126,7 +132,7 @@ public class Lang {
 	}
 
 	private static Rule CStructure() {
-		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeArguments(), "{};")));
+		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeParameters(), "{};")));
 	}
 
 	public static Rule JavaRoot() {
@@ -151,7 +157,7 @@ public class Lang {
 	private static Rule JStructure(String type, Rule rule) {
 		final Rule modifiers = String("modifiers");
 
-		final Rule maybeWithTypeArguments = NameWithTypeArguments();
+		final Rule maybeWithTypeArguments = NameWithTypeParameters();
 
 		final Rule maybeWithParameters =
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
@@ -171,10 +177,10 @@ public class Lang {
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 
-	private static Rule NameWithTypeArguments() {
+	private static Rule NameWithTypeParameters() {
 		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
-		return Strip(Or(withTypeArguments, name));
+		final Rule withTypeParameters = Suffix(First(name, "<", Values("typeParameters", Identifier())), ">");
+		return Strip(Or(withTypeParameters, name));
 	}
 
 	private static Rule StructureMember() {

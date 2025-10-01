@@ -150,7 +150,8 @@ public class Main {
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
 		}
 
-		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()));
+		final Structure structure =
+				new Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
 		final List<CRootSegment> copy = new ArrayList<>();
 		copy.add(structure);
 		copy.addAll(segments);

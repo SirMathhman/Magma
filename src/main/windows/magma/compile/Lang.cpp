@@ -42,7 +42,7 @@ Rule CType_Lang() {/*
 		return rule;
 	*/}
 Rule CStructure_Lang() {/*
-		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeArguments(), "{};")));
+		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeParameters(), "{};")));
 	*/}
 Rule JavaRoot_Lang() {/*
 		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureMember()), Whitespace());
@@ -62,7 +62,7 @@ Rule Namespace_Lang(char* type) {/*
 Rule JStructure_Lang(char* type, Rule rule) {/*
 		final Rule modifiers = String("modifiers");
 
-		final Rule maybeWithTypeArguments = NameWithTypeArguments();
+		final Rule maybeWithTypeArguments = NameWithTypeParameters();
 
 		final Rule maybeWithParameters =
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
@@ -81,11 +81,10 @@ Rule JStructure_Lang(char* type, Rule rule) {/*
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	*/}
-Rule NameWithTypeArguments_Lang() {/*
+Rule NameWithTypeParameters_Lang() {/*
 		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
-		final Rule maybeWithTypeArguments = Strip(Or(withTypeArguments, name));
-		return maybeWithTypeArguments;
+		final Rule withTypeParameters = Suffix(First(name, "<", Values("typeParameters", Identifier())), ">");
+		return Strip(Or(withTypeParameters, name));
 	*/}
 Rule StructureMember_Lang() {/*
 		final LazyRule structureMember = new LazyRule();
