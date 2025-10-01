@@ -29,6 +29,7 @@ struct CDefinition(String name, CType type){};
 struct Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
 			implements CRootSegment{};
 struct Identifier(String value) implements JavaType, CType{};
+struct Pointer(CType child) implements CType{};
 Rule CRoot_Lang() {}
 Rule Function_Lang() {}
 Rule CDefinition_Lang() {}
@@ -37,8 +38,8 @@ Rule CStructure_Lang() {}
 Rule JavaRoot_Lang() {}
 Rule Structures_Lang(Rule structureMember) {}
 Rule Whitespace_Lang() {}
-Rule Namespace_Lang(String type) {}
-Rule JStructure_Lang(String type, Rule rule) {}
+Rule Namespace_Lang(char* type) {}
+Rule JStructure_Lang(char* type, Rule rule) {}
 Rule StructureMember_Lang() {}
 Rule Statement_Lang() {}
 Rule Method_Lang() {}

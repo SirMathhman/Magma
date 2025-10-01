@@ -1,2 +1,2 @@
 struct FirstLocator() implements Locator{};
-/*Option_?*/ locate_FirstLocator() implements Locator(String input, String infix) {}
+/*Option_?*/ locate_FirstLocator() implements Locator(char* input, char* infix) {}

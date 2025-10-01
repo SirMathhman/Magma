@@ -103,6 +103,9 @@ public class Lang {
 	@Tag("identifier")
 	public record Identifier(String value) implements JavaType, CType {}
 
+	@Tag("pointer")
+	public record Pointer(CType child) implements CType {}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	}
@@ -118,7 +121,8 @@ public class Lang {
 	}
 
 	private static Rule CType() {
-		return Or(Identifier(), Invalid());
+		final LazyRule rule = new LazyRule();
+		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Invalid())); return rule;
 	}
 
 	private static Rule CStructure() {

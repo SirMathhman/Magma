@@ -1,6 +1,6 @@
 struct DivideState{};
-public DivideState_DivideState(StringBuilder buffer, int depth, ListString segments, String input) {}
-public DivideState_DivideState(String input) {}
+public DivideState_DivideState(StringBuilder buffer, int depth, ListString segments, char* input) {}
+public DivideState_DivideState(char* input) {}
 /*Stream_?*/ stream_DivideState() {}
 DivideState enter_DivideState() {}
 DivideState advance_DivideState() {}

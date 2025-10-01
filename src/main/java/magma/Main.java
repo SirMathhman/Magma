@@ -192,11 +192,10 @@ public class Main {
 			case Invalid invalid -> invalid;
 			case Generic generic -> new Invalid(generic.base() + "_?", new Some<>(System.lineSeparator()));
 			case Array array -> {
-				CType childType = transformType(array.child()); String childTypeName = switch (childType) {
-					case Invalid inv -> inv.value(); case Identifier id -> id.value();
-				}; yield new Invalid(childTypeName + "[]", new Some<>(System.lineSeparator()));
+				CType childType = transformType(array.child()); yield new Pointer(childType);
+			} case Identifier identifier -> {
+				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char")); yield identifier;
 			}
-			case Identifier identifier -> identifier;
 		};
 	}
 }

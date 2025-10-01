@@ -9,8 +9,8 @@ struct Serialize{};
 /*CompileError>*/ deserializeNestedComponent_Serialize(RecordComponent component, Node node) {}
 /*CompileError>*/ deserializeRaw_Serialize(/*Class?*/ type, Node node) {}
 /*CompileError>*/ serializeRaw_Serialize(/*Class?*/ clazz, Object value) {}
-CompileError missingFieldError_Serialize(String key, /* Class?*/ type, Node node) {}
-/*Option_?*/ findStringInChildren_Serialize(Node node, String key) {}
+CompileError missingFieldError_Serialize(char* key, /* Class?*/ type, Node node) {}
+/*Option_?*/ findStringInChildren_Serialize(Node node, char* key) {}
 /*Option_?*/ writeComponent_Serialize(Node target, RecordComponent component, Object value) {}
 /*Option_?*/ writeOptionalComponent_Serialize(Node target, RecordComponent component, Object value) {}
 /*Option_?*/ writeListComponent_Serialize(Node target, RecordComponent component, Object value) {}
