@@ -169,13 +169,17 @@ public class Lang {
 
 	private static Rule JDefinition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		final Rule type = Node("type", JavaType());
+		final Rule type = Node("type", JType());
 		final Rule last = Last(modifiers, " ", type);
 		return Tag("definition", Last(Or(last, type), " ", String("name")));
 	}
 
-	private static Rule JavaType() {
-		return Or(Generic(), Identifier(), Invalid());
+	private static Rule JType() {
+		final LazyRule type = new LazyRule(); type.set(Or(Generic(), Array(type), Identifier(), Invalid())); return type;
+	}
+
+	private static Rule Array(Rule type) {
+		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
 	}
 
 	private static Rule Identifier() {

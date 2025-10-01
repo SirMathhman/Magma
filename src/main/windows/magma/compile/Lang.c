@@ -42,7 +42,8 @@ Rule StructureMember_Lang() {}
 Rule Statement_Lang() {}
 Rule Method_Lang() {}
 Rule JDefinition_Lang() {}
-Rule JavaType_Lang() {}
+Rule JType_Lang() {}
+Rule Array_Lang(Rule type) {}
 Rule Identifier_Lang() {}
 Rule Generic_Lang() {}
 Rule Invalid_Lang() {}
