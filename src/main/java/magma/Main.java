@@ -26,8 +26,7 @@ import static magma.compile.Lang.*;
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(ApplicationError value))
-			System.err.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {
@@ -46,8 +45,8 @@ public class Main {
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles = paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java"))
-					.toList();
+			List<Path> javaFiles =
+					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
@@ -117,18 +116,18 @@ public class Main {
 
 	private static Result<String, CompileError> compile(String input) {
 		return JavaRoot().lex(input)
-				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-				.flatMap(Main::transform)
-				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-				.flatMap(CRoot()::generate);
+										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+										 .flatMap(Main::transform)
+										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+										 .flatMap(CRoot()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
 		return new Ok<>(new CRoot(node.children()
-				.stream()
-				.map(Main::flattenRootSegment)
-				.flatMap(Collection::stream)
-				.toList()));
+																	.stream()
+																	.map(Main::flattenRootSegment)
+																	.flatMap(Collection::stream)
+																	.toList()));
 	}
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
@@ -148,8 +147,7 @@ public class Main {
 		for (JavaStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
-			if (tuple.right() instanceof Some<CDefinition>(CDefinition value))
-				fields.add(value);
+			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
 		}
 
 		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()));
@@ -160,7 +158,7 @@ public class Main {
 	}
 
 	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self,
-			String name) {
+																																												String name) {
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
@@ -180,9 +178,9 @@ public class Main {
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
-				newParams,
-				"{}",
-				new Some<>(System.lineSeparator()));
+												newParams,
+												"{}",
+												new Some<>(System.lineSeparator()));
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {
