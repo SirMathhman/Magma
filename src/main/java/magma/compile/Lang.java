@@ -137,7 +137,11 @@ public class Lang {
 
 	private static Rule StructureMember() {
 		final LazyRule structureMember = new LazyRule();
-		structureMember.set(Or(Structures(structureMember), Method(), Whitespace())); return structureMember;
+		structureMember.set(Or(Structures(structureMember), Statement(), Method(), Whitespace())); return structureMember;
+	}
+
+	private static Rule Statement() {
+		return Tag("statement", Strip(Suffix(Node("value", Definition()), ";")));
 	}
 
 	private static Rule Method() {
