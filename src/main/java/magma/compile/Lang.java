@@ -25,13 +25,13 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment permits Content, Import, JStructure, Package, Whitespace {}
+	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {}
 
 	sealed public interface CRootSegment {
 		Option<String> after();
 	}
 
-	public sealed interface JavaStructureSegment permits Content, JStructure, Method, Whitespace, Field {}
+	public sealed interface JavaStructureSegment permits Invalid, JStructure, Method, Whitespace, Field {}
 
 	sealed public interface JavaType {}
 
@@ -58,8 +58,8 @@ public class Lang {
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
 			implements JavaStructureSegment {}
 
-	@Tag("content")
-	public record Content(String value, Option<String> after)
+	@Tag("invalid")
+	public record Invalid(String value, Option<String> after)
 			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
@@ -101,7 +101,7 @@ public class Lang {
 	public record Identifier(String value) implements JavaType, CType {}
 
 	public static Rule CRoot() {
-		return Statements("children", Strip("", Or(CStructure(), Function(), Content()), "after"));
+		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	}
 
 	public static Rule Function() {
@@ -115,7 +115,7 @@ public class Lang {
 	}
 
 	private static Rule CType() {
-		return Or(Identifier(), Content());
+		return Or(Identifier(), Invalid());
 	}
 
 	private static Rule CStructure() {
@@ -138,7 +138,7 @@ public class Lang {
 	}
 
 	private static Rule Namespace(String type) {
-		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
+		return Tag(type, Strip(Prefix(type + " ", Suffix(Invalid(), ";"))));
 	}
 
 	private static Rule JStructure(String type, Rule rule) {
@@ -175,7 +175,7 @@ public class Lang {
 	}
 
 	private static Rule JavaType() {
-		return Or(Generic(), Identifier(), Content());
+		return Or(Generic(), Identifier(), Invalid());
 	}
 
 	private static Rule Identifier() {
@@ -184,10 +184,10 @@ public class Lang {
 
 	private static Rule Generic() {
 		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Invalid())), ">")));
 	}
 
-	private static Rule Content() {
-		return Tag("content", Placeholder(String("value")));
+	private static Rule Invalid() {
+		return Tag("invalid", Placeholder(String("value")));
 	}
 }

@@ -1,7 +1,7 @@
 struct Lang{};
-struct JavaRootSegment permits Content, Import, JStructure, Package, Whitespace{};
+struct JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace{};
 struct CRootSegment{};
-struct JavaStructureSegment permits Content, JStructure, Method, Whitespace, Field{};
+struct JavaStructureSegment permits Invalid, JStructure, Method, Whitespace, Field{};
 struct JavaType{};
 struct CType{};
 struct JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record{};
@@ -10,7 +10,7 @@ struct Generic(String base, List<JavaType> arguments) implements JavaType{};
 struct JavaDefinition(String name, JavaType type){};
 struct Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
 			implements JavaStructureSegment{};
-struct Content(String value, Option<String> after)
+struct Invalid(String value, Option<String> after)
 			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType{};
 struct JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children)
 			implements JStructure{};
@@ -45,4 +45,4 @@ Rule JDefinition_Lang() {}
 Rule JavaType_Lang() {}
 Rule Identifier_Lang() {}
 Rule Generic_Lang() {}
-Rule Content_Lang() {}
+Rule Invalid_Lang() {}

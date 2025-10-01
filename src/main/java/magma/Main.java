@@ -133,8 +133,7 @@ public class Main {
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
-			case JStructure jStructure -> flattenStructure(jStructure);
-			case Content content -> List.of(content);
+			case JStructure jStructure -> flattenStructure(jStructure); case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
 		};
 	}
@@ -163,7 +162,7 @@ public class Main {
 	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self,
 			String name) {
 		return switch (self) {
-			case Content content -> new Tuple<>(List.of(content), new None<>());
+			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
 			case Whitespace _ -> new Tuple<>(Collections.emptyList(), new None<>());
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
@@ -192,8 +191,8 @@ public class Main {
 
 	private static CType transformType(JavaType type) {
 		return switch (type) {
-			case Content content -> content;
-			case Generic generic -> new Content(generic.base() + "_?", new Some<>(System.lineSeparator()));
+			case Invalid invalid -> invalid;
+			case Generic generic -> new Invalid(generic.base() + "_?", new Some<>(System.lineSeparator()));
 			case Identifier identifier -> identifier;
 		};
 	}
