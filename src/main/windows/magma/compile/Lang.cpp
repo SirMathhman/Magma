@@ -75,7 +75,8 @@ Rule CType_Lang() {/*
 	*/}
 template<>
 Rule CStructure_Lang() {/*
-		// For template structs, use plain name without type parameters in the declaration
+		// For template structs, use plain name without type parameters in the
+		// declaration
 		final Rule plainName = StrippedIdentifier("name");
 		final Rule structPrefix = Prefix("struct ", plainName);
 		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
