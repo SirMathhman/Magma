@@ -1,5 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Serialize.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>\nstruct Serialize<>{};
+template<>
+struct Serialize<>{};
 /*CompileError>*/ deserialize_Serialize(ClassT clazz, Node node) {/*
 		if (Objects.isNull(clazz))
 			return new Err<>(new CompileError("Target class must not be absent", new NodeContext(node)));

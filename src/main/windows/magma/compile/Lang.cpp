@@ -1,27 +1,50 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Lang.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>\nstruct Lang<>{};
-template<>\nstruct JavaType<>{};
-template<>\nstruct CType<>{};
-template<>\nstruct Field<>{JavaDefinition value;};
-template<>\nstruct Generic<>{char* base;, ListJavaType arguments;};
-template<>\nstruct Array<>{JavaType child;};
-template<>\nstruct JavaDefinition<>{char* name;, JavaType type;, OptionListModifier modifiers;};
-template<>\nstruct Modifier<>{char* value;};
-template<>\nstruct Method<>{JavaDefinition definition;, OptionListJavaDefinition params;, OptionString body;};
-template<>\nstruct Invalid<>{char* value;, OptionString after;};
-template<>\nstruct JClass<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
-template<>\nstruct Interface<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
-template<>\nstruct Record<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionListJavaDefinition params;, OptionJavaType implementsClause;};
-template<>\nstruct Structure<>{char* name;, ArrayListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
-template<>\nstruct Whitespace<>{};
-template<>\nstruct JavaRoot<>{ListJavaRootSegment children;};
-template<>\nstruct CRoot<>{ListCRootSegment children;};
-template<>\nstruct Import<>{char* value;};
-template<>\nstruct Package<>{char* value;};
-template<>\nstruct CDefinition<>{char* name;, CType type;};
-template<>\nstruct Function<>{CDefinition definition;, ListCDefinition params;, char* body;, OptionString after;};
-template<>\nstruct Identifier<>{char* value;};
-template<>\nstruct Pointer<>{CType child;};
+template<>
+struct Lang<>{};
+template<>
+struct JavaType<>{};
+template<>
+struct CType<>{};
+template<>
+struct Field<>{JavaDefinition value;};
+template<>
+struct Generic<>{char* base;, ListJavaType arguments;};
+template<>
+struct Array<>{JavaType child;};
+template<>
+struct JavaDefinition<>{char* name;, JavaType type;, OptionListModifier modifiers;};
+template<>
+struct Modifier<>{char* value;};
+template<>
+struct Method<>{JavaDefinition definition;, OptionListJavaDefinition params;, OptionString body;};
+template<>
+struct Invalid<>{char* value;, OptionString after;};
+template<>
+struct JClass<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
+template<>
+struct Interface<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionJavaType implementsClause;};
+template<>
+struct Record<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionListJavaDefinition params;, OptionJavaType implementsClause;};
+template<>
+struct Structure<>{char* name;, ArrayListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
+template<>
+struct Whitespace<>{};
+template<>
+struct JavaRoot<>{ListJavaRootSegment children;};
+template<>
+struct CRoot<>{ListCRootSegment children;};
+template<>
+struct Import<>{char* value;};
+template<>
+struct Package<>{char* value;};
+template<>
+struct CDefinition<>{char* name;, CType type;};
+template<>
+struct Function<>{CDefinition definition;, ListCDefinition params;, char* body;, OptionString after;};
+template<>
+struct Identifier<>{char* value;};
+template<>
+struct Pointer<>{CType child;};
 Rule CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	*/}
@@ -45,12 +68,12 @@ Rule CStructure_Lang() {/*
 		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
-
-		// Add template declaration if type parameters exist
+		
+		// Add template declaration if type parameters exist  
 		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
-		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">\\n"));
+		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
 		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
-
+		
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	*/}
 Rule JavaRoot_Lang() {/*

@@ -1,5 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>\nstruct Main<>{};
+template<>
+struct Main<>{};
 void main_Main(char** args) {/*
 		if (run() instanceof Some<ApplicationError>(ApplicationError value))
 			System.err.println(value.display());

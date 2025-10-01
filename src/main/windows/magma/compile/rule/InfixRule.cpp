@@ -1,5 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\InfixRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>\nstruct InfixRule<>{Rule leftRule;, char* infix;, Rule rightRule;, Locator locator;};
+template<>
+struct InfixRule<>{Rule leftRule;, char* infix;, Rule rightRule;, Locator locator;};
 Rule First_InfixRule(Rule left, char* infix, Rule right) {/*
 		return new InfixRule(left, infix, right, new FirstLocator());
 	*/}

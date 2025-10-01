@@ -169,7 +169,7 @@ public class Lang {
 
 		// Add template declaration if type parameters exist
 		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
-		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">\\n"));
+		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
 		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
 
 		return Tag("struct", First(maybeTemplate, "", structComplete));
