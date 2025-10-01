@@ -67,10 +67,11 @@ Rule Namespace_Lang(char* type) {/*
 	*/}
 Rule JStructure_Lang(char* type, Rule rule) {/*
 		final Rule modifiers = String("modifiers");
-		final Rule name = Strip(String("name"));
+		final Rule name = String("name");
+		final Rule beforeContent = Strip(Or(Suffix(First(name, "<", Values("typeArguments", Identifier())), ">"), name));
 		final Rule children = Statements("children", rule);
 
-		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	*/}
 Rule StructureMember_Lang() {/*

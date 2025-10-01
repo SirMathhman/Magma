@@ -98,8 +98,7 @@ Option<IOException> writeString_Main(Path path, char* result) {/*
 	*/}
 List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 		return switch (segment) {
-			case JStructure jStructure -> flattenStructure(jStructure);
-			case Invalid invalid -> List.of(invalid);
+			case JStructure jStructure -> flattenStructure(jStructure); case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
 		};
 	*/}
@@ -150,15 +149,11 @@ CDefinition transformDefinition_Main(JavaDefinition definition) {/*
 	*/}
 CType transformType_Main(JavaType type) {/*
 		return switch (type) {
-			case Invalid invalid -> invalid;
-			case Generic generic -> generic;
+			case Invalid invalid -> invalid; case Generic generic -> generic;
 			case Array array -> {
-				CType childType = transformType(array.child());
-				yield new Pointer(childType);
-			}
-			case Identifier identifier -> {
-				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char"));
-				yield identifier;
+				CType childType = transformType(array.child()); yield new Pointer(childType);
+			} case Identifier identifier -> {
+				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char")); yield identifier;
 			}
 		};
 	*/}

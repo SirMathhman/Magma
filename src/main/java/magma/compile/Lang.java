@@ -150,10 +150,17 @@ public class Lang {
 
 	private static Rule JStructure(String type, Rule rule) {
 		final Rule modifiers = String("modifiers");
-		final Rule name = Strip(String("name"));
+
+		final Rule name = StrippedIdentifier("name");
+		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
+		final Rule maybeWithTypeArguments = Strip(Or(withTypeArguments, name));
+
+		final Rule beforeContent =
+				Or(Last(maybeWithTypeArguments, " implements ", Node("supertype", JType())), maybeWithTypeArguments);
+
 		final Rule children = Statements("children", rule);
 
-		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 
@@ -191,7 +198,11 @@ public class Lang {
 	}
 
 	private static Rule Identifier() {
-		return Tag("identifier", Strip(FilterRule.Identifier(String("value"))));
+		return Tag("identifier", StrippedIdentifier("value"));
+	}
+
+	private static Rule StrippedIdentifier(String key) {
+		return Strip(FilterRule.Identifier(String(key)));
 	}
 
 	private static Rule Generic(Rule type) {
