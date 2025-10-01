@@ -40,6 +40,10 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<String, CompileError> generate(Node value) {
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
+			if (list.isEmpty()) return new Err<>(new CompileError("Node list for key '" + key +
+																														"' is empty. If the intent is to have no items, then this property should be omitted entirely, as opposed to an empty list.",
+																														new NodeContext(value)));
+
 			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
 				switch (this.rule.generate(child)) {
 					case Ok<String, CompileError>(String value1) -> sb.add(value1);
@@ -49,7 +53,9 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 				}
 
 			return new Ok<>(sb.toString());
-		}); return switch (resultOption) {
+		});
+
+		return switch (resultOption) {
 			case None<Result<String, CompileError>> _ ->
 					new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
