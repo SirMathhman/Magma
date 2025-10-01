@@ -1,0 +1,1 @@
+struct Divider {};Stream<String> divide

@@ -1,0 +1,1 @@
+struct CompileError(String reason, Context context, List<CompileError> causes) implements Error {};public CompileErrorString displayString formatint depth

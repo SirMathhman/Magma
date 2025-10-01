@@ -125,8 +125,8 @@ public class Main {
 
 	private static Stream<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
-			case JClass aClass -> {
-				yield flattenStructure(aClass);
+			case JStructure jStructure -> {
+				yield flattenStructure(jStructure);
 			}
 			case Content content -> Stream.of(content);
 			default -> Stream.empty();
