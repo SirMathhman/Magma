@@ -39,4 +39,4 @@ struct DivideState {};/*
 
 	boolean isLevel() {
 		return depth == 0;
-	}*/poppopAndAppendToTuplepopAndAppendToOption
+	}*/Option<Character> popCharacter>> popAndAppendToTupleOption<DivideState> popAndAppendToOption

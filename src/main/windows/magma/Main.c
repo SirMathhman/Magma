@@ -2,7 +2,7 @@ struct Main {};/*
 
 	public static void main(String[] args) {
 		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
-	}*/run/*
+	}*/Option<ApplicationError> run/*
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
@@ -117,5 +117,13 @@ struct Main {};/*
 	}*//*
 
 	private static CDefinition getDefinition(JavaDefinition definition) {
-		return new CDefinition(definition.name());
+		return new CDefinition(definition.name(), getType(definition.type()));
+	}*//*
+
+	private static CType getType(JavaType type) {
+		return switch (type) {
+			case Content content -> content;
+			case Generic generic -> new Content(generic.base() + "_?");
+			case Identifier identifier -> identifier;
+		};
 	}*/

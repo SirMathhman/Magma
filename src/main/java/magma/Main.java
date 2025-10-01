@@ -152,6 +152,13 @@ public class Main {
 	}
 
 	private static CDefinition getDefinition(JavaDefinition definition) {
-		return new CDefinition(definition.name());
+		return new CDefinition(definition.name(), getType(definition.type()));
+	}
+
+	private static CType getType(JavaType type) {
+		return switch (type) {
+			case Content content -> content; case Generic generic -> new Content(generic.base() + "_?");
+			case Identifier identifier -> identifier;
+		};
 	}
 }

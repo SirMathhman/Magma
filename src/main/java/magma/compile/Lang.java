@@ -28,20 +28,22 @@ public class Lang {
 
 	public sealed interface JavaClassMember {}
 
-	public sealed interface Type {}
+	sealed public interface JavaType {}
+
+	sealed public interface CType {}
 
 	@Tag("generic")
-	public record Generic(String base, List<Type> arguments) implements Type {}
+	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, Type type) {}
+	public record JavaDefinition(String name, JavaType type) {}
 
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, String body)
 			implements JavaClassMember {}
 
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, Type {}
+	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
@@ -72,17 +74,24 @@ public class Lang {
 	public record Package(String value) implements JavaRootSegment {}
 
 	@Tag("definition")
-	public record CDefinition(String name) {}
+	public record CDefinition(String name, CType type) {}
 
 	@Tag("function")
 	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}
+
+	@Tag("identifier")
+	public record Identifier(String value) implements JavaType, CType {}
 
 	public static Rule createCRootRule() {
 		return Statements("children", Or(Struct(), Function(), Content()));
 	}
 
 	public static Rule Function() {
-		return Tag("function", new NodeRule("definition", new StringRule("name")));
+		return Tag("function", new NodeRule("definition", Last(Node("type", CType()), " ", new StringRule("name"))));
+	}
+
+	private static Rule CType() {
+		return Or(Identifier(), Content());
 	}
 
 	private static Rule Struct() {
@@ -93,8 +102,7 @@ public class Lang {
 		final Rule segment = Or(Namespace("package"),
 														Namespace("import"),
 														Structure("class"),
-														Structure("interface"),
-														Structure("record"), Whitespace());
+														Structure("interface"), Structure("record"), Whitespace());
 
 		return Statements("children", segment);
 	}
@@ -122,21 +130,26 @@ public class Lang {
 	}
 
 	private static Rule Method(Rule params) {
-		return Tag("method",
-							 Strip(Suffix(First(Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")")),
-																	"{",
-																	String("body")), "}")));
+		final Rule header = Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")"));
+		return Tag("method", Strip(Suffix(First(header, "{", String("body")), "}")));
 	}
 
 	private static Rule Definition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		return Tag("definition", Last(Last(modifiers, " ", Node("type", Type())), " ", String("name")));
+		return Tag("definition", Last(Last(modifiers, " ", Node("type", JavaType())), " ", String("name")));
 	}
 
-	private static Rule Type() {
-		return Or(Tag("generic",
-									Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">"))),
-							Content());
+	private static Rule JavaType() {
+		return Or(Generic(), Identifier(), Content());
+	}
+
+	private static Rule Identifier() {
+		return Tag("identifier", String("value"));
+	}
+
+	private static Rule Generic() {
+		return Tag("generic",
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">")));
 	}
 
 	private static Rule Content() {
