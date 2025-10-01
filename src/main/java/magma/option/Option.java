@@ -17,4 +17,8 @@ public sealed interface Option<T> permits Some, None {
 	}
 
 	<R> Option<R> map(Function<T, R> mapper);
+
+	<R> Option<R> flatMap(Function<T, Option<R>> mapper);
+
+	T orElse(T other);
 }

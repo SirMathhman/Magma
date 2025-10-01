@@ -1,5 +1,9 @@
 package magma.compile.rule;
 
+import magma.option.None;
+import magma.option.Option;
+import magma.option.Some;
+
 import java.util.stream.Stream;
 
 public class FoldingDivider implements Divider {
@@ -9,8 +13,9 @@ public class FoldingDivider implements Divider {
 
 	@Override
 	public Stream<String> divide(String input) {
-		DivideState current = new DivideState(); for (int i = 0; i < input.length(); i++) {
-			final char c = input.charAt(i); current = folder.fold(current, c);
+		DivideState current = new DivideState(input); while (true) {
+			final Option<Character> pop = current.pop(); if (pop instanceof None<Character>) break;
+			if (pop instanceof Some<Character>(Character c)) current = folder.fold(current, c);
 		}
 
 		return current.advance().stream();
