@@ -1,15 +1,16 @@
 struct Main{};
-void main_Main() {}
+void main_Main(String[] args) {}
 Option_? run_Main() {}
-Option_? compileAllJavaFiles_Main() {}
-Option_? compileJavaFile_Main() {}
-Option_? writeString_Main() {}
-ThrowableError> readString_Main() {}
-CompileError> compile_Main() {}
-CompileError> transform_Main() {}
-List_? flattenRootSegment_Main() {}
-List_? flattenStructure_Main() {}
-Option_? flattenStructureSegment_Main() {}
-Function transformMethod_Main() {}
-CDefinition transformDefinition_Main() {}
-CType transformType_Main() {}
+Option_? compileAllJavaFiles_Main(Path javaSourceRoot Path cOutputRoot) {}
+Option_? compileJavaFile_Main(Path javaFile Path javaSourceRoot Path cOutputRoot) {}
+Option_? writeString_Main(Path path String result) {}
+ThrowableError> readString_Main(Path source) {}
+CompileError> compile_Main(String input) {}
+CompileError> transform_Main(JavaRoot node) {}
+List_? flattenRootSegment_Main(JavaRootSegment segment) {}
+List_? flattenStructure_Main(JStructure aClass) {}
+Option_? flattenStructureSegment_Main(JavaStructureSegment self
+			String name) {}
+Function transformMethod_Main(Method method String structName) {}
+CDefinition transformDefinition_Main(JavaDefinition definition) {}
+CType transformType_Main(JavaType type) {}

@@ -34,10 +34,10 @@ Rule CDefinition_Lang() {}
 Rule CType_Lang() {}
 Rule CStructure_Lang() {}
 Rule JavaRoot_Lang() {}
-Rule Structures_Lang() {}
+Rule Structures_Lang(Rule structureMember) {}
 Rule Whitespace_Lang() {}
-Rule Namespace_Lang() {}
-Rule JStructure_Lang() {}
+Rule Namespace_Lang(String type) {}
+Rule JStructure_Lang(String type Rule rule) {}
 Rule StructureMember_Lang() {}
 Rule Statement_Lang() {}
 Rule Method_Lang() {}
