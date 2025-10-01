@@ -21,7 +21,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return rule.generate(node).map(value -> value + suffix());
+		return rule.generate(node).mapValue(value -> value + suffix());
 	}
 
 	public Rule getRule() {

@@ -26,14 +26,14 @@ public record InfixRule(Rule leftRule, String infix, Rule rightRule, Locator loc
 				final String beforeContent = input.substring(0, index);
 				final String content = input.substring(index + infix.length());
 
-				yield leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).map(left::merge));
+				yield leftRule.lex(beforeContent).flatMap(left -> rightRule.lex(content).mapValue(left::merge));
 			}
 		};
 	}
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return leftRule.generate(node).flatMap(inner -> rightRule.generate(node).map(other -> inner + infix + other));
+		return leftRule.generate(node).flatMap(inner -> rightRule.generate(node).mapValue(other -> inner + infix + other));
 	}
 
 }

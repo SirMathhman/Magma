@@ -15,7 +15,7 @@ public record NodeRule(String key, Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		return rule.lex(content).map(node -> new Node().withNode(key, node));
+		return rule.lex(content).mapValue(node -> new Node().withNode(key, node));
 	}
 
 	@Override

@@ -179,7 +179,7 @@ public class Serialize {
 		final Option<Node> maybeChild = node.findNode(key);
 		if (maybeChild instanceof Some<Node>(Node child)) {
 			final Result<Object, CompileError> childResult = deserializeRaw(elementClass, child);
-			return childResult.map(Option::of);
+			return childResult.mapValue(Option::of);
 		}
 
 		return new Ok<>(Option.empty());
