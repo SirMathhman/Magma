@@ -1,4 +1,4 @@
-struct Option{};
+struct Option<>{};
 Option<T> of_Option(T value) {/*
 		return new Some<>(value);
 	*/}

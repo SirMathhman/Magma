@@ -27,7 +27,7 @@ import static magma.compile.rule.TagRule.Tag;
 public class Lang {
 	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {}
 
-	sealed public interface CRootSegment {
+	sealed public interface CRootSegment permits Invalid, Structure, Function {
 		Option<String> after();
 	}
 

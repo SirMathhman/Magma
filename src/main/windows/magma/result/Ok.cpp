@@ -1,4 +1,4 @@
-struct Ok{};
+struct Ok<>{};
 /*X>*/ mapValue_Ok(R fn) {/*
 		return new Ok<>(fn.apply(this.value));
 	*/}

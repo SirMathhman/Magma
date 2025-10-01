@@ -1,4 +1,4 @@
-struct Some{};
+struct Some<>{};
 Option<R> map_Some(R mapper) {/*
 		return new Some<>(mapper.apply(value));
 	*/}

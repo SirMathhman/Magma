@@ -1,1 +1,1 @@
-struct Result{};
+struct Result<>{};

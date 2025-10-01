@@ -1,4 +1,4 @@
-struct None{};
+struct None<>{};
 Option<R> map_None(R mapper) {/*
 		return new None<>();
 	*/}

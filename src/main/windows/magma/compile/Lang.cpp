@@ -29,8 +29,7 @@ Rule CRoot_Lang() {/*
 	*/}
 Rule Function_Lang() {/*
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Values("params", CDefinition());
-		final Rule body = Placeholder(new StringRule("body"));
+		final Rule params = Values("params", CDefinition()); final Rule body = Placeholder(new StringRule("body"));
 		return Tag("function", First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}")));
 	*/}
 Rule CDefinition_Lang() {/*
@@ -38,8 +37,7 @@ Rule CDefinition_Lang() {/*
 	*/}
 Rule CType_Lang() {/*
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
-		return rule;
+		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid())); return rule;
 	*/}
 Rule CStructure_Lang() {/*
 		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeParameters(), "{};")));
@@ -110,8 +108,7 @@ Rule JDefinition_Lang() {/*
 		return Tag("definition", Last(Or(last, type), " ", String("name")));
 	*/}
 Rule JType_Lang() {/*
-		final LazyRule type = new LazyRule();
-		type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
+		final LazyRule type = new LazyRule(); type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
 		return type;
 	*/}
 Rule Array_Lang(Rule type) {/*

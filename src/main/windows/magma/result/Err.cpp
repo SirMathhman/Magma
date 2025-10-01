@@ -1,4 +1,4 @@
-struct Err{};
+struct Err<>{};
 /*X>*/ mapValue_Err(R fn) {/*
 		return new Err<>(error);
 	*/}
