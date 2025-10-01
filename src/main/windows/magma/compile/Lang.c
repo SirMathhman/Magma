@@ -41,7 +41,7 @@ Rule JStructure_Lang() {}
 Rule StructureMember_Lang() {}
 Rule Statement_Lang() {}
 Rule Method_Lang() {}
-Rule Definition_Lang() {}
+Rule JDefinition_Lang() {}
 Rule JavaType_Lang() {}
 Rule Identifier_Lang() {}
 Rule Generic_Lang() {}

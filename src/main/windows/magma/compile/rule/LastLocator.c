@@ -1,2 +1,2 @@
 struct LastLocator() implements Locator{};
-Option<Integer> locate_LastLocator() implements Locator() {}
+Option_? locate_LastLocator() implements Locator() {}

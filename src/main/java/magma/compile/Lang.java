@@ -177,17 +177,17 @@ public class Lang {
 	}
 
 	private static Rule Statement() {
-		return Tag("statement", Strip(Suffix(Node("value", Definition()), ";")));
+		return Tag("statement", Strip(Suffix(Node("value", JDefinition()), ";")));
 	}
 
 	private static Rule Method() {
-		Rule params = Or(Values("params", Or(Definition(), Whitespace())), Strip(Empty));
-		final Rule header = Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")"));
+		Rule params = Or(Values("params", Or(JDefinition(), Whitespace())), Strip(Empty));
+		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
 	}
 
-	private static Rule Definition() {
+	private static Rule JDefinition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
 		final Rule type = Node("type", JavaType());
 		final Rule last = Last(modifiers, " ", type);
