@@ -22,86 +22,65 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment {
-	}
+	sealed public interface JavaRootSegment {}
 
-	sealed public interface CRootSegment {
-	}
+	sealed public interface CRootSegment {}
 
-	public sealed interface JavaClassMember {
-	}
+	public sealed interface JavaClassMember {}
 
-	sealed public interface JavaType {
-	}
+	sealed public interface JavaType {}
 
-	sealed public interface CType {
-	}
+	sealed public interface CType {}
 
 	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType {
-	}
+	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type) {
-	}
+	public record JavaDefinition(String name, JavaType type) {}
 
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
-			implements JavaClassMember {
-	}
+			implements JavaClassMember {}
 
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, JavaType, CType {
-	}
+	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {
-	}
+			implements JavaRootSegment {}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {
-	}
+			implements JavaRootSegment {}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {
-	}
+			implements JavaRootSegment {}
 
 	@Tag("struct")
-	public record Structure(String name) implements CRootSegment {
-	}
+	public record Structure(String name) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JavaClassMember {
-	}
+	public record Whitespace() implements JavaRootSegment, JavaClassMember {}
 
-	public record JavaRoot(List<JavaRootSegment> children) {
-	}
+	public record JavaRoot(List<JavaRootSegment> children) {}
 
-	public record CRoot(List<CRootSegment> children) {
-	}
+	public record CRoot(List<CRootSegment> children) {}
 
 	@Tag("import")
-	public record Import(String value) implements JavaRootSegment {
-	}
+	public record Import(String value) implements JavaRootSegment {}
 
 	@Tag("package")
-	public record Package(String value) implements JavaRootSegment {
-	}
+	public record Package(String value) implements JavaRootSegment {}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type) {
-	}
+	public record CDefinition(String name, CType type) {}
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {
-	}
+	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JavaType, CType {
-	}
+	public record Identifier(String value) implements JavaType, CType {}
 
 	public static Rule createCRootRule() {
 		return Statements("children", Or(Struct(), Function(), Content()));
@@ -120,14 +99,13 @@ public class Lang {
 	}
 
 	public static Rule JavaRoot() {
-		final Rule segment = Or(Namespace("package"),
-				Namespace("import"),
-				Structure("class"),
-				Structure("interface"),
-				Structure("record"),
-				Whitespace());
+		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(), Whitespace());
 
 		return Statements("children", segment);
+	}
+
+	private static Rule Structures() {
+		return Or(Structure("class"), Structure("interface"), Structure("record"));
 	}
 
 	private static Rule Whitespace() {
@@ -148,11 +126,11 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		final Rule params = Or(Values("params", Or(Definition(), Whitespace())), Strip(Empty));
-		return Or(Method(params), Whitespace());
+		return Or(Structures(), Method(), Whitespace());
 	}
 
-	private static Rule Method(Rule params) {
+	private static Rule Method() {
+		Rule params = Or(Values("params", Or(Definition(), Whitespace())), Strip(Empty));
 		final Rule header = Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
@@ -175,7 +153,7 @@ public class Lang {
 
 	private static Rule Generic() {
 		return Tag("generic",
-				Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", Content())), ">")));
 	}
 
 	private static Rule Content() {
