@@ -1,0 +1,24 @@
+struct OrRule(List<Rule> rules) implements Rule{};
+Rule Or_OrRule(List<Rule> rules) implements Rule(/*Rule...*/ rules) {/*
+		return new OrRule(Arrays.asList(rules));
+	*/}
+/*CompileError>*/ lex_OrRule(List<Rule> rules) implements Rule(char* content) {/*
+		final ArrayList<CompileError> errors = new ArrayList<>();
+		for (Rule rule : rules)
+			switch (rule.lex(content)) {
+				case Ok<Node, CompileError> ok -> {
+					return ok;
+				}
+				case Err<Node, CompileError>(CompileError error) -> errors.add(error);
+			}
+		return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
+	*/}
+/*CompileError>*/ generate_OrRule(List<Rule> rules) implements Rule(Node node) {/*
+		final ArrayList<CompileError> errors = new ArrayList<>();
+		for (Rule rule : rules) {
+			Result<String, CompileError> res = rule.generate(node);
+			if (res instanceof Ok<String, CompileError> ok) return ok;
+			else if (res instanceof Err<String, CompileError>(CompileError error)) errors.add(error);
+		}
+		return new Err<>(new CompileError("No generator matched for node", new NodeContext(node), errors));
+	*/}
