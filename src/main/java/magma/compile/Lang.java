@@ -59,7 +59,7 @@ public class Lang {
 	public record Structure(String name) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment {}
+	public record Whitespace() implements JavaRootSegment, JavaClassMember {}
 
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
@@ -94,10 +94,13 @@ public class Lang {
 														Namespace("import"),
 														Structure("class"),
 														Structure("interface"),
-														Structure("record"),
-														Tag("whitespace", Strip(Empty)));
+														Structure("record"), Whitespace());
 
 		return Statements("children", segment);
+	}
+
+	private static Rule Whitespace() {
+		return Tag("whitespace", Strip(Empty));
 	}
 
 	private static Rule Namespace(String type) {
@@ -114,14 +117,15 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		final Rule params = Or(Values("params", Definition()), Strip(Empty)); return Or(Tag("method",
-																																												Strip(Suffix(First(Strip(Suffix(
-																																																				 Last(Node("definition",
-																																																									 Definition()),
-																																																							"(",
-																																																							params),
-																																																				 ")")), "{", String("body")),
-																																																		 "}"))), Content());
+		final Rule params = Or(Values("params", Definition()), Strip(Empty));
+		return Or(Method(params), Whitespace(), Content());
+	}
+
+	private static Rule Method(Rule params) {
+		return Tag("method",
+							 Strip(Suffix(First(Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")")),
+																	"{",
+																	String("body")), "}")));
 	}
 
 	private static Rule Definition() {

@@ -127,17 +127,17 @@ public class Main {
 		return switch (segment) {
 			case JClass aClass -> {
 				final Structure structure = new Structure(aClass.name());
-				yield Stream.concat(Stream.of(structure), aClass.children().stream().map(Main::getSelf));
+				yield Stream.concat(Stream.of(structure), aClass.children().stream().flatMap(Main::getSelf));
 			}
 			case Content content -> Stream.of(content);
 			default -> Stream.empty();
 		};
 	}
 
-	private static CRootSegment getSelf(JavaClassMember self) {
+	private static Stream<CRootSegment> getSelf(JavaClassMember self) {
 		return switch (self) {
-			case Content content -> content;
-			case Method method -> transformMethod(method);
+			case Content content -> Stream.of(content); case Method method -> Stream.of(transformMethod(method));
+			case Whitespace _ -> Stream.empty();
 		};
 	}
 

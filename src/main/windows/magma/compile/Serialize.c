@@ -333,5 +333,4 @@ struct Serialize {};/*
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
 			return raw;
 		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
-	}*//*
-*/
+	}*/

@@ -11,5 +11,4 @@ struct FoldingDivider implements Divider {};/*
 		}
 
 		return current.advance().stream();
-	}*//*
-*/
+	}*/

@@ -36,7 +36,7 @@ struct Lang {};/*
 	public record Structure(String name) implements CRootSegment {}*//*
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment {}*//*
+	public record Whitespace() implements JavaRootSegment, JavaClassMember {}*//*
 
 	public record JavaRoot(List<JavaRootSegment> children) {}*//*
 
@@ -52,7 +52,7 @@ struct Lang {};/*
 	public record CDefinition(String name) {}*//*
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}*/createCRootRuleFunctionStructcreateJavaRootRule/*
+	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}*/createCRootRuleFunctionStructcreateJavaRootRuleWhitespace/*
 
 	private static Rule Namespace(String type) {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
@@ -65,5 +65,11 @@ struct Lang {};/*
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
-	}*/ClassMemberDefinitionTypeContent/*
-*/
+	}*/ClassMember/*
+
+	private static Rule Method(Rule params) {
+		return Tag("method",
+							 Strip(Suffix(First(Strip(Suffix(Last(Node("definition", Definition()), "(", params), ")")),
+																	"{",
+																	String("body")), "}")));
+	}*/DefinitionTypeContent

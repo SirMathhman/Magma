@@ -12,5 +12,4 @@ struct None<T> implements Option<T> {};/*
 	@Override
 	public T orElse(T other) {
 		return other;
-	}*//*
-*/
+	}*/

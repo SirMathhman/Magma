@@ -10,5 +10,4 @@ struct EmptyRule implements Rule {};/*
 	@Override
 	public Result<String, CompileError> generate(Node node) {
 		return new Ok<>("");
-	}*//*
-*/
+	}*/
