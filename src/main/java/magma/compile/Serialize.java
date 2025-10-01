@@ -435,7 +435,11 @@ public class Serialize {
 						new StringContext(component.getName()),
 						errors));
 
-			target.withNodeList(key, List.copyOf(serializedChildren));
+			// If the list serializes to zero children, omit the node-list entirely.
+			// The generator expects missing list properties rather than empty lists.
+			if (!serializedChildren.isEmpty()) {
+				target.withNodeList(key, List.copyOf(serializedChildren));
+			}
 			return Option.empty();
 		}
 
@@ -481,7 +485,10 @@ public class Serialize {
 					new StringContext(component.getName()),
 					errors));
 
-		target.withNodeList(component.getName(), List.copyOf(serializedChildren));
+		// Omit empty lists to match generator expectations (it treats empty lists as an error)
+		if (!serializedChildren.isEmpty()) {
+			target.withNodeList(component.getName(), List.copyOf(serializedChildren));
+		}
 		return Option.empty();
 	}
 

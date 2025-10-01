@@ -1,4 +1,4 @@
-struct InfixRule{};
+struct InfixRule<>{};
 Rule First_InfixRule(Rule left, char* infix, Rule right) {/*
 		return new InfixRule(left, infix, right, new FirstLocator());
 	*/}

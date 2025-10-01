@@ -1,9 +1,10 @@
-struct StringRule{};
+struct StringRule<>{};
 Rule String_StringRule(char* key) {/*
 		return new StringRule(key);
 	*/}
 /*CompileError>*/ lex_StringRule(char* content) {/*
-		if (content.isEmpty()) return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
+		if (content.isEmpty())
+			return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
 		return new Ok<>(new Node().withString(key, content));
 	*/}
 /*CompileError>*/ generate_StringRule(Node node) {/*

@@ -1,1 +1,1 @@
-struct Divider{};
+struct Divider<>{};

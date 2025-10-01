@@ -1,4 +1,4 @@
-struct PrefixRule{};
+struct PrefixRule<>{};
 Rule Prefix_PrefixRule(char* prefix, Rule rule) {/*
 		return new PrefixRule(prefix, rule);
 	*/}

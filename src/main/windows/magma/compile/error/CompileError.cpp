@@ -1,4 +1,4 @@
-struct CompileError{};
+struct CompileError<>{};
 public CompileError_CompileError(char* reason, Context sourceCode) {/*
 		this(reason, sourceCode, Collections.emptyList());
 	*/}

@@ -1,4 +1,4 @@
-struct FilterRule{};
+struct FilterRule<>{};
 public FilterRule_FilterRule(Filter filter, Rule rule) {/*
 		this.filter = filter; this.rule = rule;
 	*/}

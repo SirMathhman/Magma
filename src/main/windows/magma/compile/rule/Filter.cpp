@@ -1,1 +1,1 @@
-struct Filter{};
+struct Filter<>{};

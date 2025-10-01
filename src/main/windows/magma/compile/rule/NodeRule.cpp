@@ -1,4 +1,4 @@
-struct NodeRule{};
+struct NodeRule<>{};
 Rule Node_NodeRule(char* key, Rule rule) {/*
 		return new NodeRule(key, rule);
 	*/}

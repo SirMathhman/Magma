@@ -1,4 +1,4 @@
-struct FoldingDivider{};
+struct FoldingDivider<>{};
 public FoldingDivider_FoldingDivider(Folder folder) {/*this.folder = folder;*/}
 Stream<String> divide_FoldingDivider(char* input) {/*
 		DivideState current = new DivideState(input); while (true) {

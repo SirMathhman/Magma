@@ -1,4 +1,4 @@
-struct IdentifierFilter{};
+struct IdentifierFilter<>{};
 boolean test_IdentifierFilter(char* input) {/*
 		for (int i = 0; i < input.length(); i++) {if (!Character.isLetterOrDigit(input.charAt(i))) return false;}
 

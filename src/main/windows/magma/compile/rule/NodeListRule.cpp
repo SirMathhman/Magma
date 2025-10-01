@@ -1,4 +1,4 @@
-struct NodeListRule{};
+struct NodeListRule<>{};
 Rule Statements_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));
 	*/}
@@ -19,6 +19,9 @@ Rule Values_NodeListRule(char* key, Rule rule) {/*
 	*/}
 /*CompileError>*/ generate_NodeListRule(Node value) {/*
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
+			// Treat missing or empty lists as empty content when generating.
+			if (list.isEmpty()) return new Ok<>("");
+
 			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
 				switch (this.rule.generate(child)) {
 					case Ok<String, CompileError>(String value1) -> sb.add(value1);
@@ -28,9 +31,11 @@ Rule Values_NodeListRule(char* key, Rule rule) {/*
 				}
 
 			return new Ok<>(sb.toString());
-		}); return switch (resultOption) {
-			case None<Result<String, CompileError>> _ ->
-					new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
+		});
+
+		return switch (resultOption) {
+			// If the node-list isn't present at all, treat it as empty rather than an error.
+			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
 	*/}

@@ -1,4 +1,4 @@
-struct Node{};
+struct Node<>{};
 char* toString_Node() {/*
 		return format(0);
 	*/}

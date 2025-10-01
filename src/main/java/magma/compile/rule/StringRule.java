@@ -18,7 +18,8 @@ public record StringRule(String key) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		if (content.isEmpty()) return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
+		if (content.isEmpty())
+			return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
 		return new Ok<>(new Node().withString(key, content));
 	}
 

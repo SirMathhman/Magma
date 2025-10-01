@@ -1,1 +1,1 @@
-struct Tag{};
+struct Tag<>{};

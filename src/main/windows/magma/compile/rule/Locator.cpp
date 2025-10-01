@@ -1,1 +1,1 @@
-struct Locator{};
+struct Locator<>{};

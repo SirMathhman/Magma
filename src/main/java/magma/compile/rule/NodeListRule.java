@@ -1,7 +1,6 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.NodeContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Option;
@@ -40,9 +39,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<String, CompileError> generate(Node value) {
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
-			if (list.isEmpty()) return new Err<>(new CompileError("Node list for key '" + key +
-																														"' is empty. If the intent is to have no items, then this property should be omitted entirely, as opposed to an empty list",
-																														new NodeContext(value)));
+			// Treat missing or empty lists as empty content when generating.
+			if (list.isEmpty()) return new Ok<>("");
 
 			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
 				switch (this.rule.generate(child)) {
@@ -56,8 +54,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		});
 
 		return switch (resultOption) {
-			case None<Result<String, CompileError>> _ ->
-					new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
+			// If the node-list isn't present at all, treat it as empty rather than an error.
+			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
 	}

@@ -1,4 +1,4 @@
-struct StripRule{};
+struct StripRule<>{};
 Rule Strip_StripRule(Rule rule) {/*
 		return new StripRule("?", rule, "?");
 	*/}

@@ -1,4 +1,4 @@
-struct OrRule{};
+struct OrRule<>{};
 Rule Or_OrRule(/*Rule...*/ rules) {/*
 		return new OrRule(Arrays.asList(rules));
 	*/}

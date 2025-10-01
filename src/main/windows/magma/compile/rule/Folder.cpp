@@ -1,1 +1,1 @@
-struct Folder{};
+struct Folder<>{};

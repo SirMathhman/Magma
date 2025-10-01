@@ -1,4 +1,4 @@
-struct TagRule{};
+struct TagRule<>{};
 Rule Tag_TagRule(char* type, Rule rule) {/*
 		return new TagRule(type, rule);
 	*/}

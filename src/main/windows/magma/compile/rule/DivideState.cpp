@@ -1,4 +1,4 @@
-struct DivideState{};
+struct DivideState<>{};
 public DivideState_DivideState(StringBuilder buffer, int depth, ListString segments, char* input) {/*
 		this.buffer = buffer; this.depth = depth; this.segments = segments; this.input = input;
 	*/}

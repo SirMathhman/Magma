@@ -1,4 +1,4 @@
-struct SuffixRule{};
+struct SuffixRule<>{};
 Rule Suffix_SuffixRule(Rule rule, char* suffix) {/*
 		return new SuffixRule(rule, suffix);
 	*/}

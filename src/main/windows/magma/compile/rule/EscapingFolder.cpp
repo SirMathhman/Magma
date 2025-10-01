@@ -1,4 +1,4 @@
-struct EscapingFolder{};
+struct EscapingFolder<>{};
 DivideState fold_EscapingFolder(DivideState state, char c) {/*
 		if (c == '\'') return state.append(c)
 															 .popAndAppendToTuple()

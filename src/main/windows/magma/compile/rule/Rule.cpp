@@ -1,1 +1,1 @@
-struct Rule{};
+struct Rule<>{};

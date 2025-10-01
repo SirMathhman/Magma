@@ -1,4 +1,4 @@
-struct LazyRule{};
+struct LazyRule<>{};
 void set_LazyRule(Rule rule) {/*
 		maybeChild = new Some<>(rule);
 	*/}

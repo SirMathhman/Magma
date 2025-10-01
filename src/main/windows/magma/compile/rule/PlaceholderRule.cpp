@@ -1,4 +1,4 @@
-struct PlaceholderRule{};
+struct PlaceholderRule<>{};
 char* wrap_PlaceholderRule(char* input) {/*
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	*/}
