@@ -64,7 +64,11 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type) {
+	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers) {
+	}
+
+	@Tag("modifier")
+	public record Modifier(String value) {
 	}
 
 	@Tag("method")
@@ -79,19 +83,19 @@ public class Lang {
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters)
+			Option<List<String>> typeParameters, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters)
+			Option<List<String>> typeParameters, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters)
+			Option<List<String>> typeParameters, Option<List<JavaDefinition>> params, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
@@ -190,7 +194,7 @@ public class Lang {
 		final Rule maybeWithParameters1 = Or(Last(maybeWithParameters, "extends", Node("extends", JType())),
 				maybeWithParameters);
 
-		final Rule beforeContent = Or(Last(maybeWithParameters1, "implements", Node("implements", JType())),
+		final Rule beforeContent = Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())),
 				maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);

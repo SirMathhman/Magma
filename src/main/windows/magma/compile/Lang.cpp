@@ -1,30 +1,12 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Lang.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Lang<>{};
-struct JavaRootSegment<>{};
-struct CRootSegment<>{};
-struct JavaStructureSegment<>{};
 struct JavaType<>{};
 struct CType<>{};
-struct JStructure<>{};
-struct Field<>{};
-struct Generic<>{};
-struct Array<>{};
 struct JavaDefinition<>{};
-struct Method<>{};
-struct Invalid<>{};
-struct JClass<>{};
-struct Interface<>{};
-struct Record<>{};
-struct Structure<>{};
-struct Whitespace<>{};
+struct Modifier<>{};
 struct JavaRoot<>{};
 struct CRoot<>{};
-struct Import<>{};
-struct Package<>{};
 struct CDefinition<>{};
-struct Function<>{};
-struct Identifier<>{};
-struct Pointer<>{};
 Rule CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	*/}

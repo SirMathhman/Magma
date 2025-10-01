@@ -26,7 +26,8 @@ import static magma.compile.Lang.*;
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value))
+			System.err.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {
@@ -45,8 +46,8 @@ public class Main {
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles =
-					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
+			List<Path> javaFiles = paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java"))
+					.toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
@@ -92,8 +93,8 @@ public class Main {
 				return Option.of(new ApplicationError(error));
 			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
 				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-															 System.lineSeparator();
+						"'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+						System.lineSeparator();
 				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 			}
 		}
@@ -118,25 +119,26 @@ public class Main {
 		}
 	}
 
-	private static Result<String, CompileError> compile(String input) {
+	public static Result<String, CompileError> compile(String input) {
 		return JavaRoot().lex(input)
-										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-										 .flatMap(Main::transform)
-										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-										 .flatMap(CRoot()::generate);
+				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+				.flatMap(Main::transform)
+				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+				.flatMap(CRoot()::generate);
 	}
 
-	private static Result<CRoot, CompileError> transform(JavaRoot node) {
+	public static Result<CRoot, CompileError> transform(JavaRoot node) {
 		return new Ok<>(new CRoot(node.children()
-																	.stream()
-																	.map(Main::flattenRootSegment)
-																	.flatMap(Collection::stream)
-																	.toList()));
+				.stream()
+				.map(Main::flattenRootSegment)
+				.flatMap(Collection::stream)
+				.toList()));
 	}
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
-			case JStructure jStructure -> flattenStructure(jStructure); case Invalid invalid -> List.of(invalid);
+			case JStructure jStructure -> flattenStructure(jStructure);
+			case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
 		};
 	}
@@ -147,15 +149,27 @@ public class Main {
 		final ArrayList<CRootSegment> segments = new ArrayList<>();
 		final ArrayList<CDefinition> fields = new ArrayList<>();
 
+		// Special handling for Record params - add them as struct fields
+		if (aClass instanceof magma.compile.Lang.Record record) {
+			Option<List<JavaDefinition>> params = record.params();
+			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
+				for (JavaDefinition param : paramList) {
+					final CDefinition cDef = transformDefinition(param);
+					fields.add(cDef);
+				}
+			}
+		}
+
 		final String name = aClass.name();
 		for (JavaStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
-			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
+			if (tuple.right() instanceof Some<CDefinition>(CDefinition value))
+				fields.add(value);
 		}
 
-		final Structure structure =
-				new Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
+		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()),
+				aClass.typeParameters());
 		final List<CRootSegment> copy = new ArrayList<>();
 		copy.add(structure);
 		copy.addAll(segments);
@@ -163,7 +177,7 @@ public class Main {
 	}
 
 	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JavaStructureSegment self,
-																																												String name) {
+			String name) {
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
@@ -183,9 +197,9 @@ public class Main {
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
-												newParams,
-												method.body().orElse(""),
-												new Some<>(System.lineSeparator()));
+				newParams,
+				method.body().orElse(""),
+				new Some<>(System.lineSeparator()));
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {
@@ -194,11 +208,16 @@ public class Main {
 
 	private static CType transformType(JavaType type) {
 		return switch (type) {
-			case Invalid invalid -> invalid; case Generic generic -> generic;
+			case Invalid invalid -> invalid;
+			case Generic generic -> generic;
 			case Array array -> {
-				CType childType = transformType(array.child()); yield new Pointer(childType);
-			} case Identifier identifier -> {
-				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char")); yield identifier;
+				CType childType = transformType(array.child());
+				yield new Pointer(childType);
+			}
+			case Identifier identifier -> {
+				if (identifier.value().equals("String"))
+					yield new Pointer(new Identifier("char"));
+				yield identifier;
 			}
 		};
 	}
