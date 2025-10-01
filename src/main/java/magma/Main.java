@@ -126,18 +126,22 @@ public class Main {
 	private static Stream<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
 		return switch (segment) {
 			case JClass aClass -> {
-				final Structure structure = new Structure(aClass.name());
-				yield Stream.concat(Stream.of(structure), aClass.children().stream().flatMap(Main::getSelf));
+				yield flattenStructure(aClass);
 			}
 			case Content content -> Stream.of(content);
 			default -> Stream.empty();
 		};
 	}
 
-	private static Stream<CRootSegment> getSelf(JavaClassMember self) {
+	private static Stream<CRootSegment> flattenStructure(JStructure aClass) {
+		final Structure structure = new Structure(aClass.name());
+		return Stream.concat(Stream.of(structure), aClass.children().stream().flatMap(Main::flattenStructureSegment));
+	}
+
+	private static Stream<CRootSegment> flattenStructureSegment(JavaStructureSegment self) {
 		return switch (self) {
 			case Content content -> Stream.of(content); case Method method -> Stream.of(transformMethod(method));
-			case Whitespace _ -> Stream.empty();
+			case Whitespace _ -> Stream.empty(); case JStructure jClass -> flattenStructure(jClass);
 		};
 	}
 

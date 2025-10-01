@@ -27,7 +27,7 @@ public class Lang {
 
 	sealed public interface CRootSegment {}
 
-	public sealed interface JavaClassMember {}
+	public sealed interface JavaStructureSegment {}
 
 	sealed public interface JavaType {}
 
@@ -39,30 +39,38 @@ public class Lang {
 	@Tag("definition")
 	public record JavaDefinition(String name, JavaType type) {}
 
+	sealed public interface JStructure extends JavaRootSegment, JavaStructureSegment {
+		Option<String> modifiers();
+
+		String name();
+
+		List<JavaStructureSegment> children();
+	}
+
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
-			implements JavaClassMember {}
+			implements JavaStructureSegment {}
 
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, JavaClassMember, CRootSegment, JavaType, CType {}
+	public record Content(String value) implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
-	public record JClass(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {}
+	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+			implements JStructure {}
 
 	@Tag("interface")
-	public record Interface(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {}
+	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+			implements JStructure {}
 
 	@Tag("record")
-	public record Record(Option<String> modifiers, String name, List<JavaClassMember> children)
-			implements JavaRootSegment {}
+	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children)
+			implements JStructure {}
 
 	@Tag("struct")
 	public record Structure(String name) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JavaClassMember {}
+	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {}
 
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
