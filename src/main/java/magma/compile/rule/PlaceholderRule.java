@@ -20,6 +20,6 @@ public record PlaceholderRule(Rule rule) implements Rule {
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return rule().generate(node).mapValue(PlaceholderRule::wrap);
+		return rule.generate(node).mapValue(PlaceholderRule::wrap);
 	}
 }
