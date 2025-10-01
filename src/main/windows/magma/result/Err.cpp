@@ -1,10 +1,10 @@
-struct Err<T, X>(X error) implements Result<T, X>{};
-/*X>*/ mapValue_Err<T, X>(X error) implements Result<T, X>(R fn) {/*
+struct Err{};
+/*X>*/ mapValue_Err(R fn) {/*
 		return new Err<>(error);
 	*/}
-/*X>*/ flatMap_Err<T, X>(X error) implements Result<T, X>(X fn) {/*
+/*X>*/ flatMap_Err(X fn) {/*
 		return new Err<>(error);
 	*/}
-/*R>*/ mapErr_Err<T, X>(X error) implements Result<T, X>(R mapper) {/*
+/*R>*/ mapErr_Err(R mapper) {/*
 		return new Err<>(mapper.apply(error));
 	*/}

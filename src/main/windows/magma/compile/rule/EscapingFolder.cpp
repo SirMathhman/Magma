@@ -1,5 +1,5 @@
-struct EscapingFolder(Folder folder) implements Folder{};
-DivideState fold_EscapingFolder(Folder folder) implements Folder(DivideState state, char c) {/*
+struct EscapingFolder{};
+DivideState fold_EscapingFolder(DivideState state, char c) {/*
 		if (c == '\'') return state.append(c)
 															 .popAndAppendToTuple()
 															 .map(this::foldEscape)
@@ -8,10 +8,10 @@ DivideState fold_EscapingFolder(Folder folder) implements Folder(DivideState sta
 
 		return folder.fold(state, c);
 	*/}
-char* delimiter_EscapingFolder(Folder folder) implements Folder() {/*
+char* delimiter_EscapingFolder() {/*
 		return folder.delimiter();
 	*/}
-DivideState foldEscape_EscapingFolder(Folder folder) implements Folder(Character tuple) {/*
+DivideState foldEscape_EscapingFolder(Character tuple) {/*
 		if (tuple.right() == '\\') return tuple.left().popAndAppendToOption().orElse(tuple.left());
 		else return tuple.left();
 	*/}

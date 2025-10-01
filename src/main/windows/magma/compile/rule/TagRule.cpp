@@ -1,15 +1,15 @@
-struct TagRule(String tag, Rule rule) implements Rule{};
-Rule Tag_TagRule(String tag, Rule rule) implements Rule(char* type, Rule rule) {/*
+struct TagRule{};
+Rule Tag_TagRule(char* type, Rule rule) {/*
 		return new TagRule(type, rule);
 	*/}
-/*CompileError>*/ lex_TagRule(String tag, Rule rule) implements Rule(char* content) {/*
+/*CompileError>*/ lex_TagRule(char* content) {/*
 		return rule.lex(content)
 							 .mapValue(node -> node.retype(tag))
 							 .mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
 																								 new StringContext(content),
 																								 List.of(error)));
 	*/}
-/*CompileError>*/ generate_TagRule(String tag, Rule rule) implements Rule(Node node) {/*
+/*CompileError>*/ generate_TagRule(Node node) {/*
 		if (node.is(tag)) return rule.generate(node);
 		else return new Err<>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
 	*/}

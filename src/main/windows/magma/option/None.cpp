@@ -1,10 +1,10 @@
-struct None<T> implements Option<T>{};
-Option<R> map_None<T> implements Option<T>(R mapper) {/*
+struct None{};
+Option<R> map_None(R mapper) {/*
 		return new None<>();
 	*/}
-Option<R> flatMap_None<T> implements Option<T>(OptionR mapper) {/*
+Option<R> flatMap_None(OptionR mapper) {/*
 		return new None<>();
 	*/}
-T orElse_None<T> implements Option<T>(T other) {/*
+T orElse_None(T other) {/*
 		return other;
 	*/}

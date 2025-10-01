@@ -158,12 +158,18 @@ public class Lang {
 		final Rule maybeWithParameters =
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
+		final var maybeWithParameters1 =
+				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);
+
 		final Rule beforeContent =
-				Or(Last(maybeWithParameters, " implements ", Node("supertype", JType())), maybeWithParameters);
+				Or(Last(maybeWithParameters1, "implements", Node("implements", JType())), maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent), "{", children);
+		final Rule beforeContent1 =
+				Or(Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
+
+		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 

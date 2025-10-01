@@ -1,12 +1,12 @@
-struct StringRule(String key) implements Rule{};
-Rule String_StringRule(String key) implements Rule(char* key) {/*
+struct StringRule{};
+Rule String_StringRule(char* key) {/*
 		return new StringRule(key);
 	*/}
-/*CompileError>*/ lex_StringRule(String key) implements Rule(char* content) {/*
+/*CompileError>*/ lex_StringRule(char* content) {/*
 		if (content.isEmpty()) return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
 		return new Ok<>(new Node().withString(key, content));
 	*/}
-/*CompileError>*/ generate_StringRule(String key) implements Rule(Node node) {/*
+/*CompileError>*/ generate_StringRule(Node node) {/*
 		Option<Result<String, CompileError>> resultOption = node.findString(key).map(Ok::new);
 		return switch (resultOption) {
 			case None<Result<String, CompileError>> _ -> new Err<>(

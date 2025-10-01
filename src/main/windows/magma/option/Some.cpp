@@ -1,10 +1,10 @@
-struct Some<T>(T value) implements Option<T>{};
-Option<R> map_Some<T>(T value) implements Option<T>(R mapper) {/*
+struct Some{};
+Option<R> map_Some(R mapper) {/*
 		return new Some<>(mapper.apply(value));
 	*/}
-Option<R> flatMap_Some<T>(T value) implements Option<T>(OptionR mapper) {/*
+Option<R> flatMap_Some(OptionR mapper) {/*
 		return mapper.apply(value);
 	*/}
-T orElse_Some<T>(T value) implements Option<T>(T other) {/*
+T orElse_Some(T other) {/*
 		return value;
 	*/}
