@@ -46,7 +46,7 @@ public class Lang {
 
 		String name();
 
-		Option<List<String>> typeParameters();
+		Option<List<Identifier>> typeParameters();
 
 		List<JavaStructureSegment> children();
 	}
@@ -83,25 +83,25 @@ public class Lang {
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters, Option<JavaType> implementsClause)
+			Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters, Option<JavaType> implementsClause)
+			Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<String>> typeParameters, Option<List<JavaDefinition>> params, Option<JavaType> implementsClause)
+			Option<List<Identifier>> typeParameters, Option<List<JavaDefinition>> params, Option<JavaType> implementsClause)
 			implements JStructure {
 	}
 
 	@Tag("struct")
 	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after,
-			Option<List<String>> typeParameters) implements CRootSegment {
+			Option<List<Identifier>> typeParameters) implements CRootSegment {
 	}
 
 	@Tag("whitespace")
@@ -161,7 +161,18 @@ public class Lang {
 	}
 
 	private static Rule CStructure() {
-		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeParameters(), "{};")));
+		final Rule nameWithParams = NameWithTypeParameters();
+		final Rule structPrefix = Prefix("struct ", nameWithParams);
+		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
+		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
+		final Rule structComplete = Suffix(structWithFields, ";");
+
+		// Add template declaration if type parameters exist
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">\\n"));
+		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
+
+		return Tag("struct", First(maybeTemplate, "", structComplete));
 	}
 
 	public static Rule JavaRoot() {

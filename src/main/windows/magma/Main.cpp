@@ -1,7 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Main<>{};
+template<>\nstruct Main<>{};
 void main_Main(char** args) {/*
-		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value))
+			System.err.println(value.display());
 	*/}
 Option<ApplicationError> run_Main() {/*
 		final Path javaSourceRoot = Paths.get(".", "src", "main", "java");
@@ -18,8 +19,8 @@ Option<ApplicationError> run_Main() {/*
 	*/}
 Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles =
-					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
+			List<Path> javaFiles = paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java"))
+					.toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
@@ -64,8 +65,8 @@ Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot
 				return Option.of(new ApplicationError(error));
 			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
 				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-															 System.lineSeparator();
+						"'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+						System.lineSeparator();
 				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 			}
 		}
@@ -89,21 +90,22 @@ Option<IOException> writeString_Main(Path path, char* result) {/*
 	*/}
 /*CompileError>*/ compile_Main(char* input) {/*
 		return JavaRoot().lex(input)
-										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-										 .flatMap(Main::transform)
-										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-										 .flatMap(CRoot()::generate);
+				.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+				.flatMap(Main::transform)
+				.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+				.flatMap(CRoot()::generate);
 	*/}
 /*CompileError>*/ transform_Main(JavaRoot node) {/*
 		return new Ok<>(new CRoot(node.children()
-																	.stream()
-																	.map(Main::flattenRootSegment)
-																	.flatMap(Collection::stream)
-																	.toList()));
+				.stream()
+				.map(Main::flattenRootSegment)
+				.flatMap(Collection::stream)
+				.toList()));
 	*/}
 List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 		return switch (segment) {
-			case JStructure jStructure -> flattenStructure(jStructure); case Invalid invalid -> List.of(invalid);
+			case JStructure jStructure -> flattenStructure(jStructure);
+			case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
 		};
 	*/}
@@ -113,15 +115,27 @@ List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		final ArrayList<CRootSegment> segments = new ArrayList<>();
 		final ArrayList<CDefinition> fields = new ArrayList<>();
 
+		// Special handling for Record params - add them as struct fields
+		if (aClass instanceof magma.compile.Lang.Record record) {
+			Option<List<JavaDefinition>> params = record.params();
+			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
+				for (JavaDefinition param : paramList) {
+					final CDefinition cDef = transformDefinition(param);
+					fields.add(cDef);
+				}
+			}
+		}
+
 		final String name = aClass.name();
 		for (JavaStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
-			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
+			if (tuple.right() instanceof Some<CDefinition>(CDefinition value))
+				fields.add(value);
 		}
 
-		final Structure structure =
-				new Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
+		final Structure structure = new Structure(name, fields, new Some<>(System.lineSeparator()),
+				aClass.typeParameters());
 		final List<CRootSegment> copy = new ArrayList<>();
 		copy.add(structure);
 		copy.addAll(segments);
@@ -146,20 +160,25 @@ Function transformMethod_Main(Method method, char* structName) {/*
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
-												newParams,
-												method.body().orElse(""),
-												new Some<>(System.lineSeparator()));
+				newParams,
+				method.body().orElse(""),
+				new Some<>(System.lineSeparator()));
 	*/}
 CDefinition transformDefinition_Main(JavaDefinition definition) {/*
 		return new CDefinition(definition.name(), transformType(definition.type()));
 	*/}
 CType transformType_Main(JavaType type) {/*
 		return switch (type) {
-			case Invalid invalid -> invalid; case Generic generic -> generic;
+			case Invalid invalid -> invalid;
+			case Generic generic -> generic;
 			case Array array -> {
-				CType childType = transformType(array.child()); yield new Pointer(childType);
-			} case Identifier identifier -> {
-				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char")); yield identifier;
+				CType childType = transformType(array.child());
+				yield new Pointer(childType);
+			}
+			case Identifier identifier -> {
+				if (identifier.value().equals("String"))
+					yield new Pointer(new Identifier("char"));
+				yield identifier;
 			}
 		};
 	*/}

@@ -67,4 +67,21 @@ The fix includes comprehensive test coverage:
 - `GenericMethodTest.java`: Records with implements clauses
 - `MethodDeserializationTest.java`: Method deserialization validation
 
-This ensures the Java-to-C++ transpilation pipeline works correctly for real-world Java files containing records with method implementations.
+### 4. Fixed Template Parameter Generation
+
+**File**: `src/main/java/magma/compile/Lang.java`
+
+- Fixed data model inconsistency: changed `Option<List<String>>` to `Option<List<Identifier>>` for type parameters
+- Enhanced `CStructure()` parsing rule to generate template declarations and parameterized struct names
+- Added template support: `template<typename T>` declarations and proper `Some<T>` struct names
+
+**Complete C++ Output**:
+
+```cpp
+template<typename T>\nstruct Some<T>{T value;};
+T getValue_Some() {/*
+        return value;
+    */}
+```
+
+This ensures the Java-to-C++ transpilation pipeline works correctly for real-world Java files containing generic records with method implementations, producing proper C++ template classes with fields and functions.
