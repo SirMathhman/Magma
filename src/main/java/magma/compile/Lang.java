@@ -23,7 +23,7 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment {}
+	sealed public interface JavaRootSegment permits Content, Import, JStructure, Package, Whitespace {}
 
 	sealed public interface CRootSegment {}
 
@@ -33,19 +33,19 @@ public class Lang {
 
 	sealed public interface CType {}
 
-	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
-
-	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type) {}
-
-	sealed public interface JStructure extends JavaRootSegment, JavaStructureSegment {
+	sealed public interface JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record {
 		Option<String> modifiers();
 
 		String name();
 
 		List<JavaStructureSegment> children();
 	}
+
+	@Tag("generic")
+	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
+
+	@Tag("definition")
+	public record JavaDefinition(String name, JavaType type) {}
 
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
@@ -128,8 +128,8 @@ public class Lang {
 	}
 
 	private static Rule Structure(String type, Rule rule) {
-		final Rule modifiers = String("modifiers");
-		final Rule name = String("name"); final Rule children = Statements("children", rule);
+		final Rule modifiers = String("modifiers"); final Rule name = String("name");
+		final Rule children = Statements("children", rule);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
