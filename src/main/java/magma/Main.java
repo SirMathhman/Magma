@@ -193,6 +193,11 @@ public class Main {
 		return switch (type) {
 			case Invalid invalid -> invalid;
 			case Generic generic -> new Invalid(generic.base() + "_?", new Some<>(System.lineSeparator()));
+			case Array array -> {
+				CType childType = transformType(array.child()); String childTypeName = switch (childType) {
+					case Invalid inv -> inv.value(); case Identifier id -> id.value();
+				}; yield new Invalid(childTypeName + "[]", new Some<>(System.lineSeparator()));
+			}
 			case Identifier identifier -> identifier;
 		};
 	}

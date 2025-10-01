@@ -51,6 +51,9 @@ public class Lang {
 	@Tag("generic")
 	public record Generic(String base, List<JavaType> arguments) implements JavaType {}
 
+	@Tag("array")
+	public record Array(JavaType child) implements JavaType {}
+
 	@Tag("definition")
 	public record JavaDefinition(String name, JavaType type) {}
 

@@ -1,5 +1,5 @@
 struct Main{};
-void main_Main() {}
+void main_Main(/*String[]*/ args) {}
 /*Option_?*/ run_Main() {}
 /*Option_?*/ compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {}
 /*Option_?*/ compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {}

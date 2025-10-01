@@ -7,6 +7,7 @@ struct CType{};
 struct JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record{};
 struct Field(JavaDefinition value) implements JavaStructureSegment{};
 struct Generic(String base, List<JavaType> arguments) implements JavaType{};
+struct Array(JavaType child) implements JavaType{};
 struct JavaDefinition(String name, JavaType type){};
 struct Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
 			implements JavaStructureSegment{};
