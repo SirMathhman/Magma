@@ -181,7 +181,7 @@ public class Lang {
 	}
 
 	private static Rule Method() {
-		Rule params = Or(Values("params", Or(JDefinition(), Whitespace())), Strip(Empty));
+		Rule params = Values("params", Or(JDefinition(), Whitespace()));
 		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
