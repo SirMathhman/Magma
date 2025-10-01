@@ -28,21 +28,21 @@ struct CDefinition(String name, CType type){};
 struct Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
 			implements CRootSegment{};
 struct Identifier(String value) implements JavaType, CType{};
-Rule CRoot_Lang()
-Rule Function_Lang()
-Rule CDefinition_Lang()
-Rule CType_Lang()
-Rule CStructure_Lang()
-Rule JavaRoot_Lang()
-Rule Structures_Lang()
-Rule Whitespace_Lang()
-Rule Namespace_Lang()
-Rule JStructure_Lang()
-Rule StructureMember_Lang()
-Rule Statement_Lang()
-Rule Method_Lang()
-Rule Definition_Lang()
-Rule JavaType_Lang()
-Rule Identifier_Lang()
-Rule Generic_Lang()
-Rule Content_Lang()
+Rule CRoot_Lang() {}
+Rule Function_Lang() {}
+Rule CDefinition_Lang() {}
+Rule CType_Lang() {}
+Rule CStructure_Lang() {}
+Rule JavaRoot_Lang() {}
+Rule Structures_Lang() {}
+Rule Whitespace_Lang() {}
+Rule Namespace_Lang() {}
+Rule JStructure_Lang() {}
+Rule StructureMember_Lang() {}
+Rule Statement_Lang() {}
+Rule Method_Lang() {}
+Rule Definition_Lang() {}
+Rule JavaType_Lang() {}
+Rule Identifier_Lang() {}
+Rule Generic_Lang() {}
+Rule Content_Lang() {}

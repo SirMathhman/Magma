@@ -175,7 +175,7 @@ public class Main {
 		final CDefinition cDefinition = transformDefinition(method.definition());
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
 												newParams,
-												method.body().orElse("???"),
+												"{}",
 												new Some<>(System.lineSeparator()));
 	}
 
