@@ -199,7 +199,7 @@ public class Lang {
 	}
 
 	private static Rule Identifier() {
-		return Tag("identifier", String("value"));
+		return Tag("identifier", Strip(String("value")));
 	}
 
 	private static Rule Generic() {
