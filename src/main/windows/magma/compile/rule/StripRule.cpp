@@ -1,3 +1,4 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\rule\StripRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct StripRule<>{};
 Rule Strip_StripRule(Rule rule) {/*
 		return new StripRule("?", rule, "?");

@@ -1,3 +1,4 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\rule\EmptyRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct EmptyRule<>{};
 /*CompileError>*/ lex_EmptyRule(char* content) {/*
 		if (content.isEmpty()) return new Ok<>(new Node());

@@ -1,3 +1,4 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\Serialize.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Serialize<>{};
 /*CompileError>*/ deserialize_Serialize(ClassT clazz, Node node) {/*
 		if (Objects.isNull(clazz))
@@ -448,7 +449,8 @@ Option<CompileError> writeListComponent_Serialize(Node target, RecordComponent c
 					new StringContext(component.getName()),
 					errors));
 
-		// Omit empty lists to match generator expectations (it treats empty lists as an error)
+		// Omit empty lists to match generator expectations (it treats empty lists as an
+		// error)
 		if (!serializedChildren.isEmpty()) {
 			target.withNodeList(component.getName(), List.copyOf(serializedChildren));
 		}

@@ -54,7 +54,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		});
 
 		return switch (resultOption) {
-			// If the node-list isn't present at all, treat it as empty rather than an error.
+			// If the node-list isn't present at all, treat it as empty rather than an
+			// error.
 			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};

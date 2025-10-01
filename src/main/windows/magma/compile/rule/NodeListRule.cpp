@@ -1,3 +1,4 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\rule\NodeListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct NodeListRule<>{};
 Rule Statements_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));
@@ -9,10 +10,13 @@ Rule Values_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()));
 	*/}
 /*CompileError>*/ lex_NodeListRule(char* input) {/*
-		final ArrayList<Node> children = new ArrayList<>(); for (String segment : divider.divide(input).toList()) {
+		final ArrayList<Node> children = new ArrayList<>();
+		for (String segment : divider.divide(input).toList()) {
 			Result<Node, CompileError> res = rule().lex(segment);
-			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
-			else if (res instanceof Err<Node, CompileError>(CompileError error)) return new Err<>(error);
+			if (res instanceof Ok<Node, CompileError>(Node value))
+				children.add(value);
+			else if (res instanceof Err<Node, CompileError>(CompileError error))
+				return new Err<>(error);
 		}
 
 		return new Ok<>(new Node().withNodeList(key, children));
@@ -20,9 +24,11 @@ Rule Values_NodeListRule(char* key, Rule rule) {/*
 /*CompileError>*/ generate_NodeListRule(Node value) {/*
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
 			// Treat missing or empty lists as empty content when generating.
-			if (list.isEmpty()) return new Ok<>("");
+			if (list.isEmpty())
+				return new Ok<>("");
 
-			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
+			final StringJoiner sb = new StringJoiner(divider.delimiter());
+			for (Node child : list)
 				switch (this.rule.generate(child)) {
 					case Ok<String, CompileError>(String value1) -> sb.add(value1);
 					case Err<String, CompileError>(CompileError error) -> {
@@ -34,7 +40,8 @@ Rule Values_NodeListRule(char* key, Rule rule) {/*
 		});
 
 		return switch (resultOption) {
-			// If the node-list isn't present at all, treat it as empty rather than an error.
+			// If the node-list isn't present at all, treat it as empty rather than an
+			// error.
 			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};

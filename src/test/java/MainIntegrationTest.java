@@ -41,12 +41,15 @@ public class MainIntegrationTest {
 
 		Path pkg = srcMain.resolve("magma"); Files.createDirectories(pkg);
 
-		// Use a non-empty method body because the grammar requires method bodies to contain content
+		// Use a non-empty method body because the grammar requires method bodies to
+		// contain content
 		String sample = "package magma; public class Simple { public void m() { int x = 0; } }";
 		Path sampleFile = pkg.resolve("Simple.java"); Files.writeString(sampleFile, sample);
 
-		// Run compileAllJavaFiles via reflection since Main.run() uses current directory
-		// We can't change Main.run() signature, so call the private method compileAllJavaFiles
+		// Run compileAllJavaFiles via reflection since Main.run() uses current
+		// directory
+		// We can't change Main.run() signature, so call the private method
+		// compileAllJavaFiles
 		var compileMethod =
 				Main.class.getDeclaredMethod("compileAllJavaFiles", java.nio.file.Path.class, java.nio.file.Path.class);
 		compileMethod.setAccessible(true);

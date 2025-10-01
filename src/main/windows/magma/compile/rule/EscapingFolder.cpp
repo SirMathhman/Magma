@@ -1,3 +1,4 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\rule\EscapingFolder.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct EscapingFolder<>{};
 DivideState fold_EscapingFolder(DivideState state, char c) {/*
 		if (c == '\'') return state.append(c)

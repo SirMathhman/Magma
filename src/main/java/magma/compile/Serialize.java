@@ -485,7 +485,8 @@ public class Serialize {
 					new StringContext(component.getName()),
 					errors));
 
-		// Omit empty lists to match generator expectations (it treats empty lists as an error)
+		// Omit empty lists to match generator expectations (it treats empty lists as an
+		// error)
 		if (!serializedChildren.isEmpty()) {
 			target.withNodeList(component.getName(), List.copyOf(serializedChildren));
 		}

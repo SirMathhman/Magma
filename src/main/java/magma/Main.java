@@ -90,8 +90,12 @@ public class Main {
 			Result<String, CompileError> compileResult = compile(input);
 			if (compileResult instanceof Err<String, CompileError>(CompileError error))
 				return Option.of(new ApplicationError(error));
-			if (compileResult instanceof Ok<String, CompileError>(String compiled))
-				return writeString(cFilePath, compiled).map(ThrowableError::new).map(ApplicationError::new);
+			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
+				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
+															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+															 System.lineSeparator();
+				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
+			}
 		}
 
 		return Option.empty();
