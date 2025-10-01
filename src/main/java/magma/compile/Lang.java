@@ -100,18 +100,23 @@ public class Lang {
 	public record Identifier(String value) implements JavaType, CType {}
 
 	public static Rule CRoot() {
-		return Statements("children", Strip("", Or(Struct(), Function(), Content()), "after"));
+		return Statements("children", Strip("", Or(CStructure(), Function(), Content()), "after"));
 	}
 
 	public static Rule Function() {
-		return Tag("function", new NodeRule("definition", Last(Node("type", CType()), " ", new StringRule("name"))));
+		return Tag("function",
+							 Suffix(First(new NodeRule("definition", CDefinition()), "(", Values("params", CDefinition())), ")"));
+	}
+
+	private static Rule CDefinition() {
+		return Last(Node("type", CType()), " ", new StringRule("name"));
 	}
 
 	private static Rule CType() {
 		return Or(Identifier(), Content());
 	}
 
-	private static Rule Struct() {
+	private static Rule CStructure() {
 		return Tag("struct", Prefix("struct ", Suffix(String("name"), "{};")));
 	}
 
@@ -121,9 +126,9 @@ public class Lang {
 	}
 
 	private static Rule Structures(Rule structureMember) {
-		return Or(Structure("class", structureMember),
-							Structure("interface", structureMember),
-							Structure("record", structureMember));
+		return Or(JStructure("class", structureMember),
+							JStructure("interface", structureMember),
+							JStructure("record", structureMember));
 	}
 
 	private static Rule Whitespace() {
@@ -134,8 +139,8 @@ public class Lang {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
 	}
 
-	private static Rule Structure(String type, Rule rule) {
-		final Rule modifiers = String("modifiers"); final Rule name = String("name");
+	private static Rule JStructure(String type, Rule rule) {
+		final Rule modifiers = String("modifiers"); final Rule name = Strip(String("name"));
 		final Rule children = Statements("children", rule);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
