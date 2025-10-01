@@ -1,1 +1,13 @@
-struct Node {};String escapeNode withStringOption<String> findStringNode mergeNode withNodeListOption<List<Node>> findNodeListNode withNodeOption<Node> findNodeNode retypeboolean isString formatvoid appendJson
+struct Node {};
+String escape
+Node withString
+Option<String> findString
+Node merge
+Node withNodeList
+Option<List<Node>> findNodeList
+Node withNode
+Option<Node> findNode
+Node retype
+boolean is
+String format
+void appendJson

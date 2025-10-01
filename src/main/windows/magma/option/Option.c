@@ -1,1 +1,4 @@
-struct Option<T> permits Some, None {};Option<T> ofOption<T> emptyOption<T> ofNullable
+struct Option<T> permits Some, None {};
+Option<T> of
+Option<T> empty
+Option<T> ofNullable

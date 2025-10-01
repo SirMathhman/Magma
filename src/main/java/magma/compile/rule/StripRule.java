@@ -9,6 +9,10 @@ public record StripRule(String leftKey, Rule rule, String rightKey) implements R
 		return new StripRule("?", rule, "?");
 	}
 
+	public static Rule Strip(String left, Rule rule, String right) {
+		return new StripRule(left, rule, right);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		return rule.lex(content.strip());

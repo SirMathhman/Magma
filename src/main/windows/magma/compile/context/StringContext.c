@@ -1,1 +1,2 @@
-struct StringContext(String context) implements Context {};String display
+struct StringContext(String context) implements Context {};
+String display

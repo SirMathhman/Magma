@@ -7,6 +7,7 @@ import magma.compile.rule.Rule;
 import magma.compile.rule.StringRule;
 import magma.option.Option;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import static magma.compile.rule.EmptyRule.Empty;
@@ -25,7 +26,9 @@ import static magma.compile.rule.TagRule.Tag;
 public class Lang {
 	sealed public interface JavaRootSegment permits Content, Import, JStructure, Package, Whitespace {}
 
-	sealed public interface CRootSegment {}
+	sealed public interface CRootSegment {
+		Option<String> after();
+	}
 
 	public sealed interface JavaStructureSegment permits Content, JStructure, Method, Whitespace, Field {}
 
@@ -55,7 +58,8 @@ public class Lang {
 			implements JavaStructureSegment {}
 
 	@Tag("content")
-	public record Content(String value) implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
+	public record Content(String value, Option<String> after)
+			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children)
@@ -70,7 +74,7 @@ public class Lang {
 			implements JStructure {}
 
 	@Tag("struct")
-	public record Structure(String name, java.util.ArrayList<CDefinition> fields) implements CRootSegment {}
+	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after) implements CRootSegment {}
 
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {}
@@ -89,13 +93,14 @@ public class Lang {
 	public record CDefinition(String name, CType type) {}
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CDefinition> params, String body) implements CRootSegment {}
+	public record Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
+			implements CRootSegment {}
 
 	@Tag("identifier")
 	public record Identifier(String value) implements JavaType, CType {}
 
-	public static Rule createCRootRule() {
-		return Statements("children", Or(Struct(), Function(), Content()));
+	public static Rule CRoot() {
+		return Statements("children", Strip("", Or(Struct(), Function(), Content()), "after"));
 	}
 
 	public static Rule Function() {
@@ -112,7 +117,6 @@ public class Lang {
 
 	public static Rule JavaRoot() {
 		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureMember()), Whitespace());
-
 		return Statements("children", segment);
 	}
 

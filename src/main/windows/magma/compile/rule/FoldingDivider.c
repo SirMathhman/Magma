@@ -1,1 +1,3 @@
-struct FoldingDivider implements Divider {};public FoldingDividerStream<String> divide
+struct FoldingDivider implements Divider {};
+public FoldingDivider
+Stream<String> divide

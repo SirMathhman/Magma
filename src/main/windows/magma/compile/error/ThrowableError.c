@@ -1,1 +1,2 @@
-struct ThrowableError(Throwable e) implements Error {};String display
+struct ThrowableError(Throwable e) implements Error {};
+String display

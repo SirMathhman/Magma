@@ -1,1 +1,2 @@
-struct ApplicationError(Error error) implements Error {};String display
+struct ApplicationError(Error error) implements Error {};
+String display

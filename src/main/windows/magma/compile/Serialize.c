@@ -1,1 +1,17 @@
-struct Serialize {};CompileError> deserializeCompileError> serializeOption<String> resolveTypeIdentifierCompileError> deserializeSealedCompileError> deserializeComponentCompileError> deserializeOptionalComponentCompileError> deserializeListComponentCompileError> deserializeNestedComponentCompileError> deserializeRawCompileError> serializeRawCompileError missingFieldErrorOption<String> findStringInChildrenOption<CompileError> writeComponentOption<CompileError> writeOptionalComponentOption<CompileError> writeListComponentClass<?> erase
+struct Serialize {};
+CompileError> deserialize
+CompileError> serialize
+Option<String> resolveTypeIdentifier
+CompileError> deserializeSealed
+CompileError> deserializeComponent
+CompileError> deserializeOptionalComponent
+CompileError> deserializeListComponent
+CompileError> deserializeNestedComponent
+CompileError> deserializeRaw
+CompileError> serializeRaw
+CompileError missingFieldError
+Option<String> findStringInChildren
+Option<CompileError> writeComponent
+Option<CompileError> writeOptionalComponent
+Option<CompileError> writeListComponent
+Class<?> erase

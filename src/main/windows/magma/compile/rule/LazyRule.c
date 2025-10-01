@@ -1,1 +1,4 @@
-struct LazyRule implements Rule {};void setCompileError> lexCompileError> generate
+struct LazyRule implements Rule {};
+void set
+CompileError> lex
+CompileError> generate

@@ -117,8 +117,7 @@ public class Main {
 		return JavaRoot().lex(input)
 										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
 										 .flatMap(Main::transform)
-										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-										 .flatMap(createCRootRule()::generate);
+										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot)).flatMap(CRoot()::generate);
 	}
 
 	private static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -147,9 +146,9 @@ public class Main {
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
 		}
 
-		final Structure structure = new Structure(aClass.name(), fields);
+		final Structure structure = new Structure(aClass.name(), fields, new Some<>(System.lineSeparator()));
 
-		final List<CRootSegment> copy = new ArrayList<CRootSegment>(); copy.add(structure); copy.addAll(segments);
+		final List<CRootSegment> copy = new ArrayList<>(); copy.add(structure); copy.addAll(segments);
 		return copy;
 	}
 
@@ -169,8 +168,11 @@ public class Main {
 			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
-		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
-		return new Function(transformDefinition(method.definition()), newParams, method.body().orElse("???"));
+		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList(); return new Function(
+				transformDefinition(method.definition()),
+				newParams,
+				method.body().orElse("???"),
+				new Some<>(System.lineSeparator()));
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {
@@ -179,7 +181,8 @@ public class Main {
 
 	private static CType transformType(JavaType type) {
 		return switch (type) {
-			case Content content -> content; case Generic generic -> new Content(generic.base() + "_?");
+			case Content content -> content;
+			case Generic generic -> new Content(generic.base() + "_?", new Some<>(System.lineSeparator()));
 			case Identifier identifier -> identifier;
 		};
 	}
