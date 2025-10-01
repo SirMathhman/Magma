@@ -1,5 +1,6 @@
 package magma.compile;
 
+import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeListRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
@@ -99,13 +100,15 @@ public class Lang {
 	}
 
 	public static Rule JavaRoot() {
-		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(), Whitespace());
+		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureMember()), Whitespace());
 
 		return Statements("children", segment);
 	}
 
-	private static Rule Structures() {
-		return Or(Structure("class"), Structure("interface"), Structure("record"));
+	private static Rule Structures(Rule structureMember) {
+		return Or(Structure("class", structureMember),
+							Structure("interface", structureMember),
+							Structure("record", structureMember));
 	}
 
 	private static Rule Whitespace() {
@@ -116,17 +119,17 @@ public class Lang {
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Content(), ";"))));
 	}
 
-	private static Rule Structure(String type) {
+	private static Rule Structure(String type, Rule rule) {
 		final Rule modifiers = String("modifiers");
-		final Rule name = String("name");
-		final Rule children = Statements("children", ClassMember());
+		final Rule name = String("name"); final Rule children = Statements("children", rule);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", name), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 
-	private static Rule ClassMember() {
-		return Or(Structures(), Method(), Whitespace());
+	private static Rule StructureMember() {
+		final LazyRule structureMember = new LazyRule();
+		structureMember.set(Or(Structures(structureMember), Method(), Whitespace())); return structureMember;
 	}
 
 	private static Rule Method() {
