@@ -1,4 +1,4 @@
-struct NodeContext(Node node) implements Context{};
-char* display_NodeContext(Node node) implements Context(int depth) {/*
+struct NodeContext{};
+char* display_NodeContext(int depth) {/*
 		return "\n" + node.format(depth + 1);
 	*/}

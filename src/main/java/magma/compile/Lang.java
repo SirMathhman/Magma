@@ -155,8 +155,11 @@ public class Lang {
 		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
 		final Rule maybeWithTypeArguments = Strip(Or(withTypeArguments, name));
 
+		final Rule maybeWithParameters =
+				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
+
 		final Rule beforeContent =
-				Or(Last(maybeWithTypeArguments, " implements ", Node("supertype", JType())), maybeWithTypeArguments);
+				Or(Last(maybeWithParameters, " implements ", Node("supertype", JType())), maybeWithParameters);
 
 		final Rule children = Statements("children", rule);
 
@@ -175,10 +178,14 @@ public class Lang {
 	}
 
 	private static Rule Method() {
-		Rule params = Values("params", Or(JDefinition(), Whitespace()));
+		Rule params = Parameters();
 		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
+	}
+
+	private static Rule Parameters() {
+		return Values("params", Or(JDefinition(), Whitespace()));
 	}
 
 	private static Rule JDefinition() {

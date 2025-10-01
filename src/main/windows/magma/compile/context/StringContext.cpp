@@ -1,4 +1,4 @@
-struct StringContext(String context) implements Context{};
-char* display_StringContext(String context) implements Context(int depth) {/*
+struct StringContext{};
+char* display_StringContext(int depth) {/*
 		return context;
 	*/}
