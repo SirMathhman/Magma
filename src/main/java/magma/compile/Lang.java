@@ -126,7 +126,7 @@ public class Lang {
 	}
 
 	private static Rule CStructure() {
-		return Tag("struct", Prefix("struct ", Suffix(String("name"), "{};")));
+		return Tag("struct", Prefix("struct ", Suffix(NameWithTypeArguments(), "{};")));
 	}
 
 	public static Rule JavaRoot() {
@@ -151,14 +151,12 @@ public class Lang {
 	private static Rule JStructure(String type, Rule rule) {
 		final Rule modifiers = String("modifiers");
 
-		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
-		final Rule maybeWithTypeArguments = Strip(Or(withTypeArguments, name));
+		final Rule maybeWithTypeArguments = NameWithTypeArguments();
 
 		final Rule maybeWithParameters =
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
-		final var maybeWithParameters1 =
+		final Rule maybeWithParameters1 =
 				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);
 
 		final Rule beforeContent =
@@ -171,6 +169,12 @@ public class Lang {
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
+	}
+
+	private static Rule NameWithTypeArguments() {
+		final Rule name = StrippedIdentifier("name");
+		final Rule withTypeArguments = Suffix(First(name, "<", Values("typeArguments", Identifier())), ">");
+		return Strip(Or(withTypeArguments, name));
 	}
 
 	private static Rule StructureMember() {
