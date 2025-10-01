@@ -18,7 +18,9 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static magma.compile.Lang.*;
@@ -196,14 +198,75 @@ public class Main {
 		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
-		return new Function(new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type()),
+
+		// Extract type parameters from method signature
+		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
+
+		return new Function(
+				new CDefinition(cDefinition.name() + "_" + structName, cDefinition.type(), cDefinition.typeParameters()),
 				newParams,
 				method.body().orElse(""),
-				new Some<>(System.lineSeparator()));
+				new Some<>(System.lineSeparator()),
+				extractedTypeParams);
+	}
+
+	private static Option<List<Identifier>> extractMethodTypeParameters(Method method) {
+		// Analyze method signature to detect generic type parameters
+		final Set<String> typeVars = new HashSet<>();
+
+		// Check return type for type variables
+		collectTypeVariables(method.definition().type(), typeVars);
+
+		// Check parameter types for type variables
+		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList)) {
+			for (JavaDefinition param : paramList) {
+				collectTypeVariables(param.type(), typeVars);
+			}
+		}
+
+		// Filter out known class type parameters (like T from the class)
+		typeVars.remove("T"); // Remove class-level type parameter
+
+		if (typeVars.isEmpty()) {
+			return new None<>();
+		}
+
+		// Convert to Identifier objects
+		final List<Identifier> identifiers = typeVars.stream()
+				.map(Identifier::new)
+				.toList();
+
+		return new Some<>(identifiers);
+	}
+
+	private static void collectTypeVariables(JavaType type, Set<String> typeVars) {
+		switch (type) {
+			case Identifier ident -> {
+				// Single letter identifiers are likely type variables (R, E, etc.)
+				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0))) {
+					typeVars.add(ident.value());
+				}
+			}
+			case Generic generic -> {
+				// Check base type name for type variables
+				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0))) {
+					typeVars.add(generic.base());
+				}
+				// Collect from type arguments
+				for (JavaType arg : generic.arguments()) {
+					collectTypeVariables(arg, typeVars);
+				}
+			}
+			case Array array -> collectTypeVariables(array.child(), typeVars);
+			default -> {
+				/* Other types don't contain type variables */ }
+		}
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {
-		return new CDefinition(definition.name(), transformType(definition.type()));
+		// Default to no type parameters for backward compatibility
+		final Option<List<Identifier>> typeParams = definition.typeParameters();
+		return new CDefinition(definition.name(), transformType(definition.type()), typeParams);
 	}
 
 	private static CType transformType(JavaType type) {

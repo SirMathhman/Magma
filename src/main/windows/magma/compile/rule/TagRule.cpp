@@ -1,9 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\TagRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
 struct TagRule<>{char* tag;, Rule rule;};
+template<>
 Rule Tag_TagRule(char* type, Rule rule) {/*
 		return new TagRule(type, rule);
 	*/}
+template<>
 /*CompileError>*/ lex_TagRule(char* content) {/*
 		return rule.lex(content)
 							 .mapValue(node -> node.retype(tag))
@@ -11,6 +13,7 @@ Rule Tag_TagRule(char* type, Rule rule) {/*
 																								 new StringContext(content),
 																								 List.of(error)));
 	*/}
+template<>
 /*CompileError>*/ generate_TagRule(Node node) {/*
 		if (node.is(tag)) return rule.generate(node);
 		else return new Err<>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));

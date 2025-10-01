@@ -1,15 +1,19 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\StripRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
 struct StripRule<>{char* leftKey;, Rule rule;, char* rightKey;};
+template<>
 Rule Strip_StripRule(Rule rule) {/*
 		return new StripRule("?", rule, "?");
 	*/}
+template<>
 Rule Strip_StripRule(char* left, Rule rule, char* right) {/*
 		return new StripRule(left, rule, right);
 	*/}
+template<>
 /*CompileError>*/ lex_StripRule(char* content) {/*
 		return rule.lex(content.strip());
 	*/}
+template<>
 /*CompileError>*/ generate_StripRule(Node node) {/*
 		return rule.generate(node).mapValue(generated -> {
 			final String leftString = node.findString(leftKey).orElse("");

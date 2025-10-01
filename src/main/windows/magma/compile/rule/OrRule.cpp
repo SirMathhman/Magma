@@ -1,9 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\OrRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
 struct OrRule<>{ListRule rules;};
+template<>
 Rule Or_OrRule(/*Rule...*/ rules) {/*
 		return new OrRule(Arrays.asList(rules));
 	*/}
+template<>
 /*CompileError>*/ lex_OrRule(char* content) {/*
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Rule rule : rules)
@@ -15,6 +17,7 @@ Rule Or_OrRule(/*Rule...*/ rules) {/*
 			}
 		return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
 	*/}
+template<>
 /*CompileError>*/ generate_OrRule(Node node) {/*
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Rule rule : rules) {

@@ -63,7 +63,8 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers) {
+	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
+			Option<List<Identifier>> typeParameters) {
 	}
 
 	@Tag("modifier")
@@ -71,7 +72,8 @@ public class Lang {
 	}
 
 	@Tag("method")
-	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
+	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body,
+			Option<List<Identifier>> typeParameters)
 			implements JavaStructureSegment {
 	}
 
@@ -122,11 +124,12 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type) {
+	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) {
 	}
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
+	public record Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after,
+			Option<List<Identifier>> typeParameters)
 			implements CRootSegment {
 	}
 
@@ -146,7 +149,14 @@ public class Lang {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", CDefinition());
 		final Rule body = Placeholder(new StringRule("body"));
-		return Tag("function", First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}")));
+		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
+
+		// Add template declaration if type parameters exist
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
+		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
+
+		return Tag("function", First(maybeTemplate, "", functionDecl));
 	}
 
 	private static Rule CDefinition() {
