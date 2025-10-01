@@ -11,6 +11,7 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
+import java.util.StringJoiner;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
 	public static Rule Statements(String key, Rule rule) {
@@ -38,15 +39,14 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<String, CompileError> generate(Node value) {
-		Option<Result<String, CompileError>> resultOption = value.findNodeList(key()).map(list -> {
-			final StringBuilder sb = new StringBuilder(); for (Node child : list) {
+		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
+			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
 				switch (this.rule.generate(child)) {
-					case Ok<String, CompileError>(String value1) -> sb.append(value1);
+					case Ok<String, CompileError>(String value1) -> sb.add(value1);
 					case Err<String, CompileError>(CompileError error) -> {
 						return new Err<>(error);
 					}
 				}
-			}
 
 			return new Ok<>(sb.toString());
 		}); return switch (resultOption) {

@@ -7,4 +7,9 @@ public class StatementFolder implements Folder {
 		if (c == '}' && appended.isShallow()) return appended.advance().exit(); if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit(); return appended;
 	}
+
+	@Override
+	public String delimiter() {
+		return "";
+	}
 }

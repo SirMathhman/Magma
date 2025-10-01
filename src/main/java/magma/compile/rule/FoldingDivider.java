@@ -20,4 +20,9 @@ public class FoldingDivider implements Divider {
 
 		return current.advance().stream();
 	}
+
+	@Override
+	public String delimiter() {
+		return folder.delimiter();
+	}
 }

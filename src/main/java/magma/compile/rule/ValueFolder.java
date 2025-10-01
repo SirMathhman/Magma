@@ -6,4 +6,9 @@ public record ValueFolder() implements Folder {
 		if (c == ',' && state.isLevel()) return state.advance(); if (c == '<') return state.enter();
 		if (c == '>') return state.exit(); return state.append(c);
 	}
+
+	@Override
+	public String delimiter() {
+		return ", ";
+	}
 }

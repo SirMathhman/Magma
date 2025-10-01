@@ -1,2 +1,3 @@
 struct StatementFolder implements Folder{};
-DivideState fold_StatementFolder implements Folder(DivideState state char c) {}
+DivideState fold_StatementFolder implements Folder(DivideState state,  char c) {}
+String delimiter_StatementFolder implements Folder() {}

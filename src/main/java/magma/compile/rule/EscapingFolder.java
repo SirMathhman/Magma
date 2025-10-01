@@ -14,6 +14,11 @@ public record EscapingFolder(Folder folder) implements Folder {
 		return folder.fold(state, c);
 	}
 
+	@Override
+	public String delimiter() {
+		return folder.delimiter();
+	}
+
 	private DivideState foldEscape(Tuple<DivideState, Character> tuple) {
 		if (tuple.right() == '\\') return tuple.left().popAndAppendToOption().orElse(tuple.left());
 		else return tuple.left();
