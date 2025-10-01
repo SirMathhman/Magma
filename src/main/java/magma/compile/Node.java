@@ -14,6 +14,11 @@ public final class Node {
 	private final Map<String, String> strings = new HashMap<>();
 	public Option<String> maybeType = Option.empty();
 
+	@Override
+	public String toString() {
+		return format(0);
+	}
+
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
 								.replace("\"", "\\\"")
@@ -66,7 +71,7 @@ public final class Node {
 	}
 
 	public boolean is(String type) {
-		return this.maybeType.map(inner -> inner.equals(type)) instanceof Some<Boolean>;
+		return this.maybeType.map(inner -> inner.equals(type)).orElse(false);
 	}
 
 	public String format(int depth) {
