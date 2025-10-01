@@ -7,6 +7,7 @@ import magma.compile.rule.StringRule;
 import magma.option.Option;
 
 import java.util.List;
+import java.util.Optional;
 
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.InfixRule.First;
@@ -39,7 +40,7 @@ public class Lang {
 	public record JavaDefinition(String name, JavaType type) {}
 
 	@Tag("method")
-	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, String body)
+	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Optional<String> body)
 			implements JavaClassMember {}
 
 	@Tag("content")
@@ -101,7 +102,10 @@ public class Lang {
 	public static Rule JavaRoot() {
 		final Rule segment = Or(Namespace("package"),
 														Namespace("import"),
-														Structure("class"), Structure("interface"), Structure("record"), Whitespace());
+														Structure("class"),
+														Structure("interface"),
+														Structure("record"),
+														Whitespace());
 
 		return Statements("children", segment);
 	}
@@ -124,7 +128,8 @@ public class Lang {
 	}
 
 	private static Rule ClassMember() {
-		final Rule params = Or(Values("params", Definition()), Strip(Empty)); return Or(Method(params), Whitespace());
+		final Rule params = Or(Values("params", Or(Definition(), Whitespace())), Strip(Empty));
+		return Or(Method(params), Whitespace());
 	}
 
 	private static Rule Method(Rule params) {
@@ -135,7 +140,8 @@ public class Lang {
 
 	private static Rule Definition() {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		return Tag("definition", Last(Last(modifiers, " ", Node("type", JavaType())), " ", String("name")));
+		final Rule type = Node("type", JavaType()); final Rule last = Last(modifiers, " ", type);
+		return Tag("definition", Last(Or(last, type), " ", String("name")));
 	}
 
 	private static Rule JavaType() {

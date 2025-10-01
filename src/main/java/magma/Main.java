@@ -148,7 +148,7 @@ public class Main {
 		};
 
 		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
-		return new Function(transformDefinition(method.definition()), newParams, method.body());
+		return new Function(transformDefinition(method.definition()), newParams, method.body().orElse("???"));
 	}
 
 	private static CDefinition transformDefinition(JavaDefinition definition) {
