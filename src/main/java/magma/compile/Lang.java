@@ -25,17 +25,21 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {}
+	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {
+	}
 
 	sealed public interface CRootSegment permits Invalid, Structure, Function {
 		Option<String> after();
 	}
 
-	public sealed interface JavaStructureSegment permits Invalid, JStructure, Method, Whitespace, Field {}
+	public sealed interface JavaStructureSegment permits Invalid, JStructure, Method, Whitespace, Field {
+	}
 
-	sealed public interface JavaType {}
+	sealed public interface JavaType {
+	}
 
-	sealed public interface CType {}
+	sealed public interface CType {
+	}
 
 	sealed public interface JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record {
 		Option<String> modifiers();
@@ -48,69 +52,88 @@ public class Lang {
 	}
 
 	@Tag("statement")
-	public record Field(JavaDefinition value) implements JavaStructureSegment {}
+	public record Field(JavaDefinition value) implements JavaStructureSegment {
+	}
 
 	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {}
+	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {
+	}
 
 	@Tag("array")
-	public record Array(JavaType child) implements JavaType {}
+	public record Array(JavaType child) implements JavaType {
+	}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type) {}
+	public record JavaDefinition(String name, JavaType type) {
+	}
 
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body)
-			implements JavaStructureSegment {}
+			implements JavaStructureSegment {
+	}
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {}
+			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {
+	}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-											 Option<List<String>> typeParameters)
-			implements JStructure {}
+			Option<List<String>> typeParameters)
+			implements JStructure {
+	}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-													Option<List<String>> typeParameters)
-			implements JStructure {}
+			Option<List<String>> typeParameters)
+			implements JStructure {
+	}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-											 Option<List<String>> typeParameters)
-			implements JStructure {}
+			Option<List<String>> typeParameters)
+			implements JStructure {
+	}
 
 	@Tag("struct")
 	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after,
-													Option<List<String>> typeParameters) implements CRootSegment {}
+			Option<List<String>> typeParameters) implements CRootSegment {
+	}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {}
+	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {
+	}
 
-	public record JavaRoot(List<JavaRootSegment> children) {}
+	public record JavaRoot(List<JavaRootSegment> children) {
+	}
 
-	public record CRoot(List<CRootSegment> children) {}
+	public record CRoot(List<CRootSegment> children) {
+	}
 
 	@Tag("import")
-	public record Import(String value) implements JavaRootSegment {}
+	public record Import(String value) implements JavaRootSegment {
+	}
 
 	@Tag("package")
-	public record Package(String value) implements JavaRootSegment {}
+	public record Package(String value) implements JavaRootSegment {
+	}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type) {}
+	public record CDefinition(String name, CType type) {
+	}
 
 	@Tag("function")
 	public record Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after)
-			implements CRootSegment {}
+			implements CRootSegment {
+	}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JavaType, CType {}
+	public record Identifier(String value) implements JavaType, CType {
+	}
 
 	@Tag("pointer")
-	public record Pointer(CType child) implements CType {}
+	public record Pointer(CType child) implements CType {
+	}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -118,7 +141,8 @@ public class Lang {
 
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Values("params", CDefinition()); final Rule body = Placeholder(new StringRule("body"));
+		final Rule params = Values("params", CDefinition());
+		final Rule body = Placeholder(new StringRule("body"));
 		return Tag("function", First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}")));
 	}
 
@@ -128,7 +152,8 @@ public class Lang {
 
 	private static Rule CType() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid())); return rule;
+		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		return rule;
 	}
 
 	private static Rule CStructure() {
@@ -142,8 +167,8 @@ public class Lang {
 
 	private static Rule Structures(Rule structureMember) {
 		return Or(JStructure("class", structureMember),
-							JStructure("interface", structureMember),
-							JStructure("record", structureMember));
+				JStructure("interface", structureMember),
+				JStructure("record", structureMember));
 	}
 
 	private static Rule Whitespace() {
@@ -159,19 +184,19 @@ public class Lang {
 
 		final Rule maybeWithTypeArguments = NameWithTypeParameters();
 
-		final Rule maybeWithParameters =
-				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
+		final Rule maybeWithParameters = Strip(
+				Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
-		final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);
+		final Rule maybeWithParameters1 = Or(Last(maybeWithParameters, "extends", Node("extends", JType())),
+				maybeWithParameters);
 
-		final Rule beforeContent =
-				Or(Last(maybeWithParameters1, "implements", Node("implements", JType())), maybeWithParameters1);
+		final Rule beforeContent = Or(Last(maybeWithParameters1, "implements", Node("implements", JType())),
+				maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 =
-				Or(Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
+		final Rule beforeContent1 = Or(
+				Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
@@ -212,7 +237,8 @@ public class Lang {
 	}
 
 	private static Rule JType() {
-		final LazyRule type = new LazyRule(); type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
+		final LazyRule type = new LazyRule();
+		type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
 		return type;
 	}
 
@@ -230,7 +256,7 @@ public class Lang {
 
 	private static Rule Generic(Rule type) {
 		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
+				Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
 	}
 
 	private static Rule Invalid() {

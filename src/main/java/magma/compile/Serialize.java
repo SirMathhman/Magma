@@ -403,19 +403,19 @@ public class Serialize {
 			return Option.empty();
 		}
 
-		// Handle Optional<List<T>> case  
+		// Handle Optional<List<T>> case
 		if (List.class.isAssignableFrom(elementClass)) {
 			if (!(value instanceof Option<?> optionValue) || !(optionValue instanceof Some<?> someValue) ||
 					!(someValue.value() instanceof List<?> listValue))
 				return Option.of(new CompileError("Component '" + component.getName() + "' is not an Optional<List> instance",
-																					new StringContext(component.getName())));
+						new StringContext(component.getName())));
 
 			final Type argumentType = parameterized.getActualTypeArguments()[0];
 			if (!(argumentType instanceof ParameterizedType listParamType) ||
 					listParamType.getActualTypeArguments().length != 1) {
 				return Option.of(new CompileError("Optional List component '" + component.getName() +
-																					"' must declare a single generic parameter for the List",
-																					new StringContext(component.getName())));
+						"' must declare a single generic parameter for the List",
+						new StringContext(component.getName())));
 			}
 
 			final Class<?> listElementClass = erase(listParamType.getActualTypeArguments()[0]);
@@ -423,7 +423,8 @@ public class Serialize {
 			final ArrayList<CompileError> errors = new ArrayList<>();
 
 			for (Object element : listValue) {
-				final Result<Node, CompileError> serialized = serializeRaw(listElementClass, element); switch (serialized) {
+				final Result<Node, CompileError> serialized = serializeRaw(listElementClass, element);
+				switch (serialized) {
 					case Err<Node, CompileError> v -> errors.add(v.error());
 					case Ok<Node, CompileError> v -> serializedChildren.add(v.value());
 				}
@@ -431,10 +432,11 @@ public class Serialize {
 
 			if (!errors.isEmpty())
 				return Option.of(new CompileError("Failed to serialize optional list component '" + component.getName() + "'",
-																					new StringContext(component.getName()),
-																					errors));
+						new StringContext(component.getName()),
+						errors));
 
-			target.withNodeList(key, List.copyOf(serializedChildren)); return Option.empty();
+			target.withNodeList(key, List.copyOf(serializedChildren));
+			return Option.empty();
 		}
 
 		// For non-String, non-List Optional types, serialize as nested objects

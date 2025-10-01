@@ -41,7 +41,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	public Result<String, CompileError> generate(Node value) {
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
 			if (list.isEmpty()) return new Err<>(new CompileError("Node list for key '" + key +
-																														"' is empty. If the intent is to have no items, then this property should be omitted entirely, as opposed to an empty list.",
+																														"' is empty. If the intent is to have no items, then this property should be omitted entirely, as opposed to an empty list",
 																														new NodeContext(value)));
 
 			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
