@@ -26,7 +26,7 @@ struct Interface<>{OptionString modifiers;, char* name;, ListJavaStructureSegmen
 template<>
 struct Record<>{OptionString modifiers;, char* name;, ListJavaStructureSegment children;, OptionListIdentifier typeParameters;, OptionListJavaDefinition params;, OptionJavaType implementsClause;};
 template<>
-struct Structure<>{char* name;, ArrayListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
+struct Structure<>{char* name;, ListCDefinition fields;, OptionString after;, OptionListIdentifier typeParameters;};
 template<>
 struct Whitespace<>{};
 template<>
@@ -68,12 +68,12 @@ Rule CStructure_Lang() {/*
 		final Rule fields = Values("fields", Suffix(CDefinition(), ";"));
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
-		
-		// Add template declaration if type parameters exist  
+
+		// Add template declaration if type parameters exist
 		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
 		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
 		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
-		
+
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	*/}
 Rule JavaRoot_Lang() {/*

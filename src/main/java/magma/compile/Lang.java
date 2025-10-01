@@ -8,7 +8,6 @@ import magma.compile.rule.Rule;
 import magma.compile.rule.StringRule;
 import magma.option.Option;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import static magma.compile.rule.EmptyRule.Empty;
@@ -100,7 +99,7 @@ public class Lang {
 	}
 
 	@Tag("struct")
-	public record Structure(String name, ArrayList<CDefinition> fields, Option<String> after,
+	public record Structure(String name, List<CDefinition> fields, Option<String> after,
 			Option<List<Identifier>> typeParameters) implements CRootSegment {
 	}
 
