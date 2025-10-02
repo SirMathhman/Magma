@@ -13,7 +13,6 @@ import magma.compile.rule.TypeFolder;
 import magma.option.Option;
 
 import java.util.List;
-import java.util.Optional;
 
 import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
@@ -91,13 +90,10 @@ public class Lang {
 											 Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
 			implements JStructure {}
 
-	@Tag("variant")
-	public record Variant(String value) {}
-
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
 													Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause,
-													Optional<List<Variant>> variants) implements JStructure {}
+													Option<JavaType> extendsClause, Option<List<JavaType>> variants) implements JStructure {}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -235,15 +231,14 @@ public class Lang {
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
 		final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);
+				Or(Last(maybeWithParameters, "extends", Node("extendsClause", JType())), maybeWithParameters);
 
 		final Rule beforeContent =
 				Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())), maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 =
-				Or(Last(beforeContent, "permits", Delimited("variants", Tag("variant", StrippedIdentifier("value")), ",")),
+		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")),
 					 beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);

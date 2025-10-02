@@ -1,7 +1,14 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Lang.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Lang{};
+struct JavaRootSegment{};
+struct CRootSegment{Option<String> after();};
+struct JStructureSegment{};
+struct JFunctionSegment{};
+struct CFunctionSegment{};
 struct JavaType{};
 struct CType{};
+struct JStructure{Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
+struct CParameter{};
 struct Field{JavaDefinition value;};
 struct Generic{char* base;List<JavaType> arguments;};
 struct Array{JavaType child;};
@@ -10,7 +17,7 @@ struct Modifier{char* value;};
 struct Method{JavaDefinition definition;Option<List<JavaDefinition>> params;Option<List<JFunctionSegment>> body;Option<List<Identifier>> typeParameters;};
 struct Invalid{char* value;Option<String> after;};
 struct JClass{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
-struct Interface{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
+struct Interface{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;Option<JavaType> extendsClause;Option<List<JavaType>> variants;};
 struct Record{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JavaDefinition>> params;Option<JavaType> implementsClause;};
 struct Structure{char* name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
 struct Whitespace{};
@@ -103,12 +110,13 @@ Rule JStructure_Lang(char* type, Rule rule) {
 	/*final Rule maybeWithParameters =
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));*/
 	/*final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);*/
+				Or(Last(maybeWithParameters, "extends", Node("extendsClause", JType())), maybeWithParameters);*/
 	/*final Rule beforeContent =
 				Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())), maybeWithParameters1);*/
 	/*final Rule children = Statements("children", rule);*/
 	/*final Rule beforeContent1 =
-				Or(Last(beforeContent, "permits", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);*/
+				Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")),
+					 beforeContent);*/
 	/*final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}*/
 	/*")));*/
@@ -153,7 +161,11 @@ Rule JMethodSegment_Lang() {
 	/*return rule;*/
 }
 Rule If_Lang(LazyRule rule) {
-	/*return Tag("if", Prefix("if", Strip(Prefix("(", First(Node("condition", rule), ")", Node("body", rule))))));*/
+	/*return Tag("if",
+							 Prefix("if", Strip(Prefix("(", First(Node("condition", JExpression()), ")", Node("body", rule))))));*/
+}
+Rule JExpression_Lang() {
+	/*return Invalid();*/
 }
 Rule CFunctionSegment_Lang() {
 	/*return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Invalid()));*/
