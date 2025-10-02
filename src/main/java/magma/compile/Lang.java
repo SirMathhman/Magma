@@ -425,10 +425,21 @@ public class Lang {
 
 	private static Rule JExpression() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Invokable(rule),
+		rule.set(Or(Switch(rule),
+								Invokable(rule),
 								Tag("field-access", Last(Node("child", rule), ".", Strip(String("name")))),
 								Identifier()));
 		return rule;
+	}
+
+	private static Rule Switch(LazyRule rule) {
+		final Rule cases = Statements("cases", Strip(Or(Case(rule), Empty)));
+		final Rule value = Prefix("(", Suffix(Node("value", rule), ")"));
+		return Tag("switch", Strip(Prefix("switch ", Suffix(First(Strip(value), "{", cases), "}"))));
+	}
+
+	private static Rule Case(LazyRule rule) {
+		return Prefix("case", Suffix(First(Node("definition", JDefinition()), "->", Node("value", rule)), ";"));
 	}
 
 	private static Rule CExpression() {
