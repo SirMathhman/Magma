@@ -1,15 +1,18 @@
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.Serialize;
+import magma.compile.Tag;
 import magma.compile.error.CompileError;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Test demonstrating that the validation would catch the original bug.
@@ -20,7 +23,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ValidationDemonstrationTest {
 
 	// Simulated "buggy" method record (like the original bug)
-	@magma.compile.Tag("buggy-method")
+	@Tag("buggy-method")
 	public record BuggyMethod(Lang.JavaDefinition definition, Option<List<Lang.JavaDefinition>> params,
 														Option<String> body,  // WRONG: should be Option<List<JFunctionSegment>>
 														Option<List<Lang.Identifier>> typeParameters) {}
@@ -39,15 +42,15 @@ public class ValidationDemonstrationTest {
 		System.out.println("Creating a record with Option<String> body field...");
 
 		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
 
-		if (lexResult instanceof Ok<Node, CompileError> lexOk) {
+		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			// Find the method node
-			Result<Lang.JavaRoot, CompileError> rootResult = Serialize.deserialize(Lang.JavaRoot.class, lexOk.value());
+			Result<Lang.JavaRoot, CompileError> rootResult = Serialize.deserialize(Lang.JavaRoot.class, value);
 
-			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError> rootOk) {
+			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot value)) {
 				// Find the method node
-				rootOk.value()
+				value
 							.children()
 							.stream()
 							.filter(child -> child instanceof Lang.JClass)
@@ -61,9 +64,8 @@ public class ValidationDemonstrationTest {
 								System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
 								// The correct type (Option<List<JFunctionSegment>>) works fine
-								if (method.body() instanceof magma.option.Some<?> some) {
-									System.out.println("✅ Body is present as: " + some.value().getClass().getSimpleName());
-								}
+								if (method.body() instanceof Some<?>(var value))
+									System.out.println("✅ Body is present as: " + value.getClass().getSimpleName());
 							});
 
 				System.out.println("\n📝 Note: With the correct type Option<List<JFunctionSegment>>,");
@@ -75,6 +77,6 @@ public class ValidationDemonstrationTest {
 		}
 
 		// Test passes because we're using the correct type
-		assertTrue(true, "Validation is in place to catch future type mismatches");
+		assertTrue(true instanceof Ok<?, ?>, "Validation is in place to catch future type mismatches");
 	}
 }

@@ -2,11 +2,8 @@
 template<typename T>
 struct Some{T value;};
 template<typename R, typename T>
-Option<R> map_Some(R (*mapper)(T)) {/*
-		return new Some<>(mapper.apply(value));*/}
+Option<R> map_Some(R (*mapper)(T)) {/*return new Some<>(mapper.apply(value));*/}
 template<typename R, typename T>
-Option<R> flatMap_Some(Option<R> (*mapper)(T)) {/*
-		return mapper.apply(value);*/}
+Option<R> flatMap_Some(Option<R> (*mapper)(T)) {/*return mapper.apply(value);*/}
 template<typename T>
-T orElse_Some(T other) {/*
-		return value;*/}
+T orElse_Some(T other) {/*return value;*/}
