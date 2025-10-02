@@ -36,8 +36,8 @@ boolean isLevel_DivideState() {
 	/*return depth == 0;*/
 }
 Option<Character> pop_DivideState() {
-	if(/*index >= input.length(*/)
-	/*) return Option.empty();*/
+	if (/*index >= input.length())*/)
+	/*return Option.empty());*/
 	/*final char c = input.charAt(index);*/
 	/*index++;*/
 	/*return Option.of(c);*/
@@ -49,7 +49,7 @@ Option<DivideState> popAndAppendToOption_DivideState() {
 	/*return popAndAppendToTuple().map(Tuple::left);*/
 }
 Option<Character> peek_DivideState() {
-	if(/*index < input.length(*/)
-	/*) return new Some<>(input.charAt(index));*/
+	if (/*index < input.length())*/)
+	/*return new Some<>(input.charAt(index)));*/
 	/*else return new None<>();*/
 }

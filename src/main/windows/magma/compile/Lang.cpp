@@ -131,11 +131,11 @@ Rule NameWithTypeParameters_Lang() {
 Rule StructureSegment_Lang() {
 	/*final LazyRule structureMember = new LazyRule();*/
 	/*structureMember.set(Or(Structures(structureMember),
-													 Statement(),
-													 JMethod(),
-													 LineComment(),
-													 BlockComment(),
-													 Whitespace()));*/
+																																						Statement(),
+																																						JMethod(),
+																																						LineComment(),
+																																						BlockComment(),
+																																						Whitespace()));*/
 	/*return structureMember;*/
 }
 Rule BlockComment_Lang() {
@@ -163,8 +163,11 @@ Rule JMethodSegment_Lang() {
 	/*return rule;*/
 }
 Rule If_Lang(Rule expression, Rule statement) {
+	/*final var condition = Node("condition", expression);*/
+	/*final var body = Node("body", statement);*/
+	/*final var split = Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);*/
 	/*return Tag("if",
-							 Prefix("if", Strip(Prefix("(", First(Node("condition", expression), ")", Node("body", statement))))));*/
+							 Prefix("if ", Strip(split)));*/
 }
 Rule JExpression_Lang() {
 	/*return Invalid();*/

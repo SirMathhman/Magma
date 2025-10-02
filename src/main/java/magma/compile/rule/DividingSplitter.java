@@ -6,12 +6,12 @@ import magma.option.Option;
 import java.util.List;
 
 public record DividingSplitter(Divider divider, Merger merger) implements Splitter {
-	public DividingSplitter(Divider divider) {
+	private DividingSplitter(Divider divider) {
 		this(divider, new KeepFirstMerger());
 	}
 
 	// Factory methods for convenience
-	public static DividingSplitter keepFirst(Divider divider) {
+	public static DividingSplitter KeepFirst(Divider divider) {
 		return new DividingSplitter(divider, new KeepFirstMerger());
 	}
 

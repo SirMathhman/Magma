@@ -1,5 +1,6 @@
 package magma.compile;
 
+import magma.compile.rule.ClosingParenthesesFolder;
 import magma.compile.rule.FilterRule;
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
@@ -14,6 +15,7 @@ import magma.option.Option;
 
 import java.util.List;
 
+import static magma.compile.rule.DividingSplitter.KeepFirst;
 import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.*;
@@ -295,8 +297,9 @@ public class Lang {
 	}
 
 	private static Rule If(Rule expression, Rule statement) {
-		return Tag("if",
-							 Prefix("if", Strip(Prefix("(", First(Node("condition", expression), ")", Node("body", statement))))));
+		final var condition = Node("condition", expression); final var body = Node("body", statement); final var split =
+				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);
+		return Tag("if", Prefix("if ", Strip(split)));
 	}
 
 	private static Rule JExpression() {
