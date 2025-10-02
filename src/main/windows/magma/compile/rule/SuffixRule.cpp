@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\SuffixRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct SuffixRule{Rule rule;char* suffix;};
+struct SuffixRule {Rule rule;char* suffix;};
 Rule Suffix_SuffixRule(Rule rule, char* suffix) {
 	/*return new SuffixRule(rule, suffix);*/
 }

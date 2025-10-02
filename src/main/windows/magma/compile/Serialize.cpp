@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Serialize.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Serialize{};
+struct Serialize {};
 template<typename T>
 Result<T, CompileError> deserialize_Serialize(Class<T> clazz, Node node) {
 	if (/*Objects.isNull(clazz))*/)

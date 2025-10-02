@@ -1,43 +1,43 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Lang.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Lang{};
-struct JavaRootSegment{};
-struct CRootSegment{Option<String> after();};
-struct JStructureSegment{};
-struct JExpression{};
-struct JFunctionSegment{};
-struct CFunctionSegment{};
-struct JavaType{};
-struct CType{};
-struct JStructure{Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
-struct CParameter{};
-struct CExpression{};
-struct JIf{JExpression condition;JFunctionSegment body;};
-struct CIf{CExpression condition;CFunctionSegment body;};
-struct Field{JavaDefinition value;};
-struct Generic{char* base;List<JavaType> arguments;};
-struct Array{JavaType child;};
-struct JavaDefinition{char* name;JavaType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
-struct Modifier{char* value;};
-struct Method{JavaDefinition definition;Option<List<JavaDefinition>> params;Option<List<JFunctionSegment>> body;Option<List<Identifier>> typeParameters;};
-struct Invalid{char* value;Option<String> after;};
-struct JClass{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
-struct Interface{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;Option<JavaType> extendsClause;Option<List<JavaType>> variants;};
-struct Record{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JavaDefinition>> params;Option<JavaType> implementsClause;};
-struct Structure{char* name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
-struct Whitespace{};
-struct Placeholder{char* value;};
-struct JavaRoot{List<JavaRootSegment> children;};
-struct CRoot{List<CRootSegment> children;};
-struct Import{char* value;};
-struct Package{char* value;};
-struct CDefinition{char* name;CType type;Option<List<Identifier>> typeParameters;};
-struct CFunctionPointerDefinition{char* name;CType returnType;List<CType> paramTypes;};
-struct Function{CDefinition definition;List<CParameter> params;List<CFunctionSegment> body;Option<String> after;Option<List<Identifier>> typeParameters;};
-struct Identifier{char* value;};
-struct Pointer{CType child;};
-struct FunctionPointer{CType returnType;List<CType> paramTypes;};
-struct LineComment{char* value;};
-struct BlockComment{char* value;};
+struct Lang {};
+struct JavaRootSegment {};
+struct CRootSegment {Option<String> after();};
+struct JStructureSegment {};
+struct JExpression {};
+struct JFunctionSegment {};
+struct CFunctionSegment {};
+struct JavaType {};
+struct CType {};
+struct JStructure {Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
+struct CParameter {};
+struct CExpression {};
+struct JIf {JExpression condition;JFunctionSegment body;};
+struct CIf {CExpression condition;CFunctionSegment body;};
+struct Field {JavaDefinition value;};
+struct Generic {char* base;List<JavaType> arguments;};
+struct Array {JavaType child;};
+struct JavaDefinition {char* name;JavaType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
+struct Modifier {char* value;};
+struct Method {JavaDefinition definition;Option<List<JavaDefinition>> params;Option<List<JFunctionSegment>> body;Option<List<Identifier>> typeParameters;};
+struct Invalid {char* value;Option<String> after;};
+struct JClass {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
+struct Interface {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;Option<JavaType> extendsClause;Option<List<JavaType>> variants;};
+struct Record {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JavaDefinition>> params;Option<JavaType> implementsClause;};
+struct Structure {char* name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
+struct Whitespace {};
+struct Placeholder {char* value;};
+struct JavaRoot {List<JavaRootSegment> children;};
+struct CRoot {List<CRootSegment> children;};
+struct Import {char* value;};
+struct Package {char* value;};
+struct CDefinition {char* name;CType type;Option<List<Identifier>> typeParameters;};
+struct CFunctionPointerDefinition {char* name;CType returnType;List<CType> paramTypes;};
+struct Function {CDefinition definition;List<CParameter> params;List<CFunctionSegment> body;Option<String> after;Option<List<Identifier>> typeParameters;};
+struct Identifier {char* value;};
+struct Pointer {CType child;};
+struct FunctionPointer {CType returnType;List<CType> paramTypes;};
+struct LineComment {char* value;};
+struct BlockComment {char* value;};
 Rule CRoot_Lang() {
 	/*return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));*/
 }
@@ -80,7 +80,7 @@ Rule CStructure_Lang() {
 	/*final Rule structPrefix = Prefix("struct ", plainName);*/
 	/*final Rule fields = Statements("fields", Suffix(CDefinition(), ";*/
 	/*"));*/
-	/*final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}*/
+	/*final Rule structWithFields = Suffix(First(structPrefix, " {", fields), "}*/
 	/*");*/
 	/*final Rule structComplete = Suffix(structWithFields, ";*/
 	/*");*/
@@ -165,9 +165,9 @@ Rule JMethodSegment_Lang() {
 Rule If_Lang(Rule expression, Rule statement) {
 	/*final var condition = Node("condition", expression);*/
 	/*final var body = Node("body", statement);*/
-	/*final var split = Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);*/
-	/*return Tag("if",
-							 Prefix("if ", Strip(split)));*/
+	/*final var split =
+				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);*/
+	/*return Tag("if", Prefix("if ", Strip(split)));*/
 }
 Rule JExpression_Lang() {
 	/*return Invalid();*/

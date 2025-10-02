@@ -203,7 +203,7 @@ public class Lang {
 		final Rule plainName = StrippedIdentifier("name");
 		final Rule structPrefix = Prefix("struct ", plainName);
 		final Rule fields = Statements("fields", Suffix(CDefinition(), ";"));
-		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
+		final Rule structWithFields = Suffix(First(structPrefix, " {", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
 
 		// Add template declaration only if type parameters exist (non-empty list)

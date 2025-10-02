@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\SplitRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct SplitRule{Rule leftRule;Rule rightRule;Splitter splitter;};
+struct SplitRule {Rule leftRule;Rule rightRule;Splitter splitter;};
 Rule First_SplitRule(Rule left, char* infix, Rule right) {
 	/*final Splitter splitter = new InfixSplitter(infix, new FirstLocator());*/
 	/*return new SplitRule(left, right, splitter);*/

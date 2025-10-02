@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\StringRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct StringRule{char* key;};
+struct StringRule {char* key;};
 Rule String_StringRule(char* key) {
 	/*return new StringRule(key);*/
 }
