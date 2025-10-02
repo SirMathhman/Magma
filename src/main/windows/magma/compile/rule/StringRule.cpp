@@ -2,17 +2,19 @@
 template<>
 struct StringRule{char* key;};
 template<>
-Rule String_StringRule(char* key) {/*
+/*public static Rule*/ String_StringRule(char* key) {/*
 		return new StringRule(key);
 	*/}
 template<>
-/*CompileError>*/ lex_StringRule(char* content) {/*
+@Override
+	public Result<Node, CompileError> lex_StringRule(char* content) {/*
 		if (content.isEmpty())
 			return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
 		return new Ok<>(new Node().withString(key, content));
 	*/}
 template<>
-/*CompileError>*/ generate_StringRule(Node node) {/*
+@Override
+	public Result<String, CompileError> generate_StringRule(Node node) {/*
 		Option<Result<String, CompileError>> resultOption = node.findString(key).map(Ok::new);
 		return switch (resultOption) {
 			case None<Result<String, CompileError>> _ -> new Err<>(

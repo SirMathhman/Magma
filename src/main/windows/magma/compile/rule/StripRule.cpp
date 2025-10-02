@@ -2,19 +2,21 @@
 template<>
 struct StripRule{char* leftKey;, Rule rule;, char* rightKey;};
 template<>
-Rule Strip_StripRule(Rule rule) {/*
+/*public static Rule*/ Strip_StripRule(Rule rule) {/*
 		return new StripRule("?", rule, "?");
 	*/}
 template<>
-Rule Strip_StripRule(char* left, Rule rule, char* right) {/*
+/*public static Rule*/ Strip_StripRule(char* left, Rule rule, char* right) {/*
 		return new StripRule(left, rule, right);
 	*/}
 template<>
-/*CompileError>*/ lex_StripRule(char* content) {/*
+@Override
+	public Result<Node, CompileError> lex_StripRule(char* content) {/*
 		return rule.lex(content.strip());
 	*/}
 template<>
-/*CompileError>*/ generate_StripRule(Node node) {/*
+@Override
+	public Result<String, CompileError> generate_StripRule(Node node) {/*
 		return rule.generate(node).mapValue(generated -> {
 			final String leftString = node.findString(leftKey).orElse("");
 			final String rightString = node.findString(rightKey).orElse(""); return leftString + generated + rightString;

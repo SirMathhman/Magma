@@ -2,15 +2,17 @@
 template<>
 struct PrefixRule{char* prefix;, Rule rule;};
 template<>
-Rule Prefix_PrefixRule(char* prefix, Rule rule) {/*
+/*public static Rule*/ Prefix_PrefixRule(char* prefix, Rule rule) {/*
 		return new PrefixRule(prefix, rule);
 	*/}
 template<>
-/*CompileError>*/ lex_PrefixRule(char* content) {/*
+@Override
+	public Result<Node, CompileError> lex_PrefixRule(char* content) {/*
 		if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
 		else return new Err<>(new CompileError("Prefix '" + prefix + "' not present", new StringContext(content)));
 	*/}
 template<>
-/*CompileError>*/ generate_PrefixRule(Node node) {/*
+@Override
+	public Result<String, CompileError> generate_PrefixRule(Node node) {/*
 		return rule.generate(node).mapValue(inner -> prefix + inner);
 	*/}

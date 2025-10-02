@@ -2,19 +2,20 @@
 template<>
 struct NodeListRule{char* key;, Rule rule;, Divider divider;};
 template<>
-Rule Statements_NodeListRule(char* key, Rule rule) {/*
+/*public static Rule*/ Statements_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));
 	*/}
 template<>
-Rule Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {/*
+/*public static Rule*/ Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {/*
 		return new NodeListRule(key, rule, new DelimitedRule(delimiter));
 	*/}
 template<>
-Rule Values_NodeListRule(char* key, Rule rule) {/*
+/*public static Rule*/ Values_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()));
 	*/}
 template<>
-/*CompileError>*/ lex_NodeListRule(char* input) {/*
+@Override
+	public Result<Node, CompileError> lex_NodeListRule(char* input) {/*
 		final ArrayList<Node> children = new ArrayList<>(); for (String segment : divider.divide(input).toList()) {
 			Result<Node, CompileError> res = rule().lex(segment);
 			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
@@ -24,7 +25,8 @@ template<>
 		return new Ok<>(new Node().withNodeList(key, children));
 	*/}
 template<>
-/*CompileError>*/ generate_NodeListRule(Node value) {/*
+@Override
+	public Result<String, CompileError> generate_NodeListRule(Node value) {/*
 		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
 			// Treat missing or empty lists as empty content when generating.
 			if (list.isEmpty()) return new Ok<>("");
