@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Node{new HashMap<>();, new HashMap<>();, new HashMap<>();, /*=*/ Option.empty();};
+struct Node{new HashMap<>();new HashMap<>();new HashMap<>();/*=*/ Option.empty();};
 char* toString_Node() {/*
 		return format(0);*/}
 char* escape_Node(char* value) {/*

@@ -148,15 +148,17 @@ Function transformMethod_Main(Method method, char* structName) {/*
 		// Extract type parameters from method signature
 *//*		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);*//*
 
-		// Convert method body from Option<List<JFunctionSegment>> to List<CFunctionSegment>
-*//*		// JFunctionSegment and CFunctionSegment share the same implementations (Placeholder, Whitespace, Invalid)
+		// Convert method body from Option<List<JFunctionSegment>> to
+*//*		// List<CFunctionSegment>
+*//*		// JFunctionSegment and CFunctionSegment share the same implementations
+*//*		// (Placeholder, Whitespace, Invalid)
 *//*		final List<CFunctionSegment> bodySegments = switch (method.body()) {
 			case None<List<JFunctionSegment>> _ -> Collections.emptyList();
 			case Some<List<JFunctionSegment>>(var segments) -> {
-				// Cast is safe because JFunctionSegment and CFunctionSegment permit the same types
+				// Cast is safe because JFunctionSegment and CFunctionSegment permit the same
+				// types
 				@SuppressWarnings("unchecked")
-				List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments;
-				yield cSegments;
+				List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments; yield cSegments;
 			}
 		}*//*;*//*
 

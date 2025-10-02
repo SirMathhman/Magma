@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\NodeListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct NodeListRule{char* key;, Rule rule;, Divider divider;};
+struct NodeListRule{char* key;Rule rule;Divider divider;};
 Rule Statements_NodeListRule(char* key, Rule rule) {/*
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));*/}
 Rule Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {/*

@@ -3,28 +3,28 @@ struct Lang{};
 struct JavaType{};
 struct CType{};
 struct Field{JavaDefinition value;};
-struct Generic{char* base;, List<JavaType> arguments;};
+struct Generic{char* base;List<JavaType> arguments;};
 struct Array{JavaType child;};
-struct JavaDefinition{char* name;, JavaType type;, Option<List<Modifier>> modifiers;, Option<List<Identifier>> typeParameters;};
+struct JavaDefinition{char* name;JavaType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
 struct Modifier{char* value;};
-struct Method{JavaDefinition definition;, Option<List<JavaDefinition>> params;, Option<List<JFunctionSegment>> body;, Option<List<Identifier>> typeParameters;};
-struct Invalid{char* value;, Option<String> after;};
-struct JClass{Option<String> modifiers;, char* name;, List<JStructureSegment> children;, Option<List<Identifier>> typeParameters;, Option<JavaType> implementsClause;};
-struct Interface{Option<String> modifiers;, char* name;, List<JStructureSegment> children;, Option<List<Identifier>> typeParameters;, Option<JavaType> implementsClause;};
-struct Record{Option<String> modifiers;, char* name;, List<JStructureSegment> children;, Option<List<Identifier>> typeParameters;, Option<List<JavaDefinition>> params;, Option<JavaType> implementsClause;};
-struct Structure{char* name;, List<CDefinition> fields;, Option<String> after;, Option<List<Identifier>> typeParameters;};
+struct Method{JavaDefinition definition;Option<List<JavaDefinition>> params;Option<List<JFunctionSegment>> body;Option<List<Identifier>> typeParameters;};
+struct Invalid{char* value;Option<String> after;};
+struct JClass{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
+struct Interface{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
+struct Record{Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JavaDefinition>> params;Option<JavaType> implementsClause;};
+struct Structure{char* name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
 struct Whitespace{};
 struct Placeholder{char* value;};
 struct JavaRoot{List<JavaRootSegment> children;};
 struct CRoot{List<CRootSegment> children;};
 struct Import{char* value;};
 struct Package{char* value;};
-struct CDefinition{char* name;, CType type;, Option<List<Identifier>> typeParameters;};
-struct CFunctionPointerDefinition{char* name;, CType returnType;, List<CType> paramTypes;};
-struct Function{CDefinition definition;, List<CParameter> params;, List<CFunctionSegment> body;, Option<String> after;, Option<List<Identifier>> typeParameters;};
+struct CDefinition{char* name;CType type;Option<List<Identifier>> typeParameters;};
+struct CFunctionPointerDefinition{char* name;CType returnType;List<CType> paramTypes;};
+struct Function{CDefinition definition;List<CParameter> params;List<CFunctionSegment> body;Option<String> after;Option<List<Identifier>> typeParameters;};
 struct Identifier{char* value;};
 struct Pointer{CType child;};
-struct FunctionPointer{CType returnType;, List<CType> paramTypes;};
+struct FunctionPointer{CType returnType;List<CType> paramTypes;};
 struct LineComment{char* value;};
 struct BlockComment{char* value;};
 Rule CRoot_Lang() {/*
@@ -61,7 +61,7 @@ Rule CStructure_Lang() {/*
 *//*		// declaration
 *//*		final Rule plainName = StrippedIdentifier("name");*//*
 		final Rule structPrefix = Prefix("struct ", plainName);*//*
-		final Rule fields = Values("fields", Suffix(CDefinition(), ";*//*"));*//*
+		final Rule fields = Statements("fields", Suffix(CDefinition(), ";*//*"));*//*
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}*//*");*//*
 		final Rule structComplete = Suffix(structWithFields, ";*//*");*//*
 
