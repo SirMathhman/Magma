@@ -21,8 +21,7 @@ Node merge_Node(Node node) {
 	/*maybeType = switch (maybeType) {
 			case None<String> _ -> node.maybeType;
 			case Some<String> _ -> maybeType;
-		}*/
-	/*;*/
+		};*/
 	/*this.strings.putAll(node.strings);*/
 	/*nodeLists.putAll(node.nodeLists);*/
 	/*nodes.putAll(node.nodes);*/

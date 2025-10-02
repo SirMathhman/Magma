@@ -102,12 +102,11 @@ Result<CRoot, CompileError> transform_Main(JavaRoot node) {
 																	.toList()))*/;
 }
 List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {
-	/*return switch (segment) {
+	return /*switch (segment) {
 			case JStructure jStructure -> flattenStructure(jStructure);
 			case Invalid invalid -> List.of(invalid);
 			default -> Collections.emptyList();
-		}*/
-	/*;*/
+		}*/;
 }
 List<CRootSegment> flattenStructure_Main(JStructure aClass) {
 	/*final List<JStructureSegment> children = aClass.children();*/
@@ -137,21 +136,19 @@ List<CRootSegment> flattenStructure_Main(JStructure aClass) {
 	return /*copy*/;
 }
 Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Main(JStructureSegment self, char* name) {
-	/*return switch (self) {
+	return /*switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
 			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
 			case Whitespace _, LineComment _, BlockComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
-		}*/
-	/*;*/
+		}*/;
 }
 Function transformMethod_Main(Method method, char* structName) {
 	/*final List<JavaDefinition> oldParams = switch (method.params()) {
 			case None<List<JavaDefinition>> _ -> Collections.emptyList();
 			case Some<List<JavaDefinition>> v -> v.value();
-		}*/
-	/*;*/
+		};*/
 	/*final List<CParameter> newParams = oldParams.stream().map(Main::transformParameter).toList();*/
 	/*final CDefinition cDefinition = transformDefinition(method.definition());*/
 	/*// Extract type parameters from method signature*/
@@ -167,8 +164,7 @@ Function transformMethod_Main(Method method, char* structName) {
 					return transformFunctionSegment(segment);
 				}).toList();
 			}
-		}*/
-	/*;*/
+		};*/
 	return /*new Function(new CDefinition(cDefinition.name() + "_" + structName,
 																				cDefinition.type(),
 																				cDefinition.typeParameters()),
@@ -178,18 +174,16 @@ Function transformMethod_Main(Method method, char* structName) {
 												extractedTypeParams)*/;
 }
 CFunctionSegment transformFunctionSegment_Main(JMethodSegment segment) {
-	/*return switch (segment) {
+	return /*switch (segment) {
 			case JIf anIf -> new CIf(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
 			case Invalid invalid -> invalid;
 			case Placeholder placeholder -> placeholder;
 			case Whitespace whitespace -> whitespace;
 			case JReturn aReturn -> new CReturn(transformExpression(aReturn.value()));
-		}*/
-	/*;*/
+		}*/;
 }
 CExpression transformExpression_Main(JExpression expression) {
-	/*return switch (expression) {case Invalid invalid -> invalid;}*/
-	/*;*/
+	return /*switch (expression) {case Invalid invalid -> invalid;}*/;
 }
 CParameter transformParameter_Main(JavaDefinition param) {
 	/*final CType transformedType = transformType(param.type());*/
@@ -239,7 +233,7 @@ CDefinition transformDefinition_Main(JavaDefinition definition) {
 	return /*new CDefinition(definition.name(), transformType(definition.type()), typeParams)*/;
 }
 CType transformType_Main(JavaType type) {
-	/*return switch (type) {
+	return /*switch (type) {
 			case Invalid invalid -> invalid;
 			case Generic generic -> {
 				// Convert Function<T, R> to function pointer R (*)(T)
@@ -258,6 +252,5 @@ CType transformType_Main(JavaType type) {
 				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char"));
 				yield identifier;
 			}
-		}*/
-	/*;*/
+		}*/;
 }

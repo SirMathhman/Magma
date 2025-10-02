@@ -8,11 +8,10 @@ Result<Node, CompileError> lex_NonEmptyListRule(char* content) {
 	return /*innerRule.lex(content)*/;
 }
 Result<String, CompileError> generate_NonEmptyListRule(Node node) {
-	/*return switch (node.findNodeList(key)) {
+	return /*switch (node.findNodeList(key)) {
 			case None<?> _ -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(node)));
 			case Some(var list) when list.isEmpty() ->
 					new Err<>(new CompileError("Node list '" + key + "' is empty", new NodeContext(node)));
 			case Some<?> _ -> innerRule.generate(node);
-		}*/
-	/*;*/
+		}*/;
 }

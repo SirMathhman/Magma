@@ -7,9 +7,8 @@ Result<Node, CompileError> lex_NodeRule(char* content) {
 	return /*rule.lex(content).mapValue(node -> new Node().withNode(key, node))*/;
 }
 Result<String, CompileError> generate_NodeRule(Node node) {
-	/*return switch (node.findNode(key)) {
+	return /*switch (node.findNode(key)) {
 			case None<Node> _ -> new Err<>(new CompileError("Node '" + key + "' not present", new NodeContext(node)));
 			case Some<Node> v -> rule.generate(v.value());
-		}*/
-	/*;*/
+		}*/;
 }

@@ -5,7 +5,11 @@ DivideState fold_StatementFolder(DivideState state, char c) {
 	if (/*c == ';' && appended.isLevel())*/)
 	return /*appended.advance())*/;
 	if (/*c == '}' && appended.isShallow())*/)
-	return /*appended.advance()).exit())*/;
+	/*{
+			if (appended.peek() instanceof Some<Character>(Character next) && next == ';'))
+				return appended.popAndAppendToOption()).orElse(appended)).advance()).exit());
+			return appended.advance()).exit());
+		}*/
 	if (/*c == '{')*/)
 	return /*appended.enter())*/;
 	if (/*c == '}')*/)

@@ -12,7 +12,7 @@ Rule Split_SplitRule(Rule left, Splitter splitter, Rule right) {
 	return /*new SplitRule(left, right, splitter)*/;
 }
 Result<Node, CompileError> lex_SplitRule(char* input) {
-	/*return switch (splitter.split(input)) {
+	return /*switch (splitter.split(input)) {
 			case None<Tuple<String, String>> _ ->
 					new Err<>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
 			case Some<Tuple<String, String>>(Tuple<String, String> parts) -> {
@@ -20,8 +20,7 @@ Result<Node, CompileError> lex_SplitRule(char* input) {
 				final String right = parts.right();
 				yield leftRule.lex(left).flatMap(leftNode -> rightRule.lex(right).mapValue(leftNode::merge));
 			}
-		}*/
-	/*;*/
+		}*/;
 }
 Result<String, CompileError> generate_SplitRule(Node node) {
 	return /*leftRule.generate(node)

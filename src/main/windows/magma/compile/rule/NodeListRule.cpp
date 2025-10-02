@@ -34,11 +34,10 @@ Result<String, CompileError> generate_NodeListRule(Node value) {
 			return new Ok<>(sb.toString());
 		}*/
 	/*);*/
-	/*return switch (resultOption) {
+	return /*switch (resultOption) {
 			// If the node-list isn't present at all, treat it as empty rather than an
 			// error.
 			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
-		}*/
-	/*;*/
+		}*/;
 }
