@@ -135,7 +135,7 @@ public class Lang {
 	public record LineComment(String value) implements JStructureSegment {}
 
 	@Tag("block-comment")
-	private record BlockComment(String value) implements JStructureSegment {}
+	public record BlockComment(String value) implements JStructureSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -193,8 +193,9 @@ public class Lang {
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	}
 
-	public static Rule JavaRoot() {
-		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), Whitespace());
+	public static Rule JRoot() {
+		final Rule segment =
+				Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), BlockComment(), Whitespace());
 		return Statements("children", segment);
 	}
 
@@ -229,7 +230,7 @@ public class Lang {
 		final Rule children = Statements("children", rule);
 
 		final Rule beforeContent1 =
-				Or(Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
+				Or(Last(beforeContent, "permits", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));

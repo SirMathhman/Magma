@@ -27,7 +27,7 @@ public class MethodDeserializationTest {
 
 		System.out.println("=== Testing Method Deserialization ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {

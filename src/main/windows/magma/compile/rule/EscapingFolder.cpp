@@ -14,16 +14,15 @@ template<>
 		if (c == '/' && state.isLevel()) {
 			if (state.peek() instanceof Some<Character>(Character next) && next == '/') {
 				final DivideState withSlash = state.append(c);
-				DivideState current = withSlash.popAndAppendToOption().orElse(state);
-				while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
-						Tuple<DivideState, Character> tuple
-				)) {
-					current = tuple.left();
-					if (tuple.right() == '\n') {
-						current = current.advance();
-						break;
-					}
-				} else break;
+				DivideState current = withSlash.popAndAppendToOption().orElse(state); while (true) {
+					if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+							Tuple<DivideState, Character> tuple
+					)) {
+						current = tuple.left(); if (tuple.right() == '\n') {
+							current = current.advance(); break;
+						}
+					} else break;
+				}
 
 				return current;
 			}
@@ -37,8 +36,7 @@ template<>
 				)) {
 					current = tuple.left();
 					if (tuple.right() == '*') if (current.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/') {
-						current = current.popAndAppendToOption().orElse(current).advance();
-						break;
+						current = current.popAndAppendToOption().orElse(current).advance(); break;
 					}
 				} else break;
 

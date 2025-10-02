@@ -52,6 +52,8 @@ struct FunctionPointer{CType returnType;, List<CType> paramTypes;};
 template<>
 struct LineComment{char* value;};
 template<>
+struct BlockComment{char* value;};
+template<>
 /*public static Rule*/ CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	*/}
@@ -108,8 +110,8 @@ template<>
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	*/}
 template<>
-/*public static Rule*/ JavaRoot_Lang() {/*
-		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), Whitespace());
+/*public static Rule*/ JRoot_Lang() {/*
+		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()),BlockComment(),  Whitespace());
 		return Statements("children", segment);
 	*/}
 template<>
@@ -144,7 +146,7 @@ template<>
 		final Rule children = Statements("children", rule);
 
 		final Rule beforeContent1 =
-				Or(Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
+				Or(Last(beforeContent, "permits", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
@@ -158,8 +160,17 @@ template<>
 template<>
 /*private static Rule*/ StructureSegment_Lang() {/*
 		final LazyRule structureMember = new LazyRule();
-		structureMember.set(Or(Structures(structureMember), Statement(), Method(), LineComment(), Whitespace()));
+		structureMember.set(Or(Structures(structureMember),
+													 Statement(),
+													 Method(),
+													 LineComment(),
+													 BlockComment(),
+													 Whitespace()));
 		return structureMember;
+	*/}
+template<>
+/*private static Rule*/ BlockComment_Lang() {/*
+		return Tag("block-comment", Strip(Prefix("start", Suffix(String("value"), "end"))));
 	*/}
 template<>
 /*private static Rule*/ LineComment_Lang() {/*

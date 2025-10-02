@@ -4,8 +4,8 @@ import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 public class DeserializationDebugTest {
@@ -19,7 +19,7 @@ public class DeserializationDebugTest {
 		System.out.println("Input: " + input);
 
 		// Step 1: Parse with JavaRoot().lex()
-		Result<Node, CompileError> lexResult = Lang.JavaRoot().lex(input);
+		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
 
 		if (lexResult instanceof Ok<Node, CompileError>(Node node)) {
 			System.out.println("\n=== Lexing Result ===");
@@ -73,7 +73,7 @@ public class DeserializationDebugTest {
 		System.out.println("\n\n=== Testing Simple Method ===");
 		System.out.println("Input: " + input);
 
-		Result<Node, CompileError> lexResult = Lang.JavaRoot().lex(input);
+		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
 
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Simple method lexing failed: " + lexResult);
 	}

@@ -5,7 +5,6 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
@@ -41,7 +40,7 @@ public class RealSomeJavaTest {
 		System.out.println("=== Testing Real Some.java ===");
 
 		// Test each step of the pipeline
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(actualSomeJava);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(actualSomeJava);
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 

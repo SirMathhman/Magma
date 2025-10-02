@@ -5,10 +5,10 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
-import static magma.compile.Lang.*;
+import static magma.compile.Lang.JRoot;
+import static magma.compile.Lang.JavaRoot;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class PackageImportRecordTest {
@@ -29,7 +29,7 @@ public class PackageImportRecordTest {
 
 		System.out.println("=== Testing Record with Package and Import ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
@@ -63,7 +63,7 @@ public class PackageImportRecordTest {
 
 		System.out.println("=== Testing Record without Package and Import ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 

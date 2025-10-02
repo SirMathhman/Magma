@@ -19,7 +19,7 @@ public class MainIntegrationTest {
 	public void testSerializeDeserializeJavaRoot() {
 		String input = "class Test { public int add(int a, int b) { return a + b; } }";
 
-		Result<Node, CompileError> lex = Lang.JavaRoot().lex(input);
+		Result<Node, CompileError> lex = Lang.JRoot().lex(input);
 		assertTrue(lex instanceof Ok<?, ?>, () -> "Lexing failed: " + lex);
 
 		Node node = ((Ok<Node, CompileError>) lex).value();

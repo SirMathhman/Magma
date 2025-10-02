@@ -1,15 +1,18 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\None.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<typename T>
 struct None{};
-template<typename R>
-Option<R> map_None(R mapper) {/*
+template<typename R, typename T>
+@Override
+	public</*R> Option<R*/> map_None(R (*mapper)(T)) {/*
 		return new None<>();
 	*/}
-template<typename R>
-Option<R> flatMap_None(OptionR mapper) {/*
+template<typename R, typename T>
+@Override
+	public</*R> Option<R*/> flatMap_None(Option<R> (*mapper)(T)) {/*
 		return new None<>();
 	*/}
 template<typename T>
-T orElse_None(T other) {/*
+/*@Override
+	public T*/ orElse_None(T other) {/*
 		return other;
 	*/}

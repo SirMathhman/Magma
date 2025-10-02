@@ -5,7 +5,6 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
@@ -28,7 +27,7 @@ public class CppGenerationTest {
 		System.out.println("=== Testing Simple Java Class Lexing ===");
 		System.out.println("Input: " + input);
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
@@ -52,7 +51,7 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing Java to Object Deserialization ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
@@ -96,7 +95,7 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing Java to C++ Transformation ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
@@ -154,7 +153,7 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing C++ Serialization ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {

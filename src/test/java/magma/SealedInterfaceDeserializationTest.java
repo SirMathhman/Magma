@@ -6,7 +6,6 @@ import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -28,7 +27,7 @@ public class SealedInterfaceDeserializationTest {
 
 		System.out.println("=== Testing Direct Record Deserialization ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
@@ -91,7 +90,7 @@ public class SealedInterfaceDeserializationTest {
 
 		System.out.println("=== Testing JavaRoot with Record ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JavaRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {

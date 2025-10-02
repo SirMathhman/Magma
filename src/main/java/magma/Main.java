@@ -122,11 +122,11 @@ public class Main {
 	}
 
 	public static Result<String, CompileError> compile(String input) {
-		return JavaRoot().lex(input)
-										 .flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
-										 .flatMap(Main::transform)
-										 .flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
-										 .flatMap(CRoot()::generate);
+		return JRoot().lex(input)
+									.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+									.flatMap(Main::transform)
+									.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+									.flatMap(CRoot()::generate);
 	}
 
 	public static Result<CRoot, CompileError> transform(JavaRoot node) {
@@ -180,10 +180,9 @@ public class Main {
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
-			case Whitespace _ -> new Tuple<>(Collections.emptyList(), new None<>());
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
 			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
-			case Lang.LineComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
+			case Whitespace _, LineComment _, BlockComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
 		};
 	}
 
