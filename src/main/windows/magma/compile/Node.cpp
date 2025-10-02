@@ -1,26 +1,67 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Node{new HashMap<>();new HashMap<>();new HashMap<>();/*=*/ Option.empty();};
-char* toString_Node() {/*return format(0);*/}
-char* escape_Node(char* value) {/*return value.replace("\\", "\\\\")
+char* toString_Node() {
+	/*return format(0);*/
+}
+char* escape_Node(char* value) {
+	/*return value.replace("\\", "\\\\")
 				.replace("\"", "\\\"")
 				.replace("\n", "\\n")
 				.replace("\r", "\\r")
-				.replace("\t", "\\t");*/}
-Node withString_Node(char* key, char* value) {/*strings.put(key, value);*//*return this;*/}
-Option<String> findString_Node(char* key) {/*return Option.ofNullable(strings.get(key));*/}
-Node merge_Node(Node node) {/*maybeType = switch (maybeType) {
+				.replace("\t", "\\t");*/
+}
+Node withString_Node(char* key, char* value) {
+	/*strings.put(key, value);*/
+	/*return this;*/
+}
+Option<String> findString_Node(char* key) {
+	/*return Option.ofNullable(strings.get(key));*/
+}
+Node merge_Node(Node node) {
+	/*maybeType = switch (maybeType) {
 			case None<String> _ -> node.maybeType;
 			case Some<String> _ -> maybeType;
-		}*//*;*//*this.strings.putAll(node.strings);*//*nodeLists.putAll(node.nodeLists);*//*nodes.putAll(node.nodes);*//*return this;*/}
-Node withNodeList_Node(char* key, List<Node> values) {/*nodeLists.put(key, values);*//*return this;*/}
-Option<List<Node>> findNodeList_Node(char* key) {/*return Option.ofNullable(nodeLists.get(key));*/}
-Node withNode_Node(char* key, Node node) {/*nodes.put(key, node);*//*return this;*/}
-Option<Node> findNode_Node(char* key) {/*return Option.ofNullable(nodes.get(key));*/}
-Node retype_Node(char* type) {/*this.maybeType = Option.of(type);*//*return this;*/}
-boolean is_Node(char* type) {/*return this.maybeType.map(inner -> inner.equals(type)).orElse(false);*/}
-Set<String> getStringKeys_Node() {/*return strings.keySet();*/}
-char* format_Node(int depth) {/*StringBuilder builder = new StringBuilder();*//*builder.append("\t".repeat(depth));*//*appendJson(builder, depth);*//*return builder.toString();*/}
-void appendJson_Node(StringBuilder builder, int depth) {/*final String indent = "\t".repeat(depth);*//*final String childIndent = "\t".repeat(depth + 1);*//*builder.append("{");
+		}*/
+	/*;*/
+	/*this.strings.putAll(node.strings);*/
+	/*nodeLists.putAll(node.nodeLists);*/
+	/*nodes.putAll(node.nodes);*/
+	/*return this;*/
+}
+Node withNodeList_Node(char* key, List<Node> values) {
+	/*nodeLists.put(key, values);*/
+	/*return this;*/
+}
+Option<List<Node>> findNodeList_Node(char* key) {
+	/*return Option.ofNullable(nodeLists.get(key));*/
+}
+Node withNode_Node(char* key, Node node) {
+	/*nodes.put(key, node);*/
+	/*return this;*/
+}
+Option<Node> findNode_Node(char* key) {
+	/*return Option.ofNullable(nodes.get(key));*/
+}
+Node retype_Node(char* type) {
+	/*this.maybeType = Option.of(type);*/
+	/*return this;*/
+}
+boolean is_Node(char* type) {
+	/*return this.maybeType.map(inner -> inner.equals(type)).orElse(false);*/
+}
+Set<String> getStringKeys_Node() {
+	/*return strings.keySet();*/
+}
+char* format_Node(int depth) {
+	/*StringBuilder builder = new StringBuilder();*/
+	/*builder.append("\t".repeat(depth));*/
+	/*appendJson(builder, depth);*/
+	/*return builder.toString();*/
+}
+void appendJson_Node(StringBuilder builder, int depth) {
+	/*final String indent = "\t".repeat(depth);*/
+	/*final String childIndent = "\t".repeat(depth + 1);*/
+	/*builder.append("{");
 		boolean hasFields = false;
 
 		if (maybeType instanceof Some<String>(String value)) {
@@ -74,4 +115,6 @@ void appendJson_Node(StringBuilder builder, int depth) {/*final String indent = 
 
 		if (hasFields)
 			builder.append("\n").append(indent);
-		builder.append("}*//*");*/}
+		builder.append("}*/
+	/*");*/
+}

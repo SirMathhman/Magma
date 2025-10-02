@@ -2,8 +2,14 @@
 template<typename T>
 struct None{};
 template<typename R, typename T>
-Option<R> map_None(R (*mapper)(T)) {/*return new None<>();*/}
+Option<R> map_None(R (*mapper)(T)) {
+	/*return new None<>();*/
+}
 template<typename R, typename T>
-Option<R> flatMap_None(Option<R> (*mapper)(T)) {/*return new None<>();*/}
+Option<R> flatMap_None(Option<R> (*mapper)(T)) {
+	/*return new None<>();*/
+}
 template<typename T>
-T orElse_None(T other) {/*return other;*/}
+T orElse_None(T other) {
+	/*return other;*/
+}

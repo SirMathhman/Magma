@@ -153,8 +153,8 @@ public class Lang {
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = Statements("body", CFunctionSegment());
-		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
+		final Rule body = Statements("body", CFunctionSegment()); final Rule functionDecl =
+				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
 		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier())); final Rule templateDecl =
@@ -285,7 +285,7 @@ public class Lang {
 	}
 
 	private static Rule CFunctionSegment() {
-		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));
+		return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Tag("placeholder", Placeholder(String("value")))));
 	}
 
 	private static Rule Parameters() {
