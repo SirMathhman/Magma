@@ -356,7 +356,7 @@ public class Serialize {
 						"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
 						node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
 			}
-			
+
 			return new Ok<>(Option.empty());
 		}
 

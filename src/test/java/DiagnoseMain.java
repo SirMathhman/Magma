@@ -106,7 +106,8 @@ public class DiagnoseMain {
 		System.out.println("Generated C++ length: " + generated.length() + " characters");
 		System.out.println("Generated C++:"); System.out.println(generated);
 
-		// The issue: Main.java has many methods, but generated C++ might only have "struct Main{};"
+		// The issue: Main.java has many methods, but generated C++ might only have
+		// "struct Main{};"
 		assertTrue(generated.length() > 20, "Generated C++ should be more than just 'struct Main{};'");
 	}
 }

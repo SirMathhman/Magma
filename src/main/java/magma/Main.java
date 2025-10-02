@@ -200,13 +200,15 @@ public class Main {
 		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
 		// Convert method body from Option<List<JFunctionSegment>> to String
-		// For now, we'll use an empty string body since JFunctionSegment only contains Whitespace/Invalid
+		// For now, we'll use an empty string body since JFunctionSegment only contains
+		// Whitespace/Invalid
 		final String bodyString = "";
 
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
 																				cDefinition.type(),
 																				cDefinition.typeParameters()),
-												newParams, bodyString,
+												newParams,
+												bodyString,
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);
 	}
@@ -232,7 +234,9 @@ public class Main {
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) {collectTypeVariables(param.type(), typeVars);}
+			for (JavaDefinition param : paramList) {
+				collectTypeVariables(param.type(), typeVars);
+			}
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -253,7 +257,9 @@ public class Main {
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) {collectTypeVariables(arg, typeVars);}
+				for (JavaType arg : generic.arguments()) {
+					collectTypeVariables(arg, typeVars);
+				}
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
