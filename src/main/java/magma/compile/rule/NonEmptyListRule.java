@@ -10,7 +10,8 @@ import magma.result.Result;
 
 /**
  * A rule that generates output for a node list only if the list is non-empty.
- * Returns an error if the list is empty or missing, allowing Or rules to fall back to alternatives.
+ * Returns an error if the list is empty or missing, allowing Or rules to fall
+ * back to alternatives.
  */
 public record NonEmptyListRule(String key, Rule innerRule) implements Rule {
 

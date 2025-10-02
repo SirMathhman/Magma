@@ -267,8 +267,12 @@ public class Lang {
 	private static Rule Method() {
 		Rule params = Parameters();
 		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
-		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
+		final Rule withBody = Suffix(First(header, "{", Statements("body", JFunctionSegment())), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
+	}
+
+	private static Rule JFunctionSegment() {
+		return Or(Whitespace(), Placeholder(String("value")));
 	}
 
 	private static Rule Parameters() {
