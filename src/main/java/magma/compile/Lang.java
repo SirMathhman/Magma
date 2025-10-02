@@ -476,7 +476,7 @@ public class Lang {
 				LineComment(),
 				Conditional("if", expression, methodSegment),
 				Conditional("while", expression, methodSegment),
-				Switch(methodSegment),
+				Switch(expression, methodSegment),
 				Else(methodSegment),
 				Tag("try", Prefix("try ", Node("child", methodSegment))),
 				Strip(Suffix(JMethodStatementValue(), ";")),
@@ -546,7 +546,7 @@ public class Lang {
 		expression.set(Or(
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
-				Switch(expression),
+				Switch(expression, expression),
 				Index(expression),
 				Invokable(expression),
 				FieldAccess(expression),
@@ -573,9 +573,9 @@ public class Lang {
 		return Tag(type, First(Node("left", expression), infix, Node("right", expression)));
 	}
 
-	private static Rule Switch(Rule rule) {
+	private static Rule Switch(Rule expression, Rule rule) {
 		final Rule cases = Statements("cases", Strip(Or(Case(rule), Empty)));
-		final Rule value = Prefix("(", Suffix(Node("value", rule), ")"));
+		final Rule value = Prefix("(", Suffix(Node("value", expression), ")"));
 		return Tag("switch", Strip(Prefix("switch ", Suffix(First(Strip(value), "{", cases), "}"))));
 	}
 
