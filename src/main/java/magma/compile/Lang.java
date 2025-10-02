@@ -546,6 +546,7 @@ public class Lang {
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
 				Switch(expression),
+				Index(expression),
 				Invokable(expression),
 				FieldAccess(expression),
 				Operator("add", "+", expression),
@@ -553,6 +554,10 @@ public class Lang {
 				Operator("less-than", "<", expression),
 				Identifier()));
 		return expression;
+	}
+
+	private static Rule Index(LazyRule expression) {
+		return Tag("index", Strip(Suffix(First(Node("caller", expression), "[", Node("argument", expression)), "]")));
 	}
 
 	private static Rule FieldAccess(Rule expression) {
