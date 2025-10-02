@@ -35,7 +35,8 @@ public class Lang {
 		Option<String> after();
 	}
 
-	public sealed interface JStructureSegment permits Invalid, JStructure, Method, Whitespace, Field, LineComment {}
+	public sealed interface JStructureSegment
+			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
 	sealed public interface JavaType {}
 
@@ -132,6 +133,9 @@ public class Lang {
 
 	@Tag("line-comment")
 	public record LineComment(String value) implements JStructureSegment {}
+
+	@Tag("block-comment")
+	private record BlockComment(String value) implements JStructureSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -238,9 +242,17 @@ public class Lang {
 	}
 
 	private static Rule StructureSegment() {
-		final LazyRule structureMember = new LazyRule();
-		structureMember.set(Or(Structures(structureMember), Statement(), Method(), LineComment(), Whitespace()));
+		final LazyRule structureMember = new LazyRule(); structureMember.set(Or(Structures(structureMember),
+																																						Statement(),
+																																						Method(),
+																																						LineComment(),
+																																						BlockComment(),
+																																						Whitespace()));
 		return structureMember;
+	}
+
+	private static Rule BlockComment() {
+		return Tag("block-comment", Strip(Prefix("/*", Suffix(String("value"), "*/"))));
 	}
 
 	private static Rule LineComment() {
