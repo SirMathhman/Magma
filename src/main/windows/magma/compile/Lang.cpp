@@ -21,6 +21,8 @@ struct CBlock {List<CFunctionSegment> children;};
 struct JBlock {List<JMethodSegment> children;};
 struct JIf {JExpression condition;JMethodSegment body;};
 struct CIf {CExpression condition;CFunctionSegment body;};
+struct JWhile {JExpression condition;JMethodSegment body;};
+struct CWhile {CExpression condition;CFunctionSegment body;};
 struct Field {JDefinition value;};
 struct Generic {char* base;List<JavaType> arguments;};
 struct Array {JavaType child;};
@@ -52,6 +54,7 @@ struct JElse {JMethodSegment child;};
 struct CElse {CFunctionSegment child;};
 struct JInvokable {JExpression caller;List<JExpression> arguments;};
 struct CInvokable {CExpression caller;List<CExpression> arguments;};
+struct Break {};
 Rule CRoot_Lang() {
 	return /*Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"))*/;
 }
@@ -181,10 +184,14 @@ Rule Block_Lang(LazyRule rule) {
 }
 Rule JMethodStatementValue_Lang() {
 	/*final Rule expression = JExpression*/(/*)*/;
-	return /*Or(Return(expression),
+	return /*Or(Break(),
+							Return(expression),
 							Invokable(expression),
 							Initialization(JDefinition(), expression),
 							PostFix(expression))*/;
+}
+Rule Break_Lang() {
+	return /*Tag("break", Strip(Prefix("break", Empty)))*/;
 }
 Rule PostFix_Lang(Rule expression) {
 	return /*Tag("postFix", Strip(Suffix(Node("value", expression), "++")))*/;
@@ -225,6 +232,8 @@ Rule CFunctionSegment_Lang() {
 Rule CFunctionSegmentValue_Lang(LazyRule rule) {
 	return /*Or(LineComment(),
 							Conditional("if", CExpression(), rule),
+							Conditional("while", CExpression(), rule),
+							Break(),
 							Else(rule),
 							CFunctionStatement(),
 							Block(rule),

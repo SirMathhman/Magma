@@ -237,6 +237,8 @@ public class Main {
 					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
 			case JElse jElse -> new CElse(transformFunctionSegment(jElse.child()));
+			case Break aBreak -> aBreak;
+			case JWhile jWhile -> new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
 		};
 	}
 

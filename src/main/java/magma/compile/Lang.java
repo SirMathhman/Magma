@@ -44,12 +44,12 @@ public class Lang {
 	sealed public interface JExpression permits Invalid {}
 
 	sealed public interface JMethodSegment
-			permits Invalid, JAssignment, JBlock, JElse, JIf, JInitialization, JInvokable, JPostFix, JReturn, LineComment,
-			Placeholder, Whitespace {}
+			permits Break, Invalid, JAssignment, JBlock, JElse, JIf, JInitialization, JInvokable, JPostFix, JReturn, JWhile,
+			LineComment, Placeholder, Whitespace {}
 
 	sealed public interface CFunctionSegment
-			permits CAssignment, CBlock, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, Invalid, LineComment,
-			Placeholder, Whitespace {}
+			permits Break, CAssignment, CBlock, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, CWhile, Invalid,
+			LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -99,6 +99,12 @@ public class Lang {
 
 	@Tag("if")
 	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
+
+	@Tag("while")
+	public record JWhile(JExpression condition, JMethodSegment body) implements JMethodSegment {}
+
+	@Tag("while")
+	public record CWhile(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
 
 	@Tag("statement")
 	public record Field(JDefinition value) implements JStructureSegment {}
@@ -203,6 +209,9 @@ public class Lang {
 
 	@Tag("invokable")
 	public record CInvokable(CExpression caller, List<CExpression> arguments) implements CFunctionSegment {}
+
+	@Tag("break")
+	public record Break() implements JMethodSegment, CFunctionSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -364,10 +373,15 @@ public class Lang {
 
 	private static Rule JMethodStatementValue() {
 		final Rule expression = JExpression();
-		return Or(Return(expression),
+		return Or(Break(),
+							Return(expression),
 							Invokable(expression),
 							Initialization(JDefinition(), expression),
 							PostFix(expression));
+	}
+
+	private static Rule Break() {
+		return Tag("break", Strip(Prefix("break", Empty)));
 	}
 
 	private static Rule PostFix(Rule expression) {
@@ -419,6 +433,8 @@ public class Lang {
 	private static Rule CFunctionSegmentValue(LazyRule rule) {
 		return Or(LineComment(),
 							Conditional("if", CExpression(), rule),
+							Conditional("while", CExpression(), rule),
+							Break(),
 							Else(rule),
 							CFunctionStatement(),
 							Block(rule),
