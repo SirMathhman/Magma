@@ -5,19 +5,20 @@ import magma.option.Some;
 import magma.result.Ok;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 public class TestFunctionSerialization {
 	@Test
 	public void testSerializeFunction() {
-		// Create a simple Function with a body
-		var func =
+		// Create a simple Function with a body (list of CFunctionSegment)
+		List<Lang.CFunctionSegment> body = java.util.List.of(new Lang.Placeholder("/*test body*/")); var func =
 				new Lang.Function(new Lang.CDefinition("testFunc", new Lang.Identifier("void"), magma.option.Option.empty()),
 													java.util.Collections.emptyList(),
-													"/*test body*/",
+													body,
 													new Some<>(System.lineSeparator()),
 													magma.option.Option.empty());
 
-		System.out.println("Created function with body: " + func.body());
-		System.out.println("Body length: " + func.body().length());
+		System.out.println("Created function with body size: " + func.body().size());
 
 		// Serialize it
 		var serResult = Serialize.serialize(Lang.Function.class, func); if (serResult instanceof Ok<Node, ?>(var node)) {

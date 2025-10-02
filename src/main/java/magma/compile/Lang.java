@@ -40,6 +40,8 @@ public class Lang {
 
 	sealed public interface JFunctionSegment permits Invalid, Placeholder, Whitespace {}
 
+	sealed public interface CFunctionSegment permits Invalid, Placeholder, Whitespace {}
+
 	sealed public interface JavaType {}
 
 	sealed public interface CType {}
@@ -80,7 +82,8 @@ public class Lang {
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment {}
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment,
+			CFunctionSegment {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -102,10 +105,10 @@ public class Lang {
 													Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JStructureSegment, JFunctionSegment {}
+	public record Whitespace() implements JavaRootSegment, JStructureSegment, JFunctionSegment, CFunctionSegment {}
 
 	@Tag("placeholder")
-	public record Placeholder(String value) implements JFunctionSegment {}
+	public record Placeholder(String value) implements JFunctionSegment, CFunctionSegment {}
 
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
@@ -125,8 +128,8 @@ public class Lang {
 			implements CParameter {}
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CParameter> params, String body, Option<String> after,
-												 Option<List<Identifier>> typeParameters) implements CRootSegment {}
+	public record Function(CDefinition definition, List<CParameter> params, List<CFunctionSegment> body,
+												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
 	public record Identifier(String value) implements JavaType, CType {}
@@ -150,7 +153,7 @@ public class Lang {
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = String("body");
+		final Rule body = Statements("body", CFunctionSegment());
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
@@ -278,6 +281,10 @@ public class Lang {
 	}
 
 	private static Rule JFunctionSegment() {
+		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));
+	}
+
+	private static Rule CFunctionSegment() {
 		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));
 	}
 

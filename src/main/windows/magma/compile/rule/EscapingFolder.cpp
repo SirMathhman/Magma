@@ -24,7 +24,7 @@ DivideState fold_EscapingFolder(DivideState state, char c) {/*
 				return current;
 			}
 
-			// Handle block comments /* */
+			// Handle block comments start end
 			if (state.peek() instanceof Some<Character>(Character next) && next == '*') {
 				final DivideState withSlash = state.append(c);
 				DivideState current = withSlash.popAndAppendToOption().orElse(state);

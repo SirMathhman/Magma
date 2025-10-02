@@ -21,7 +21,7 @@ struct Import{char* value;};
 struct Package{char* value;};
 struct CDefinition{char* name;, CType type;, Option<List<Identifier>> typeParameters;};
 struct CFunctionPointerDefinition{char* name;, CType returnType;, List<CType> paramTypes;};
-struct Function{CDefinition definition;, List<CParameter> params;, char* body;, Option<String> after;, Option<List<Identifier>> typeParameters;};
+struct Function{CDefinition definition;, List<CParameter> params;, List<CFunctionSegment> body;, Option<String> after;, Option<List<Identifier>> typeParameters;};
 struct Identifier{char* value;};
 struct Pointer{CType child;};
 struct FunctionPointer{CType returnType;, List<CType> paramTypes;};
@@ -32,7 +32,7 @@ Rule CRoot_Lang() {/*
 Rule Function_Lang() {/*
 		final NodeRule definition = new NodeRule("definition", CDefinition());*//*
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));*//*
-		final Rule body = String("body");*//*
+		final Rule body = Statements("body", CFunctionSegment());*//*
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}*//*"));*//*
 
 		// Add template declaration only if type parameters exist (non-empty list)
@@ -117,7 +117,7 @@ Rule StructureSegment_Lang() {/*
 																																						Whitespace()));*//*
 		return structureMember;*/}
 Rule BlockComment_Lang() {/*
-		return Tag("block-comment", Strip(Prefix("/*", Suffix(String("value"), "*/*//*"))));*/}
+		return Tag("block-comment", Strip(Prefix("start", Suffix(String("value"), "end*//*"))));*/}
 Rule LineComment_Lang() {/*
 		return Tag("line-comment", Strip(Prefix("//", String("value"))));
 */}
@@ -129,6 +129,8 @@ Rule Method_Lang() {/*
 		final Rule withBody = Suffix(First(header, "{", Statements("body", JFunctionSegment())), "}*//*");*//*
 		return Tag("method", Strip(Or(Suffix(header, ";*//*"), withBody)));*/}
 Rule JFunctionSegment_Lang() {/*
+		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));*/}
+Rule CFunctionSegment_Lang() {/*
 		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));*/}
 Rule Parameters_Lang() {/*
 		return Values("params", Or(ParameterDefinition(), Whitespace()));*/}

@@ -148,20 +148,15 @@ Function transformMethod_Main(Method method, char* structName) {/*
 		// Extract type parameters from method signature
 *//*		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);*//*
 
-		// Convert method body from Option<List<JFunctionSegment>> to String
-*//*		// Extract content from Placeholder segments
-*//*		final String bodyString = switch (method.body()) {
-			case None<List<JFunctionSegment>> _ -> "";
+		// Convert method body from Option<List<JFunctionSegment>> to List<CFunctionSegment>
+*//*		// JFunctionSegment and CFunctionSegment share the same implementations (Placeholder, Whitespace, Invalid)
+*//*		final List<CFunctionSegment> bodySegments = switch (method.body()) {
+			case None<List<JFunctionSegment>> _ -> Collections.emptyList();
 			case Some<List<JFunctionSegment>>(var segments) -> {
-				StringBuilder sb = new StringBuilder();
-				for (JFunctionSegment segment : segments) {
-					// Placeholder segments contain the actual statement text wrapped in /* */
-					if (segment instanceof Placeholder placeholder) {
-						sb.append("/*").append(placeholder.value()).append("*/");
-					}
-					// Whitespace segments contribute nothing to the body
-				}
-				yield sb.toString();
+				// Cast is safe because JFunctionSegment and CFunctionSegment permit the same types
+				@SuppressWarnings("unchecked")
+				List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments;
+				yield cSegments;
 			}
 		}*//*;*//*
 
@@ -169,7 +164,7 @@ Function transformMethod_Main(Method method, char* structName) {/*
 																				cDefinition.type(),
 																				cDefinition.typeParameters()),
 												newParams,
-												bodyString,
+												bodySegments,
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);*/}
 CParameter transformParameter_Main(JavaDefinition param) {/*
@@ -218,7 +213,7 @@ void collectTypeVariables_Main(JavaType type, Set<String> typeVars) {/*
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
-				/* Other types don't contain type variables */
+				start Other types don't contain type variables end
 			}
 		}*/}
 CDefinition transformDefinition_Main(JavaDefinition definition) {/*
