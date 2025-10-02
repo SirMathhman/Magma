@@ -41,7 +41,7 @@ public class Lang {
 	public sealed interface JStructureSegment
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
-	sealed public interface JExpression permits Invalid {}
+	sealed public interface JExpression permits JFieldAccess, Identifier, Invalid, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JElse, JIf, JInitialization, JInvokable, JPostFix, JReturn, JWhile,
@@ -68,7 +68,19 @@ public class Lang {
 	// Sealed interface for C parameter types
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
 
-	public sealed interface CExpression permits Invalid {}
+	public sealed interface CExpression permits CFieldAccess, Identifier, Invalid {}
+
+	@Tag("field-access")
+	public record JFieldAccess(JExpression child, String name) implements JExpression {}
+
+	@Tag("field-access")
+	public record CFieldAccess(CExpression child, String name) implements CExpression {}
+
+	@Tag("case")
+	public record Case(JDefinition definition, JExpression value) {}
+
+	@Tag("switch")
+	public record Switch(JExpression value, List<Case> cases) implements JExpression {}
 
 	@Tag("assignment")
 	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
@@ -110,7 +122,10 @@ public class Lang {
 	public record Field(JDefinition value) implements JStructureSegment {}
 
 	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {}
+	public record JGeneric(String base, List<JavaType> typeArguments) implements JavaType {}
+
+	@Tag("generic")
+	public record CGeneric(String base, List<CType> typeArguments) implements CType {}
 
 	@Tag("array")
 	public record Array(JavaType child) implements JavaType {}
@@ -178,7 +193,7 @@ public class Lang {
 												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JavaType, CType {}
+	public record Identifier(String value) implements JavaType, CType, JExpression, CExpression {}
 
 	@Tag("pointer")
 	public record Pointer(CType child) implements CType {}
@@ -399,7 +414,7 @@ public class Lang {
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
-		final Rule arguments = Arguments("arguments", expression);
+		final Rule arguments = Arguments("typeArguments", expression);
 		return Tag(type, First(caller, "(", Suffix(Or(arguments, Whitespace()), ")")));
 	}
 

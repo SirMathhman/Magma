@@ -238,7 +238,8 @@ public class Main {
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
 			case JElse jElse -> new CElse(transformFunctionSegment(jElse.child()));
 			case Break aBreak -> aBreak;
-			case JWhile jWhile -> new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
+			case JWhile jWhile ->
+					new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
 		};
 	}
 
@@ -249,7 +250,12 @@ public class Main {
 	}
 
 	private static CExpression transformExpression(JExpression expression) {
-		return switch (expression) {case Invalid invalid -> invalid;};
+		return switch (expression) {
+			case Invalid invalid -> invalid;
+			case Identifier identifier -> identifier;
+			case Switch aSwitch -> new Identifier("???");
+			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
+		};
 	}
 
 	private static CParameter transformParameter(JDefinition param) {
@@ -289,12 +295,12 @@ public class Main {
 				// Single letter identifiers are likely type variables (R, E, etc.)
 				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0))) typeVars.add(ident.value());
 			}
-			case Generic generic -> {
+			case JGeneric generic -> {
 				// Check base type name for type variables
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
-				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
+				// Collect from type typeArguments
+				for (JavaType arg : generic.typeArguments()) collectTypeVariables(arg, typeVars);
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
@@ -312,14 +318,14 @@ public class Main {
 	private static CType transformType(JavaType type) {
 		return switch (type) {
 			case Invalid invalid -> invalid;
-			case Generic generic -> {
+			case JGeneric generic -> {
 				// Convert Function<T, R> to function pointer R (*)(T)
-				if (generic.base().equals("Function") && generic.arguments().size() == 2) {
-					final CType paramType = transformType(generic.arguments().get(0));
-					final CType returnType = transformType(generic.arguments().get(1));
+				if (generic.base().equals("Function") && generic.typeArguments().size() == 2) {
+					final CType paramType = transformType(generic.typeArguments().get(0));
+					final CType returnType = transformType(generic.typeArguments().get(1));
 					yield new FunctionPointer(returnType, List.of(paramType));
 				}
-				yield generic;
+				yield new CGeneric(generic.base(), generic.typeArguments().stream().map(Main::transformType).toList());
 			}
 			case Array array -> {
 				CType childType = transformType(array.child());

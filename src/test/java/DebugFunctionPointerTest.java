@@ -49,7 +49,7 @@ public class DebugFunctionPointerTest {
 										if (param instanceof JDefinition def) {
 											System.out.println("      Param: " + def.name() + " : " + def.type());
 											System.out.println("      Param type class: " + def.type().getClass().getSimpleName());
-											if (def.type() instanceof Generic gen) {
+											if (def.type() instanceof JGeneric gen) {
 												System.out.println("        Generic base: " + gen.base());
 												System.out.println("        Generic args: " + gen.arguments());
 											}
