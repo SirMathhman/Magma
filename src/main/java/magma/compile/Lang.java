@@ -1,11 +1,10 @@
 package magma.compile;
 
+import magma.compile.rule.BraceStartFolder;
 import magma.compile.rule.ClosingParenthesesFolder;
-import magma.compile.rule.DivideState;
 import magma.compile.rule.DividingSplitter;
 import magma.compile.rule.EscapingFolder;
 import magma.compile.rule.FilterRule;
-import magma.compile.rule.Folder;
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeListRule;
@@ -315,26 +314,7 @@ public class Lang {
 
 		final Rule strip = Strip(Or(modifiers, Empty));
 		final Rule first = First(strip, type + " ", beforeContent1);
-		final Rule aClass = Split(first, new DividingSplitter(new FoldingDivider(new Folder() {
-			@Override
-			public DivideState fold(DivideState state, char c) {
-				if (c == '{') {
-					final DivideState entered = state.enter();
-					if (entered.isShallow()) return entered.advance();
-					return entered.append(c);
-				}
-
-				final DivideState state1 = state.append(c);
-				if (c == '(') return state1.enter();
-				if (c == '}' || c == ')') return state1.exit();
-				return state1;
-			}
-
-			@Override
-			public String delimiter() {
-				return "";
-			}
-		})), children);
+		final Rule aClass = Split(first, new DividingSplitter(new FoldingDivider(new BraceStartFolder())), children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	}
 

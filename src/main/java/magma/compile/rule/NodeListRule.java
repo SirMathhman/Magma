@@ -1,6 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Option;
@@ -37,7 +38,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return switch (current) {
 			case Err<List<Node>, CompileError> v -> new Err<>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
-				case Err<Node, CompileError> v -> new Err<>(v.error());
+				case Err<Node, CompileError> v ->
+						new Err<>(new CompileError("Failed to lex segment", new StringContext(element), List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
 					list.add(node);
 					yield new Ok<>(list);

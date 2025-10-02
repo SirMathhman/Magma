@@ -10,15 +10,18 @@ struct CompileError {/*String*/ reason;/* Context*/ context;/* List<CompileError
 /*private String*/ format_CompileError(/*int*/ depth, /* int*/ index) {
 	/*final ArrayList<CompileError> copy */=/* new ArrayList<>(causes)*/;
 	/*copy.sort*/(/*Comparator.comparingInt(CompileError::depth))*/;
-	/*StringBuilder joiner */=/* new StringBuilder()*/;
-	/*IntStream.range(0, copy.size()).forEach(i -> {
-			CompileError error */=/* copy.get(i);
-			String format = error.format(depth + 1, i);
-			joiner.append(format);
-		})*/;
-	/*final String formattedChildren */=/* joiner.toString()*/;
+	/*final String formattedChildren */=/* joinErrors(depth, copy)*/;
 	/*final String s */=/* depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth)*/;
 	/*return s + index + ") " + reason + ": " + context.display*/(/*depth) + formattedChildren*/;
+}
+/*private String*/ joinErrors_CompileError(/*int*/ depth, /* List<CompileError>*/ copy) {
+	/*return IntStream.range*/(/*0*/, /* copy.size())
+										.mapToObj(index -> formatChild(depth, copy, index))
+										.collect(Collectors.joining())*/;
+}
+/*private String*/ formatChild_CompileError(/*int*/ depth, /* List<CompileError>*/ copy, /* int*/ i) {
+	/*CompileError error */=/* copy.get(i)*/;
+	/*return error.format*/(/*depth + 1*/, /* i)*/;
 }
 /*private int*/ depth_CompileError() {
 	/*return 1 + causes.stream*/(/*).mapToInt(CompileError::depth).max().orElse(0)*/;
