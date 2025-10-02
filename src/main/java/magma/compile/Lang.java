@@ -281,11 +281,11 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegment() {
-		return Or(Whitespace(), Strip(Tag("placeholder", Placeholder(String("value")))));
+		return Or(Whitespace(), Strip(Invalid()));
 	}
 
 	private static Rule CFunctionSegment() {
-		return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Tag("placeholder", Placeholder(String("value")))));
+		return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Invalid()));
 	}
 
 	private static Rule Parameters() {

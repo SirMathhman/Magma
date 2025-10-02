@@ -121,11 +121,11 @@ Rule NameWithTypeParameters_Lang() {
 Rule StructureSegment_Lang() {
 	/*final LazyRule structureMember = new LazyRule();*/
 	/*structureMember.set(Or(Structures(structureMember),
-													 Statement(),
-													 JMethod(),
-													 LineComment(),
-													 BlockComment(),
-													 Whitespace()));*/
+																																						Statement(),
+																																						JMethod(),
+																																						LineComment(),
+																																						BlockComment(),
+																																						Whitespace()));*/
 	/*return structureMember;*/
 }
 Rule BlockComment_Lang() {
@@ -148,10 +148,10 @@ Rule JMethod_Lang() {
 	/*"), withBody)));*/
 }
 Rule JMethodSegment_Lang() {
-	/*return Or(Whitespace(), Strip(Tag("placeholder", Placeholder(String("value")))));*/
+	/*return Or(Whitespace(), Strip(Invalid()));*/
 }
 Rule CFunctionSegment_Lang() {
-	/*return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Tag("placeholder", Placeholder(String("value")))));*/
+	/*return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Invalid()));*/
 }
 Rule Parameters_Lang() {
 	/*return Values("params", Or(ParameterDefinition(), Whitespace()));*/
