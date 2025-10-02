@@ -7,6 +7,7 @@ import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeListRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
+import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TypeFolder;
@@ -28,108 +29,86 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {
-	}
+	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {}
 
 	sealed public interface CRootSegment permits Invalid, Structure, Function {
 		Option<String> after();
 	}
 
-	public sealed interface JavaStructureSegment permits Invalid, JStructure, Method, Whitespace, Field {
-	}
+	public sealed interface JStructureSegment permits Invalid, JStructure, Method, Whitespace, Field, LineComment {}
 
-	sealed public interface JavaType {
-	}
+	sealed public interface JavaType {}
 
-	sealed public interface CType {
-	}
+	sealed public interface CType {}
 
-	sealed public interface JStructure extends JavaRootSegment, JavaStructureSegment permits Interface, JClass, Record {
+	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, Record {
 		Option<String> modifiers();
 
 		String name();
 
 		Option<List<Identifier>> typeParameters();
 
-		List<JavaStructureSegment> children();
-	}
-
-	@Tag("statement")
-	public record Field(JavaDefinition value) implements JavaStructureSegment {
-	}
-
-	@Tag("generic")
-	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {
-	}
-
-	@Tag("array")
-	public record Array(JavaType child) implements JavaType {
-	}
-
-	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
-			Option<List<Identifier>> typeParameters) {
-	}
-
-	@Tag("modifier")
-	public record Modifier(String value) {
-	}
-
-	@Tag("method")
-	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body,
-			Option<List<Identifier>> typeParameters)
-			implements JavaStructureSegment {
-	}
-
-	@Tag("invalid")
-	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JavaStructureSegment, CRootSegment, JavaType, CType {
-	}
-
-	@Tag("class")
-	public record JClass(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
-			implements JStructure {
-	}
-
-	@Tag("interface")
-	public record Interface(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
-			implements JStructure {
-	}
-
-	@Tag("record")
-	public record Record(Option<String> modifiers, String name, List<JavaStructureSegment> children,
-			Option<List<Identifier>> typeParameters, Option<List<JavaDefinition>> params, Option<JavaType> implementsClause)
-			implements JStructure {
-	}
-
-	@Tag("struct")
-	public record Structure(String name, List<CDefinition> fields, Option<String> after,
-			Option<List<Identifier>> typeParameters) implements CRootSegment {
-	}
-
-	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JavaStructureSegment {
-	}
-
-	public record JavaRoot(List<JavaRootSegment> children) {
-	}
-
-	public record CRoot(List<CRootSegment> children) {
-	}
-
-	@Tag("import")
-	public record Import(String value) implements JavaRootSegment {
-	}
-
-	@Tag("package")
-	public record Package(String value) implements JavaRootSegment {
+		List<JStructureSegment> children();
 	}
 
 	// Sealed interface for C parameter types
-	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
-	}
+	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
+
+	@Tag("statement")
+	public record Field(JavaDefinition value) implements JStructureSegment {}
+
+	@Tag("generic")
+	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {}
+
+	@Tag("array")
+	public record Array(JavaType child) implements JavaType {}
+
+	@Tag("definition")
+	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
+															 Option<List<Identifier>> typeParameters) {}
+
+	@Tag("modifier")
+	public record Modifier(String value) {}
+
+	@Tag("method")
+	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body,
+											 Option<List<Identifier>> typeParameters) implements JStructureSegment {}
+
+	@Tag("invalid")
+	public record Invalid(String value, Option<String> after)
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType {}
+
+	@Tag("class")
+	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
+											 Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
+			implements JStructure {}
+
+	@Tag("interface")
+	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
+													Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
+			implements JStructure {}
+
+	@Tag("record")
+	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
+											 Option<List<Identifier>> typeParameters, Option<List<JavaDefinition>> params,
+											 Option<JavaType> implementsClause) implements JStructure {}
+
+	@Tag("struct")
+	public record Structure(String name, List<CDefinition> fields, Option<String> after,
+													Option<List<Identifier>> typeParameters) implements CRootSegment {}
+
+	@Tag("whitespace")
+	public record Whitespace() implements JavaRootSegment, JStructureSegment {}
+
+	public record JavaRoot(List<JavaRootSegment> children) {}
+
+	public record CRoot(List<CRootSegment> children) {}
+
+	@Tag("import")
+	public record Import(String value) implements JavaRootSegment {}
+
+	@Tag("package")
+	public record Package(String value) implements JavaRootSegment {}
 
 	@Tag("definition")
 	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter {}
@@ -140,21 +119,19 @@ public class Lang {
 
 	@Tag("function")
 	public record Function(CDefinition definition, List<CParameter> params, String body, Option<String> after,
-			Option<List<Identifier>> typeParameters)
-			implements CRootSegment {
-	}
+												 Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JavaType, CType {
-	}
+	public record Identifier(String value) implements JavaType, CType {}
 
 	@Tag("pointer")
-	public record Pointer(CType child) implements CType {
-	}
+	public record Pointer(CType child) implements CType {}
 
 	@Tag("functionPointer")
-	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {
-	}
+	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {}
+
+	@Tag("line-comment")
+	public record LineComment(String value) implements JStructureSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -189,8 +166,8 @@ public class Lang {
 	private static Rule CType() {
 		final LazyRule rule = new LazyRule();
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
-		final Rule funcPtr = Tag("functionPointer",
-				Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));
+		final Rule funcPtr =
+				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));
 		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
 		return rule;
 	}
@@ -213,14 +190,14 @@ public class Lang {
 	}
 
 	public static Rule JavaRoot() {
-		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureMember()), Whitespace());
+		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), Whitespace());
 		return Statements("children", segment);
 	}
 
 	private static Rule Structures(Rule structureMember) {
 		return Or(JStructure("class", structureMember),
-				JStructure("interface", structureMember),
-				JStructure("record", structureMember));
+							JStructure("interface", structureMember),
+							JStructure("record", structureMember));
 	}
 
 	private static Rule Whitespace() {
@@ -236,19 +213,19 @@ public class Lang {
 
 		final Rule maybeWithTypeArguments = NameWithTypeParameters();
 
-		final Rule maybeWithParameters = Strip(
-				Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
+		final Rule maybeWithParameters =
+				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
-		final Rule maybeWithParameters1 = Or(Last(maybeWithParameters, "extends", Node("extends", JType())),
-				maybeWithParameters);
+		final Rule maybeWithParameters1 =
+				Or(Last(maybeWithParameters, "extends", Node("extends", JType())), maybeWithParameters);
 
-		final Rule beforeContent = Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())),
-				maybeWithParameters1);
+		final Rule beforeContent =
+				Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())), maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 = Or(
-				Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
+		final Rule beforeContent1 =
+				Or(Last(beforeContent, " permits ", Delimited("variants", StrippedIdentifier("variant"), ",")), beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
@@ -260,10 +237,14 @@ public class Lang {
 		return Strip(Or(withTypeParameters, name));
 	}
 
-	private static Rule StructureMember() {
+	private static Rule StructureSegment() {
 		final LazyRule structureMember = new LazyRule();
-		structureMember.set(Or(Structures(structureMember), Statement(), Method(), Whitespace()));
+		structureMember.set(Or(Structures(structureMember), Statement(), Method(), LineComment(), Whitespace()));
 		return structureMember;
+	}
+
+	private static Rule LineComment() {
+		return Tag("line-comment", Strip(Prefix("//", String("value"))));
 	}
 
 	private static Rule Statement() {
@@ -284,28 +265,21 @@ public class Lang {
 	private static Rule ParameterDefinition() {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Parameters don't have modifiers, just type and name
-		final var typeDivider = new FoldingDivider(new TypeFolder());
+		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
 		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
 
 		return Tag("definition",
-							 new magma.compile.rule.SplitRule(Node("type", JType()),
-																								String("name"),
-																								typeSplitter,
-																								"Could not parse parameter",
-																								" "));
+							 new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse parameter", " "));
 	}
 
 	private static Rule JDefinition() {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
-		final var typeDivider = new FoldingDivider(new TypeFolder());
+		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
 		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
 
 		// Split into modifiers+type and name using type-aware splitting
-		final Rule typeAndName = new magma.compile.rule.SplitRule(Node("type", JType()),
-																															String("name"),
-																															typeSplitter,
-																															"Could not parse definition",
-																															" ");
+		final Rule typeAndName =
+				new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse definition", " ");
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
@@ -334,7 +308,7 @@ public class Lang {
 
 	private static Rule Generic(Rule type) {
 		return Tag("generic",
-				Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
 	}
 
 	private static Rule Invalid() {

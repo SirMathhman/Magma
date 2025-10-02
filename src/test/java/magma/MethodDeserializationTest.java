@@ -6,7 +6,6 @@ import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -66,12 +65,12 @@ public class MethodDeserializationTest {
 									}
 
 									// Try to deserialize as JavaStructureSegment interface
-									Result<JavaStructureSegment, CompileError> segmentResult = Serialize
-											.deserialize(JavaStructureSegment.class, recordChild);
-									if (segmentResult instanceof Ok<JavaStructureSegment, CompileError> segmentOk) {
+									Result<JStructureSegment, CompileError> segmentResult =
+											Serialize.deserialize(JStructureSegment.class, recordChild);
+									if (segmentResult instanceof Ok<JStructureSegment, CompileError> segmentOk) {
 										System.out.println("  ✅ JavaStructureSegment deserialization SUCCESS");
 										System.out.println("    Segment actual type: " + segmentOk.value().getClass().getSimpleName());
-									} else if (segmentResult instanceof Err<JavaStructureSegment, CompileError> segmentErr) {
+									} else if (segmentResult instanceof Err<JStructureSegment, CompileError> segmentErr) {
 										System.out.println("  ❌ JavaStructureSegment deserialization FAILED: " + segmentErr.error());
 									}
 								}

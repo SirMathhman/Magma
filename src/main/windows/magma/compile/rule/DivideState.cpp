@@ -1,8 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct DivideState{List<String> segments;, char* input;, StringBuilder buffer;, int depth;, int index;};
+struct DivideState{public final List<String> segments;, /*private final String*/ input;, /*private StringBuilder*/ buffer;, /*private int*/ depth;, /*private int*/ index;};
 template<>
-public DivideState_DivideState(StringBuilder buffer, int depth, ListString segments, char* input) {/*
+public DivideState_DivideState(StringBuilder buffer, int depth, List<String> segments, char* input) {/*
 		this.buffer = buffer; this.depth = depth; this.segments = segments; this.input = input;
 	*/}
 template<>
@@ -38,15 +38,20 @@ boolean isLevel_DivideState() {/*
 		return depth == 0;
 	*/}
 template<>
-Option<Character> pop_DivideState() {/*
+public Option<Character> pop_DivideState() {/*
 		if (index >= input.length()) return Option.empty(); final char c = input.charAt(index); index++;
 		return Option.of(c);
 	*/}
 template<>
-/*Character>>*/ popAndAppendToTuple_DivideState() {/*
+public Option<Tuple<DivideState, Character>> popAndAppendToTuple_DivideState() {/*
 		return pop().map(popped -> new Tuple<>(append(popped), popped));
 	*/}
 template<>
-Option<DivideState> popAndAppendToOption_DivideState() {/*
+public Option<DivideState> popAndAppendToOption_DivideState() {/*
 		return popAndAppendToTuple().map(Tuple::left);
+	*/}
+template<>
+public Option<Character> peek_DivideState() {/*
+		if (index < input.length()) return new Some<>(input.charAt(index));
+		else return new None<>();
 	*/}
