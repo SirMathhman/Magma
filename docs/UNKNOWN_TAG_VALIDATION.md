@@ -57,7 +57,7 @@ now produces a deserialization error with a message indicating the unknown tag.
 When encountering an unknown `"if"` tag:
 
 ```
-No permitted subtype of 'magma.compile.Lang$JFunctionSegment' matched node type 'if'. 
+No permitted subtype of 'magma.compile.Lang$JFunctionSegment' matched node type 'if'.
 Valid tags are: [invalid, placeholder, whitespace]
 ```
 
