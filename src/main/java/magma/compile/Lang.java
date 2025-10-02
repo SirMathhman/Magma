@@ -11,8 +11,8 @@ import magma.option.Option;
 import java.util.List;
 
 import static magma.compile.rule.EmptyRule.Empty;
-import static magma.compile.rule.InfixRule.First;
-import static magma.compile.rule.InfixRule.Last;
+import static magma.compile.rule.SplitRule.First;
+import static magma.compile.rule.SplitRule.Last;
 import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
@@ -141,6 +141,10 @@ public class Lang {
 	public record Pointer(CType child) implements CType {
 	}
 
+	@Tag("functionPointer")
+	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {
+	}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	}
@@ -165,7 +169,10 @@ public class Lang {
 
 	private static Rule CType() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		// Function pointer: returnType (*)(paramType1, paramType2, ...)
+		final Rule funcPtr = Tag("functionPointer",
+				Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));
+		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
 		return rule;
 	}
 

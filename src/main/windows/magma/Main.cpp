@@ -191,7 +191,7 @@ Option<ListIdentifier> extractMethodTypeParameters_Main(Method method) {/*
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
+			for (JavaDefinition param : paramList) {collectTypeVariables(param.type(), typeVars);}
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -212,7 +212,7 @@ void collectTypeVariables_Main(JavaType type, SetString typeVars) {/*
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
+				for (JavaType arg : generic.arguments()) {collectTypeVariables(arg, typeVars);}
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
@@ -230,7 +230,15 @@ template<>
 CType transformType_Main(JavaType type) {/*
 		return switch (type) {
 			case Invalid invalid -> invalid;
-			case Generic generic -> generic;
+			case Generic generic -> {
+				// Convert Function<T, R> to function pointer R (*)(T)
+				if (generic.base().equals("Function") && generic.arguments().size() == 2) {
+					final CType paramType = transformType(generic.arguments().get(0));
+					final CType returnType = transformType(generic.arguments().get(1));
+					yield new FunctionPointer(returnType, List.of(paramType));
+				}
+				yield generic;
+			}
 			case Array array -> {
 				CType childType = transformType(array.child());
 				yield new Pointer(childType);

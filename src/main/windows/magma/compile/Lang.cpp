@@ -46,6 +46,8 @@ struct Identifier{char* value;};
 template<>
 struct Pointer{CType child;};
 template<>
+struct FunctionPointer{CType returnType;, ListCType paramTypes;};
+template<>
 Rule CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	*/}
@@ -70,7 +72,10 @@ Rule CDefinition_Lang() {/*
 template<>
 Rule CType_Lang() {/*
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		// Function pointer: returnType (*)(paramType1, paramType2, ...)
+		final Rule funcPtr = Tag("functionPointer", 
+			Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));
+		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
 		return rule;
 	*/}
 template<>
