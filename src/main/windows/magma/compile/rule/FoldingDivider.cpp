@@ -1,19 +1,19 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\FoldingDivider.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct FoldingDivider {Folder folder;};
-public FoldingDivider_FoldingDivider(Folder folder) {
+struct FoldingDivider {/*private final Folder*/ folder;};
+/*public*/ FoldingDivider_FoldingDivider(/*Folder*/ folder) {
 	/*this.folder */=/* folder*/;
 }
-Stream<String> divide_FoldingDivider(char* input) {
-	/*DivideState current = new DivideState*/(/*input)*/;
+/*@Override
+	public Stream<String>*/ divide_FoldingDivider(/*String*/ input) {
+	/*DivideState current */=/* new DivideState(input)*/;
 	while (/*true)*/
 	{
-	/*final Option<Character> pop = current.pop*/(/*)*/;
-	if (/*pop instanceof None<Character>)*/
-	break
-	if (/*pop instanceof Some<Character>(Character c))*/
-	/*current = folder.fold*/(/*current*/, /* c)*/;}
-	return /*current.advance().stream()*/;
+	/*final Option<Character> pop */=/* current.pop()*/;
+	/*if */(/*pop instanceof None<Character>) break*/;
+	/*if (pop instanceof Some<Character>(Character c)) current */=/* folder.fold(current, c)*/;}
+	/*return current.advance*/(/*).stream()*/;
 }
-char* delimiter_FoldingDivider() {
-	return /*folder.delimiter()*/;
+/*@Override
+	public String*/ delimiter_FoldingDivider() {
+	/*return folder.delimiter*/(/*)*/;
 }
