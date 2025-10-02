@@ -233,6 +233,9 @@ public class Main {
 			case JBlock jBlock -> new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
 			case JInitialization jInitialization -> new CInitialization(transformDefinition(jInitialization.definition()),
 																																	transformExpression(jInitialization.value()));
+			case JAssignment jAssignment ->
+					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
+			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
 		};
 	}
 

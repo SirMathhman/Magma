@@ -11,6 +11,10 @@ struct CType {};
 struct JStructure {Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
 struct CParameter {};
 struct CExpression {};
+struct CAssignment {CExpression location;CExpression value;};
+struct CPostFix {CExpression value;};
+struct JAssignment {JExpression location;JExpression value;};
+struct JPostFix {JExpression value;};
 struct JInitialization {JDefinition definition;JExpression value;};
 struct CInitialization {CDefinition definition;CExpression value;};
 struct CBlock {List<CFunctionSegment> children;};
@@ -171,10 +175,19 @@ Rule Block_Lang(LazyRule rule) {
 	return /*Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))))*/;
 }
 Rule JMethodStatementValue_Lang() {
-	return /*Or(Return(JExpression()), Invokable(JExpression()), Initialization(JDefinition(), JExpression()))*/;
+	/*final Rule expression = JExpression*/(/*)*/;
+	return /*Or(Return(expression),
+							Invokable(expression),
+							Initialization(JDefinition(), expression),
+							PostFix(expression))*/;
+}
+Rule PostFix_Lang(Rule expression) {
+	return /*Tag("postFix", Strip(Suffix(Node("value", expression), "++")))*/;
 }
 Rule Initialization_Lang(Rule definition, Rule value) {
-	return /*Tag("initialization", First(Node("definition", definition), "=", Node("value", value)))*/;
+	/*final Rule definition1 = Node*/(/*"definition"*/, /* definition)*/;
+	/*final Rule value1 = Node*/(/*"value"*/, /* value)*/;
+	return /*First(Or(Tag("initialization", definition1), Tag("assignment", Node("location", value))), "=", value1)*/;
 }
 Rule Invokable_Lang(Rule expression) {
 	return /*Tag("invokable", First(Node("caller", expression), "(", Arguments("arguments", expression)))*/;
@@ -185,8 +198,9 @@ Rule Return_Lang(Rule expression) {
 Rule If_Lang(Rule expression, Rule statement) {
 	/*final Rule condition = Node*/(/*"condition"*/, /* expression)*/;
 	/*final Rule body = Node*/(/*"body"*/, /* statement)*/;
-	/*final Rule split =
-				Split*/(/*Prefix("("*/, /* condition)*/, /* KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder())))*/, /* body)*/;
+	/*final Rule split = Split*/(/*Prefix("("*/, /* condition)*/, /*
+														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder())))*/, /*
+														 body)*/;
 	return /*Tag("if", Prefix("if ", Strip(split)))*/;
 }
 Rule JExpression_Lang() {
@@ -207,7 +221,11 @@ Rule CFunctionStatement_Lang() {
 	return /*Or(Suffix(CFunctionStatementValue(), ";"))*/;
 }
 Rule CFunctionStatementValue_Lang() {
-	return /*Or(Return(JExpression()), Invokable(CExpression()), Initialization(CDefinition(), CExpression()))*/;
+	/*final Rule expression = CExpression*/(/*)*/;
+	return /*Or(Return(JExpression()),
+							Invokable(expression),
+							Initialization(CDefinition(), expression),
+							PostFix(expression))*/;
 }
 Rule Parameters_Lang() {
 	return /*Arguments("params", Or(ParameterDefinition(), Whitespace()))*/;
@@ -224,7 +242,6 @@ Rule JDefinition_Lang() {
 	// Split into modifiers+type and name using type-aware splitting
 	/*final Rule type = Node*/(/*"type"*/, /* JType())*/;
 	/*final Rule name = String*/(/*"name")*/;
-	/*final Rule typeAndName = Split*/(/*type*/, /* KeepLast(new FoldingDivider(new TypeFolder()))*/, /* name)*/;
 	// Handle optional modifiers before type
 	/*final Rule modifiers = Delimited*/(/*"modifiers"*/, /* Tag("modifier"*/, /* String("value"))*/, /* " ")*/;
 	/*final Rule withModifiers = Split*/(/*modifiers*/, /* KeepLast(new FoldingDivider(new TypeFolder()))*/, /* type)*/;

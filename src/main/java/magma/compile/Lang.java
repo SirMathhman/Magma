@@ -44,10 +44,12 @@ public class Lang {
 	sealed public interface JExpression permits Invalid {}
 
 	sealed public interface JMethodSegment
-			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace, JBlock, JInitialization {}
+			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace, JBlock, JInitialization,
+			JPostFix, JAssignment {}
 
 	sealed public interface CFunctionSegment
-			permits CBlock, CIf, CInitialization, CInvokable, CReturn, Invalid, LineComment, Placeholder, Whitespace {}
+			permits CAssignment, CBlock, CIf, CInitialization, CInvokable, CPostFix, CReturn, Invalid, LineComment,
+			Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -67,6 +69,18 @@ public class Lang {
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
 
 	public sealed interface CExpression permits Invalid {}
+
+	@Tag("assignment")
+	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
+
+	@Tag("postFix")
+	public record CPostFix(CExpression value) implements CFunctionSegment {}
+
+	@Tag("assignment")
+	public record JAssignment(JExpression location, JExpression value) implements JMethodSegment {}
+
+	@Tag("postFix")
+	public record JPostFix(JExpression value) implements JMethodSegment {}
 
 	@Tag("initialization")
 	public record JInitialization(JDefinition definition, JExpression value) implements JMethodSegment {}
@@ -340,11 +354,21 @@ public class Lang {
 	}
 
 	private static Rule JMethodStatementValue() {
-		return Or(Return(JExpression()), Invokable(JExpression()), Initialization(JDefinition(), JExpression()));
+		final Rule expression = JExpression();
+		return Or(Return(expression),
+							Invokable(expression),
+							Initialization(JDefinition(), expression),
+							PostFix(expression));
+	}
+
+	private static Rule PostFix(Rule expression) {
+		return Tag("postFix", Strip(Suffix(Node("value", expression), "++")));
 	}
 
 	private static Rule Initialization(Rule definition, Rule value) {
-		return Tag("initialization", First(Node("definition", definition), "=", Node("value", value)));
+		final Rule definition1 = Node("definition", definition);
+		final Rule value1 = Node("value", value);
+		return First(Or(Tag("initialization", definition1), Tag("assignment", Node("location", value))), "=", value1);
 	}
 
 	private static Rule Invokable(Rule expression) {
@@ -358,8 +382,9 @@ public class Lang {
 	private static Rule If(Rule expression, Rule statement) {
 		final Rule condition = Node("condition", expression);
 		final Rule body = Node("body", statement);
-		final Rule split =
-				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))), body);
+		final Rule split = Split(Prefix("(", condition),
+														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
+														 body);
 		return Tag("if", Prefix("if ", Strip(split)));
 	}
 
@@ -386,7 +411,11 @@ public class Lang {
 	}
 
 	private static Rule CFunctionStatementValue() {
-		return Or(Return(JExpression()), Invokable(CExpression()), Initialization(CDefinition(), CExpression()));
+		final Rule expression = CExpression();
+		return Or(Return(JExpression()),
+							Invokable(expression),
+							Initialization(CDefinition(), expression),
+							PostFix(expression));
 	}
 
 	private static Rule Parameters() {
@@ -406,9 +435,7 @@ public class Lang {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule type = Node("type", JType());
-
 		final Rule name = String("name");
-		final Rule typeAndName = Split(type, KeepLast(new FoldingDivider(new TypeFolder())), name);
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
