@@ -1,7 +1,5 @@
 package magma;
 
-import magma.compile.Lang;
-import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -30,27 +28,34 @@ public class GenericMethodTest {
 
 		System.out.println("=== Testing Record with Real Some Method Signature ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + value.children().size()); value.children().forEach(child -> {
-					System.out.println("  Child: " + child.getClass().getSimpleName()); if (child instanceof Lang.Record record) {
+				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
+				deserOk.value().children().forEach(child -> {
+					System.out.println("  Child: " + child.getClass().getSimpleName());
+					if (child instanceof magma.compile.Lang.Record record) {
 						System.out.println("    ✅ Found Record: " + record.name());
 						System.out.println("    Record children: " + record.children().size());
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(value);
-				if (transformResult instanceof Ok<CRoot, CompileError>(CRoot value)) {
+				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
-					System.out.println("CRoot children count: " + value.children().size());
-				} else System.out.println("❌ Transform FAILED: " + transformResult);
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError>(CompileError error))
-				System.out.println("❌ Deserialization FAILED: " + error);
-		} else if (lexResult instanceof Err<?, ?>(? error)) System.out.println("❌ Lexing FAILED: " + error);
+					System.out.println("CRoot children count: " + transformOk.value().children().size());
+				} else {
+					System.out.println("❌ Transform FAILED: " + transformResult);
+				}
+			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+				System.out.println("❌ Deserialization FAILED: " + err.error());
+			}
+		} else if (lexResult instanceof Err<?, ?> err) {
+			System.out.println("❌ Lexing FAILED: " + err.error());
+		}
 	}
 }

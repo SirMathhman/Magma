@@ -1,4 +1,3 @@
-import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -25,21 +24,21 @@ public class SimpleClassWithMethodTest {
 
 		System.out.println("=== Testing class with single static method ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input); if (lexResult instanceof Err<?, ?>(? error)) {
-			System.err.println("❌ LEXING FAILED: " + error); fail("Lexing failed: " + error);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input); if (lexResult instanceof Err<?, ?> err) {
+			System.err.println("❌ LEXING FAILED: " + err.error()); fail("Lexing failed: " + err.error());
 		}
 
-		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
-		Node lexedNode = ((Ok<Node, CompileError>) lexResult).value();
+		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		magma.compile.Node lexedNode = ((Ok<magma.compile.Node, CompileError>) lexResult).value();
 		System.out.println("\n✅ Lexing succeeded"); System.out.println("\nLexed structure:");
 		System.out.println(lexedNode.format(0));
 
 		Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexedNode);
-		if (deserializeResult instanceof Err<?, ?>(? error)) {
-			System.err.println("\n❌ DESERIALIZATION FAILED: " + error); fail("Deserialization failed: " + error);
+		if (deserializeResult instanceof Err<?, ?> err) {
+			System.err.println("\n❌ DESERIALIZATION FAILED: " + err.error()); fail("Deserialization failed: " + err.error());
 		}
 
-		assertInstanceOf(Ok<?, ?>.class, deserializeResult, "Deserialization should succeed");
+		assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
 		JavaRoot javaRoot = ((Ok<JavaRoot, CompileError>) deserializeResult).value();
 		System.out.println("\n✅ Deserialization succeeded");
 		System.out.println("JavaRoot children count: " + javaRoot.children().size());

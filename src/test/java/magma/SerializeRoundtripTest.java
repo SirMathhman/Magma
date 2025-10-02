@@ -6,6 +6,7 @@ import magma.compile.error.CompileError;
 import magma.option.Option;
 import magma.result.Ok;
 import magma.result.Result;
+
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -44,7 +45,7 @@ public class SerializeRoundtripTest {
 
 	// Helper to assert Result is Ok and extract value
 	private static <T> T assertOkExtract(Result<T, CompileError> result) {
-		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok but got: " + result);
+		assertTrue(result instanceof Ok<?, ?>, () -> "Expected Ok but got: " + result);
 		return ((Ok<T, CompileError>) result).value();
 	}
 

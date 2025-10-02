@@ -1,7 +1,5 @@
 package magma;
 
-import magma.compile.Lang;
-import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -11,6 +9,7 @@ import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.JRoot;
 import static magma.compile.Lang.JavaRoot;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class PackageImportRecordTest {
 
@@ -30,20 +29,26 @@ public class PackageImportRecordTest {
 
 		System.out.println("=== Testing Record with Package and Import ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + value.children().size()); value.children().forEach(child -> {
+				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
+				deserOk.value().children().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
-					if (child instanceof Lang.Record record) System.out.println("    ✅ Found Record: " + record.name());
+					if (child instanceof magma.compile.Lang.Record record) {
+						System.out.println("    ✅ Found Record: " + record.name());
+					}
 				});
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError>(CompileError error))
-				System.out.println("❌ Deserialization FAILED: " + error);
-		} else if (lexResult instanceof Err<?, ?>(? error)) System.out.println("❌ Lexing FAILED: " + error);
+			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+				System.out.println("❌ Deserialization FAILED: " + err.error());
+			}
+		} else if (lexResult instanceof Err<?, ?> err) {
+			System.out.println("❌ Lexing FAILED: " + err.error());
+		}
 	}
 
 	@Test
@@ -58,19 +63,25 @@ public class PackageImportRecordTest {
 
 		System.out.println("=== Testing Record without Package and Import ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + value.children().size()); value.children().forEach(child -> {
+				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
+				deserOk.value().children().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
-					if (child instanceof Lang.Record record) System.out.println("    ✅ Found Record: " + record.name());
+					if (child instanceof magma.compile.Lang.Record record) {
+						System.out.println("    ✅ Found Record: " + record.name());
+					}
 				});
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError>(CompileError error))
-				System.out.println("❌ Deserialization FAILED: " + error);
-		} else if (lexResult instanceof Err<?, ?>(? error)) System.out.println("❌ Lexing FAILED: " + error);
+			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+				System.out.println("❌ Deserialization FAILED: " + err.error());
+			}
+		} else if (lexResult instanceof Err<?, ?> err) {
+			System.out.println("❌ Lexing FAILED: " + err.error());
+		}
 	}
 }

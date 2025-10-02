@@ -205,8 +205,12 @@ public class Main {
 		// (Placeholder, Whitespace, Invalid)
 		final List<CFunctionSegment> bodySegments = switch (method.body()) {
 			case None<List<JFunctionSegment>> _ -> Collections.emptyList();
-			case Some<List<JFunctionSegment>>(List<JFunctionSegment> segments) ->
-					segments.stream().map(Main::transformMethodSegment).toList();
+			case Some<List<JFunctionSegment>>(var segments) -> {
+				// Cast is safe because JFunctionSegment and CFunctionSegment permit the same
+				// types
+				@SuppressWarnings("unchecked")
+				List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments; yield cSegments;
+			}
 		};
 
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
@@ -216,13 +220,6 @@ public class Main {
 												bodySegments,
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);
-	}
-
-	private static CFunctionSegment transformMethodSegment(JFunctionSegment segment) {
-		return switch (segment) {
-			case Invalid invalid -> invalid; case Placeholder placeholder -> placeholder;
-			case Whitespace whitespace -> whitespace;
-		};
 	}
 
 	private static CParameter transformParameter(JavaDefinition param) {
@@ -246,7 +243,9 @@ public class Main {
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) {collectTypeVariables(param.type(), typeVars);}
+			for (JavaDefinition param : paramList) {
+				collectTypeVariables(param.type(), typeVars);
+			}
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -267,7 +266,9 @@ public class Main {
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) {collectTypeVariables(arg, typeVars);}
+				for (JavaType arg : generic.arguments()) {
+					collectTypeVariables(arg, typeVars);
+				}
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {

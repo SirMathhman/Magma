@@ -106,8 +106,10 @@ final List<CFunctionSegment> bodySegments = switch (method.body()) {
     case None<List<JFunctionSegment>> _ -> Collections.emptyList();
     case Some<List<JFunctionSegment>>(var segments) -> {
         @SuppressWarnings("unchecked")
-        List<CFunctionSegment> cSegments = (List<?>) segments;
-        yield cSegments
+        List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments;
+        yield cSegments;
+    }
+};
 ```
 
 ## Current State

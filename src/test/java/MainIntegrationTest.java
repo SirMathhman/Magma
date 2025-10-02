@@ -8,7 +8,6 @@ import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -21,12 +20,12 @@ public class MainIntegrationTest {
 		String input = "class Test { public int add(int a, int b) { return a + b; } }";
 
 		Result<Node, CompileError> lex = Lang.JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lex, () -> "Lexing failed: " + lex);
+		assertTrue(lex instanceof Ok<?, ?>, () -> "Lexing failed: " + lex);
 
 		Node node = ((Ok<Node, CompileError>) lex).value();
 
 		Result<Lang.JavaRoot, CompileError> des = Serialize.deserialize(Lang.JavaRoot.class, node);
-		assertInstanceOf(Ok<?, ?>.class, des, () -> "Deserialization failed: " + des);
+		assertTrue(des instanceof Ok<?, ?>, () -> "Deserialization failed: " + des);
 
 		Lang.JavaRoot javaRoot = ((Ok<Lang.JavaRoot, CompileError>) des).value(); assertNotNull(javaRoot.children());
 		assertFalse(javaRoot.children().isEmpty(), "JavaRoot should contain at least one child (the class)");
@@ -51,13 +50,14 @@ public class MainIntegrationTest {
 		// directory
 		// We can't change Main.run() signature, so call the private method
 		// compileAllJavaFiles
-		Method compileMethod = Main.class.getDeclaredMethod("compileAllJavaFiles", Path.class, Path.class);
+		var compileMethod =
+				Main.class.getDeclaredMethod("compileAllJavaFiles", java.nio.file.Path.class, java.nio.file.Path.class);
 		compileMethod.setAccessible(true);
 
-		Object result = compileMethod.invoke(null, srcMain, windowsOut); assertInstanceOf(Option<?>.class, result);
+		Object result = compileMethod.invoke(null, srcMain, windowsOut); assertTrue(result instanceof Option<?>);
 		// Expect no error (Option.empty)
 		Option<?> opt = (Option<?>) result;
-		assertEquals("None", opt.getClass().getSimpleName(), () -> "Expected None but got: " + opt);
+		assertTrue(opt.getClass().getSimpleName().equals("None"), () -> "Expected None but got: " + opt);
 
 		// Output cpp should exist
 		Path outFile = windowsOut.resolve("magma").resolve("Simple.cpp");

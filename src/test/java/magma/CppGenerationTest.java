@@ -1,7 +1,5 @@
 package magma;
 
-import magma.compile.Lang;
-import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -29,12 +27,13 @@ public class CppGenerationTest {
 		System.out.println("=== Testing Simple Java Class Lexing ===");
 		System.out.println("Input: " + input);
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
 
-		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
+		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
-			System.out.println("Lexed Node:"); System.out.println(value.format(0));
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> ok) {
+			System.out.println("Lexed Node:");
+			System.out.println(ok.value().format(0));
 		}
 	}
 
@@ -52,18 +51,19 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing Java to Object Deserialization ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
 
-			assertInstanceOf(Ok<?, ?>.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
+			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
-				System.out.println("Deserialized JavaRoot:"); System.out.println("Children count: " + value.children().size());
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+				System.out.println("Deserialized JavaRoot:");
+				System.out.println("Children count: " + deserOk.value().children().size());
 
-				value.children().forEach(child -> {
+				deserOk.value().children().forEach(child -> {
 					System.out.println("Child type: " + child.getClass().getSimpleName());
 					if (child instanceof JStructure jStruct) {
 						System.out.println("  Structure name: " + jStruct.name());
@@ -95,17 +95,18 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing Java to C++ Transformation ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
-			assertInstanceOf(Ok<?, ?>.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
-				System.out.println("JavaRoot children count: " + value.children().size()); value.children().forEach(child -> {
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
+				deserOk.value().children().forEach(child -> {
 					System.out.println("  JavaRoot child: " + child.getClass().getSimpleName());
-					if (child instanceof Lang.Record record) {
+					if (child instanceof magma.compile.Lang.Record record) {
 						System.out.println("    Record name: " + record.name());
 						System.out.println("    Record params: " + record.params());
 						System.out.println("    Record children count: " + record.children().size());
@@ -115,14 +116,14 @@ public class CppGenerationTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(value);
-				assertInstanceOf(Ok<?, ?>.class, transformResult, () -> "Transform failed: " + transformResult);
+				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
-				if (transformResult instanceof Ok<CRoot, CompileError>(CRoot value)) {
+				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("Transformed CRoot:");
-					System.out.println("C++ segments count: " + value.children().size());
+					System.out.println("C++ segments count: " + transformOk.value().children().size());
 
-					value.children().forEach(segment -> {
+					transformOk.value().children().forEach(segment -> {
 						System.out.println("C++ segment type: " + segment.getClass().getSimpleName());
 						if (segment instanceof Structure struct) {
 							System.out.println("  Structure name: " + struct.name());
@@ -152,24 +153,26 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing C++ Serialization ===");
 
-		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
+		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
-			assertInstanceOf(Ok<?, ?>.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
+		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
-				Result<CRoot, CompileError> transformResult = Main.transform(value);
-				assertInstanceOf(Ok<?, ?>.class, transformResult, () -> "Transform failed: " + transformResult);
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
-				if (transformResult instanceof Ok<CRoot, CompileError>(CRoot value)) {
-					Result<Node, CompileError> serializeResult = Serialize.serialize(CRoot.class, value);
+				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
+					Result<magma.compile.Node, CompileError> serializeResult = Serialize.serialize(CRoot.class,
+							transformOk.value());
 
-					assertInstanceOf(Ok<?, ?>.class, serializeResult, () -> "C++ Serialization failed: " + serializeResult);
+					assertTrue(serializeResult instanceof Ok<?, ?>, () -> "C++ Serialization failed: " + serializeResult);
 
-					if (serializeResult instanceof Ok<Node, CompileError>(Node value)) {
-						System.out.println("Serialized C++ Node:"); System.out.println(value.format(0));
+					if (serializeResult instanceof Ok<magma.compile.Node, CompileError> serOk) {
+						System.out.println("Serialized C++ Node:");
+						System.out.println(serOk.value().format(0));
 					}
 				}
 			}
@@ -192,11 +195,13 @@ public class CppGenerationTest {
 
 		Result<String, CompileError> compileResult = Main.compile(input);
 
-		if (compileResult instanceof Ok<String, CompileError>(String value)) {
-			System.out.println("Generated C++ code:"); System.out.println(value);
-			assertFalse(value.isEmpty(), "Generated C++ code should not be empty");
-		} else if (compileResult instanceof Err<String, CompileError>(CompileError error)) {
-			System.err.println("Compilation failed: " + error); fail("Full compilation failed: " + error);
+		if (compileResult instanceof Ok<String, CompileError> ok) {
+			System.out.println("Generated C++ code:");
+			System.out.println(ok.value());
+			assertFalse(ok.value().isEmpty(), "Generated C++ code should not be empty");
+		} else if (compileResult instanceof Err<String, CompileError> err) {
+			System.err.println("Compilation failed: " + err.error());
+			fail("Full compilation failed: " + err.error());
 		}
 	}
 }

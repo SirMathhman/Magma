@@ -49,8 +49,8 @@ private static Option<CompileError> validateAllFieldsConsumed(
 
     if (!leftoverFields.isEmpty()) {
         // Generate error with details about leftover fields
-        return Option.of(new CompileError(...))
-		}
+        return Option.of(new CompileError(...));
+    }
 
     return Option.empty();
 }

@@ -16,7 +16,7 @@ public record EscapingFolder(Folder folder) implements Folder {
 		if (c == '/' && state.isLevel()) {
 			if (state.peek() instanceof Some<Character>(Character next) && next == '/') {
 				final DivideState withSlash = state.append(c);
-				DivideState current = withSlash.popAndAppendToOption().orElse(state); while (true)
+				DivideState current = withSlash.popAndAppendToOption().orElse(state); while (true) {
 					if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
 							Tuple<DivideState, Character> tuple
 					)) {
@@ -24,6 +24,7 @@ public record EscapingFolder(Folder folder) implements Folder {
 							current = current.advance(); break;
 						}
 					} else break;
+				}
 
 				return current;
 			}
