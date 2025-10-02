@@ -45,7 +45,23 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {
 	}
 
-	sealed public interface JExpression permits Identifier, Invalid, JConstruction, JFieldAccess, JInvocation, Switch {
+	sealed public interface JExpression permits JAdd, Identifier, Invalid, JConstruction, JFieldAccess, JInvocation, JString, Switch {
+	}
+
+	@Tag("add")
+	public record JAdd(JExpression left, JExpression right) implements JExpression {
+	}
+
+	@Tag("string")
+	public record JString(String content) implements JExpression {
+	}
+
+	@Tag("add")
+	public record CAdd(CExpression left, CExpression right) implements CExpression {
+	}
+
+	@Tag("string")
+	public record CString(String content) implements CExpression {
 	}
 
 	sealed public interface JMethodSegment
@@ -78,7 +94,7 @@ public class Lang {
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
 	}
 
-	public sealed interface CExpression permits CFieldAccess, Identifier, Invalid {
+	public sealed interface CExpression permits CAdd, CFieldAccess, CString, Identifier, Invalid {
 	}
 
 	@Tag("field-access")

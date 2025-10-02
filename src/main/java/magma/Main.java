@@ -95,8 +95,8 @@ public class Main {
 				return Option.of(new ApplicationError(error));
 			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
 				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-															 System.lineSeparator();
+						"'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+						System.lineSeparator();
 				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 			}
 		}
@@ -123,18 +123,18 @@ public class Main {
 
 	public static Result<String, CompileError> compile(String input) {
 		return JRoot().lex(input)
-									.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
-									.flatMap(Main::transform)
-									.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
-									.flatMap(CRoot()::generate);
+				.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
+				.flatMap(Main::transform)
+				.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
+				.flatMap(CRoot()::generate);
 	}
 
 	public static Result<CRoot, CompileError> transform(JavaRoot node) {
 		return new Ok<>(new CRoot(node.children()
-																	.stream()
-																	.map(Main::flattenRootSegment)
-																	.flatMap(Collection::stream)
-																	.toList()));
+				.stream()
+				.map(Main::flattenRootSegment)
+				.flatMap(Collection::stream)
+				.toList()));
 	}
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
@@ -213,12 +213,12 @@ public class Main {
 		};
 
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
-																				cDefinition.type(),
-																				cDefinition.typeParameters()),
-												newParams,
-												bodySegments,
-												new Some<>(System.lineSeparator()),
-												extractedTypeParams);
+				cDefinition.type(),
+				cDefinition.typeParameters()),
+				newParams,
+				bodySegments,
+				new Some<>(System.lineSeparator()),
+				extractedTypeParams);
 	}
 
 	private static CFunctionSegment transformFunctionSegment(JMethodSegment segment) {
@@ -232,7 +232,7 @@ public class Main {
 			case LineComment lineComment -> lineComment;
 			case JBlock jBlock -> new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
 			case JInitialization jInitialization -> new CInitialization(transformDefinition(jInitialization.definition()),
-																																	transformExpression(jInitialization.value()));
+					transformExpression(jInitialization.value()));
 			case JAssignment jAssignment ->
 					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
@@ -259,6 +259,8 @@ public class Main {
 			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
 			case JInvocation jConstruction -> new Invalid("???");
 			case JConstruction jConstruction -> new Invalid("???");
+			case JAdd add -> new CAdd(transformExpression(add.left()), transformExpression(add.right()));
+			case JString jString -> new CString(jString.content());
 		};
 	}
 
