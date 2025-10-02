@@ -1,11 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>
 struct Main{};
-template<>
 void main_Main(char** args) {/*
 		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	*/}
-template<>
 Option<ApplicationError> run_Main() {/*
 		final Path javaSourceRoot = Paths.get(".", "src", "main", "java");
 		final Path cOutputRoot = Paths.get(".", "src", "main", "windows");
@@ -19,7 +16,6 @@ Option<ApplicationError> run_Main() {/*
 
 		return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 	*/}
-template<>
 Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
 			List<Path> javaFiles =
@@ -42,7 +38,6 @@ Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOut
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}
 	*/}
-template<>
 Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {/*
 		// Calculate relative path from source root
 		Path relativePath = javaSourceRoot.relativize(javaFile);
@@ -77,7 +72,6 @@ Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot
 
 		return Option.empty();
 	*/}
-template<>
 Option<IOException> writeString_Main(Path path, char* result) {/*
 		try {
 			Files.writeString(path, result);
@@ -86,7 +80,6 @@ Option<IOException> writeString_Main(Path path, char* result) {/*
 			return Option.of(e);
 		}
 	*/}
-template<>
 Result<String, ThrowableError> readString_Main(Path source) {/*
 		try {
 			return new Ok<>(Files.readString(source));
@@ -94,7 +87,6 @@ Result<String, ThrowableError> readString_Main(Path source) {/*
 			return new Err<>(new ThrowableError(e));
 		}
 	*/}
-template<>
 Result<String, CompileError> compile_Main(char* input) {/*
 		return JRoot().lex(input)
 									.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
@@ -102,7 +94,6 @@ Result<String, CompileError> compile_Main(char* input) {/*
 									.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
 									.flatMap(CRoot()::generate);
 	*/}
-template<>
 Result<CRoot, CompileError> transform_Main(JavaRoot node) {/*
 		return new Ok<>(new CRoot(node.children()
 																	.stream()
@@ -110,7 +101,6 @@ Result<CRoot, CompileError> transform_Main(JavaRoot node) {/*
 																	.flatMap(Collection::stream)
 																	.toList()));
 	*/}
-template<>
 List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 		return switch (segment) {
 			case JStructure jStructure -> flattenStructure(jStructure);
@@ -118,7 +108,6 @@ List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 			default -> Collections.emptyList();
 		};
 	*/}
-template<>
 List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		final List<JStructureSegment> children = aClass.children();
 
@@ -148,7 +137,6 @@ List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		copy.addAll(segments);
 		return copy;
 	*/}
-template<>
 Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Main(JStructureSegment self, char* name) {/*
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
@@ -158,7 +146,6 @@ Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Main(JStr
 			case Whitespace _, LineComment _, BlockComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
 		};
 	*/}
-template<>
 Function transformMethod_Main(Method method, char* structName) {/*
 		final List<JavaDefinition> oldParams = switch (method.params()) {
 			case None<List<JavaDefinition>> _ -> Collections.emptyList();
@@ -180,7 +167,6 @@ Function transformMethod_Main(Method method, char* structName) {/*
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);
 	*/}
-template<>
 CParameter transformParameter_Main(JavaDefinition param) {/*
 		final CType transformedType = transformType(param.type());
 
@@ -192,7 +178,6 @@ CParameter transformParameter_Main(JavaDefinition param) {/*
 		// Otherwise create regular CDefinition
 		return new CDefinition(param.name(), transformedType, new None<>());
 	*/}
-template<>
 Option<List<Identifier>> extractMethodTypeParameters_Main(Method method) {/*
 		// Analyze method signature to detect generic type parameters
 		final Set<String> typeVars = new HashSet<>();
@@ -211,7 +196,6 @@ Option<List<Identifier>> extractMethodTypeParameters_Main(Method method) {/*
 
 		return new Some<>(identifiers);
 	*/}
-template<>
 void collectTypeVariables_Main(JavaType type, Set<String> typeVars) {/*
 		switch (type) {
 			case Identifier ident -> {
@@ -231,13 +215,11 @@ void collectTypeVariables_Main(JavaType type, Set<String> typeVars) {/*
 			}
 		}
 	*/}
-template<>
 CDefinition transformDefinition_Main(JavaDefinition definition) {/*
 		// Default to no type parameters for backward compatibility
 		final Option<List<Identifier>> typeParams = definition.typeParameters();
 		return new CDefinition(definition.name(), transformType(definition.type()), typeParams);
 	*/}
-template<>
 CType transformType_Main(JavaType type) {/*
 		return switch (type) {
 			case Invalid invalid -> invalid;

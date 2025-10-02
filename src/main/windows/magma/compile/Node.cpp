@@ -1,11 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>
 struct Node{new HashMap<>();, new HashMap<>();, new HashMap<>();, /*=*/ Option.empty();};
-template<>
 char* toString_Node() {/*
 		return format(0);
 	*/}
-template<>
 char* escape_Node(char* value) {/*
 		return value.replace("\\", "\\\\")
 				.replace("\"", "\\\"")
@@ -13,16 +10,13 @@ char* escape_Node(char* value) {/*
 				.replace("\r", "\\r")
 				.replace("\t", "\\t");
 	*/}
-template<>
 Node withString_Node(char* key, char* value) {/*
 		strings.put(key, value);
 		return this;
 	*/}
-template<>
 Option<String> findString_Node(char* key) {/*
 		return Option.ofNullable(strings.get(key));
 	*/}
-template<>
 Node merge_Node(Node node) {/*
 		maybeType = switch (maybeType) {
 			case None<String> _ -> node.maybeType;
@@ -33,45 +27,36 @@ Node merge_Node(Node node) {/*
 		nodes.putAll(node.nodes);
 		return this;
 	*/}
-template<>
 Node withNodeList_Node(char* key, List<Node> values) {/*
 		nodeLists.put(key, values);
 		return this;
 	*/}
-template<>
 Option<List<Node>> findNodeList_Node(char* key) {/*
 		return Option.ofNullable(nodeLists.get(key));
 	*/}
-template<>
 Node withNode_Node(char* key, Node node) {/*
 		nodes.put(key, node);
 		return this;
 	*/}
-template<>
 Option<Node> findNode_Node(char* key) {/*
 		return Option.ofNullable(nodes.get(key));
 	*/}
-template<>
 Node retype_Node(char* type) {/*
 		this.maybeType = Option.of(type);
 		return this;
 	*/}
-template<>
 boolean is_Node(char* type) {/*
 		return this.maybeType.map(inner -> inner.equals(type)).orElse(false);
 	*/}
-template<>
 Set<String> getStringKeys_Node() {/*
 		return strings.keySet();
 	*/}
-template<>
 char* format_Node(int depth) {/*
 		StringBuilder builder = new StringBuilder();
 		builder.append("\t".repeat(depth));
 		appendJson(builder, depth);
 		return builder.toString();
 	*/}
-template<>
 void appendJson_Node(StringBuilder builder, int depth) {/*
 		final String indent = "\t".repeat(depth);
 		final String childIndent = "\t".repeat(depth + 1);

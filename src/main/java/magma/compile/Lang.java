@@ -18,6 +18,7 @@ import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
+import static magma.compile.rule.NonEmptyListRule.NonEmptyList;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
@@ -146,10 +147,10 @@ public class Lang {
 		final Rule body = Placeholder(new StringRule("body"));
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
 
-		// Add template declaration if type parameters exist
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
-		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
-		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
+		// Add template declaration only if type parameters exist (non-empty list)
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier())); final Rule templateDecl =
+				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
+		final Rule maybeTemplate = Or(templateDecl, Empty);
 
 		return Tag("function", First(maybeTemplate, "", functionDecl));
 	}
@@ -184,10 +185,10 @@ public class Lang {
 		final Rule structWithFields = Suffix(First(structPrefix, "{", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
 
-		// Add template declaration if type parameters exist
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
-		final Rule templateDecl = Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
-		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
+		// Add template declaration only if type parameters exist (non-empty list)
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier())); final Rule templateDecl =
+				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
+		final Rule maybeTemplate = Or(templateDecl, Empty);
 
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	}

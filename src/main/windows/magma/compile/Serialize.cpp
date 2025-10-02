@@ -1,5 +1,4 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Serialize.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<>
 struct Serialize{};
 template<typename T>
 Result<T, CompileError> deserialize_Serialize(Class<T> clazz, Node node) {/*
@@ -20,7 +19,6 @@ Result<Node, CompileError> serialize_Serialize(Class<T> clazz, T value) {/*
 
 		return serializeValue(clazz, value);
 	*/}
-template<>
 Result<Node, CompileError> serializeValue_Serialize(Class</*?*/> type, Object value) {/*
 		if (type.isSealed() && !type.isRecord()) {
 			return serializeSealed(type, value);
@@ -31,7 +29,6 @@ Result<Node, CompileError> serializeValue_Serialize(Class</*?*/> type, Object va
 		}
 		return serializeRecord(type, value);
 	*/}
-template<>
 Result<Node, CompileError> serializeSealed_Serialize(Class</*?*/> type, Object value) {/*
 		final Class<?> concreteClass = value.getClass();
 		if (!type.isAssignableFrom(concreteClass)) {
@@ -41,7 +38,6 @@ Result<Node, CompileError> serializeSealed_Serialize(Class</*?*/> type, Object v
 		}
 		return serializeValue(concreteClass, value);
 	*/}
-template<>
 Result<Node, CompileError> serializeRecord_Serialize(Class</*?*/> type, Object value) {/*
 		Node result = createNodeWithType(type);
 		List<CompileError> errors = new ArrayList<>();
@@ -65,7 +61,6 @@ Result<Node, CompileError> serializeRecord_Serialize(Class</*?*/> type, Object v
 				: new Err<>(new CompileError("Failed to serialize '" + type.getSimpleName() + "'",
 						new StringContext(type.getName()), errors));
 	*/}
-template<>
 Result<Node, CompileError> serializeField_Serialize(RecordComponent component, Object value) {/*
 		String fieldName = component.getName();
 		Class<?> fieldType = component.getType();
@@ -90,7 +85,6 @@ Result<Node, CompileError> serializeField_Serialize(RecordComponent component, O
 		return serializeValue(fieldType, value)
 				.mapValue(childNode -> new Node().withNode(fieldName, childNode));
 	*/}
-template<>
 Result<Node, CompileError> serializeOptionField_Serialize(RecordComponent component, Object value) {/*
 		String fieldName = component.getName();
 
@@ -122,7 +116,6 @@ Result<Node, CompileError> serializeOptionField_Serialize(RecordComponent compon
 
 		return new Ok<>(new Node());
 	*/}
-template<>
 Result<Node, CompileError> serializeOptionListField_Serialize(char* fieldName, Type listType, Object content) {/*
 		if (!(content instanceof List<?> list)) {
 			return new Err<>(new CompileError("Optional List component '" + fieldName + "' is not a List instance",
@@ -135,7 +128,6 @@ Result<Node, CompileError> serializeOptionListField_Serialize(char* fieldName, T
 		return serializeListElements(elementClass, list)
 				.mapValue(nodes -> nodes.isEmpty() ? new Node() : new Node().withNodeList(fieldName, nodes));
 	*/}
-template<>
 Result<Node, CompileError> serializeListField_Serialize(RecordComponent component, Object value) {/*
 		String fieldName = component.getName();
 
@@ -150,7 +142,6 @@ Result<Node, CompileError> serializeListField_Serialize(RecordComponent componen
 		return serializeListElements(elementClass, list)
 				.mapValue(nodes -> nodes.isEmpty() ? new Node() : new Node().withNodeList(fieldName, nodes));
 	*/}
-template<>
 Result<List<Node>, CompileError> serializeListElements_Serialize(Class</*?*/> elementClass, List</*?*/> list) {/*
 		List<Node> nodes = new ArrayList<>();
 		List<CompileError> errors = new ArrayList<>();
@@ -167,7 +158,6 @@ Result<List<Node>, CompileError> serializeListElements_Serialize(Class</*?*/> el
 		return errors.isEmpty() ? new Ok<>(nodes)
 				: new Err<>(new CompileError("Failed to serialize list elements", new StringContext("list"), errors));
 	*/}
-template<>
 Result<Object, CompileError> deserializeValue_Serialize(Class</*?*/> type, Node node) {/*
 		if (type.isSealed() && !type.isRecord()) {
 			return deserializeSealed(type, node);
@@ -178,7 +168,6 @@ Result<Object, CompileError> deserializeValue_Serialize(Class</*?*/> type, Node 
 		}
 		return deserializeRecord(type, node);
 	*/}
-template<>
 Result<Object, CompileError> deserializeSealed_Serialize(Class</*?*/> type, Node node) {/*
 		if (!(node.maybeType instanceof Some<String>(String nodeType))) {
 			return new Err<>(new CompileError("Missing node type for sealed type '" + type.getName() + "'",
@@ -207,7 +196,6 @@ Result<Object, CompileError> deserializeSealed_Serialize(Class</*?*/> type, Node
 				new CompileError("No permitted subtype of '" + type.getName() + "' matched node type '" + nodeType + "'",
 						new NodeContext(node)));
 	*/}
-template<>
 Result<Object, CompileError> deserializeRecord_Serialize(Class</*?*/> type, Node node) {/*
 		// Validate type annotation if present
 		Option<String> expectedType = resolveTypeIdentifier(type);
@@ -257,7 +245,6 @@ Result<Object, CompileError> deserializeRecord_Serialize(Class</*?*/> type, Node
 					new NodeContext(node), List.of(new CompileError(e.getMessage(), new StringContext(type.getName())))));
 		}
 	*/}
-template<>
 Result<Object, CompileError> deserializeField_Serialize(RecordComponent component, Node node, Set<String> consumedFields) {/*
 		String fieldName = component.getName();
 		Class<?> fieldType = component.getType();
@@ -283,7 +270,6 @@ Result<Object, CompileError> deserializeField_Serialize(RecordComponent componen
 					"' of type '" + fieldType.getSimpleName() + "' not present", new NodeContext(node)));
 		}
 	*/}
-template<>
 Result<Object, CompileError> deserializeStringField_Serialize(char* fieldName, Node node, Set<String> consumedFields) {/*
 		Option<String> direct = node.findString(fieldName);
 		if (direct instanceof Some<String>(String value)) {
@@ -301,7 +287,6 @@ Result<Object, CompileError> deserializeStringField_Serialize(char* fieldName, N
 					"' of type 'String' not present", new NodeContext(node)));
 		}
 	*/}
-template<>
 Result<Object, CompileError> deserializeOptionField_Serialize(RecordComponent component, Node node, Set<String> consumedFields) {/*
 		Type elementType = getGenericArgument(component.getGenericType(), 0);
 		Class<?> elementClass = erase(elementType);
@@ -333,7 +318,6 @@ Result<Object, CompileError> deserializeOptionField_Serialize(RecordComponent co
 			return new Ok<>(Option.empty());
 		}
 	*/}
-template<>
 Result<Object, CompileError> deserializeOptionListField_Serialize(char* fieldName, Type listType, Node node, Set<String> consumedFields) {/*
 		Type elementType = getGenericArgument(listType, 0);
 		Class<?> elementClass = erase(elementType);
@@ -347,7 +331,6 @@ Result<Object, CompileError> deserializeOptionListField_Serialize(char* fieldNam
 			return new Ok<>(Option.empty());
 		}
 	*/}
-template<>
 Result<Object, CompileError> deserializeListField_Serialize(RecordComponent component, Node node, Set<String> consumedFields) {/*
 		String fieldName = component.getName();
 		Type elementType = getGenericArgument(component.getGenericType(), 0);
@@ -363,7 +346,6 @@ Result<Object, CompileError> deserializeListField_Serialize(RecordComponent comp
 					"' of type 'List' not present", new NodeContext(node)));
 		}
 	*/}
-template<>
 Result<List<Object>, CompileError> deserializeListElements_Serialize(Class</*?*/> elementClass, List<Node> nodeList) {/*
 		List<Object> results = new ArrayList<>();
 		List<CompileError> errors = new ArrayList<>();
@@ -384,7 +366,6 @@ Result<List<Object>, CompileError> deserializeListElements_Serialize(Class</*?*/
 		return errors.isEmpty() ? new Ok<>(results)
 				: new Err<>(new CompileError("Failed to deserialize list elements", new NodeContext(nodeList.get(0)), errors));
 	*/}
-template<>
 Node createNodeWithType_Serialize(Class</*?*/> type) {/*
 		Node node = new Node();
 		Option<String> typeId = resolveTypeIdentifier(type);
@@ -393,7 +374,6 @@ Node createNodeWithType_Serialize(Class</*?*/> type) {/*
 		}
 		return node;
 	*/}
-template<>
 Node mergeNodes_Serialize(Node base, Node addition) {/*
 		Node result = new Node();
 		result.maybeType = base.maybeType;
@@ -406,7 +386,6 @@ Node mergeNodes_Serialize(Node base, Node addition) {/*
 
 		return result;
 	*/}
-template<>
 Type getGenericArgument_Serialize(Type type, int index) {/*
 		if (type instanceof ParameterizedType parameterized) {
 			Type[] args = parameterized.getActualTypeArguments();
@@ -416,7 +395,6 @@ Type getGenericArgument_Serialize(Type type, int index) {/*
 		}
 		throw new IllegalArgumentException("Type " + type + " does not have generic argument at index " + index);
 	*/}
-template<>
 Class</*?*/> erase_Serialize(Type type) {/*
 		if (type instanceof Class<?> clazz) {
 			return clazz;
@@ -426,12 +404,10 @@ Class</*?*/> erase_Serialize(Type type) {/*
 		}
 		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
 	*/}
-template<>
 Option<String> resolveTypeIdentifier_Serialize(Class</*?*/> clazz) {/*
 		Tag annotation = clazz.getAnnotation(Tag.class);
 		return Objects.isNull(annotation) ? Option.empty() : Option.of(annotation.value());
 	*/}
-template<>
 Option<String> findStringInChildren_Serialize(Node node, char* key) {/*
 		for (Node child : node.nodes.values()) {
 			Option<String> result = child.findString(key);
@@ -457,7 +433,6 @@ Option<String> findStringInChildren_Serialize(Node node, char* key) {/*
 		}
 		return Option.empty();
 	*/}
-template<>
 boolean shouldBeDeserializableAs_Serialize(Node node, Class</*?*/> targetClass) {/*
 		if (node.maybeType instanceof None<String>) {
 			return false;
@@ -475,7 +450,6 @@ boolean shouldBeDeserializableAs_Serialize(Node node, Class</*?*/> targetClass) 
 
 		return false;
 	*/}
-template<>
 Option<CompileError> validateAllFieldsConsumed_Serialize(Node node, Set<String> consumedFields, Class</*?*/> targetClass) {/*
 		// Collect all field names from the Node
 		Set<String> allFields = new HashSet<>();
@@ -498,7 +472,6 @@ Option<CompileError> validateAllFieldsConsumed_Serialize(Node node, Set<String> 
 
 		return Option.empty();
 	*/}
-template<>
 Set<String> getStringKeys_Serialize(Node node) {/*
 		return node.getStringKeys();
 	*/}
