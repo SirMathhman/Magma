@@ -550,6 +550,7 @@ public class Lang {
 				FieldAccess(expression),
 				Operator("add", "+", expression),
 				Operator("equals", "==", expression),
+				Operator("less-than", "<", expression),
 				Identifier()));
 		return expression;
 	}
