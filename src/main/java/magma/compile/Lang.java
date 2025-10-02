@@ -352,19 +352,16 @@ public class Lang {
 
 	private static Rule JMethodSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Strip(JMethodSegmentValue(rule)));
-		return rule;
-	}
-
-	private static Rule JMethodSegmentValue(LazyRule rule) {
 		final Rule expression = JExpression();
-		return Or(Whitespace(),
-							LineComment(),
-							Conditional("if", expression, rule),
-							Conditional("while", expression, rule),
-							Else(rule),
-							Strip(Suffix(JMethodStatementValue(), ";")),
-							Block(rule));
+		rule.set(Strip(Or(Whitespace(),
+											LineComment(),
+											Conditional("if", expression, rule),
+											Conditional("while", expression, rule),
+											Else(rule),
+											Tag("try", Prefix("try ", Node("child", rule))),
+											Strip(Suffix(JMethodStatementValue(), ";")),
+											Block(rule))));
+		return rule;
 	}
 
 	private static Rule Block(LazyRule rule) {
