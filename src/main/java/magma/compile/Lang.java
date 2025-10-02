@@ -216,7 +216,7 @@ public class Lang {
 	public record Break() implements JMethodSegment, CFunctionSegment {}
 
 	public static Rule CRoot() {
-		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
+		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
 
 	public static Rule Function() {
@@ -438,8 +438,7 @@ public class Lang {
 							Break(),
 							Else(rule),
 							CFunctionStatement(),
-							Block(rule),
-							Invalid());
+							Block(rule));
 	}
 
 	private static Rule CFunctionStatement() {
