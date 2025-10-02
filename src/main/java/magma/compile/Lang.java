@@ -7,7 +7,6 @@ import magma.compile.rule.EscapingFolder;
 import magma.compile.rule.FilterRule;
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
-import magma.compile.rule.NodeListRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.SplitRule;
@@ -519,7 +518,8 @@ public class Lang {
 	}
 
 	private static Rule Generic(Rule type) {
-		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Arguments("arguments", type)), ">")));
+		final Rule base = Strip(String("base"));
+		final Rule arguments = Or(Arguments("typeArguments", type), Strip(Empty));
+		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
 	}
 }

@@ -32,7 +32,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return divider.divide(input)
 									.reduce(new Ok<>(new ArrayList<>()), this::fold, (_, next) -> next)
 									.mapValue(list -> new Node().withNodeList(key, list))
-									.mapErr(err -> new CompileError("Failed to lex segments", new StringContext(input), List.of(err)));
+									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'", new StringContext(input), List.of(err)));
 	}
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
