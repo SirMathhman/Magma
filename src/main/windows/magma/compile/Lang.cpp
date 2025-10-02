@@ -165,7 +165,7 @@ Rule JMethodSegment_Lang() {
 	return /*rule*/;
 }
 Rule JMethodSegmentValue_Lang(LazyRule rule) {
-	/*final var expression = JExpression*/(/*)*/;
+	/*final Rule expression = JExpression*/(/*)*/;
 	return /*Or(Whitespace(),
 							LineComment(),
 							Conditional("if", expression, rule),

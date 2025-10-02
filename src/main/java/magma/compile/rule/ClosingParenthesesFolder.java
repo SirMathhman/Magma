@@ -10,6 +10,6 @@ public class ClosingParenthesesFolder implements Folder {
 
 	@Override
 	public String delimiter() {
-		return ")";
+		return "";
 	}
 }

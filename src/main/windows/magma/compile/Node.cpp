@@ -64,10 +64,10 @@ char* appendJsonPure_Node(int depth) {
 	/*builder.append*/(/*"{")*/;
 	boolean* hasFields=/* {false}*/;
 	Option<String> typeOpt=/* maybeType*/;
-	if (/*typeOpt instanceof Some<String>(String value))*/)
+	if (/*typeOpt instanceof Some<String>(String value))*/
 	{
-	/*builder.append*/(/*"\n")).append(childIndent)).append("\"@type\": \"")).append(escape(value))).append("\""));
-			hasFields[0] = true*/;}
+	/*builder.append*/(/*"\n").append(childIndent).append("\"@type\": \"").append(escape(value)).append("\"")*/;
+	/*hasFields[0] */=/* true*/;}
 	/*strings.entrySet*/(/*).stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
 			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent)
@@ -98,8 +98,8 @@ char* appendJsonPure_Node(int depth) {
 			builder.append("]");
 			hasFields[0] = true;
 		})*/;
-	if (/*hasFields[0])*/)
-	/*builder.append*/(/*"\n")).append(indent))*/;
+	if (/*hasFields[0])*/
+	/*builder.append*/(/*"\n").append(indent)*/;
 	/*builder.append*/(/*"}")*/;
 	return /*builder.toString()*/;
 }
