@@ -23,6 +23,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.IntStream;
 
+@Actual
 public class JavaSerializer {
 	// Public API
 	public static <T> Result<T, CompileError> deserialize(Class<T> clazz, Node node) {
