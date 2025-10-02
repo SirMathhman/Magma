@@ -1,0 +1,38 @@
+import magma.compile.Lang;
+import magma.compile.Node;
+import magma.compile.Serialize;
+import magma.option.Some;
+import magma.result.Ok;
+import org.junit.jupiter.api.Test;
+
+public class TestFunctionSerialization {
+	@Test
+	public void testSerializeFunction() {
+		// Create a simple Function with a body
+		var func =
+				new Lang.Function(new Lang.CDefinition("testFunc", new Lang.Identifier("void"), magma.option.Option.empty()),
+													java.util.Collections.emptyList(),
+													"/*test body*/",
+													new Some<>(System.lineSeparator()),
+													magma.option.Option.empty());
+
+		System.out.println("Created function with body: " + func.body());
+		System.out.println("Body length: " + func.body().length());
+
+		// Serialize it
+		var serResult = Serialize.serialize(Lang.Function.class, func); if (serResult instanceof Ok<Node, ?>(var node)) {
+			System.out.println("Serialization successful"); System.out.println("Node: " + node);
+
+			// Try to generate it
+			var genResult = Lang.Function().generate(node); if (genResult instanceof Ok<String, ?>(var text)) {
+				System.out.println("Generation successful");
+				System.out.println("Generated text length: " + ((String) text).length());
+				System.out.println("Generated text: " + text);
+			} else {
+				System.out.println("Generation failed: " + genResult);
+			}
+		} else {
+			System.out.println("Serialization failed: " + serResult);
+		}
+	}
+}

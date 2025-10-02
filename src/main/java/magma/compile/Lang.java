@@ -38,7 +38,7 @@ public class Lang {
 	public sealed interface JStructureSegment
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
-	public sealed interface JFunctionSegment permits Invalid, Whitespace {}
+	sealed public interface JFunctionSegment permits Invalid, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -104,6 +104,9 @@ public class Lang {
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JStructureSegment, JFunctionSegment {}
 
+	@Tag("placeholder")
+	public record Placeholder(String value) implements JFunctionSegment {}
+
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
 	public record CRoot(List<CRootSegment> children) {}
@@ -147,7 +150,7 @@ public class Lang {
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = Statements("body", JFunctionSegment());
+		final Rule body = String("body");
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
@@ -275,7 +278,7 @@ public class Lang {
 	}
 
 	private static Rule JFunctionSegment() {
-		return Or(Whitespace(), Invalid());
+		return Or(Whitespace(), Tag("placeholder", Placeholder(String("value"))));
 	}
 
 	private static Rule Parameters() {

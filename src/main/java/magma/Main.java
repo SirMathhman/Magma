@@ -200,9 +200,18 @@ public class Main {
 		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
 		// Convert method body from Option<List<JFunctionSegment>> to String
-		// For now, we'll use an empty string body since JFunctionSegment only contains
-		// Whitespace/Invalid
-		final String bodyString = "";
+		// Extract content from Placeholder segments
+		final String bodyString = switch (method.body()) {
+			case None<List<JFunctionSegment>> _ -> ""; case Some<List<JFunctionSegment>>(var segments) -> {
+				StringBuilder sb = new StringBuilder(); for (JFunctionSegment segment : segments) {
+					// Placeholder segments contain the actual statement text wrapped in /* */
+					if (segment instanceof Placeholder placeholder) {
+						sb.append("/*").append(placeholder.value()).append("*/");
+					}
+					// Whitespace segments contribute nothing to the body
+				} yield sb.toString();
+			}
+		};
 
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
 																				cDefinition.type(),
