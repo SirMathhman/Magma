@@ -27,43 +27,50 @@ public record EscapingFolder(Folder folder) implements Folder {
 			return current;
 		}
 
+		return handleComments(state, c).orElseGet(() -> folder.fold(state, c));
+	}
+
+	private Option<DivideState> handleComments(DivideState state, char c) {
 		// handle comments
-		if (c == '/' && state.isLevel()) {
-			if (state.peek() instanceof Some<Character>(Character next) && next == '/') {
-				final DivideState withSlash = state.append(c);
-				DivideState current = withSlash.popAndAppendToOption().orElse(state);
-				while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
-						Tuple<DivideState, Character> tuple
-				)) {
-					current = tuple.left();
-					if (tuple.right() == '\n') {
-						current = current.advance();
-						break;
-					}
-				} else break;
+		if (c == '/' && state.isLevel()) return handleLineComments(state, c).or(() -> handleBlockComments(state, c));
+		return Option.empty();
+	}
 
-				return current;
-			}
+	private Option<DivideState> handleLineComments(DivideState state, char c) {
+		if (state.peek() instanceof Some<Character>(Character next) && next == '/') {
+			final DivideState withSlash = state.append(c);
+			DivideState current = withSlash.popAndAppendToOption().orElse(state);
+			while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+					Tuple<DivideState, Character> tuple
+			)) {
+				current = tuple.left();
+				if (tuple.right() == '\n') {
+					current = current.advance();
+					break;
+				}
+			} else break;
 
-			// Handle block comments /* */
-			if (state.peek() instanceof Some<Character>(Character next) && next == '*') {
-				final DivideState withSlash = state.append(c);
-				DivideState current = withSlash.popAndAppendToOption().orElse(state);
-				while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
-						Tuple<DivideState, Character> tuple
-				)) {
-					current = tuple.left();
-					if (tuple.right() == '*') if (current.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/') {
-						current = current.popAndAppendToOption().orElse(current).advance();
-						break;
-					}
-				} else break;
-
-				return current;
-			}
+			return Option.of(current);
 		}
+		return Option.empty();
+	}
 
-		return folder.fold(state, c);
+	private Option<DivideState> handleBlockComments(DivideState state, char c) {
+		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '*') return Option.empty();
+
+		final DivideState withSlash = state.append(c);
+		DivideState current = withSlash.popAndAppendToOption().orElse(state);
+		while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+				Tuple<DivideState, Character> tuple
+		)) {
+			current = tuple.left();
+			if (tuple.right() == '*') if (current.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/') {
+				current = current.popAndAppendToOption().orElse(current).advance();
+				break;
+			}
+		} else break;
+
+		return new Some<>(current);
 	}
 
 	@Override
