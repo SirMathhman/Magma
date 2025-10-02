@@ -226,9 +226,27 @@ public class Serialize {
 			}
 		}
 
-		return new Err<>(
-				new CompileError("No permitted subtype of '" + type.getName() + "' matched node type '" + nodeType + "'",
+		// Collect all valid tags for better error message
+		List<String> validTags = collectAllValidTags(type);
+
+		String validTagsList = validTags.isEmpty() ? "none" : String.join(", ", validTags);
+		return new Err<>(new CompileError(
+				"No permitted subtype of '" + type.getName() + "' matched node type '" + nodeType + "'. " +
+				"Valid tags are: [" + validTagsList + "]",
 						new NodeContext(node)));
+	}
+
+	private static List<String> collectAllValidTags(Class<?> sealedType) {
+		List<String> tags = new ArrayList<>(); for (Class<?> permitted : sealedType.getPermittedSubclasses()) {
+			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
+			if (maybeIdentifier instanceof Some<String>(String tag)) {
+				tags.add(tag);
+			}
+			// Recursively collect from nested sealed interfaces
+			if (permitted.isSealed() && !permitted.isRecord()) {
+				tags.addAll(collectAllValidTags(permitted));
+			}
+		} return tags;
 	}
 
 	private static Result<Object, CompileError> deserializeRecord(Class<?> type, Node node) {
@@ -415,11 +433,15 @@ public class Serialize {
 			if (childResult instanceof Ok<Object, CompileError> ok) {
 				results.add(ok.value());
 			} else if (childResult instanceof Err<Object, CompileError> err) {
-				// Only treat as error if this looks like it should be deserializable
-				if (shouldBeDeserializableAs(childNode, elementClass)) {
+				// If the target is a sealed type and node has a type tag, check if it's an unknown tag error
+				if (elementClass.isSealed() && childNode.maybeType instanceof Some<String>) {
+					// For sealed types, a node with a type tag that doesn't match any permitted type is always an error
+					errors.add(err.error());
+				} else if (shouldBeDeserializableAs(childNode, elementClass)) {
+					// For non-sealed types, only treat as error if it looks like it should match
 					errors.add(err.error());
 				}
-				// Otherwise silently skip (e.g., whitespace in lists)
+				// Otherwise silently skip (e.g., whitespace in lists without matching context)
 			}
 		}
 

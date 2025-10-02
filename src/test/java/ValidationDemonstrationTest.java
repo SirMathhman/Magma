@@ -11,7 +11,6 @@ import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -42,15 +41,15 @@ public class ValidationDemonstrationTest {
 		System.out.println("Creating a record with Option<String> body field...");
 
 		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
+		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
 
 		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			// Find the method node
 			Result<Lang.JavaRoot, CompileError> rootResult = Serialize.deserialize(Lang.JavaRoot.class, value);
 
-			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot value)) {
+			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot root)) {
 				// Find the method node
-				value
+				root
 							.children()
 							.stream()
 							.filter(child -> child instanceof Lang.JClass)
@@ -64,8 +63,8 @@ public class ValidationDemonstrationTest {
 								System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
 								// The correct type (Option<List<JFunctionSegment>>) works fine
-								if (method.body() instanceof Some<?>(var value))
-									System.out.println("✅ Body is present as: " + value.getClass().getSimpleName());
+								if (method.body() instanceof Some<?>(var bodyValue))
+									System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
 							});
 
 				System.out.println("\n📝 Note: With the correct type Option<List<JFunctionSegment>>,");
@@ -77,6 +76,6 @@ public class ValidationDemonstrationTest {
 		}
 
 		// Test passes because we're using the correct type
-		assertTrue(true instanceof Ok<?, ?>, "Validation is in place to catch future type mismatches");
+		assertTrue(true, "Validation is in place to catch future type mismatches");
 	}
 }

@@ -121,11 +121,11 @@ Rule NameWithTypeParameters_Lang() {
 Rule StructureSegment_Lang() {
 	/*final LazyRule structureMember = new LazyRule();*/
 	/*structureMember.set(Or(Structures(structureMember),
-													 Statement(),
-													 JMethod(),
-													 LineComment(),
-													 BlockComment(),
-													 Whitespace()));*/
+																																						Statement(),
+																																						JMethod(),
+																																						LineComment(),
+																																						BlockComment(),
+																																						Whitespace()));*/
 	/*return structureMember;*/
 }
 Rule BlockComment_Lang() {
