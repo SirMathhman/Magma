@@ -14,7 +14,7 @@ public class KeepFirstMerger implements Merger {
 
 		// Split into first segment and the rest
 		final String left = segments.getFirst();
-		final String right = String.join(delimiter, segments);
+		final String right = String.join(delimiter, segments.subList(1, segments.size()));
 		return new Some<>(new Tuple<>(left, right));
 	}
 }
