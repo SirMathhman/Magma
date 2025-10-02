@@ -45,13 +45,13 @@ Rule CRoot_Lang() {
 }
 Rule Function_Lang() {
 	/*final NodeRule definition = new NodeRule("definition", CDefinition());*/
-	/*final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));*/
+	/*final Rule params = Arguments("params", Or(CFunctionPointerDefinition(), CDefinition()));*/
 	/*final Rule body = Statements("body", CFunctionSegment());*/
 	/*final Rule functionDecl =
 				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}*/
 	/*"));*/
 	/*// Add template declaration only if type parameters exist (non-empty list)*/
-	/*final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));*/
+	/*final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));*/
 	/*final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));*/
 	/*final Rule maybeTemplate = Or(templateDecl, Empty);*/
@@ -62,7 +62,7 @@ Rule CFunctionPointerDefinition_Lang() {
 	return /*Tag("functionPointerDefinition",
 							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
 														"",
-														Values("paramTypes", CType())), ")"))*/;
+														Arguments("paramTypes", CType())), ")"))*/;
 }
 Rule CDefinition_Lang() {
 	return /*Last(Node("type", CType()), " ", new StringRule("name"))*/;
@@ -71,7 +71,7 @@ Rule CType_Lang() {
 	/*final LazyRule rule = new LazyRule();*/
 	/*// Function pointer: returnType (*)(paramType1, paramType2, ...)*/
 	/*final Rule funcPtr =
-				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));*/
+				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Arguments("paramTypes", rule)), ")"));*/
 	/*rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));*/
 	return /*rule*/;
 }
@@ -87,7 +87,7 @@ Rule CStructure_Lang() {
 	/*final Rule structComplete = Suffix(structWithFields, ";*/
 	/*");*/
 	/*// Add template declaration only if type parameters exist (non-empty list)*/
-	/*final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));*/
+	/*final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));*/
 	/*final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));*/
 	/*final Rule maybeTemplate = Or(templateDecl, Empty);*/
@@ -127,7 +127,7 @@ Rule JStructure_Lang(char* type, Rule rule) {
 }
 Rule NameWithTypeParameters_Lang() {
 	/*final Rule name = StrippedIdentifier("name");*/
-	/*final Rule withTypeParameters = Suffix(First(name, "<", Values("typeParameters", Identifier())), ">");*/
+	/*final Rule withTypeParameters = Suffix(First(name, "<", Arguments("typeParameters", Identifier())), ">");*/
 	return /*Strip(Or(withTypeParameters, name))*/;
 }
 Rule StructureSegment_Lang() {
@@ -161,12 +161,16 @@ Rule JMethod_Lang() {
 }
 Rule JMethodSegment_Lang() {
 	/*final LazyRule rule = new LazyRule();*/
-	/*rule.set(Strip(Or(Whitespace(),
-											If(JExpression(), rule),
-											Strip(Suffix(Or(Return(JExpression())), ";*/
-	/*")),
-											Invalid())));*/
+	/*rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";*/
+	/*")), Invalid())));*/
 	return /*rule*/;
+}
+Rule JMethodStatementValue_Lang() {
+	return /*Or(Return(JExpression()), Suffix(Invokable(), "*/;
+	/*"));*/
+}
+Rule Invokable_Lang() {
+	return /*Tag("invokable", First(Node("caller", JExpression()), "(", Arguments("arguments", JExpression())))*/;
 }
 Rule Return_Lang(Rule expression) {
 	return /*Tag("return", Prefix("return ", Node("value", expression)))*/;
@@ -188,12 +192,15 @@ Rule CFunctionSegment_Lang() {
 	/*final LazyRule rule = new LazyRule();*/
 	/*rule.set(Or(Whitespace(),
 								Prefix(System.lineSeparator() + "\t",
-											 Or(If(CExpression(), rule), Or(Suffix(Return(JExpression()), ";*/
+											 Or(If(CExpression(), rule), Or(Suffix(CFunctionStatementValue(), ";*/
 	/*")), Invalid()))));*/
 	return /*rule*/;
 }
+Rule CFunctionStatementValue_Lang() {
+	return /*Or(Return(JExpression()))*/;
+}
 Rule Parameters_Lang() {
-	return /*Values("params", Or(ParameterDefinition(), Whitespace()))*/;
+	return /*Arguments("params", Or(ParameterDefinition(), Whitespace()))*/;
 }
 Rule ParameterDefinition_Lang() {
 	/*// Use TypeFolder to properly parse generic types like Function<T, R>*/
@@ -230,7 +237,7 @@ Rule StrippedIdentifier_Lang(char* key) {
 }
 Rule Generic_Lang(Rule type) {
 	return /*Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")))*/;
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Arguments("arguments", type)), ">")))*/;
 }
 Rule Invalid_Lang() {
 	return /*Tag("invalid", Placeholder(String("value")))*/;

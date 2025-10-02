@@ -170,13 +170,13 @@ public class Lang {
 
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
+		final Rule params = Arguments("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Statements("body", CFunctionSegment());
 		final Rule functionDecl =
 				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));
 		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
@@ -189,7 +189,7 @@ public class Lang {
 		return Tag("functionPointerDefinition",
 							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
 														"",
-														Values("paramTypes", CType())), ")"));
+														Arguments("paramTypes", CType())), ")"));
 	}
 
 	private static Rule CDefinition() {
@@ -200,7 +200,7 @@ public class Lang {
 		final LazyRule rule = new LazyRule();
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
-				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Values("paramTypes", rule)), ")"));
+				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Arguments("paramTypes", rule)), ")"));
 		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
 		return rule;
 	}
@@ -215,7 +215,7 @@ public class Lang {
 		final Rule structComplete = Suffix(structWithFields, ";");
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));
 		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
@@ -267,7 +267,7 @@ public class Lang {
 
 	private static Rule NameWithTypeParameters() {
 		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeParameters = Suffix(First(name, "<", Values("typeParameters", Identifier())), ">");
+		final Rule withTypeParameters = Suffix(First(name, "<", Arguments("typeParameters", Identifier())), ">");
 		return Strip(Or(withTypeParameters, name));
 	}
 
@@ -303,11 +303,16 @@ public class Lang {
 
 	private static Rule JMethodSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Strip(Or(Whitespace(),
-											If(JExpression(), rule),
-											Strip(Suffix(Or(Return(JExpression())), ";")),
-											Invalid())));
+		rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")), Invalid())));
 		return rule;
+	}
+
+	private static Rule JMethodStatementValue() {
+		return Or(Return(JExpression()), Suffix(Invokable(), ";"));
+	}
+
+	private static Rule Invokable() {
+		return Tag("invokable", First(Node("caller", JExpression()), "(", Arguments("arguments", JExpression())));
 	}
 
 	private static Rule Return(Rule expression) {
@@ -334,12 +339,16 @@ public class Lang {
 		final LazyRule rule = new LazyRule();
 		rule.set(Or(Whitespace(),
 								Prefix(System.lineSeparator() + "\t",
-											 Or(If(CExpression(), rule), Or(Suffix(Return(JExpression()), ";")), Invalid()))));
+											 Or(If(CExpression(), rule), Or(Suffix(CFunctionStatementValue(), ";")), Invalid()))));
 		return rule;
 	}
 
+	private static Rule CFunctionStatementValue() {
+		return Or(Return(JExpression()));
+	}
+
 	private static Rule Parameters() {
-		return Values("params", Or(ParameterDefinition(), Whitespace()));
+		return Arguments("params", Or(ParameterDefinition(), Whitespace()));
 	}
 
 	private static Rule ParameterDefinition() {
@@ -387,7 +396,7 @@ public class Lang {
 
 	private static Rule Generic(Rule type) {
 		return Tag("generic",
-							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
+							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Arguments("arguments", type)), ">")));
 	}
 
 	private static Rule Invalid() {

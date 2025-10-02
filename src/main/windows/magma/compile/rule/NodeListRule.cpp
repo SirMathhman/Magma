@@ -6,7 +6,7 @@ Rule Statements_NodeListRule(char* key, Rule rule) {
 Rule Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {
 	return /*new NodeListRule(key, rule, new DelimitedRule(delimiter))*/;
 }
-Rule Values_NodeListRule(char* key, Rule rule) {
+Rule Arguments_NodeListRule(char* key, Rule rule) {
 	return /*new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()))*/;
 }
 Result<Node, CompileError> lex_NodeListRule(char* input) {
