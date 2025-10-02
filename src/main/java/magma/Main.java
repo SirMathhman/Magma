@@ -242,6 +242,7 @@ public class Main {
 					new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
 			case JInvocation jConstruction -> new Invalid("???");
 			case JConstruction jConstruction -> new Invalid("???");
+			case JDefinition jDefinition -> transformDefinition(jDefinition);
 		};
 	}
 

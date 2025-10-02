@@ -66,12 +66,11 @@ public class Lang {
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JInvokable,
-			JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace {
+			JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace, JDefinition {
 	}
 
 	sealed public interface CFunctionSegment
-			permits Break, CAssignment, CBlock, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, CWhile, Invalid,
-			LineComment, Placeholder, Whitespace {
+			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, CWhile, Invalid, LineComment, Placeholder, Whitespace {
 	}
 
 	sealed public interface JType {
@@ -188,7 +187,7 @@ public class Lang {
 
 	@Tag("definition")
 	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
-														Option<List<Identifier>> typeParameters) {
+														Option<List<Identifier>> typeParameters) implements JMethodSegment {
 	}
 
 	@Tag("modifier")
@@ -254,7 +253,7 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter {
+	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter, CFunctionSegment {
 	}
 
 	@Tag("functionPointerDefinition")
@@ -478,7 +477,8 @@ public class Lang {
 				Return(expression),
 				Invokable(expression),
 				Initialization(JDefinition(), expression),
-				PostFix(expression));
+				PostFix(expression),
+				JDefinition());
 	}
 
 	private static Rule Break() {
@@ -578,6 +578,7 @@ public class Lang {
 		return Or(Return(JExpression()),
 				Invokable(expression),
 				Initialization(CDefinition(), expression),
+				CDefinition(),
 				PostFix(expression));
 	}
 
