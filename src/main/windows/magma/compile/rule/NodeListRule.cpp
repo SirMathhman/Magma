@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\NodeListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct NodeListRule {char* key;Rule rule;Divider divider;};
 Rule Statements_NodeListRule(char* key, Rule rule) {
-	/*return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));*/
+	return /*new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())))*/;
 }
 Rule Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {
-	/*return new NodeListRule(key, rule, new DelimitedRule(delimiter));*/
+	return /*new NodeListRule(key, rule, new DelimitedRule(delimiter))*/;
 }
 Rule Values_NodeListRule(char* key, Rule rule) {
-	/*return new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()));*/
+	return /*new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()))*/;
 }
 Result<Node, CompileError> lex_NodeListRule(char* input) {
 	/*final ArrayList<Node> children = new ArrayList<>();*/
@@ -16,7 +16,7 @@ Result<Node, CompileError> lex_NodeListRule(char* input) {
 			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
 			else if (res instanceof Err<Node, CompileError>(CompileError error)) return new Err<>(error);
 		}*/
-	/*return new Ok<>(new Node().withNodeList(key, children));*/
+	return /*new Ok<>(new Node().withNodeList(key, children))*/;
 }
 Result<String, CompileError> generate_NodeListRule(Node value) {
 	/*Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {

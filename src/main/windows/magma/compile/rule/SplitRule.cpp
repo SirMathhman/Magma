@@ -2,14 +2,14 @@
 struct SplitRule {Rule leftRule;Rule rightRule;Splitter splitter;};
 Rule First_SplitRule(Rule left, char* infix, Rule right) {
 	/*final Splitter splitter = new InfixSplitter(infix, new FirstLocator());*/
-	/*return new SplitRule(left, right, splitter);*/
+	return /*new SplitRule(left, right, splitter)*/;
 }
 Rule Last_SplitRule(Rule leftRule, char* infix, Rule rightRule) {
 	/*final Splitter splitter = new InfixSplitter(infix, new LastLocator());*/
-	/*return new SplitRule(leftRule, rightRule, splitter);*/
+	return /*new SplitRule(leftRule, rightRule, splitter)*/;
 }
 Rule Split_SplitRule(Rule left, Splitter splitter, Rule right) {
-	/*return new SplitRule(left, right, splitter);*/
+	return /*new SplitRule(left, right, splitter)*/;
 }
 Result<Node, CompileError> lex_SplitRule(char* input) {
 	/*return switch (splitter.split(input)) {
@@ -24,6 +24,6 @@ Result<Node, CompileError> lex_SplitRule(char* input) {
 	/*;*/
 }
 Result<String, CompileError> generate_SplitRule(Node node) {
-	/*return leftRule.generate(node)
-									 .flatMap(left -> rightRule.generate(node).mapValue(right -> splitter.merge(left, right)));*/
+	return /*leftRule.generate(node)
+									 .flatMap(left -> rightRule.generate(node).mapValue(right -> splitter.merge(left, right)))*/;
 }

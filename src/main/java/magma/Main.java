@@ -161,7 +161,8 @@ public class Main {
 				}
 		}
 
-		final String name = aClass.name(); for (JStructureSegment child : children) {
+		final String name = aClass.name();
+		for (JStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
@@ -204,8 +205,8 @@ public class Main {
 		// JFunctionSegment and CFunctionSegment share the same implementations
 		// (Placeholder, Whitespace, Invalid)
 		final List<CFunctionSegment> bodySegments = switch (method.body()) {
-			case None<List<JFunctionSegment>> _ -> Collections.emptyList();
-			case Some<List<JFunctionSegment>>(List<JFunctionSegment> segments) -> {
+			case None<List<JMethodSegment>> _ -> Collections.emptyList();
+			case Some<List<JMethodSegment>>(List<JMethodSegment> segments) -> {
 				yield segments.stream().map(segment -> {
 					return transformFunctionSegment(segment);
 				}).toList();
@@ -221,16 +222,18 @@ public class Main {
 												extractedTypeParams);
 	}
 
-	private static CFunctionSegment transformFunctionSegment(JFunctionSegment segment) {
+	private static CFunctionSegment transformFunctionSegment(JMethodSegment segment) {
 		return switch (segment) {
-			case JIf anIf -> new CIf(transformExpression(anIf), transformFunctionSegment(anIf.body()));
-			case Invalid invalid -> invalid; case Placeholder placeholder -> placeholder;
+			case JIf anIf -> new CIf(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
+			case Invalid invalid -> invalid;
+			case Placeholder placeholder -> placeholder;
 			case Whitespace whitespace -> whitespace;
+			case JReturn aReturn -> new CReturn(transformExpression(aReturn.value()));
 		};
 	}
 
-	private static CExpression transformExpression(JIf anIf) {
-		return switch (anIf.condition()) {case Invalid invalid -> invalid;};
+	private static CExpression transformExpression(JExpression expression) {
+		return switch (expression) {case Invalid invalid -> invalid;};
 	}
 
 	private static CParameter transformParameter(JavaDefinition param) {
@@ -254,7 +257,7 @@ public class Main {
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) {collectTypeVariables(param.type(), typeVars);}
+			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -275,7 +278,7 @@ public class Main {
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) {collectTypeVariables(arg, typeVars);}
+				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {

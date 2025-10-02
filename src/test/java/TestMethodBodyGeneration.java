@@ -39,9 +39,9 @@ public class TestMethodBodyGeneration {
 
 								// Test the transformation logic
 								final String bodyString = switch (method.body()) {
-									case magma.option.None<java.util.List<Lang.JFunctionSegment>> _ -> "";
-									case Some<java.util.List<Lang.JFunctionSegment>>(var segs) -> {
-										StringBuilder sb = new StringBuilder(); for (Lang.JFunctionSegment segment : segs) {
+									case magma.option.None<java.util.List<Lang.JMethodSegment>> _ -> "";
+									case Some<java.util.List<Lang.JMethodSegment>>(var segs) -> {
+										StringBuilder sb = new StringBuilder(); for (Lang.JMethodSegment segment : segs) {
 											if (segment instanceof Lang.Placeholder placeholder) {
 												sb.append("/*").append(placeholder.value()).append("*/");
 											}

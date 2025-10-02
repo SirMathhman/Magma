@@ -42,9 +42,9 @@ public class Lang {
 
 	sealed public interface JExpression permits Invalid {}
 
-	sealed public interface JFunctionSegment permits Invalid, Placeholder, Whitespace, JIf {}
+	sealed public interface JMethodSegment permits Invalid, JIf, Placeholder, JReturn, Whitespace {}
 
-	sealed public interface CFunctionSegment permits CIf, Invalid, Placeholder, Whitespace {}
+	sealed public interface CFunctionSegment permits CIf, CReturn, Invalid, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -66,7 +66,7 @@ public class Lang {
 	public sealed interface CExpression permits Invalid {}
 
 	@Tag("if")
-	public record JIf(JExpression condition, JFunctionSegment body) implements JFunctionSegment {}
+	public record JIf(JExpression condition, JMethodSegment body) implements JMethodSegment {}
 
 	@Tag("if")
 	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
@@ -89,12 +89,12 @@ public class Lang {
 
 	@Tag("method")
 	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params,
-											 Option<List<JFunctionSegment>> body, Option<List<Identifier>> typeParameters)
+											 Option<List<JMethodSegment>> body, Option<List<Identifier>> typeParameters)
 			implements JStructureSegment {}
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment, CFunctionSegment,
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {}
 
 	@Tag("class")
@@ -117,10 +117,10 @@ public class Lang {
 													Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JStructureSegment, JFunctionSegment, CFunctionSegment {}
+	public record Whitespace() implements JavaRootSegment, JStructureSegment, JMethodSegment, CFunctionSegment {}
 
 	@Tag("placeholder")
-	public record Placeholder(String value) implements JFunctionSegment, CFunctionSegment {}
+	public record Placeholder(String value) implements JMethodSegment, CFunctionSegment {}
 
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
@@ -158,6 +158,12 @@ public class Lang {
 	@Tag("block-comment")
 	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment {}
 
+	@Tag("return")
+	public record JReturn(JExpression value) implements JMethodSegment {}
+
+	@Tag("return")
+	public record CReturn(CExpression value) implements CFunctionSegment {}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	}
@@ -165,11 +171,13 @@ public class Lang {
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = Statements("body", CFunctionSegment()); final Rule functionDecl =
+		final Rule body = Statements("body", CFunctionSegment());
+		final Rule functionDecl =
 				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier())); final Rule templateDecl =
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
 
@@ -207,7 +215,8 @@ public class Lang {
 		final Rule structComplete = Suffix(structWithFields, ";");
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier())); final Rule templateDecl =
+		final Rule templateParams = Values("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
 
@@ -263,12 +272,13 @@ public class Lang {
 	}
 
 	private static Rule StructureSegment() {
-		final LazyRule structureMember = new LazyRule(); structureMember.set(Or(Structures(structureMember),
-																																						Statement(),
-																																						JMethod(),
-																																						LineComment(),
-																																						BlockComment(),
-																																						Whitespace()));
+		final LazyRule structureMember = new LazyRule();
+		structureMember.set(Or(Structures(structureMember),
+													 Statement(),
+													 JMethod(),
+													 LineComment(),
+													 BlockComment(),
+													 Whitespace()));
 		return structureMember;
 	}
 
@@ -292,12 +302,22 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegment() {
-		final LazyRule rule = new LazyRule(); rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Invalid())));
+		final LazyRule rule = new LazyRule();
+		rule.set(Strip(Or(Whitespace(),
+											If(JExpression(), rule),
+											Strip(Suffix(Or(Return(JExpression())), ";")),
+											Invalid())));
 		return rule;
 	}
 
+	private static Rule Return(Rule expression) {
+		return Tag("return", Prefix("return ", Node("value", expression)));
+	}
+
 	private static Rule If(Rule expression, Rule statement) {
-		final var condition = Node("condition", expression); final var body = Node("body", statement); final var split =
+		final Rule condition = Node("condition", expression);
+		final Rule body = Node("body", statement);
+		final Rule split =
 				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);
 		return Tag("if", Prefix("if ", Strip(split)));
 	}
@@ -312,7 +332,9 @@ public class Lang {
 
 	private static Rule CFunctionSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Or(If(CExpression(), rule), Invalid()))));
+		rule.set(Or(Whitespace(),
+								Prefix(System.lineSeparator() + "\t",
+											 Or(If(CExpression(), rule), Or(Suffix(Return(JExpression()), ";")), Invalid()))));
 		return rule;
 	}
 
@@ -341,7 +363,8 @@ public class Lang {
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
 		final Rule withModifiers = Split(modifiers, KeepLast(new FoldingDivider(new TypeFolder())), type);
 
-		Rule beforeName = Or(withModifiers, type); return Tag("definition", Last(beforeName, " ", name));
+		Rule beforeName = Or(withModifiers, type);
+		return Tag("definition", Last(beforeName, " ", name));
 	}
 
 	private static Rule JType() {

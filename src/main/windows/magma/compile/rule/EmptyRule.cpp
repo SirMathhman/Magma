@@ -2,9 +2,9 @@
 struct EmptyRule {new EmptyRule();};
 Result<Node, CompileError> lex_EmptyRule(char* content) {
 	if (/*content.isEmpty())*/)
-	/*return new Ok<>(new Node()));*/
-	/*return new Err<>(new CompileError("Content is not empty", new StringContext(content)));*/
+	return /*new Ok<>(new Node()))*/;
+	return /*new Err<>(new CompileError("Content is not empty", new StringContext(content)))*/;
 }
 Result<String, CompileError> generate_EmptyRule(Node node) {
-	/*return new Ok<>("");*/
+	return /*new Ok<>("")*/;
 }

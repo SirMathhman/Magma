@@ -9,8 +9,8 @@ Stream<String> divide_FoldingDivider(char* input) {
 			final Option<Character> pop = current.pop(); if (pop instanceof None<Character>) break;
 			if (pop instanceof Some<Character>(Character c)) current = folder.fold(current, c);
 		}*/
-	/*return current.advance().stream();*/
+	return /*current.advance().stream()*/;
 }
 char* delimiter_FoldingDivider() {
-	/*return folder.delimiter();*/
+	return /*folder.delimiter()*/;
 }

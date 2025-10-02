@@ -1,21 +1,21 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Node {new HashMap<>();new HashMap<>();new HashMap<>();/*=*/ Option.empty();};
 char* toString_Node() {
-	/*return format(0);*/
+	return /*format(0)*/;
 }
 char* escape_Node(char* value) {
-	/*return value.replace("\\", "\\\\")
+	return /*value.replace("\\", "\\\\")
 				.replace("\"", "\\\"")
 				.replace("\n", "\\n")
 				.replace("\r", "\\r")
-				.replace("\t", "\\t");*/
+				.replace("\t", "\\t")*/;
 }
 Node withString_Node(char* key, char* value) {
 	/*strings.put(key, value);*/
-	/*return this;*/
+	return /*this*/;
 }
 Option<String> findString_Node(char* key) {
-	/*return Option.ofNullable(strings.get(key));*/
+	return /*Option.ofNullable(strings.get(key))*/;
 }
 Node merge_Node(Node node) {
 	/*maybeType = switch (maybeType) {
@@ -26,37 +26,37 @@ Node merge_Node(Node node) {
 	/*this.strings.putAll(node.strings);*/
 	/*nodeLists.putAll(node.nodeLists);*/
 	/*nodes.putAll(node.nodes);*/
-	/*return this;*/
+	return /*this*/;
 }
 Node withNodeList_Node(char* key, List<Node> values) {
 	/*nodeLists.put(key, values);*/
-	/*return this;*/
+	return /*this*/;
 }
 Option<List<Node>> findNodeList_Node(char* key) {
-	/*return Option.ofNullable(nodeLists.get(key));*/
+	return /*Option.ofNullable(nodeLists.get(key))*/;
 }
 Node withNode_Node(char* key, Node node) {
 	/*nodes.put(key, node);*/
-	/*return this;*/
+	return /*this*/;
 }
 Option<Node> findNode_Node(char* key) {
-	/*return Option.ofNullable(nodes.get(key));*/
+	return /*Option.ofNullable(nodes.get(key))*/;
 }
 Node retype_Node(char* type) {
 	/*this.maybeType = Option.of(type);*/
-	/*return this;*/
+	return /*this*/;
 }
 boolean is_Node(char* type) {
-	/*return this.maybeType.map(inner -> inner.equals(type)).orElse(false);*/
+	return /*this.maybeType.map(inner -> inner.equals(type)).orElse(false)*/;
 }
 Set<String> getStringKeys_Node() {
-	/*return strings.keySet();*/
+	return /*strings.keySet()*/;
 }
 char* format_Node(int depth) {
 	/*StringBuilder builder = new StringBuilder();*/
 	/*builder.append("\t".repeat(depth));*/
 	/*appendJson(builder, depth);*/
-	/*return builder.toString();*/
+	return /*builder.toString()*/;
 }
 void appendJson_Node(StringBuilder builder, int depth) {
 	/*final String indent = "\t".repeat(depth);*/

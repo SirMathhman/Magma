@@ -2,11 +2,11 @@
 struct EscapingFolder {Folder folder;};
 DivideState fold_EscapingFolder(DivideState state, char c) {
 	if (/*c == '\'')*/)
-	/*return state.append(c))
+	return /*state.append(c))
 															 .popAndAppendToTuple())
 															 .map(this::foldEscape))
 															 .flatMap(DivideState::popAndAppendToOption))
-															 .orElse(state));*/
+															 .orElse(state))*/;
 	/*// handle comments*/
 	if (/*c == '/' && state.isLevel())*/)
 	/*{
@@ -41,13 +41,13 @@ DivideState fold_EscapingFolder(DivideState state, char c) {
 				return current;
 			}
 		}*/
-	/*return folder.fold(state, c);*/
+	return /*folder.fold(state, c)*/;
 }
 char* delimiter_EscapingFolder() {
-	/*return folder.delimiter();*/
+	return /*folder.delimiter()*/;
 }
 DivideState foldEscape_EscapingFolder(Tuple<DivideState, Character> tuple) {
 	if (/*tuple.right() == '\\')*/)
-	/*return tuple.left()).popAndAppendToOption()).orElse(tuple.left()));*/
+	return /*tuple.left()).popAndAppendToOption()).orElse(tuple.left()))*/;
 	/*else return tuple.left();*/
 }

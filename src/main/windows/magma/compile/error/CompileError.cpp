@@ -4,7 +4,7 @@ public CompileError_CompileError(char* reason, Context sourceCode) {
 	/*this(reason, sourceCode, Collections.emptyList());*/
 }
 char* display_CompileError() {
-	/*return format(0, 0);*/
+	return /*format(0, 0)*/;
 }
 char* format_CompileError(int depth, int index) {
 	/*final ArrayList<CompileError> copy = new ArrayList<>(causes);*/
@@ -19,8 +19,8 @@ char* format_CompileError(int depth, int index) {
 		}*/
 	/*final String formattedChildren = joiner.toString();*/
 	/*final String s = depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth);*/
-	/*return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;*/
+	return /*s + index + ") " + reason + ": " + context.display(depth) + formattedChildren*/;
 }
 int depth_CompileError() {
-	/*return 1 + causes.stream().mapToInt(CompileError::depth).max().orElse(0);*/
+	return /*1 + causes.stream().mapToInt(CompileError::depth).max().orElse(0)*/;
 }

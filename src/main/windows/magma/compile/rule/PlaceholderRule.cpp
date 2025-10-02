@@ -5,11 +5,11 @@ char* wrap_PlaceholderRule(char* input) {
 	/*", "end") + "end";*/
 }
 Rule Placeholder_PlaceholderRule(Rule rule) {
-	/*return new PlaceholderRule(rule);*/
+	return /*new PlaceholderRule(rule)*/;
 }
 Result<Node, CompileError> lex_PlaceholderRule(char* content) {
-	/*return rule.lex(content);*/
+	return /*rule.lex(content)*/;
 }
 Result<String, CompileError> generate_PlaceholderRule(Node node) {
-	/*return rule.generate(node).mapValue(PlaceholderRule::wrap);*/
+	return /*rule.generate(node).mapValue(PlaceholderRule::wrap)*/;
 }

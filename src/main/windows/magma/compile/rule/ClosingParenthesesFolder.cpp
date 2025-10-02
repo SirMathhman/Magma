@@ -7,8 +7,8 @@ DivideState fold_ClosingParenthesesFolder(DivideState state, char c) {
 	/*') {
 			final DivideState exit = appended.exit(); if (exit.isLevel())) return exit.advance(); return exit;
 		}*/
-	/*return appended;*/
+	return /*appended*/;
 }
 char* delimiter_ClosingParenthesesFolder() {
-	/*return ")";*/
+	return /*")"*/;
 }

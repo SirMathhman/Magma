@@ -12,8 +12,8 @@ Option<Tuple<String, String>> split_InfixSplitter(char* input) {
 	/*;*/
 }
 char* createErrorMessage_InfixSplitter() {
-	/*return "Infix '" + infix + "' not present";*/
+	return /*"Infix '" + infix + "' not present"*/;
 }
 char* merge_InfixSplitter(char* left, char* right) {
-	/*return left + infix + right;*/
+	return /*left + infix + right*/;
 }

@@ -15,5 +15,5 @@ Option<Tuple<String, String>> merge_KeepLastMerger(List<String> segments, char* 
 			} left.append(segments.get(i));
 		}*/
 	/*final String right = segments.get(segments.size() - 1);*/
-	/*return new Some<>(new Tuple<>(left.toString(), right));*/
+	return /*new Some<>(new Tuple<>(left.toString(), right))*/;
 }

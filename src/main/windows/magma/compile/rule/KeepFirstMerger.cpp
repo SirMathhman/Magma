@@ -16,5 +16,5 @@ Option<Tuple<String, String>> merge_KeepFirstMerger(List<String> segments, char*
 				right.append(delimiter);
 			} right.append(segments.get(i));
 		}*/
-	/*return new Some<>(new Tuple<>(left, right.toString()));*/
+	return /*new Some<>(new Tuple<>(left, right.toString()))*/;
 }
