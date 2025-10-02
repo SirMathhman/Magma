@@ -25,7 +25,6 @@ import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.NonEmptyListRule.NonEmptyList;
 import static magma.compile.rule.OrRule.Or;
-import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
 import static magma.compile.rule.SplitRule.*;
 import static magma.compile.rule.StringRule.String;
@@ -163,10 +162,10 @@ public class Lang {
 	public record CRoot(List<CRootSegment> children) {}
 
 	@Tag("import")
-	public record Import(String value) implements JavaRootSegment {}
+	public record Import(String location) implements JavaRootSegment {}
 
 	@Tag("package")
-	public record Package(String value) implements JavaRootSegment {}
+	public record Package(String location) implements JavaRootSegment {}
 
 	@Tag("definition")
 	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter {}
@@ -252,7 +251,7 @@ public class Lang {
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
 				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Arguments("paramTypes", rule)), ")"));
-		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule)));
 		return rule;
 	}
 
@@ -291,7 +290,7 @@ public class Lang {
 	}
 
 	private static Rule Namespace(String type) {
-		return Tag(type, Strip(Prefix(type + " ", Suffix(Invalid(), ";"))));
+		return Tag(type, Strip(Prefix(type + " ", Suffix(String("location"), ";"))));
 	}
 
 	private static Rule JStructure(String type, Rule rule) {
@@ -443,7 +442,7 @@ public class Lang {
 	}
 
 	private static Rule CExpression() {
-		return Or(Invalid());
+		return Or();
 	}
 
 	private static Rule CFunctionSegment() {
@@ -522,9 +521,5 @@ public class Lang {
 	private static Rule Generic(Rule type) {
 		return Tag("generic",
 							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Arguments("arguments", type)), ">")));
-	}
-
-	private static Rule Invalid() {
-		return Tag("invalid", Placeholder(String("value")));
 	}
 }
