@@ -1,7 +1,9 @@
 package magma.compile.rule;
 
 import magma.Tuple;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,5 +63,10 @@ public class DivideState {
 
 	public Option<DivideState> popAndAppendToOption() {
 		return popAndAppendToTuple().map(Tuple::left);
+	}
+
+	public Option<Character> peek() {
+		if (index < input.length()) return new Some<>(input.charAt(index));
+		else return new None<>();
 	}
 }

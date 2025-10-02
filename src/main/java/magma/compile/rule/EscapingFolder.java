@@ -1,6 +1,7 @@
 package magma.compile.rule;
 
 import magma.Tuple;
+import magma.option.Some;
 
 public record EscapingFolder(Folder folder) implements Folder {
 	@Override
@@ -10,6 +11,24 @@ public record EscapingFolder(Folder folder) implements Folder {
 															 .map(this::foldEscape)
 															 .flatMap(DivideState::popAndAppendToOption)
 															 .orElse(state);
+
+		// handle comments
+		if (c == '/' && state.isLevel()) {
+			final DivideState withSlash = state.append(c);
+			if (withSlash.peek() instanceof Some<Character>(Character next) && next == '/') {
+				DivideState current = withSlash.popAndAppendToOption().orElse(state); while (true) {
+					if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+							Tuple<DivideState, Character> tuple
+					)) {
+						current = tuple.left(); if (tuple.right() == '\n') {
+							current = current.advance(); break;
+						}
+					} else break;
+				}
+
+				return current;
+			}
+		}
 
 		return folder.fold(state, c);
 	}
