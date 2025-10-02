@@ -1,0 +1,15 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/C:/ProgramData/chocolatey/lib/maven/apache-maven-3.9.11/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+[ERROR] src\main\java\magma\compile\Serialize.java:[252] (regexp) RegexpSinglelineJava: Avoid using literal null; prefer java.util.Optional for absent values.
+[ERROR] src\main\java\magma\compile\Serialize.java:[252,35] (coding) IllegalToken: Using 'null' is not allowed.
+[ERROR] src\main\java\magma\compile\Serialize.java:[262] (regexp) RegexpSinglelineJava: Avoid using literal null; prefer java.util.Optional for absent values.
+[ERROR] src\main\java\magma\compile\Serialize.java:[262,34] (coding) IllegalToken: Using 'null' is not allowed.
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-checkstyle-plugin:3.6.0:check (checkstyle) on project Magma: You have 4 Checkstyle violations. -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

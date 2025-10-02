@@ -1,0 +1,100 @@
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldBase has been called by com.google.inject.internal.aop.HiddenClassDefiner (file:/C:/ProgramData/chocolatey/lib/maven/apache-maven-3.9.11/lib/guice-5.1.0-classes.jar)
+WARNING: Please consider reporting this to the maintainers of class com.google.inject.internal.aop.HiddenClassDefiner
+WARNING: sun.misc.Unsafe::staticFieldBase will be removed in a future release
+Found 54 Java files to compile
+Compiling: .\src\main\java\magma\compile\context\Context.java
+Successfully compiled: .\src\main\java\magma\compile\context\Context.java
+Compiling: .\src\main\java\magma\compile\context\NodeContext.java
+Successfully compiled: .\src\main\java\magma\compile\context\NodeContext.java
+Compiling: .\src\main\java\magma\compile\context\StringContext.java
+Successfully compiled: .\src\main\java\magma\compile\context\StringContext.java
+Compiling: .\src\main\java\magma\compile\error\ApplicationError.java
+Successfully compiled: .\src\main\java\magma\compile\error\ApplicationError.java
+Compiling: .\src\main\java\magma\compile\error\CompileError.java
+Successfully compiled: .\src\main\java\magma\compile\error\CompileError.java
+Compiling: .\src\main\java\magma\compile\error\Error.java
+Successfully compiled: .\src\main\java\magma\compile\error\Error.java
+Compiling: .\src\main\java\magma\compile\error\ThrowableError.java
+Successfully compiled: .\src\main\java\magma\compile\error\ThrowableError.java
+Compiling: .\src\main\java\magma\compile\Lang.java
+Failed to compile .\src\main\java\magma\compile\Lang.java: 0) Failed to deserialize 'JavaRoot': 
+	{
+		"children": [
+			{
+				"@type": "package",
+				"value": "magma.compile"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.FilterRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.FoldingDivider"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.LazyRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.NodeListRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.NodeRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.Rule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.SplitRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.Splitter"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.StringRule"
+			},
+			{
+				"@type": "import",
+				"value": "magma.compile.rule.TypeFolder"
+			},
+			{
+				"@type": "import",
+				"value": "magma.option.Option"
+			},
+			{
+				"@type": "import",
+				"value": "java.util.List"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.DividingSplitter.KeepLast"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.EmptyRule.Empty"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.NodeListRule.*"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.NodeRule.Node"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.NonEmptyListRule.NonEmptyList"
+			},
+			{
+				"@type": "import",
+				"value": "static magma.compile.rule.OrRule.Or"
+			},
+			{
