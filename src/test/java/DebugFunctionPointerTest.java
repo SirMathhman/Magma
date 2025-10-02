@@ -5,7 +5,7 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DebugFunctionPointerTest {
 
@@ -46,7 +46,7 @@ public class DebugFunctionPointerTest {
 								System.out.println("    Method: " + method.definition().name());
 								if (method.params() instanceof magma.option.Some<?>(var paramsList)) {
 									((java.util.List<?>) paramsList).forEach(param -> {
-										if (param instanceof JavaDefinition def) {
+										if (param instanceof JDefinition def) {
 											System.out.println("      Param: " + def.name() + " : " + def.type());
 											System.out.println("      Param type class: " + def.type().getClass().getSimpleName());
 											if (def.type() instanceof Generic gen) {

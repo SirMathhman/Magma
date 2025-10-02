@@ -153,12 +153,11 @@ public class Main {
 
 		// Special handling for Record params - add them as struct fields
 		if (aClass instanceof Lang.Record record) {
-			Option<List<JavaDefinition>> params = record.params();
-			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-				for (JavaDefinition param : paramList) {
-					final CDefinition cDef = transformDefinition(param);
-					fields.add(cDef);
-				}
+			Option<List<JDefinition>> params = record.params();
+			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList)) for (JDefinition param : paramList) {
+				final CDefinition cDef = transformDefinition(param);
+				fields.add(cDef);
+			}
 		}
 
 		final String name = aClass.name();
@@ -188,9 +187,9 @@ public class Main {
 	}
 
 	private static Function transformMethod(Method method, String structName) {
-		final List<JavaDefinition> oldParams = switch (method.params()) {
-			case None<List<JavaDefinition>> _ -> Collections.emptyList();
-			case Some<List<JavaDefinition>> v -> v.value();
+		final List<JDefinition> oldParams = switch (method.params()) {
+			case None<List<JDefinition>> _ -> Collections.emptyList();
+			case Some<List<JDefinition>> v -> v.value();
 		};
 
 		final List<CParameter> newParams = oldParams.stream().map(Main::transformParameter).toList();
@@ -231,6 +230,9 @@ public class Main {
 			case JReturn aReturn -> new CReturn(transformExpression(aReturn.value()));
 			case JInvokable invokable -> transformInvokable(invokable);
 			case LineComment lineComment -> lineComment;
+			case JBlock jBlock -> new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
+			case JInitialization jInitialization -> new CInitialization(transformDefinition(jInitialization.definition()),
+																																	transformExpression(jInitialization.value()));
 		};
 	}
 
@@ -244,7 +246,7 @@ public class Main {
 		return switch (expression) {case Invalid invalid -> invalid;};
 	}
 
-	private static CParameter transformParameter(JavaDefinition param) {
+	private static CParameter transformParameter(JDefinition param) {
 		final CType transformedType = transformType(param.type());
 
 		// If the transformed type is a FunctionPointer, create
@@ -264,8 +266,8 @@ public class Main {
 		collectTypeVariables(method.definition().type(), typeVars);
 
 		// Check parameter types for type variables
-		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
+		if (method.params() instanceof Some<List<JDefinition>>(List<JDefinition> paramList))
+			for (JDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -295,7 +297,7 @@ public class Main {
 		}
 	}
 
-	private static CDefinition transformDefinition(JavaDefinition definition) {
+	private static CDefinition transformDefinition(JDefinition definition) {
 		// Default to no type parameters for backward compatibility
 		final Option<List<Identifier>> typeParams = definition.typeParameters();
 		return new CDefinition(definition.name(), transformType(definition.type()), typeParams);

@@ -23,7 +23,7 @@ public class ValidationDemonstrationTest {
 
 	// Simulated "buggy" method record (like the original bug)
 	@Tag("buggy-method")
-	public record BuggyMethod(Lang.JavaDefinition definition, Option<List<Lang.JavaDefinition>> params,
+	public record BuggyMethod(Lang.JDefinition definition, Option<List<Lang.JDefinition>> params,
 														Option<String> body, // WRONG: should be Option<List<JFunctionSegment>>
 														Option<List<Lang.Identifier>> typeParameters) {}
 

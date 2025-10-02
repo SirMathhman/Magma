@@ -11,18 +11,22 @@ struct CType {};
 struct JStructure {Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
 struct CParameter {};
 struct CExpression {};
+struct JInitialization {JDefinition definition;JExpression value;};
+struct CInitialization {CDefinition definition;CExpression value;};
+struct CBlock {List<CFunctionSegment> children;};
+struct JBlock {List<JMethodSegment> children;};
 struct JIf {JExpression condition;JMethodSegment body;};
 struct CIf {CExpression condition;CFunctionSegment body;};
-struct Field {JavaDefinition value;};
+struct Field {JDefinition value;};
 struct Generic {char* base;List<JavaType> arguments;};
 struct Array {JavaType child;};
-struct JavaDefinition {char* name;JavaType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
+struct JDefinition {char* name;JavaType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
 struct Modifier {char* value;};
-struct Method {JavaDefinition definition;Option<List<JavaDefinition>> params;Option<List<JMethodSegment>> body;Option<List<Identifier>> typeParameters;};
+struct Method {JDefinition definition;Option<List<JDefinition>> params;Option<List<JMethodSegment>> body;Option<List<Identifier>> typeParameters;};
 struct Invalid {char* value;Option<String> after;};
 struct JClass {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;};
 struct Interface {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<JavaType> implementsClause;Option<JavaType> extendsClause;Option<List<JavaType>> variants;};
-struct Record {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JavaDefinition>> params;Option<JavaType> implementsClause;};
+struct Record {Option<String> modifiers;char* name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JDefinition>> params;Option<JavaType> implementsClause;};
 struct Structure {char* name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
 struct Whitespace {};
 struct Placeholder {char* value;};
@@ -167,10 +171,10 @@ Rule Block_Lang(LazyRule rule) {
 	return /*Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))))*/;
 }
 Rule JMethodStatementValue_Lang() {
-	return /*Or(Return(JExpression()), Invokable(JExpression()), JInitialization())*/;
+	return /*Or(Return(JExpression()), Invokable(JExpression()), Initialization(JDefinition(), JExpression()))*/;
 }
-Rule JInitialization_Lang() {
-	return /*Tag("initialization", First(Node("definition", JDefinition()), "=", Node("value", JExpression())))*/;
+Rule Initialization_Lang(Rule definition, Rule value) {
+	return /*Tag("initialization", First(Node("definition", definition), "=", Node("value", value)))*/;
 }
 Rule Invokable_Lang(Rule expression) {
 	return /*Tag("invokable", First(Node("caller", expression), "(", Arguments("arguments", expression)))*/;
@@ -197,13 +201,13 @@ Rule CFunctionSegment_Lang() {
 	return /*rule*/;
 }
 Rule CFunctionSegmentValue_Lang(LazyRule rule) {
-	return /*Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Invalid())*/;
+	return /*Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Block(rule), Invalid())*/;
 }
 Rule CFunctionStatement_Lang() {
 	return /*Or(Suffix(CFunctionStatementValue(), ";"))*/;
 }
 Rule CFunctionStatementValue_Lang() {
-	return /*Or(Return(JExpression()), Invokable(CExpression()))*/;
+	return /*Or(Return(JExpression()), Invokable(CExpression()), Initialization(CDefinition(), CExpression()))*/;
 }
 Rule Parameters_Lang() {
 	return /*Arguments("params", Or(ParameterDefinition(), Whitespace()))*/;

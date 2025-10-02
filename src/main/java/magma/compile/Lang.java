@@ -43,10 +43,10 @@ public class Lang {
 	sealed public interface JExpression permits Invalid {}
 
 	sealed public interface JMethodSegment
-			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace {}
+			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace, JBlock, JInitialization {}
 
 	sealed public interface CFunctionSegment
-			permits CIf, CInvokable, CReturn, Invalid, LineComment, Placeholder, Whitespace {}
+			permits CBlock, CIf, CInitialization, CInvokable, CReturn, Invalid, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -67,6 +67,18 @@ public class Lang {
 
 	public sealed interface CExpression permits Invalid {}
 
+	@Tag("initialization")
+	public record JInitialization(JDefinition definition, JExpression value) implements JMethodSegment {}
+
+	@Tag("initialization")
+	public record CInitialization(CDefinition definition, CExpression value) implements CFunctionSegment {}
+
+	@Tag("block")
+	public record CBlock(List<CFunctionSegment> children) implements CFunctionSegment {}
+
+	@Tag("block")
+	public record JBlock(List<JMethodSegment> children) implements JMethodSegment {}
+
 	@Tag("if")
 	public record JIf(JExpression condition, JMethodSegment body) implements JMethodSegment {}
 
@@ -74,7 +86,7 @@ public class Lang {
 	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
 
 	@Tag("statement")
-	public record Field(JavaDefinition value) implements JStructureSegment {}
+	public record Field(JDefinition value) implements JStructureSegment {}
 
 	@Tag("generic")
 	public record Generic(String base, List<JavaType> arguments) implements JavaType, CType {}
@@ -83,16 +95,15 @@ public class Lang {
 	public record Array(JavaType child) implements JavaType {}
 
 	@Tag("definition")
-	public record JavaDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
-															 Option<List<Identifier>> typeParameters) {}
+	public record JDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
+														Option<List<Identifier>> typeParameters) {}
 
 	@Tag("modifier")
 	public record Modifier(String value) {}
 
 	@Tag("method")
-	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params,
-											 Option<List<JMethodSegment>> body, Option<List<Identifier>> typeParameters)
-			implements JStructureSegment {}
+	public record Method(JDefinition definition, Option<List<JDefinition>> params, Option<List<JMethodSegment>> body,
+											 Option<List<Identifier>> typeParameters) implements JStructureSegment {}
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
@@ -111,7 +122,7 @@ public class Lang {
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<List<JavaDefinition>> params,
+											 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
 											 Option<JavaType> implementsClause) implements JStructure {}
 
 	@Tag("struct")
@@ -328,11 +339,11 @@ public class Lang {
 	}
 
 	private static Rule JMethodStatementValue() {
-		return Or(Return(JExpression()), Invokable(JExpression()), JInitialization());
+		return Or(Return(JExpression()), Invokable(JExpression()), Initialization(JDefinition(), JExpression()));
 	}
 
-	private static Rule JInitialization() {
-		return Tag("initialization", First(Node("definition", JDefinition()), "=", Node("value", JExpression())));
+	private static Rule Initialization(Rule definition, Rule value) {
+		return Tag("initialization", First(Node("definition", definition), "=", Node("value", value)));
 	}
 
 	private static Rule Invokable(Rule expression) {
@@ -366,7 +377,7 @@ public class Lang {
 	}
 
 	private static Rule CFunctionSegmentValue(LazyRule rule) {
-		return Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Invalid());
+		return Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Block(rule), Invalid());
 	}
 
 	private static Rule CFunctionStatement() {
@@ -374,7 +385,7 @@ public class Lang {
 	}
 
 	private static Rule CFunctionStatementValue() {
-		return Or(Return(JExpression()), Invokable(CExpression()));
+		return Or(Return(JExpression()), Invokable(CExpression()), Initialization(CDefinition(), CExpression()));
 	}
 
 	private static Rule Parameters() {
