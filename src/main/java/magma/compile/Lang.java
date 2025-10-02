@@ -266,7 +266,7 @@ public class Lang {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Parameters don't have modifiers, just type and name
 		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
+		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
 
 		return Tag("definition",
 							 new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse parameter", " "));
@@ -275,7 +275,7 @@ public class Lang {
 	private static Rule JDefinition() {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
+		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
 
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule typeAndName =
