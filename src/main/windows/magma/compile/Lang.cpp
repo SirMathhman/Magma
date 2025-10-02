@@ -48,6 +48,8 @@ struct LineComment {char* value;};
 struct BlockComment {char* value;};
 struct JReturn {JExpression value;};
 struct CReturn {CExpression value;};
+struct JElse {JMethodSegment child;};
+struct CElse {CFunctionSegment child;};
 struct JInvokable {JExpression caller;List<JExpression> arguments;};
 struct CInvokable {CExpression caller;List<CExpression> arguments;};
 Rule CRoot_Lang() {
@@ -170,6 +172,7 @@ Rule JMethodSegmentValue_Lang(LazyRule rule) {
 							LineComment(),
 							Conditional("if", expression, rule),
 							Conditional("while", expression, rule),
+							Else(rule),
 							Strip(Suffix(JMethodStatementValue(), ";")),
 							Block(rule))*/;
 }
@@ -197,6 +200,9 @@ Rule Invokable_Lang(Rule expression) {
 Rule Return_Lang(Rule expression) {
 	return /*Tag("return", Prefix("return ", Node("value", expression)))*/;
 }
+Rule Else_Lang(Rule statement) {
+	return /*Tag("else", Prefix("else ", Node("child", statement)))*/;
+}
 Rule Conditional_Lang(char* tag, Rule expression, Rule statement) {
 	/*final Rule condition = Node*/(/*"condition"*/, /* expression)*/;
 	/*final Rule body = Node*/(/*"body"*/, /* statement)*/;
@@ -217,7 +223,12 @@ Rule CFunctionSegment_Lang() {
 	return /*rule*/;
 }
 Rule CFunctionSegmentValue_Lang(LazyRule rule) {
-	return /*Or(LineComment(), Conditional("if", CExpression(), rule), CFunctionStatement(), Block(rule), Invalid())*/;
+	return /*Or(LineComment(),
+							Conditional("if", CExpression(), rule),
+							Else(rule),
+							CFunctionStatement(),
+							Block(rule),
+							Invalid())*/;
 }
 Rule CFunctionStatement_Lang() {
 	return /*Or(Suffix(CFunctionStatementValue(), ";"))*/;

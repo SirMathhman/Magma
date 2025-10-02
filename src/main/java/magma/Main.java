@@ -236,6 +236,7 @@ public class Main {
 			case JAssignment jAssignment ->
 					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
+			case JElse jElse -> new CElse(transformFunctionSegment(jElse.child()));
 		};
 	}
 

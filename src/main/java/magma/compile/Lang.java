@@ -44,11 +44,11 @@ public class Lang {
 	sealed public interface JExpression permits Invalid {}
 
 	sealed public interface JMethodSegment
-			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace, JBlock, JInitialization,
-			JPostFix, JAssignment {}
+			permits Invalid, JAssignment, JBlock, JElse, JIf, JInitialization, JInvokable, JPostFix, JReturn, LineComment,
+			Placeholder, Whitespace {}
 
 	sealed public interface CFunctionSegment
-			permits CAssignment, CBlock, CIf, CInitialization, CInvokable, CPostFix, CReturn, Invalid, LineComment,
+			permits CAssignment, CBlock, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, Invalid, LineComment,
 			Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
@@ -191,6 +191,12 @@ public class Lang {
 
 	@Tag("return")
 	public record CReturn(CExpression value) implements CFunctionSegment {}
+
+	@Tag("else")
+	public record JElse(JMethodSegment child) implements JMethodSegment {}
+
+	@Tag("else")
+	public record CElse(CFunctionSegment child) implements CFunctionSegment {}
 
 	@Tag("invokable")
 	public record JInvokable(JExpression caller, List<JExpression> arguments) implements JMethodSegment {}
@@ -347,6 +353,7 @@ public class Lang {
 							LineComment(),
 							Conditional("if", expression, rule),
 							Conditional("while", expression, rule),
+							Else(rule),
 							Strip(Suffix(JMethodStatementValue(), ";")),
 							Block(rule));
 	}
@@ -381,6 +388,11 @@ public class Lang {
 		return Tag("return", Prefix("return ", Node("value", expression)));
 	}
 
+	private static Rule Else(Rule statement) {
+		return Tag("else", Prefix("else ", Node("child", statement)));
+	}
+
+
 	private static Rule Conditional(String tag, Rule expression, Rule statement) {
 		final Rule condition = Node("condition", expression);
 		final Rule body = Node("body", statement);
@@ -405,7 +417,12 @@ public class Lang {
 	}
 
 	private static Rule CFunctionSegmentValue(LazyRule rule) {
-		return Or(LineComment(), Conditional("if", CExpression(), rule), CFunctionStatement(), Block(rule), Invalid());
+		return Or(LineComment(),
+							Conditional("if", CExpression(), rule),
+							Else(rule),
+							CFunctionStatement(),
+							Block(rule),
+							Invalid());
 	}
 
 	private static Rule CFunctionStatement() {

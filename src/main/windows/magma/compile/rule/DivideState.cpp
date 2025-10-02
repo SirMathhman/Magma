@@ -51,5 +51,6 @@ Option<DivideState> popAndAppendToOption_DivideState() {
 Option<Character> peek_DivideState() {
 	if (/*index < input.length())*/
 	return /*new Some<>(input.charAt(index))*/;
-	/*else return new None<>*/(/*)*/;
+	else 
+	return /*new None<>()*/;
 }
