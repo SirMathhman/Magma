@@ -1,0 +1,32 @@
+// Generated transpiled C++ from 'src\main\java\magma\compile\rule\SplitRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
+template<>
+struct SplitRule{Rule leftRule;, Rule rightRule;, Splitter splitter;, char* errorMessage;, char* separator;};
+template<>
+/*public static Rule*/ First_SplitRule(Rule left, char* infix, Rule right) {/*
+		final Splitter splitter = new InfixSplitter(infix, new FirstLocator());
+		return new SplitRule(left, right, splitter, "Infix '" + infix + "' not present", infix);
+	*/}
+template<>
+/*public static Rule*/ Last_SplitRule(Rule leftRule, char* infix, Rule rightRule) {/*
+		final Splitter splitter = new InfixSplitter(infix, new LastLocator());
+		return new SplitRule(leftRule, rightRule, splitter, "Infix '" + infix + "' not present", infix);
+	*/}
+template<>
+@Override
+	public Result<Node, CompileError> lex_SplitRule(char* input) {/*
+		return switch (splitter.split(input)) {
+			case None<Tuple<String, String>> _ ->
+				new Err<>(new CompileError(errorMessage, new StringContext(input)));
+			case Some<Tuple<String, String>>(Tuple<String, String> parts) -> {
+				final String left = parts.left();
+				final String right = parts.right();
+				yield leftRule.lex(left).flatMap(leftNode -> rightRule.lex(right).mapValue(leftNode::merge));
+			}
+		};
+	*/}
+template<>
+@Override
+	public Result<String, CompileError> generate_SplitRule(Node node) {/*
+		return leftRule.generate(node)
+				.flatMap(left -> rightRule.generate(node).mapValue(right -> left + separator + right));
+	*/}
