@@ -13,6 +13,7 @@ import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TypeFolder;
+import magma.option.None;
 import magma.option.Option;
 
 import java.util.List;
@@ -24,6 +25,7 @@ import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.NonEmptyListRule.NonEmptyList;
 import static magma.compile.rule.OrRule.Or;
+import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
 import static magma.compile.rule.SplitRule.*;
 import static magma.compile.rule.StringRule.String;
@@ -41,17 +43,17 @@ public class Lang {
 	public sealed interface JStructureSegment
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
-	sealed public interface JExpression permits JFieldAccess, Identifier, Invalid, Switch {}
+	sealed public interface JExpression permits Identifier, Invalid, JConstruction, JFieldAccess, JInvocation, Switch {}
 
 	sealed public interface JMethodSegment
-			permits Break, Invalid, JAssignment, JBlock, JElse, JIf, JInitialization, JInvokable, JPostFix, JReturn, JWhile,
-			LineComment, Placeholder, Whitespace {}
+			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JInvokable,
+			JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, CWhile, Invalid,
 			LineComment, Placeholder, Whitespace {}
 
-	sealed public interface JavaType {}
+	sealed public interface JType {}
 
 	sealed public interface CType {}
 
@@ -75,6 +77,13 @@ public class Lang {
 
 	@Tag("field-access")
 	public record CFieldAccess(CExpression child, String name) implements CExpression {}
+
+	@Tag("construction")
+	public record JConstruction(JType type, Option<List<JExpression>> arguments) implements JExpression, JMethodSegment {}
+
+	@Tag("invocation")
+	public record JInvocation(JExpression caller, Option<List<JExpression>> arguments)
+			implements JExpression, JMethodSegment {}
 
 	@Tag("case")
 	public record Case(JDefinition definition, JExpression value) {}
@@ -122,16 +131,16 @@ public class Lang {
 	public record Field(JDefinition value) implements JStructureSegment {}
 
 	@Tag("generic")
-	public record JGeneric(String base, List<JavaType> typeArguments) implements JavaType {}
+	public record JGeneric(String base, Option<List<JType>> typeArguments) implements JType {}
 
 	@Tag("generic")
 	public record CGeneric(String base, List<CType> typeArguments) implements CType {}
 
 	@Tag("array")
-	public record Array(JavaType child) implements JavaType {}
+	public record Array(JType child) implements JType {}
 
 	@Tag("definition")
-	public record JDefinition(String name, JavaType type, Option<List<Modifier>> modifiers,
+	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
 														Option<List<Identifier>> typeParameters) {}
 
 	@Tag("modifier")
@@ -143,23 +152,26 @@ public class Lang {
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JMethodSegment, CFunctionSegment,
-			JExpression, CExpression {}
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CType, JMethodSegment, CFunctionSegment,
+			JExpression, CExpression {
+		public Invalid(String value) {
+			this(value, new None<>());
+		}
+	}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause)
-			implements JStructure {}
+											 Option<List<Identifier>> typeParameters, Option<JType> implementsClause) implements JStructure {}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
-													Option<List<Identifier>> typeParameters, Option<JavaType> implementsClause,
-													Option<JavaType> extendsClause, Option<List<JavaType>> variants) implements JStructure {}
+													Option<List<Identifier>> typeParameters, Option<JType> implementsClause,
+													Option<JType> extendsClause, Option<List<JType>> variants) implements JStructure {}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
 											 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
-											 Option<JavaType> implementsClause) implements JStructure {}
+											 Option<JType> implementsClause) implements JStructure {}
 
 	@Tag("struct")
 	public record Structure(String name, List<CDefinition> fields, Option<String> after,
@@ -193,7 +205,7 @@ public class Lang {
 												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JavaType, CType, JExpression, CExpression {}
+	public record Identifier(String value) implements JType, CType, JExpression, CExpression {}
 
 	@Tag("pointer")
 	public record Pointer(CType child) implements CType {}
@@ -410,11 +422,11 @@ public class Lang {
 
 	private static Rule Invokable(Rule expression) {
 		return Or(Invokable("invocation", Node("caller", expression), expression),
-							Invokable("construction", Node("caller", Node("type", CType())), expression));
+							Invokable("construction", Node("type", CType()), expression));
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
-		final Rule arguments = Arguments("typeArguments", expression);
+		final Rule arguments = Arguments("arguments", expression);
 		return Tag(type, First(caller, "(", Suffix(Or(arguments, Whitespace()), ")")));
 	}
 
@@ -461,8 +473,12 @@ public class Lang {
 
 	private static Rule CFunctionSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", CFunctionSegmentValue(rule))));
+		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", CFunctionSegmentValue(rule)), Invalid()));
 		return rule;
+	}
+
+	private static Rule Invalid() {
+		return Tag("invalid", Placeholder(String("value")));
 	}
 
 	private static Rule CFunctionSegmentValue(LazyRule rule) {

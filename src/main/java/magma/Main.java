@@ -240,6 +240,8 @@ public class Main {
 			case Break aBreak -> aBreak;
 			case JWhile jWhile ->
 					new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
+			case JInvocation jConstruction -> new Invalid("???");
+			case JConstruction jConstruction -> new Invalid("???");
 		};
 	}
 
@@ -255,6 +257,8 @@ public class Main {
 			case Identifier identifier -> identifier;
 			case Switch aSwitch -> new Identifier("???");
 			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
+			case JInvocation jConstruction -> new Invalid("???");
+			case JConstruction jConstruction -> new Invalid("???");
 		};
 	}
 
@@ -289,7 +293,7 @@ public class Main {
 		return new Some<>(identifiers);
 	}
 
-	private static void collectTypeVariables(JavaType type, Set<String> typeVars) {
+	private static void collectTypeVariables(JType type, Set<String> typeVars) {
 		switch (type) {
 			case Identifier ident -> {
 				// Single letter identifiers are likely type variables (R, E, etc.)
@@ -300,7 +304,8 @@ public class Main {
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type typeArguments
-				for (JavaType arg : generic.typeArguments()) collectTypeVariables(arg, typeVars);
+				final List<JType> listOption = generic.typeArguments().orElse(new ArrayList<>());
+				for (JType arg : listOption) collectTypeVariables(arg, typeVars);
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {
@@ -315,17 +320,18 @@ public class Main {
 		return new CDefinition(definition.name(), transformType(definition.type()), typeParams);
 	}
 
-	private static CType transformType(JavaType type) {
+	private static CType transformType(JType type) {
 		return switch (type) {
 			case Invalid invalid -> invalid;
 			case JGeneric generic -> {
 				// Convert Function<T, R> to function pointer R (*)(T)
-				if (generic.base().equals("Function") && generic.typeArguments().size() == 2) {
-					final CType paramType = transformType(generic.typeArguments().get(0));
-					final CType returnType = transformType(generic.typeArguments().get(1));
+				final List<JType> listOption = generic.typeArguments().orElse(new ArrayList<>());
+				if (generic.base().equals("Function") && listOption.size() == 2) {
+					final CType paramType = transformType(listOption.get(0));
+					final CType returnType = transformType(listOption.get(1));
 					yield new FunctionPointer(returnType, List.of(paramType));
 				}
-				yield new CGeneric(generic.base(), generic.typeArguments().stream().map(Main::transformType).toList());
+				yield new CGeneric(generic.base(), listOption.stream().map(Main::transformType).toList());
 			}
 			case Array array -> {
 				CType childType = transformType(array.child());
