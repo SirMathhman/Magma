@@ -1,7 +1,7 @@
 package magma;
 
 import magma.compile.Lang;
-import magma.compile.Serialize;
+import magma.compile.Serializers;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
@@ -123,9 +123,9 @@ public class Main {
 
 	public static Result<String, CompileError> compile(String input) {
 		return JRoot().lex(input)
-									.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
+									.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
 									.flatMap(Main::transform)
-									.flatMap(cRoot -> Serialize.serialize(CRoot.class, cRoot))
+									.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
 									.flatMap(CRoot()::generate);
 	}
 

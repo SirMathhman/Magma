@@ -1,12 +1,11 @@
 package magma;
 
+import magma.compile.JavaSerializer;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.option.Option;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -54,10 +53,10 @@ public class SerializeRoundtripTest {
 	@Test
 	public void serializeThenDeserialize_String() {
 		final RString original = new RString("hello");
-		final Result<Node, CompileError> s = Serialize.serialize(RString.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RString.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<RString, CompileError> d = Serialize.deserialize(RString.class, node);
+		final Result<RString, CompileError> d = JavaSerializer.deserialize(RString.class, node);
 		RString round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -67,10 +66,10 @@ public class SerializeRoundtripTest {
 		final Leaf leaf = new Leaf("leafy");
 		final RNode original = new RNode(leaf);
 
-		final Result<Node, CompileError> s = Serialize.serialize(RNode.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RNode.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<RNode, CompileError> d = Serialize.deserialize(RNode.class, node);
+		final Result<RNode, CompileError> d = JavaSerializer.deserialize(RNode.class, node);
 		RNode round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -81,10 +80,10 @@ public class SerializeRoundtripTest {
 		final Leaf b = new Leaf("b");
 		final RList original = new RList(List.of(a, b));
 
-		final Result<Node, CompileError> s = Serialize.serialize(RList.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RList.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<RList, CompileError> d = Serialize.deserialize(RList.class, node);
+		final Result<RList, CompileError> d = JavaSerializer.deserialize(RList.class, node);
 		RList round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -93,10 +92,10 @@ public class SerializeRoundtripTest {
 	public void serializeThenDeserialize_OptionString() {
 		final ROptString original = new ROptString(Option.of("present"));
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptString.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptString.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<ROptString, CompileError> d = Serialize.deserialize(ROptString.class, node);
+		final Result<ROptString, CompileError> d = JavaSerializer.deserialize(ROptString.class, node);
 		ROptString round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -106,10 +105,10 @@ public class SerializeRoundtripTest {
 		final Leaf leaf = new Leaf("optleaf");
 		final ROptNode original = new ROptNode(Option.of(leaf));
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptNode.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptNode.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<ROptNode, CompileError> d = Serialize.deserialize(ROptNode.class, node);
+		final Result<ROptNode, CompileError> d = JavaSerializer.deserialize(ROptNode.class, node);
 		ROptNode round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -120,10 +119,10 @@ public class SerializeRoundtripTest {
 		final Leaf b = new Leaf("y");
 		final ROptList original = new ROptList(Option.of(List.of(a, b)));
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptList.class, original);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptList.class, original);
 		Node node = assertOkExtract(s);
 
-		final Result<ROptList, CompileError> d = Serialize.deserialize(ROptList.class, node);
+		final Result<ROptList, CompileError> d = JavaSerializer.deserialize(ROptList.class, node);
 		ROptList round = assertOkExtract(d);
 		assertEquals(original, round);
 	}
@@ -134,10 +133,10 @@ public class SerializeRoundtripTest {
 	public void deserializeThenSerialize_String() {
 		Node node = new Node().withString("value", "hi");
 
-		final Result<RString, CompileError> d = Serialize.deserialize(RString.class, node);
+		final Result<RString, CompileError> d = JavaSerializer.deserialize(RString.class, node);
 		RString value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(RString.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RString.class, value);
 		Node node2 = assertOkExtract(s);
 		assertEquals("hi", node2.findString("value").map(v -> v).orElse(null));
 	}
@@ -147,10 +146,10 @@ public class SerializeRoundtripTest {
 		Node child = new Node().withString("name", "inner");
 		Node node = new Node().withNode("child", child);
 
-		final Result<RNode, CompileError> d = Serialize.deserialize(RNode.class, node);
+		final Result<RNode, CompileError> d = JavaSerializer.deserialize(RNode.class, node);
 		RNode value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(RNode.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RNode.class, value);
 		Node node2 = assertOkExtract(s);
 		Node childNode = node2.findNode("child").orElse(null);
 		assertNotNull(childNode);
@@ -163,10 +162,10 @@ public class SerializeRoundtripTest {
 		Node c2 = new Node().withString("name", "n2");
 		Node node = new Node().withNodeList("children", List.of(c1, c2));
 
-		final Result<RList, CompileError> d = Serialize.deserialize(RList.class, node);
+		final Result<RList, CompileError> d = JavaSerializer.deserialize(RList.class, node);
 		RList value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(RList.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(RList.class, value);
 		Node node2 = assertOkExtract(s);
 		assertEquals(2, node2.findNodeList("children").orElse(List.of()).size());
 	}
@@ -175,10 +174,10 @@ public class SerializeRoundtripTest {
 	public void deserializeThenSerialize_OptionString() {
 		Node node = new Node().withString("maybe", "optval");
 
-		final Result<ROptString, CompileError> d = Serialize.deserialize(ROptString.class, node);
+		final Result<ROptString, CompileError> d = JavaSerializer.deserialize(ROptString.class, node);
 		ROptString value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptString.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptString.class, value);
 		Node node2 = assertOkExtract(s);
 		assertEquals("optval", node2.findString("maybe").map(v -> v).orElse(null));
 	}
@@ -188,10 +187,10 @@ public class SerializeRoundtripTest {
 		Node child = new Node().withString("name", "optinner");
 		Node node = new Node().withNode("maybe", child);
 
-		final Result<ROptNode, CompileError> d = Serialize.deserialize(ROptNode.class, node);
+		final Result<ROptNode, CompileError> d = JavaSerializer.deserialize(ROptNode.class, node);
 		ROptNode value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptNode.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptNode.class, value);
 		Node node2 = assertOkExtract(s);
 		Node maybeNode = node2.findNode("maybe").orElse(null);
 		assertNotNull(maybeNode);
@@ -204,10 +203,10 @@ public class SerializeRoundtripTest {
 		Node c2 = new Node().withString("name", "p2");
 		Node node = new Node().withNodeList("maybe", List.of(c1, c2));
 
-		final Result<ROptList, CompileError> d = Serialize.deserialize(ROptList.class, node);
+		final Result<ROptList, CompileError> d = JavaSerializer.deserialize(ROptList.class, node);
 		ROptList value = assertOkExtract(d);
 
-		final Result<Node, CompileError> s = Serialize.serialize(ROptList.class, value);
+		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptList.class, value);
 		Node node2 = assertOkExtract(s);
 		assertEquals(2, node2.findNodeList("maybe").orElse(List.of()).size());
 	}

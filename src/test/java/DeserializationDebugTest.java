@@ -1,12 +1,13 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DeserializationDebugTest {
 
@@ -27,7 +28,7 @@ public class DeserializationDebugTest {
 			System.out.println(node.format(0));
 
 			// Step 2: Try to deserialize
-			Result<Lang.JavaRoot, CompileError> deserializeResult = Serialize.deserialize(Lang.JavaRoot.class, node);
+			Result<Lang.JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
 
 			if (deserializeResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot javaRoot)) {
 				System.out.println("\n=== Deserialization Success ===");

@@ -1,12 +1,12 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DebugMethodBodyTest {
 	@Test
@@ -26,7 +26,7 @@ public class DebugMethodBodyTest {
 		} Node lexed = ((Ok<Node, ?>) lexResult).value(); System.out.println("Lexed successfully");
 
 		System.out.println("\n=== Deserializing ===");
-		Result<Lang.JavaRoot, ?> result = Serialize.deserialize(Lang.JavaRoot.class, lexed);
+		Result<Lang.JavaRoot, ?> result = JavaSerializer.deserialize(Lang.JavaRoot.class, lexed);
 
 		if (result instanceof Ok<Lang.JavaRoot, ?>(var root)) {
 			System.out.println("✅ Deserialization successful");

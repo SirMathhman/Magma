@@ -1,6 +1,6 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.Tag;
 import magma.compile.error.CompileError;
 import magma.option.Option;
@@ -45,7 +45,7 @@ public class ValidationDemonstrationTest {
 
 		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			// Find the method node
-			Result<Lang.JavaRoot, CompileError> rootResult = Serialize.deserialize(Lang.JavaRoot.class, value);
+			Result<Lang.JavaRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JavaRoot.class, value);
 
 			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot root)) {
 				// Find the method node

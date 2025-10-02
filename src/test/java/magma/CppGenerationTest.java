@@ -1,6 +1,6 @@
 package magma;
 
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -55,7 +55,7 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
@@ -99,7 +99,7 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
@@ -157,7 +157,7 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
@@ -165,8 +165,8 @@ public class CppGenerationTest {
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
-					Result<magma.compile.Node, CompileError> serializeResult = Serialize.serialize(CRoot.class,
-							transformOk.value());
+					Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class,
+																																															transformOk.value());
 
 					assertTrue(serializeResult instanceof Ok<?, ?>, () -> "C++ Serialization failed: " + serializeResult);
 

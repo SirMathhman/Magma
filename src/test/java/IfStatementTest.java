@@ -1,6 +1,6 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -26,7 +26,7 @@ public class IfStatementTest {
 
 		if (lexResult instanceof Ok<Node, CompileError>(var node)) {
 			System.out.println("=== Lexed node structure ==="); System.out.println(node); System.out.println();
-			var deserResult = Serialize.deserialize(Lang.JavaRoot.class, node);
+			var deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
 			System.out.println("Deserialization result: " + deserResult);
 
 			if (deserResult instanceof Ok<Lang.JavaRoot, CompileError>) {

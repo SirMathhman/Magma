@@ -1,6 +1,6 @@
 package magma;
 
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.option.Some;
 import magma.result.Err;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SealedInterfaceDeserializationTest {
 
@@ -44,7 +44,7 @@ public class SealedInterfaceDeserializationTest {
 					if (child.is("record")) {
 						System.out.println("Found record node! Trying to deserialize as Record class directly...");
 
-						Result<magma.compile.Lang.Record, CompileError> recordResult = Serialize
+						Result<magma.compile.Lang.Record, CompileError> recordResult = JavaSerializer
 								.deserialize(magma.compile.Lang.Record.class, child);
 						if (recordResult instanceof Ok<magma.compile.Lang.Record, CompileError> recordOk) {
 							System.out.println("✅ Record deserialization SUCCESS");
@@ -55,7 +55,7 @@ public class SealedInterfaceDeserializationTest {
 						}
 
 						System.out.println("Now trying to deserialize as JStructure interface...");
-						Result<JStructure, CompileError> jStructResult = Serialize.deserialize(JStructure.class, child);
+						Result<JStructure, CompileError> jStructResult = JavaSerializer.deserialize(JStructure.class, child);
 						if (jStructResult instanceof Ok<JStructure, CompileError> jStructOk) {
 							System.out.println("✅ JStructure deserialization SUCCESS");
 							System.out.println("JStructure actual type: " + jStructOk.value().getClass().getSimpleName());
@@ -65,7 +65,7 @@ public class SealedInterfaceDeserializationTest {
 						}
 
 						System.out.println("Finally trying to deserialize as JavaRootSegment interface...");
-						Result<JavaRootSegment, CompileError> segmentResult = Serialize.deserialize(JavaRootSegment.class, child);
+						Result<JavaRootSegment, CompileError> segmentResult = JavaSerializer.deserialize(JavaRootSegment.class, child);
 						if (segmentResult instanceof Ok<JavaRootSegment, CompileError> segmentOk) {
 							System.out.println("✅ JavaRootSegment deserialization SUCCESS");
 							System.out.println("Segment actual type: " + segmentOk.value().getClass().getSimpleName());
@@ -95,7 +95,7 @@ public class SealedInterfaceDeserializationTest {
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("Trying to deserialize full JavaRoot...");
-			Result<JavaRoot, CompileError> javaRootResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> javaRootResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 
 			if (javaRootResult instanceof Ok<JavaRoot, CompileError> javaRootOk) {
 				System.out.println("✅ JavaRoot deserialization SUCCESS");

@@ -1,4 +1,4 @@
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
 import magma.result.Result;
@@ -32,7 +32,7 @@ public class DebugFunctionPointerTest {
 			System.out.println("\n=== Lexed Node ===");
 			System.out.println(lexOk.value().format(0));
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
@@ -82,8 +82,8 @@ public class DebugFunctionPointerTest {
 						}
 					});
 
-					Result<magma.compile.Node, CompileError> serializeResult = Serialize.serialize(CRoot.class,
-							transformOk.value());
+					Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class,
+																																															transformOk.value());
 					assertTrue(serializeResult instanceof Ok<?, ?>, () -> "Serialization failed: " + serializeResult);
 
 					if (serializeResult instanceof Ok<magma.compile.Node, CompileError> serOk) {

@@ -1,6 +1,6 @@
 package magma;
 
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.JRoot;
 import static magma.compile.Lang.JavaRoot;
-import static org.junit.jupiter.api.Assertions.*;
 
 public class PackageImportRecordTest {
 
@@ -33,7 +32,7 @@ public class PackageImportRecordTest {
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
@@ -67,7 +66,7 @@ public class PackageImportRecordTest {
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());

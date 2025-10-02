@@ -1,6 +1,6 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.option.Some;
 import magma.result.Ok;
 import org.junit.jupiter.api.Test;
@@ -21,7 +21,7 @@ public class TestFunctionSerialization {
 		System.out.println("Created function with body size: " + func.body().size());
 
 		// Serialize it
-		var serResult = Serialize.serialize(Lang.Function.class, func); if (serResult instanceof Ok<Node, ?>(var node)) {
+		var serResult = JavaSerializer.serialize(Lang.Function.class, func); if (serResult instanceof Ok<Node, ?>(var node)) {
 			System.out.println("Serialization successful"); System.out.println("Node: " + node);
 
 			// Try to generate it

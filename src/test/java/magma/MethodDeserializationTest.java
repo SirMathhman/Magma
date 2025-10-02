@@ -1,6 +1,6 @@
 package magma;
 
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.option.Some;
 import magma.result.Err;
@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MethodDeserializationTest {
 
@@ -55,7 +55,7 @@ public class MethodDeserializationTest {
 									System.out.println("  Found method node! Trying to deserialize...");
 
 									// Try to deserialize as Method directly
-									Result<Method, CompileError> methodResult = Serialize.deserialize(Method.class, recordChild);
+									Result<Method, CompileError> methodResult = JavaSerializer.deserialize(Method.class, recordChild);
 									if (methodResult instanceof Ok<Method, CompileError> methodOk) {
 										System.out.println("  ✅ Method deserialization SUCCESS");
 										System.out.println("    Method name: " + methodOk.value().definition().name());
@@ -66,7 +66,7 @@ public class MethodDeserializationTest {
 
 									// Try to deserialize as JavaStructureSegment interface
 									Result<JStructureSegment, CompileError> segmentResult =
-											Serialize.deserialize(JStructureSegment.class, recordChild);
+											JavaSerializer.deserialize(JStructureSegment.class, recordChild);
 									if (segmentResult instanceof Ok<JStructureSegment, CompileError> segmentOk) {
 										System.out.println("  ✅ JavaStructureSegment deserialization SUCCESS");
 										System.out.println("    Segment actual type: " + segmentOk.value().getClass().getSimpleName());

@@ -1,4 +1,4 @@
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -6,7 +6,8 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test that validates type mismatch errors are properly detected.
@@ -39,7 +40,7 @@ public class TypeMismatchValidationTest {
 			System.out.println("✅ Lexing succeeded");
 
 			// Try to deserialize - this should succeed with our fix
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
 
 			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization succeeded (as expected with correct types)");

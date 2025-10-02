@@ -1,7 +1,7 @@
 import magma.Main;
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.option.Option;
 import magma.result.Ok;
@@ -24,7 +24,7 @@ public class MainIntegrationTest {
 
 		Node node = ((Ok<Node, CompileError>) lex).value();
 
-		Result<Lang.JavaRoot, CompileError> des = Serialize.deserialize(Lang.JavaRoot.class, node);
+		Result<Lang.JavaRoot, CompileError> des = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
 		assertTrue(des instanceof Ok<?, ?>, () -> "Deserialization failed: " + des);
 
 		Lang.JavaRoot javaRoot = ((Ok<Lang.JavaRoot, CompileError>) des).value(); assertNotNull(javaRoot.children());

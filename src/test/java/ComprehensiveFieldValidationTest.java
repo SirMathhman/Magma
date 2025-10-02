@@ -1,16 +1,16 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.compile.Tag;
 import magma.compile.error.CompileError;
 import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Comprehensive test for the field consumption validation feature.
@@ -32,7 +32,7 @@ public class ComprehensiveFieldValidationTest {
 	public void testPerfectMatch() {
 		Node node = new Node().retype("Person").withString("name", "Alice").withString("email", "alice@example.com");
 
-		Result<Person, CompileError> result = Serialize.deserialize(Person.class, node);
+		Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, node);
 		assertTrue(result instanceof Ok<?, ?>, () -> "Expected successful deserialization but got: " + result);
 	}
 
@@ -41,7 +41,7 @@ public class ComprehensiveFieldValidationTest {
 		// Test 1: Without optional field
 		Node node1 = new Node().retype("Employee").withString("name", "Bob").withString("department", "Engineering");
 
-		Result<Employee, CompileError> result1 = Serialize.deserialize(Employee.class, node1);
+		Result<Employee, CompileError> result1 = JavaSerializer.deserialize(Employee.class, node1);
 		assertTrue(result1 instanceof Ok<?, ?>, () -> "Expected Ok when optional absent but got: " + result1);
 
 		// Test 2: With optional field
@@ -50,7 +50,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("department", "Marketing")
 													 .withString("title", "Senior Manager");
 
-		Result<Employee, CompileError> result2 = Serialize.deserialize(Employee.class, node2);
+		Result<Employee, CompileError> result2 = JavaSerializer.deserialize(Employee.class, node2);
 		assertTrue(result2 instanceof Ok<?, ?>, () -> "Expected Ok when optional present but got: " + result2);
 
 		// Test 3: With extra field that should cause error
@@ -60,7 +60,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("title", "Director")
 													 .withString("salary", "100000"); // This should cause an error
 
-		Result<Employee, CompileError> result3 = Serialize.deserialize(Employee.class, node3);
+		Result<Employee, CompileError> result3 = JavaSerializer.deserialize(Employee.class, node3);
 		assertTrue(result3 instanceof Err<?, ?>, () -> "Expected Err due to extra field 'salary' but got: " + result3);
 	}
 
@@ -73,7 +73,7 @@ public class ComprehensiveFieldValidationTest {
 															.withString("name", "Development Team")
 															.withNodeList("members", List.of(person1, person2));
 
-		Result<Team, CompileError> result = Serialize.deserialize(Team.class, teamNode);
+		Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
 		assertTrue(result instanceof Ok<?, ?>, () -> "Expected Ok when list fields consumed but got: " + result);
 	}
 
@@ -87,7 +87,7 @@ public class ComprehensiveFieldValidationTest {
 		Node teamNode =
 				new Node().retype("Team").withString("name", "QA Team").withNodeList("members", List.of(personWithExtra));
 
-		Result<Team, CompileError> result = Serialize.deserialize(Team.class, teamNode);
+		Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
 		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to nested leftover fields but got: " + result);
 	}
 
@@ -101,7 +101,7 @@ public class ComprehensiveFieldValidationTest {
 																					 new Node().withString("theme", "dark")) // Leftover nested object
 																 .withNodeList("tags", List.of(new Node().withString("tag", "vip"))); // Leftover list
 
-		Result<Person, CompileError> result = Serialize.deserialize(Person.class, complexNode);
+		Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, complexNode);
 		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to multiple leftover fields but got: " + result);
 	}
 }

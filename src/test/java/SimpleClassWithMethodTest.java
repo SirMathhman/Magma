@@ -1,4 +1,4 @@
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -6,7 +6,8 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class SimpleClassWithMethodTest {
 
@@ -33,7 +34,7 @@ public class SimpleClassWithMethodTest {
 		System.out.println("\n✅ Lexing succeeded"); System.out.println("\nLexed structure:");
 		System.out.println(lexedNode.format(0));
 
-		Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexedNode);
+		Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexedNode);
 		if (deserializeResult instanceof Err<?, ?> err) {
 			System.err.println("\n❌ DESERIALIZATION FAILED: " + err.error()); fail("Deserialization failed: " + err.error());
 		}

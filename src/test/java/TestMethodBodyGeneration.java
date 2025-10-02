@@ -1,6 +1,6 @@
+import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.compile.Serialize;
 import magma.option.Some;
 import magma.result.Ok;
 import org.junit.jupiter.api.Test;
@@ -18,7 +18,7 @@ public class TestMethodBodyGeneration {
 				""";
 
 		var lexResult = Lang.JRoot().lex(code); if (lexResult instanceof Ok<Node, ?>(var node)) {
-			var deserResult = Serialize.deserialize(Lang.JavaRoot.class, node);
+			var deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
 			if (deserResult instanceof Ok<Lang.JavaRoot, ?>(var root)) {
 				for (var child : root.children()) {
 					if (child instanceof Lang.JClass jClass) {

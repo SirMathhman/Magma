@@ -1,5 +1,5 @@
 import magma.Main;
-import magma.compile.Serialize;
+import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -11,7 +11,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DiagnoseMain {
 
@@ -39,7 +40,7 @@ public class DiagnoseMain {
 		}
 
 		// Step 2: Deserialize to JavaRoot
-		Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexedNode);
+		Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexedNode);
 		if (deserializeResult instanceof Err<?, ?> err) {
 			System.err.println("❌ DESERIALIZATION FAILED: " + err.error()); fail("Deserialization failed: " + err.error());
 		}
@@ -85,7 +86,7 @@ public class DiagnoseMain {
 		});
 
 		// Step 4: Serialize to C++
-		Result<magma.compile.Node, CompileError> serializeResult = Serialize.serialize(CRoot.class, cRoot);
+		Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cRoot);
 		if (serializeResult instanceof Err<?, ?> err) {
 			System.err.println("❌ SERIALIZATION FAILED: " + err.error()); fail("Serialization failed: " + err.error());
 		}
