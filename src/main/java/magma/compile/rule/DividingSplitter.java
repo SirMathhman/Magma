@@ -6,7 +6,7 @@ import magma.option.Option;
 import java.util.List;
 
 public record DividingSplitter(Divider divider, Merger merger) implements Splitter {
-	private DividingSplitter(Divider divider) {
+	public DividingSplitter(Divider divider) {
 		this(divider, new KeepFirstMerger());
 	}
 

@@ -28,23 +28,23 @@ public class DivideState {
 		return segments.stream();
 	}
 
-	DivideState enter() {
+	public DivideState enter() {
 		this.depth = depth + 1; return this;
 	}
 
-	DivideState advance() {
+	public DivideState advance() {
 		segments.add(buffer.toString()); this.buffer = new StringBuilder(); return this;
 	}
 
-	DivideState append(char c) {
+	public DivideState append(char c) {
 		buffer.append(c); return this;
 	}
 
-	DivideState exit() {
+	public DivideState exit() {
 		this.depth = depth - 1; return this;
 	}
 
-	boolean isShallow() {
+	public boolean isShallow() {
 		return depth == 1;
 	}
 
