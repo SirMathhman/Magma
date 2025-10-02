@@ -1,5 +1,7 @@
 package magma.option;
 
+import magma.Tuple;
+
 import java.util.Objects;
 import java.util.function.Function;
 
@@ -21,4 +23,6 @@ public sealed interface Option<T> permits Some, None {
 	<R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
 	T orElse(T other);
+
+	Tuple<Boolean, T> toTuple(T other);
 }
