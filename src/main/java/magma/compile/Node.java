@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public final class Node {
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
@@ -80,68 +81,61 @@ public final class Node {
 	}
 
 	public String format(int depth) {
-		StringBuilder builder = new StringBuilder();
-		builder.append("\t".repeat(depth));
-		appendJson(builder, depth);
-		return builder.toString();
+		String indent = "\t".repeat(depth);
+		String childIndent = "\t".repeat(depth + 1);
+		String builder = indent + appendJsonPure(depth);
+		return builder;
 	}
 
-	private void appendJson(StringBuilder builder, int depth) {
+	private String appendJsonPure(int depth) {
 		final String indent = "\t".repeat(depth);
 		final String childIndent = "\t".repeat(depth + 1);
+		StringBuilder builder = new StringBuilder();
 		builder.append("{");
-		boolean hasFields = false;
 
-		if (maybeType instanceof Some<String>(String value)) {
+		boolean[] hasFields = {false};
+
+		Option<String> typeOpt = maybeType;
+		if (typeOpt instanceof Some<String>(String value)) {
 			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(value)).append("\"");
-			hasFields = true;
+			hasFields[0] = true;
 		}
 
-		final List<Map.Entry<String, String>> sortedStrings =
-				strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-
-		for (Map.Entry<String, String> entry : sortedStrings) {
-			builder.append(hasFields ? ",\n" : "\n");
+		strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent)
 						 .append('"')
 						 .append(escape(entry.getKey()))
 						 .append("\": \"")
 						 .append(escape(entry.getValue()))
-						 .append("\"");
-			hasFields = true;
-		}
+						 .append('"');
+			hasFields[0] = true;
+		});
 
-		final List<Map.Entry<String, Node>> sortedNodes =
-				nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-		for (Map.Entry<String, Node> entry : sortedNodes) {
-			builder.append(hasFields ? ",\n" : "\n");
+		nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
-			entry.getValue().appendJson(builder, depth + 1);
-			hasFields = true;
-		}
+			builder.append(entry.getValue().appendJsonPure(depth + 1));
+			hasFields[0] = true;
+		});
 
-		final List<Map.Entry<String, List<Node>>> sortedLists =
-				nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).toList();
-
-		for (Map.Entry<String, List<Node>> entry : sortedLists) {
-			builder.append(hasFields ? ",\n" : "\n");
+		nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
 			List<Node> list = entry.getValue();
 			if (!list.isEmpty()) {
 				builder.append("\n");
-				for (int i = 0; i < list.size(); i++) {
-					builder.append("\t".repeat(depth + 2));
-					list.get(i).appendJson(builder, depth + 2);
-					if (i < list.size() - 1) builder.append(",\n");
-					else builder.append("\n");
-				}
-				builder.append(childIndent);
+				builder.append(list.stream()
+													 .map(node -> "\t".repeat(depth + 2) + node.appendJsonPure(depth + 2))
+													 .collect(Collectors.joining(",\n")));
+				builder.append("\n").append(childIndent);
 			}
 			builder.append("]");
-			hasFields = true;
-		}
+			hasFields[0] = true;
+		});
 
-		if (hasFields) builder.append("\n").append(indent);
+		if (hasFields[0]) builder.append("\n").append(indent);
 		builder.append("}");
+		return builder.toString();
 	}
 }
