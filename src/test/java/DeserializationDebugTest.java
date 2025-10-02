@@ -2,11 +2,13 @@ import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
+import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DeserializationDebugTest {
 
@@ -47,22 +49,15 @@ public class DeserializationDebugTest {
 								System.out.println("    Method found!");
 								System.out.println("      Definition: " + method.definition());
 								System.out.println("      Params: " + method.params());
-								if (method.params() instanceof magma.option.Some<?> some) {
-									System.out.println("      Params content: " + some.value());
-								} else {
-									System.out.println("      Params is None - THIS IS THE BUG!");
-								}
+								if (method.params() instanceof Some<?>(? value)) System.out.println("      Params content: " + value);
+								else System.out.println("      Params is None - THIS IS THE BUG!");
 								System.out.println("      Body: " + method.body());
 							}
 						});
 					}
 				});
-			} else {
-				fail("Deserialization failed: " + deserializeResult);
-			}
-		} else {
-			fail("Lexing failed: " + lexResult);
-		}
+			} else fail("Deserialization failed: " + deserializeResult);
+		} else fail("Lexing failed: " + lexResult);
 	}
 
 	@Test
@@ -75,6 +70,6 @@ public class DeserializationDebugTest {
 
 		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
 
-		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Simple method lexing failed: " + lexResult);
+		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Simple method lexing failed: " + lexResult);
 	}
 }

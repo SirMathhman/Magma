@@ -1,5 +1,7 @@
 import magma.compile.Lang;
 import magma.compile.Node;
+import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -20,9 +22,9 @@ public class DebugPlaceholderTest {
 		System.out.println("=== Testing JFunctionSegment parsing ==="); System.out.flush();
 		Result<Node, ?> result = Lang.JRoot().lex(code);
 
-		if (result instanceof Ok<Node, ?>(var node)) {
+		if (result instanceof Ok<Node, ?>(Node node)) {
 			System.out.println("Lexed successfully"); System.out.flush(); printNode(node, 0); System.out.flush();
-		} else if (result instanceof Err<?, ?>(var error)) {
+		} else if (result instanceof Err<?, ?>(Object error)) {
 			System.out.println("Lex failed: " + error); System.out.flush();
 		}
 	}
@@ -30,13 +32,11 @@ public class DebugPlaceholderTest {
 	private void printNode(Node node, int depth) {
 		String indent = "  ".repeat(depth); System.out.println(indent + "Node:");
 
-		if (node.maybeType instanceof magma.option.Some<?>(var type)) {
-			System.out.println(indent + "  @type: " + type);
-		}
+		if (node.maybeType instanceof Some<?>(Object type)) System.out.println(indent + "  @type: " + type);
 
 		// Print string fields
 		for (String key : node.getStringKeys()) {
-			var value = node.findString(key); if (value instanceof magma.option.Some<?>(var str)) {
+			Option<String> value = node.findString(key); if (value instanceof Some<?>(Object str)) {
 				String escaped = str.toString().replace("\n", "\\n").replace("\t", "\\t");
 				System.out.println(indent + "  " + key + " (string): " + escaped.substring(0, Math.min(50, escaped.length())));
 			}

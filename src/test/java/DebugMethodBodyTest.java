@@ -1,12 +1,15 @@
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.Serialize;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DebugMethodBodyTest {
 	@Test
@@ -21,46 +24,43 @@ public class DebugMethodBodyTest {
 				""";
 
 		System.out.println("=== Parsing Java code ==="); Result<Node, ?> lexResult = Lang.JRoot().lex(code);
-		if (lexResult instanceof Err<?, ?>(var err)) {
+		if (lexResult instanceof Err<?, ?>(Object err)) {
 			fail("Lex failed: " + err); return;
 		} Node lexed = ((Ok<Node, ?>) lexResult).value(); System.out.println("Lexed successfully");
 
 		System.out.println("\n=== Deserializing ===");
 		Result<Lang.JavaRoot, ?> result = Serialize.deserialize(Lang.JavaRoot.class, lexed);
 
-		if (result instanceof Ok<Lang.JavaRoot, ?>(var root)) {
+		if (result instanceof Ok<Lang.JavaRoot, ?>(Lang.JavaRoot root)) {
 			System.out.println("✅ Deserialization successful");
 			System.out.println("JavaRoot children: " + root.children().size());
 
-			for (var child : root.children()) {
+			for (Lang.JavaRootSegment child : root.children())
 				if (child instanceof Lang.JClass jClass) {
 					System.out.println("\n=== Found JClass: " + jClass.name() + " ===");
 					System.out.println("JClass children: " + jClass.children().size());
 
-					for (var member : jClass.children()) {
+					for (Lang.JStructureSegment member : jClass.children()) {
 						if (member instanceof Lang.Method method) {
 							System.out.println("\n=== Found Method ===");
 							System.out.println("Method definition: " + method.definition());
-							System.out.println("Body present: " + (method.body() instanceof magma.option.Some));
+							System.out.println("Body present: " + (method.body() instanceof Some));
 
-							if (method.body() instanceof magma.option.Some<?>(var body)) {
+							if (method.body() instanceof Some<?>(Object body)) {
 								System.out.println("Body type: " + body.getClass().getName());
 								System.out.println("Body content: " + body);
 
-								if (body instanceof java.util.List<?> list) {
+								if (body instanceof List<?> list) {
 									System.out.println("Body list size: " + list.size()); for (int i = 0; i < list.size(); i++) {
-										var item = list.get(i);
+										Object item = list.get(i);
 										System.out.println("  [" + i + "] Type: " + item.getClass().getSimpleName() + ", Value: " + item);
 									}
 								}
-							} else {
-								System.out.println("❌ Body is None!");
-							}
+							} else System.out.println("❌ Body is None!");
 						}
 					}
 				}
-			}
-		} else if (result instanceof Err<?, ?>(var err)) {
+		} else if (result instanceof Err<?, ?>(Object err)) {
 			System.out.println("❌ Deserialization failed: " + err); fail("Deserialization should succeed");
 		}
 	}

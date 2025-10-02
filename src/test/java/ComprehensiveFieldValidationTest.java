@@ -6,11 +6,11 @@ import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import org.junit.jupiter.api.Test;
 
 import java.util.List;
 
-import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Comprehensive test for the field consumption validation feature.
@@ -33,7 +33,7 @@ public class ComprehensiveFieldValidationTest {
 		Node node = new Node().retype("Person").withString("name", "Alice").withString("email", "alice@example.com");
 
 		Result<Person, CompileError> result = Serialize.deserialize(Person.class, node);
-		assertTrue(result instanceof Ok<?, ?>, () -> "Expected successful deserialization but got: " + result);
+		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected successful deserialization but got: " + result);
 	}
 
 	@Test
@@ -42,7 +42,7 @@ public class ComprehensiveFieldValidationTest {
 		Node node1 = new Node().retype("Employee").withString("name", "Bob").withString("department", "Engineering");
 
 		Result<Employee, CompileError> result1 = Serialize.deserialize(Employee.class, node1);
-		assertTrue(result1 instanceof Ok<?, ?>, () -> "Expected Ok when optional absent but got: " + result1);
+		assertInstanceOf(Ok<?, ?>.class, result1, () -> "Expected Ok when optional absent but got: " + result1);
 
 		// Test 2: With optional field
 		Node node2 = new Node().retype("Employee")
@@ -51,7 +51,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("title", "Senior Manager");
 
 		Result<Employee, CompileError> result2 = Serialize.deserialize(Employee.class, node2);
-		assertTrue(result2 instanceof Ok<?, ?>, () -> "Expected Ok when optional present but got: " + result2);
+		assertInstanceOf(Ok<?, ?>.class, result2, () -> "Expected Ok when optional present but got: " + result2);
 
 		// Test 3: With extra field that should cause error
 		Node node3 = new Node().retype("Employee")
@@ -61,7 +61,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("salary", "100000"); // This should cause an error
 
 		Result<Employee, CompileError> result3 = Serialize.deserialize(Employee.class, node3);
-		assertTrue(result3 instanceof Err<?, ?>, () -> "Expected Err due to extra field 'salary' but got: " + result3);
+		assertInstanceOf(Err<?, ?>.class, result3, () -> "Expected Err due to extra field 'salary' but got: " + result3);
 	}
 
 	@Test
@@ -74,7 +74,7 @@ public class ComprehensiveFieldValidationTest {
 															.withNodeList("members", List.of(person1, person2));
 
 		Result<Team, CompileError> result = Serialize.deserialize(Team.class, teamNode);
-		assertTrue(result instanceof Ok<?, ?>, () -> "Expected Ok when list fields consumed but got: " + result);
+		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok when list fields consumed but got: " + result);
 	}
 
 	@Test
@@ -88,7 +88,7 @@ public class ComprehensiveFieldValidationTest {
 				new Node().retype("Team").withString("name", "QA Team").withNodeList("members", List.of(personWithExtra));
 
 		Result<Team, CompileError> result = Serialize.deserialize(Team.class, teamNode);
-		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to nested leftover fields but got: " + result);
+		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to nested leftover fields but got: " + result);
 	}
 
 	@Test
@@ -102,6 +102,6 @@ public class ComprehensiveFieldValidationTest {
 																 .withNodeList("tags", List.of(new Node().withString("tag", "vip"))); // Leftover list
 
 		Result<Person, CompileError> result = Serialize.deserialize(Person.class, complexNode);
-		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to multiple leftover fields but got: " + result);
+		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to multiple leftover fields but got: " + result);
 	}
 }

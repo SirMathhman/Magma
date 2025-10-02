@@ -1,12 +1,15 @@
+import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * Test that validates type mismatch errors are properly detected.
@@ -32,20 +35,20 @@ public class TypeMismatchValidationTest {
 		System.out.println("This test verifies that if Method.body was Option<String>,");
 		System.out.println("we would get an error since the parser produces a list.");
 
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
 
-		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
+		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			System.out.println("✅ Lexing succeeded");
 
 			// Try to deserialize - this should succeed with our fix
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
 				System.out.println("✅ Deserialization succeeded (as expected with correct types)");
 
 				// Find the method and verify it has a body
-				deserOk.value()
+				value
 							 .children()
 							 .stream()
 							 .filter(child -> child instanceof JClass)
@@ -55,12 +58,13 @@ public class TypeMismatchValidationTest {
 							 .map(seg -> (Method) seg)
 							 .forEach(method -> {
 								 System.out.println("Method: " + method.definition().name());
-								 System.out.println("Body present: " + (method.body() instanceof magma.option.Some<?>)); assertTrue(
-										 method.body() instanceof magma.option.Some<?>,
-										 "Method body should be present (as list of JFunctionSegment)");
+								 System.out.println("Body present: " + (method.body() instanceof Some<?>));
+								 assertInstanceOf(Some<?>.class,
+																	method.body(),
+																	"Method body should be present (as list of JFunctionSegment)");
 							 });
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
-				System.err.println("❌ Deserialization failed: " + err.error());
+			} else if (deserializeResult instanceof Err<JavaRoot, CompileError>(CompileError error)) {
+				System.err.println("❌ Deserialization failed: " + error);
 				fail("Deserialization should succeed with correct Method type");
 			}
 		}

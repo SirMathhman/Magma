@@ -5,9 +5,9 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-
 import org.junit.jupiter.api.Test;
-import static org.junit.jupiter.api.Assertions.*;
+
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 /**
  * Test cases for the new field consumption validation feature.
@@ -35,7 +35,7 @@ public class FieldConsumptionValidationTest {
 		Node node = new Node().retype("TestRecord").withString("name", "John").withString("age", "25");
 
 		Result<TestRecord, CompileError> result = Serialize.deserialize(TestRecord.class, node);
-		assertTrue(result instanceof Ok<?, ?>, () -> "Expected Ok but got: " + result);
+		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok but got: " + result);
 	}
 
 	/**
@@ -52,7 +52,7 @@ public class FieldConsumptionValidationTest {
 													.withString("email", "john@example.com"); // This field won't be consumed either
 
 		Result<PartialRecord, CompileError> result = Serialize.deserialize(PartialRecord.class, node);
-		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to leftover fields but got: " + result);
+		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to leftover fields but got: " + result);
 	}
 
 	/**
@@ -72,6 +72,6 @@ public class FieldConsumptionValidationTest {
 													.withString("department", "Engineering"); // Extra string field
 
 		Result<TestRecord, CompileError> result = Serialize.deserialize(TestRecord.class, node);
-		assertTrue(result instanceof Err<?, ?>, () -> "Expected Err due to extra fields but got: " + result);
+		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to extra fields but got: " + result);
 	}
 }

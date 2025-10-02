@@ -1,5 +1,6 @@
 package magma;
 
+import magma.compile.Node;
 import magma.compile.Serialize;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -8,7 +9,8 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class RealSomeJavaTest {
 
@@ -40,45 +42,35 @@ public class RealSomeJavaTest {
 		System.out.println("=== Testing Real Some.java ===");
 
 		// Test each step of the pipeline
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(actualSomeJava);
-		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
+		Result<Node, CompileError> lexResult = JRoot().lex(actualSomeJava);
+		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexOk.value());
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, value);
+			if (deserializeResult instanceof Ok<JavaRoot, CompileError>(JavaRoot value)) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				System.out.println("JavaRoot children count: " + value.children().size()); value.children().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
-				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
+				Result<CRoot, CompileError> transformResult = Main.transform(value);
+				if (transformResult instanceof Ok<CRoot, CompileError>(CRoot value)) {
 					System.out.println("✅ Transform SUCCESS");
-					System.out.println("CRoot children count: " + transformOk.value().children().size());
-					transformOk.value().children().forEach(child -> {
+					System.out.println("CRoot children count: " + value.children().size()); value.children().forEach(child -> {
 						System.out.println("  CRoot child: " + child.getClass().getSimpleName());
 					});
-				} else {
-					System.out.println("❌ Transform FAILED: " + transformResult);
-				}
-			} else {
-				System.out.println("❌ Deserialization FAILED: " + deserializeResult);
-			}
-		} else {
-			System.out.println("❌ Lexing FAILED: " + lexResult);
-		}
+				} else System.out.println("❌ Transform FAILED: " + transformResult);
+			} else System.out.println("❌ Deserialization FAILED: " + deserializeResult);
+		} else System.out.println("❌ Lexing FAILED: " + lexResult);
 
 		Result<String, CompileError> compileResult = Main.compile(actualSomeJava);
 
-		if (compileResult instanceof Ok<String, CompileError> ok) {
+		if (compileResult instanceof Ok<String, CompileError>(String value)) {
 			System.out.println("✅ Compilation SUCCESS");
-			System.out.println("Generated C++ code:");
-			System.out.println(ok.value());
-			assertFalse(ok.value().isEmpty(), "Generated C++ should not be empty");
-		} else if (compileResult instanceof Err<String, CompileError> err) {
-			System.err.println("❌ Compilation FAILED: " + err.error());
-			fail("Compilation failed: " + err.error());
+			System.out.println("Generated C++ code:"); System.out.println(value);
+			assertFalse(value.isEmpty(), "Generated C++ should not be empty");
+		} else if (compileResult instanceof Err<String, CompileError>(CompileError error)) {
+			System.err.println("❌ Compilation FAILED: " + error); fail("Compilation failed: " + error);
 		}
 	}
 }
