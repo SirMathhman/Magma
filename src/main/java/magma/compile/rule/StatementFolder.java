@@ -12,8 +12,8 @@ public class StatementFolder implements Folder {
 				return appended.popAndAppendToOption().orElse(appended).advance().exit();
 			return appended.advance().exit();
 		}
-		if (c == '{') return appended.enter();
-		if (c == '}') return appended.exit();
+		if (c == '{' || c == '(') return appended.enter();
+		if (c == '}' || c == ')') return appended.exit();
 		return appended;
 	}
 

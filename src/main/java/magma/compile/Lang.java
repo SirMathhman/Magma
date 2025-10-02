@@ -303,12 +303,12 @@ public class Lang {
 
 	private static Rule JMethodSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")), Invalid())));
+		rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")))));
 		return rule;
 	}
 
 	private static Rule JMethodStatementValue() {
-		return Or(Return(JExpression()), Suffix(Invokable(), ";"));
+		return Or(Return(JExpression()), Invokable());
 	}
 
 	private static Rule Invokable() {
