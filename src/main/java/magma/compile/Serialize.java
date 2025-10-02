@@ -17,9 +17,11 @@ import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 public class Serialize {
 	// Public API
@@ -62,7 +64,10 @@ public class Serialize {
 		Node result = createNodeWithType(type);
 		List<CompileError> errors = new ArrayList<>();
 
-		for (RecordComponent component : type.getRecordComponents())
+		RecordComponent[] recordComponents = type.getRecordComponents();
+		int i = 0;
+		while (i < recordComponents.length) {
+			RecordComponent component = recordComponents[i];
 			try {
 				Object fieldValue = component.getAccessor().invoke(value);
 				Result<Node, CompileError> fieldResult = serializeField(component, fieldValue);
@@ -75,6 +80,8 @@ public class Serialize {
 																		new StringContext(type.getName()),
 																		List.of(new CompileError(e.getMessage(), new StringContext(component.getName())))));
 			}
+			i++;
+		}
 
 		return errors.isEmpty() ? new Ok<>(result)
 														: new Err<>(new CompileError("Failed to serialize '" + type.getSimpleName() + "'",
@@ -155,11 +162,10 @@ public class Serialize {
 		List<Node> nodes = new ArrayList<>();
 		List<CompileError> errors = new ArrayList<>();
 
-		for (Object element : list) {
-			Result<Node, CompileError> elementResult = serializeValue(elementClass, element);
+		list.stream().map(element -> serializeValue(elementClass, element)).forEach(elementResult -> {
 			if (elementResult instanceof Ok<Node, CompileError>(Node value)) nodes.add(value);
 			else if (elementResult instanceof Err<Node, CompileError>(CompileError error)) errors.add(error);
-		}
+		});
 
 		return errors.isEmpty() ? new Ok<>(nodes) : new Err<>(new CompileError("Failed to serialize list elements",
 																																					 new StringContext("list"),
@@ -181,14 +187,21 @@ public class Serialize {
 				new NodeContext(node)));
 
 		// Try direct permitted subclasses
-		for (Class<?> permitted : type.getPermittedSubclasses()) {
+		Class<?>[] permittedSubclasses = type.getPermittedSubclasses();
+		int i = 0;
+		while (i < permittedSubclasses.length) {
+			Class<?> permitted = permittedSubclasses[i];
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
 			if (maybeIdentifier instanceof Some<String>(String identifier) && identifier.equals(nodeType))
 				return deserializeValue(permitted, node);
+			i++;
 		}
 
 		// Try nested sealed interfaces
-		for (Class<?> permitted : type.getPermittedSubclasses())
+		Class<?>[] subclasses = type.getPermittedSubclasses();
+		int j = 0;
+		while (j < subclasses.length) {
+			Class<?> permitted = subclasses[j];
 			if (permitted.isSealed() && !permitted.isRecord()) {
 				Result<Object, CompileError> recursiveResult = deserializeSealed(permitted, node);
 				if (recursiveResult instanceof Ok<?, ?>(Object value) && type.isAssignableFrom(value.getClass()))
@@ -199,6 +212,8 @@ public class Serialize {
 				// "unknown tag" error
 				if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return recursiveResult;
 			}
+			j++;
+		}
 
 		// Collect all valid tags for better error message
 		List<String> validTags = collectAllValidTags(type);
@@ -228,12 +243,15 @@ public class Serialize {
 		Option<String> closest = Option.empty();
 		int minDistance = Integer.MAX_VALUE;
 
-		for (String tag : validTags) {
+		int i = 0;
+		while (i < validTags.size()) {
+			String tag = validTags.get(i);
 			int distance = levenshteinDistance(nodeType.toLowerCase(), tag.toLowerCase());
 			if (distance < minDistance && distance <= 2) { // Only suggest if reasonably close
 				minDistance = distance;
 				closest = Option.of(tag);
 			}
+			i++;
 		}
 
 		return closest;
@@ -242,37 +260,46 @@ public class Serialize {
 	private static int levenshteinDistance(String s1, String s2) {
 		int[][] dp = new int[s1.length() + 1][s2.length() + 1];
 
-		for (int i = 0; i <= s1.length(); i++) dp[i][0] = i;
-		for (int j = 0; j <= s2.length(); j++) dp[0][j] = j;
+		IntStream.rangeClosed(0, s1.length()).forEach(i -> dp[i][0] = i);
+		IntStream.rangeClosed(0, s2.length()).forEach(j -> dp[0][j] = j);
 
-		for (int i = 1; i <= s1.length(); i++)
-			for (int j = 1; j <= s2.length(); j++) {
+		int i = 1;
+		while (i <= s1.length()) {
+			int j = 1;
+			while (j <= s2.length()) {
 				if (s1.charAt(i - 1) == s2.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
 				else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+				j++;
 			}
+			i++;
+		}
 
 		return dp[s1.length()][s2.length()];
 	}
 
 	private static List<String> collectAllValidTags(Class<?> sealedType) {
 		List<String> tags = new ArrayList<>();
-		for (Class<?> permitted : sealedType.getPermittedSubclasses()) {
+		// Recursively collect from nested sealed interfaces
+		Arrays.stream(sealedType.getPermittedSubclasses()).forEach(permitted -> {
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
 			if (maybeIdentifier instanceof Some<String>(String tag)) tags.add(tag);
-			// Recursively collect from nested sealed interfaces
 			if (permitted.isSealed() && !permitted.isRecord()) tags.addAll(collectAllValidTags(permitted));
-		}
+		});
 		return tags;
 	}
 
 	private static boolean canMatchType(Class<?> sealedType, String nodeType) {
 		// Check if this sealed type or any of its permitted subtypes could match the
 		// given node type
-		for (Class<?> permitted : sealedType.getPermittedSubclasses()) {
+		Class<?>[] permittedSubclasses = sealedType.getPermittedSubclasses();
+		int i = 0;
+		while (i < permittedSubclasses.length) {
+			Class<?> permitted = permittedSubclasses[i];
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
 			if (maybeIdentifier instanceof Some<String>(String tag) && tag.equals(nodeType)) return true;
 			// Recursively check nested sealed interfaces
 			if (permitted.isSealed() && !permitted.isRecord()) if (canMatchType(permitted, nodeType)) return true;
+			i++;
 		}
 		return false;
 	}
@@ -294,13 +321,13 @@ public class Serialize {
 		List<CompileError> errors = new ArrayList<>();
 		Set<String> consumedFields = new HashSet<>();
 
-		for (int i = 0; i < components.length; i++) {
+		IntStream.range(0, components.length).forEach(i -> {
 			Result<Object, CompileError> componentResult = deserializeField(components[i], node, consumedFields);
 			switch (componentResult) {
 				case Ok<Object, CompileError>(Object value) -> arguments[i] = value;
 				case Err<Object, CompileError>(CompileError error) -> errors.add(error);
 			}
-		}
+		});
 
 		// Validate that all fields were consumed
 		Option<CompileError> validationError = validateAllFieldsConsumed(node, consumedFields, type);
@@ -440,7 +467,9 @@ public class Serialize {
 		List<CompileError> errors = new ArrayList<>();
 		int index = 0;
 
-		for (Node childNode : nodeList) {
+		int i = 0;
+		while (i < nodeList.size()) {
+			Node childNode = nodeList.get(i);
 			Result<Object, CompileError> childResult = deserializeValue(elementClass, childNode);
 			if (childResult instanceof Ok<Object, CompileError>(Object value)) results.add(value);
 			else // If the target is a sealed type and node has a type tag, check if it's an
@@ -457,6 +486,7 @@ public class Serialize {
 					} else // For non-sealed types, only treat as error if it looks like it should match
 						if (shouldBeDeserializableAs(childNode, elementClass)) errors.add(error);
 			index++;
+			i++;
 		}
 
 		return errors.isEmpty() ? new Ok<>(results) : new Err<>(new CompileError(
@@ -506,19 +536,29 @@ public class Serialize {
 	}
 
 	private static Option<String> findStringInChildren(Node node, String key) {
-		for (Node child : node.nodes.values()) {
-			Option<String> result = child.findString(key);
-			if (result instanceof Some<String>) return result;
-			result = findStringInChildren(child, key);
-			if (result instanceof Some<String>) return result;
-		}
-		for (List<Node> children : node.nodeLists.values())
-			for (Node child : children) {
+		{
+			Iterator<Node> iterator = node.nodes.values().iterator();
+			while (iterator.hasNext()) {
+				Node child = iterator.next();
 				Option<String> result = child.findString(key);
 				if (result instanceof Some<String>) return result;
 				result = findStringInChildren(child, key);
 				if (result instanceof Some<String>) return result;
 			}
+		}
+		Iterator<List<Node>> iterator = node.nodeLists.values().iterator();
+		while (iterator.hasNext()) {
+			List<Node> children = iterator.next();
+			int i = 0;
+			while (i < children.size()) {
+				Node child = children.get(i);
+				Option<String> result = child.findString(key);
+				if (result instanceof Some<String>) return result;
+				result = findStringInChildren(child, key);
+				if (result instanceof Some<String>) return result;
+				i++;
+			}
+		}
 		return Option.empty();
 	}
 
