@@ -281,7 +281,11 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegment() {
-		return Or(Whitespace(), Strip(Invalid()));
+		final LazyRule rule = new LazyRule(); rule.set(Strip(Or(Whitespace(), If(rule), Invalid()))); return rule;
+	}
+
+	private static Rule If(LazyRule rule) {
+		return Tag("if", Prefix("if", Strip(Prefix("(", First(Node("condition", rule), ")", Node("body", rule))))));
 	}
 
 	private static Rule CFunctionSegment() {

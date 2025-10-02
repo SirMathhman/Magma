@@ -2,38 +2,17 @@
 struct Serialize{};
 template<typename T>
 Result<T, CompileError> deserialize_Serialize(Class<T> clazz, Node node) {
-	/*if (Objects.isNull(clazz))
-			return new Err<>(new CompileError("Target class must not be absent", new NodeContext(node)));*/
-	/*if (Objects.isNull(node))
-			return new Err<>(new CompileError("Cannot deserialize absent node", new StringContext(clazz.getName())));*/
 	/*return deserializeValue(clazz, node).mapValue(clazz::cast);*/
 }
 template<typename T>
 Result<Node, CompileError> serialize_Serialize(Class<T> clazz, T value) {
-	/*if (Objects.isNull(clazz))
-			return new Err<>(new CompileError("Target class must not be absent", new StringContext("serialize")));*/
-	/*if (Objects.isNull(value))
-			return new Err<>(new CompileError("Cannot serialize absent instance of '" + clazz.getName() + "'",
-					new StringContext("serialize")));*/
 	/*return serializeValue(clazz, value);*/
 }
 Result<Node, CompileError> serializeValue_Serialize(Class</*?*/> type, Object value) {
-	/*if (type.isSealed() && !type.isRecord()) {
-			return serializeSealed(type, value);
-		}*/
-	/*if (!type.isRecord()) {
-			return new Err<>(new CompileError("Unsupported serialization target '" + type.getName() + "'",
-					new StringContext(type.getName())));
-		}*/
 	/*return serializeRecord(type, value);*/
 }
 Result<Node, CompileError> serializeSealed_Serialize(Class</*?*/> type, Object value) {
 	/*final Class<?> concreteClass = value.getClass();*/
-	/*if (!type.isAssignableFrom(concreteClass)) {
-			return new Err<>(new CompileError(
-					"Instance of type '" + concreteClass.getName() + "' is not assignable to '" + type.getName() + "'",
-					new StringContext(concreteClass.getName())));
-		}*/
 	/*return serializeValue(concreteClass, value);*/
 }
 Result<Node, CompileError> serializeRecord_Serialize(Class</*?*/> type, Object value) {
@@ -60,54 +39,14 @@ Result<Node, CompileError> serializeRecord_Serialize(Class</*?*/> type, Object v
 Result<Node, CompileError> serializeField_Serialize(RecordComponent component, Object value) {
 	/*String fieldName = component.getName();*/
 	/*Class<?> fieldType = component.getType();*/
-	/*if (Objects.isNull(value)) {
-			return new Err<>(new CompileError("Component '" + fieldName + "' was absent",
-					new StringContext(fieldName)));
-		}*/
-	/*if (fieldType == String.class) {
-			return new Ok<>(new Node().withString(fieldName, (String) value));
-		}*/
-	/*if (Option.class.isAssignableFrom(fieldType)) {
-			return serializeOptionField(component, value);
-		}*/
-	/*if (List.class.isAssignableFrom(fieldType)) {
-			return serializeListField(component, value);
-		}*/
 	/*return serializeValue(fieldType, value)
 				.mapValue(childNode -> new Node().withNode(fieldName, childNode));*/
 }
 Result<Node, CompileError> serializeOptionField_Serialize(RecordComponent component, Object value) {
 	/*String fieldName = component.getName();*/
-	/*if (!(value instanceof Option<?> option)) {
-			return new Err<>(new CompileError("Component '" + fieldName + "' is not an Optional instance",
-					new StringContext(fieldName)));
-		}*/
-	/*if (option instanceof None<?>) {
-			return new Ok<>(new Node()); // Empty node for None
-		}*/
-	/*if (option instanceof Some<?> some) {
-			Object content = some.value();
-			Type elementType = getGenericArgument(component.getGenericType(), 0);
-			Class<?> elementClass = erase(elementType);
-
-			if (elementClass == String.class) {
-				return new Ok<>(new Node().withString(fieldName, (String) content));
-			}
-
-			if (List.class.isAssignableFrom(elementClass)) {
-				return serializeOptionListField(fieldName, elementType, content);
-			}
-
-			return serializeValue(elementClass, content)
-					.mapValue(childNode -> new Node().withNode(fieldName, childNode));
-		}*/
 	/*return new Ok<>(new Node());*/
 }
 Result<Node, CompileError> serializeOptionListField_Serialize(char* fieldName, Type listType, Object content) {
-	/*if (!(content instanceof List<?> list)) {
-			return new Err<>(new CompileError("Optional List component '" + fieldName + "' is not a List instance",
-					new StringContext(fieldName)));
-		}*/
 	/*Type elementType = getGenericArgument(listType, 0);*/
 	/*Class<?> elementClass = erase(elementType);*/
 	/*return serializeListElements(elementClass, list)
@@ -115,10 +54,6 @@ Result<Node, CompileError> serializeOptionListField_Serialize(char* fieldName, T
 }
 Result<Node, CompileError> serializeListField_Serialize(RecordComponent component, Object value) {
 	/*String fieldName = component.getName();*/
-	/*if (!(value instanceof List<?> list)) {
-			return new Err<>(new CompileError("Component '" + fieldName + "' is not a List instance",
-					new StringContext(fieldName)));
-		}*/
 	/*Type elementType = getGenericArgument(component.getGenericType(), 0);*/
 	/*Class<?> elementClass = erase(elementType);*/
 	/*return serializeListElements(elementClass, list)
@@ -139,20 +74,9 @@ Result<List<Node>, CompileError> serializeListElements_Serialize(Class</*?*/> el
 				: new Err<>(new CompileError("Failed to serialize list elements", new StringContext("list"), errors));*/
 }
 Result<Object, CompileError> deserializeValue_Serialize(Class</*?*/> type, Node node) {
-	/*if (type.isSealed() && !type.isRecord()) {
-			return deserializeSealed(type, node);
-		}*/
-	/*if (!type.isRecord()) {
-			return new Err<>(new CompileError("Unsupported deserialization target '" + type.getName() + "'",
-					new NodeContext(node)));
-		}*/
 	/*return deserializeRecord(type, node);*/
 }
 Result<Object, CompileError> deserializeSealed_Serialize(Class</*?*/> type, Node node) {
-	/*if (!(node.maybeType instanceof Some<String>(String nodeType))) {
-			return new Err<>(new CompileError("Missing node type for sealed type '" + type.getName() + "'",
-					new NodeContext(node)));
-		}*/
 	/*// Try direct permitted subclasses*/
 	/*for (Class<?> permitted : type.getPermittedSubclasses()) {
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
@@ -176,17 +100,6 @@ Result<Object, CompileError> deserializeSealed_Serialize(Class</*?*/> type, Node
 Result<Object, CompileError> deserializeRecord_Serialize(Class</*?*/> type, Node node) {
 	/*// Validate type annotation if present*/
 	/*Option<String> expectedType = resolveTypeIdentifier(type);*/
-	/*if (expectedType instanceof Some<String>(String expectedType0)) {
-			if (node.maybeType instanceof Some<String>(String nodeType)) {
-				if (!node.is(expectedType0)) {
-					return new Err<>(new CompileError("Expected node type '" + expectedType0 + "' but found '" + nodeType + "'",
-							new NodeContext(node)));
-				}
-			} else {
-				return new Err<>(new CompileError("Node '@type' property missing for '" + type.getSimpleName() +
-						"' (expected '@type': '" + expectedType0 + "')", new NodeContext(node)));
-			}
-		}*/
 	/*RecordComponent[] components = type.getRecordComponents();*/
 	/*Object[] arguments = new Object[components.length];*/
 	/*List<CompileError> errors = new ArrayList<>();*/
@@ -202,13 +115,6 @@ Result<Object, CompileError> deserializeRecord_Serialize(Class</*?*/> type, Node
 		}*/
 	/*// Validate that all fields were consumed*/
 	/*Option<CompileError> validationError = validateAllFieldsConsumed(node, consumedFields, type);*/
-	/*if (validationError instanceof Some<CompileError>(CompileError error)) {
-			errors.add(error);
-		}*/
-	/*if (!errors.isEmpty()) {
-			return new Err<>(new CompileError("Failed to deserialize '" + type.getSimpleName() + "'",
-					new NodeContext(node), errors));
-		}*/
 	/*try {
 			Class<?>[] parameterTypes = Arrays.stream(components).map(RecordComponent::getType).toArray(Class[]::new);
 			Constructor<?> constructor = type.getDeclaredConstructor(parameterTypes);
@@ -223,20 +129,7 @@ Result<Object, CompileError> deserializeRecord_Serialize(Class</*?*/> type, Node
 Result<Object, CompileError> deserializeField_Serialize(RecordComponent component, Node node, Set<String> consumedFields) {
 	/*String fieldName = component.getName();*/
 	/*Class<?> fieldType = component.getType();*/
-	/*if (fieldType == String.class) {
-			return deserializeStringField(fieldName, node, consumedFields);
-		}*/
-	/*if (Option.class.isAssignableFrom(fieldType)) {
-			return deserializeOptionField(component, node, consumedFields);
-		}*/
-	/*if (List.class.isAssignableFrom(fieldType)) {
-			return deserializeListField(component, node, consumedFields);
-		}*/
 	/*Option<Node> childNode = node.findNode(fieldName);*/
-	/*if (childNode instanceof Some<Node> some) {
-			consumedFields.add(fieldName);
-			return deserializeValue(fieldType, some.value());
-		}*/
 	/*else {
 			return new Err<>(new CompileError("Required component '" + fieldName +
 					"' of type '" + fieldType.getSimpleName() + "' not present", new NodeContext(node)));
@@ -244,16 +137,8 @@ Result<Object, CompileError> deserializeField_Serialize(RecordComponent componen
 }
 Result<Object, CompileError> deserializeStringField_Serialize(char* fieldName, Node node, Set<String> consumedFields) {
 	/*Option<String> direct = node.findString(fieldName);*/
-	/*if (direct instanceof Some<String>(String value)) {
-			consumedFields.add(fieldName);
-			return new Ok<>(value);
-		}*/
 	/*// Try nested search*/
 	/*Option<String> nested = findStringInChildren(node, fieldName);*/
-	/*if (nested instanceof Some<String>(String value)) {
-			consumedFields.add(fieldName);
-			return new Ok<>(value);
-		}*/
 	/*else {
 			return new Err<>(new CompileError("Required component '" + fieldName +
 					"' of type 'String' not present", new NodeContext(node)));
@@ -263,40 +148,7 @@ Result<Object, CompileError> deserializeOptionField_Serialize(RecordComponent co
 	/*Type elementType = getGenericArgument(component.getGenericType(), 0);*/
 	/*Class<?> elementClass = erase(elementType);*/
 	/*String fieldName = component.getName();*/
-	/*if (elementClass == String.class) {
-			Option<String> direct = node.findString(fieldName);
-			if (direct instanceof Some<String>) {
-				consumedFields.add(fieldName);
-				return new Ok<>(direct);
-			}
-			Option<String> nested = findStringInChildren(node, fieldName);
-			if (nested instanceof Some<String>) {
-				consumedFields.add(fieldName);
-				return new Ok<>(nested);
-			}
-
-			// Check if field exists but is wrong type (e.g., list when expecting string)
-			Option<Node> wrongTypeNode = node.findNode(fieldName); if (wrongTypeNode instanceof Some<Node>) {
-				return new Err<>(new CompileError(
-						"Field '" + fieldName + "' of type 'Option<String>' found a node instead of string in '" +
-						node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
-			} Option<List<Node>> wrongTypeList = node.findNodeList(fieldName);
-			if (wrongTypeList instanceof Some<List<Node>>) {
-				return new Err<>(new CompileError(
-						"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
-						node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
-			}
-
-			return new Ok<>(Option.empty());
-		}*/
-	/*if (List.class.isAssignableFrom(elementClass)) {
-			return deserializeOptionListField(fieldName, elementType, node, consumedFields);
-		}*/
 	/*Option<Node> childNode = node.findNode(fieldName);*/
-	/*if (childNode instanceof Some<Node> some) {
-			consumedFields.add(fieldName);
-			return deserializeValue(elementClass, some.value()).mapValue(Option::of);
-		}*/
 	/*else {
 			return new Ok<>(Option.empty());
 		}*/
@@ -305,11 +157,6 @@ Result<Object, CompileError> deserializeOptionListField_Serialize(char* fieldNam
 	/*Type elementType = getGenericArgument(listType, 0);*/
 	/*Class<?> elementClass = erase(elementType);*/
 	/*Option<List<Node>> maybeList = node.findNodeList(fieldName);*/
-	/*if (maybeList instanceof Some<List<Node>> some) {
-			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, some.value());
-			return elementsResult.mapValue(list -> Option.of(List.copyOf(list)));
-		}*/
 	/*else {
 			return new Ok<>(Option.empty());
 		}*/
@@ -319,11 +166,6 @@ Result<Object, CompileError> deserializeListField_Serialize(RecordComponent comp
 	/*Type elementType = getGenericArgument(component.getGenericType(), 0);*/
 	/*Class<?> elementClass = erase(elementType);*/
 	/*Option<List<Node>> maybeList = node.findNodeList(fieldName);*/
-	/*if (maybeList instanceof Some<List<Node>> some) {
-			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, some.value());
-			return elementsResult.mapValue(list -> List.copyOf(list));
-		}*/
 	/*else {
 			return new Err<>(new CompileError("Required component '" + fieldName +
 					"' of type 'List' not present", new NodeContext(node)));
@@ -350,9 +192,6 @@ Result<List<Object>, CompileError> deserializeListElements_Serialize(Class</*?*/
 Node createNodeWithType_Serialize(Class</*?*/> type) {
 	/*Node node = new Node();*/
 	/*Option<String> typeId = resolveTypeIdentifier(type);*/
-	/*if (typeId instanceof Some<String>(String value)) {
-			node.retype(value);
-		}*/
 	/*return node;*/
 }
 Node mergeNodes_Serialize(Node base, Node addition) {
@@ -366,21 +205,9 @@ Node mergeNodes_Serialize(Node base, Node addition) {
 	/*return result;*/
 }
 Type getGenericArgument_Serialize(Type type, int index) {
-	/*if (type instanceof ParameterizedType parameterized) {
-			Type[] args = parameterized.getActualTypeArguments();
-			if (args.length > index) {
-				return args[index];
-			}
-		}*/
 	/*throw new IllegalArgumentException("Type " + type + " does not have generic argument at index " + index);*/
 }
 Class</*?*/> erase_Serialize(Type type) {
-	/*if (type instanceof Class<?> clazz) {
-			return clazz;
-		}*/
-	/*if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw) {
-			return raw;
-		}*/
 	/*throw new IllegalArgumentException("Cannot erase type '" + type + "'");*/
 }
 Option<String> resolveTypeIdentifier_Serialize(Class</*?*/> clazz) {
@@ -413,18 +240,6 @@ Option<String> findStringInChildren_Serialize(Node node, char* key) {
 	/*return Option.empty();*/
 }
 boolean shouldBeDeserializableAs_Serialize(Node node, Class</*?*/> targetClass) {
-	/*if (node.maybeType instanceof None<String>) {
-			return false;
-		}*/
-	/*if (node.maybeType instanceof Some<String>(String nodeType)) {
-			Tag tagAnnotation = targetClass.getAnnotation(Tag.class);
-			if (Objects.nonNull(tagAnnotation)) {
-				return nodeType.equals(tagAnnotation.value());
-			}
-
-			String targetName = targetClass.getSimpleName().toLowerCase();
-			return nodeType.toLowerCase().contains(targetName) || targetName.contains(nodeType.toLowerCase());
-		}*/
 	/*return false;*/
 }
 Option<CompileError> validateAllFieldsConsumed_Serialize(Node node, Set<String> consumedFields, Class</*?*/> targetClass) {
@@ -436,14 +251,6 @@ Option<CompileError> validateAllFieldsConsumed_Serialize(Node node, Set<String> 
 	/*// Find fields that were not consumed*/
 	/*Set<String> leftoverFields = new HashSet<>(allFields);*/
 	/*leftoverFields.removeAll(consumedFields);*/
-	/*if (!leftoverFields.isEmpty()) {
-			String leftoverList = String.join(", ", leftoverFields);
-			return Option.of(new CompileError(
-					"Incomplete deserialization for '" + targetClass.getSimpleName() +
-							"': leftover fields [" + leftoverList + "] were not consumed. " +
-							"This indicates a mismatch between the Node structure and the target ADT.",
-					new NodeContext(node)));
-		}*/
 	/*return Option.empty();*/
 }
 Set<String> getStringKeys_Serialize(Node node) {

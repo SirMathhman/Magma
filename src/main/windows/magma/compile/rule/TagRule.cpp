@@ -11,6 +11,5 @@ Result<Node, CompileError> lex_TagRule(char* content) {
 																								 List.of(error)));*/
 }
 Result<String, CompileError> generate_TagRule(Node node) {
-	/*if (node.is(tag)) return rule.generate(node);*/
 	/*else return new Err<>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));*/
 }
