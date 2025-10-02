@@ -2,6 +2,6 @@
 template<>
 struct ApplicationError{Error error;};
 template<>
-char* display_ApplicationError() {/*
+/*public String*/ display_ApplicationError() {/*
 		return error.display();
 	*/}

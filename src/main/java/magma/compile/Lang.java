@@ -1,23 +1,27 @@
 package magma.compile;
 
+import magma.compile.rule.DividingSplitter;
 import magma.compile.rule.FilterRule;
+import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeListRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
+import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
+import magma.compile.rule.TypeFolder;
 import magma.option.Option;
 
 import java.util.List;
 
 import static magma.compile.rule.EmptyRule.Empty;
-import static magma.compile.rule.SplitRule.First;
-import static magma.compile.rule.SplitRule.Last;
 import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
+import static magma.compile.rule.SplitRule.First;
+import static magma.compile.rule.SplitRule.Last;
 import static magma.compile.rule.StringRule.String;
 import static magma.compile.rule.StripRule.Strip;
 import static magma.compile.rule.SuffixRule.Suffix;
@@ -123,12 +127,19 @@ public class Lang {
 	public record Package(String value) implements JavaRootSegment {
 	}
 
-	@Tag("definition")
-	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) {
+	// Sealed interface for C parameter types
+	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
 	}
 
+	@Tag("definition")
+	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter {}
+
+	@Tag("functionPointerDefinition")
+	public record CFunctionPointerDefinition(String name, CType returnType, List<CType> paramTypes)
+			implements CParameter {}
+
 	@Tag("function")
-	public record Function(CDefinition definition, List<CDefinition> params, String body, Option<String> after,
+	public record Function(CDefinition definition, List<CParameter> params, String body, Option<String> after,
 			Option<List<Identifier>> typeParameters)
 			implements CRootSegment {
 	}
@@ -151,7 +162,7 @@ public class Lang {
 
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Values("params", CDefinition());
+		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Placeholder(new StringRule("body"));
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
 
@@ -161,6 +172,14 @@ public class Lang {
 		final Rule maybeTemplate = Or(templateDecl, new StringRule(""));
 
 		return Tag("function", First(maybeTemplate, "", functionDecl));
+	}
+
+	private static Rule CFunctionPointerDefinition() {
+		// Generates: returnType (*name)(paramTypes)
+		return Tag("functionPointerDefinition",
+							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
+														"",
+														Values("paramTypes", CType())), ")"));
 	}
 
 	private static Rule CDefinition() {
@@ -259,14 +278,40 @@ public class Lang {
 	}
 
 	private static Rule Parameters() {
-		return Values("params", Or(JDefinition(), Whitespace()));
+		return Values("params", Or(ParameterDefinition(), Whitespace()));
+	}
+
+	private static Rule ParameterDefinition() {
+		// Use TypeFolder to properly parse generic types like Function<T, R>
+		// Parameters don't have modifiers, just type and name
+		final var typeDivider = new FoldingDivider(new TypeFolder());
+		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
+
+		return Tag("definition",
+							 new magma.compile.rule.SplitRule(Node("type", JType()),
+																								String("name"),
+																								typeSplitter,
+																								"Could not parse parameter",
+																								" "));
 	}
 
 	private static Rule JDefinition() {
+		// Use TypeFolder to properly parse generic types like Function<T, R>
+		final var typeDivider = new FoldingDivider(new TypeFolder());
+		final Splitter typeSplitter = new DividingSplitter(typeDivider, DividingSplitter.SplitMode.ALL_BUT_LAST);
+
+		// Split into modifiers+type and name using type-aware splitting
+		final Rule typeAndName = new magma.compile.rule.SplitRule(Node("type", JType()),
+																															String("name"),
+																															typeSplitter,
+																															"Could not parse definition",
+																															" ");
+
+		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		final Rule type = Node("type", JType());
-		final Rule last = Last(modifiers, " ", type);
-		return Tag("definition", Last(Or(last, type), " ", String("name")));
+		final Rule withModifiers = Last(modifiers, " ", typeAndName);
+
+		return Tag("definition", Or(withModifiers, typeAndName));
 	}
 
 	private static Rule JType() {

@@ -71,11 +71,12 @@ public class DebugFunctionPointerTest {
 						if (child instanceof Function func) {
 							System.out.println("  Function: " + func.definition().name());
 							func.params().forEach(param -> {
-								System.out.println("    Param: " + param.name() + " : " + param.type());
-								System.out.println("    Param type class: " + param.type().getClass().getSimpleName());
-								if (param.type() instanceof FunctionPointer fp) {
-									System.out
-											.println("      ✅ FunctionPointer! Return: " + fp.returnType() + ", Params: " + fp.paramTypes());
+								if (param instanceof CDefinition def) {
+									System.out.println("    Param (CDefinition): " + def.name() + " : " + def.type());
+									System.out.println("    Param type class: " + def.type().getClass().getSimpleName());
+								} else if (param instanceof CFunctionPointerDefinition fpDef) {
+									System.out.println("    Param (CFunctionPointerDefinition): " + fpDef.name()); System.out.println(
+											"      ✅ FunctionPointer! Return: " + fpDef.returnType() + ", Params: " + fpDef.paramTypes());
 								}
 							});
 						}

@@ -195,7 +195,7 @@ public class Main {
 			case Some<List<JavaDefinition>> v -> v.value();
 		};
 
-		final List<CDefinition> newParams = oldParams.stream().map(Main::transformDefinition).toList();
+		final List<CParameter> newParams = oldParams.stream().map(Main::transformParameter).toList();
 
 		final CDefinition cDefinition = transformDefinition(method.definition());
 
@@ -209,6 +209,19 @@ public class Main {
 				method.body().orElse(""),
 				new Some<>(System.lineSeparator()),
 				extractedTypeParams);
+	}
+
+	private static CParameter transformParameter(JavaDefinition param) {
+		final CType transformedType = transformType(param.type());
+
+		// If the transformed type is a FunctionPointer, create
+		// CFunctionPointerDefinition
+		if (transformedType instanceof FunctionPointer fp) {
+			return new CFunctionPointerDefinition(param.name(), fp.returnType(), fp.paramTypes());
+		}
+
+		// Otherwise create regular CDefinition
+		return new CDefinition(param.name(), transformedType, new None<>());
 	}
 
 	private static Option<List<Identifier>> extractMethodTypeParameters(Method method) {

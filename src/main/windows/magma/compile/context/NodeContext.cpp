@@ -2,6 +2,7 @@
 template<>
 struct NodeContext{Node node;};
 template<>
-char* display_NodeContext(int depth) {/*
+/*@Override
+	public String*/ display_NodeContext(int depth) {/*
 		return "\n" + node.format(depth + 1);
 	*/}
