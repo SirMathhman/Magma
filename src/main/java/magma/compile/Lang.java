@@ -396,7 +396,9 @@ public class Lang {
 	}
 
 	private static Rule Invokable(Rule expression) {
-		return Tag("invokable", First(Node("caller", expression), "(", Arguments("arguments", expression)));
+		final Rule tag = Or(Tag("invokable", Node("caller", expression)), Tag("construction", Node("type", CType())));
+
+		return First(tag, "(", Suffix(Or(Arguments("arguments", expression), Whitespace()), ")"));
 	}
 
 	private static Rule Return(Rule expression) {
