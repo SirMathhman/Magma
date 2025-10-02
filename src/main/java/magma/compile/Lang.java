@@ -73,12 +73,12 @@ public class Lang {
 	}
 
 	sealed public interface JMethodSegment
-			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JInvokable,
+			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation,
 			JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace, JDefinition {
 	}
 
 	sealed public interface CFunctionSegment
-			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvokable, CPostFix, CReturn, CWhile, Invalid, LineComment, Placeholder, Whitespace {
+			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn, CWhile, Invalid, LineComment, Placeholder, Whitespace {
 	}
 
 	sealed public interface JType {
@@ -99,7 +99,7 @@ public class Lang {
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
 	}
 
-	public sealed interface CExpression permits CAdd, CEquals, CFieldAccess, CString, Identifier, Invalid {
+	public sealed interface CExpression permits CAdd, CEquals, CFieldAccess, CInvocation, CString, Identifier, Invalid {
 	}
 
 	@Tag("field-access")
@@ -309,12 +309,8 @@ public class Lang {
 	public record CElse(CFunctionSegment child) implements CFunctionSegment {
 	}
 
-	@Tag("invokable")
-	public record JInvokable(JExpression caller, List<JExpression> arguments) implements JMethodSegment {
-	}
-
-	@Tag("invokable")
-	public record CInvokable(CExpression caller, List<CExpression> arguments) implements CFunctionSegment {
+	@Tag("invocation")
+	public record CInvocation(CExpression caller, List<CExpression> arguments) implements CFunctionSegment, CExpression {
 	}
 
 	@Tag("break")
