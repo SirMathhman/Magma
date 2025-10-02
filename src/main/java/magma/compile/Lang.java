@@ -342,9 +342,11 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegmentValue(LazyRule rule) {
+		final Rule expression = JExpression();
 		return Or(Whitespace(),
 							LineComment(),
-							If(JExpression(), rule),
+							Conditional("if", expression, rule),
+							Conditional("while", expression, rule),
 							Strip(Suffix(JMethodStatementValue(), ";")),
 							Block(rule));
 	}
@@ -379,13 +381,13 @@ public class Lang {
 		return Tag("return", Prefix("return ", Node("value", expression)));
 	}
 
-	private static Rule If(Rule expression, Rule statement) {
+	private static Rule Conditional(String tag, Rule expression, Rule statement) {
 		final Rule condition = Node("condition", expression);
 		final Rule body = Node("body", statement);
 		final Rule split = Split(Prefix("(", condition),
 														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
 														 body);
-		return Tag("if", Prefix("if ", Strip(split)));
+		return Tag(tag, Prefix(tag + " ", Strip(split)));
 	}
 
 	private static Rule JExpression() {
@@ -403,7 +405,7 @@ public class Lang {
 	}
 
 	private static Rule CFunctionSegmentValue(LazyRule rule) {
-		return Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Block(rule), Invalid());
+		return Or(LineComment(), Conditional("if", CExpression(), rule), CFunctionStatement(), Block(rule), Invalid());
 	}
 
 	private static Rule CFunctionStatement() {

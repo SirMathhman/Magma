@@ -165,9 +165,11 @@ Rule JMethodSegment_Lang() {
 	return /*rule*/;
 }
 Rule JMethodSegmentValue_Lang(LazyRule rule) {
+	/*final var expression = JExpression*/(/*)*/;
 	return /*Or(Whitespace(),
 							LineComment(),
-							If(JExpression(), rule),
+							Conditional("if", expression, rule),
+							Conditional("while", expression, rule),
 							Strip(Suffix(JMethodStatementValue(), ";")),
 							Block(rule))*/;
 }
@@ -195,13 +197,13 @@ Rule Invokable_Lang(Rule expression) {
 Rule Return_Lang(Rule expression) {
 	return /*Tag("return", Prefix("return ", Node("value", expression)))*/;
 }
-Rule If_Lang(Rule expression, Rule statement) {
+Rule Conditional_Lang(char* tag, Rule expression, Rule statement) {
 	/*final Rule condition = Node*/(/*"condition"*/, /* expression)*/;
 	/*final Rule body = Node*/(/*"body"*/, /* statement)*/;
 	/*final Rule split = Split*/(/*Prefix("("*/, /* condition)*/, /*
 														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder())))*/, /*
 														 body)*/;
-	return /*Tag("if", Prefix("if ", Strip(split)))*/;
+	return /*Tag(tag, Prefix(tag + " ", Strip(split)))*/;
 }
 Rule JExpression_Lang() {
 	return /*Invalid()*/;
@@ -215,7 +217,7 @@ Rule CFunctionSegment_Lang() {
 	return /*rule*/;
 }
 Rule CFunctionSegmentValue_Lang(LazyRule rule) {
-	return /*Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Block(rule), Invalid())*/;
+	return /*Or(LineComment(), Conditional("if", CExpression(), rule), CFunctionStatement(), Block(rule), Invalid())*/;
 }
 Rule CFunctionStatement_Lang() {
 	return /*Or(Suffix(CFunctionStatementValue(), ";"))*/;
