@@ -579,6 +579,9 @@ public class Lang {
 		expression.set(Or(
 				Invocation(expression),
 				FieldAccess(expression),
+				Operator("add", "+", expression),
+				Operator("equals", "==", expression),
+				StringExpr(),
 				Identifier()
 		));
 		return expression;
