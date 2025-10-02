@@ -135,8 +135,7 @@ private static List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 				}
 		}
 
-		final String name = aClass.name();
-		for (JStructureSegment child : children) {
+		final String name = aClass.name(); for (JStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
 			segments.addAll(tuple.left());
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
@@ -203,7 +202,7 @@ private static Option<List<Identifier>> extractMethodTypeParameters_Main(Method 
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
-			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
+			for (JavaDefinition param : paramList) {collectTypeVariables(param.type(), typeVars);}
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -224,7 +223,7 @@ template<>
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
+				for (JavaType arg : generic.arguments()) {collectTypeVariables(arg, typeVars);}
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {

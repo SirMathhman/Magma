@@ -1,9 +1,9 @@
 package magma.compile.rule;
 
+import magma.Tuple;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
-import magma.Tuple;
 
 public record InfixSplitter(String infix, Locator locator) implements Splitter {
 	@Override
@@ -16,5 +16,15 @@ public record InfixSplitter(String infix, Locator locator) implements Splitter {
 				yield new Some<>(new Tuple<>(left, right));
 			}
 		};
+	}
+
+	@Override
+	public String createErrorMessage() {
+		return "Infix '" + infix + "' not present";
+	}
+
+	@Override
+	public String merge(String left, String right) {
+		return left + infix + right;
 	}
 }

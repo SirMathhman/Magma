@@ -111,7 +111,8 @@ template<>
 	*/}
 template<>
 /*public static Rule*/ JRoot_Lang() {/*
-		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()),BlockComment(),  Whitespace());
+		final Rule segment =
+				Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), BlockComment(), Whitespace());
 		return Statements("children", segment);
 	*/}
 template<>
@@ -196,20 +197,16 @@ template<>
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Parameters don't have modifiers, just type and name
 		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
+		final Splitter typeSplitter = KeepLast(typeDivider);
 
-		return Tag("definition",
-							 new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse parameter", " "));
+		return Tag("definition", new SplitRule(Node("type", JType()), String("name"), typeSplitter));
 	*/}
 template<>
 /*private static Rule*/ JDefinition_Lang() {/*
 		// Use TypeFolder to properly parse generic types like Function<T, R>
-		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
-
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule typeAndName =
-				new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse definition", " ");
+				new SplitRule(Node("type", JType()), String("name"), KeepLast(new FoldingDivider(new TypeFolder())));
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");

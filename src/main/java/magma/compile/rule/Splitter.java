@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
-import magma.option.Option;
 import magma.Tuple;
+import magma.option.Option;
 
 public interface Splitter {
 	/**
@@ -10,4 +10,8 @@ public interface Splitter {
 	 * Returns Some(Tuple(left, right)) if splitting succeeds.
 	 */
 	Option<Tuple<String, String>> split(String input);
+
+	String createErrorMessage();
+
+	String merge(String left, String right);
 }

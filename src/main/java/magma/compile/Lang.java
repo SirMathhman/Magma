@@ -1,6 +1,5 @@
 package magma.compile;
 
-import magma.compile.rule.DividingSplitter;
 import magma.compile.rule.FilterRule;
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
@@ -15,6 +14,7 @@ import magma.option.Option;
 
 import java.util.List;
 
+import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
@@ -279,20 +279,16 @@ public class Lang {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Parameters don't have modifiers, just type and name
 		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
+		final Splitter typeSplitter = KeepLast(typeDivider);
 
-		return Tag("definition",
-							 new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse parameter", " "));
+		return Tag("definition", new SplitRule(Node("type", JType()), String("name"), typeSplitter));
 	}
 
 	private static Rule JDefinition() {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
-		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = DividingSplitter.keepLast(typeDivider);
-
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule typeAndName =
-				new SplitRule(Node("type", JType()), String("name"), typeSplitter, "Could not parse definition", " ");
+				new SplitRule(Node("type", JType()), String("name"), KeepLast(new FoldingDivider(new TypeFolder())));
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");

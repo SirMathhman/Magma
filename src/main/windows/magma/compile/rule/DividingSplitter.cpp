@@ -10,7 +10,7 @@ template<>
 		return new DividingSplitter(divider, new KeepFirstMerger());
 	*/}
 template<>
-/*public static DividingSplitter*/ keepLast_DividingSplitter(Divider divider) {/*
+/*public static DividingSplitter*/ KeepLast_DividingSplitter(Divider divider) {/*
 		return new DividingSplitter(divider, new KeepLastMerger());
 	*/}
 template<>
@@ -20,4 +20,14 @@ template<>
 		final String delimiter = divider.delimiter();
 
 		return merger.merge(segments, delimiter);
+	*/}
+template<>
+/*@Override
+	public String*/ createErrorMessage_DividingSplitter() {/*
+		return "No segments found.";
+	*/}
+template<>
+/*@Override
+	public String*/ merge_DividingSplitter(char* left, char* right) {/*
+		return left + divider.delimiter() + right;
 	*/}

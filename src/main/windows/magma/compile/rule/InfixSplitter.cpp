@@ -13,3 +13,13 @@ template<>
 			}
 		};
 	*/}
+template<>
+/*@Override
+	public String*/ createErrorMessage_InfixSplitter() {/*
+		return "Infix '" + infix + "' not present";
+	*/}
+template<>
+/*@Override
+	public String*/ merge_InfixSplitter(char* left, char* right) {/*
+		return left + infix + right;
+	*/}

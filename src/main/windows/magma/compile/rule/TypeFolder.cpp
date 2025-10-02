@@ -5,28 +5,19 @@ template<>
 /*@Override
 	public DivideState*/ fold_TypeFolder(DivideState state, char c) {/*
 		// Split on space when at depth 0
-		if (c == ' ' && state.isLevel()) {
-			return state.advance();
-		}
+		if (c == ' ' && state.isLevel()) return state.advance();
 
 		// Track depth for angle brackets (generics)
-		if (c == '<') {
-			return state.enter().append(c);
-		}
-		if (c == '>') {
-			return state.exit().append(c);
-		}
+		final DivideState append = state.append(c);
+		if (c == '<') return append.enter();
+		if (c == '>') return append.exit();
 
 		// Track depth for parentheses (method params, etc.)
-		if (c == '(') {
-			return state.enter().append(c);
-		}
-		if (c == ')') {
-			return state.exit().append(c);
-		}
+		if (c == '(') return append.enter();
+		if (c == ')') return append.exit();
 
 		// Append everything else
-		return state.append(c);
+		return append;
 	*/}
 template<>
 /*@Override
