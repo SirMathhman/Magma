@@ -376,7 +376,7 @@ public class Lang {
 		final Rule expression = JExpression();
 		return Or(Break(),
 							Return(expression),
-							Invokables(expression),
+							Invokable(expression),
 							Initialization(JDefinition(), expression),
 							PostFix(expression));
 	}
@@ -395,8 +395,8 @@ public class Lang {
 		return First(Or(Tag("initialization", definition1), Tag("assignment", Node("location", value))), "=", value1);
 	}
 
-	private static Rule Invokables(Rule expression) {
-		return Or(Invokable("invokable", Node("caller", expression), expression),
+	private static Rule Invokable(Rule expression) {
+		return Or(Invokable("invocation", Node("caller", expression), expression),
 							Invokable("construction", Node("caller", Node("type", CType())), expression));
 	}
 
@@ -425,7 +425,7 @@ public class Lang {
 
 	private static Rule JExpression() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Invokables(rule), Identifier()));
+		rule.set(Or(Invokable(rule), Identifier()));
 		return rule;
 	}
 
@@ -456,7 +456,7 @@ public class Lang {
 	private static Rule CFunctionStatementValue() {
 		final Rule expression = CExpression();
 		return Or(Return(JExpression()),
-							Invokables(expression),
+							Invokable(expression),
 							Initialization(CDefinition(), expression),
 							PostFix(expression));
 	}
