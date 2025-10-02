@@ -418,7 +418,9 @@ public class Lang {
 	}
 
 	private static Rule JExpression() {
-		return Invalid();
+		final LazyRule rule = new LazyRule();
+		rule.set(Or(Invokable(rule), Identifier()));
+		return rule;
 	}
 
 	private static Rule CExpression() {
