@@ -153,14 +153,24 @@ Rule JMethod_Lang() {
 }
 Rule JMethodSegment_Lang() {
 	/*final LazyRule rule = new LazyRule*/(/*)*/;
-	/*rule.set*/(/*Strip(Or(Whitespace()*/, /*
-											LineComment()*/, /*
-											If(JExpression()*/, /* rule)*/, /*
-											Strip(Suffix(JMethodStatementValue()*/, /* ";")))))*/;
+	/*rule.set*/(/*Strip(JMethodSegmentValue(rule)))*/;
 	return /*rule*/;
 }
+Rule JMethodSegmentValue_Lang(LazyRule rule) {
+	return /*Or(Whitespace(),
+							LineComment(),
+							If(JExpression(), rule),
+							Strip(Suffix(JMethodStatementValue(), ";")),
+							Block(rule))*/;
+}
+Rule Block_Lang(LazyRule rule) {
+	return /*Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))))*/;
+}
 Rule JMethodStatementValue_Lang() {
-	return /*Or(Return(JExpression()), Invokable(JExpression()))*/;
+	return /*Or(Return(JExpression()), Invokable(JExpression()), JInitialization())*/;
+}
+Rule JInitialization_Lang() {
+	return /*Tag("initialization", First(Node("definition", JDefinition()), "=", Node("value", JExpression())))*/;
 }
 Rule Invokable_Lang(Rule expression) {
 	return /*Tag("invokable", First(Node("caller", expression), "(", Arguments("arguments", expression)))*/;
@@ -215,7 +225,7 @@ Rule JDefinition_Lang() {
 	/*final Rule modifiers = Delimited*/(/*"modifiers"*/, /* Tag("modifier"*/, /* String("value"))*/, /* " ")*/;
 	/*final Rule withModifiers = Split*/(/*modifiers*/, /* KeepLast(new FoldingDivider(new TypeFolder()))*/, /* type)*/;
 	/*Rule beforeName = Or*/(/*withModifiers*/, /* type)*/;
-	return /*Tag("definition", Last(beforeName, " ", name))*/;
+	return /*Tag("definition", Strip(Last(beforeName, " ", name)))*/;
 }
 Rule JType_Lang() {
 	/*final LazyRule type = new LazyRule*/(/*)*/;

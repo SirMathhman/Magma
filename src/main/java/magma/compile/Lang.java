@@ -316,11 +316,23 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegmentValue(LazyRule rule) {
-		return Or(Whitespace(), LineComment(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")));
+		return Or(Whitespace(),
+							LineComment(),
+							If(JExpression(), rule),
+							Strip(Suffix(JMethodStatementValue(), ";")),
+							Block(rule));
+	}
+
+	private static Rule Block(LazyRule rule) {
+		return Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))));
 	}
 
 	private static Rule JMethodStatementValue() {
-		return Or(Return(JExpression()), Invokable(JExpression()));
+		return Or(Return(JExpression()), Invokable(JExpression()), JInitialization());
+	}
+
+	private static Rule JInitialization() {
+		return Tag("initialization", First(Node("definition", JDefinition()), "=", Node("value", JExpression())));
 	}
 
 	private static Rule Invokable(Rule expression) {
@@ -391,7 +403,7 @@ public class Lang {
 		final Rule withModifiers = Split(modifiers, KeepLast(new FoldingDivider(new TypeFolder())), type);
 
 		Rule beforeName = Or(withModifiers, type);
-		return Tag("definition", Last(beforeName, " ", name));
+		return Tag("definition", Strip(Last(beforeName, " ", name)));
 	}
 
 	private static Rule JType() {
