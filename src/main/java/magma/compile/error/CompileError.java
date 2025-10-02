@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.IntStream;
 
 public record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
 	public CompileError(String reason, Context sourceCode) {
@@ -21,11 +22,12 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 		final ArrayList<CompileError> copy = new ArrayList<>(causes);
 		copy.sort(Comparator.comparingInt(CompileError::depth));
 
-		StringBuilder joiner = new StringBuilder(); for (int i = 0; i < copy.size(); i++) {
+		StringBuilder joiner = new StringBuilder();
+		IntStream.range(0, copy.size()).forEach(i -> {
 			CompileError error = copy.get(i);
 			String format = error.format(depth + 1, i);
 			joiner.append(format);
-		}
+		});
 
 		final String formattedChildren = joiner.toString();
 		final String s = depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth);

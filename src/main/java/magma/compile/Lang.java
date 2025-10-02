@@ -42,9 +42,11 @@ public class Lang {
 
 	sealed public interface JExpression permits Invalid {}
 
-	sealed public interface JMethodSegment permits Invalid, JIf, Placeholder, JReturn, Whitespace {}
+	sealed public interface JMethodSegment
+			permits Invalid, JIf, JInvokable, JReturn, LineComment, Placeholder, Whitespace {}
 
-	sealed public interface CFunctionSegment permits CIf, CReturn, Invalid, Placeholder, Whitespace {}
+	sealed public interface CFunctionSegment
+			permits CIf, CInvokable, CReturn, Invalid, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -153,7 +155,7 @@ public class Lang {
 	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {}
 
 	@Tag("line-comment")
-	public record LineComment(String value) implements JStructureSegment {}
+	public record LineComment(String value) implements JStructureSegment, JMethodSegment, CFunctionSegment {}
 
 	@Tag("block-comment")
 	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment {}
@@ -163,6 +165,12 @@ public class Lang {
 
 	@Tag("return")
 	public record CReturn(CExpression value) implements CFunctionSegment {}
+
+	@Tag("invokable")
+	public record JInvokable(JExpression caller, List<JExpression> arguments) implements JMethodSegment {}
+
+	@Tag("invokable")
+	public record CInvokable(CExpression caller, List<CExpression> arguments) implements CFunctionSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -303,16 +311,20 @@ public class Lang {
 
 	private static Rule JMethodSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")))));
+		rule.set(Strip(JMethodSegmentValue(rule)));
 		return rule;
 	}
 
-	private static Rule JMethodStatementValue() {
-		return Or(Return(JExpression()), Invokable());
+	private static Rule JMethodSegmentValue(LazyRule rule) {
+		return Or(Whitespace(), LineComment(), If(JExpression(), rule), Strip(Suffix(JMethodStatementValue(), ";")));
 	}
 
-	private static Rule Invokable() {
-		return Tag("invokable", First(Node("caller", JExpression()), "(", Arguments("arguments", JExpression())));
+	private static Rule JMethodStatementValue() {
+		return Or(Return(JExpression()), Invokable(JExpression()));
+	}
+
+	private static Rule Invokable(Rule expression) {
+		return Tag("invokable", First(Node("caller", expression), "(", Arguments("arguments", expression)));
 	}
 
 	private static Rule Return(Rule expression) {
@@ -337,14 +349,20 @@ public class Lang {
 
 	private static Rule CFunctionSegment() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Whitespace(),
-								Prefix(System.lineSeparator() + "\t",
-											 Or(If(CExpression(), rule), Or(Suffix(CFunctionStatementValue(), ";")), Invalid()))));
+		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", CFunctionSegmentValue(rule))));
 		return rule;
 	}
 
+	private static Rule CFunctionSegmentValue(LazyRule rule) {
+		return Or(LineComment(), If(CExpression(), rule), CFunctionStatement(), Invalid());
+	}
+
+	private static Rule CFunctionStatement() {
+		return Or(Suffix(CFunctionStatementValue(), ";"));
+	}
+
 	private static Rule CFunctionStatementValue() {
-		return Or(Return(JExpression()));
+		return Or(Return(JExpression()), Invokable(CExpression()));
 	}
 
 	private static Rule Parameters() {

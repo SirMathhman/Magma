@@ -229,7 +229,15 @@ public class Main {
 			case Placeholder placeholder -> placeholder;
 			case Whitespace whitespace -> whitespace;
 			case JReturn aReturn -> new CReturn(transformExpression(aReturn.value()));
+			case JInvokable invokable -> transformInvokable(invokable);
+			case LineComment lineComment -> lineComment;
 		};
+	}
+
+	private static CInvokable transformInvokable(JInvokable invokable) {
+		final CExpression newCaller = transformExpression(invokable.caller());
+		final List<CExpression> newArguments = invokable.arguments().stream().map(Main::transformExpression).toList();
+		return new CInvokable(newCaller, newArguments);
 	}
 
 	private static CExpression transformExpression(JExpression expression) {
