@@ -543,6 +543,7 @@ public class Lang {
 	private static Rule JExpression() {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(
+				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
 				Switch(expression),
 				Invokable(expression),
