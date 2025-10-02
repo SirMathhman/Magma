@@ -45,11 +45,19 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {
 	}
 
-	sealed public interface JExpression permits JAdd, Identifier, Invalid, JConstruction, JFieldAccess, JInvocation, JString, Switch {
+	sealed public interface JExpression permits Identifier, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation, JString, Switch {
 	}
 
 	@Tag("add")
 	public record JAdd(JExpression left, JExpression right) implements JExpression {
+	}
+
+	@Tag("equals")
+	public record JEquals(JExpression left, JExpression right) implements JExpression {
+	}
+
+	@Tag("equals")
+	public record CEquals(CExpression left, CExpression right) implements CExpression {
 	}
 
 	@Tag("string")
@@ -91,7 +99,7 @@ public class Lang {
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
 	}
 
-	public sealed interface CExpression permits CAdd, CFieldAccess, CString, Identifier, Invalid {
+	public sealed interface CExpression permits CAdd, CEquals, CFieldAccess, CString, Identifier, Invalid {
 	}
 
 	@Tag("field-access")
