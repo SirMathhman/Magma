@@ -483,7 +483,7 @@ public class Lang {
 
 	private static Rule JType() {
 		final LazyRule type = new LazyRule();
-		type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
+		type.set(Or(Generic(type), Array(type), Identifier(), Tag("wildcard", Strip(Prefix("?", Empty)))));
 		return type;
 	}
 
