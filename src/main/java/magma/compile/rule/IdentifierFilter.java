@@ -1,13 +1,13 @@
 package magma.compile.rule;
 
+import java.util.stream.IntStream;
+
 public class IdentifierFilter implements Filter {
 	public static Filter Identifier = new IdentifierFilter();
 
 	@Override
 	public boolean test(String input) {
-		for (int i = 0; i < input.length(); i++) {if (!Character.isLetterOrDigit(input.charAt(i))) return false;}
-
-		return true;
+		return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isLetterOrDigit);
 	}
 
 	@Override
