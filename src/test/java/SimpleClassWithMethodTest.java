@@ -1,0 +1,70 @@
+import magma.compile.Serialize;
+import magma.compile.error.CompileError;
+import magma.result.Err;
+import magma.result.Ok;
+import magma.result.Result;
+import org.junit.jupiter.api.Test;
+
+import static magma.compile.Lang.*;
+import static org.junit.jupiter.api.Assertions.*;
+
+public class SimpleClassWithMethodTest {
+
+	@Test
+	public void testClassWithSingleStaticMethod() {
+		String input = """
+				package test;
+				
+				public class Simple {
+					public static void main(String[] args) {
+						System.out.println("test");
+					}
+				}
+				""";
+
+		System.out.println("=== Testing class with single static method ===");
+
+		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input); if (lexResult instanceof Err<?, ?> err) {
+			System.err.println("❌ LEXING FAILED: " + err.error()); fail("Lexing failed: " + err.error());
+		}
+
+		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		magma.compile.Node lexedNode = ((Ok<magma.compile.Node, CompileError>) lexResult).value();
+		System.out.println("\n✅ Lexing succeeded"); System.out.println("\nLexed structure:");
+		System.out.println(lexedNode.format(0));
+
+		Result<JavaRoot, CompileError> deserializeResult = Serialize.deserialize(JavaRoot.class, lexedNode);
+		if (deserializeResult instanceof Err<?, ?> err) {
+			System.err.println("\n❌ DESERIALIZATION FAILED: " + err.error()); fail("Deserialization failed: " + err.error());
+		}
+
+		assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
+		JavaRoot javaRoot = ((Ok<JavaRoot, CompileError>) deserializeResult).value();
+		System.out.println("\n✅ Deserialization succeeded");
+		System.out.println("JavaRoot children count: " + javaRoot.children().size());
+
+		javaRoot.children().forEach(child -> {
+			System.out.println("  Child type: " + child.getClass().getSimpleName()); if (child instanceof JClass jClass) {
+				System.out.println("    Class name: " + jClass.name());
+				System.out.println("    Class children count: " + jClass.children().size());
+				jClass.children().forEach(structChild -> {
+					System.out.println("      Structure child type: " + structChild.getClass().getSimpleName());
+					if (structChild instanceof Method method) {
+						System.out.println("        ✅ Method found: " + method.definition().name());
+						System.out.println("        Method body: " + method.body());
+						System.out.println("        Method params: " + method.params());
+					}
+				});
+			}
+		});
+
+		// Check that the class has at least one method
+		boolean hasMethod = javaRoot.children()
+																.stream()
+																.filter(child -> child instanceof JClass)
+																.map(child -> (JClass) child)
+																.anyMatch(jClass -> jClass.children().stream().anyMatch(seg -> seg instanceof Method));
+
+		assertTrue(hasMethod, "Class should contain at least one method");
+	}
+}

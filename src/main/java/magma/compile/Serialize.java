@@ -344,6 +344,19 @@ public class Serialize {
 				consumedFields.add(fieldName);
 				return new Ok<>(nested);
 			}
+
+			// Check if field exists but is wrong type (e.g., list when expecting string)
+			Option<Node> wrongTypeNode = node.findNode(fieldName); if (wrongTypeNode instanceof Some<Node>) {
+				return new Err<>(new CompileError(
+						"Field '" + fieldName + "' of type 'Option<String>' found a node instead of string in '" +
+						node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
+			} Option<List<Node>> wrongTypeList = node.findNodeList(fieldName);
+			if (wrongTypeList instanceof Some<List<Node>>) {
+				return new Err<>(new CompileError(
+						"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
+						node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
+			}
+			
 			return new Ok<>(Option.empty());
 		}
 

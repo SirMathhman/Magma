@@ -38,6 +38,8 @@ public class Lang {
 	public sealed interface JStructureSegment
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
+	public sealed interface JFunctionSegment permits Invalid, Whitespace {}
+
 	sealed public interface JavaType {}
 
 	sealed public interface CType {}
@@ -72,12 +74,13 @@ public class Lang {
 	public record Modifier(String value) {}
 
 	@Tag("method")
-	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params, Option<String> body,
-											 Option<List<Identifier>> typeParameters) implements JStructureSegment {}
+	public record Method(JavaDefinition definition, Option<List<JavaDefinition>> params,
+											 Option<List<JFunctionSegment>> body, Option<List<Identifier>> typeParameters)
+			implements JStructureSegment {}
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType {}
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -99,7 +102,7 @@ public class Lang {
 													Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JStructureSegment {}
+	public record Whitespace() implements JavaRootSegment, JStructureSegment, JFunctionSegment {}
 
 	public record JavaRoot(List<JavaRootSegment> children) {}
 
@@ -144,7 +147,7 @@ public class Lang {
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = Placeholder(new StringRule("body"));
+		final Rule body = Statements("body", JFunctionSegment());
 		final Rule functionDecl = First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
@@ -272,7 +275,7 @@ public class Lang {
 	}
 
 	private static Rule JFunctionSegment() {
-		return Or(Whitespace(), Placeholder(String("value")));
+		return Or(Whitespace(), Invalid());
 	}
 
 	private static Rule Parameters() {

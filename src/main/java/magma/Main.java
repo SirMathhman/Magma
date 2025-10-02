@@ -199,11 +199,14 @@ public class Main {
 		// Extract type parameters from method signature
 		final Option<List<Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
+		// Convert method body from Option<List<JFunctionSegment>> to String
+		// For now, we'll use an empty string body since JFunctionSegment only contains Whitespace/Invalid
+		final String bodyString = "";
+
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
 																				cDefinition.type(),
 																				cDefinition.typeParameters()),
-												newParams,
-												method.body().orElse(""),
+												newParams, bodyString,
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);
 	}
