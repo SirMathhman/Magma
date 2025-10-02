@@ -536,6 +536,7 @@ public class Lang {
 		final Rule split = Split(Prefix("(", condition),
 				KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
 				body);
+
 		return Tag(tag, Prefix(tag + " ", Strip(split)));
 	}
 

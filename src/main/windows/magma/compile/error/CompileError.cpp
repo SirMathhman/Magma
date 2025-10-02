@@ -11,7 +11,7 @@ char* format_CompileError(int depth, int index) {
 	copy.sort(Comparator.comparingInt(CompileError::depth));
 	char* formattedChildren=joinErrors(depth, copy);
 	char* s;
-	if (depth==0s="";
+	if (depth==0)s="";
 	else s=System.lineSeparator()+"".repeat(depth);
 	return s+index+""+reason+""+context.display(depth)+formattedChildren;
 }
