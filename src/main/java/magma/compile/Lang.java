@@ -1,6 +1,7 @@
 package magma.compile;
 
 import magma.compile.rule.ClosingParenthesesFolder;
+import magma.compile.rule.EscapingFolder;
 import magma.compile.rule.FilterRule;
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
@@ -358,7 +359,7 @@ public class Lang {
 		final Rule condition = Node("condition", expression);
 		final Rule body = Node("body", statement);
 		final Rule split =
-				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new ClosingParenthesesFolder())), body);
+				Split(Prefix("(", condition), KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))), body);
 		return Tag("if", Prefix("if ", Strip(split)));
 	}
 

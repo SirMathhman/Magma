@@ -186,7 +186,7 @@ Rule If_Lang(Rule expression, Rule statement) {
 	/*final Rule condition = Node*/(/*"condition"*/, /* expression)*/;
 	/*final Rule body = Node*/(/*"body"*/, /* statement)*/;
 	/*final Rule split =
-				Split*/(/*Prefix("("*/, /* condition)*/, /* KeepFirst(new FoldingDivider(new ClosingParenthesesFolder()))*/, /* body)*/;
+				Split*/(/*Prefix("("*/, /* condition)*/, /* KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder())))*/, /* body)*/;
 	return /*Tag("if", Prefix("if ", Strip(split)))*/;
 }
 Rule JExpression_Lang() {
