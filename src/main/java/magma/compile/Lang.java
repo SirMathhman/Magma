@@ -1,22 +1,9 @@
 package magma.compile;
 
-import magma.compile.rule.BraceStartFolder;
-import magma.compile.rule.ClosingParenthesesFolder;
-import magma.compile.rule.DividingSplitter;
-import magma.compile.rule.EscapingFolder;
-import magma.compile.rule.FilterRule;
-import magma.compile.rule.FoldingDivider;
-import magma.compile.rule.LazyRule;
-import magma.compile.rule.NodeRule;
-import magma.compile.rule.Rule;
-import magma.compile.rule.SplitRule;
-import magma.compile.rule.Splitter;
-import magma.compile.rule.StringRule;
-import magma.compile.rule.TypeFolder;
+import magma.compile.rule.*;
 import magma.option.None;
 import magma.option.Option;
 
-import javax.swing.plaf.synth.SynthToolTipUI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -622,13 +609,17 @@ public class Lang {
 	}
 
 	private static Rule CFunctionStatement() {
-		return Or(Suffix(CFunctionStatementValue(), ";"));
+		LazyRule functionStatement = new LazyRule();
+		functionStatement.set(Or(
+				Conditional("if", CExpression(), functionStatement),
+				Suffix(CFunctionStatementValue(), ";")));
+		return functionStatement;
 	}
 
 	private static Rule CFunctionStatementValue() {
 		final Rule expression = CExpression();
 		return Or(Return(JExpression()),
-				Invokable(expression),
+				Invocation(expression),
 				Initialization(CDefinition(), expression),
 				CDefinition(),
 				PostFix(expression));
