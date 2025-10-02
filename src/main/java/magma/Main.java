@@ -240,9 +240,17 @@ public class Main {
 			case JWhile jWhile ->
 					new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
 			case JInvocation invocation -> transformInvocation(invocation);
-			case JConstruction jConstruction -> new Invalid("???");
+			case JConstruction jConstruction -> handleConstruction(jConstruction);
 			case JDefinition jDefinition -> transformDefinition(jDefinition);
 		};
+	}
+
+	private static CInvocation handleConstruction(JConstruction jConstruction) {
+		String name = "new_" + transformType(jConstruction.type()).stringify();
+		return new CInvocation(new Identifier(name), jConstruction.arguments().orElse(new ArrayList<JExpression>())
+				.stream()
+				.map(Main::transformExpression)
+				.toList());
 	}
 
 	private static CExpression transformExpression(JExpression expression) {
@@ -252,7 +260,7 @@ public class Main {
 			case Switch aSwitch -> new Identifier("???");
 			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
 			case JInvocation jInvocation -> transformInvocation(jInvocation);
-			case JConstruction jConstruction -> new Invalid("???");
+			case JConstruction jConstruction -> handleConstruction(jConstruction);
 			case JAdd add -> new CAdd(transformExpression(add.left()), transformExpression(add.right()));
 			case JString jString -> new CString(jString.content().orElse(""));
 			case JEquals jEquals -> new CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));

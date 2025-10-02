@@ -17,6 +17,7 @@ import magma.option.None;
 import magma.option.Option;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static magma.compile.rule.DividingSplitter.KeepFirst;
 import static magma.compile.rule.DividingSplitter.KeepLast;
@@ -85,6 +86,7 @@ public class Lang {
 	}
 
 	sealed public interface CType {
+		String stringify();
 	}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, Record {
@@ -185,6 +187,12 @@ public class Lang {
 
 	@Tag("generic")
 	public record CGeneric(String base, List<CType> typeArguments) implements CType {
+		@Override
+		public String stringify() {
+			return base + "_" + typeArguments.stream()
+					.map(CType::stringify)
+					.collect(Collectors.joining("_"));
+		}
 	}
 
 	@Tag("array")
@@ -211,6 +219,11 @@ public class Lang {
 			JExpression, CExpression {
 		public Invalid(String value) {
 			this(value, new None<>());
+		}
+
+		@Override
+		public String stringify() {
+			return "???";
 		}
 	}
 
@@ -275,14 +288,26 @@ public class Lang {
 
 	@Tag("identifier")
 	public record Identifier(String value) implements JType, CType, JExpression, CExpression {
+		@Override
+		public String stringify() {
+			return value;
+		}
 	}
 
 	@Tag("pointer")
 	public record Pointer(CType child) implements CType {
+		@Override
+		public String stringify() {
+			return child.stringify() + "_ref";
+		}
 	}
 
 	@Tag("functionPointer")
 	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {
+		@Override
+		public String stringify() {
+			return "fn_" + paramTypes.stream().map(CType::stringify).collect(Collectors.joining("_")) + "_" + returnType.stringify();
+		}
 	}
 
 	@Tag("line-comment")
