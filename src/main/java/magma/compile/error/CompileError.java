@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
@@ -21,20 +22,20 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 	private String format(int depth, int index) {
 		final ArrayList<CompileError> copy = new ArrayList<>(causes);
 		copy.sort(Comparator.comparingInt(CompileError::depth));
-		final StringBuilder joiner = joinErrors(depth, copy);
-		final String formattedChildren = joiner.toString();
+		final String formattedChildren = joinErrors(depth, copy);
 		final String s = depth == 0 ? "" : System.lineSeparator() + "\t".repeat(depth);
 		return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;
 	}
 
-	private StringBuilder joinErrors(int depth, List<CompileError> copy) {
-		StringBuilder joiner = new StringBuilder();
-		IntStream.range(0, copy.size()).forEach(i -> {
-			CompileError error = copy.get(i);
-			String format = error.format(depth + 1, i);
-			joiner.append(format);
-		});
-		return joiner;
+	private String joinErrors(int depth, List<CompileError> copy) {
+		return IntStream.range(0, copy.size())
+										.mapToObj(index -> formatChild(depth, copy, index))
+										.collect(Collectors.joining());
+	}
+
+	private String formatChild(int depth, List<CompileError> copy, int i) {
+		CompileError error = copy.get(i);
+		return error.format(depth + 1, i);
 	}
 
 	private int depth() {
