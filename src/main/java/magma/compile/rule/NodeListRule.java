@@ -10,6 +10,7 @@ import magma.result.Ok;
 import magma.result.Result;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.StringJoiner;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
@@ -27,13 +28,22 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
-		final ArrayList<Node> children = new ArrayList<>(); for (String segment : divider.divide(input).toList()) {
-			Result<Node, CompileError> res = rule().lex(segment);
-			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
-			else if (res instanceof Err<Node, CompileError>(CompileError error)) return new Err<>(error);
-		}
+		return divider.divide(input)
+									.reduce(new Ok<>(new ArrayList<>()), this::fold, (_, next) -> next)
+									.mapValue(list -> new Node().withNodeList(key, list));
+	}
 
-		return new Ok<>(new Node().withNodeList(key, children));
+	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
+		return switch (current) {
+			case Err<List<Node>, CompileError> v -> new Err<>(v.error());
+			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
+				case Err<Node, CompileError> v -> new Err<>(v.error());
+				case Ok<Node, CompileError>(Node node) -> {
+					list.add(node);
+					yield new Ok<>(list);
+				}
+			};
+		};
 	}
 
 	@Override
@@ -42,7 +52,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 			// Treat missing or empty lists as empty content when generating.
 			if (list.isEmpty()) return new Ok<>("");
 
-			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
+			final StringJoiner sb = new StringJoiner(divider.delimiter());
+			for (Node child : list)
 				switch (this.rule.generate(child)) {
 					case Ok<String, CompileError>(String value1) -> sb.add(value1);
 					case Err<String, CompileError>(CompileError error) -> {

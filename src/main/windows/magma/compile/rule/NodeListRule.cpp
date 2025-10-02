@@ -10,30 +10,38 @@ Rule Arguments_NodeListRule(char* key, Rule rule) {
 	return /*new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()))*/;
 }
 Result<Node, CompileError> lex_NodeListRule(char* input) {
-	/*final ArrayList<Node> children = new ArrayList<>();*/
-	/*for (String segment : divider.divide(input).toList()) {
-			Result<Node, CompileError> res = rule().lex(segment);
-			if (res instanceof Ok<Node, CompileError>(Node value)) children.add(value);
-			else if (res instanceof Err<Node, CompileError>(CompileError error)) return new Err<>(error);
-		}*/
-	return /*new Ok<>(new Node().withNodeList(key, children))*/;
+	return /*divider.divide(input)
+									.reduce(new Ok<>(new ArrayList<>()), this::fold, (_, next) -> next)
+									.mapValue(list -> new Node().withNodeList(key, list))*/;
+}
+Result<List<Node>, CompileError> fold_NodeListRule(Result<List<Node>, CompileError> current, char* element) {
+	return /*switch (current) {
+			case Err<List<Node>, CompileError> v -> new Err<>(v.error());
+			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
+				case Err<Node, CompileError> v -> new Err<>(v.error());
+				case Ok<Node, CompileError>(Node node) -> {
+					list.add(node);
+					yield new Ok<>(list);
+				}
+			};
+		}*/;
 }
 Result<String, CompileError> generate_NodeListRule(Node value) {
-	/*Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
+	/*Option<Result<String, CompileError>> resultOption = value.findNodeList*/(/*key).map(list -> {
 			// Treat missing or empty lists as empty content when generating.
 			if (list.isEmpty()) return new Ok<>("");
 
-			final StringJoiner sb = new StringJoiner(divider.delimiter()); for (Node child : list)
+			final StringJoiner sb = new StringJoiner(divider.delimiter());
+			for (Node child : list)
 				switch (this.rule.generate(child)) {
-					case Ok<String, CompileError>(String value1) -> sb.add(value1);
+					case Ok<String*/, /* CompileError>(String value1) -> sb.add(value1);
 					case Err<String, CompileError>(CompileError error) -> {
 						return new Err<>(error);
 					}
 				}
 
 			return new Ok<>(sb.toString());
-		}*/
-	/*);*/
+		})*/;
 	return /*switch (resultOption) {
 			// If the node-list isn't present at all, treat it as empty rather than an
 			// error.

@@ -4,7 +4,7 @@ Rule NonEmptyList_NonEmptyListRule(char* key, Rule innerRule) {
 	return /*new NonEmptyListRule(key, innerRule)*/;
 }
 Result<Node, CompileError> lex_NonEmptyListRule(char* content) {
-	/*// Delegate lexing to inner rule*/
+	// Delegate lexing to inner rule
 	return /*innerRule.lex(content)*/;
 }
 Result<String, CompileError> generate_NonEmptyListRule(Node node) {
