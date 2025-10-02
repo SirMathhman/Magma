@@ -2,18 +2,20 @@
 template<>
 struct SplitRule{Rule leftRule;, Rule rightRule;, Splitter splitter;};
 template<>
-/*public static Rule*/ First_SplitRule(Rule left, char* infix, Rule right) {/*
-		final Splitter splitter = new InfixSplitter(infix, new FirstLocator());
-		return new SplitRule(left, right, splitter);
+Rule First_SplitRule(Rule left, char* infix, Rule right) {/*
+		final Splitter splitter = new InfixSplitter(infix, new FirstLocator()); return new SplitRule(left, right, splitter);
 	*/}
 template<>
-/*public static Rule*/ Last_SplitRule(Rule leftRule, char* infix, Rule rightRule) {/*
+Rule Last_SplitRule(Rule leftRule, char* infix, Rule rightRule) {/*
 		final Splitter splitter = new InfixSplitter(infix, new LastLocator());
 		return new SplitRule(leftRule, rightRule, splitter);
 	*/}
 template<>
-@Override
-	public Result<Node, CompileError> lex_SplitRule(char* input) {/*
+Rule Split_SplitRule(Rule left, Splitter splitter, Rule right) {/*
+		return new SplitRule(left, right, splitter);
+	*/}
+template<>
+Result<Node, CompileError> lex_SplitRule(char* input) {/*
 		return switch (splitter.split(input)) {
 			case None<Tuple<String, String>> _ ->
 					new Err<>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
@@ -25,8 +27,7 @@ template<>
 		};
 	*/}
 template<>
-@Override
-	public Result<String, CompileError> generate_SplitRule(Node node) {/*
+Result<String, CompileError> generate_SplitRule(Node node) {/*
 		return leftRule.generate(node)
 									 .flatMap(left -> rightRule.generate(node).mapValue(right -> splitter.merge(left, right)));
 	*/}

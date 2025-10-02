@@ -2,8 +2,7 @@
 template<>
 struct ThrowableError{Throwable e;};
 template<>
-/*@Override
-	public String*/ display_ThrowableError() {/*
+char* display_ThrowableError() {/*
 		final StringWriter writer = new StringWriter();
 		e.printStackTrace(new PrintWriter(writer));
 		return writer.toString();

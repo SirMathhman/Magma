@@ -1,13 +1,12 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 template<>
-struct Node{/*public final Map<String, List<Node>> nodeLists = new*/ HashMap<>();, /*public final Map<String, Node> nodes = new*/ HashMap<>();, /*private final Map<String, String> strings = new*/ HashMap<>();, /*public Option<String> maybeType =*/ Option.empty();};
+struct Node{new HashMap<>();, new HashMap<>();, new HashMap<>();, /*=*/ Option.empty();};
 template<>
-/*@Override
-	public String*/ toString_Node() {/*
+char* toString_Node() {/*
 		return format(0);
 	*/}
 template<>
-/*private static String*/ escape_Node(char* value) {/*
+char* escape_Node(char* value) {/*
 		return value.replace("\\", "\\\\")
 				.replace("\"", "\\\"")
 				.replace("\n", "\\n")
@@ -15,16 +14,16 @@ template<>
 				.replace("\t", "\\t");
 	*/}
 template<>
-/*public Node*/ withString_Node(char* key, char* value) {/*
+Node withString_Node(char* key, char* value) {/*
 		strings.put(key, value);
 		return this;
 	*/}
 template<>
-public Option<String> findString_Node(char* key) {/*
+Option<String> findString_Node(char* key) {/*
 		return Option.ofNullable(strings.get(key));
 	*/}
 template<>
-/*public Node*/ merge_Node(Node node) {/*
+Node merge_Node(Node node) {/*
 		maybeType = switch (maybeType) {
 			case None<String> _ -> node.maybeType;
 			case Some<String> _ -> maybeType;
@@ -35,45 +34,45 @@ template<>
 		return this;
 	*/}
 template<>
-/*public Node*/ withNodeList_Node(char* key, List<Node> values) {/*
+Node withNodeList_Node(char* key, List<Node> values) {/*
 		nodeLists.put(key, values);
 		return this;
 	*/}
 template<>
-public Option<List<Node>> findNodeList_Node(char* key) {/*
+Option<List<Node>> findNodeList_Node(char* key) {/*
 		return Option.ofNullable(nodeLists.get(key));
 	*/}
 template<>
-/*public Node*/ withNode_Node(char* key, Node node) {/*
+Node withNode_Node(char* key, Node node) {/*
 		nodes.put(key, node);
 		return this;
 	*/}
 template<>
-public Option<Node> findNode_Node(char* key) {/*
+Option<Node> findNode_Node(char* key) {/*
 		return Option.ofNullable(nodes.get(key));
 	*/}
 template<>
-/*public Node*/ retype_Node(char* type) {/*
+Node retype_Node(char* type) {/*
 		this.maybeType = Option.of(type);
 		return this;
 	*/}
 template<>
-/*public boolean*/ is_Node(char* type) {/*
+boolean is_Node(char* type) {/*
 		return this.maybeType.map(inner -> inner.equals(type)).orElse(false);
 	*/}
 template<>
-public Set<String> getStringKeys_Node() {/*
+Set<String> getStringKeys_Node() {/*
 		return strings.keySet();
 	*/}
 template<>
-/*public String*/ format_Node(int depth) {/*
+char* format_Node(int depth) {/*
 		StringBuilder builder = new StringBuilder();
 		builder.append("\t".repeat(depth));
 		appendJson(builder, depth);
 		return builder.toString();
 	*/}
 template<>
-/*private void*/ appendJson_Node(StringBuilder builder, int depth) {/*
+void appendJson_Node(StringBuilder builder, int depth) {/*
 		final String indent = "\t".repeat(depth);
 		final String childIndent = "\t".repeat(depth + 1);
 		builder.append("{");

@@ -2,7 +2,6 @@
 template<>
 struct StringContext{char* context;};
 template<>
-/*@Override
-	public String*/ display_StringContext(int depth) {/*
+char* display_StringContext(int depth) {/*
 		return context;
 	*/}

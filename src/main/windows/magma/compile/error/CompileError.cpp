@@ -6,12 +6,11 @@ public CompileError_CompileError(char* reason, Context sourceCode) {/*
 		this(reason, sourceCode, Collections.emptyList());
 	*/}
 template<>
-/*@Override
-	public String*/ display_CompileError() {/*
+char* display_CompileError() {/*
 		return format(0, 0);
 	*/}
 template<>
-/*private String*/ format_CompileError(int depth, int index) {/*
+char* format_CompileError(int depth, int index) {/*
 		final ArrayList<CompileError> copy = new ArrayList<>(causes);
 		copy.sort(Comparator.comparingInt(CompileError::depth));
 
@@ -26,6 +25,6 @@ template<>
 		return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;
 	*/}
 template<>
-/*private int*/ depth_CompileError() {/*
+int depth_CompileError() {/*
 		return 1 + causes.stream().mapToInt(CompileError::depth).max().orElse(0);
 	*/}

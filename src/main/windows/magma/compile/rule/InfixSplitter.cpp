@@ -2,8 +2,7 @@
 template<>
 struct InfixSplitter{char* infix;, Locator locator;};
 template<>
-@Override
-	public Option<Tuple<String, String>> split_InfixSplitter(char* input) {/*
+Option<Tuple<String, String>> split_InfixSplitter(char* input) {/*
 		return switch (locator.locate(input, infix)) {
 			case None<Integer> _ -> new None<>();
 			case Some<Integer>(Integer index) -> {
@@ -14,12 +13,10 @@ template<>
 		};
 	*/}
 template<>
-/*@Override
-	public String*/ createErrorMessage_InfixSplitter() {/*
+char* createErrorMessage_InfixSplitter() {/*
 		return "Infix '" + infix + "' not present";
 	*/}
 template<>
-/*@Override
-	public String*/ merge_InfixSplitter(char* left, char* right) {/*
+char* merge_InfixSplitter(char* left, char* right) {/*
 		return left + infix + right;
 	*/}

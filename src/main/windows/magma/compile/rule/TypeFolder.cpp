@@ -2,25 +2,20 @@
 template<>
 struct TypeFolder{};
 template<>
-/*@Override
-	public DivideState*/ fold_TypeFolder(DivideState state, char c) {/*
+DivideState fold_TypeFolder(DivideState state, char c) {/*
 		// Split on space when at depth 0
 		if (c == ' ' && state.isLevel()) return state.advance();
 
 		// Track depth for angle brackets (generics)
-		final DivideState append = state.append(c);
-		if (c == '<') return append.enter();
-		if (c == '>') return append.exit();
+		final DivideState append = state.append(c); if (c == '<') return append.enter(); if (c == '>') return append.exit();
 
 		// Track depth for parentheses (method params, etc.)
-		if (c == '(') return append.enter();
-		if (c == ')') return append.exit();
+		if (c == '(') return append.enter(); if (c == ')') return append.exit();
 
 		// Append everything else
 		return append;
 	*/}
 template<>
-/*@Override
-	public String*/ delimiter_TypeFolder() {/*
+char* delimiter_TypeFolder() {/*
 		return " ";
 	*/}

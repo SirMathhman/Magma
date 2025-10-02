@@ -21,8 +21,7 @@ import static magma.compile.rule.NodeRule.Node;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
-import static magma.compile.rule.SplitRule.First;
-import static magma.compile.rule.SplitRule.Last;
+import static magma.compile.rule.SplitRule.*;
 import static magma.compile.rule.StringRule.String;
 import static magma.compile.rule.StripRule.Strip;
 import static magma.compile.rule.SuffixRule.Suffix;
@@ -287,14 +286,16 @@ public class Lang {
 	private static Rule JDefinition() {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Split into modifiers+type and name using type-aware splitting
-		final Rule typeAndName =
-				new SplitRule(Node("type", JType()), String("name"), KeepLast(new FoldingDivider(new TypeFolder())));
+		final Rule type = Node("type", JType());
+
+		final Rule name = String("name");
+		final Rule typeAndName = Split(type, KeepLast(new FoldingDivider(new TypeFolder())), name);
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		final Rule withModifiers = Last(modifiers, " ", typeAndName);
+		final Rule withModifiers = Split(modifiers, KeepLast(new FoldingDivider(new TypeFolder())), type);
 
-		return Tag("definition", Or(withModifiers, typeAndName));
+		Rule beforeName = Or(withModifiers, type); return Tag("definition", Last(beforeName, " ", name));
 	}
 
 	private static Rule JType() {

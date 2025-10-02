@@ -2,12 +2,11 @@
 template<>
 struct OrRule{List<Rule> rules;};
 template<>
-/*public static Rule*/ Or_OrRule(/*Rule...*/ rules) {/*
+Rule Or_OrRule(/*Rule...*/ rules) {/*
 		return new OrRule(Arrays.asList(rules));
 	*/}
 template<>
-@Override
-	public Result<Node, CompileError> lex_OrRule(char* content) {/*
+Result<Node, CompileError> lex_OrRule(char* content) {/*
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Rule rule : rules)
 			switch (rule.lex(content)) {
@@ -19,8 +18,7 @@ template<>
 		return new Err<>(new CompileError("No alternative matched for input", new StringContext(content), errors));
 	*/}
 template<>
-@Override
-	public Result<String, CompileError> generate_OrRule(Node node) {/*
+Result<String, CompileError> generate_OrRule(Node node) {/*
 		final ArrayList<CompileError> errors = new ArrayList<>();
 		for (Rule rule : rules) {
 			Result<String, CompileError> res = rule.generate(node);

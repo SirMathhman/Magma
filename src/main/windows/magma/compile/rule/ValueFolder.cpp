@@ -2,13 +2,11 @@
 template<>
 struct ValueFolder{};
 template<>
-/*@Override
-	public DivideState*/ fold_ValueFolder(DivideState state, char c) {/*
+DivideState fold_ValueFolder(DivideState state, char c) {/*
 		if (c == ',' && state.isLevel()) return state.advance(); if (c == '<') return state.enter().append(c);
 		if (c == '>') return state.exit().append(c); return state.append(c);
 	*/}
 template<>
-/*@Override
-	public String*/ delimiter_ValueFolder() {/*
+char* delimiter_ValueFolder() {/*
 		return ", ";
 	*/}

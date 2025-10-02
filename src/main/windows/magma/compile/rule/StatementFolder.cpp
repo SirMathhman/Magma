@@ -2,14 +2,12 @@
 template<>
 struct StatementFolder{};
 template<>
-/*@Override
-	public DivideState*/ fold_StatementFolder(DivideState state, char c) {/*
+DivideState fold_StatementFolder(DivideState state, char c) {/*
 		final DivideState appended = state.append(c); if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) return appended.advance().exit(); if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit(); return appended;
 	*/}
 template<>
-/*@Override
-	public String*/ delimiter_StatementFolder() {/*
+char* delimiter_StatementFolder() {/*
 		return "";
 	*/}

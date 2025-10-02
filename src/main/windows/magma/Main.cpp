@@ -2,11 +2,11 @@
 template<>
 struct Main{};
 template<>
-/*public static void*/ main_Main(char** args) {/*
+void main_Main(char** args) {/*
 		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	*/}
 template<>
-private static Option<ApplicationError> run_Main() {/*
+Option<ApplicationError> run_Main() {/*
 		final Path javaSourceRoot = Paths.get(".", "src", "main", "java");
 		final Path cOutputRoot = Paths.get(".", "src", "main", "windows");
 
@@ -20,7 +20,7 @@ private static Option<ApplicationError> run_Main() {/*
 		return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 	*/}
 template<>
-private static Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
+Option<ApplicationError> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
 			List<Path> javaFiles =
 					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
@@ -43,7 +43,7 @@ private static Option<ApplicationError> compileAllJavaFiles_Main(Path javaSource
 		}
 	*/}
 template<>
-private static Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {/*
+Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {/*
 		// Calculate relative path from source root
 		Path relativePath = javaSourceRoot.relativize(javaFile);
 
@@ -78,7 +78,7 @@ private static Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path
 		return Option.empty();
 	*/}
 template<>
-private static Option<IOException> writeString_Main(Path path, char* result) {/*
+Option<IOException> writeString_Main(Path path, char* result) {/*
 		try {
 			Files.writeString(path, result);
 			return Option.empty();
@@ -87,7 +87,7 @@ private static Option<IOException> writeString_Main(Path path, char* result) {/*
 		}
 	*/}
 template<>
-private static Result<String, ThrowableError> readString_Main(Path source) {/*
+Result<String, ThrowableError> readString_Main(Path source) {/*
 		try {
 			return new Ok<>(Files.readString(source));
 		} catch (IOException e) {
@@ -95,7 +95,7 @@ private static Result<String, ThrowableError> readString_Main(Path source) {/*
 		}
 	*/}
 template<>
-public static Result<String, CompileError> compile_Main(char* input) {/*
+Result<String, CompileError> compile_Main(char* input) {/*
 		return JRoot().lex(input)
 									.flatMap(node -> Serialize.deserialize(JavaRoot.class, node))
 									.flatMap(Main::transform)
@@ -103,7 +103,7 @@ public static Result<String, CompileError> compile_Main(char* input) {/*
 									.flatMap(CRoot()::generate);
 	*/}
 template<>
-public static Result<CRoot, CompileError> transform_Main(JavaRoot node) {/*
+Result<CRoot, CompileError> transform_Main(JavaRoot node) {/*
 		return new Ok<>(new CRoot(node.children()
 																	.stream()
 																	.map(Main::flattenRootSegment)
@@ -111,7 +111,7 @@ public static Result<CRoot, CompileError> transform_Main(JavaRoot node) {/*
 																	.toList()));
 	*/}
 template<>
-private static List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
+List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segment) {/*
 		return switch (segment) {
 			case JStructure jStructure -> flattenStructure(jStructure);
 			case Invalid invalid -> List.of(invalid);
@@ -119,7 +119,7 @@ private static List<CRootSegment> flattenRootSegment_Main(JavaRootSegment segmen
 		};
 	*/}
 template<>
-private static List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
+List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		final List<JStructureSegment> children = aClass.children();
 
 		final ArrayList<CRootSegment> segments = new ArrayList<>();
@@ -149,7 +149,7 @@ private static List<CRootSegment> flattenStructure_Main(JStructure aClass) {/*
 		return copy;
 	*/}
 template<>
-private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Main(JStructureSegment self, char* name) {/*
+Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Main(JStructureSegment self, char* name) {/*
 		return switch (self) {
 			case Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
 			case Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
@@ -159,7 +159,7 @@ private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSe
 		};
 	*/}
 template<>
-/*private static Function*/ transformMethod_Main(Method method, char* structName) {/*
+Function transformMethod_Main(Method method, char* structName) {/*
 		final List<JavaDefinition> oldParams = switch (method.params()) {
 			case None<List<JavaDefinition>> _ -> Collections.emptyList();
 			case Some<List<JavaDefinition>> v -> v.value();
@@ -181,7 +181,7 @@ template<>
 												extractedTypeParams);
 	*/}
 template<>
-/*private static CParameter*/ transformParameter_Main(JavaDefinition param) {/*
+CParameter transformParameter_Main(JavaDefinition param) {/*
 		final CType transformedType = transformType(param.type());
 
 		// If the transformed type is a FunctionPointer, create
@@ -193,7 +193,7 @@ template<>
 		return new CDefinition(param.name(), transformedType, new None<>());
 	*/}
 template<>
-private static Option<List<Identifier>> extractMethodTypeParameters_Main(Method method) {/*
+Option<List<Identifier>> extractMethodTypeParameters_Main(Method method) {/*
 		// Analyze method signature to detect generic type parameters
 		final Set<String> typeVars = new HashSet<>();
 
@@ -212,7 +212,7 @@ private static Option<List<Identifier>> extractMethodTypeParameters_Main(Method 
 		return new Some<>(identifiers);
 	*/}
 template<>
-/*private static void*/ collectTypeVariables_Main(JavaType type, Set<String> typeVars) {/*
+void collectTypeVariables_Main(JavaType type, Set<String> typeVars) {/*
 		switch (type) {
 			case Identifier ident -> {
 				// Single letter identifiers are likely type variables (R, E, etc.)
@@ -232,13 +232,13 @@ template<>
 		}
 	*/}
 template<>
-/*private static CDefinition*/ transformDefinition_Main(JavaDefinition definition) {/*
+CDefinition transformDefinition_Main(JavaDefinition definition) {/*
 		// Default to no type parameters for backward compatibility
 		final Option<List<Identifier>> typeParams = definition.typeParameters();
 		return new CDefinition(definition.name(), transformType(definition.type()), typeParams);
 	*/}
 template<>
-/*private static CType*/ transformType_Main(JavaType type) {/*
+CType transformType_Main(JavaType type) {/*
 		return switch (type) {
 			case Invalid invalid -> invalid;
 			case Generic generic -> {

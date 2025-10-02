@@ -2,8 +2,7 @@
 template<>
 struct KeepLastMerger{};
 template<>
-@Override
-	public Option<Tuple<String, String>> merge_KeepLastMerger(List<String> segments, char* delimiter) {/*
+Option<Tuple<String, String>> merge_KeepLastMerger(List<String> segments, char* delimiter) {/*
 		if (segments.size() < 2) {
 			return new None<>();
 		}

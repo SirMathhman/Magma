@@ -2,7 +2,6 @@
 template<>
 struct DelimitedRule{char* delimiter;};
 template<>
-@Override
-	public Stream<String> divide_DelimitedRule(char* input) {/*
+Stream<String> divide_DelimitedRule(char* input) {/*
 		return Arrays.stream(input.split(Pattern.quote(delimiter)));
 	*/}

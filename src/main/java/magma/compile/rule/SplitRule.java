@@ -10,7 +10,6 @@ import magma.result.Err;
 import magma.result.Result;
 
 public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter) implements Rule {
-
 	public static Rule First(Rule left, String infix, Rule right) {
 		final Splitter splitter = new InfixSplitter(infix, new FirstLocator()); return new SplitRule(left, right, splitter);
 	}
@@ -18,6 +17,10 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter) implem
 	public static Rule Last(Rule leftRule, String infix, Rule rightRule) {
 		final Splitter splitter = new InfixSplitter(infix, new LastLocator());
 		return new SplitRule(leftRule, rightRule, splitter);
+	}
+
+	public static Rule Split(Rule left, Splitter splitter, Rule right) {
+		return new SplitRule(left, right, splitter);
 	}
 
 	@Override

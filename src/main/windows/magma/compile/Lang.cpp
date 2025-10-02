@@ -54,11 +54,11 @@ struct LineComment{char* value;};
 template<>
 struct BlockComment{char* value;};
 template<>
-/*public static Rule*/ CRoot_Lang() {/*
+Rule CRoot_Lang() {/*
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
 	*/}
 template<>
-/*public static Rule*/ Function_Lang() {/*
+Rule Function_Lang() {/*
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Values("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Placeholder(new StringRule("body"));
@@ -72,7 +72,7 @@ template<>
 		return Tag("function", First(maybeTemplate, "", functionDecl));
 	*/}
 template<>
-/*private static Rule*/ CFunctionPointerDefinition_Lang() {/*
+Rule CFunctionPointerDefinition_Lang() {/*
 		// Generates: returnType (*name)(paramTypes)
 		return Tag("functionPointerDefinition",
 							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
@@ -80,11 +80,11 @@ template<>
 														Values("paramTypes", CType())), ")"));
 	*/}
 template<>
-/*private static Rule*/ CDefinition_Lang() {/*
+Rule CDefinition_Lang() {/*
 		return Last(Node("type", CType()), " ", new StringRule("name"));
 	*/}
 template<>
-/*private static Rule*/ CType_Lang() {/*
+Rule CType_Lang() {/*
 		final LazyRule rule = new LazyRule();
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
@@ -93,7 +93,7 @@ template<>
 		return rule;
 	*/}
 template<>
-/*private static Rule*/ CStructure_Lang() {/*
+Rule CStructure_Lang() {/*
 		// For template structs, use plain name without type parameters in the
 		// declaration
 		final Rule plainName = StrippedIdentifier("name");
@@ -110,27 +110,27 @@ template<>
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	*/}
 template<>
-/*public static Rule*/ JRoot_Lang() {/*
+Rule JRoot_Lang() {/*
 		final Rule segment =
 				Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), BlockComment(), Whitespace());
 		return Statements("children", segment);
 	*/}
 template<>
-/*private static Rule*/ Structures_Lang(Rule structureMember) {/*
+Rule Structures_Lang(Rule structureMember) {/*
 		return Or(JStructure("class", structureMember),
 							JStructure("interface", structureMember),
 							JStructure("record", structureMember));
 	*/}
 template<>
-/*private static Rule*/ Whitespace_Lang() {/*
+Rule Whitespace_Lang() {/*
 		return Tag("whitespace", Strip(Empty));
 	*/}
 template<>
-/*private static Rule*/ Namespace_Lang(char* type) {/*
+Rule Namespace_Lang(char* type) {/*
 		return Tag(type, Strip(Prefix(type + " ", Suffix(Invalid(), ";"))));
 	*/}
 template<>
-/*private static Rule*/ JStructure_Lang(char* type, Rule rule) {/*
+Rule JStructure_Lang(char* type, Rule rule) {/*
 		final Rule modifiers = String("modifiers");
 
 		final Rule maybeWithTypeArguments = NameWithTypeParameters();
@@ -153,13 +153,13 @@ template<>
 		return Tag(type, Strip(Suffix(aClass, "}")));
 	*/}
 template<>
-/*private static Rule*/ NameWithTypeParameters_Lang() {/*
+Rule NameWithTypeParameters_Lang() {/*
 		final Rule name = StrippedIdentifier("name");
 		final Rule withTypeParameters = Suffix(First(name, "<", Values("typeParameters", Identifier())), ">");
 		return Strip(Or(withTypeParameters, name));
 	*/}
 template<>
-/*private static Rule*/ StructureSegment_Lang() {/*
+Rule StructureSegment_Lang() {/*
 		final LazyRule structureMember = new LazyRule();
 		structureMember.set(Or(Structures(structureMember),
 													 Statement(),
@@ -170,30 +170,30 @@ template<>
 		return structureMember;
 	*/}
 template<>
-/*private static Rule*/ BlockComment_Lang() {/*
+Rule BlockComment_Lang() {/*
 		return Tag("block-comment", Strip(Prefix("start", Suffix(String("value"), "end"))));
 	*/}
 template<>
-/*private static Rule*/ LineComment_Lang() {/*
+Rule LineComment_Lang() {/*
 		return Tag("line-comment", Strip(Prefix("//", String("value"))));
 	*/}
 template<>
-/*private static Rule*/ Statement_Lang() {/*
+Rule Statement_Lang() {/*
 		return Tag("statement", Strip(Suffix(Node("value", JDefinition()), ";")));
 	*/}
 template<>
-/*private static Rule*/ Method_Lang() {/*
+Rule Method_Lang() {/*
 		Rule params = Parameters();
 		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", String("body")), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
 	*/}
 template<>
-/*private static Rule*/ Parameters_Lang() {/*
+Rule Parameters_Lang() {/*
 		return Values("params", Or(ParameterDefinition(), Whitespace()));
 	*/}
 template<>
-/*private static Rule*/ ParameterDefinition_Lang() {/*
+Rule ParameterDefinition_Lang() {/*
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Parameters don't have modifiers, just type and name
 		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
@@ -202,42 +202,45 @@ template<>
 		return Tag("definition", new SplitRule(Node("type", JType()), String("name"), typeSplitter));
 	*/}
 template<>
-/*private static Rule*/ JDefinition_Lang() {/*
+Rule JDefinition_Lang() {/*
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Split into modifiers+type and name using type-aware splitting
-		final Rule typeAndName =
-				new SplitRule(Node("type", JType()), String("name"), KeepLast(new FoldingDivider(new TypeFolder())));
+		final Rule type = Node("type", JType());
+
+		final Rule name = String("name");
+		final Rule typeAndName = Split(type, KeepLast(new FoldingDivider(new TypeFolder())), name);
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		final Rule withModifiers = Last(modifiers, " ", typeAndName);
+		final Rule withModifiers = Split(modifiers, KeepLast(new FoldingDivider(new TypeFolder())), type);
 
-		return Tag("definition", Or(withModifiers, typeAndName));
+		Rule beforeName = Or(withModifiers, type);
+		return Tag("definition", Last(beforeName, " ", name));
 	*/}
 template<>
-/*private static Rule*/ JType_Lang() {/*
+Rule JType_Lang() {/*
 		final LazyRule type = new LazyRule();
 		type.set(Or(Generic(type), Array(type), Identifier(), Invalid()));
 		return type;
 	*/}
 template<>
-/*private static Rule*/ Array_Lang(Rule type) {/*
+Rule Array_Lang(Rule type) {/*
 		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
 	*/}
 template<>
-/*private static Rule*/ Identifier_Lang() {/*
+Rule Identifier_Lang() {/*
 		return Tag("identifier", StrippedIdentifier("value"));
 	*/}
 template<>
-/*private static Rule*/ StrippedIdentifier_Lang(char* key) {/*
+Rule StrippedIdentifier_Lang(char* key) {/*
 		return Strip(FilterRule.Identifier(String(key)));
 	*/}
 template<>
-/*private static Rule*/ Generic_Lang(Rule type) {/*
+Rule Generic_Lang(Rule type) {/*
 		return Tag("generic",
 							 Strip(Suffix(First(Strip(String("base")), "<", NodeListRule.Values("arguments", type)), ">")));
 	*/}
 template<>
-/*private static Rule*/ Invalid_Lang() {/*
+Rule Invalid_Lang() {/*
 		return Tag("invalid", Placeholder(String("value")));
 	*/}
