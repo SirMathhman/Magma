@@ -1,6 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Main{};
 void main_Main(char** args) {
+	if(/*run(*/)
+	/*instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());*/
 }
 Option<ApplicationError> run_Main() {
 	/*final Path javaSourceRoot = Paths.get(".", "src", "main", "java");*/
@@ -52,6 +54,21 @@ Option<ApplicationError> compileJavaFile_Main(Path javaFile, Path javaSourceRoot
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}*/
 	/*Result<String, ThrowableError> readResult = readString(javaFile);*/
+	if(/*readResult instanceof Err<String, ThrowableError>(ThrowableError error*/)
+	/*)
+			return Option.of(new ApplicationError(error));*/
+	if(/*readResult instanceof Ok<String, ThrowableError>(String input*/)
+	/*) {
+			Result<String, CompileError> compileResult = compile(input);
+			if (compileResult instanceof Err<String, CompileError>(CompileError error))
+				return Option.of(new ApplicationError(error));
+			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
+				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
+															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+															 System.lineSeparator();
+				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
+			}
+		}*/
 	/*return Option.empty();*/
 }
 Option<IOException> writeString_Main(Path path, char* result) {
@@ -98,6 +115,15 @@ List<CRootSegment> flattenStructure_Main(JStructure aClass) {
 	/*final ArrayList<CRootSegment> segments = new ArrayList<>();*/
 	/*final ArrayList<CDefinition> fields = new ArrayList<>();*/
 	/*// Special handling for Record params - add them as struct fields*/
+	if(/*aClass instanceof Lang.Record record*/)
+	/*{
+			Option<List<JavaDefinition>> params = record.params();
+			if (params instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
+				for (JavaDefinition param : paramList) {
+					final CDefinition cDef = transformDefinition(param);
+					fields.add(cDef);
+				}
+		}*/
 	/*final String name = aClass.name();*/
 	/*for (JStructureSegment child : children) {
 			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
@@ -137,11 +163,10 @@ Function transformMethod_Main(Method method, char* structName) {
 	/*// (Placeholder, Whitespace, Invalid)*/
 	/*final List<CFunctionSegment> bodySegments = switch (method.body()) {
 			case None<List<JFunctionSegment>> _ -> Collections.emptyList();
-			case Some<List<JFunctionSegment>>(var segments) -> {
-				// Cast is safe because JFunctionSegment and CFunctionSegment permit the same
-				// types
-				@SuppressWarnings("unchecked")
-				List<CFunctionSegment> cSegments = (List<CFunctionSegment>) (List<?>) segments; yield cSegments;
+			case Some<List<JFunctionSegment>>(List<JFunctionSegment> segments) -> {
+				yield segments.stream().map(segment -> {
+					return transformFunctionSegment(segment);
+				}).toList();
 			}
 		}*/
 	/*;*/
@@ -153,10 +178,26 @@ Function transformMethod_Main(Method method, char* structName) {
 												new Some<>(System.lineSeparator()),
 												extractedTypeParams);*/
 }
+CFunctionSegment transformFunctionSegment_Main(JFunctionSegment segment) {
+	/*return switch (segment) {
+			case JIf anIf -> new CIf(transformExpression(anIf), transformFunctionSegment(anIf.body()));
+			case Invalid invalid -> invalid;
+			case Placeholder placeholder -> placeholder;
+			case Whitespace whitespace -> whitespace;
+		}*/
+	/*;*/
+}
+CExpression transformExpression_Main(JIf anIf) {
+	/*return switch (anIf.condition()) {case Invalid invalid -> invalid;}*/
+	/*;*/
+}
 CParameter transformParameter_Main(JavaDefinition param) {
 	/*final CType transformedType = transformType(param.type());*/
 	/*// If the transformed type is a FunctionPointer, create*/
 	/*// CFunctionPointerDefinition*/
+	if(/*transformedType instanceof FunctionPointer(CType returnType, List<CType> paramTypes*/)
+	/*)
+			return new CFunctionPointerDefinition(param.name(), returnType, paramTypes);*/
 	/*// Otherwise create regular CDefinition*/
 	/*return new CDefinition(param.name(), transformedType, new None<>());*/
 }
@@ -166,6 +207,11 @@ Option<List<Identifier>> extractMethodTypeParameters_Main(Method method) {
 	/*// Check return type for type variables*/
 	/*collectTypeVariables(method.definition().type(), typeVars);*/
 	/*// Check parameter types for type variables*/
+	if(/*method.params(*/)
+	/*instanceof Some<List<JavaDefinition>>(List<JavaDefinition> paramList))
+			for (JavaDefinition param : paramList) collectTypeVariables(param.type(), typeVars);*/
+	if(/*typeVars.isEmpty(*/)
+	/*) return new None<>();*/
 	/*// Convert to Identifier objects*/
 	/*final List<Identifier> identifiers = typeVars.stream().map(Identifier::new).toList();*/
 	/*return new Some<>(identifiers);*/
@@ -181,9 +227,7 @@ void collectTypeVariables_Main(JavaType type, Set<String> typeVars) {
 				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
 					typeVars.add(generic.base());
 				// Collect from type arguments
-				for (JavaType arg : generic.arguments()) {
-					collectTypeVariables(arg, typeVars);
-				}
+				for (JavaType arg : generic.arguments()) collectTypeVariables(arg, typeVars);
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {

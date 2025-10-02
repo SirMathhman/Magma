@@ -3,12 +3,16 @@ struct Lang{};
 struct JavaRootSegment{};
 struct CRootSegment{Option<String> after();};
 struct JStructureSegment{};
+struct JExpression{};
 struct JFunctionSegment{};
 struct CFunctionSegment{};
 struct JavaType{};
 struct CType{};
 struct JStructure{Option<String> modifiers();char* name();Option<List<Identifier>> typeParameters();List<JStructureSegment> children();};
 struct CParameter{};
+struct CExpression{};
+struct JIf{JExpression condition;JFunctionSegment body;};
+struct CIf{CExpression condition;CFunctionSegment body;};
 struct Field{JavaDefinition value;};
 struct Generic{char* base;List<JavaType> arguments;};
 struct Array{JavaType child;};
@@ -114,9 +118,7 @@ Rule JStructure_Lang(char* type, Rule rule) {
 	/*final Rule beforeContent =
 				Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())), maybeWithParameters1);*/
 	/*final Rule children = Statements("children", rule);*/
-	/*final Rule beforeContent1 =
-				Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")),
-					 beforeContent);*/
+	/*final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")), beforeContent);*/
 	/*final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}*/
 	/*")));*/
@@ -129,11 +131,11 @@ Rule NameWithTypeParameters_Lang() {
 Rule StructureSegment_Lang() {
 	/*final LazyRule structureMember = new LazyRule();*/
 	/*structureMember.set(Or(Structures(structureMember),
-																																						Statement(),
-																																						JMethod(),
-																																						LineComment(),
-																																						BlockComment(),
-																																						Whitespace()));*/
+													 Statement(),
+													 JMethod(),
+													 LineComment(),
+													 BlockComment(),
+													 Whitespace()));*/
 	/*return structureMember;*/
 }
 Rule BlockComment_Lang() {
@@ -157,18 +159,23 @@ Rule JMethod_Lang() {
 }
 Rule JMethodSegment_Lang() {
 	/*final LazyRule rule = new LazyRule();*/
-	/*rule.set(Strip(Or(Whitespace(), If(rule), Invalid())));*/
+	/*rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Invalid())));*/
 	/*return rule;*/
 }
-Rule If_Lang(LazyRule rule) {
+Rule If_Lang(Rule expression, Rule statement) {
 	/*return Tag("if",
-							 Prefix("if", Strip(Prefix("(", First(Node("condition", JExpression()), ")", Node("body", rule))))));*/
+							 Prefix("if", Strip(Prefix("(", First(Node("condition", expression), ")", Node("body", statement))))));*/
 }
 Rule JExpression_Lang() {
 	/*return Invalid();*/
 }
+Rule CExpression_Lang() {
+	/*return Or(Invalid());*/
+}
 Rule CFunctionSegment_Lang() {
-	/*return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Invalid()));*/
+	/*final LazyRule rule = new LazyRule();*/
+	/*rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Or(If(CExpression(), rule), Invalid()))));*/
+	/*return rule;*/
 }
 Rule Parameters_Lang() {
 	/*return Values("params", Or(ParameterDefinition(), Whitespace()));*/

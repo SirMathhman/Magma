@@ -29,7 +29,7 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace {}
+	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {}
 
 	sealed public interface CRootSegment permits Invalid, Structure, Function {
 		Option<String> after();
@@ -38,9 +38,11 @@ public class Lang {
 	public sealed interface JStructureSegment
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
-	sealed public interface JFunctionSegment permits Invalid, Placeholder, Whitespace {}
+	sealed public interface JExpression permits Invalid {}
 
-	sealed public interface CFunctionSegment permits Invalid, Placeholder, Whitespace {}
+	sealed public interface JFunctionSegment permits Invalid, Placeholder, Whitespace, JIf {}
+
+	sealed public interface CFunctionSegment permits CIf, Invalid, Placeholder, Whitespace {}
 
 	sealed public interface JavaType {}
 
@@ -58,6 +60,14 @@ public class Lang {
 
 	// Sealed interface for C parameter types
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
+
+	public sealed interface CExpression permits Invalid {}
+
+	@Tag("if")
+	public record JIf(JExpression condition, JFunctionSegment body) implements JFunctionSegment {}
+
+	@Tag("if")
+	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
 
 	@Tag("statement")
 	public record Field(JavaDefinition value) implements JStructureSegment {}
@@ -82,8 +92,8 @@ public class Lang {
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment,
-			CFunctionSegment {}
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JavaType, CType, JFunctionSegment, CFunctionSegment,
+			JExpression, CExpression {}
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -144,7 +154,7 @@ public class Lang {
 	public record LineComment(String value) implements JStructureSegment {}
 
 	@Tag("block-comment")
-	public record BlockComment(String value) implements JStructureSegment {}
+	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function(), Invalid()), "after"));
@@ -238,8 +248,7 @@ public class Lang {
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")),
-					 beforeContent);
+		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")), beforeContent);
 
 		final Rule aClass = First(First(Strip(Or(modifiers, Empty)), type + " ", beforeContent1), "{", children);
 		return Tag(type, Strip(Suffix(aClass, "}")));
@@ -281,20 +290,27 @@ public class Lang {
 	}
 
 	private static Rule JMethodSegment() {
-		final LazyRule rule = new LazyRule(); rule.set(Strip(Or(Whitespace(), If(rule), Invalid()))); return rule;
+		final LazyRule rule = new LazyRule(); rule.set(Strip(Or(Whitespace(), If(JExpression(), rule), Invalid())));
+		return rule;
 	}
 
-	private static Rule If(LazyRule rule) {
+	private static Rule If(Rule expression, Rule statement) {
 		return Tag("if",
-							 Prefix("if", Strip(Prefix("(", First(Node("condition", JExpression()), ")", Node("body", rule))))));
+							 Prefix("if", Strip(Prefix("(", First(Node("condition", expression), ")", Node("body", statement))))));
 	}
 
 	private static Rule JExpression() {
 		return Invalid();
 	}
 
+	private static Rule CExpression() {
+		return Or(Invalid());
+	}
+
 	private static Rule CFunctionSegment() {
-		return Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Invalid()));
+		final LazyRule rule = new LazyRule();
+		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", Or(If(CExpression(), rule), Invalid()))));
+		return rule;
 	}
 
 	private static Rule Parameters() {
