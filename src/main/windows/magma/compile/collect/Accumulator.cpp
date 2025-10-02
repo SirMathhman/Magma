@@ -8,7 +8,8 @@ Result<> merge_Accumulator(List<> elements, Result<> (*mapper)(T)) {
 			case Ok<R, CompileError> v -> accumulator.setValue(v.value());
 		}, (_, next) -> next).toResult();
 }
-public Accumulator<> addError_Accumulator(CompileError error) {/*???*/
+public Accumulator<> addError_Accumulator(CompileError error) {
+	errors.add(error);
 	return this;
 }
 public Accumulator<> setValue_Accumulator(T value) {/*???*/

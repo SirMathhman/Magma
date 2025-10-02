@@ -499,7 +499,7 @@ public class Lang {
 	}
 
 	private static Rule Invokable(Rule expression) {
-		return Or(Invokable("invocation", Node("caller", expression), expression),
+		return Or(Invocation(expression),
 				Invokable("construction", Node("type", CType()), expression));
 	}
 
@@ -532,11 +532,15 @@ public class Lang {
 				StringExpr(),
 				Switch(expression),
 				Invokable(expression),
-				Tag("field-access", Last(Node("child", expression), ".", Strip(String("name")))),
+				FieldAccess(expression),
 				Operator("add", "+", expression),
 				Operator("equals", "==", expression),
 				Identifier()));
 		return expression;
+	}
+
+	private static Rule FieldAccess(Rule expression) {
+		return Tag("field-access", Last(Node("child", expression), ".", Strip(String("name"))));
 	}
 
 	private static Rule StringExpr() {
@@ -558,7 +562,17 @@ public class Lang {
 	}
 
 	private static Rule CExpression() {
-		return Or();
+		LazyRule expression = new LazyRule();
+		expression.set(Or(
+				Invocation(expression),
+				FieldAccess(expression),
+				Identifier()
+		));
+		return expression;
+	}
+
+	private static Rule Invocation(Rule expression) {
+		return Invokable("invocation", Node("caller", expression), expression);
 	}
 
 	private static Rule CFunctionSegment() {
