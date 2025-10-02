@@ -16,6 +16,7 @@ import magma.compile.rule.TypeFolder;
 import magma.option.None;
 import magma.option.Option;
 
+import javax.swing.plaf.synth.SynthToolTipUI;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -525,7 +526,7 @@ public class Lang {
 
 	private static Rule Invokable(Rule expression) {
 		return Or(Invocation(expression),
-				Invokable("construction", Node("type", CType()), expression));
+				Invokable("construction", Strip(Prefix("new ", Node("type", CType()))), expression));
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
