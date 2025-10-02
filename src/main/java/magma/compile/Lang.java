@@ -425,7 +425,9 @@ public class Lang {
 
 	private static Rule JExpression() {
 		final LazyRule rule = new LazyRule();
-		rule.set(Or(Invokable(rule), Identifier()));
+		rule.set(Or(Invokable(rule),
+								Tag("field-access", Last(Node("child", rule), ".", Strip(String("name")))),
+								Identifier()));
 		return rule;
 	}
 
