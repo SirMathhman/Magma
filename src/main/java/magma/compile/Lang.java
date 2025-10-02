@@ -285,7 +285,12 @@ public class Lang {
 	}
 
 	private static Rule If(LazyRule rule) {
-		return Tag("if", Prefix("if", Strip(Prefix("(", First(Node("condition", rule), ")", Node("body", rule))))));
+		return Tag("if",
+							 Prefix("if", Strip(Prefix("(", First(Node("condition", JExpression()), ")", Node("body", rule))))));
+	}
+
+	private static Rule JExpression() {
+		return Invalid();
 	}
 
 	private static Rule CFunctionSegment() {

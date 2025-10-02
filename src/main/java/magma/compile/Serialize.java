@@ -223,6 +223,13 @@ public class Serialize {
 				if (recursiveResult instanceof Ok<?, ?> ok && type.isAssignableFrom(ok.value().getClass())) {
 					return recursiveResult;
 				}
+				// If recursiveResult is Err but would have matched (i.e., the tag was valid but
+				// deserialization failed
+				// for other reasons), propagate that error instead of generating a misleading
+				// "unknown tag" error
+				if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) {
+					return recursiveResult;
+				}
 			}
 		}
 
@@ -230,9 +237,62 @@ public class Serialize {
 		List<String> validTags = collectAllValidTags(type);
 
 		String validTagsList = validTags.isEmpty() ? "none" : String.join(", ", validTags);
+		String suggestion = getSuggestionForUnknownTag(type, nodeType, validTags);
 		return new Err<>(new CompileError(
-				"No permitted subtype of '" + type.getName() + "' matched node type '" + nodeType + "'. " +
-				"Valid tags are: [" + validTagsList + "]", new NodeContext(node)));
+				"No permitted subtype of '" + type.getSimpleName() + "' matched node type '" + nodeType + "'. " +
+				"Valid tags are: [" + validTagsList + "]. " + suggestion, new NodeContext(node)));
+	}
+
+	private static String getSuggestionForUnknownTag(Class<?> type, String nodeType, List<String> validTags) {
+		// Provide helpful suggestions for unknown tags
+		if (validTags.isEmpty()) {
+			return "This sealed interface has no valid implementations with @Tag annotations.";
+		}
+
+		// Find if there's a similar tag (simple Levenshtein-like check)
+		Option<String> closestTag = findClosestTag(nodeType, validTags);
+		if (closestTag instanceof Some<String>(String tag)) {
+			return "Did you mean '" + tag + "'? Or add a record type with @Tag(\"" + nodeType +
+						 "\") to the permitted subtypes of '" + type.getSimpleName() + "'.";
+		}
+
+		return "Add a record type with @Tag(\"" + nodeType + "\") and include it in the 'permits' clause of '" +
+					 type.getSimpleName() + "'.";
+	}
+
+	private static Option<String> findClosestTag(String nodeType, List<String> validTags) {
+		Option<String> closest = Option.empty(); int minDistance = Integer.MAX_VALUE;
+
+		for (String tag : validTags) {
+			int distance = levenshteinDistance(nodeType.toLowerCase(), tag.toLowerCase());
+			if (distance < minDistance && distance <= 2) { // Only suggest if reasonably close
+				minDistance = distance; closest = Option.of(tag);
+			}
+		}
+
+		return closest;
+	}
+
+	private static int levenshteinDistance(String s1, String s2) {
+		int[][] dp = new int[s1.length() + 1][s2.length() + 1];
+
+		for (int i = 0; i <= s1.length(); i++) {
+			dp[i][0] = i;
+		} for (int j = 0; j <= s2.length(); j++) {
+			dp[0][j] = j;
+		}
+
+		for (int i = 1; i <= s1.length(); i++) {
+			for (int j = 1; j <= s2.length(); j++) {
+				if (s1.charAt(i - 1) == s2.charAt(j - 1)) {
+					dp[i][j] = dp[i - 1][j - 1];
+				} else {
+					dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+				}
+			}
+		}
+
+		return dp[s1.length()][s2.length()];
 	}
 
 	private static List<String> collectAllValidTags(Class<?> sealedType) {
@@ -246,6 +306,23 @@ public class Serialize {
 				tags.addAll(collectAllValidTags(permitted));
 			}
 		} return tags;
+	}
+
+	private static boolean canMatchType(Class<?> sealedType, String nodeType) {
+		// Check if this sealed type or any of its permitted subtypes could match the
+		// given node type
+		for (Class<?> permitted : sealedType.getPermittedSubclasses()) {
+			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
+			if (maybeIdentifier instanceof Some<String>(String tag) && tag.equals(nodeType)) {
+				return true;
+			}
+			// Recursively check nested sealed interfaces
+			if (permitted.isSealed() && !permitted.isRecord()) {
+				if (canMatchType(permitted, nodeType)) {
+					return true;
+				}
+			}
+		} return false;
 	}
 
 	private static Result<Object, CompileError> deserializeRecord(Class<?> type, Node node) {
@@ -425,7 +502,7 @@ public class Serialize {
 	private static Result<List<Object>, CompileError> deserializeListElements(Class<?> elementClass,
 			List<Node> nodeList) {
 		List<Object> results = new ArrayList<>();
-		List<CompileError> errors = new ArrayList<>();
+		List<CompileError> errors = new ArrayList<>(); int index = 0;
 
 		for (Node childNode : nodeList) {
 			Result<Object, CompileError> childResult = deserializeValue(elementClass, childNode);
@@ -434,20 +511,24 @@ public class Serialize {
 			} else if (childResult instanceof Err<Object, CompileError> err) {
 				// If the target is a sealed type and node has a type tag, check if it's an
 				// unknown tag error
-				if (elementClass.isSealed() && childNode.maybeType instanceof Some<String>) {
+				if (elementClass.isSealed() && childNode.maybeType instanceof Some<String>(String nodeType)) {
 					// For sealed types, a node with a type tag that doesn't match any permitted
 					// type is always an error
-					errors.add(err.error());
+					CompileError wrappedError = new CompileError(
+							"Element at index " + index + " with type '" + nodeType + "' cannot be deserialized as '" +
+							elementClass.getSimpleName() + "'", new NodeContext(childNode), List.of(err.error()));
+					errors.add(wrappedError);
 				} else if (shouldBeDeserializableAs(childNode, elementClass)) {
 					// For non-sealed types, only treat as error if it looks like it should match
 					errors.add(err.error());
 				}
 				// Otherwise silently skip (e.g., whitespace in lists without matching context)
-			}
+			} index++;
 		}
 
-		return errors.isEmpty() ? new Ok<>(results)
-				: new Err<>(new CompileError("Failed to deserialize list elements", new NodeContext(nodeList.get(0)), errors));
+		return errors.isEmpty() ? new Ok<>(results) : new Err<>(new CompileError(
+				"Failed to deserialize " + errors.size() + " of " + nodeList.size() + " list elements as '" +
+				elementClass.getSimpleName() + "'", new NodeContext(nodeList.get(0)), errors));
 	}
 
 	// Pure helper functions
