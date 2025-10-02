@@ -53,7 +53,7 @@ public class Lang {
 	}
 
 	@Tag("string")
-	public record JString(String content) implements JExpression {
+	public record JString(Option<String> content) implements JExpression {
 	}
 
 	@Tag("add")
@@ -80,8 +80,6 @@ public class Lang {
 	}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, Record {
-		Option<String> modifiers();
-
 		String name();
 
 		Option<List<Identifier>> typeParameters();
@@ -253,7 +251,8 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters) implements CParameter, CFunctionSegment {
+	public record CDefinition(String name, CType type,
+														Option<List<Identifier>> typeParameters) implements CParameter, CFunctionSegment {
 	}
 
 	@Tag("functionPointerDefinition")
@@ -526,13 +525,22 @@ public class Lang {
 	private static Rule JExpression() {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(
-				Tag("string", Strip(Prefix("\"", Suffix(String("content"), "\"")))),
+				StringExpr(),
 				Switch(expression),
 				Invokable(expression),
 				Tag("field-access", Last(Node("child", expression), ".", Strip(String("name")))),
-				Tag("add", First(Node("left", expression), "+", Node("right", expression))),
+				Operator("add", "+", expression),
+				Operator("equals", "==", expression),
 				Identifier()));
 		return expression;
+	}
+
+	private static Rule StringExpr() {
+		return Tag("string", Strip(Prefix("\"", Suffix(Or(String("content"), Empty), "\""))));
+	}
+
+	private static Rule Operator(String type, String infix, LazyRule expression) {
+		return Tag(type, First(Node("left", expression), infix, Node("right", expression)));
 	}
 
 	private static Rule Switch(LazyRule rule) {

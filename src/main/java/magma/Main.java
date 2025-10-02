@@ -261,7 +261,7 @@ public class Main {
 			case JInvocation jConstruction -> new Invalid("???");
 			case JConstruction jConstruction -> new Invalid("???");
 			case JAdd add -> new CAdd(transformExpression(add.left()), transformExpression(add.right()));
-			case JString jString -> new CString(jString.content());
+			case JString jString -> new CString(jString.content().orElse(""));
 		};
 	}
 
