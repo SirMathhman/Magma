@@ -5,6 +5,8 @@ import magma.option.Option;
 public record FirstLocator() implements Locator {
 	@Override
 	public Option<Integer> locate(String input, String infix) {
-		final int index = input.indexOf(infix); return index == -1 ? Option.empty() : Option.of(index);
+		final int index = input.indexOf(infix);
+		if (index == -1) return Option.empty();
+		return Option.of(index);
 	}
 }

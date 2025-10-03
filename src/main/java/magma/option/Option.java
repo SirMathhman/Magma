@@ -16,7 +16,8 @@ public sealed interface Option<T> permits Some, None {
 	}
 
 	static <T> Option<T> ofNullable(T value) {
-		return Objects.isNull(value) ? new None<>() : new Some<>(value);
+		if (Objects.isNull(value)) return new None<>();
+		return new Some<>(value);
 	}
 
 	<R> Option<R> map(Function<T, R> mapper);
