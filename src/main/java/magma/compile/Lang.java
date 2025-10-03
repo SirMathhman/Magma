@@ -4,6 +4,7 @@ import magma.compile.rule.*;
 import magma.option.None;
 import magma.option.Option;
 
+import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -554,9 +555,15 @@ public class Lang {
 				FieldAccess(expression),
 				Operator("add", "+", expression),
 				Operator("equals", "==", expression),
+				InstanceOf(expression),
 				Operator("less-than", "<", expression),
 				Identifier()));
 		return expression;
+	}
+
+	private static Rule InstanceOf(LazyRule expression) {
+		Rule type = Or(JDefinition(), Node("type", JType()), Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
+		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
 	}
 
 	private static Rule Index(LazyRule expression) {
