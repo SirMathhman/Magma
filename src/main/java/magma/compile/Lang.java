@@ -546,7 +546,7 @@ public class Lang {
 		expression.set(Or(
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
-				Switch(expression, expression),
+				Switch(expression, Strip(Suffix(expression, ";"))),
 				Index(expression),
 				Invokable(expression),
 				FieldAccess(expression),
@@ -580,7 +580,13 @@ public class Lang {
 	}
 
 	private static Rule Case(Rule rule) {
-		return Prefix("case", Suffix(First(Node("definition", JDefinition()), "->", Node("value", rule)), ";"));
+		Rule definition = Node("definition", JDefinition());
+		Rule value = First(Or(definition, getType()), "->", Node("value", rule));
+		return Prefix("case", value);
+	}
+
+	private static Rule getType() {
+		return Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")"));
 	}
 
 	private static Rule CExpression() {
