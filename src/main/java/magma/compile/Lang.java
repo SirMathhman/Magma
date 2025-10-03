@@ -545,6 +545,7 @@ public class Lang {
 	private static Rule JExpression() {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(
+				Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
 				Switch(expression, Strip(Suffix(expression, ";"))),
