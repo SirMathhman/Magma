@@ -48,7 +48,7 @@ public class DivideState {
 		return depth == 1;
 	}
 
-	boolean isLevel() {
+	public boolean isLevel() {
 		return depth == 0;
 	}
 

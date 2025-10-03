@@ -1,15 +1,15 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\error\CompileError.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct CompileError {char* reason;Context context;List<> causes;};
 public CompileError_CompileError(char* reason, Context sourceCode) {
-	this(reason, sourceCode, Collections.emptyList());
+	this((reason, sourceCode, Collections.emptyList());
 }
 char* display_CompileError() {
-	return format(0, 0);
+	return format((0, 0);
 }
 char* format_CompileError(int depth, int index) {
 	new ArrayList<>(causes);
-	copy.sort(Comparator.comparingInt(CompileError::depth));
-	char* formattedChildren=joinErrors(depth, copy);
+	copy.sort((Comparator.comparingInt(CompileError::depth));
+	char* formattedChildren=joinErrors((depth, copy);
 	char* s;
 	if (depth==0)s="";
 	else s=System.lineSeparator()+"".repeat(depth);

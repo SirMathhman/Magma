@@ -4,10 +4,10 @@ import magma.compile.rule.*;
 import magma.option.None;
 import magma.option.Option;
 
-import java.lang.reflect.Parameter;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static magma.compile.rule.DividingSplitter.*;
 import static magma.compile.rule.DividingSplitter.KeepFirst;
 import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
@@ -521,7 +521,7 @@ public class Lang {
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
 		final Rule arguments = Arguments("arguments", expression);
-		return Tag(type, First(caller, "(", Suffix(Or(arguments, Whitespace()), ")")));
+		return Tag(type, Split(Suffix(caller, "("), KeepLast(new FoldingDivider(new InvocationFolder())), Suffix(Or(arguments, Whitespace()), ")")));
 	}
 
 	private static Rule Return(Rule expression) {
@@ -701,5 +701,27 @@ public class Lang {
 		final Rule base = Strip(String("base"));
 		final Rule arguments = Or(Arguments("typeArguments", type), Strip(Empty));
 		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
+	}
+
+	private static class InvocationFolder implements Folder {
+		@Override
+		public DivideState fold(DivideState state, char c) {
+			DivideState appended = state.append(c);
+			if (c == '(') {
+				DivideState enter = appended.enter();
+				if (enter.isShallow()) {
+					return enter.advance();
+				} else {
+					return enter;
+				}
+			}
+			if (c == ')') return appended.exit();
+			return appended;
+		}
+
+		@Override
+		public String delimiter() {
+			return "(";
+		}
 	}
 }
