@@ -479,6 +479,7 @@ public class Lang {
 				Switch(expression, methodSegment),
 				Else(methodSegment),
 				Tag("try", Prefix("try ", Node("child", methodSegment))),
+				Conditional("catch", JDefinition(), methodSegment),
 				Strip(Suffix(JMethodStatementValue(), ";")),
 				Block(methodSegment))));
 		return methodSegment;
@@ -531,8 +532,8 @@ public class Lang {
 	}
 
 
-	private static Rule Conditional(String tag, Rule expression, Rule statement) {
-		final Rule condition = Node("condition", expression);
+	private static Rule Conditional(String tag, Rule inner, Rule statement) {
+		final Rule condition = Node("condition", inner);
 		final Rule body = Node("body", statement);
 		final Rule split = Split(Prefix("(", condition),
 				KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
