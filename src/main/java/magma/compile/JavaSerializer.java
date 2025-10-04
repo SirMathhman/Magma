@@ -264,8 +264,19 @@ public class JavaSerializer {
 	private static int levenshteinDistance(String s1, String s2) {
 		int[][] dp = new int[s1.length() + 1][s2.length() + 1];
 
-		IntStream.rangeClosed(0, s1.length()).forEach(i -> dp[i][0] = i);
-		IntStream.rangeClosed(0, s2.length()).forEach(j -> dp[0][j] = j);
+		int bound = s1.length();
+		int i1 = 0;
+		while (i1 <= bound) {
+			dp[i1][0] = i1;
+			i1++;
+		}
+
+		int bound1 = s2.length();
+		int j = 0;
+		while (j <= bound1) {
+			dp[0][j] = j;
+			j++;
+		}
 
 		int i = 1;
 		while (i <= s1.length()) {

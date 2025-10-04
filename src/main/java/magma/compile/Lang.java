@@ -244,6 +244,7 @@ public class Lang {
 				Switch(expression, Strip(Suffix(expression, ";"))),
 				Index(expression),
 				Tag("new-array", Strip(Suffix(First(Prefix("new ", Node("type", JType())), "[", Node("length", expression)), "]"))),
+				Tag("index", Strip(Suffix(First(Node("child", expression), "[", Node("index", expression)), "]"))),
 				Invokable(expression),
 				FieldAccess(expression),
 				InstanceOf(expression),
