@@ -553,9 +553,10 @@ public class Lang {
 				Index(expression),
 				Invokable(expression),
 				FieldAccess(expression),
-				Operator("add", "+", expression),
-				Operator("equals", "==", expression),
 				InstanceOf(expression),
+				Operator("add", "+", expression),
+				Operator("and", "&&", expression),
+				Operator("equals", "==", expression),
 				Operator("less-than", "<", expression),
 				Identifier()));
 		return expression;
