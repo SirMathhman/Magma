@@ -16,6 +16,9 @@ public record TagRule(String tag, Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
+		if(tag.equals("while")) {
+			System.out.println("???");
+		}
 		return rule.lex(content)
 							 .mapValue(node -> node.retype(tag))
 							 .mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",

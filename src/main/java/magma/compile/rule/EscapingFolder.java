@@ -1,6 +1,7 @@
 package magma.compile.rule;
 
 import magma.Tuple;
+import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
 
@@ -8,10 +9,10 @@ public record EscapingFolder(Folder folder) implements Folder {
 	@Override
 	public DivideState fold(DivideState state, char c) {
 		if (c == '\'') return state.append(c)
-															 .popAndAppendToTuple()
-															 .map(this::foldEscape)
-															 .flatMap(DivideState::popAndAppendToOption)
-															 .orElse(state);
+				.popAndAppendToTuple()
+				.map(this::foldEscape)
+				.flatMap(DivideState::popAndAppendToOption)
+				.orElse(state);
 
 		if (c == '\"') {
 			DivideState current = state.append(c);
@@ -32,26 +33,16 @@ public record EscapingFolder(Folder folder) implements Folder {
 
 	private Option<DivideState> handleComments(DivideState state, char c) {
 		// handle comments
-		if (c == '/' && state.isLevel()) return handleLineComments(state, c).or(() -> handleBlockComments(state, c));
+		if (c == '/' && state.isLevel()) return handleLineComments(state).or(() -> handleBlockComments(state, c));
 		return Option.empty();
 	}
 
-	private Option<DivideState> handleLineComments(DivideState state, char c) {
-		if (state.peek() instanceof Some<Character>(Character next) && next == '/') {
-			final DivideState withSlash = state.append(c);
-			DivideState current = withSlash.popAndAppendToOption().orElse(state);
-			while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
-					Tuple<DivideState, Character> tuple
-			)) {
-				current = tuple.left();
-				if (tuple.right() == '\n') {
-					current = current.advance();
-					break;
-				}
-			} else break;
-
-			return Option.of(current);
-		}
+	private Option<DivideState> handleLineComments(DivideState state) {
+		if (state.peek() instanceof Some<Character>(Character next) && next == '/')
+			while (true) {
+				Option<Character> pop = state.pop();
+				if (pop instanceof None || (pop instanceof Some<Character>(var c) && c == '\n')) return Option.of(state);
+			}
 		return Option.empty();
 	}
 
