@@ -252,8 +252,10 @@ public class JavaSerializer {
 			// for other reasons), propagate that error instead of generating a misleading
 			// "unknown tag" error
 			if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return new Some<>(recursiveResult);
+			return new None<>();
+		} else {
+			return new None<>();
 		}
-		return new None<>();
 	}
 
 	private static String getSuggestionForUnknownTag(Class<?> type, String nodeType, List<String> validTags) {

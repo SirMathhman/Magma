@@ -520,7 +520,7 @@ public class Lang {
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
 		final Rule arguments = Arguments("arguments", expression);
-		return Tag(type, Split(Suffix(caller, "("), KeepLast(new FoldingDivider(new InvocationFolder())), Suffix(Or(arguments, Whitespace()), ")")));
+		return Tag(type, Split(Suffix(caller, "("), KeepLast(new FoldingDivider(new EscapingFolder(new InvocationFolder()))), Suffix(Or(arguments, Whitespace()), ")")));
 	}
 
 	private static Rule Return(Rule expression) {
