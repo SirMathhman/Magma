@@ -558,6 +558,7 @@ public class Lang {
 				Operator("and", "&&", expression),
 				Operator("equals", "==", expression),
 				Operator("less-than", "<", expression),
+				Operator("less-than-equals", "<=", expression),
 				Identifier()));
 		return expression;
 	}
