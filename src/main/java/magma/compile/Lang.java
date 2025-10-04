@@ -7,7 +7,6 @@ import magma.option.Option;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static magma.compile.rule.DividingSplitter.*;
 import static magma.compile.rule.DividingSplitter.KeepFirst;
 import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
@@ -472,7 +471,7 @@ public class Lang {
 
 	private static Rule JMethodSegment() {
 		final LazyRule methodSegment = new LazyRule();
-		final Rule expression = JExpression();
+		final Rule expression = JExpression(methodSegment);
 		methodSegment.set(Strip(Or(Whitespace(),
 				LineComment(),
 				Conditional("if", expression, methodSegment),
@@ -481,7 +480,7 @@ public class Lang {
 				Else(methodSegment),
 				Tag("try", Prefix("try ", Node("child", methodSegment))),
 				Conditional("catch", JDefinition(), methodSegment),
-				Strip(Suffix(JMethodStatementValue(), ";")),
+				Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
 				Block(methodSegment))));
 		return methodSegment;
 	}
@@ -490,8 +489,8 @@ public class Lang {
 		return Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))));
 	}
 
-	private static Rule JMethodStatementValue() {
-		final Rule expression = JExpression();
+	private static Rule JMethodStatementValue(Rule statement) {
+		final Rule expression = JExpression(statement);
 		return Or(Break(),
 				Return(expression),
 				Invokable(expression),
@@ -543,9 +542,10 @@ public class Lang {
 		return Tag(tag, Prefix(tag + " ", Strip(split)));
 	}
 
-	private static Rule JExpression() {
+	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(
+				Tag("lambda", First(Strip(String("param")), "->", statement)),
 				Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
@@ -645,7 +645,7 @@ public class Lang {
 
 	private static Rule CFunctionStatementValue() {
 		final Rule expression = CExpression();
-		return Or(Return(JExpression()),
+		return Or(Return(expression),
 				Invocation(expression),
 				Initialization(CDefinition(), expression),
 				CDefinition(),
