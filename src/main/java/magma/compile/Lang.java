@@ -213,7 +213,12 @@ public class Lang {
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
 		final Rule arguments = Arguments("arguments", expression);
-		return Tag(type, Split(Suffix(caller, "("), KeepLast(new FoldingDivider(new EscapingFolder(new InvocationFolder()))), Suffix(Or(arguments, Whitespace()), ")")));
+		return getTag(type, caller, arguments, '(', ')');
+	}
+
+	private static Rule getTag(String type, Rule caller, Rule arguments, char open, char close) {
+		FoldingDivider divider = new FoldingDivider(new EscapingFolder(new InvocationFolder(open, close)));
+		return Tag(type, Split(Suffix(caller, String.valueOf(open)), KeepLast(divider), Suffix(Or(arguments, Whitespace()), String.valueOf(close))));
 	}
 
 	private static Rule Return(Rule expression) {
@@ -263,7 +268,7 @@ public class Lang {
 	}
 
 	private static Rule Index(LazyRule expression) {
-		return Tag("index", Strip(Suffix(First(Node("caller", expression), "[", Node("argument", expression)), "]")));
+		return getTag("index", Node("child", expression), Node("index", expression), '[', ']');
 	}
 
 	private static Rule FieldAccess(Rule expression) {
@@ -706,22 +711,22 @@ public class Lang {
 	public record Break() implements JMethodSegment, CFunctionSegment {
 	}
 
-	private static class InvocationFolder implements Folder {
+	private record InvocationFolder(char open, char close) implements Folder {
 		@Override
 		public DivideState fold(DivideState state, char c) {
 			DivideState appended = state.append(c);
-			if (c == '(') {
+			if (c == open) {
 				DivideState enter = appended.enter();
 				if (enter.isShallow()) return enter.advance();
 				else return enter;
 			}
-			if (c == ')') return appended.exit();
+			if (c == close) return appended.exit();
 			return appended;
 		}
 
 		@Override
 		public String delimiter() {
-			return "(";
+			return String.valueOf(open);
 		}
 	}
 }
