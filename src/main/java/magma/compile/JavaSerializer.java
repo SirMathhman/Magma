@@ -214,22 +214,8 @@ public class JavaSerializer {
 	}
 
 	private static Result<Object, CompileError> tryNestedSealedInterfaces(Class<?> type, Node node, String nodeType) {
-		Class<?>[] subclasses = type.getPermittedSubclasses();
-		int j = 0;
-		while (j < subclasses.length) {
-			Class<?> permitted = subclasses[j];
-			if (permitted.isSealed() && !permitted.isRecord()) {
-				Result<Object, CompileError> recursiveResult = deserializeSealed(permitted, node);
-				if (recursiveResult instanceof Ok<?, ?>(Object value) && type.isAssignableFrom(value.getClass()))
-					return recursiveResult;
-				// If recursiveResult is Err but would have matched (i.e., the tag was valid but
-				// deserialization failed
-				// for other reasons), propagate that error instead of generating a misleading
-				// "unknown tag" error
-				if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return recursiveResult;
-			}
-			j++;
-		}
+		Option<Result<Object, CompileError>> recursiveResult = getObjectCompileErrorResult(type, node, nodeType);
+		if (recursiveResult instanceof Some<Result<Object, CompileError>>(var k)) return k;
 
 		// Collect all valid tags for better error message
 		List<String> validTags = collectAllValidTags(type);
@@ -241,6 +227,33 @@ public class JavaSerializer {
 		return new Err<>(new CompileError(
 				"No permitted subtype of '" + type.getSimpleName() + "' matched node type '" + nodeType + "'. " +
 						"Valid tags are: [" + validTagsList + "]. " + suggestion, new NodeContext(node)));
+	}
+
+	private static Option<Result<Object, CompileError>> getObjectCompileErrorResult(Class<?> type, Node node, String nodeType) {
+		Class<?>[] subclasses = type.getPermittedSubclasses();
+		int j = 0;
+		while (j < subclasses.length) {
+			Class<?> permitted = subclasses[j];
+			Option<Result<Object, CompileError>> recursiveResult = getObjectCompileErrorResult(type, node, nodeType, permitted);
+			if (recursiveResult instanceof Some<Result<Object, CompileError>> k) return k;
+			j++;
+		}
+
+		return new None<>();
+	}
+
+	private static Option<Result<Object, CompileError>> getObjectCompileErrorResult(Class<?> type, Node node, String nodeType, Class<?> permitted) {
+		if (permitted.isSealed() && !permitted.isRecord()) {
+			Result<Object, CompileError> recursiveResult = deserializeSealed(permitted, node);
+			if (recursiveResult instanceof Ok<?, ?>(Object value) && type.isAssignableFrom(value.getClass()))
+				return new Some<>(recursiveResult);
+			// If recursiveResult is Err but would have matched (i.e., the tag was valid but
+			// deserialization failed
+			// for other reasons), propagate that error instead of generating a misleading
+			// "unknown tag" error
+			if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return new Some<>(recursiveResult);
+		}
+		return new None<>();
 	}
 
 	private static String getSuggestionForUnknownTag(Class<?> type, String nodeType, List<String> validTags) {
