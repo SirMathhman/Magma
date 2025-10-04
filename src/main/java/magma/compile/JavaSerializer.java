@@ -193,6 +193,14 @@ public class JavaSerializer {
 				new NodeContext(node)));
 
 		// Try direct permitted subclasses
+		Result<Object, CompileError> directResult = tryDirectPermittedSubclasses(type, node, nodeType);
+		if (directResult instanceof Ok<?, ?>) return directResult;
+
+		// Try nested sealed interfaces
+		return tryNestedSealedInterfaces(type, node, nodeType);
+	}
+
+	private static Result<Object, CompileError> tryDirectPermittedSubclasses(Class<?> type, Node node, String nodeType) {
 		Class<?>[] permittedSubclasses = type.getPermittedSubclasses();
 		int i = 0;
 		while (i < permittedSubclasses.length) {
@@ -202,8 +210,10 @@ public class JavaSerializer {
 				return deserializeValue(permitted, node);
 			i++;
 		}
+		return new Err<>(new CompileError("No direct match found", new NodeContext(node)));
+	}
 
-		// Try nested sealed interfaces
+	private static Result<Object, CompileError> tryNestedSealedInterfaces(Class<?> type, Node node, String nodeType) {
 		Class<?>[] subclasses = type.getPermittedSubclasses();
 		int j = 0;
 		while (j < subclasses.length) {
@@ -273,16 +283,20 @@ public class JavaSerializer {
 
 		int i = 1;
 		while (i <= s1.length()) {
-			int j = 1;
-			while (j <= s2.length()) {
-				if (s1.charAt(i - 1) == s2.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
-				else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
-				j++;
-			}
+			fillLevenshteinRow(dp, s1, s2, i);
 			i++;
 		}
 
 		return dp[s1.length()][s2.length()];
+	}
+
+	private static void fillLevenshteinRow(int[][] dp, String s1, String s2, int i) {
+		int j = 1;
+		while (j <= s2.length()) {
+			if (s1.charAt(i - 1) == s2.charAt(j - 1)) dp[i][j] = dp[i - 1][j - 1];
+			else dp[i][j] = 1 + Math.min(dp[i - 1][j - 1], Math.min(dp[i - 1][j], dp[i][j - 1]));
+			j++;
+		}
 	}
 
 	private static List<String> collectAllValidTags(Class<?> sealedType) {
@@ -555,18 +569,28 @@ public class JavaSerializer {
 				if (result instanceof Some<String>) return result;
 			}
 		}
+		return findStringInNodeLists(node, key);
+	}
+
+	private static Option<String> findStringInNodeLists(Node node, String key) {
 		Iterator<List<Node>> iterator = node.nodeLists.values().iterator();
 		while (iterator.hasNext()) {
 			List<Node> children = iterator.next();
-			int i = 0;
-			while (i < children.size()) {
-				Node child = children.get(i);
-				Option<String> result = child.findString(key);
-				if (result instanceof Some<String>) return result;
-				result = findStringInChildren(child, key);
-				if (result instanceof Some<String>) return result;
-				i++;
-			}
+			Option<String> result = searchChildrenList(children, key);
+			if (result instanceof Some<String>) return result;
+		}
+		return Option.empty();
+	}
+
+	private static Option<String> searchChildrenList(List<Node> children, String key) {
+		int i = 0;
+		while (i < children.size()) {
+			Node child = children.get(i);
+			Option<String> result = child.findString(key);
+			if (result instanceof Some<String>) return result;
+			result = findStringInChildren(child, key);
+			if (result instanceof Some<String>) return result;
+			i++;
 		}
 		return Option.empty();
 	}

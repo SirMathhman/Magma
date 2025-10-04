@@ -152,13 +152,7 @@ public class Main {
 		final ArrayList<CDefinition> fields = new ArrayList<>();
 
 		// Special handling for Record params - add them as struct fields
-		if (aClass instanceof Lang.Record record) {
-			Option<List<JDefinition>> params = record.params();
-			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList)) for (JDefinition param : paramList) {
-				final CDefinition cDef = transformDefinition(param);
-				fields.add(cDef);
-			}
-		}
+		addRecordParamsAsFields(aClass, fields);
 
 		final String name = aClass.name();
 		for (JStructureSegment child : children) {
@@ -173,6 +167,16 @@ public class Main {
 		copy.add(structure);
 		copy.addAll(segments);
 		return copy;
+	}
+
+	private static void addRecordParamsAsFields(JStructure aClass, ArrayList<CDefinition> fields) {
+		if (aClass instanceof Lang.Record record) {
+			Option<List<JDefinition>> params = record.params();
+			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList)) for (JDefinition param : paramList) {
+				final CDefinition cDef = transformDefinition(param);
+				fields.add(cDef);
+			}
+		}
 	}
 
 	private static Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment(JStructureSegment self,
