@@ -15,5 +15,14 @@
 				value="Avoid using literal 'null'; prefer java.util.Optional for absent values." />
 			<property name="ignoreComments" value="true" />
 		</module>
+
+		<!-- Enforce only one loop per method -->
+		<module name="DescendantToken">
+			<property name="tokens" value="METHOD_DEF,CTOR_DEF" />
+			<property name="limitedTokens" value="LITERAL_FOR,LITERAL_WHILE,LITERAL_DO" />
+			<property name="maximumNumber" value="1" />
+			<property name="maximumMessage"
+				value="Method contains more than one loop (for/while/do-while). Only one loop per method is allowed." />
+		</module>
 	</module>
 </module>
