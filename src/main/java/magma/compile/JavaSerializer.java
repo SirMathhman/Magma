@@ -538,7 +538,8 @@ public class JavaSerializer {
 
 	private static Option<String> findStringInChildren(Node node, String key) {
 		{
-			for (Iterator<Node> iterator = node.nodes.values().iterator(); iterator.hasNext(); ) {
+			Iterator<Node> iterator = node.nodes.values().iterator();
+			while (iterator.hasNext()) {
 				Node child = iterator.next();
 				Option<String> result = child.findString(key);
 				if (result instanceof Some<String>) return result;
