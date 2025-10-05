@@ -268,7 +268,7 @@ public class Lang {
 	}
 
 	private static Rule Index(LazyRule expression) {
-		return getTag("index", Node("child", expression), Node("index", expression), '[', ']');
+		return Tag("index", Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("value", expression)), "]")));
 	}
 
 	private static Rule FieldAccess(Rule expression) {
