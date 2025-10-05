@@ -516,14 +516,18 @@ public class JavaSerializer {
 			Type[] args = parameterized.getActualTypeArguments();
 			if (args.length > 0) return args[0];
 		}
-		throw new IllegalArgumentException("Type " + type + " does not have generic argument at index " + 0);
+
+		return Object.class;
+		// throw new IllegalArgumentException("Type " + type + " does not have generic argument at index " + 0);
 	}
 
 	private static Class<?> erase(Type type) {
 		if (type instanceof Class<?> clazz) return clazz;
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
 			return raw;
-		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
+
+		return Object.class;
+		// throw new IllegalArgumentException("Cannot erase type '" + type + "'");
 	}
 
 	private static Option<String> resolveTypeIdentifier(Class<?> clazz) {
