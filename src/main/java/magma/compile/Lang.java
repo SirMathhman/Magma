@@ -254,6 +254,7 @@ public class Lang {
 				FieldAccess(expression),
 				InstanceOf(expression),
 				Operator("add", "+", expression),
+				Operator("subtract", "-", expression),
 				Operator("and", "&&", expression),
 				Operator("equals", "==", expression),
 				Operator("less-than", "<", expression),
