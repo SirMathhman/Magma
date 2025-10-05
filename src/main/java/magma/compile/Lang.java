@@ -226,7 +226,7 @@ public class Lang {
 	}
 
 	private static Rule Else(Rule statement) {
-		return Tag("else", Prefix("else ", Node("child", statement)));
+		return Tag("else", Prefix("else", Node("child", statement)));
 	}
 
 	private static Rule Conditional(String tag, Rule inner, Rule statement) {
