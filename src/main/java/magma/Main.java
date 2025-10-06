@@ -142,9 +142,11 @@ public class Main {
 	}
 
 	public static Result<CRoot, CompileError> transform(JRoot node) {
-		final List<CRootSegment>
-				newChildren = node.children().stream().map(Main::flattenRootSegment).flatMap(Collection::stream).toList();
-
+		final List<JavaRootSegment> children = node.children();
+		final Stream<JavaRootSegment> stream = children.stream();
+		final Stream<List<CRootSegment>> listStream = stream.map(Main::flattenRootSegment);
+		final Stream<CRootSegment> cRootSegmentStream = listStream.flatMap(Collection::stream);
+		final List<CRootSegment> newChildren = cRootSegmentStream.toList();
 		return new Ok<>(new CRoot(newChildren));
 	}
 
@@ -237,22 +239,19 @@ public class Main {
 
 	private static CFunctionSegment transformFunctionSegment(JMethodSegment segment) {
 		return switch (segment) {
-			case JIf anIf -> new CIf(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
+			case JIf anIf -> transformIf(anIf);
 			case Invalid invalid -> invalid;
 			case Placeholder placeholder -> placeholder;
 			case Whitespace whitespace -> whitespace;
 			case JReturn aReturn -> new CReturn(transformExpression(aReturn.value()));
 			case LineComment lineComment -> lineComment;
-			case JBlock jBlock -> new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
-			case JInitialization jInitialization -> new CInitialization(transformDefinition(jInitialization.definition()),
-																																	transformExpression(jInitialization.value()));
-			case JAssignment jAssignment ->
-					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
+			case JBlock jBlock -> transformBlock(jBlock);
+			case JInitialization jInitialization -> transformInitialization(jInitialization);
+			case JAssignment jAssignment -> transformAssignment(jAssignment);
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
 			case JElse jElse -> new CElse(transformFunctionSegment(jElse.child()));
 			case Break aBreak -> aBreak;
-			case JWhile jWhile ->
-					new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
+			case JWhile jWhile -> transformWhile(jWhile);
 			case JInvocation invocation -> transformInvocation(invocation);
 			case JConstruction jConstruction -> handleConstruction(jConstruction);
 			case JDefinition jDefinition -> transformDefinition(jDefinition);
@@ -261,6 +260,27 @@ public class Main {
 			case SwitchStatement switchStatement -> new Invalid("???");
 			case Yield yield -> new Invalid("???");
 		};
+	}
+
+	private static CWhile transformWhile(JWhile jWhile) {
+		return new CWhile(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
+	}
+
+	private static CAssignment transformAssignment(JAssignment jAssignment) {
+		return new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
+	}
+
+	private static CInitialization transformInitialization(JInitialization jInitialization) {
+		return new CInitialization(transformDefinition(jInitialization.definition()),
+															 transformExpression(jInitialization.value()));
+	}
+
+	private static CBlock transformBlock(JBlock jBlock) {
+		return new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
+	}
+
+	private static CIf transformIf(JIf anIf) {
+		return new CIf(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
 	}
 
 	private static CInvocation handleConstruction(JConstruction jConstruction) {
