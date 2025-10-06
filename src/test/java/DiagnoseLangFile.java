@@ -2,7 +2,7 @@ import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -38,11 +39,11 @@ public class DiagnoseLangFile {
 
 				// Find the class nodes
 				System.out.println("\n=== Debugging Class Nodes ===");
-				if (lexedNode.findNodeList("children") instanceof Some<java.util.List<Node>>(java.util.List<Node> children)) {
+				if (lexedNode.findNodeList("children") instanceof Option.Some<List<Node>>(java.util.List<Node> children)) {
 					System.out.println("Found " + children.size() + " children");
 					for (int i = 0; i < children.size(); i++) {
 						Node child = children.get(i);
-						if (child.maybeType instanceof Some<String>(String type)) {
+						if (child.maybeType instanceof Option.Some<String>(String type)) {
 							System.out.println("\nChild " + i + ":");
 							System.out.println("  Type: '" + type + "'");
 							System.out.println("  Type length: " + type.length());

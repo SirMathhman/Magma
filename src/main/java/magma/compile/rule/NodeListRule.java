@@ -3,9 +3,7 @@ package magma.compile.rule;
 import magma.compile.Node;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -58,8 +56,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return switch (resultOption) {
 			// If the node-list isn't present at all, treat it as empty rather than an
 			// error.
-			case None<Result<String, CompileError>> _ -> new Ok<>("");
-			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
+			case Option.None<Result<String, CompileError>> _ -> new Ok<>("");
+			case Option.Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
 	}
 

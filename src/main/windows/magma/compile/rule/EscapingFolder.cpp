@@ -1,56 +1,54 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\EscapingFolder.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct EscapingFolder {Folder folder;};
-DivideState fold_EscapingFolder(DivideState state, char c) {
+struct EscapingFolder {/*???*/ folder;};
+/*???*/ fold_EscapingFolder(/*???*/ state, /*???*/ c) {
 	return handleSingleQuotes(state, c).or(/*???*/(state, c)).or(/*???*/(state, c)).orElseGet(/*???*/.fold(state, c));
 }
-Option<> handleSingleQuotes_EscapingFolder(DivideState state, char c) {
+/*???*/ handleSingleQuotes_EscapingFolder(/*???*/ state, /*???*/ c) {
 	if (/*???*/)return Option.empty();
 	return Option.of(state.append(c).popAndAppendToTuple().map(/*???*/).flatMap(/*???*/).orElse(state));
 }
-Option<> handleDoubleQuotes_EscapingFolder(DivideState state, char c) {
+/*???*/ handleDoubleQuotes_EscapingFolder(/*???*/ state, /*???*/ c) {
 	if (/*???*/)return Option.empty();
-	DivideState current=state.append(c);
+	/*???*/ current=state.append(c);
 	while (true)
 	{
-	Option<> tupleOption=current.popAndAppendToTuple();
+	/*???*/ tupleOption=current.popAndAppendToTuple();
 	if (/*???*/)
 	{
 	current==t0.left();
 	if (t0.right()=='\\')current==current.popAndAppendToOption().orElse(current);
-	if (t0.right()=='\"')
-	break}
-	else break;}
+	/*???*/ break;}
+	/*???*/ break;}
 	return Option.of(current);
 }
-Option<> handleComments_EscapingFolder(DivideState state, char c) {
+/*???*/ handleComments_EscapingFolder(/*???*/ state, /*???*/ c) {
 	if (c=='/'&&state.isLevel())return handleLineComments(state).or(/*???*/(state, c));
 	return Option.empty();
 }
-Option<> handleLineComments_EscapingFolder(DivideState state) {
+/*???*/ handleLineComments_EscapingFolder(/*???*/ state) {
 	if (/*???*/)return Option.empty();
 	while (true)
 	{
 	/*???*/();
 	if (/*???*/)return Option.of(state);}
 }
-Option<> handleBlockComments_EscapingFolder(DivideState state, char c) {
+/*???*/ handleBlockComments_EscapingFolder(/*???*/ state, /*???*/ c) {
 	if (/*???*/)return Option.empty();
-	DivideState withSlash=state.append(c);
-	Tuple<> current=new_???(true, withSlash.popAndAppendToOption().orElse(state));
-	while (current.left())
-	current==handle(current.right());
+	/*???*/ withSlash=state.append(c);
+	/*???*/ current=new_???(true, withSlash.popAndAppendToOption().orElse(state));
+	/*???*/ current=handle(current.right());
 	return new_???(current.right());
 }
-Tuple<> handle_EscapingFolder(DivideState current) {
+/*???*/ handle_EscapingFolder(/*???*/ current) {
 	if (/*???*/)return new_???(false, current);
-	DivideState temp=tuple.left();
+	/*???*/ temp=tuple.left();
 	if (tuple.right()=='*'&&/*???*/&&tuple0=='/')return new_???(false, temp.popAndAppendToOption().orElse(temp).advance());
 	return new_???(true, temp);
 }
-char* delimiter_EscapingFolder() {
+/*???*/ delimiter_EscapingFolder() {
 	return folder.delimiter();
 }
-DivideState foldEscape_EscapingFolder(Tuple<> tuple) {
+/*???*/ foldEscape_EscapingFolder(/*???*/ tuple) {
 	if (tuple.right()=='\\')return tuple.left().popAndAppendToOption().orElse(tuple.left());
 	else
 	return tuple.left();

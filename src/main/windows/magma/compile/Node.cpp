@@ -1,67 +1,67 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Node {int MAX_FORMAT_LEVEL;Map<> nodeLists;Map<> nodes;Map<> strings;Option<> maybeType;};
-char* escape_Node(char* value) {
+struct Node {/*???*/ 3;/*???*/ nodeLists;/*???*/ nodes;/*???*/ strings;/*???*/ maybeType;};
+/*???*/ escape_Node(/*???*/ value) {
 	return value.replace("", "").replace("", "").replace("", "").replace("", "").replace("", "");
 }
-char* toString_Node() {
+/*???*/ toString_Node() {
 	return format(/*???*/);
 }
-Node withString_Node(char* key, char* value) {
+/*???*/ withString_Node(/*???*/ key, /*???*/ value) {
 	strings.put(key, value);
-	return this;
+	/*???*/ this;
 }
-Option<> findString_Node(char* key) {
+/*???*/ findString_Node(/*???*/ key) {
 	return Option.ofNullable(strings.get(key));
 }
-Node merge_Node(Node node) {
+/*???*/ merge_Node(/*???*/ node) {
 	maybeType=/*???*/;
 	this.strings.putAll(node.strings);
 	nodeLists.putAll(node.nodeLists);
 	nodes.putAll(node.nodes);
-	return this;
+	/*???*/ this;
 }
-Node withNodeList_Node(char* key, List<> values) {
+/*???*/ withNodeList_Node(/*???*/ key, /*???*/ values) {
 	nodeLists.put(key, values);
-	return this;
+	/*???*/ this;
 }
-Option<> findNodeList_Node(char* key) {
+/*???*/ findNodeList_Node(/*???*/ key) {
 	return Option.ofNullable(nodeLists.get(key));
 }
-Node withNode_Node(char* key, Node node) {
+/*???*/ withNode_Node(/*???*/ key, /*???*/ node) {
 	nodes.put(key, node);
-	return this;
+	/*???*/ this;
 }
-Option<> findNode_Node(char* key) {
+/*???*/ findNode_Node(/*???*/ key) {
 	return Option.ofNullable(nodes.get(key));
 }
-Node retype_Node(char* type) {
+/*???*/ retype_Node(/*???*/ type) {
 	this.maybeType==Option.of(type);
-	return this;
+	/*???*/ this;
 }
-boolean is_Node(char* type) {
+/*???*/ is_Node(/*???*/ type) {
 	return this.maybeType.map(/*???*/.equals(type)).orElse(false);
 }
-Set<> getStringKeys_Node() {
+/*???*/ getStringKeys_Node() {
 	return strings.keySet();
 }
-char* format_Node(int depth) {
+/*???*/ format_Node(/*???*/ depth) {
 	return format(depth, MAX_FORMAT_LEVEL);
 }
-char* format_Node(int depth, int maxLevel) {
-	char* indent="".repeat(depth);
+/*???*/ format_Node(/*???*/ depth, /*???*/ maxLevel) {
+	/*???*/ indent="".repeat(depth);
 	return indent+appendJsonPure(depth, /*???*/, maxLevel);
 }
-char* appendJsonPure_Node(int indentDepth, int level, int maxLevel) {
-	char* indent="".repeat(indentDepth);
-	char* childIndent="".repeat(indentDepth+/*???*/);
-	StringBuilder builder=new_???();
+/*???*/ appendJsonPure_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel) {
+	/*???*/ indent="".repeat(indentDepth);
+	/*???*/ childIndent="".repeat(indentDepth+/*???*/);
+	/*???*/ builder=new_???();
 	builder.append("");
-	boolean* hasFields=/*???*/;
-	/*???*/=maybeType;
+	/*???*/ hasFields=/*???*/;
+	/*???*/ maybeType;
 	if (/*???*/)
 	{
 	builder.append("").append(childIndent).append("").append(escape(value)).append("");
-	/*???*/=true;}
+	/*???*/ true;}
 	strings.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
 	nodes.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
 	nodeLists.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
@@ -69,32 +69,32 @@ char* appendJsonPure_Node(int indentDepth, int level, int maxLevel) {
 	builder.append("");
 	return builder.toString();
 }
-void extracted1_Node(int indentDepth, int level, int maxLevel, Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+/*???*/ extracted1_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, /*???*/ entry, /*???*/ hasFields, /*???*/ builder, /*???*/ childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");
 	builder.append(childIndent).append('"').append(escape(entry.getKey())).append("");
 	extracted(indentDepth, level, maxLevel, entry, builder, childIndent).append("");
-	/*???*/=true;
+	/*???*/ true;
 }
-StringBuilder extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, StringBuilder builder, char* childIndent) {
+/*???*/ extracted_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, /*???*/ entry, /*???*/ builder, /*???*/ childIndent) {
 	/*???*/();
-	return builder;
+	/*???*/ builder;
 	if (/*???*/)
 	{
 	builder.append("");
-	return builder;}
+	/*???*/ builder;}
 	builder.append("");
 	builder.append(list.stream().map(/*???*/(indentDepth, level, maxLevel, node)).collect(Collectors.joining("")));
 	builder.append("").append(childIndent);
-	return builder;
+	/*???*/ builder;
 }
-char* getString_Node(int indentDepth, int level, int maxLevel, Node node) {
-	char* repeat="".repeat(indentDepth+/*???*/);
-	char* s=node.appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel);
-	return repeat+s;
+/*???*/ getString_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, /*???*/ node) {
+	/*???*/ repeat="".repeat(indentDepth+/*???*/);
+	/*???*/ s=node.appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel);
+	/*???*/ s;
 }
-void extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+/*???*/ extracted_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, /*???*/ entry, /*???*/ hasFields, /*???*/ builder, /*???*/ childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");
@@ -102,12 +102,12 @@ void extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, boo
 	if (/*???*/)builder.append(entry.getValue().appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel));
 	else
 	builder.append("");
-	/*???*/=true;
+	/*???*/ true;
 }
-void extracted_Node(Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+/*???*/ extracted_Node(/*???*/ entry, /*???*/ hasFields, /*???*/ builder, /*???*/ childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");
 	builder.append(childIndent).append('"').append(escape(entry.getKey())).append("").append(escape(entry.getValue())).append('"');
-	/*???*/=true;
+	/*???*/ true;
 }

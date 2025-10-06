@@ -1,9 +1,7 @@
 package magma.compile.collect;
 
 import magma.compile.error.CompileError;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -15,7 +13,7 @@ import java.util.stream.Stream;
 
 public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	public Accumulator() {
-		this(new None<>(), new ArrayList<>());
+		this(new Option.None<>(), new ArrayList<>());
 	}
 
 	public static <T, R> Result<R, List<CompileError>> merge(List<T> elements,
@@ -42,13 +40,13 @@ public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	}
 
 	public Accumulator<T> setValue(T value) {
-		return new Accumulator<>(new Some<>(value), errors);
+		return new Accumulator<>(new Option.Some<>(value), errors);
 	}
 
 	public Result<T, List<CompileError>> toResult() {
 		return switch (option) {
-			case None<T> _ -> new Err<>(errors);
-			case Some<T> v -> new Ok<>(v.value());
+			case Option.None<T> _ -> new Err<>(errors);
+			case Option.Some<T> v -> new Ok<>(v.value());
 		};
 	}
 }

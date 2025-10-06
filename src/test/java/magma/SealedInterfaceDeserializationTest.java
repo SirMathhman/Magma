@@ -2,7 +2,7 @@ package magma;
 
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -36,7 +36,7 @@ public class SealedInterfaceDeserializationTest {
 					.println("Root node children count: " + rootNode.findNodeList("children").map(list -> list.size()).orElse(0));
 
 			// Find the record node specifically
-			if (rootNode.findNodeList("children") instanceof Some<?> some) {
+			if (rootNode.findNodeList("children") instanceof Option.Some<?> some) {
 				@SuppressWarnings("unchecked")
 				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
 				children.forEach(child -> {

@@ -1,7 +1,7 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\StatementFolder.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct StatementFolder {};
-DivideState fold_StatementFolder(DivideState state, char c) {
-	DivideState appended=state.append(c);
+/*???*/ fold_StatementFolder(/*???*/ state, /*???*/ c) {
+	/*???*/ appended=state.append(c);
 	if (c=='-')
 	{
 	if (/*???*/&&next=='>')
@@ -14,8 +14,8 @@ DivideState fold_StatementFolder(DivideState state, char c) {
 	return appended.advance().exit();}
 	if (c==/*???*/=='(')return appended.enter();
 	if (c==/*???*/==')')return appended.exit();
-	return appended;
+	/*???*/ appended;
 }
-char* delimiter_StatementFolder() {
+/*???*/ delimiter_StatementFolder() {
 	return "";
 }

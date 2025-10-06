@@ -2,7 +2,7 @@ import magma.compile.CRules;
 import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Ok;
 import org.junit.jupiter.api.Test;
 
@@ -16,7 +16,7 @@ public class TestFunctionSerialization {
 				new Lang.Function(new Lang.CDefinition("testFunc", new Lang.Identifier("void"), magma.option.Option.empty()),
 													java.util.Collections.emptyList(),
 													body,
-													new Some<>(System.lineSeparator()),
+													new Option.Some<>(System.lineSeparator()),
 													magma.option.Option.empty());
 
 		System.out.println("Created function with body size: " + func.body().size());

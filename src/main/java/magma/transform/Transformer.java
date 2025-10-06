@@ -4,9 +4,7 @@ import magma.Tuple;
 import magma.compile.CLang;
 import magma.compile.Lang;
 import magma.compile.error.CompileError;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 
@@ -22,8 +20,8 @@ public class Transformer {
 
 	public static Lang.Function transformMethod(Lang.Method method, String structName) {
 		final List<Lang.JDefinition> oldParams = switch (method.params()) {
-			case None<List<Lang.JDefinition>> _ -> Collections.emptyList();
-			case Some<List<Lang.JDefinition>> v -> v.value();
+			case Option.None<List<Lang.JDefinition>> _ -> Collections.emptyList();
+			case Option.Some<List<Lang.JDefinition>> v -> v.value();
 		};
 
 		final List<Lang.CParameter> newParams = oldParams.stream().map(Transformer::transformParameter).toList();
@@ -38,8 +36,8 @@ public class Transformer {
 		// JFunctionSegment and CFunctionSegment share the same implementations
 		// (Placeholder, Whitespace, Invalid)
 		final List<Lang.CFunctionSegment> bodySegments = switch (method.body()) {
-			case None<List<Lang.JMethodSegment>> _ -> Collections.emptyList();
-			case Some<List<Lang.JMethodSegment>>(List<Lang.JMethodSegment> segments) -> {
+			case Option.None<List<Lang.JMethodSegment>> _ -> Collections.emptyList();
+			case Option.Some<List<Lang.JMethodSegment>>(List<Lang.JMethodSegment> segments) -> {
 				yield segments.stream().map(Transformer::transformFunctionSegment).toList();
 			}
 		};
@@ -49,7 +47,7 @@ public class Transformer {
 																									cDefinition.typeParameters()),
 														 newParams,
 														 bodySegments,
-														 new Some<>(System.lineSeparator()),
+														 new Option.Some<>(System.lineSeparator()),
 														 extractedTypeParams);
 	}
 
@@ -139,7 +137,7 @@ public class Transformer {
 			return new Lang.CFunctionPointerDefinition(param.name(), returnType, paramTypes);
 
 		// Otherwise create regular CDefinition
-		return new Lang.CDefinition(param.name(), transformedType, new None<>());
+		return new Lang.CDefinition(param.name(), transformedType, new Option.None<>());
 	}
 
 	private static Option<List<Lang.Identifier>> extractMethodTypeParameters(Lang.Method method) {
@@ -150,15 +148,15 @@ public class Transformer {
 		collectTypeVariables(method.definition().type(), typeVars);
 
 		// Check parameter types for type variables
-		if (method.params() instanceof Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
+		if (method.params() instanceof Option.Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
 			paramList.forEach(param -> collectTypeVariables(param.type(), typeVars));
 
-		if (typeVars.isEmpty()) return new None<>();
+		if (typeVars.isEmpty()) return new Option.None<>();
 
 		// Convert to Identifier objects
 		final List<Lang.Identifier> identifiers = typeVars.stream().map(Lang.Identifier::new).toList();
 
-		return new Some<>(identifiers);
+		return new Option.Some<>(identifiers);
 	}
 
 	private static void collectTypeVariables(Lang.JType type, Set<String> typeVars) {
@@ -208,15 +206,16 @@ public class Transformer {
 	static Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>> flattenStructureSegment(Lang.JStructureSegment self,
 																																													String name) {
 		return switch (self) {
-			case Lang.Invalid invalid -> new Tuple<>(List.of(invalid), new None<>());
-			case Lang.Method method -> new Tuple<>(List.of(transformMethod(method, name)), new None<>());
-			case Lang.JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
-			case Lang.Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
+			case Lang.Invalid invalid -> new Tuple<>(List.of(invalid), new Option.None<>());
+			case Lang.Method method -> new Tuple<>(List.of(transformMethod(method, name)), new Option.None<>());
+			case Lang.JStructure jClass -> new Tuple<>(flattenStructure(jClass), new Option.None<>());
+			case Lang.Field field ->
+					new Tuple<>(Collections.emptyList(), new Option.Some<>(transformDefinition(field.value())));
 			case Lang.JInitialization jInitialization ->
-					new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(jInitialization.definition())));
+					new Tuple<>(Collections.emptyList(), new Option.Some<>(transformDefinition(jInitialization.definition())));
 			case Lang.JDefinition jDefinition ->
-					new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(jDefinition)));
-			default -> new Tuple<>(Collections.emptyList(), new None<>());
+					new Tuple<>(Collections.emptyList(), new Option.Some<>(transformDefinition(jDefinition)));
+			default -> new Tuple<>(Collections.emptyList(), new Option.None<>());
 		};
 	}
 
@@ -231,11 +230,11 @@ public class Transformer {
 		final String name = aClass.name();
 		children.stream().map(child -> flattenStructureSegment(child, name)).forEach(tuple -> {
 			segments.addAll(tuple.left());
-			if (tuple.right() instanceof Some<Lang.CDefinition>(Lang.CDefinition value)) fields.add(value);
+			if (tuple.right() instanceof Option.Some<Lang.CDefinition>(Lang.CDefinition value)) fields.add(value);
 		});
 
 		final Lang.Structure structure =
-				new Lang.Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
+				new Lang.Structure(name, fields, new Option.Some<>(System.lineSeparator()), aClass.typeParameters());
 		final List<Lang.CRootSegment> copy = new ArrayList<>();
 		copy.add(structure);
 		copy.addAll(segments);
@@ -245,7 +244,7 @@ public class Transformer {
 	private static List<Lang.CDefinition> extractRecordParamsAsFields(Lang.JStructure structure) {
 		if (structure instanceof Lang.RecordNode record) {
 			Option<List<Lang.JDefinition>> params = record.params();
-			if (params instanceof Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
+			if (params instanceof Option.Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
 				return paramList.stream().map(Transformer::transformDefinition).toList();
 		}
 		return Collections.emptyList();

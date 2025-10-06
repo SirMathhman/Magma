@@ -1,5 +1,6 @@
 import magma.compile.Lang;
 import magma.compile.Node;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -30,13 +31,13 @@ public class DebugPlaceholderTest {
 	private void printNode(Node node, int depth) {
 		String indent = "  ".repeat(depth); System.out.println(indent + "Node:");
 
-		if (node.maybeType instanceof magma.option.Some<?>(var type)) {
+		if (node.maybeType instanceof Option.Some<?>(var type)) {
 			System.out.println(indent + "  @type: " + type);
 		}
 
 		// Print string fields
 		for (String key : node.getStringKeys()) {
-			var value = node.findString(key); if (value instanceof magma.option.Some<?>(var str)) {
+			var value = node.findString(key); if (value instanceof Option.Some<?>(var str)) {
 				String escaped = str.toString().replace("\n", "\\n").replace("\t", "\\t");
 				System.out.println(indent + "  " + key + " (string): " + escaped.substring(0, Math.min(50, escaped.length())));
 			}

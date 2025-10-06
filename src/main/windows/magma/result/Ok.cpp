@@ -1,11 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\result\Ok.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Ok {T value;};
-Result<> mapValue_Ok(R (*fn)(T)) {
+struct Ok {/*???*/ value;};
+/*???*/ mapValue_Ok(/*???*/ fn) {
 	return new_???(fn.apply(this.value));
 }
-Result<> flatMap_Ok(Result<> (*fn)(T)) {
+/*???*/ flatMap_Ok(/*???*/ fn) {
 	return fn.apply(this.value);
 }
-Result<> mapErr_Ok(R (*mapper)(X)) {
+/*???*/ mapErr_Ok(/*???*/ mapper) {
 	return new_???(value);
 }

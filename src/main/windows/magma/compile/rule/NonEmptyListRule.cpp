@@ -1,11 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\NonEmptyListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct NonEmptyListRule {char* key;Rule innerRule;};
-Rule NonEmptyList_NonEmptyListRule(char* key, Rule innerRule) {
+struct NonEmptyListRule {/*???*/ key;/*???*/ innerRule;};
+/*???*/ NonEmptyList_NonEmptyListRule(/*???*/ key, /*???*/ innerRule) {
 	return new_???(key, innerRule);
 }
-Result<> lex_NonEmptyListRule(char* content) {
+/*???*/ lex_NonEmptyListRule(/*???*/ content) {
 	return innerRule.lex(content);
 }
-Result<> generate_NonEmptyListRule(Node node) {
+/*???*/ generate_NonEmptyListRule(/*???*/ node) {
 	return /*???*/;
 }

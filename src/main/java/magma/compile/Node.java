@@ -1,8 +1,6 @@
 package magma.compile;
 
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 
 import java.util.HashMap;
 import java.util.List;
@@ -42,8 +40,8 @@ public final class Node {
 
 	public Node merge(Node node) {
 		maybeType = switch (maybeType) {
-			case None<String> _ -> node.maybeType;
-			case Some<String> _ -> maybeType;
+			case Option.None<String> _ -> node.maybeType;
+			case Option.Some<String> _ -> maybeType;
 		};
 		this.strings.putAll(node.strings);
 		nodeLists.putAll(node.nodeLists);
@@ -100,7 +98,7 @@ public final class Node {
 		boolean[] hasFields = new boolean[]{false};
 
 		Option<String> typeOpt = maybeType;
-		if (typeOpt instanceof Some<String>(String value)) {
+		if (typeOpt instanceof Option.Some<String>(String value)) {
 			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(value)).append("\"");
 			hasFields[0] = true;
 		}

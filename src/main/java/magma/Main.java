@@ -4,7 +4,6 @@ import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
 import magma.option.Option;
-import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -19,7 +18,7 @@ import java.util.stream.Stream;
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
+		if (run() instanceof Option.Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {
@@ -54,7 +53,7 @@ public class Main {
 			Path javaFile = javaFiles.get(i);
 			System.out.println("Compiling: " + javaFile);
 			Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
-			if (result instanceof Some<ApplicationError>(ApplicationError error)) {
+			if (result instanceof Option.Some<ApplicationError>(ApplicationError error)) {
 				System.err.println("Failed to compile " + javaFile + ": " + error.display());
 				return result;
 			}

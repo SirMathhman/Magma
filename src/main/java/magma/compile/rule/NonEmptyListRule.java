@@ -3,8 +3,7 @@ package magma.compile.rule;
 import magma.compile.Node;
 import magma.compile.context.NodeContext;
 import magma.compile.error.CompileError;
-import magma.option.None;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Result;
 
@@ -30,10 +29,10 @@ public record NonEmptyListRule(String key, Rule innerRule) implements Rule {
 	@Override
 	public Result<String, CompileError> generate(Node node) {
 		return switch (node.findNodeList(key)) {
-			case None<?> _ -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(node)));
-			case Some(List<Node> list) when list.isEmpty() ->
+			case Option.None<?> _ -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(node)));
+			case Option.Some(List<Node> list) when list.isEmpty() ->
 					new Err<>(new CompileError("Node list '" + key + "' is empty", new NodeContext(node)));
-			case Some<?> _ -> innerRule.generate(node);
+			case Option.Some<?> _ -> innerRule.generate(node);
 		};
 	}
 }

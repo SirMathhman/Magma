@@ -1,9 +1,7 @@
 package magma.compile.rule;
 
 import magma.Tuple;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 
 public record EscapingFolder(Folder folder) implements Folder {
 	@Override
@@ -27,7 +25,7 @@ public record EscapingFolder(Folder folder) implements Folder {
 		DivideState current = state.append(c);
 		while (true) {
 			final Option<Tuple<DivideState, Character>> tupleOption = current.popAndAppendToTuple();
-			if (tupleOption instanceof Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> t0)) {
+			if (tupleOption instanceof Option.Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> t0)) {
 				current = t0.left();
 
 				if (t0.right() == '\\') current = current.popAndAppendToOption().orElse(current);
@@ -44,29 +42,29 @@ public record EscapingFolder(Folder folder) implements Folder {
 	}
 
 	private Option<DivideState> handleLineComments(DivideState state) {
-		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '/') return Option.empty();
+		if (!(state.peek() instanceof Option.Some<Character>(Character next)) || next != '/') return Option.empty();
 		while (true) {
 			Option<Character> pop = state.pop();
-			if (pop instanceof None || (pop instanceof Some<Character>(Character c) && c == '\n')) return Option.of(state);
+			if (pop instanceof Option.None || (pop instanceof Option.Some<Character>(Character c) && c == '\n')) return Option.of(state);
 		}
 	}
 
 	private Option<DivideState> handleBlockComments(DivideState state, char c) {
-		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '*') return Option.empty();
+		if (!(state.peek() instanceof Option.Some<Character>(Character next)) || next != '*') return Option.empty();
 
 		final DivideState withSlash = state.append(c);
 		Tuple<Boolean, DivideState> current = new Tuple<>(true, withSlash.popAndAppendToOption().orElse(state));
 		while (current.left()) current = handle(current.right());
-		return new Some<>(current.right());
+		return new Option.Some<>(current.right());
 	}
 
 	private Tuple<Boolean, DivideState> handle(DivideState current) {
-		if (!(current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+		if (!(current.popAndAppendToTuple() instanceof Option.Some<Tuple<DivideState, Character>>(
 				Tuple<DivideState, Character> tuple
 		))) return new Tuple<>(false, current);
 
 		DivideState temp = tuple.left();
-		if (tuple.right() == '*' && temp.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/')
+		if (tuple.right() == '*' && temp.peek() instanceof Option.Some<Character>(Character tuple0) && tuple0 == '/')
 			return new Tuple<>(false, temp.popAndAppendToOption().orElse(temp).advance());
 		return new Tuple<>(true, temp);
 	}

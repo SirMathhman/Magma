@@ -1,24 +1,24 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\collect\Accumulator.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Accumulator {Option<> option;List<> errors;};
-public Accumulator_Accumulator() {
+struct Accumulator {/*???*/ option;/*???*/ errors;};
+/*???*/ Accumulator_Accumulator() {
 	this(new_???(), new_???());
 }
-Result<> merge_Accumulator(List<> elements, Result<> (*mapper)(T)) {
-	Accumulator<> identity=new_???();
-	Stream<> stream=elements.stream();
-	Accumulator<> reduce=stream.reduce(identity, /*???*/(mapper, accumulator, rule), /*???*/);
+/*???*/ merge_Accumulator(/*???*/ elements, /*???*/ mapper) {
+	/*???*/ identity=new_???();
+	/*???*/ stream=elements.stream();
+	/*???*/ reduce=stream.reduce(identity, /*???*/, /*???*/);
 	return reduce.toResult();
 }
-Accumulator<> fold_Accumulator(Result<> (*mapper)(T), Accumulator<> accumulator, T rule) {
+/*???*/ fold_Accumulator(/*???*/ mapper, /*???*/ accumulator, /*???*/ rule) {
 	return /*???*/;
 }
-Accumulator<> addError_Accumulator(CompileError error) {
+/*???*/ addError_Accumulator(/*???*/ error) {
 	errors.add(error);
-	return this;
+	/*???*/ this;
 }
-Accumulator<> setValue_Accumulator(T value) {
+/*???*/ setValue_Accumulator(/*???*/ value) {
 	return new_???(new_???(value), errors);
 }
-Result<> toResult_Accumulator() {
+/*???*/ toResult_Accumulator() {
 	return /*???*/;
 }

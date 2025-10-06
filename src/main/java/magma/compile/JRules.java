@@ -2,6 +2,7 @@ package magma.compile;
 
 import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
+import magma.compile.rule.NodeListRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.TypeFolder;
 
@@ -40,8 +41,13 @@ public class JRules {
 								CommonRules.Identifier(),
 								JWildCard(),
 								Tag("variadic", Strip(Suffix(Node("child", type), "..."))),
-								Tag("subtype", Strip(Last(Node("type", type), ".", CommonRules.StrippedIdentifier("name"))))));
+								QualifiedName()));
 		return type;
+	}
+
+	private static Rule QualifiedName() {
+		final Rule segment = Tag("segment", String("value"));
+		return Tag("qualified", Strip(NodeListRule.Delimited("segments", segment, ".")));
 	}
 
 	private static Rule JWildCard() {

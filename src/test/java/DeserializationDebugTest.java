@@ -2,6 +2,7 @@ import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
+import magma.option.Option;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
@@ -48,7 +49,7 @@ public class DeserializationDebugTest {
 								System.out.println("    Method found!");
 								System.out.println("      Definition: " + method.definition());
 								System.out.println("      Params: " + method.params());
-								if (method.params() instanceof magma.option.Some<?> some) {
+								if (method.params() instanceof Option.Some<?> some) {
 									System.out.println("      Params content: " + some.value());
 								} else {
 									System.out.println("      Params is None - THIS IS THE BUG!");

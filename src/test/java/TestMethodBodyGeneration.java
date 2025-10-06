@@ -1,9 +1,11 @@
 import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Ok;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 public class TestMethodBodyGeneration {
 	@Test
@@ -27,7 +29,7 @@ public class TestMethodBodyGeneration {
 								System.out.println("=== Method: " + method.definition().name() + " ===");
 								System.out.println("Body: " + method.body());
 
-								if (method.body() instanceof Some<?>(var segments)) {
+								if (method.body() instanceof Option.Some<?>(var segments)) {
 									System.out.println("Segments count: " + ((java.util.List<?>) segments).size());
 									for (var segment : (java.util.List<?>) segments) {
 										System.out.println("  Segment type: " + segment.getClass().getSimpleName());
@@ -39,8 +41,8 @@ public class TestMethodBodyGeneration {
 
 								// Test the transformation logic
 								final String bodyString = switch (method.body()) {
-									case magma.option.None<java.util.List<Lang.JMethodSegment>> _ -> "";
-									case Some<java.util.List<Lang.JMethodSegment>>(var segs) -> {
+									case Option.None<List<Lang.JMethodSegment>> _ -> "";
+									case Option.Some<List<Lang.JMethodSegment>>(var segs) -> {
 										StringBuilder sb = new StringBuilder(); for (Lang.JMethodSegment segment : segs) {
 											if (segment instanceof Lang.Placeholder placeholder) {
 												sb.append("/*").append(placeholder.value()).append("*/");

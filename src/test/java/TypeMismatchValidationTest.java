@@ -1,5 +1,6 @@
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -56,8 +57,8 @@ public class TypeMismatchValidationTest {
 							 .map(seg -> (Method) seg)
 							 .forEach(method -> {
 								 System.out.println("Method: " + method.definition().name());
-								 System.out.println("Body present: " + (method.body() instanceof magma.option.Some<?>)); assertTrue(
-										 method.body() instanceof magma.option.Some<?>,
+								 System.out.println("Body present: " + (method.body() instanceof Option.Some<?>)); assertTrue(
+										 method.body() instanceof Option.Some<?>,
 										 "Method body should be present (as list of JFunctionSegment)");
 							 });
 			} else if (deserializeResult instanceof Err<JRoot, CompileError> err) {

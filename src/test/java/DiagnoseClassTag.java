@@ -2,11 +2,13 @@ import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
@@ -52,11 +54,11 @@ public class DiagnoseClassTag {
 
 				// Let's debug - extract the class node and see what its type is
 				System.out.println("\n=== Debugging ===");
-				if (lexedNode.findNodeList("children") instanceof Some<java.util.List<Node>>(java.util.List<Node> children)) {
+				if (lexedNode.findNodeList("children") instanceof Option.Some<List<Node>>(java.util.List<Node> children)) {
 					System.out.println("Found " + children.size() + " children");
 					for (int i = 0; i < children.size(); i++) {
 						Node child = children.get(i);
-						if (child.maybeType instanceof Some<String>(String type)) {
+						if (child.maybeType instanceof Option.Some<String>(String type)) {
 							System.out.println("Child " + i + " type: '" + type + "'");
 							System.out.println("  Type length: " + type.length());
 							System.out.println("  Type bytes: " + java.util.Arrays.toString(type.getBytes()));

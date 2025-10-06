@@ -2,7 +2,7 @@ package magma;
 
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
-import magma.option.Some;
+import magma.option.Option;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -34,7 +34,7 @@ public class MethodDeserializationTest {
 			magma.compile.Node rootNode = lexOk.value();
 
 			// Find the record node
-			if (rootNode.findNodeList("children") instanceof Some<?> some) {
+			if (rootNode.findNodeList("children") instanceof Option.Some<?> some) {
 				@SuppressWarnings("unchecked")
 				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
 
@@ -43,7 +43,7 @@ public class MethodDeserializationTest {
 						System.out.println("Found record node!");
 
 						// Get the record's children (should include the method)
-						if (child.findNodeList("children") instanceof Some<?> recordChildrenSome) {
+						if (child.findNodeList("children") instanceof Option.Some<?> recordChildrenSome) {
 							@SuppressWarnings("unchecked")
 							List<magma.compile.Node> recordChildren = (List<magma.compile.Node>) recordChildrenSome.value();
 

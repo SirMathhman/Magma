@@ -1,40 +1,40 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\error\CompileError.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct CompileError {char* reason;Context context;List<> causes;};
-public CompileError_CompileError(char* reason, Context sourceCode) {
+struct CompileError {/*???*/ reason;/*???*/ context;/*???*/ causes;};
+/*???*/ CompileError_CompileError(/*???*/ reason, /*???*/ sourceCode) {
 	this(reason, sourceCode, Collections.emptyList());
 }
-char* display_CompileError() {
+/*???*/ display_CompileError() {
 	return format(/*???*/, new_???());
 }
-char* format_CompileError(int depth, Stack<> indices) {
-	ArrayList<> copy=new_???(causes);
+/*???*/ format_CompileError(/*???*/ depth, /*???*/ indices) {
+	/*???*/ copy=new_???(causes);
 	copy.sort(Comparator.comparingInt(/*???*/));
-	char* formattedChildren=joinErrors(depth, indices, copy);
-	char* s;
+	/*???*/ formattedChildren=joinErrors(depth, indices, copy);
+	/*???*/ s;
 	if (depth==/*???*/)s="";
-	else s=System.lineSeparator()+"".repeat(depth);
-	char* joinedIndices=getCollect(indices);
-	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
+	/*???*/ s=System.lineSeparator()+"".repeat(depth);
+	/*???*/ joinedIndices=getCollect(indices);
+	/*???*/ formattedChildren;
 }
-char* getCollect_CompileError(Stack<> indices) {
-	Stream<> stream=indices.stream();
-	Stream<> stringStream=stream.map(/*???*/);
+/*???*/ getCollect_CompileError(/*???*/ indices) {
+	/*???*/ stream=indices.stream();
+	/*???*/ stringStream=stream.map(/*???*/);
 	return stringStream.collect(Collectors.joining(""));
 }
-char* joinErrors_CompileError(int depth, Stack<> indices, List<> copy) {
-	IntStream range=IntStream.range(/*???*/, copy.size());
-	Stream<> stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
+/*???*/ joinErrors_CompileError(/*???*/ depth, /*???*/ indices, /*???*/ copy) {
+	/*???*/ range=IntStream.range(/*???*/, copy.size());
+	/*???*/ stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
 	return stringStream.collect(Collectors.joining());
 }
-char* formatChild_CompileError(int depth, List<> copy, Stack<> indices, int last) {
-	CompileError error=copy.get(last);
+/*???*/ formatChild_CompileError(/*???*/ depth, /*???*/ copy, /*???*/ indices, /*???*/ last) {
+	/*???*/ error=copy.get(last);
 	indices.push(last);
-	char* format=error.format(depth+/*???*/, indices);
+	/*???*/ format=error.format(depth+/*???*/, indices);
 	indices.pop();
-	return format;
+	/*???*/ format;
 }
-int depth_CompileError() {
-	IntStream intStream=causes.stream().mapToInt(/*???*/);
-	OptionalInt max=intStream.max();
+/*???*/ depth_CompileError() {
+	/*???*/ intStream=causes.stream().mapToInt(/*???*/);
+	/*???*/ max=intStream.max();
 	return /*???*/+max.orElse(/*???*/);
 }

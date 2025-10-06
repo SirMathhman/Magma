@@ -17,9 +17,7 @@ import magma.compile.rule.Rule;
 import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -64,7 +62,7 @@ public class Lang {
 			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JType extends InstanceOfTarget
-			permits Array, Identifier, Invalid, JGeneric, SubType, Variadic, Wildcard {}
+			permits Array, Identifier, Invalid, JGeneric, Qualified, Variadic, Wildcard {}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
@@ -93,6 +91,8 @@ public class Lang {
 	public sealed interface MethodAccessSource permits ExprMethodAccessSource, TypeMethodAccessSource {}
 
 	public sealed interface NewArrayValue {}
+
+	public sealed interface Identifiable permits Identifier {}
 
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
@@ -259,7 +259,7 @@ public class Lang {
 			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CLang.CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {
 		public Invalid(String value) {
-			this(value, new None<>());
+			this(value, new Option.None<>());
 		}
 
 		@Override
@@ -315,7 +315,7 @@ public class Lang {
 												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JType, CLang.CType, JExpression, CExpression {
+	public record Identifier(String value) implements JType, CLang.CType, JExpression, CExpression, Identifiable {
 		@Override
 		public String stringify() {
 			return value;
@@ -449,7 +449,7 @@ public class Lang {
 		@Override
 		public DivideState fold(DivideState state, char c) {
 			if (c == operator.charAt(0)) {
-				if (operator.length() > 1 && state.peek() instanceof Some<Character>(Character next) &&
+				if (operator.length() > 1 && state.peek() instanceof Option.Some<Character>(Character next) &&
 						next == operator.charAt(1)) {
 					state.pop();
 					return state.advance();
@@ -467,8 +467,11 @@ public class Lang {
 		}
 	}
 
-	@Tag("subtype")
-	public record SubType(JType type, String name) implements JType {}
+	@Tag("segment")
+	public record QualifiedSegment(String value) {}
+
+	@Tag("qualified")
+	public record Qualified(Option<List<QualifiedSegment>> segments) implements JType {}
 
 	public static Rule CFunctionPointerDefinition() {
 		// Generates: returnType (*name)(paramTypes)

@@ -1,51 +1,51 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Main {};
-void main_Main(char** args) {
+/*???*/ main_Main(/*???*/ args) {
 	if (/*???*/)System.err.println(value.display());
 }
-Option<> run_Main() {
-	Path javaSourceRoot=Paths.get("", "", "", "");
-	Path cOutputRoot=Paths.get("", "", "", "");/*???*//*???*/
+/*???*/ run_Main() {
+	/*???*/ javaSourceRoot=Paths.get("", "", "", "");
+	/*???*/ cOutputRoot=Paths.get("", "", "", "");/*???*//*???*/
 	return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 }
-Option<> compileAllJavaFiles_Main(Path javaSourceRoot, Path cOutputRoot) {/*???*//*???*/
+/*???*/ compileAllJavaFiles_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot) {/*???*//*???*/
 }
-Option<> compileAll_Main(Path javaSourceRoot, Path cOutputRoot, List<> javaFiles) {
-	int i=/*???*/;
+/*???*/ compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, /*???*/ javaFiles) {
+	/*???*/ 0;
 	while (/*???*/)
 	{
-	Path javaFile=javaFiles.get(i);
+	/*???*/ javaFile=javaFiles.get(i);
 	System.out.println(""+javaFile);
 	/*???*/(javaFile, javaSourceRoot, cOutputRoot);
 	if (/*???*/)
 	{
 	System.err.println(""+javaFile+""+error.display());
-	return result;}
+	/*???*/ result;}
 	System.out.println(""+javaFile);
 	i++;}
 	return Option.empty();
 }
-Option<> compileJavaFile_Main(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {
-	Path relativePath=javaSourceRoot.relativize(javaFile);
-	char* fileName=relativePath.getFileName().toString();
-	char* cFileName=fileName.substring(/*???*/, fileName.lastIndexOf('.'))+"";
-	Path cFilePath=cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);/*???*//*???*/
-	Result<> readResult=readString(javaFile);
+/*???*/ compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ cOutputRoot) {
+	/*???*/ relativePath=javaSourceRoot.relativize(javaFile);
+	/*???*/ fileName=relativePath.getFileName().toString();
+	/*???*/ cFileName=fileName.substring(/*???*/, fileName.lastIndexOf('.'))+"";
+	/*???*/ cFilePath=cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);/*???*//*???*/
+	/*???*/ readResult=readString(javaFile);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)return Option.empty();
-	Result<> compileResult=Compiler.compile(input);
+	/*???*/ compileResult=Compiler.compile(input);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)
 	{
-	char* message=formatMessage(javaFile);
+	/*???*/ message=formatMessage(javaFile);
 	return writeString(cFilePath, message+compiled).map(/*???*/).map(/*???*/);}
 	return Option.empty();
 }
-char* formatMessage_Main(Path javaFile) {
-	Path relative=Paths.get("").relativize(javaFile);
+/*???*/ formatMessage_Main(/*???*/ javaFile) {
+	/*???*/ relative=Paths.get("").relativize(javaFile);
 	return ""+relative+""+System.lineSeparator();
 }
-Option<> writeString_Main(Path path, char* result) {/*???*//*???*/
+/*???*/ writeString_Main(/*???*/ path, /*???*/ result) {/*???*//*???*/
 }
-Result<> readString_Main(Path source) {/*???*//*???*/
+/*???*/ readString_Main(/*???*/ source) {/*???*//*???*/
 }

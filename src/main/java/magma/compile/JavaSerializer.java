@@ -3,9 +3,7 @@ package magma.compile;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -113,9 +111,9 @@ public class JavaSerializer {
 			return new Err<>(new CompileError("Component '" + fieldName + "' is not an Optional instance",
 																				new StringContext(fieldName)));
 
-		if (option instanceof None<?>) return new Ok<>(new Node()); // Empty node for None
+		if (option instanceof Option.None<?>) return new Ok<>(new Node()); // Empty node for None
 
-		if (option instanceof Some<?>(Object value1)) {
+		if (option instanceof Option.Some<?>(Object value1)) {
 			Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
 			if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error)) return new Err<>(error);
 			Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
@@ -197,13 +195,13 @@ public class JavaSerializer {
 	}
 
 	private static Result<Object, CompileError> deserializeSealed(Class<?> type, Node node) {
-		if (!(node.maybeType instanceof Some<String>(String nodeType))) return new Err<>(new CompileError(
+		if (!(node.maybeType instanceof Option.Some<String>(String nodeType))) return new Err<>(new CompileError(
 				"Missing node type for sealed type '" + type.getName() + "'",
 				new NodeContext(node)));
 
 		// Try direct permitted subclasses
 		Option<Result<Object, CompileError>> directResult = tryDirectPermittedSubclasses(type, node, nodeType);
-		if (directResult instanceof Some<Result<Object, CompileError>>(Result<Object, CompileError> result)) return result;
+		if (directResult instanceof Option.Some<Result<Object, CompileError>>(Result<Object, CompileError> result)) return result;
 
 		// Try nested sealed interfaces
 		return tryNestedSealedInterfaces(type, node, nodeType);
@@ -215,16 +213,16 @@ public class JavaSerializer {
 		while (i < permittedSubclasses.length) {
 			Class<?> permitted = permittedSubclasses[i];
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
-			if (maybeIdentifier instanceof Some<String>(String identifier) && identifier.equals(nodeType))
-				return new Some<>(deserializeValue(permitted, node));
+			if (maybeIdentifier instanceof Option.Some<String>(String identifier) && identifier.equals(nodeType))
+				return new Option.Some<>(deserializeValue(permitted, node));
 			i++;
 		}
-		return new None<>();
+		return new Option.None<>();
 	}
 
 	private static Result<Object, CompileError> tryNestedSealedInterfaces(Class<?> type, Node node, String nodeType) {
 		Option<Result<Object, CompileError>> recursiveResult = findNestedSealedDeserialization(type, node, nodeType);
-		if (recursiveResult instanceof Some<Result<Object, CompileError>>(Result<Object, CompileError> value)) return value;
+		if (recursiveResult instanceof Option.Some<Result<Object, CompileError>>(Result<Object, CompileError> value)) return value;
 
 		// Collect all valid tags for better error message
 		List<String> validTags = collectAllValidTags(type);
@@ -247,28 +245,28 @@ public class JavaSerializer {
 			Class<?> permitted = subclasses[j];
 			Option<Result<Object, CompileError>> recursiveResult =
 					tryDeserializeNestedSealed(type, node, nodeType, permitted);
-			if (recursiveResult instanceof Some<Result<Object, CompileError>> k) return k;
+			if (recursiveResult instanceof Option.Some<Result<Object, CompileError>> k) return k;
 			j++;
 		}
 
-		return new None<>();
+		return new Option.None<>();
 	}
 
 	private static Option<Result<Object, CompileError>> tryDeserializeNestedSealed(Class<?> type,
 																																								 Node node,
 																																								 String nodeType,
 																																								 Class<?> permitted) {
-		if (!permitted.isSealed() || permitted.isRecord()) return new None<>();
+		if (!permitted.isSealed() || permitted.isRecord()) return new Option.None<>();
 
 		Result<Object, CompileError> recursiveResult = deserializeSealed(permitted, node);
 		if (recursiveResult instanceof Ok<?, ?>(Object value) && type.isAssignableFrom(value.getClass()))
-			return new Some<>(recursiveResult);
+			return new Option.Some<>(recursiveResult);
 		// If recursiveResult is Err but would have matched (i.e., the tag was valid but
 		// deserialization failed
 		// for other reasons), propagate that error instead of generating a misleading
 		// "unknown tag" error
-		if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return new Some<>(recursiveResult);
-		return new None<>();
+		if (recursiveResult instanceof Err<?, ?> && canMatchType(permitted, nodeType)) return new Option.Some<>(recursiveResult);
+		return new Option.None<>();
 	}
 
 	private static String getSuggestionForUnknownTag(Class<?> type, String nodeType, List<String> validTags) {
@@ -277,7 +275,7 @@ public class JavaSerializer {
 
 		// Find if there's a similar tag (simple Levenshtein-like check)
 		Option<String> closestTag = findClosestTag(nodeType, validTags);
-		if (closestTag instanceof Some<String>(String tag))
+		if (closestTag instanceof Option.Some<String>(String tag))
 			return "Did you mean '" + tag + "'? Or add a record type with @Tag(\"" + nodeType +
 						 "\") to the permitted subtypes of '" + type.getSimpleName() + "'.";
 
@@ -342,7 +340,7 @@ public class JavaSerializer {
 		// Recursively collect from nested sealed interfaces
 		Arrays.stream(sealedType.getPermittedSubclasses()).forEach(permitted -> {
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
-			if (maybeIdentifier instanceof Some<String>(String tag)) tags.add(tag);
+			if (maybeIdentifier instanceof Option.Some<String>(String tag)) tags.add(tag);
 			if (permitted.isSealed() && !permitted.isRecord()) tags.addAll(collectAllValidTags(permitted));
 		});
 		return tags;
@@ -356,7 +354,7 @@ public class JavaSerializer {
 		while (i < permittedSubclasses.length) {
 			Class<?> permitted = permittedSubclasses[i];
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
-			if (maybeIdentifier instanceof Some<String>(String tag) && tag.equals(nodeType)) return true;
+			if (maybeIdentifier instanceof Option.Some<String>(String tag) && tag.equals(nodeType)) return true;
 			// Recursively check nested sealed interfaces
 			if (permitted.isSealed() && !permitted.isRecord()) if (canMatchType(permitted, nodeType)) return true;
 			i++;
@@ -367,8 +365,8 @@ public class JavaSerializer {
 	private static Result<Object, CompileError> deserializeRecord(Class<?> type, Node node) {
 		// Validate type annotation if present
 		Option<String> expectedType = resolveTypeIdentifier(type);
-		if (expectedType instanceof Some<String>(String expectedType0))
-			if (node.maybeType instanceof Some<String>(String nodeType)) {
+		if (expectedType instanceof Option.Some<String>(String expectedType0))
+			if (node.maybeType instanceof Option.Some<String>(String nodeType)) {
 				if (!node.is(expectedType0))
 					return new Err<>(new CompileError("Expected node type '" + expectedType0 + "' but found '" + nodeType + "'",
 																						new NodeContext(node)));
@@ -391,7 +389,7 @@ public class JavaSerializer {
 
 		// Validate that all fields were consumed
 		Option<CompileError> validationError = validateAllFieldsConsumed(node, consumedFields, type);
-		if (validationError instanceof Some<CompileError>(CompileError error)) errors.add(error);
+		if (validationError instanceof Option.Some<CompileError>(CompileError error)) errors.add(error);
 
 		if (!errors.isEmpty()) return new Err<>(new CompileError("Failed to deserialize '" + type.getSimpleName() + "'",
 																														 new NodeContext(node),
@@ -422,7 +420,7 @@ public class JavaSerializer {
 		if (List.class.isAssignableFrom(fieldType)) return deserializeListField(component, node, consumedFields);
 
 		Option<Node> childNode = node.findNode(fieldName);
-		if (childNode instanceof Some<Node>(Node value)) {
+		if (childNode instanceof Option.Some<Node>(Node value)) {
 			consumedFields.add(fieldName);
 			return deserializeValue(fieldType, value);
 		} else return new Err<>(new CompileError(
@@ -434,14 +432,14 @@ public class JavaSerializer {
 																																		 Node node,
 																																		 Set<String> consumedFields) {
 		Option<String> direct = node.findString(fieldName);
-		if (direct instanceof Some<String>(String value)) {
+		if (direct instanceof Option.Some<String>(String value)) {
 			consumedFields.add(fieldName);
 			return new Ok<>(value);
 		}
 
 		// Try nested search
 		Option<String> nested = findStringInChildren(node, fieldName);
-		if (nested instanceof Some<String>(String value)) {
+		if (nested instanceof Option.Some<String>(String value)) {
 			consumedFields.add(fieldName);
 			return new Ok<>(value);
 		} else return new Err<>(new CompileError("Required component '" + fieldName + "' of type 'String' not present",
@@ -462,23 +460,23 @@ public class JavaSerializer {
 
 		if (elementClass == String.class) {
 			Option<String> direct = node.findString(fieldName);
-			if (direct instanceof Some<String>) {
+			if (direct instanceof Option.Some<String>) {
 				consumedFields.add(fieldName);
 				return new Ok<>(direct);
 			}
 			Option<String> nested = findStringInChildren(node, fieldName);
-			if (nested instanceof Some<String>) {
+			if (nested instanceof Option.Some<String>) {
 				consumedFields.add(fieldName);
 				return new Ok<>(nested);
 			}
 
 			// Check if field exists but is wrong type (e.g., list when expecting string)
 			Option<Node> wrongTypeNode = node.findNode(fieldName);
-			if (wrongTypeNode instanceof Some<Node>) return new Err<>(new CompileError(
+			if (wrongTypeNode instanceof Option.Some<Node>) return new Err<>(new CompileError(
 					"Field '" + fieldName + "' of type 'Option<String>' found a node instead of string in '" +
 					node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
 			Option<List<Node>> wrongTypeList = node.findNodeList(fieldName);
-			if (wrongTypeList instanceof Some<List<Node>>) return new Err<>(new CompileError(
+			if (wrongTypeList instanceof Option.Some<List<Node>>) return new Err<>(new CompileError(
 					"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
 					node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
 
@@ -489,7 +487,7 @@ public class JavaSerializer {
 			return deserializeOptionListField(fieldName, elementType, node, consumedFields);
 
 		Option<Node> childNode = node.findNode(fieldName);
-		if (childNode instanceof Some<Node>(Node value)) {
+		if (childNode instanceof Option.Some<Node>(Node value)) {
 			consumedFields.add(fieldName);
 			return deserializeValue(elementClass, value).mapValue(Option::of);
 		} else return new Ok<>(Option.empty());
@@ -508,7 +506,7 @@ public class JavaSerializer {
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
+		if (maybeList instanceof Option.Some<List<Node>>(List<Node> value)) {
 			consumedFields.add(fieldName);
 			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
 			return elementsResult.mapValue(list -> Option.of(List.copyOf(list)));
@@ -528,7 +526,7 @@ public class JavaSerializer {
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
+		if (maybeList instanceof Option.Some<List<Node>>(List<Node> value)) {
 			consumedFields.add(fieldName);
 			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
 			return elementsResult.mapValue(List::copyOf);
@@ -551,7 +549,7 @@ public class JavaSerializer {
 				// unknown tag error
 				// Otherwise silently skip (e.g., whitespace in lists without matching context)
 				if (childResult instanceof Err<Object, CompileError>(CompileError error))
-					if (elementClass.isSealed() && childNode.maybeType instanceof Some<String>(String nodeType)) {
+					if (elementClass.isSealed() && childNode.maybeType instanceof Option.Some<String>(String nodeType)) {
 						// For sealed types, a node with a type tag that doesn't match any permitted
 						// type is always an error
 						CompileError wrappedError = new CompileError(
@@ -574,7 +572,7 @@ public class JavaSerializer {
 	private static Node createNodeWithType(Class<?> type) {
 		Node node = new Node();
 		Option<String> typeId = resolveTypeIdentifier(type);
-		if (typeId instanceof Some<String>(String value)) node.retype(value);
+		if (typeId instanceof Option.Some<String>(String value)) node.retype(value);
 		return node;
 	}
 
@@ -621,9 +619,9 @@ public class JavaSerializer {
 			while (iterator.hasNext()) {
 				Node child = iterator.next();
 				Option<String> result = child.findString(key);
-				if (result instanceof Some<String>) return result;
+				if (result instanceof Option.Some<String>) return result;
 				result = findStringInChildren(child, key);
-				if (result instanceof Some<String>) return result;
+				if (result instanceof Option.Some<String>) return result;
 			}
 		}
 		return findStringInNodeLists(node, key);
@@ -634,7 +632,7 @@ public class JavaSerializer {
 		while (iterator.hasNext()) {
 			List<Node> children = iterator.next();
 			Option<String> result = searchChildrenList(children, key);
-			if (result instanceof Some<String>) return result;
+			if (result instanceof Option.Some<String>) return result;
 		}
 		return Option.empty();
 	}
@@ -644,18 +642,18 @@ public class JavaSerializer {
 		while (i < children.size()) {
 			Node child = children.get(i);
 			Option<String> result = child.findString(key);
-			if (result instanceof Some<String>) return result;
+			if (result instanceof Option.Some<String>) return result;
 			result = findStringInChildren(child, key);
-			if (result instanceof Some<String>) return result;
+			if (result instanceof Option.Some<String>) return result;
 			i++;
 		}
 		return Option.empty();
 	}
 
 	private static boolean shouldBeDeserializableAs(Node node, Class<?> targetClass) {
-		if (node.maybeType instanceof None<String>) return false;
+		if (node.maybeType instanceof Option.None<String>) return false;
 
-		if (node.maybeType instanceof Some<String>(String nodeType)) {
+		if (node.maybeType instanceof Option.Some<String>(String nodeType)) {
 			Tag tagAnnotation = targetClass.getAnnotation(Tag.class);
 			if (Objects.nonNull(tagAnnotation)) return nodeType.equals(tagAnnotation.value());
 
