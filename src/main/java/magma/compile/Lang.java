@@ -89,6 +89,8 @@ public class Lang {
 
 	public sealed interface LambdaValue {}
 
+	public sealed interface LambdaParamSet {}
+
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
 
@@ -168,11 +170,8 @@ public class Lang {
 	@Tag("statement-lambda-value")
 	public record StatementLambdaValue(JMethodSegment child) implements LambdaValue {}
 
-	@Tag("lambda-param")
-	public record LambdaParam(String value) {}
-
 	@Tag("lambda")
-	public record Lambda(Option<List<LambdaParam>> params, LambdaValue child) implements JExpression {}
+	public record Lambda(LambdaParamSet params, LambdaValue child) implements JExpression {}
 
 	@Tag("new-array")
 	public record NewArray(JType type, JExpression length) implements JExpression {}
@@ -414,6 +413,17 @@ public class Lang {
 		public String delimiter() {
 			return "";
 		}
+	}
+
+	@Tag("none")
+	public record EmptyLambdaParam() implements LambdaParamSet {}
+
+	@Tag("single")
+	public record SingleLambdaParam(String param) implements LambdaParamSet {}
+
+	@Tag("multiple")
+	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {
+
 	}
 
 	public static Rule CRoot() {
@@ -692,12 +702,16 @@ public class Lang {
 	}
 
 	private static Rule Lambda(Rule statement, Rule expression) {
-		final Rule strip = Or(Strip(Prefix("(", Suffix(Or(Expressions("params", StrippedIdentifier("value")), Empty), ")"))), StrippedIdentifier("param"));
+		final Rule param = Tag("single", StrippedIdentifier("param"));
+		final Rule expressions = Tag("multiple", Expressions("params", StrippedIdentifier("param")));
+		final Rule tag = Tag("none", Empty);
+
+		final Rule strip = Or(Strip(Prefix("(", Suffix(Or(expressions, tag), ")"))), param);
 		final Rule child = Node("child",
 														Or(Tag("statement-lambda-value", Node("child", statement)),
 															 Tag("expr-lambda-value", Node("child", expression))));
 
-		return Tag("lambda", First(strip, "->", child));
+		return Tag("lambda", First(Node("params", strip), "->", child));
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {
