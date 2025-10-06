@@ -269,7 +269,6 @@ public class Main {
 		return switch (expression) {
 			case Invalid invalid -> invalid;
 			case Identifier identifier -> identifier;
-			case SwitchExpr aSwitch -> new Identifier("???");
 			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
 			case JInvocation jInvocation -> transformInvocation(jInvocation);
 			case JConstruction jConstruction -> handleConstruction(jConstruction);
@@ -277,19 +276,8 @@ public class Main {
 			case JString jString -> new CString(jString.content().orElse(""));
 			case JEquals jEquals -> new CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case And and -> new CAnd(transformExpression(and.left()), transformExpression(and.right()));
-			case InstanceOf instanceOf -> new Invalid("???");
-			case Cast cast -> new Invalid("???");
-			case Index index -> new Invalid("???");
-			case JLessThan jLessThan -> new Invalid("???");
-			case JLessThanEquals jLessThanEquals -> new Invalid("???");
-			case JSubtract jSubtract -> new Invalid("???");
-			case Not not -> new Invalid("???");
-			case Quantity quantity -> new Invalid("???");
-			case Lambda lambda -> new Invalid("???");
-			case NewArray newArray -> new Invalid("???");
 			case CharNode charNode -> charNode;
-			case JGreaterThanEquals jGreaterThanEquals -> new Invalid("???");
-			case MethodAccess methodAccess -> new Invalid("???");
+			default -> new Invalid("???");
 		};
 	}
 

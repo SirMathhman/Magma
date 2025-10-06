@@ -10,7 +10,7 @@ Result<> merge_Accumulator(List<> elements, Result<> (*mapper)(T)) {
 	return reduce.toResult();
 }
 Accumulator<> fold_Accumulator(Result<> (*mapper)(T), Accumulator<> accumulator, T rule) {
-	return ???;
+	return /*???*/;
 }
 Accumulator<> addError_Accumulator(CompileError error) {
 	errors.add(error);
@@ -20,5 +20,5 @@ Accumulator<> setValue_Accumulator(T value) {
 	return new_???(new_???(value), errors);
 }
 Result<> toResult_Accumulator() {
-	return ???;
+	return /*???*/;
 }

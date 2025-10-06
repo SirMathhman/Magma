@@ -49,8 +49,8 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, MethodAccess, NewArray,
-			Not, Quantity, SwitchExpr {}
+			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JOr, JString, JSubtract, Lambda,
+			MethodAccess, NewArray, Not, Quantity, SwitchExpr {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -384,6 +384,12 @@ public class Lang {
 	@Tag("less-than-equals")
 	public record JLessThanEquals(JExpression left, JExpression right) implements JExpression {}
 
+	@Tag("greater-than")
+	public record JGreaterThan(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("or")
+	public record JOr(JExpression left, JExpression right) implements JExpression {}
+
 	@Tag("greater-than-equals")
 	public record JGreaterThanEquals(JExpression left, JExpression right) implements JExpression {}
 
@@ -697,6 +703,7 @@ public class Lang {
 											Operator("equals", "==", expression),
 											Operator("less-than", "<", expression),
 											Operator("less-than-equals", "<=", expression),
+											Operator("greater-than", ">", expression),
 											Operator("greater-than-equals", ">=", expression),
 											Identifier()));
 		return expression;
@@ -704,7 +711,7 @@ public class Lang {
 
 	private static Rule MethodAccess(LazyRule expression) {
 		final Rule exprSource = Tag("expr-method-access-source", Node("child", expression));
-		final Rule child = Tag("type-method-access-source", Node("child", expression));
+		final Rule child = Tag("type-method-access-source", Node("child", JType()));
 		return Tag("method-access", Last(Node("source", Or(exprSource, child)), "::", StrippedIdentifier("name")));
 	}
 

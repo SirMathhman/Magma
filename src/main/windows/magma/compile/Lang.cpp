@@ -25,6 +25,8 @@ struct InstanceOfTarget {};
 struct CaseTarget {};
 struct CaseExprValue {};
 struct LambdaValue {};
+struct LambdaParamSet {};
+struct MethodAccessSource {};
 struct CharNode {char* value;};
 struct CAnd {CExpression left;CExpression right;};
 struct And {JExpression left;JExpression right;};
@@ -53,7 +55,7 @@ struct SwitchExpr {JExpression value;List<> cases;};
 struct SwitchStatement {JExpression value;List<> cases;};
 struct ExprLambdaValue {JExpression child;};
 struct StatementLambdaValue {JMethodSegment child;};
-struct Lambda {Option<> param;LambdaValue child;};
+struct Lambda {LambdaParamSet params;LambdaValue child;};
 struct NewArray {JType type;JExpression length;};
 struct CAssignment {CExpression location;CExpression value;};
 struct CPostFix {CExpression value;};
@@ -71,7 +73,7 @@ struct Field {JDefinition value;};
 struct JGeneric {char* base;Option<> typeArguments;};
 struct CGeneric {char* base;List<> typeArguments;};
 char* stringify_CGeneric() {
-	return base+""+typeArguments.stream().map(CType::stringify).collect(Collectors.joining("_"));
+	return base+""+typeArguments.stream().map(/*???*/).collect(Collectors.joining(""));
 }
 struct Array {JType child;};
 struct JDefinition {char* name;JType type;Option<> modifiers;Option<> typeParameters;};
@@ -80,10 +82,10 @@ record Modifier_Lang(char* value) {
 struct Method {JDefinition definition;Option<> params;Option<> body;Option<> typeParameters;};
 struct Invalid {char* value;Option<> after;};
 public Invalid_Invalid(char* value) {
-	this((value, new_???(());
+	this(value, new_???());
 }
 char* stringify_Invalid() {
-	return "???";
+	return "";
 }
 struct JClass {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> interfaces;};
 struct Interface {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> interfaces;Option<> superclasses;Option<> variants;};
@@ -91,7 +93,7 @@ struct Record {Option<> modifiers;char* name;List<> children;Option<> typeParame
 struct Structure {char* name;List<> fields;Option<> after;Option<> typeParameters;};
 struct Whitespace {};
 struct Placeholder {char* value;};
-record JavaRoot_Lang(List<> children) {
+record JRoot_Lang(List<> children) {
 }
 record CRoot_Lang(List<> children) {
 }
@@ -110,7 +112,7 @@ char* stringify_Pointer() {
 }
 struct FunctionPointer {CType returnType;List<> paramTypes;};
 char* stringify_FunctionPointer() {
-	return ""+paramTypes.stream().map(CType::stringify).collect(Collectors.joining("_"))+""+returnType.stringify();
+	return ""+paramTypes.stream().map(/*???*/).collect(Collectors.joining(""))+""+returnType.stringify();
 }
 struct LineComment {char* value;};
 struct BlockComment {char* value;};
@@ -126,18 +128,20 @@ DivideState fold_InvocationFolder(DivideState state, char c) {
 	if (c==open)
 	{
 	DivideState enter=appended.enter();
-	return enter.advance();
+	if (enter.isShallow())return enter.advance();
 	return enter;}
-	return appended.exit();
+	if (c==close)return appended.exit();
 	return appended;
 }
 char* delimiter_InvocationFolder() {
-	return String.valueOf(open);
+	return "";
 }
 struct Index {JExpression child;JExpression index;};
 struct Quantity {JExpression child;};
 struct Cast {JType type;JExpression child;};
 struct JLessThanEquals {JExpression left;JExpression right;};
+struct JGreaterThan {JExpression left;JExpression right;};
+struct JOr {JExpression left;JExpression right;};
 struct JGreaterThanEquals {JExpression left;JExpression right;};
 struct JLessThan {JExpression left;JExpression right;};
 struct Try {JMethodSegment child;};
@@ -147,269 +151,284 @@ struct Variadic {JType child;};
 struct MyFolder {};
 DivideState fold_MyFolder(DivideState state, char c) {
 	if (c=='(')return state.append(c).enter();
-	if (c==')')return state.advance();
+	if (c==')')if (state.isLevel())return state.advance();
+	else
 	return state.exit().append(c);
 	return state.append(c);
 }
 char* delimiter_MyFolder() {
 	return "";
 }
+struct EmptyLambdaParam {};
+struct SingleLambdaParam {char* param;};
+struct MultipleLambdaParam {Option<> params;};
+struct ExprMethodAccessSource {JExpression child;};
+struct TypeMethodAccessSource {JType child;};
+struct MethodAccess {char* name;MethodAccessSource source;};
 Rule CRoot_Lang() {
-	return Statements(("", Strip(("", Or((CStructure((), Function(()), ""));
+	return Statements("", Strip("", Or(CStructure(), Function()), ""));
 }
 Rule Function_Lang() {
-	NodeRule definition=new_???(("", CDefinition(());
-	Rule params=Expressions(("", Or((CFunctionPointerDefinition((), CDefinition(()));
-	Rule body=Statements(("", CFunctionSegment(());
-	Rule first=First((definition, "", params);
-	Rule suffix=Suffix((first, "");
-	Rule suffix1=Suffix((body, System.lineSeparator()+"");
-	Rule functionDecl=First((suffix, "", suffix1);
-	Rule templateParams=Expressions(("", Prefix(("", Identifier(()));
-	Rule templateDecl=NonEmptyList(("", Prefix(("", Suffix((templateParams, ""+System.lineSeparator())));
-	Rule maybeTemplate=Or((templateDecl, Empty);
-	return Tag(("", First((maybeTemplate, "", functionDecl));
+	NodeRule definition=new_???("", CDefinition());
+	Rule params=Expressions("", Or(CFunctionPointerDefinition(), CDefinition()));
+	Rule body=Statements("", CFunctionSegment());
+	Rule first=First(definition, "", params);
+	Rule suffix=Suffix(first, "");
+	Rule suffix1=Suffix(body, System.lineSeparator()+"");
+	Rule functionDecl=First(suffix, "", suffix1);
+	Rule templateParams=Expressions("", Prefix("", Identifier()));
+	Rule templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
+	Rule maybeTemplate=Or(templateDecl, Empty);
+	return Tag("", First(maybeTemplate, "", functionDecl));
 }
 Rule CFunctionPointerDefinition_Lang() {
-	return Tag(("", Suffix((First((Suffix((First((Node(("", CType(()), "", String(("")), ""), "", Expressions(("", CType(())), ""));
+	return Tag("", Suffix(First(Suffix(First(Node("", CType()), "", String("")), ""), "", Expressions("", CType())), ""));
 }
 Rule CDefinition_Lang() {
-	return Last((Node(("", CType(()), "", new_???((""));
+	return Last(Node("", CType()), "", new_???(""));
 }
 Rule CType_Lang() {
-	new LazyRule();
-	Rule funcPtr=Tag(("", Suffix((First((Node(("", rule), "", Expressions(("", rule)), ""));
-	rule.set((Or((funcPtr, Identifier((), Tag(("", Suffix((Node(("", rule), "")), Generic((rule), Invalid(()));
+	LazyRule rule=new_???();
+	Rule funcPtr=Tag("", Suffix(First(Node("", rule), "", Expressions("", rule)), ""));
+	rule.set(Or(funcPtr, Identifier(), Tag("", Suffix(Node("", rule), "")), Generic(rule), Invalid()));
 	return rule;
 }
 Rule CStructure_Lang() {
-	Rule plainName=StrippedIdentifier(("");
-	Rule structPrefix=Prefix(("", plainName);
-	Rule fields=Statements(("", Suffix((CDefinition((), ""));
-	Rule structWithFields=Suffix((First((structPrefix, "", fields), "");
-	Rule structComplete=Suffix((structWithFields, "");
-	Rule templateParams=Expressions(("", Prefix(("", Identifier(()));
-	Rule templateDecl=NonEmptyList(("", Prefix(("", Suffix((templateParams, ""+System.lineSeparator())));
-	Rule maybeTemplate=Or((templateDecl, Empty);
-	return Tag(("", First((maybeTemplate, "", structComplete));
+	Rule plainName=StrippedIdentifier("");
+	Rule structPrefix=Prefix("", plainName);
+	Rule fields=Statements("", Suffix(CDefinition(), ""));
+	Rule structWithFields=Suffix(First(structPrefix, "", fields), "");
+	Rule structComplete=Suffix(structWithFields, "");
+	Rule templateParams=Expressions("", Prefix("", Identifier()));
+	Rule templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
+	Rule maybeTemplate=Or(templateDecl, Empty);
+	return Tag("", First(maybeTemplate, "", structComplete));
 }
 Rule JRoot_Lang() {
-	Rule segment=Or((Namespace((""), Namespace((""), Structures((JStructureSegment(()), BlockComment((), Whitespace(());
-	return Statements(("", segment);
+	Rule segment=Or(Namespace(""), Namespace(""), Structures(JStructureSegment()), BlockComment(), Whitespace());
+	return Statements("", segment);
 }
 Rule Structures_Lang(Rule structureMember) {
-	return Or((JStructure(("", structureMember), JStructure(("", structureMember), JStructure(("", structureMember));
+	return Or(JStructure("", structureMember), JStructure("", structureMember), JStructure("", structureMember));
 }
 Rule Whitespace_Lang() {
-	return Tag(("", Strip((Empty));
+	return Tag("", Strip(Empty));
 }
 Rule Namespace_Lang(char* type) {
-	return Tag((type, Strip((Prefix((type+"", Suffix((String((""), ""))));
+	return Tag(type, Strip(Prefix(type+"", Suffix(String(""), ""))));
 }
 Rule JStructure_Lang(char* type, Rule rule) {
-	Rule modifiers=String(("");
-	Rule maybeWithTypeArguments=NameWithTypeParameters(();
-	Rule maybeWithParameters=Strip((Or((Suffix((First((maybeWithTypeArguments, "", Parameters(()), ""), maybeWithTypeArguments));
-	Rule maybeWithParameters1=Or((Last((maybeWithParameters, "", Expressions(("", JType(())), maybeWithParameters);
-	Rule beforeContent=Or((Last((maybeWithParameters1, "", Expressions(("", JType(())), maybeWithParameters1);
-	Rule children=Statements(("", rule);
-	Rule beforeContent1=Or((Last((beforeContent, "", Delimited(("", JType((), "")), beforeContent);
-	Rule strip=Strip((Or((modifiers, Empty));
-	Rule first=First((strip, type+"", beforeContent1);
-	Rule aClass=Split((first, new_???((new_???((new_???(())), children);
-	return Tag((type, Strip((Suffix((aClass, "")));
+	Rule modifiers=String("");
+	Rule maybeWithTypeArguments=NameWithTypeParameters();
+	Rule maybeWithParameters=Strip(Or(Suffix(First(maybeWithTypeArguments, "", Parameters()), ""), maybeWithTypeArguments));
+	Rule maybeWithParameters1=Or(Last(maybeWithParameters, "", Expressions("", JType())), maybeWithParameters);
+	Rule beforeContent=Or(Last(maybeWithParameters1, "", Expressions("", JType())), maybeWithParameters1);
+	Rule children=Statements("", rule);
+	Rule beforeContent1=Or(Last(beforeContent, "", Delimited("", JType(), "")), beforeContent);
+	Rule strip=Strip(Or(modifiers, Empty));
+	Rule first=First(strip, type+"", beforeContent1);
+	Rule aClass=Split(first, new_???(new_???(new_???())), children);
+	return Tag(type, Strip(Suffix(aClass, "")));
 }
 Rule NameWithTypeParameters_Lang() {
-	Rule name=StrippedIdentifier(("");
-	Rule withTypeParameters=Suffix((First((name, "", Expressions(("", Identifier(())), "");
-	return Strip((Or((withTypeParameters, name));
+	Rule name=StrippedIdentifier("");
+	Rule withTypeParameters=Suffix(First(name, "", Expressions("", Identifier())), "");
+	return Strip(Or(withTypeParameters, name));
 }
 Rule JStructureSegment_Lang() {
-	new LazyRule();
-	structureMember.set((Or((Structures((structureMember), Statement((), JMethod((), LineComment((), BlockComment((), Whitespace(()));
+	LazyRule structureMember=new_???();
+	structureMember.set(Or(Structures(structureMember), Statement(), JMethod(), LineComment(), BlockComment(), Whitespace()));
 	return structureMember;
 }
 Rule BlockComment_Lang() {
-	return Tag(("", Strip((Prefix(("", Suffix((String((""), ""))));
+	return Tag("", Strip(Prefix("", Suffix(String(""), ""))));
 }
 Rule LineComment_Lang() {
-	return Tag(("", Strip((Prefix(("", String((""))));
+	return Tag("", Strip(Prefix("", String(""))));
 }
 Rule Statement_Lang() {
-	Rule initialization=Initialization((JDefinition((), JExpression((JMethodSegment(()));
-	return Strip((Suffix((Or((initialization, JDefinition(()), ""));
+	Rule initialization=Initialization(JDefinition(), JExpression(JMethodSegment()));
+	return Strip(Suffix(Or(initialization, JDefinition()), ""));
 }
 Rule JMethod_Lang() {
-	Rule params=Parameters(();
-	Rule header=Strip((Suffix((Last((Node(("", JDefinition(()), "", params), ""));
-	Rule withBody=Suffix((First((header, "", Statements(("", JMethodSegment(())), "");
-	return Tag(("", Strip((Or((Suffix((header, ""), withBody)));
+	Rule params=Parameters();
+	Rule header=Strip(Suffix(Last(Node("", JDefinition()), "", params), ""));
+	Rule withBody=Suffix(First(header, "", Statements("", JMethodSegment())), "");
+	return Tag("", Strip(Or(Suffix(header, ""), withBody)));
 }
 Rule JMethodSegment_Lang() {
-	new LazyRule();
-	Rule expression=JExpression((methodSegment);
-	Rule inner=JDefinition(();
-	methodSegment.set((Strip((Or((Whitespace((), LineComment((), Switch(("", expression, methodSegment), Conditional(("", expression, methodSegment), Conditional(("", expression, methodSegment), Else((methodSegment), Try((methodSegment), QuantityBlock(("", "", inner, methodSegment), Strip((Suffix((JMethodStatementValue((methodSegment), "")), Block((methodSegment), BlockComment(())));
+	LazyRule methodSegment=new_???();
+	Rule expression=JExpression(methodSegment);
+	Rule inner=JDefinition();
+	methodSegment.set(Strip(Or(Whitespace(), LineComment(), Switch("", expression, methodSegment), Conditional("", expression, methodSegment), Conditional("", expression, methodSegment), Else(methodSegment), Try(methodSegment), QuantityBlock("", "", inner, methodSegment), Strip(Suffix(JMethodStatementValue(methodSegment), "")), Block(methodSegment), BlockComment())));
 	return methodSegment;
 }
 Rule Try_Lang(LazyRule methodSegment) {
-	Rule child=Node(("", methodSegment);
-	Rule resource=Node(("", Initialization((JDefinition((), JExpression((methodSegment)));
-	Splitter splitter=new_???((new_???((new_???((new_???(())));
-	Rule withResource=new_???(("", Strip((Prefix(("", new_???((resource, child, splitter))));
-	ContextRule withoutResource=new_???(("", child);
-	return Tag(("", Prefix(("", Or((withResource, withoutResource)));
+	Rule child=Node("", methodSegment);
+	Rule resource=Node("", Initialization(JDefinition(), JExpression(methodSegment)));
+	Splitter splitter=new_???(new_???(new_???(new_???())));
+	Rule withResource=new_???("", Strip(Prefix("", new_???(resource, child, splitter))));
+	ContextRule withoutResource=new_???("", child);
+	return Tag("", Prefix("", Or(withResource, withoutResource)));
 }
 Rule Block_Lang(LazyRule rule) {
-	return Tag(("", Strip((Prefix(("", Suffix((Statements(("", rule), ""))));
+	return Tag("", Strip(Prefix("", Suffix(Statements("", rule), ""))));
 }
 Rule JMethodStatementValue_Lang(Rule statement) {
-	Rule expression=JExpression((statement);
-	return Or((Break((), Return((expression), Yield((expression), Invokable((expression), Initialization((JDefinition((), expression), PostFix((expression), JDefinition(());
+	Rule expression=JExpression(statement);
+	return Or(Break(), PostFix(expression), Return(expression), Yield(expression), Initialization(JDefinition(), expression), JDefinition(), Invokable(expression));
 }
 Rule Break_Lang() {
-	return Tag(("", Strip((Prefix(("", Empty)));
+	return Tag("", Strip(Prefix("", Empty)));
 }
 Rule PostFix_Lang(Rule expression) {
-	return Tag(("", Strip((Suffix((Node(("", expression), "")));
+	return Tag("", Strip(Suffix(Node("", expression), "")));
 }
 Rule Initialization_Lang(Rule definition, Rule value) {
-	Rule definition1=Node(("", definition);
-	Rule value1=Node(("", value);
-	return First((Or((Tag(("", definition1), Tag(("", Node(("", value))), "", value1);
+	Rule definition1=Node("", definition);
+	Rule value1=Node("", value);
+	return First(Or(Tag("", definition1), Tag("", Node("", value))), "", value1);
 }
 Rule Invokable_Lang(Rule expression) {
-	return Or((Invocation((expression), Invokable(("", Strip((Prefix(("", Node(("", CType(()))), expression));
+	return Or(Invocation(expression), Invokable("", Strip(Prefix("", Node("", CType()))), expression));
 }
 Rule Invokable_Lang(char* type, Rule caller, Rule expression) {
-	Rule arguments=Expressions(("", expression);
-	FoldingDivider divider=new_???((new_???((new_???(('(', ')')));
-	Rule suffix=Strip((Suffix((Or((arguments, Whitespace(()), String.valueOf(')')));
-	return Tag((type, Split((Suffix((caller, String.valueOf('(')), KeepLast((divider), suffix));
+	Rule arguments=Expressions("", expression);
+	FoldingDivider divider=new_???(new_???(new_???('(', ')')));
+	Rule suffix=Strip(Suffix(Or(arguments, Whitespace()), String.valueOf(')')));
+	return Tag(type, Split(Suffix(caller, String.valueOf('(')), KeepLast(divider), suffix));
 }
 Rule Yield_Lang(Rule expression) {
-	return Tag(("", Prefix(("", Node(("", expression)));
+	return Tag("", Prefix("", Node("", expression)));
 }
 Rule Return_Lang(Rule expression) {
-	return Tag(("", Prefix(("", Node(("", expression)));
+	return Tag("", Prefix("", Node("", expression)));
 }
 Rule Else_Lang(Rule statement) {
-	return Tag(("", Prefix(("", Node(("", statement)));
+	return Tag("", Prefix("", Node("", statement)));
 }
 Rule Conditional_Lang(char* tag, Rule inner, Rule statement) {
-	return QuantityBlock((tag, "", inner, statement);
+	return QuantityBlock(tag, "", inner, statement);
 }
 Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
-	Rule condition=Node((key, inner);
-	Rule body=Node(("", statement);
-	Rule split=Split((Prefix(("", condition), KeepFirst((new_???((new_???((new_???(()))), body);
-	return Tag((tag, Prefix((tag+"", Strip((split)));
+	Rule condition=Node(key, inner);
+	Rule body=Node("", statement);
+	Rule split=Split(Prefix("", condition), KeepFirst(new_???(new_???(new_???()))), body);
+	return Tag(tag, Prefix(tag+"", Strip(split)));
 }
 Rule JExpression_Lang(Rule statement) {
-	new LazyRule();
-	expression.set((Or((Lambda((statement, expression), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch(("", expression, CaseExprValue((statement, expression)), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), Tag(("", Last((Node(("", expression), "", StrippedIdentifier((""))), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
+	LazyRule expression=new_???();
+	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), Tag("", Strip(Suffix(First(Prefix("", Node("", JType())), "", Node("", expression)), ""))), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
 	return expression;
 }
+Rule MethodAccess_Lang(LazyRule expression) {
+	Rule exprSource=Tag("", Node("", expression));
+	Rule child=Tag("", Node("", JType()));
+	return Tag("", Last(Node("", Or(exprSource, child)), "", StrippedIdentifier("")));
+}
 Rule CaseExprValue_Lang(Rule statement, LazyRule expression) {
-	return Or((Tag(("", Node(("", Strip((Suffix((expression, "")))), Tag(("", Node(("", statement)));
+	return Or(Tag("", Node("", Strip(Suffix(expression, "")))), Tag("", Node("", statement)));
 }
 Rule Char_Lang() {
-	return Tag(("", Strip((Prefix(("", Suffix((String((""), ""))));
+	return Tag("", Strip(Prefix("", Suffix(String(""), ""))));
 }
 Rule Lambda_Lang(Rule statement, Rule expression) {
-	Rule strip=Or((Strip((Prefix(("", Empty)), StrippedIdentifier((""));
-	Rule child=Node(("", Or((Tag(("", Node(("", statement)), Tag(("", Node(("", expression))));
-	return Tag(("", First((strip, "", child));
+	Rule param=Tag("", StrippedIdentifier(""));
+	Rule expressions=Tag("", Expressions("", StrippedIdentifier("")));
+	Rule tag=Tag("", Empty);
+	Rule strip=Or(Strip(Prefix("", Suffix(Or(expressions, tag), ""))), param);
+	Rule child=Node("", Or(Tag("", Node("", statement)), Tag("", Node("", expression))));
+	return Tag("", First(Node("", strip), "", child));
 }
 Rule InstanceOf_Lang(LazyRule expression) {
-	Rule strip=Destruct(();
-	Rule type=Node(("", Or((JDefinition((), JType((), strip));
-	return Tag(("", Last((Node(("", expression), "", type));
+	Rule strip=Destruct();
+	Rule type=Node("", Or(JDefinition(), JType(), strip));
+	return Tag("", Last(Node("", expression), "", type));
 }
 Rule Destruct_Lang() {
-	return Tag(("", Strip((Suffix((First((Node(("", JType(()), "", Parameters(()), "")));
+	return Tag("", Strip(Suffix(First(Node("", JType()), "", Parameters()), "")));
 }
 Rule Index_Lang(LazyRule expression) {
-	return Tag(("", Strip((Suffix((Last((new_???(("", expression), "", new_???(("", expression)), "")));
+	return Tag("", Strip(Suffix(Last(new_???("", expression), "", new_???("", expression)), "")));
 }
 Rule FieldAccess_Lang(Rule expression) {
-	return Tag(("", Last((Node(("", expression), "", Strip((String((""))));
+	return Tag("", Last(Node("", expression), "", StrippedIdentifier("")));
 }
 Rule StringExpr_Lang() {
-	return Tag(("", Strip((Prefix(("", Suffix((Or((String((""), Empty), ""))));
+	return Tag("", Strip(Prefix("", Suffix(Or(String(""), Empty), ""))));
 }
 Rule Operator_Lang(char* type, char* infix, LazyRule expression) {
-	return Tag((type, First((Node(("", expression), infix, Node(("", expression)));
+	return Tag(type, First(Node("", expression), infix, Node("", expression)));
 }
 Rule Switch_Lang(char* group, Rule expression, Rule rule) {
-	Rule cases=Statements(("", Strip((Or((Case((group, rule), Empty)));
-	Rule value=Prefix(("", Suffix((Node(("", expression), ""));
-	return Tag((""+group, Strip((Prefix(("", Suffix((First((Strip((value), "", cases), ""))));
+	Rule cases=Statements("", Strip(Or(Case(group, rule), Empty)));
+	Rule value=Prefix("", Suffix(Node("", expression), ""));
+	return Tag(""+group, Strip(Prefix("", Suffix(First(Strip(value), "", cases), ""))));
 }
 Rule Case_Lang(char* group, Rule rule) {
-	Rule after=Node(("", Or((JDefinition((), Destruct(()));
-	Rule defaultCase=Strip((Prefix(("", Empty));
-	Rule value=First((Or((defaultCase, Prefix(("", after)), "", Node(("", rule));
-	return Tag((""+group, value);
+	Rule after=Node("", Or(JDefinition(), Destruct()));
+	Rule defaultCase=Strip(Prefix("", Empty));
+	Rule value=First(Or(defaultCase, Prefix("", after)), "", Node("", rule));
+	return Tag(""+group, value);
 }
 Rule CExpression_Lang() {
-	new LazyRule();
-	expression.set((Or((Invocation((expression), FieldAccess((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), StringExpr((), Identifier((), Char((), Invalid(()));
+	LazyRule expression=new_???();
+	expression.set(Or(Invocation(expression), FieldAccess(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), StringExpr(), Identifier(), Char(), Invalid()));
 	return expression;
 }
 Rule Invocation_Lang(Rule expression) {
-	return Invokable(("", Node(("", expression), expression);
+	return Invokable("", Node("", expression), expression);
 }
 Rule CFunctionSegment_Lang() {
-	new LazyRule();
-	rule.set((Or((Whitespace((), Prefix((System.lineSeparator()+"", CFunctionSegmentValue((rule)), Invalid(()));
+	LazyRule rule=new_???();
+	rule.set(Or(Whitespace(), Prefix(System.lineSeparator()+"", CFunctionSegmentValue(rule)), Invalid()));
 	return rule;
 }
 Rule Invalid_Lang() {
-	return Tag(("", Placeholder((String(("")));
+	return Tag("", Placeholder(String("")));
 }
 Rule CFunctionSegmentValue_Lang(LazyRule rule) {
-	return Or((LineComment((), Conditional(("", CExpression((), rule), Conditional(("", CExpression((), rule), Break((), Else((rule), CFunctionStatement((), Block((rule));
+	return Or(LineComment(), Conditional("", CExpression(), rule), Conditional("", CExpression(), rule), Break(), Else(rule), CFunctionStatement(), Block(rule));
 }
 Rule CFunctionStatement_Lang() {
-	new LazyRule();
-	functionStatement.set((Or((Conditional(("", CExpression((), functionStatement), Suffix((CFunctionStatementValue((), "")));
+	LazyRule functionStatement=new_???();
+	functionStatement.set(Or(Conditional("", CExpression(), functionStatement), Suffix(CFunctionStatementValue(), "")));
 	return functionStatement;
 }
 Rule CFunctionStatementValue_Lang() {
-	Rule expression=CExpression(();
-	return Or((Return((expression), Invocation((expression), Initialization((CDefinition((), expression), CDefinition((), PostFix((expression));
+	Rule expression=CExpression();
+	return Or(Return(expression), Invocation(expression), Initialization(CDefinition(), expression), CDefinition(), PostFix(expression));
 }
 Rule Parameters_Lang() {
-	return Expressions(("", Or((JDefinition((), Whitespace(()));
+	return Expressions("", Or(JDefinition(), Whitespace()));
 }
 Rule JDefinition_Lang() {
-	Rule type=Node(("", JType(());
-	Rule name=String(("");
-	Rule modifiers=Delimited(("", Tag(("", String(("")), "");
-	Rule withModifiers=Split((modifiers, KeepLast((new_???((new_???(())), type);
-	Rule beforeName=Or((withModifiers, type);
-	return Tag(("", Strip((Last((beforeName, "", name)));
+	Rule type=Node("", JType());
+	Rule name=StrippedIdentifier("");
+	Rule modifiers=Delimited("", Tag("", String("")), "");
+	Rule withModifiers=Split(modifiers, KeepLast(new_???(new_???())), type);
+	Rule beforeName=Or(withModifiers, type);
+	return Tag("", Strip(Last(beforeName, "", name)));
 }
 Rule JType_Lang() {
-	new LazyRule();
-	type.set((Or((Generic((type), Array((type), Identifier((), WildCard((), Tag(("", Strip((Suffix((Node(("", type), "")))));
+	LazyRule type=new_???();
+	type.set(Or(Generic(type), Array(type), Identifier(), WildCard(), Tag("", Strip(Suffix(Node("", type), "")))));
 	return type;
 }
 Rule WildCard_Lang() {
-	return Tag(("", Strip((Prefix(("", Empty)));
+	return Tag("", Strip(Prefix("", Empty)));
 }
 Rule Array_Lang(Rule type) {
-	return Tag(("", Strip((Suffix((Node(("", type), "")));
+	return Tag("", Strip(Suffix(Node("", type), "")));
 }
 Rule Identifier_Lang() {
-	return Tag(("", StrippedIdentifier((""));
+	return Tag("", StrippedIdentifier(""));
 }
 Rule StrippedIdentifier_Lang(char* key) {
 	return Strip(FilterRule.Identifier(String(key)));
 }
 Rule Generic_Lang(Rule type) {
-	Rule base=Strip((String((""));
-	Rule arguments=Or((Expressions(("", type), Strip((Empty));
-	return Tag(("", Strip((Suffix((First((base, "", arguments), "")));
+	Rule base=StrippedIdentifier("");
+	Rule arguments=Or(Expressions("", type), Strip(Empty));
+	return Tag("", Strip(Suffix(First(base, "", arguments), "")));
 }
