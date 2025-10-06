@@ -25,7 +25,7 @@ Result<> generateList_NodeListRule(List<> list) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ child=list.getOrNull(i);/*???*/
+	/*???*/ child=list.get(i).orElse(null);/*???*/
 	i++;}
 	return new_???(sb.toString());
 }

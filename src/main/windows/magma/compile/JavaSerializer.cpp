@@ -149,7 +149,7 @@ Option<> findClosestTag_JavaSerializer(/*???*/ nodeType, List<> validTags) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ tag=validTags.getOrNull(i);
+	/*???*/ tag=validTags.get(i).orElse(null);
 	/*???*/ distance=levenshteinDistance(nodeType.toLowerCase(), tag.toLowerCase());
 	if (/*???*/)minDistance=distance;
 	closest==Option.of(tag);
@@ -331,7 +331,7 @@ Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nod
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ childNode=nodeList.getOrNull(i);
+	/*???*/ childNode=nodeList.get(i).orElse(null);
 	Result<> childResult=deserializeValue(elementClass, childNode);
 	if (/*???*/)results.addLast(value);
 	else
@@ -345,7 +345,7 @@ Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nod
 	index++;
 	i++;}
 	if (errors.isEmpty())return new_???(results);
-	return new_???(new_???(""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???(nodeList.getFirstOrNull()), errors));
+	return new_???(new_???(""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???(nodeList.getFirst().orElse(null)), errors));
 }
 /*???*/ createNodeWithType_JavaSerializer(Class<> type) {
 	/*???*/ node=new_???();
@@ -402,7 +402,7 @@ Option<> searchChildrenList_JavaSerializer(List<> children, /*???*/ key) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ child=children.getOrNull(i);
+	/*???*/ child=children.get(i).orElse(null);
 	/*???*/(key);
 	if (/*???*/)/*???*/ result;
 	result==findStringInChildren(child, key);

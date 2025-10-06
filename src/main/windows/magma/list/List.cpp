@@ -13,24 +13,17 @@ List<> addAll_List(List<> others) {
 }
 /*???*/ size_List() {
 }
-/*???*/ getOrNull_List(/*???*/ index) {
+Option<> get_List(/*???*/ index) {
 }
 /*???*/ isEmpty_List() {
 }
 Option<> getLast_List() {
 }
-/*???*/ getLastOrNull_List() {
-}
 List<> sort_List(Comparator<> comparator) {
 }
-List<> push_List(/*???*/ element) {
-	return addLast(element);
-}
-Option<> pop_List() {
+Option<> removeLast_List() {
 }
 Option<> getFirst_List() {
-}
-/*???*/ getFirstOrNull_List() {
 }
 List<> subListOrEmpty_List(/*???*/ start, /*???*/ end) {
 }

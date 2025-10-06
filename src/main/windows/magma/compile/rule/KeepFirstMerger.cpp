@@ -2,7 +2,7 @@
 struct KeepFirstMerger {};
 Option<> merge_KeepFirstMerger(List<> segments, /*???*/ delimiter) {
 	if (/*???*/)return new_???();
-	/*???*/ left=segments.getFirstOrNull();
+	/*???*/ left=segments.getFirst().orElse(null);
 	/*???*/ right=segments.subListOrEmpty(/*???*/, segments.size()).stream().collect(new_???(delimiter));
 	return new_???(new_???(left, right));
 }

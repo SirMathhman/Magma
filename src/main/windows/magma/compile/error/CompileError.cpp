@@ -28,10 +28,10 @@ struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 	return stringStream.collect(new_???(""));
 }
 /*???*/ formatChild_CompileError(/*???*/ depth, List<> copy, List<> indices, /*???*/ last) {
-	/*???*/ error=copy.getOrNull(last);
-	indices.push(last);
+	/*???*/ error=copy.get(last).orElse(null);
+	indices.addLast(last);
 	/*???*/ format=error.format(depth+/*???*/, indices);
-	indices.pop();
+	indices.removeLast();
 	/*???*/ format;
 }
 /*???*/ depth_CompileError() {

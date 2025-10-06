@@ -22,8 +22,10 @@ List<> getThis_ArrayList() {
 /*???*/ size_ArrayList() {
 	return elements.size();
 }
-/*???*/ getOrNull_ArrayList(/*???*/ index) {
-	return elements.get(index);
+Option<> get_ArrayList(/*???*/ index) {
+	if (/*???*/)return new_???(elements.get(index));
+	else
+	return new_???();
 }
 /*???*/ isEmpty_ArrayList() {
 	return elements.isEmpty();
@@ -32,14 +34,11 @@ Option<> getLast_ArrayList() {
 	if (elements.isEmpty())return new_???();
 	return new_???(elements.getLast());
 }
-/*???*/ getLastOrNull_ArrayList() {
-	return getLast().orElseGet(/*???*/);
-}
 List<> sort_ArrayList(Comparator<> comparator) {
 	elements.sort(comparator);
 	/*???*/ this;
 }
-Option<> pop_ArrayList() {
+Option<> removeLast_ArrayList() {
 	if (elements.isEmpty())return new_???();
 	/*???*/ last=elements.removeLast();
 	return new_???(new_???(this, last));
@@ -47,9 +46,6 @@ Option<> pop_ArrayList() {
 Option<> getFirst_ArrayList() {
 	if (elements.isEmpty())return new_???();
 	return new_???(elements.getFirst());
-}
-/*???*/ getFirstOrNull_ArrayList() {
-	return getFirst().orElseGet(/*???*/);
 }
 List<> subListOrEmpty_ArrayList(/*???*/ start, /*???*/ end) {
 	return new_???(elements.subList(start, end));

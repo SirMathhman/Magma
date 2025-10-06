@@ -76,8 +76,8 @@ List<> flattenStructure_Transformer(/*???*/ aClass) {
 	List<> recordFields=extractRecordParamsAsFields(aClass).copy();
 	/*???*/ name=aClass.name();
 	List<> tuples=children.stream().map(/*???*/(child, name)).toList();
-	List<> segments=tuples.stream().map(/*???*/.left()).flatMap(/*???*/).toList();
-	List<> additionalFields=tuples.stream().map(/*???*/.right()).filter(/*???*/).map(/*???*/(/*???*/).value()).toList();
+	List<> segments=tuples.stream().map(/*???*/).flatMap(/*???*/).toList();
+	List<> additionalFields=tuples.stream().map(/*???*/).filter(/*???*/).map(/*???*/(/*???*/).value()).toList();
 	List<> fields=recordFields.addAll(additionalFields);
 	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
 	return new_???(segments);
@@ -104,8 +104,8 @@ List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	List<> listOption=generic.typeArguments().orElse(new_???());
 	if (generic.base().endsWith("")&&listOption.size()==/*???*/)
 	{
-	/*???*/ paramType=transformType(listOption.getOrNull(/*???*/));
-	/*???*/ returnType=transformType(listOption.getOrNull(/*???*/));
+	/*???*/ paramType=transformType(listOption.get(/*???*/).orElse(null));
+	/*???*/ returnType=transformType(listOption.get(/*???*/).orElse(null));
 	return new_???(returnType, List.of(paramType));}
 	return new_???(generic.base().last(), listOption.stream().map(/*???*/).toList());
 }
