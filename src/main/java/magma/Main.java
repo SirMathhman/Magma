@@ -251,8 +251,8 @@ public class Main {
 			case JConstruction jConstruction -> handleConstruction(jConstruction);
 			case JDefinition jDefinition -> transformDefinition(jDefinition);
 			case Catch aCatch -> new Invalid("???");
-			case Switch aSwitch -> new Invalid("???");
 			case Try aTry -> new Invalid("???");
+			case SwitchStatement switchStatement -> new Invalid("???");
 		};
 	}
 
@@ -270,7 +270,7 @@ public class Main {
 		return switch (expression) {
 			case Invalid invalid -> invalid;
 			case Identifier identifier -> identifier;
-			case Switch aSwitch -> new Identifier("???");
+			case SwitchExpr aSwitch -> new Identifier("???");
 			case JFieldAccess fieldAccess -> new CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
 			case JInvocation jInvocation -> transformInvocation(jInvocation);
 			case JConstruction jConstruction -> handleConstruction(jConstruction);

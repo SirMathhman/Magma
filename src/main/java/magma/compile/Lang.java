@@ -47,11 +47,11 @@ public class Lang {
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
 			JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity,
-			Switch {}
+			SwitchExpr {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
-			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Switch, Try, Whitespace {}
+			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try, Whitespace {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -79,6 +79,8 @@ public class Lang {
 
 	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {}
 
+	public sealed interface CaseTarget permits JDefinition, Destruct {}
+
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
 
@@ -89,7 +91,7 @@ public class Lang {
 	public record And(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("destruct")
-	public record Destruct(JType type, List<JDefinition> params) implements InstanceOfTarget {}
+	public record Destruct(JType type, List<JDefinition> params) implements InstanceOfTarget, CaseTarget {}
 
 	@Tag("instanceof")
 	public record InstanceOf(JExpression child, InstanceOfTarget target) implements JExpression {}
@@ -134,11 +136,17 @@ public class Lang {
 	@Tag("not")
 	public record Not(JExpression child) implements JExpression {}
 
-	@Tag("case")
-	public record Case(JDefinition definition, JExpression value) {}
+	@Tag("case-expr")
+	public record CaseExpr(CaseTarget target, JExpression value) {}
 
-	@Tag("switch")
-	public record Switch(JExpression value, List<Case> cases) implements JExpression, JMethodSegment {}
+	@Tag("case-statement")
+	public record CaseStatement(CaseTarget target, JMethodSegment value) {}
+
+	@Tag("switch-expr")
+	public record SwitchExpr(JExpression value, List<CaseExpr> cases) implements JExpression {}
+
+	@Tag("switch-statement")
+	public record SwitchStatement(JExpression value, List<CaseStatement> cases) implements JMethodSegment {}
 
 	@Tag("lambda")
 	public record Lambda(String param, JMethodSegment child) implements JExpression {}
@@ -202,7 +210,8 @@ public class Lang {
 
 	@Tag("definition")
 	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
-														Option<List<Identifier>> typeParameters) implements JMethodSegment, InstanceOfTarget, JStructureSegment {}
+														Option<List<Identifier>> typeParameters)
+			implements JMethodSegment, InstanceOfTarget, JStructureSegment, CaseTarget {}
 
 	@Tag("modifier")
 	public record Modifier(String value) {}
@@ -513,7 +522,7 @@ public class Lang {
 															 LineComment(),
 															 Conditional("if", expression, methodSegment),
 															 Conditional("while", expression, methodSegment),
-															 Switch(expression, methodSegment),
+															 Switch("statement", expression, methodSegment),
 															 Else(methodSegment),
 															 Tag("try", Prefix("try ", Node("child", methodSegment))),
 															 QuantityBlock("catch", "definition", inner, methodSegment),
@@ -594,7 +603,7 @@ public class Lang {
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
 											StringExpr(),
-											Switch(expression, Strip(Suffix(expression, ";"))),
+											Switch("expr", expression, Strip(Suffix(expression, ";"))),
 											Index(expression),
 											Tag("new-array",
 													Strip(Suffix(First(Prefix("new ", Node("type", JType())), "[", Node("length", expression)),
@@ -649,20 +658,16 @@ public class Lang {
 		return Tag(type, First(Node("left", expression), infix, Node("right", expression)));
 	}
 
-	private static Rule Switch(Rule expression, Rule rule) {
-		final Rule cases = Statements("cases", Strip(Or(Case(rule), Empty)));
+	private static Rule Switch(String group, Rule expression, Rule rule) {
+		final Rule cases = Statements("cases", Strip(Or(Case(group, rule), Empty)));
 		final Rule value = Prefix("(", Suffix(Node("value", expression), ")"));
-		return Tag("switch", Strip(Prefix("switch ", Suffix(First(Strip(value), "{", cases), "}"))));
+		return Tag("switch-" + group, Strip(Prefix("switch ", Suffix(First(Strip(value), "{", cases), "}"))));
 	}
 
-	private static Rule Case(Rule rule) {
+	private static Rule Case(String group, Rule rule) {
 		Rule definition = Node("target", Or(JDefinition(), Destruct()));
-		Rule value = First(Or(definition, getType()), "->", Node("value", rule));
-		return Prefix("case", value);
-	}
-
-	private static Rule getType() {
-		return Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")"));
+		Rule value = First(definition, "->", Node("value", rule));
+		return Tag("case-" + group, Prefix("case", value));
 	}
 
 	private static Rule CExpression() {

@@ -11,7 +11,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public final class Node {
-	private static final int MAX_FORMAT_LEVEL = 2;
+	private static final int MAX_FORMAT_LEVEL = 3;
 	public final Map<String, List<Node>> nodeLists = new HashMap<>();
 	public final Map<String, Node> nodes = new HashMap<>();
 	private final Map<String, String> strings = new HashMap<>();
