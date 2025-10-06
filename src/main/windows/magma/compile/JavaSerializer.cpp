@@ -114,7 +114,7 @@ Result<> tryNestedSealedInterfaces_JavaSerializer(Class<> type, /*???*/ node, /*
 	/*???*/(type);
 	/*???*/ validTagsList;
 	if (validTags.isEmpty())validTagsList="";
-	/*???*/ validTagsList=String.join("", validTags);
+	/*???*/ validTagsList=validTags.stream().collect(new_???(""));
 	/*???*/ suggestion=getSuggestionForUnknownTag(type, nodeType, validTags);
 	return new_???(new_???(""+type.getSimpleName()+""+nodeType+""+""+validTagsList+""+suggestion, new_???(node)));
 }
@@ -148,7 +148,7 @@ Option<> findClosestTag_JavaSerializer(/*???*/ nodeType, List<> validTags) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ tag=validTags.get(i);
+	/*???*/ tag=validTags.getOrNull(i);
 	/*???*/ distance=levenshteinDistance(nodeType.toLowerCase(), tag.toLowerCase());
 	if (/*???*/)minDistance=distance;
 	closest==Option.of(tag);
@@ -214,9 +214,9 @@ Result<> deserializeRecord_JavaSerializer(Class<> type, /*???*/ node) {
 	/*???*/* arguments=/*???*/;
 	/*???*/=new_???();
 	/*???*/=new_???();
-	IntStream.range(/*???*/, components.length).forEach(/*???*/);
+	Stream.range(/*???*/, components.length).forEach(/*???*/);
 	/*???*/(node, consumedFields, type);
-	if (/*???*/)errors.add(error);
+	if (/*???*/)errors.addLast(error);
 	if (/*???*/.isEmpty())return new_???(new_???(""+type.getSimpleName()+"", new_???(node), errors));/*???*//*???*/
 }
 Result<> deserializeField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> consumedFields) {
@@ -269,7 +269,7 @@ Result<> deserializeOptionField_JavaSerializer(/*???*/ component, /*???*/ node, 
 	return new_???(nested);}
 	/*???*/(fieldName);
 	if (/*???*/)return new_???(new_???(""+fieldName+""+node.maybeType.orElse("")+"", new_???(node)));
-	Option<> wrongTypeList=node.findNodeList(fieldName);
+	/*???*/(fieldName);
 	if (/*???*/)return new_???(new_???(""+fieldName+""+node.maybeType.orElse("")+"", new_???(node)));
 	return new_???(Option.empty());}
 	if (List.class.isAssignableFrom(elementClass))return deserializeOptionListField(fieldName, elementType, node, consumedFields);
@@ -288,12 +288,12 @@ Result<> deserializeOptionListField_JavaSerializer(/*???*/ fieldName, /*???*/ li
 	Result<> elementClassResult=erase(elementType);
 	if (/*???*/)return new_???(error);
 	Class<> elementClass=/*???*/.value();
-	Option<> maybeList=node.findNodeList(fieldName);
+	/*???*/(fieldName);
 	if (/*???*/)
 	{
 	consumedFields.add(fieldName);
 	Result<> elementsResult=deserializeListElements(elementClass, value);
-	return elementsResult.mapValue(/*???*/.of(List.copyOf(list)));}
+	return elementsResult.mapValue(/*???*/.of(list.copy()));}
 	else
 	return new_???(Option.empty());
 }
@@ -305,7 +305,7 @@ Result<> deserializeListField_JavaSerializer(/*???*/ component, /*???*/ node, Se
 	Result<> elementClassResult=erase(elementType);
 	if (/*???*/)return new_???(error);
 	Class<> elementClass=/*???*/.value();
-	Option<> maybeList=node.findNodeList(fieldName);
+	/*???*/(fieldName);
 	if (/*???*/)
 	{
 	consumedFields.add(fieldName);
@@ -321,21 +321,21 @@ Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nod
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ childNode=nodeList.get(i);
+	/*???*/ childNode=nodeList.getOrNull(i);
 	Result<> childResult=deserializeValue(elementClass, childNode);
-	if (/*???*/)results.add(value);
+	if (/*???*/)results.addLast(value);
 	else
 	if (/*???*/)
 	if (elementClass.isSealed()&&/*???*/)
 	{
 	/*???*/ wrappedError=new_???(""+index+""+nodeType+""+elementClass.getSimpleName()+"", new_???(childNode), List.of(error));
-	errors.add(wrappedError);}
+	errors.addLast(wrappedError);}
 	else
-	if (shouldBeDeserializableAs(childNode, elementClass))errors.add(error);
+	if (shouldBeDeserializableAs(childNode, elementClass))errors.addLast(error);
 	index++;
 	i++;}
 	if (errors.isEmpty())return new_???(results);
-	return new_???(new_???(""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???(nodeList.getFirst()), errors));
+	return new_???(new_???(""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???(nodeList.getFirstOrNull()), errors));
 }
 /*???*/ createNodeWithType_JavaSerializer(Class<> type) {
 	/*???*/ node=new_???();
@@ -380,7 +380,7 @@ Option<> findStringInChildren_JavaSerializer(/*???*/ node, /*???*/ key) {
 	return findStringInNodeLists(node, key);
 }
 Option<> findStringInNodeLists_JavaSerializer(/*???*/ node, /*???*/ key) {
-	Iterator<> iterator=node.nodeLists.values().iterator();
+	/*???*/();
 	while (iterator.hasNext())
 	{
 	/*???*/();
@@ -392,7 +392,7 @@ Option<> searchChildrenList_JavaSerializer(List<> children, /*???*/ key) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ child=children.get(i);
+	/*???*/ child=children.getOrNull(i);
 	/*???*/(key);
 	/*???*/ result;
 	result==findStringInChildren(child, key);

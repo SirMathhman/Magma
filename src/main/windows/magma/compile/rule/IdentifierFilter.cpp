@@ -3,7 +3,8 @@ struct IdentifierFilter {};
 /*???*/ IdentifierFilter_IdentifierFilter() {
 }
 /*???*/ test_IdentifierFilter(/*???*/ input) {
-	return IntStream.range(/*???*/, input.length()).mapToObj(/*???*/).allMatch(/*???*/=='_');
+	/*???*/(/*???*/, input.length());
+	return integerStream.map(/*???*/).allMatch(/*???*/=='_');
 }
 /*???*/ createErrorMessage_IdentifierFilter() {
 	return "";

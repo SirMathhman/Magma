@@ -5,5 +5,5 @@ struct CType {};
 }
 struct CFunctionPointer {/*???*/ returnType;List<> paramTypes;};
 /*???*/ stringify_CFunctionPointer() {
-	return ""+paramTypes.stream().map(/*???*/).collect(Collectors.joining(""))+""+returnType.stringify();
+	return ""+paramTypes.stream().map(/*???*/).collect(new_???(""))+""+returnType.stringify();
 }

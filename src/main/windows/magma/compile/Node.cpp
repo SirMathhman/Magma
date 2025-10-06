@@ -85,7 +85,7 @@ Set<> getStringKeys_Node() {
 	builder.append("");
 	/*???*/ builder;}
 	builder.append("");
-	builder.append(list.stream().map(/*???*/(indentDepth, level, maxLevel, node)).collect(Collectors.joining("")));
+	builder.append(list.stream().map(/*???*/(indentDepth, level, maxLevel, node)).collect(new_???("")));
 	builder.append("").append(childIndent);
 	/*???*/ builder;
 }

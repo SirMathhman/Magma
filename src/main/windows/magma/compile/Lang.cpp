@@ -75,7 +75,7 @@ struct Field {/*???*/ value;};
 struct JGeneric {/*???*/ base;Option<> typeArguments;};
 struct CTemplate {/*???*/ base;List<> typeArguments;};
 /*???*/ stringify_CTemplate() {
-	return base+""+typeArguments.stream().map(/*???*/).collect(Collectors.joining(""));
+	return base+""+typeArguments.stream().map(/*???*/).collect(new_???(""));
 }
 struct Array {/*???*/ child;};
 struct JDefinition {/*???*/ name;/*???*/ type;Option<> modifiers;Option<> typeParameters;};
@@ -183,7 +183,7 @@ struct OperatorFolder {/*???*/ operator;};
 struct JQualified {Option<> segments;};
 /*???*/ last_JQualified() {
 	if (/*???*/)return "";
-	return segments.orElse(new_???()).getLast().value;
+	return segments.orElse(new_???()).getLastOrNull().value;
 }
 /*???*/ CFunctionPointerDefinition_Lang() {
 	return Tag("", Suffix(First(Suffix(First(Node("", CType()), "", String("")), ""), "", Expressions("", CType())), ""));

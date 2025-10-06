@@ -17,7 +17,7 @@ Stream<> stream_DivideState() {
 	/*???*/ this;
 }
 /*???*/ advance_DivideState() {
-	segments.add(buffer.toString());
+	segments.addLast(buffer.toString());
 	this.buffer=new_???();
 	/*???*/ this;
 }

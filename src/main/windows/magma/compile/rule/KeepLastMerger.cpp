@@ -2,7 +2,7 @@
 struct KeepLastMerger {};
 Option<> merge_KeepLastMerger(List<> segments, /*???*/ delimiter) {
 	if (/*???*/)return new_???();
-	/*???*/ left=String.join(delimiter, segments.subList(/*???*/, /*???*/));
-	/*???*/ right=segments.getLast();
+	/*???*/ left=segments.subListOrEmpty(/*???*/, /*???*/).stream().collect(new_???(delimiter));
+	/*???*/ right=segments.getLastOrNull();
 	return new_???(new_???(left, right));
 }

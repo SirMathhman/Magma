@@ -6,14 +6,14 @@ struct Accumulator {Option<> option;List<> errors;};
 Result<> merge_Accumulator(List<> elements, Function<> mapper) {
 	Accumulator<> identity=new_???();
 	Stream<> stream=elements.stream();
-	Accumulator<> reduce=stream.reduce(identity, /*???*/(mapper, accumulator, rule), /*???*/);
+	Accumulator<> reduce=stream.reduce(identity, /*???*/(mapper, accumulator, rule));
 	return reduce.toResult();
 }
 Accumulator<> fold_Accumulator(Function<> mapper, Accumulator<> accumulator, /*???*/ rule) {
 	return /*???*/;
 }
 Accumulator<> addError_Accumulator(/*???*/ error) {
-	errors.add(error);
+	errors.addLast(error);
 	/*???*/ this;
 }
 Accumulator<> setValue_Accumulator(/*???*/ value) {

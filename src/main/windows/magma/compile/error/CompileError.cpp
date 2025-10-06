@@ -6,8 +6,8 @@ struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 /*???*/ display_CompileError() {
 	return format(/*???*/, new_???());
 }
-/*???*/ format_CompileError(/*???*/ depth, Stack<> indices) {
-	ArrayList<> copy=new_???(causes);
+/*???*/ format_CompileError(/*???*/ depth, List<> indices) {
+	List<> copy=causes.copy();
 	copy.sort(Comparator.comparingInt(/*???*/));
 	/*???*/ formattedChildren=joinErrors(depth, indices, copy);
 	/*???*/ s;
@@ -16,25 +16,25 @@ struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 	/*???*/ joinedIndices=getCollect(indices);
 	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
 }
-/*???*/ getCollect_CompileError(Stack<> indices) {
+/*???*/ getCollect_CompileError(List<> indices) {
 	Stream<> stream=indices.stream();
 	Stream<> stringStream=stream.map(/*???*/);
-	return stringStream.collect(Collectors.joining(""));
+	return stringStream.collect(new_???(""));
 }
-/*???*/ joinErrors_CompileError(/*???*/ depth, Stack<> indices, List<> copy) {
-	/*???*/ range=IntStream.range(/*???*/, copy.size());
-	Stream<> stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
-	return stringStream.collect(Collectors.joining());
+/*???*/ joinErrors_CompileError(/*???*/ depth, List<> indices, List<> copy) {
+	Stream<> range=Stream.range(/*???*/, copy.size());
+	Stream<> stringStream=range.map(/*???*/(depth, copy, indices, index));
+	return stringStream.collect(new_???(null));
 }
-/*???*/ formatChild_CompileError(/*???*/ depth, List<> copy, Stack<> indices, /*???*/ last) {
-	/*???*/ error=copy.get(last);
+/*???*/ formatChild_CompileError(/*???*/ depth, List<> copy, List<> indices, /*???*/ last) {
+	/*???*/ error=copy.getOrNull(last);
 	indices.push(last);
 	/*???*/ format=error.format(depth+/*???*/, indices);
 	indices.pop();
 	/*???*/ format;
 }
 /*???*/ depth_CompileError() {
-	/*???*/ intStream=causes.stream().mapToInt(/*???*/);
-	/*???*/ max=intStream.max();
+	Stream<> intStream=causes.stream().map(/*???*/);
+	Option<> max=intStream.collect(new_???());
 	return /*???*/+max.orElse(/*???*/);
 }

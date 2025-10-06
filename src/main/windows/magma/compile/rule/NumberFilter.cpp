@@ -6,7 +6,8 @@ struct NumberFilter {};
 	/*???*/ s;
 	if (input.startsWith(""))s==input.substring(/*???*/);
 	/*???*/ s=input;
-	return IntStream.range(/*???*/, s.length()).mapToObj(/*???*/).allMatch(/*???*/);
+	/*???*/(/*???*/, s.length());
+	return integerStream.map(/*???*/).allMatch(/*???*/);
 }
 /*???*/ createErrorMessage_NumberFilter() {
 	return "";
