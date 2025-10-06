@@ -796,7 +796,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -947,7 +947,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1149,7 +1149,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1321,7 +1321,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1369,7 +1369,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1528,7 +1528,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1650,7 +1650,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"name": "parameterized",
@@ -1784,7 +1784,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -1938,7 +1938,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -1959,183 +1959,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													}
 												]
 											}
-					8) Element at index 2 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "serializeValue",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "return",
-										"value": {...}
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "value",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
-								{
-									"@type": "if",
-									"body": {
-										"@type": "return",
-										"value": {...}
-									},
-									"condition": {
-										"@type": "and",
-										"left": {...},
-										"right": {...}
-									}
-								}
-								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "and",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "and",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "and",
-												"left": {
-													"@type": "field-access",
-													"name": "isSealed()",
-													"child": {...}
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "isRecord()",
-													"child": {...}
-												}
-											}
-								1) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "field-access",
-											"name": "isRecord()",
-											"child": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {...}
-											}
-										}
-										0) Failed to deserialize 'JFieldAccess': 
-											{
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {
-													"@type": "not",
-													"child": {...}
-												}
-											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
-												{
-													"@type": "not",
-													"child": {
-														"@type": "identifier",
-														"value": "type"
-													}
-												}
-					9) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					8) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -2264,7 +2088,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -2272,7 +2096,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"value": "type"
 													}
 												}
-					10) Element at index 7 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					9) Element at index 7 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -2452,7 +2276,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -2497,7 +2321,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -2543,7 +2367,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -2552,7 +2376,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					11) Element at index 8 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					10) Element at index 8 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -2734,7 +2558,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -2779,7 +2603,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -2825,7 +2649,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -2834,183 +2658,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					12) Element at index 10 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "deserializeValue",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "return",
-										"value": {...}
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "node",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
-								{
-									"@type": "if",
-									"body": {
-										"@type": "return",
-										"value": {...}
-									},
-									"condition": {
-										"@type": "and",
-										"left": {...},
-										"right": {...}
-									}
-								}
-								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "and",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "and",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "and",
-												"left": {
-													"@type": "field-access",
-													"name": "isSealed()",
-													"child": {...}
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "isRecord()",
-													"child": {...}
-												}
-											}
-								1) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "field-access",
-											"name": "isRecord()",
-											"child": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {...}
-											}
-										}
-										0) Failed to deserialize 'JFieldAccess': 
-											{
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {
-													"@type": "not",
-													"child": {...}
-												}
-											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
-												{
-													"@type": "not",
-													"child": {
-														"@type": "identifier",
-														"value": "type"
-													}
-												}
-					13) Element at index 26 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					11) Element at index 26 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -3220,7 +2868,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -3277,7 +2925,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -3323,7 +2971,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -3332,7 +2980,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					14) Element at index 27 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					12) Element at index 27 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -3538,7 +3186,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -3595,7 +3243,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -3641,7 +3289,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -3650,7 +3298,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					15) Element at index 38 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					13) Element at index 38 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -3854,7 +3502,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -3862,7 +3510,200 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"value": "leftoverFields"
 													}
 												}
-					16) Element at index 9 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					14) Element at index 2 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "serializeValue",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "return",
+									"value": {...}
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "value",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "serializeValue",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "return",
+										"value": {...}
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "value",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
+								{
+									"@type": "if",
+									"body": {
+										"@type": "return",
+										"value": {...}
+									},
+									"condition": {
+										"@type": "and",
+										"left": {...},
+										"right": {...}
+									}
+								}
+								0) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "field-access",
+											"name": "isRecord()",
+											"child": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {...}
+											}
+										}
+										0) Failed to deserialize 'JFieldAccess': 
+											{
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {
+													"@type": "not",
+													"child": {...}
+												}
+											}
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+												{
+													"@type": "not",
+													"child": {
+														"@type": "identifier",
+														"value": "type"
+													}
+												}
+								1) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "and",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "and",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) Failed to deserialize 'And': 
+											{
+												"@type": "and",
+												"left": {
+													"@type": "field-access",
+													"name": "isSealed()",
+													"child": {...}
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {...}
+												}
+											}
+											0) Failed to deserialize 'JFieldAccess': 
+												{
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {
+														"@type": "not",
+														"child": {...}
+													}
+												}
+												0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+													{
+														"@type": "not",
+														"child": {
+															"@type": "identifier",
+															"value": "type"
+														}
+													}
+					15) Element at index 9 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -4061,7 +3902,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "elementResult",
@@ -4079,6 +3920,199 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"@type": "whitespace"
 															}
 														]
+													}
+					16) Element at index 10 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "deserializeValue",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "return",
+									"value": {...}
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "node",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "deserializeValue",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "return",
+										"value": {...}
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "node",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
+								{
+									"@type": "if",
+									"body": {
+										"@type": "return",
+										"value": {...}
+									},
+									"condition": {
+										"@type": "and",
+										"left": {...},
+										"right": {...}
+									}
+								}
+								0) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "field-access",
+											"name": "isRecord()",
+											"child": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {...}
+											}
+										}
+										0) Failed to deserialize 'JFieldAccess': 
+											{
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {
+													"@type": "not",
+													"child": {...}
+												}
+											}
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+												{
+													"@type": "not",
+													"child": {
+														"@type": "identifier",
+														"value": "type"
+													}
+												}
+								1) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "and",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "and",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) Failed to deserialize 'And': 
+											{
+												"@type": "and",
+												"left": {
+													"@type": "field-access",
+													"name": "isSealed()",
+													"child": {...}
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {...}
+												}
+											}
+											0) Failed to deserialize 'JFieldAccess': 
+												{
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {
+														"@type": "not",
+														"child": {...}
+													}
+												}
+												0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+													{
+														"@type": "not",
+														"child": {
+															"@type": "identifier",
+															"value": "type"
+														}
 													}
 					17) Element at index 20 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -4259,7 +4293,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "permitted",
@@ -4448,7 +4482,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -4572,7 +4606,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -4584,287 +4618,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "i"
 																}
 															}
-					19) Element at index 12 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDirectPermittedSubclasses",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "tryDirectPermittedSubclasses",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "initialization",
-										"definition": {...},
-										"value": {...}
-									},
-									{
-										"@type": "initialization",
-										"definition": {...},
-										"value": {...}
-									},
-									{
-										"@type": "while",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "None<>()",
-										"type": {...},
-										"modifiers": [...]
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "node",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "nodeType",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 1 of 5 list elements as 'JMethodSegment': 
-								{
-									"@type": "initialization",
-									"definition": {
-										"@type": "definition",
-										"name": "permittedSubclasses",
-										"type": {...}
-									},
-									"value": {
-										"@type": "field-access",
-										"name": "getPermittedSubclasses()",
-										"child": {...}
-									}
-								}
-								0) Element at index 2 with type 'while' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "while",
-										"body": {
-											"@type": "block",
-											"children": [...]
-										},
-										"condition": {
-											"@type": "less-than",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JWhile': 
-										{
-											"@type": "while",
-											"body": {
-												"@type": "block",
-												"children": [...]
-											},
-											"condition": {
-												"@type": "less-than",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "less-than",
-												"left": {
-													"@type": "identifier",
-													"value": "i"
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "length",
-													"child": {...}
-												}
-											}
-										1) Failed to deserialize 'JBlock': 
-											{
-												"@type": "block",
-												"children": [
-													{
-														"@type": "initialization",
-														"definition": {...},
-														"value": {...}
-													},
-													{
-														"@type": "initialization",
-														"definition": {...},
-														"value": {...}
-													},
-													{
-														"@type": "if",
-														"body": {...},
-														"condition": {...}
-													},
-													{
-														"@type": "postFix",
-														"value": {...}
-													},
-													{
-														"@type": "whitespace"
-													}
-												]
-											}
-											0) Failed to deserialize 2 of 5 list elements as 'JMethodSegment': 
-												{
-													"@type": "initialization",
-													"definition": {
-														"@type": "definition",
-														"name": "permitted",
-														"type": {...}
-													},
-													"value": {
-														"@type": "index",
-														"child": {...},
-														"index": {...}
-													}
-												}
-												0) Element at index 0 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
-													{
-														"@type": "initialization",
-														"definition": {
-															"@type": "definition",
-															"name": "permitted",
-															"type": {...}
-														},
-														"value": {
-															"@type": "index",
-															"child": {...},
-															"index": {...}
-														}
-													}
-													0) Failed to deserialize 'JInitialization': 
-														{
-															"@type": "initialization",
-															"definition": {
-																"@type": "definition",
-																"name": "permitted",
-																"type": {...}
-															},
-															"value": {
-																"@type": "index",
-																"child": {...},
-																"index": {...}
-															}
-														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
-															{
-																"@type": "index",
-																"child": {
-																	"@type": "identifier",
-																	"value": "permittedSubclasses"
-																},
-																"index": {
-																	"@type": "identifier",
-																	"value": "i"
-																}
-															}
-												1) Element at index 2 with type 'if' cannot be deserialized as 'JMethodSegment': 
-													{
-														"@type": "if",
-														"body": {
-															"@type": "return",
-															"value": {...}
-														},
-														"condition": {
-															"@type": "and",
-															"left": {...},
-															"right": {...}
-														}
-													}
-													0) Failed to deserialize 'JIf': 
-														{
-															"@type": "if",
-															"body": {
-																"@type": "return",
-																"value": {...}
-															},
-															"condition": {
-																"@type": "and",
-																"left": {...},
-																"right": {...}
-															}
-														}
-														0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-															{
-																"@type": "and",
-																"left": {
-																	"@type": "instanceof",
-																	"child": {...},
-																	"type": {...},
-																	"params": [...]
-																},
-																"right": {
-																	"@type": "field-access",
-																	"name": "equals(nodeType)",
-																	"child": {...}
-																}
-															}
-					20) Element at index 14 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					19) Element at index 14 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -5008,7 +4762,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -5092,7 +4846,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -5104,7 +4858,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "j"
 																}
 															}
-					21) Element at index 17 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					20) Element at index 17 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -5246,7 +5000,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -5334,7 +5088,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"right": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "less-than-equals",
 																"left": {
@@ -5347,7 +5101,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "2"
 																}
 															}
-					22) Element at index 18 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					21) Element at index 18 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -5543,7 +5297,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'new-array'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("new-array") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'new-array'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("new-array") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "new-array",
 												"length": {
@@ -5582,7 +5336,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -5621,7 +5375,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -5690,7 +5444,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"value": "i1"
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -5729,7 +5483,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -5798,7 +5552,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"value": "j"
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -5811,7 +5565,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "j"
 																}
 															}
-					23) Element at index 21 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					22) Element at index 21 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -5945,7 +5699,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -6035,7 +5789,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -6047,7 +5801,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "i"
 																}
 															}
-					24) Element at index 25 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					23) Element at index 25 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -6277,7 +6031,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -6334,7 +6088,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -6380,7 +6134,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -6510,7 +6264,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -6549,7 +6303,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -6588,7 +6342,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -6627,7 +6381,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -6640,7 +6394,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"typeArguments": [...]
 																}
 															}
-					25) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					24) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -6778,7 +6532,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -6812,7 +6566,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -6853,7 +6607,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -6979,7 +6733,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"child": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "quantity",
 																	"child": {
@@ -7025,7 +6779,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"child": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "quantity",
 																	"child": {
@@ -7033,6 +6787,306 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"child": {...},
 																		"type": {...}
 																	}
+																}
+					25) Element at index 12 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "tryDirectPermittedSubclasses",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "initialization",
+									"definition": {...},
+									"value": {...}
+								},
+								{
+									"@type": "initialization",
+									"definition": {...},
+									"value": {...}
+								},
+								{
+									"@type": "while",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "None<>()",
+									"type": {...},
+									"modifiers": [...]
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "node",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "nodeType",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "tryDirectPermittedSubclasses",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "initialization",
+										"definition": {...},
+										"value": {...}
+									},
+									{
+										"@type": "initialization",
+										"definition": {...},
+										"value": {...}
+									},
+									{
+										"@type": "while",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "None<>()",
+										"type": {...},
+										"modifiers": [...]
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "node",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "nodeType",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 1 of 5 list elements as 'JMethodSegment': 
+								{
+									"@type": "initialization",
+									"definition": {
+										"@type": "definition",
+										"name": "permittedSubclasses",
+										"type": {...}
+									},
+									"value": {
+										"@type": "field-access",
+										"name": "getPermittedSubclasses()",
+										"child": {...}
+									}
+								}
+								0) Element at index 2 with type 'while' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "while",
+										"body": {
+											"@type": "block",
+											"children": [...]
+										},
+										"condition": {
+											"@type": "less-than",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JWhile': 
+										{
+											"@type": "while",
+											"body": {
+												"@type": "block",
+												"children": [...]
+											},
+											"condition": {
+												"@type": "less-than",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+											{
+												"@type": "less-than",
+												"left": {
+													"@type": "identifier",
+													"value": "i"
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "length",
+													"child": {...}
+												}
+											}
+										1) Failed to deserialize 'JBlock': 
+											{
+												"@type": "block",
+												"children": [
+													{
+														"@type": "initialization",
+														"definition": {...},
+														"value": {...}
+													},
+													{
+														"@type": "initialization",
+														"definition": {...},
+														"value": {...}
+													},
+													{
+														"@type": "if",
+														"body": {...},
+														"condition": {...}
+													},
+													{
+														"@type": "postFix",
+														"value": {...}
+													},
+													{
+														"@type": "whitespace"
+													}
+												]
+											}
+											0) Failed to deserialize 2 of 5 list elements as 'JMethodSegment': 
+												{
+													"@type": "initialization",
+													"definition": {
+														"@type": "definition",
+														"name": "permitted",
+														"type": {...}
+													},
+													"value": {
+														"@type": "index",
+														"child": {...},
+														"index": {...}
+													}
+												}
+												0) Element at index 0 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
+													{
+														"@type": "initialization",
+														"definition": {
+															"@type": "definition",
+															"name": "permitted",
+															"type": {...}
+														},
+														"value": {
+															"@type": "index",
+															"child": {...},
+															"index": {...}
+														}
+													}
+													0) Failed to deserialize 'JInitialization': 
+														{
+															"@type": "initialization",
+															"definition": {
+																"@type": "definition",
+																"name": "permitted",
+																"type": {...}
+															},
+															"value": {
+																"@type": "index",
+																"child": {...},
+																"index": {...}
+															}
+														}
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															{
+																"@type": "index",
+																"child": {
+																	"@type": "identifier",
+																	"value": "permittedSubclasses"
+																},
+																"index": {
+																	"@type": "identifier",
+																	"value": "i"
+																}
+															}
+												1) Element at index 2 with type 'if' cannot be deserialized as 'JMethodSegment': 
+													{
+														"@type": "if",
+														"body": {
+															"@type": "return",
+															"value": {...}
+														},
+														"condition": {
+															"@type": "and",
+															"left": {...},
+															"right": {...}
+														}
+													}
+													0) Failed to deserialize 'JIf': 
+														{
+															"@type": "if",
+															"body": {
+																"@type": "return",
+																"value": {...}
+															},
+															"condition": {
+																"@type": "and",
+																"left": {...},
+																"right": {...}
+															}
+														}
+														0) Failed to deserialize 'And': 
+															{
+																"@type": "and",
+																"left": {
+																	"@type": "instanceof",
+																	"child": {...},
+																	"type": {...},
+																	"params": [...]
+																},
+																"right": {
+																	"@type": "field-access",
+																	"name": "equals(nodeType)",
+																	"child": {...}
+																}
+															}
+															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+																{
+																	"@type": "instanceof",
+																	"child": {
+																		"@type": "identifier",
+																		"value": "maybeIdentifier"
+																	},
+																	"type": {
+																		"@type": "generic",
+																		"base": "Some",
+																		"typeArguments": [...]
+																	},
+																	"params": [
+																		{
+																			"@type": "definition",
+																			"name": "identifier",
+																			"type": {...}
+																		}
+																	]
 																}
 					26) Element at index 19 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -7167,7 +7221,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -7259,7 +7313,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "index",
 																	"child": {
@@ -7272,7 +7326,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"value": "j"
 																	}
 																}
-															1) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															1) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "index",
 																	"child": {
@@ -7556,7 +7610,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -7611,7 +7665,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -7691,7 +7745,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "i",
@@ -7741,7 +7795,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -7775,7 +7829,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"params": [...]
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "instanceof",
 													"child": {
@@ -7858,7 +7912,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"child": {...}
 																	}
 																}
-																0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+																0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 																	{
 																		"@type": "not",
 																		"child": {
@@ -8041,7 +8095,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -8138,7 +8192,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"params": [...]
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -8191,7 +8245,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"params": [...]
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "instanceof",
 																	"child": {
@@ -8224,7 +8278,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"right": {...}
 																	}
 																}
-																0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
+																0) Failed to deserialize 'And': 
 																	{
 																		"@type": "and",
 																		"left": {
@@ -8239,6 +8293,27 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																			"params": [...]
 																		}
 																	}
+																	0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+																		{
+																			"@type": "instanceof",
+																			"child": {
+																				"@type": "field-access",
+																				"name": "maybeType",
+																				"child": {...}
+																			},
+																			"type": {
+																				"@type": "generic",
+																				"base": "Some",
+																				"typeArguments": [...]
+																			},
+																			"params": [
+																				{
+																					"@type": "definition",
+																					"name": "nodeType",
+																					"type": {...}
+																				}
+																			]
+																		}
 0) Failed to deserialize 'JavaRoot': 
 	{
 		"children": [
@@ -9017,7 +9092,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -9168,7 +9243,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -9370,7 +9445,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -9542,7 +9617,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -9590,7 +9665,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -9749,7 +9824,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -9871,7 +9946,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"name": "parameterized",
@@ -10005,7 +10080,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -10159,7 +10234,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -10180,183 +10255,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													}
 												]
 											}
-					8) Element at index 2 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "serializeValue",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "return",
-										"value": {...}
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "value",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
-								{
-									"@type": "if",
-									"body": {
-										"@type": "return",
-										"value": {...}
-									},
-									"condition": {
-										"@type": "and",
-										"left": {...},
-										"right": {...}
-									}
-								}
-								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "and",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "and",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "and",
-												"left": {
-													"@type": "field-access",
-													"name": "isSealed()",
-													"child": {...}
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "isRecord()",
-													"child": {...}
-												}
-											}
-								1) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "field-access",
-											"name": "isRecord()",
-											"child": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {...}
-											}
-										}
-										0) Failed to deserialize 'JFieldAccess': 
-											{
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {
-													"@type": "not",
-													"child": {...}
-												}
-											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
-												{
-													"@type": "not",
-													"child": {
-														"@type": "identifier",
-														"value": "type"
-													}
-												}
-					9) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					8) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -10485,7 +10384,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -10493,7 +10392,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"value": "type"
 													}
 												}
-					10) Element at index 7 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					9) Element at index 7 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -10673,7 +10572,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -10718,7 +10617,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -10764,7 +10663,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -10773,7 +10672,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					11) Element at index 8 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					10) Element at index 8 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -10955,7 +10854,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -11000,7 +10899,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11046,7 +10945,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11055,183 +10954,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					12) Element at index 10 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "deserializeValue",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "if",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "return",
-										"value": {...}
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "node",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
-								{
-									"@type": "if",
-									"body": {
-										"@type": "return",
-										"value": {...}
-									},
-									"condition": {
-										"@type": "and",
-										"left": {...},
-										"right": {...}
-									}
-								}
-								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "and",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "and",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "and",
-												"left": {
-													"@type": "field-access",
-													"name": "isSealed()",
-													"child": {...}
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "isRecord()",
-													"child": {...}
-												}
-											}
-								1) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "if",
-										"body": {
-											"@type": "return",
-											"value": {...}
-										},
-										"condition": {
-											"@type": "field-access",
-											"name": "isRecord()",
-											"child": {...}
-										}
-									}
-									0) Failed to deserialize 'JIf': 
-										{
-											"@type": "if",
-											"body": {
-												"@type": "return",
-												"value": {...}
-											},
-											"condition": {
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {...}
-											}
-										}
-										0) Failed to deserialize 'JFieldAccess': 
-											{
-												"@type": "field-access",
-												"name": "isRecord()",
-												"child": {
-													"@type": "not",
-													"child": {...}
-												}
-											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
-												{
-													"@type": "not",
-													"child": {
-														"@type": "identifier",
-														"value": "type"
-													}
-												}
-					13) Element at index 26 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					11) Element at index 26 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -11441,7 +11164,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -11498,7 +11221,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11544,7 +11267,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11553,7 +11276,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					14) Element at index 27 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					12) Element at index 27 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -11759,7 +11482,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -11816,7 +11539,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11862,7 +11585,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -11871,7 +11594,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"type": {...}
 													}
 												}
-					15) Element at index 38 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					13) Element at index 38 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -12075,7 +11798,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -12083,7 +11806,200 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"value": "leftoverFields"
 													}
 												}
-					16) Element at index 9 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					14) Element at index 2 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "serializeValue",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "return",
+									"value": {...}
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "value",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "serializeValue",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "return",
+										"value": {...}
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "value",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
+								{
+									"@type": "if",
+									"body": {
+										"@type": "return",
+										"value": {...}
+									},
+									"condition": {
+										"@type": "and",
+										"left": {...},
+										"right": {...}
+									}
+								}
+								0) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "field-access",
+											"name": "isRecord()",
+											"child": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {...}
+											}
+										}
+										0) Failed to deserialize 'JFieldAccess': 
+											{
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {
+													"@type": "not",
+													"child": {...}
+												}
+											}
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+												{
+													"@type": "not",
+													"child": {
+														"@type": "identifier",
+														"value": "type"
+													}
+												}
+								1) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "and",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "and",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) Failed to deserialize 'And': 
+											{
+												"@type": "and",
+												"left": {
+													"@type": "field-access",
+													"name": "isSealed()",
+													"child": {...}
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {...}
+												}
+											}
+											0) Failed to deserialize 'JFieldAccess': 
+												{
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {
+														"@type": "not",
+														"child": {...}
+													}
+												}
+												0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+													{
+														"@type": "not",
+														"child": {
+															"@type": "identifier",
+															"value": "type"
+														}
+													}
+					15) Element at index 9 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -12282,7 +12198,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "elementResult",
@@ -12300,6 +12216,199 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"@type": "whitespace"
 															}
 														]
+													}
+					16) Element at index 10 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "deserializeValue",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "if",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "return",
+									"value": {...}
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "node",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "deserializeValue",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "if",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "return",
+										"value": {...}
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "node",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 2 of 4 list elements as 'JMethodSegment': 
+								{
+									"@type": "if",
+									"body": {
+										"@type": "return",
+										"value": {...}
+									},
+									"condition": {
+										"@type": "and",
+										"left": {...},
+										"right": {...}
+									}
+								}
+								0) Element at index 1 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "field-access",
+											"name": "isRecord()",
+											"child": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {...}
+											}
+										}
+										0) Failed to deserialize 'JFieldAccess': 
+											{
+												"@type": "field-access",
+												"name": "isRecord()",
+												"child": {
+													"@type": "not",
+													"child": {...}
+												}
+											}
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+												{
+													"@type": "not",
+													"child": {
+														"@type": "identifier",
+														"value": "type"
+													}
+												}
+								1) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "if",
+										"body": {
+											"@type": "return",
+											"value": {...}
+										},
+										"condition": {
+											"@type": "and",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JIf': 
+										{
+											"@type": "if",
+											"body": {
+												"@type": "return",
+												"value": {...}
+											},
+											"condition": {
+												"@type": "and",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) Failed to deserialize 'And': 
+											{
+												"@type": "and",
+												"left": {
+													"@type": "field-access",
+													"name": "isSealed()",
+													"child": {...}
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {...}
+												}
+											}
+											0) Failed to deserialize 'JFieldAccess': 
+												{
+													"@type": "field-access",
+													"name": "isRecord()",
+													"child": {
+														"@type": "not",
+														"child": {...}
+													}
+												}
+												0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+													{
+														"@type": "not",
+														"child": {
+															"@type": "identifier",
+															"value": "type"
+														}
 													}
 					17) Element at index 20 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -12480,7 +12589,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "permitted",
@@ -12669,7 +12778,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -12793,7 +12902,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -12805,287 +12914,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "i"
 																}
 															}
-					19) Element at index 12 with type 'method' cannot be deserialized as 'JStructureSegment': 
-						{
-							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDirectPermittedSubclasses",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
-						}
-						0) Failed to deserialize 'Method': 
-							{
-								"@type": "method",
-								"definition": {
-									"@type": "definition",
-									"name": "tryDirectPermittedSubclasses",
-									"type": {...}
-								},
-								"body": [
-									{
-										"@type": "initialization",
-										"definition": {...},
-										"value": {...}
-									},
-									{
-										"@type": "initialization",
-										"definition": {...},
-										"value": {...}
-									},
-									{
-										"@type": "while",
-										"body": {...},
-										"condition": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "None<>()",
-										"type": {...},
-										"modifiers": [...]
-									},
-									{
-										"@type": "whitespace"
-									}
-								],
-								"params": [
-									{
-										"@type": "definition",
-										"name": "type",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "node",
-										"type": {...}
-									},
-									{
-										"@type": "definition",
-										"name": "nodeType",
-										"type": {...}
-									}
-								]
-							}
-							0) Failed to deserialize 1 of 5 list elements as 'JMethodSegment': 
-								{
-									"@type": "initialization",
-									"definition": {
-										"@type": "definition",
-										"name": "permittedSubclasses",
-										"type": {...}
-									},
-									"value": {
-										"@type": "field-access",
-										"name": "getPermittedSubclasses()",
-										"child": {...}
-									}
-								}
-								0) Element at index 2 with type 'while' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "while",
-										"body": {
-											"@type": "block",
-											"children": [...]
-										},
-										"condition": {
-											"@type": "less-than",
-											"left": {...},
-											"right": {...}
-										}
-									}
-									0) Failed to deserialize 'JWhile': 
-										{
-											"@type": "while",
-											"body": {
-												"@type": "block",
-												"children": [...]
-											},
-											"condition": {
-												"@type": "less-than",
-												"left": {...},
-												"right": {...}
-											}
-										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
-											{
-												"@type": "less-than",
-												"left": {
-													"@type": "identifier",
-													"value": "i"
-												},
-												"right": {
-													"@type": "field-access",
-													"name": "length",
-													"child": {...}
-												}
-											}
-										1) Failed to deserialize 'JBlock': 
-											{
-												"@type": "block",
-												"children": [
-													{
-														"@type": "initialization",
-														"definition": {...},
-														"value": {...}
-													},
-													{
-														"@type": "initialization",
-														"definition": {...},
-														"value": {...}
-													},
-													{
-														"@type": "if",
-														"body": {...},
-														"condition": {...}
-													},
-													{
-														"@type": "postFix",
-														"value": {...}
-													},
-													{
-														"@type": "whitespace"
-													}
-												]
-											}
-											0) Failed to deserialize 2 of 5 list elements as 'JMethodSegment': 
-												{
-													"@type": "initialization",
-													"definition": {
-														"@type": "definition",
-														"name": "permitted",
-														"type": {...}
-													},
-													"value": {
-														"@type": "index",
-														"child": {...},
-														"index": {...}
-													}
-												}
-												0) Element at index 0 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
-													{
-														"@type": "initialization",
-														"definition": {
-															"@type": "definition",
-															"name": "permitted",
-															"type": {...}
-														},
-														"value": {
-															"@type": "index",
-															"child": {...},
-															"index": {...}
-														}
-													}
-													0) Failed to deserialize 'JInitialization': 
-														{
-															"@type": "initialization",
-															"definition": {
-																"@type": "definition",
-																"name": "permitted",
-																"type": {...}
-															},
-															"value": {
-																"@type": "index",
-																"child": {...},
-																"index": {...}
-															}
-														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
-															{
-																"@type": "index",
-																"child": {
-																	"@type": "identifier",
-																	"value": "permittedSubclasses"
-																},
-																"index": {
-																	"@type": "identifier",
-																	"value": "i"
-																}
-															}
-												1) Element at index 2 with type 'if' cannot be deserialized as 'JMethodSegment': 
-													{
-														"@type": "if",
-														"body": {
-															"@type": "return",
-															"value": {...}
-														},
-														"condition": {
-															"@type": "and",
-															"left": {...},
-															"right": {...}
-														}
-													}
-													0) Failed to deserialize 'JIf': 
-														{
-															"@type": "if",
-															"body": {
-																"@type": "return",
-																"value": {...}
-															},
-															"condition": {
-																"@type": "and",
-																"left": {...},
-																"right": {...}
-															}
-														}
-														0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
-															{
-																"@type": "and",
-																"left": {
-																	"@type": "instanceof",
-																	"child": {...},
-																	"type": {...},
-																	"params": [...]
-																},
-																"right": {
-																	"@type": "field-access",
-																	"name": "equals(nodeType)",
-																	"child": {...}
-																}
-															}
-					20) Element at index 14 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					19) Element at index 14 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -13229,7 +13058,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -13313,7 +13142,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -13325,7 +13154,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "j"
 																}
 															}
-					21) Element at index 17 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					20) Element at index 17 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -13467,7 +13296,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -13555,7 +13384,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"right": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "less-than-equals",
 																"left": {
@@ -13568,7 +13397,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "2"
 																}
 															}
-					22) Element at index 18 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					21) Element at index 18 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -13764,7 +13593,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'new-array'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("new-array") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'new-array'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("new-array") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "new-array",
 												"length": {
@@ -13803,7 +13632,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -13842,7 +13671,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -13911,7 +13740,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"value": "i1"
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -13950,7 +13779,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -14019,7 +13848,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"value": "j"
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -14032,7 +13861,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "j"
 																}
 															}
-					23) Element at index 21 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					22) Element at index 21 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -14166,7 +13995,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -14256,7 +14085,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"index": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "index",
 																"child": {
@@ -14268,7 +14097,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": "i"
 																}
 															}
-					24) Element at index 25 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					23) Element at index 25 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -14498,7 +14327,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -14555,7 +14384,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -14601,7 +14430,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "quantity",
 													"child": {
@@ -14731,7 +14560,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -14770,7 +14599,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -14809,7 +14638,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -14848,7 +14677,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"type": {...}
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -14861,7 +14690,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"typeArguments": [...]
 																}
 															}
-					25) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
+					24) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
 							"@type": "method",
 							"definition": {
@@ -14999,7 +14828,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"child": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "not",
 												"child": {
@@ -15033,7 +14862,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"type": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -15074,7 +14903,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -15200,7 +15029,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"child": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "quantity",
 																	"child": {
@@ -15246,7 +15075,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"child": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'quantity'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("quantity") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "quantity",
 																	"child": {
@@ -15254,6 +15083,306 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"child": {...},
 																		"type": {...}
 																	}
+																}
+					25) Element at index 12 with type 'method' cannot be deserialized as 'JStructureSegment': 
+						{
+							"@type": "method",
+							"definition": {
+								"@type": "definition",
+								"name": "tryDirectPermittedSubclasses",
+								"type": {...}
+							},
+							"body": [
+								{
+									"@type": "initialization",
+									"definition": {...},
+									"value": {...}
+								},
+								{
+									"@type": "initialization",
+									"definition": {...},
+									"value": {...}
+								},
+								{
+									"@type": "while",
+									"body": {...},
+									"condition": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "None<>()",
+									"type": {...},
+									"modifiers": [...]
+								},
+								{
+									"@type": "whitespace"
+								}
+							],
+							"params": [
+								{
+									"@type": "definition",
+									"name": "type",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "node",
+									"type": {...}
+								},
+								{
+									"@type": "definition",
+									"name": "nodeType",
+									"type": {...}
+								}
+							]
+						}
+						0) Failed to deserialize 'Method': 
+							{
+								"@type": "method",
+								"definition": {
+									"@type": "definition",
+									"name": "tryDirectPermittedSubclasses",
+									"type": {...}
+								},
+								"body": [
+									{
+										"@type": "initialization",
+										"definition": {...},
+										"value": {...}
+									},
+									{
+										"@type": "initialization",
+										"definition": {...},
+										"value": {...}
+									},
+									{
+										"@type": "while",
+										"body": {...},
+										"condition": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "None<>()",
+										"type": {...},
+										"modifiers": [...]
+									},
+									{
+										"@type": "whitespace"
+									}
+								],
+								"params": [
+									{
+										"@type": "definition",
+										"name": "type",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "node",
+										"type": {...}
+									},
+									{
+										"@type": "definition",
+										"name": "nodeType",
+										"type": {...}
+									}
+								]
+							}
+							0) Failed to deserialize 1 of 5 list elements as 'JMethodSegment': 
+								{
+									"@type": "initialization",
+									"definition": {
+										"@type": "definition",
+										"name": "permittedSubclasses",
+										"type": {...}
+									},
+									"value": {
+										"@type": "field-access",
+										"name": "getPermittedSubclasses()",
+										"child": {...}
+									}
+								}
+								0) Element at index 2 with type 'while' cannot be deserialized as 'JMethodSegment': 
+									{
+										"@type": "while",
+										"body": {
+											"@type": "block",
+											"children": [...]
+										},
+										"condition": {
+											"@type": "less-than",
+											"left": {...},
+											"right": {...}
+										}
+									}
+									0) Failed to deserialize 'JWhile': 
+										{
+											"@type": "while",
+											"body": {
+												"@type": "block",
+												"children": [...]
+											},
+											"condition": {
+												"@type": "less-than",
+												"left": {...},
+												"right": {...}
+											}
+										}
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+											{
+												"@type": "less-than",
+												"left": {
+													"@type": "identifier",
+													"value": "i"
+												},
+												"right": {
+													"@type": "field-access",
+													"name": "length",
+													"child": {...}
+												}
+											}
+										1) Failed to deserialize 'JBlock': 
+											{
+												"@type": "block",
+												"children": [
+													{
+														"@type": "initialization",
+														"definition": {...},
+														"value": {...}
+													},
+													{
+														"@type": "initialization",
+														"definition": {...},
+														"value": {...}
+													},
+													{
+														"@type": "if",
+														"body": {...},
+														"condition": {...}
+													},
+													{
+														"@type": "postFix",
+														"value": {...}
+													},
+													{
+														"@type": "whitespace"
+													}
+												]
+											}
+											0) Failed to deserialize 2 of 5 list elements as 'JMethodSegment': 
+												{
+													"@type": "initialization",
+													"definition": {
+														"@type": "definition",
+														"name": "permitted",
+														"type": {...}
+													},
+													"value": {
+														"@type": "index",
+														"child": {...},
+														"index": {...}
+													}
+												}
+												0) Element at index 0 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
+													{
+														"@type": "initialization",
+														"definition": {
+															"@type": "definition",
+															"name": "permitted",
+															"type": {...}
+														},
+														"value": {
+															"@type": "index",
+															"child": {...},
+															"index": {...}
+														}
+													}
+													0) Failed to deserialize 'JInitialization': 
+														{
+															"@type": "initialization",
+															"definition": {
+																"@type": "definition",
+																"name": "permitted",
+																"type": {...}
+															},
+															"value": {
+																"@type": "index",
+																"child": {...},
+																"index": {...}
+															}
+														}
+														0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															{
+																"@type": "index",
+																"child": {
+																	"@type": "identifier",
+																	"value": "permittedSubclasses"
+																},
+																"index": {
+																	"@type": "identifier",
+																	"value": "i"
+																}
+															}
+												1) Element at index 2 with type 'if' cannot be deserialized as 'JMethodSegment': 
+													{
+														"@type": "if",
+														"body": {
+															"@type": "return",
+															"value": {...}
+														},
+														"condition": {
+															"@type": "and",
+															"left": {...},
+															"right": {...}
+														}
+													}
+													0) Failed to deserialize 'JIf': 
+														{
+															"@type": "if",
+															"body": {
+																"@type": "return",
+																"value": {...}
+															},
+															"condition": {
+																"@type": "and",
+																"left": {...},
+																"right": {...}
+															}
+														}
+														0) Failed to deserialize 'And': 
+															{
+																"@type": "and",
+																"left": {
+																	"@type": "instanceof",
+																	"child": {...},
+																	"type": {...},
+																	"params": [...]
+																},
+																"right": {
+																	"@type": "field-access",
+																	"name": "equals(nodeType)",
+																	"child": {...}
+																}
+															}
+															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+																{
+																	"@type": "instanceof",
+																	"child": {
+																		"@type": "identifier",
+																		"value": "maybeIdentifier"
+																	},
+																	"type": {
+																		"@type": "generic",
+																		"base": "Some",
+																		"typeArguments": [...]
+																	},
+																	"params": [
+																		{
+																			"@type": "definition",
+																			"name": "identifier",
+																			"type": {...}
+																		}
+																	]
 																}
 					26) Element at index 19 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -15388,7 +15517,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than-equals'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than-equals") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than-equals",
 												"left": {
@@ -15480,7 +15609,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"value": {...}
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "index",
 																	"child": {
@@ -15493,7 +15622,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"value": "j"
 																	}
 																}
-															1) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
+															1) No permitted subtype of 'JExpression' matched node type 'index'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("index") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "index",
 																	"child": {
@@ -15777,7 +15906,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -15832,7 +15961,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"child": {...}
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "not",
 													"child": {
@@ -15912,7 +16041,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														}
 													]
 												}
-												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
+												0) No permitted subtype of 'JExpression' matched node type 'lambda'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("lambda") to the permitted subtypes of 'JExpression'.: 
 													{
 														"@type": "lambda",
 														"param": "i",
@@ -15962,7 +16091,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"params": [...]
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
 												"child": {
@@ -15996,7 +16125,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"params": [...]
 												}
 											}
-											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 												{
 													"@type": "instanceof",
 													"child": {
@@ -16079,7 +16208,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"child": {...}
 																	}
 																}
-																0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
+																0) No permitted subtype of 'JExpression' matched node type 'not'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("not") to the permitted subtypes of 'JExpression'.: 
 																	{
 																		"@type": "not",
 																		"child": {
@@ -16262,7 +16391,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"right": {...}
 											}
 										}
-										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
+										0) No permitted subtype of 'JExpression' matched node type 'less-than'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("less-than") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "less-than",
 												"left": {
@@ -16359,7 +16488,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"params": [...]
 															}
 														}
-														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 															{
 																"@type": "instanceof",
 																"child": {
@@ -16412,7 +16541,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"params": [...]
 																}
 															}
-															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 																{
 																	"@type": "instanceof",
 																	"child": {
@@ -16445,7 +16574,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"right": {...}
 																	}
 																}
-																0) No permitted subtype of 'JExpression' matched node type 'and'. Valid tags are: [identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("and") to the permitted subtypes of 'JExpression'.: 
+																0) Failed to deserialize 'And': 
 																	{
 																		"@type": "and",
 																		"left": {
@@ -16460,3 +16589,24 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																			"params": [...]
 																		}
 																	}
+																	0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
+																		{
+																			"@type": "instanceof",
+																			"child": {
+																				"@type": "field-access",
+																				"name": "maybeType",
+																				"child": {...}
+																			},
+																			"type": {
+																				"@type": "generic",
+																				"base": "Some",
+																				"typeArguments": [...]
+																			},
+																			"params": [
+																				{
+																					"@type": "definition",
+																					"name": "nodeType",
+																					"type": {...}
+																				}
+																			]
+																		}
