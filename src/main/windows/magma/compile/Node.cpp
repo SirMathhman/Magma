@@ -35,7 +35,7 @@ Option<> findNode_Node(char* key) {
 	return Option.ofNullable(nodes.get(key));
 }
 Node retype_Node(char* type) {
-	this.maybeType=Option.of(type);
+	this.maybeType==Option.of(type);
 	return this;
 }
 boolean is_Node(char* type) {
@@ -78,7 +78,7 @@ void extracted1_Node(int indentDepth, int level, int maxLevel, Entry<> entry, bo
 	/*???*/=true;
 }
 StringBuilder extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, StringBuilder builder, char* childIndent) {
-	/*???*/=entry.getValue();
+	/*???*/();
 	return builder;
 	if (/*???*/)
 	{

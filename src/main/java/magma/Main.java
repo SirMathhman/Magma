@@ -1,6 +1,5 @@
 package magma;
 
-import magma.compile.Lang;
 import magma.compile.Serializers;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
@@ -25,6 +24,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static magma.compile.Lang.*;
+import static magma.compile.Lang.Record;
 
 public class Main {
 
@@ -52,24 +52,27 @@ public class Main {
 					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
-
-			int i = 0;
-			while (i < javaFiles.size()) {
-				Path javaFile = javaFiles.get(i);
-				System.out.println("Compiling: " + javaFile);
-				Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
-				if (result instanceof Some<ApplicationError>(ApplicationError error)) {
-					System.err.println("Failed to compile " + javaFile + ": " + error.display());
-					return result; // Fail fast - return the error immediately
-				}
-				System.out.println("Successfully compiled: " + javaFile);
-				i++;
-			}
-
-			return Option.empty();
+			return compileAll(javaSourceRoot, cOutputRoot, javaFiles);
 		} catch (IOException e) {
 			return Option.of(new ApplicationError(new ThrowableError(e)));
 		}
+	}
+
+	private static Option<ApplicationError> compileAll(Path javaSourceRoot, Path cOutputRoot, List<Path> javaFiles) {
+		int i = 0;
+		while (i < javaFiles.size()) {
+			Path javaFile = javaFiles.get(i);
+			System.out.println("Compiling: " + javaFile);
+			Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
+			if (result instanceof Some<ApplicationError>(ApplicationError error)) {
+				System.err.println("Failed to compile " + javaFile + ": " + error.display());
+				return result;
+			}
+			System.out.println("Successfully compiled: " + javaFile);
+			i++;
+		}
+
+		return Option.empty();
 	}
 
 	private static Option<ApplicationError> compileJavaFile(Path javaFile, Path javaSourceRoot, Path cOutputRoot) {
@@ -92,19 +95,25 @@ public class Main {
 		if (readResult instanceof Err<String, ThrowableError>(ThrowableError error))
 			return Option.of(new ApplicationError(error));
 
-		if (readResult instanceof Ok<String, ThrowableError>(String input)) {
-			Result<String, CompileError> compileResult = compile(input);
-			if (compileResult instanceof Err<String, CompileError>(CompileError error))
-				return Option.of(new ApplicationError(error));
-			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
-				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-															 System.lineSeparator();
-				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
-			}
+		if (!(readResult instanceof Ok<String, ThrowableError>(String input))) return Option.empty();
+
+		Result<String, CompileError> compileResult = compile(input);
+		if (compileResult instanceof Err<String, CompileError>(CompileError error))
+			return Option.of(new ApplicationError(error));
+
+		if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
+			final String message = formatMessage(javaFile);
+			return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 		}
 
 		return Option.empty();
+	}
+
+	private static String formatMessage(Path javaFile) {
+		final Path relative = Paths.get(".").relativize(javaFile);
+		return "// Generated transpiled C++ from '" + relative +
+					 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+					 System.lineSeparator();
 	}
 
 	private static Option<IOException> writeString(Path path, String result) {
@@ -133,11 +142,10 @@ public class Main {
 	}
 
 	public static Result<CRoot, CompileError> transform(JRoot node) {
-		return new Ok<>(new CRoot(node.children()
-																	.stream()
-																	.map(Main::flattenRootSegment)
-																	.flatMap(Collection::stream)
-																	.toList()));
+		final List<CRootSegment>
+				newChildren = node.children().stream().map(Main::flattenRootSegment).flatMap(Collection::stream).toList();
+
+		return new Ok<>(new CRoot(newChildren));
 	}
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
@@ -172,7 +180,7 @@ public class Main {
 	}
 
 	private static void addRecordParamsAsFields(JStructure aClass, ArrayList<CDefinition> fields) {
-		if (aClass instanceof Lang.Record record) {
+		if (aClass instanceof Record record) {
 			Option<List<JDefinition>> params = record.params();
 			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList))
 				paramList.stream().map(Main::transformDefinition).forEach(fields::add);
@@ -257,12 +265,9 @@ public class Main {
 
 	private static CInvocation handleConstruction(JConstruction jConstruction) {
 		String name = "new_" + transformType(jConstruction.type()).stringify();
-		return new CInvocation(new Identifier(name),
-													 jConstruction.arguments()
-																				.orElse(new ArrayList<JExpression>())
-																				.stream()
-																				.map(Main::transformExpression)
-																				.toList());
+		final List<CExpression> list =
+				jConstruction.arguments().orElse(new ArrayList<JExpression>()).stream().map(Main::transformExpression).toList();
+		return new CInvocation(new Identifier(name), list);
 	}
 
 	private static CExpression transformExpression(JExpression expression) {

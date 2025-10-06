@@ -10,7 +10,7 @@ Stream<> divide_FoldingDivider(char* input) {
 	Option<> pop=current.pop();
 	if (/*???*/)
 	break
-	if (/*???*/)current=folder.fold(current, c);}
+	if (/*???*/)current==folder.fold(current, c);}
 	return current.advance().stream();
 }
 char* delimiter_FoldingDivider() {

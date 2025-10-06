@@ -18,6 +18,7 @@ import magma.compile.rule.StringRule;
 import magma.compile.rule.TypeFolder;
 import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -455,6 +456,28 @@ public class Lang {
 	@Tag("number")
 	public record NumberNode(String number) implements JExpression {}
 
+	private record OperatorFolder(String operator) implements Folder {
+		@Override
+		public DivideState fold(DivideState state, char c) {
+			if (c == operator.charAt(0)) {
+				if (operator.length() > 1 && state.peek() instanceof Some<Character>(Character next) &&
+						next == operator.charAt(1)) {
+					state.pop();
+					return state.advance();
+				}
+
+				return state.advance();
+			}
+
+			return state.append(c);
+		}
+
+		@Override
+		public String delimiter() {
+			return operator;
+		}
+	}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -791,7 +814,11 @@ public class Lang {
 	}
 
 	private static Rule Operator(String type, String infix, LazyRule expression) {
-		return Tag(type, First(Node("left", expression), infix, Node("right", expression)));
+		final Rule left = Node("left", expression);
+		final Rule right = Node("right", expression);
+		final Splitter splitter =
+				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(infix))));
+		return Tag(type, SplitRule.Split(left, splitter, right));
 	}
 
 	private static Rule Switch(String group, Rule expression, Rule rule) {

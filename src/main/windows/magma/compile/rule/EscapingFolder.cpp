@@ -1,9 +1,9 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\EscapingFolder.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct EscapingFolder {Folder folder;};
 DivideState fold_EscapingFolder(DivideState state, char c) {
-	return getDivideState(state, c).or(/*???*/(state, c)).or(/*???*/(state, c)).orElseGet(/*???*/.fold(state, c));
+	return handleSingleQuotes(state, c).or(/*???*/(state, c)).or(/*???*/(state, c)).orElseGet(/*???*/.fold(state, c));
 }
-Option<> getDivideState_EscapingFolder(DivideState state, char c) {
+Option<> handleSingleQuotes_EscapingFolder(DivideState state, char c) {
 	if (/*???*/)return Option.empty();
 	return Option.of(state.append(c).popAndAppendToTuple().map(/*???*/).flatMap(/*???*/).orElse(state));
 }
@@ -15,8 +15,8 @@ Option<> handleDoubleQuotes_EscapingFolder(DivideState state, char c) {
 	Option<> tupleOption=current.popAndAppendToTuple();
 	if (/*???*/)
 	{
-	current=t0.left();
-	if (t0.right()=='\\')current=current.popAndAppendToOption().orElse(current);
+	current==t0.left();
+	if (t0.right()=='\\')current==current.popAndAppendToOption().orElse(current);
 	if (t0.right()=='\"')
 	break}
 	else break;}
@@ -30,7 +30,7 @@ Option<> handleLineComments_EscapingFolder(DivideState state) {
 	if (/*???*/)return Option.empty();
 	while (true)
 	{
-	/*???*/=state.pop();
+	/*???*/();
 	if (/*???*/)return Option.of(state);}
 }
 Option<> handleBlockComments_EscapingFolder(DivideState state, char c) {
@@ -38,7 +38,7 @@ Option<> handleBlockComments_EscapingFolder(DivideState state, char c) {
 	DivideState withSlash=state.append(c);
 	Tuple<> current=new_???(true, withSlash.popAndAppendToOption().orElse(state));
 	while (current.left())
-	current=handle(current.right());
+	current==handle(current.right());
 	return new_???(current.right());
 }
 Tuple<> handle_EscapingFolder(DivideState current) {

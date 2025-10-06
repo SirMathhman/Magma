@@ -4,7 +4,7 @@ new NumberFilter_NumberFilter() {
 }
 boolean test_NumberFilter(char* input) {
 	char* s;
-	if (input.startsWith(""))s=input.substring(/*???*/);
+	if (input.startsWith(""))s==input.substring(/*???*/);
 	else s=input;
 	return IntStream.range(/*???*/, s.length()).mapToObj(/*???*/).allMatch(/*???*/);
 }

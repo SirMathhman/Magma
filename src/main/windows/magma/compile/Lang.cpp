@@ -170,6 +170,20 @@ struct ExprMethodAccessSource {JExpression child;};
 struct TypeMethodAccessSource {JType child;};
 struct MethodAccess {char* name;MethodAccessSource source;};
 struct NumberNode {char* number;};
+struct OperatorFolder {char* operator;};
+DivideState fold_OperatorFolder(DivideState state, char c) {
+	if (c==operator.charAt(/*???*/))
+	{
+	if (/*???*/)
+	{
+	state.pop();
+	return state.advance();}
+	return state.advance();}
+	return state.append(c);
+}
+char* delimiter_OperatorFolder() {
+	return operator;
+}
 Rule CRoot_Lang() {
 	return Statements("", Strip("", Or(CStructure(), Function()), ""));
 }
@@ -374,7 +388,10 @@ Rule StringExpr_Lang() {
 	return Tag("", Strip(Prefix("", Suffix(Or(String(""), Empty), ""))));
 }
 Rule Operator_Lang(char* type, char* infix, LazyRule expression) {
-	return Tag(type, First(Node("", expression), infix, Node("", expression)));
+	Rule left=Node("", expression);
+	Rule right=Node("", expression);
+	Splitter splitter=DividingSplitter.KeepFirst(new_???(new_???(new_???(infix))));
+	return Tag(type, SplitRule.Split(left, splitter, right));
 }
 Rule Switch_Lang(char* group, Rule expression, Rule rule) {
 	Rule cases=Statements("", Strip(Or(Case(group, rule, expression), Empty)));
