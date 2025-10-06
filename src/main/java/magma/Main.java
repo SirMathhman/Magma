@@ -95,8 +95,8 @@ public class Main {
 				return Option.of(new ApplicationError(error));
 			if (compileResult instanceof Ok<String, CompileError>(String compiled)) {
 				final String message = "// Generated transpiled C++ from '" + Paths.get(".").relativize(javaFile) +
-						"'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
-						System.lineSeparator();
+															 "'. This file shouldn't be edited, and rather the compiler implementation should be changed." +
+															 System.lineSeparator();
 				return writeString(cFilePath, message + compiled).map(ThrowableError::new).map(ApplicationError::new);
 			}
 		}
@@ -123,18 +123,18 @@ public class Main {
 
 	public static Result<String, CompileError> compile(String input) {
 		return JRoot().lex(input)
-				.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
-				.flatMap(Main::transform)
-				.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
-				.flatMap(CRoot()::generate);
+									.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
+									.flatMap(Main::transform)
+									.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
+									.flatMap(CRoot()::generate);
 	}
 
 	public static Result<CRoot, CompileError> transform(JavaRoot node) {
 		return new Ok<>(new CRoot(node.children()
-				.stream()
-				.map(Main::flattenRootSegment)
-				.flatMap(Collection::stream)
-				.toList()));
+																	.stream()
+																	.map(Main::flattenRootSegment)
+																	.flatMap(Collection::stream)
+																	.toList()));
 	}
 
 	private static List<CRootSegment> flattenRootSegment(JavaRootSegment segment) {
@@ -217,12 +217,12 @@ public class Main {
 		};
 
 		return new Function(new CDefinition(cDefinition.name() + "_" + structName,
-				cDefinition.type(),
-				cDefinition.typeParameters()),
-				newParams,
-				bodySegments,
-				new Some<>(System.lineSeparator()),
-				extractedTypeParams);
+																				cDefinition.type(),
+																				cDefinition.typeParameters()),
+												newParams,
+												bodySegments,
+												new Some<>(System.lineSeparator()),
+												extractedTypeParams);
 	}
 
 	private static CFunctionSegment transformFunctionSegment(JMethodSegment segment) {
@@ -235,7 +235,7 @@ public class Main {
 			case LineComment lineComment -> lineComment;
 			case JBlock jBlock -> new CBlock(jBlock.children().stream().map(Main::transformFunctionSegment).toList());
 			case JInitialization jInitialization -> new CInitialization(transformDefinition(jInitialization.definition()),
-					transformExpression(jInitialization.value()));
+																																	transformExpression(jInitialization.value()));
 			case JAssignment jAssignment ->
 					new CAssignment(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
 			case JPostFix jPostFix -> new CPostFix(transformExpression(jPostFix.value()));
@@ -254,10 +254,12 @@ public class Main {
 
 	private static CInvocation handleConstruction(JConstruction jConstruction) {
 		String name = "new_" + transformType(jConstruction.type()).stringify();
-		return new CInvocation(new Identifier(name), jConstruction.arguments().orElse(new ArrayList<JExpression>())
-				.stream()
-				.map(Main::transformExpression)
-				.toList());
+		return new CInvocation(new Identifier(name),
+													 jConstruction.arguments()
+																				.orElse(new ArrayList<JExpression>())
+																				.stream()
+																				.map(Main::transformExpression)
+																				.toList());
 	}
 
 	private static CExpression transformExpression(JExpression expression) {
@@ -280,14 +282,15 @@ public class Main {
 			case JSubtract jSubtract -> new Invalid("???");
 			case Not not -> new Invalid("???");
 			case Quantity quantity -> new Invalid("???");
+			case Lambda lambda -> new Invalid("???");
+			case NewArray newArray -> new Invalid("???");
 		};
 	}
 
 	private static CInvocation transformInvocation(JInvocation jInvocation) {
-		return new CInvocation(transformExpression(jInvocation.caller()), jInvocation.arguments().orElse(new ArrayList<>())
-				.stream()
-				.map(Main::transformExpression)
-				.toList());
+		final List<CExpression> newArguments =
+				jInvocation.arguments().orElse(new ArrayList<>()).stream().map(Main::transformExpression).toList();
+		return new CInvocation(transformExpression(jInvocation.caller()), newArguments);
 	}
 
 	private static CParameter transformParameter(JDefinition param) {

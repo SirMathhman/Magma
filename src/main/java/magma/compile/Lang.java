@@ -48,7 +48,7 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, Not, Quantity, Switch {}
+			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -140,6 +140,9 @@ public class Lang {
 
 	@Tag("lambda")
 	public record Lambda(String param, JMethodSegment child) implements JExpression {}
+
+	@Tag("new-array")
+	public record NewArray(JType type, JExpression length) implements JExpression {}
 
 	@Tag("assignment")
 	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
