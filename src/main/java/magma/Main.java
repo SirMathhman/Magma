@@ -187,6 +187,7 @@ public class Main {
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
 			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
 			case Whitespace _, LineComment _, BlockComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
+			case JInitialization jInitialization -> new Tuple<>(Collections.emptyList(), new None<>());
 		};
 	}
 

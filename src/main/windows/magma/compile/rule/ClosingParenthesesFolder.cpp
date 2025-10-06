@@ -1,17 +1,14 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\ClosingParenthesesFolder.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct ClosingParenthesesFolder {};
-/*@Override
-	public DivideState*/ fold_ClosingParenthesesFolder(/*DivideState*/ state, /* char*/ c) {
-	/*final DivideState appended */=/* state.append(c)*/;
-	/*if (c */=/*= '(') return appended.enter()*/;
-	if (/*c == ')')*/
+DivideState fold_ClosingParenthesesFolder(DivideState state, char c) {
+	if (c=='(')return state.append(c).enter();
+	if (c==')')
 	{
-	/*final DivideState exit */=/* appended.exit()*/;
-	/*if */(/*exit.isLevel()) return exit.advance()*/;
-	return /*exit*/;}
-	return /*appended*/;
+	DivideState exit=state.exit();
+	return exit.advance();
+	return exit.append(c);}
+	return state.append(c);
 }
-/*@Override
-	public String*/ delimiter_ClosingParenthesesFolder() {
-	return /*""*/;
+char* delimiter_ClosingParenthesesFolder() {
+	return ")";
 }

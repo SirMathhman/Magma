@@ -213,7 +213,7 @@ Rule LineComment_Lang() {
 	return Tag(("", Strip((Prefix(("", String((""))));
 }
 Rule Statement_Lang() {
-	var initialization=Initialization((JDefinition((), JExpression((JMethodSegment(()));
+	Rule initialization=Initialization((JDefinition((), JExpression((JMethodSegment(()));
 	return Strip((Suffix((initialization, ""));
 }
 Rule JMethod_Lang() {

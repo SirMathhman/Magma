@@ -42,7 +42,7 @@ public class Lang {
 	}
 
 	public sealed interface JStructureSegment
-			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
+			permits BlockComment, Field, Invalid, JInitialization, JStructure, LineComment, Method, Whitespace {}
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
@@ -158,7 +158,8 @@ public class Lang {
 	public record JPostFix(JExpression value) implements JMethodSegment {}
 
 	@Tag("initialization")
-	public record JInitialization(JDefinition definition, JExpression value) implements JMethodSegment {}
+	public record JInitialization(JDefinition definition, JExpression value)
+			implements JMethodSegment, JStructureSegment {}
 
 	@Tag("initialization")
 	public record CInitialization(CDefinition definition, CExpression value) implements CFunctionSegment {}
@@ -489,7 +490,7 @@ public class Lang {
 	}
 
 	private static Rule Statement() {
-		final var initialization = Initialization(JDefinition(), JExpression(JMethodSegment()));
+		final Rule initialization = Initialization(JDefinition(), JExpression(JMethodSegment()));
 		return Strip(Suffix(initialization, ";"));
 	}
 

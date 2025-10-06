@@ -96,7 +96,7 @@ public final class Node {
 		StringBuilder builder = new StringBuilder();
 		builder.append("{");
 
-		boolean[] hasFields = {false};
+		boolean[] hasFields = new boolean[]{false};
 
 		Option<String> typeOpt = maybeType;
 		if (typeOpt instanceof Some<String>(String value)) {
