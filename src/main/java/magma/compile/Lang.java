@@ -11,8 +11,6 @@ import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
-import magma.compile.rule.SplitRule;
-import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TypeFolder;
 import magma.option.None;
@@ -553,15 +551,11 @@ public class Lang {
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
 		final Rule arguments = Expressions("arguments", expression);
-		return getTag(type, caller, arguments, '(', ')');
-	}
-
-	private static Rule getTag(String type, Rule caller, Rule arguments, char open, char close) {
-		FoldingDivider divider = new FoldingDivider(new EscapingFolder(new InvocationFolder(open, close)));
+		FoldingDivider divider = new FoldingDivider(new EscapingFolder(new InvocationFolder('(', ')')));
 		return Tag(type,
-							 Split(Suffix(caller, String.valueOf(open)),
+							 Split(Suffix(caller, String.valueOf('(')),
 										 KeepLast(divider),
-										 Suffix(Or(arguments, Whitespace()), String.valueOf(close))));
+										 Suffix(Or(arguments, Whitespace()), String.valueOf(')'))));
 	}
 
 	private static Rule Return(Rule expression) {
@@ -715,16 +709,7 @@ public class Lang {
 	}
 
 	private static Rule Parameters() {
-		return Expressions("params", Or(ParameterDefinition(), Whitespace()));
-	}
-
-	private static Rule ParameterDefinition() {
-		// Use TypeFolder to properly parse generic types like Function<T, R>
-		// Parameters don't have modifiers, just type and name
-		final FoldingDivider typeDivider = new FoldingDivider(new TypeFolder());
-		final Splitter typeSplitter = KeepLast(typeDivider);
-
-		return Tag("definition", new SplitRule(Node("type", JType()), String("name"), typeSplitter));
+		return Expressions("params", Or(JDefinition(), Whitespace()));
 	}
 
 	private static Rule JDefinition() {

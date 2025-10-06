@@ -251,11 +251,8 @@ Rule Invokable_Lang(Rule expression) {
 }
 Rule Invokable_Lang(char* type, Rule caller, Rule expression) {
 	Rule arguments=Expressions(("", expression);
-	return getTag((type, caller, arguments, '(', ')');
-}
-Rule getTag_Lang(char* type, Rule caller, Rule arguments, char open, char close) {
-	FoldingDivider divider=new_FoldingDivider((new_EscapingFolder((new_InvocationFolder((open, close)));
-	return Tag((type, Split((Suffix((caller, String.valueOf(open)), KeepLast((divider), Suffix((Or((arguments, Whitespace(()), String.valueOf(close))));
+	FoldingDivider divider=new_FoldingDivider((new_EscapingFolder((new_InvocationFolder(('(', ')')));
+	return Tag((type, Split((Suffix((caller, String.valueOf('(')), KeepLast((divider), Suffix((Or((arguments, Whitespace(()), String.valueOf(')'))));
 }
 Rule Return_Lang(Rule expression) {
 	return Tag(("", Prefix(("", Node(("", expression)));
@@ -342,12 +339,7 @@ Rule CFunctionStatementValue_Lang() {
 	return Or((Return((expression), Invocation((expression), Initialization((CDefinition((), expression), CDefinition((), PostFix((expression));
 }
 Rule Parameters_Lang() {
-	return Expressions(("", Or((ParameterDefinition((), Whitespace(()));
-}
-Rule ParameterDefinition_Lang() {
-	FoldingDivider typeDivider=new_FoldingDivider((new_TypeFolder(());
-	Splitter typeSplitter=KeepLast((typeDivider);
-	return Tag(("", new_SplitRule((Node(("", JType(()), String((""), typeSplitter));
+	return Expressions(("", Or((JDefinition((), Whitespace(()));
 }
 Rule JDefinition_Lang() {
 	Rule type=Node(("", JType(());
