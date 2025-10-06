@@ -48,10 +48,10 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 	}
 
 	private String formatChild(int depth, List<CompileError> copy, List<Integer> indices, int last) {
-		CompileError error = copy.getOrNull(last);
-		indices.push(last);
+		CompileError error = copy.get(last).orElse(null);
+		indices.addLast(last);
 		final String format = error.format(depth + 1, indices);
-		indices.pop();
+		indices.removeLast();
 		return format;
 	}
 

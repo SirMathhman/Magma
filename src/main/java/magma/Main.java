@@ -53,7 +53,7 @@ public class Main {
 	private static Option<ApplicationError> compileAll(Path javaSourceRoot, Path cOutputRoot, List<Path> javaFiles) {
 		int i = 0;
 		while (i < javaFiles.size()) {
-			Path javaFile = javaFiles.getOrNull(i);
+			Path javaFile = javaFiles.get(i).orElse(null);
 			System.out.println("Compiling: " + javaFile);
 			Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
 			if (result instanceof Some<ApplicationError>(ApplicationError error)) {

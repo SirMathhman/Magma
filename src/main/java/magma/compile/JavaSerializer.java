@@ -334,7 +334,7 @@ public class JavaSerializer {
 
 		int i = 0;
 		while (i < validTags.size()) {
-			String tag = validTags.getOrNull(i);
+			String tag = validTags.get(i).orElse(null);
 			int distance = levenshteinDistance(nodeType.toLowerCase(), tag.toLowerCase());
 			if (distance < minDistance && distance <= 2) // Only suggest if reasonably close
 				minDistance = distance;
@@ -627,7 +627,7 @@ public class JavaSerializer {
 
 		int i = 0;
 		while (i < nodeList.size()) {
-			Node childNode = nodeList.getOrNull(i);
+			Node childNode = nodeList.get(i).orElse(null);
 			Result<Object, CompileError> childResult = deserializeValue(elementClass, childNode);
 			if (childResult instanceof Ok<Object, CompileError>(Object value))
 				results.addLast(value);
@@ -655,7 +655,7 @@ public class JavaSerializer {
 		return new Err<List<Object>, CompileError>(new CompileError(
 				"Failed to deserialize " + errors.size() + " of " + nodeList.size() + " list elements as '" +
 						elementClass.getSimpleName() + "'",
-				new NodeContext(nodeList.getFirstOrNull()), errors));
+				new NodeContext(nodeList.getFirst().orElse(null)), errors));
 	}
 
 	// Pure helper functions
@@ -738,7 +738,7 @@ public class JavaSerializer {
 	private static Option<String> searchChildrenList(List<Node> children, String key) {
 		int i = 0;
 		while (i < children.size()) {
-			Node child = children.getOrNull(i);
+			Node child = children.get(i).orElse(null);
 			Option<String> result = child.findString(key);
 			if (result instanceof Some<String>)
 				return result;

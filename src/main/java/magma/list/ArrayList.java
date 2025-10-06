@@ -43,8 +43,9 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	}
 
 	@Override
-	public T getOrNull(int index) {
-		return elements.get(index);
+	public Option<T> get(int index) {
+		if (index >= 0 && index < elements.size()) return new Some<T>(elements.get(index));
+		else return new None<T>();
 	}
 
 	@Override
@@ -59,24 +60,13 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	}
 
 	@Override
-	public T getLastOrNull() {
-		// For compatibility - prefer getLast() which returns Option<T>
-		return getLast().orElseGet(() -> {
-			// Return a sentinel None wrapped as T for legacy callers
-			@SuppressWarnings("unchecked")
-			final T wrapped = (T) new None<Object>();
-			return wrapped;
-		});
-	}
-
-	@Override
 	public List<T> sort(Comparator<T> comparator) {
 		elements.sort(comparator);
 		return this;
 	}
 
 	@Override
-	public Option<Tuple<List<T>, T>> pop() {
+	public Option<Tuple<List<T>, T>> removeLast() {
 		if (elements.isEmpty()) return new None<Tuple<List<T>, T>>();
 
 		final T last = elements.removeLast();
@@ -87,17 +77,6 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	public Option<T> getFirst() {
 		if (elements.isEmpty()) return new None<T>();
 		return new Some<T>(elements.getFirst());
-	}
-
-	@Override
-	public T getFirstOrNull() {
-		// For compatibility - prefer getFirst() which returns Option<T>
-		return getFirst().orElseGet(() -> {
-			// Return a sentinel None wrapped as T for legacy callers
-			@SuppressWarnings("unchecked")
-			final T wrapped = (T) new None<Object>();
-			return wrapped;
-		});
 	}
 
 	@Override

@@ -72,7 +72,7 @@ public class DebugPlaceholderTest {
 	private void printNodeList(List<Node> children, int depth, String indent) {
 		for (int i = 0; i < children.size() && i < 5; i++) {
 			System.out.println(indent + "    [" + i + "]:");
-			printNode(children.getOrNull(i), depth + 3);
+			printNode(children.get(i).orElse(null), depth + 3);
 		}
 	}
 }

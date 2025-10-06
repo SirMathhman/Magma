@@ -58,7 +58,7 @@ public class DiagnoseClassTag {
 			if (lexedNode.findNodeList("children") instanceof Some<List<Node>>(List<Node> children)) {
 				System.out.println("Found " + children.size() + " children");
 				for (int i = 0; i < children.size(); i++) {
-					Node child = children.getOrNull(i);
+					Node child = children.get(i).orElse(null);
 					if (child.maybeType instanceof Some<String>(String type)) {
 						System.out.println("Child " + i + " type: '" + type + "'");
 						System.out.println("  Type length: " + type.length());

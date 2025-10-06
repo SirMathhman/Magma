@@ -295,8 +295,8 @@ public class Transformer {
 		// Convert Function<T, R> to function pointer R (*)(T)
 		final List<Lang.JType> listOption = generic.typeArguments().orElse(new ArrayList<Lang.JType>());
 		if (generic.base().endsWith("Function") && listOption.size() == 2) {
-			final CLang.CType paramType = transformType(listOption.getOrNull(0));
-			final CLang.CType returnType = transformType(listOption.getOrNull(1));
+			final CLang.CType paramType = transformType(listOption.get(0).orElse(null));
+			final CLang.CType returnType = transformType(listOption.get(1).orElse(null));
 			return new CLang.CFunctionPointer(returnType, List.of(paramType));
 		}
 		return new Lang.CTemplate(generic.base().last(), listOption.stream().map(Transformer::transformType).toList());

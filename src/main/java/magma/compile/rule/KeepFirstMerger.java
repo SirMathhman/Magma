@@ -13,7 +13,7 @@ public class KeepFirstMerger implements Merger {
 		if (segments.size() < 2) return new None<Tuple<String, String>>();
 
 		// Split into first segment and the rest
-		final String left = segments.getFirstOrNull();
+		final String left = segments.getFirst().orElse(null);
 		final String right = segments.subListOrEmpty(1, segments.size()).stream().collect(new Joiner(delimiter));
 
 		return new Some<Tuple<String, String>>(new Tuple<String, String>(left, right));

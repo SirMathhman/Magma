@@ -48,7 +48,7 @@ public class DebugMethodBodyTest {
 
 	private void processRootChildren(Lang.JRoot root) {
 		for (int i = 0; i < root.children().size(); i++) {
-			Lang.JavaRootSegment child = root.children().getOrNull(i);
+			Lang.JavaRootSegment child = root.children().get(i).orElse(null);
 			if (child instanceof Lang.JClass jClass) {
 				System.out.println("\n=== Found JClass: " + jClass.name() + " ===");
 				System.out.println("JClass children: " + jClass.children().size());
@@ -59,7 +59,7 @@ public class DebugMethodBodyTest {
 
 	private void processClassChildren(Lang.JClass jClass) {
 		for (int j = 0; j < jClass.children().size(); j++) {
-			Lang.JStructureSegment member = jClass.children().getOrNull(j);
+			Lang.JStructureSegment member = jClass.children().get(j).orElse(null);
 			if (member instanceof Lang.Method method) {
 				System.out.println("\n=== Found Method ===");
 				System.out.println("Method definition: " + method.definition());

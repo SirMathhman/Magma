@@ -58,12 +58,12 @@ public class HeadedStreamFlatMapTest {
 		System.out.println("Result: " + resultList);
 
 		assertEquals(6, resultList.size(), "Should have 6 elements (1 + 2 + 3)");
-		assertEquals(0, resultList.getOrNull(0), "First element should be 0");
-		assertEquals(0, resultList.getOrNull(1), "Second element should be 0");
-		assertEquals(1, resultList.getOrNull(2), "Third element should be 1");
-		assertEquals(0, resultList.getOrNull(3), "Fourth element should be 0");
-		assertEquals(1, resultList.getOrNull(4), "Fifth element should be 1");
-		assertEquals(2, resultList.getOrNull(5), "Sixth element should be 2");
+		assertEquals(0, resultList.get(0).orElse(null), "First element should be 0");
+		assertEquals(0, resultList.get(1).orElse(null), "Second element should be 0");
+		assertEquals(1, resultList.get(2).orElse(null), "Third element should be 1");
+		assertEquals(0, resultList.get(3).orElse(null), "Fourth element should be 0");
+		assertEquals(1, resultList.get(4).orElse(null), "Fifth element should be 1");
+		assertEquals(2, resultList.get(5).orElse(null), "Sixth element should be 2");
 
 		System.out.println("✅ Basic flattening test passed");
 	}
@@ -77,11 +77,11 @@ public class HeadedStreamFlatMapTest {
 		List<String> resultList = result.toList();
 
 		assertEquals(5, resultList.size(), "Should have 5 elements");
-		assertEquals("item-0", resultList.getOrNull(0));
-		assertEquals("item-1", resultList.getOrNull(1));
-		assertEquals("item-2", resultList.getOrNull(2));
-		assertEquals("item-3", resultList.getOrNull(3));
-		assertEquals("item-4", resultList.getOrNull(4));
+		assertEquals("item-0", resultList.get(0).orElse(null));
+		assertEquals("item-1", resultList.get(1).orElse(null));
+		assertEquals("item-2", resultList.get(2).orElse(null));
+		assertEquals("item-3", resultList.get(3).orElse(null));
+		assertEquals("item-4", resultList.get(4).orElse(null));
 
 		System.out.println("✅ Single element test passed");
 	}
@@ -104,9 +104,9 @@ public class HeadedStreamFlatMapTest {
 		System.out.println("Result: " + resultList);
 
 		assertEquals(3, resultList.size(), "Should have 3 elements (0 + 1 + 0 + 2)");
-		assertEquals(0, resultList.getOrNull(0));
-		assertEquals(0, resultList.getOrNull(1));
-		assertEquals(1, resultList.getOrNull(2));
+		assertEquals(0, resultList.get(0).orElse(null));
+		assertEquals(0, resultList.get(1).orElse(null));
+		assertEquals(1, resultList.get(2).orElse(null));
 
 		System.out.println("✅ Mixed empty/non-empty test passed");
 	}
@@ -125,8 +125,8 @@ public class HeadedStreamFlatMapTest {
 		List<String> resultList = result.toList();
 
 		System.out.println("Chained flatMap result size: " + resultList.size());
-		System.out.println("First few elements: " + resultList.getOrNull(0) + ", "
-				+ resultList.getOrNull(1) + ", " + resultList.getOrNull(2));
+		System.out.println("First few elements: " + resultList.get(0).orElse(null) + ", "
+											 + resultList.get(1).orElse(null) + ", " + resultList.get(2).orElse(null));
 
 		assertTrue(resultList.size() > 0, "Should have elements after chained flatMap");
 		System.out.println("✅ Chaining test passed");
@@ -149,11 +149,11 @@ public class HeadedStreamFlatMapTest {
 		System.out.println("Flattened result: " + resultList);
 
 		assertEquals(5, resultList.size(), "Should have 5 elements");
-		assertEquals(1, resultList.getOrNull(0));
-		assertEquals(2, resultList.getOrNull(1));
-		assertEquals(3, resultList.getOrNull(2));
-		assertEquals(4, resultList.getOrNull(3));
-		assertEquals(5, resultList.getOrNull(4));
+		assertEquals(1, resultList.get(0).orElse(null));
+		assertEquals(2, resultList.get(1).orElse(null));
+		assertEquals(3, resultList.get(2).orElse(null));
+		assertEquals(4, resultList.get(3).orElse(null));
+		assertEquals(5, resultList.get(4).orElse(null));
 
 		System.out.println("✅ List.of flattening test passed");
 	}
@@ -170,12 +170,12 @@ public class HeadedStreamFlatMapTest {
 		System.out.println("Result: " + resultList);
 
 		assertEquals(6, resultList.size());
-		assertEquals("outer-1-inner-1", resultList.getOrNull(0));
-		assertEquals("outer-1-inner-2", resultList.getOrNull(1));
-		assertEquals("outer-2-inner-1", resultList.getOrNull(2));
-		assertEquals("outer-2-inner-2", resultList.getOrNull(3));
-		assertEquals("outer-3-inner-1", resultList.getOrNull(4));
-		assertEquals("outer-3-inner-2", resultList.getOrNull(5));
+		assertEquals("outer-1-inner-1", resultList.get(0).orElse(null));
+		assertEquals("outer-1-inner-2", resultList.get(1).orElse(null));
+		assertEquals("outer-2-inner-1", resultList.get(2).orElse(null));
+		assertEquals("outer-2-inner-2", resultList.get(3).orElse(null));
+		assertEquals("outer-3-inner-1", resultList.get(4).orElse(null));
+		assertEquals("outer-3-inner-2", resultList.get(5).orElse(null));
 
 		System.out.println("✅ Order preservation test passed");
 	}

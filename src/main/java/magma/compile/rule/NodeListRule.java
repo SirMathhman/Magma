@@ -71,7 +71,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		final StringJoiner sb = new StringJoiner(divider.delimiter());
 		int i = 0;
 		while (i < list.size()) {
-			Node child = list.getOrNull(i);
+			Node child = list.get(i).orElse(null);
 			switch (this.rule.generate(child)) {
 				case Ok<String, CompileError>(String value1) -> sb.add(value1);
 				case Err<String, CompileError>(CompileError error) -> {

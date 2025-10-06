@@ -22,25 +22,17 @@ public interface List<T> {
 
 	int size();
 
-	T getOrNull(int index);
+	Option<T> get(int index);
 
 	boolean isEmpty();
 
 	Option<T> getLast();
 
-	T getLastOrNull();
-
 	List<T> sort(Comparator<T> comparator);
 
-	default List<T> push(T element) {
-		return addLast(element);
-	}
-
-	Option<Tuple<List<T>, T>> pop();
+	Option<Tuple<List<T>, T>> removeLast();
 
 	Option<T> getFirst();
-
-	T getFirstOrNull();
 
 	List<T> subListOrEmpty(int start, int end);
 }

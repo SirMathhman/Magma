@@ -58,7 +58,7 @@ public class ValidationDemonstrationTest {
 					.map(seg -> (Lang.Method) seg)
 					.toList();
 			if (!methods.isEmpty()) {
-				Lang.Method method = methods.getOrNull(0);
+				Lang.Method method = methods.get(0).orElse(null);
 				System.out.println("Found method: " + method.definition().name());
 				System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
