@@ -397,33 +397,11 @@ Rule Case_Lang(char* group, Rule rule, Rule expression) {
 	Rule value=First(Or(defaultCase, Prefix("", Or(withWhen, target))), "", Node("", rule));
 	return Tag(""+group, value);
 }
-Rule CExpression_Lang() {
-	LazyRule expression=new_???();
-	expression.set(Or(Invocation(expression), FieldAccess(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), StringExpr(), CommonRules.Identifier(), Char(), Invalid()));
-	return expression;
-}
 Rule Invocation_Lang(Rule expression) {
 	return Invokable("", Node("", expression), expression);
 }
-Rule CFunctionSegment_Lang() {
-	LazyRule rule=new_???();
-	rule.set(Or(Whitespace(), Prefix(System.lineSeparator()+"", CFunctionSegmentValue(rule)), Invalid()));
-	return rule;
-}
 Rule Invalid_Lang() {
 	return Tag("", Placeholder(String("")));
-}
-Rule CFunctionSegmentValue_Lang(LazyRule rule) {
-	return Or(LineComment(), Conditional("", CExpression(), rule), Conditional("", CExpression(), rule), Break(), Else(rule), CFunctionStatement(), Block(rule));
-}
-Rule CFunctionStatement_Lang() {
-	LazyRule functionStatement=new_???();
-	functionStatement.set(Or(Conditional("", CExpression(), functionStatement), Suffix(CFunctionStatementValue(), "")));
-	return functionStatement;
-}
-Rule CFunctionStatementValue_Lang() {
-	Rule expression=CExpression();
-	return Or(Return(expression), Invocation(expression), Initialization(CDefinition(), expression), CDefinition(), PostFix(expression));
 }
 Rule Parameters_Lang() {
 	return Expressions("", Or(JRules.JDefinition(), Whitespace()));

@@ -538,7 +538,7 @@ public class Lang {
 							JStructure("record", structureMember));
 	}
 
-	private static Rule Whitespace() {
+	public static Rule Whitespace() {
 		return Tag("whitespace", Strip(Empty));
 	}
 
@@ -593,7 +593,7 @@ public class Lang {
 		return Tag("block-comment", Strip(Prefix("/*", Suffix(String("value"), "*/"))));
 	}
 
-	private static Rule LineComment() {
+	public static Rule LineComment() {
 		return Tag("line-comment", Strip(Prefix("//", String("value"))));
 	}
 
@@ -641,7 +641,7 @@ public class Lang {
 		return Tag("try", Prefix("try ", Or(withResource, withoutResource)));
 	}
 
-	private static Rule Block(LazyRule rule) {
+	public static Rule Block(LazyRule rule) {
 		return Tag("block", Strip(Prefix("{", Suffix(Statements("children", rule), "}"))));
 	}
 
@@ -656,15 +656,15 @@ public class Lang {
 							Invokable(expression));
 	}
 
-	private static Rule Break() {
+	public static Rule Break() {
 		return Tag("break", Strip(Prefix("break", Empty)));
 	}
 
-	private static Rule PostFix(Rule expression) {
+	public static Rule PostFix(Rule expression) {
 		return Tag("postFix", Strip(Suffix(Node("value", expression), "++")));
 	}
 
-	private static Rule Initialization(Rule definition, Rule value) {
+	public static Rule Initialization(Rule definition, Rule value) {
 		final Rule definition1 = Node("definition", definition);
 		final Rule value1 = Node("value", value);
 		return First(Or(Tag("initialization", definition1), Tag("assignment", Node("location", value))), "=", value1);
@@ -686,15 +686,15 @@ public class Lang {
 		return Tag("yield", Prefix("yield ", Node("child", expression)));
 	}
 
-	private static Rule Return(Rule expression) {
+	public static Rule Return(Rule expression) {
 		return Tag("return", Prefix("return ", Node("value", expression)));
 	}
 
-	private static Rule Else(Rule statement) {
+	public static Rule Else(Rule statement) {
 		return Tag("else", Prefix("else", Node("child", statement)));
 	}
 
-	private static Rule Conditional(String tag, Rule inner, Rule statement) {
+	public static Rule Conditional(String tag, Rule inner, Rule statement) {
 		return QuantityBlock(tag, "condition", inner, statement);
 	}
 
@@ -768,7 +768,7 @@ public class Lang {
 							Tag("statement-case-expr-value", Node("statement", statement)));
 	}
 
-	private static Rule Char() {
+	public static Rule Char() {
 		return Tag("char", Strip(Prefix("'", Suffix(String("value"), "'"))));
 	}
 
@@ -800,18 +800,18 @@ public class Lang {
 							 Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("index", expression)), "]")));
 	}
 
-	private static Rule FieldAccess(Rule expression) {
+	public static Rule FieldAccess(Rule expression) {
 		final Rule child = Node("child", expression);
 		Rule rightRule = CommonRules.StrippedIdentifier("name");
 		final Splitter splitter = new InfixSplitter(".", new LastLocator());
 		return Tag("field-access", new SplitRule(child, rightRule, splitter, new SplitRule.RightFirst()));
 	}
 
-	private static Rule StringExpr() {
+	public static Rule StringExpr() {
 		return Tag("string", Strip(Prefix("\"", Suffix(Or(String("content"), Empty), "\""))));
 	}
 
-	private static Rule Operator(String type, String infix, LazyRule expression) {
+	public static Rule Operator(String type, String infix, LazyRule expression) {
 		final Rule left = Node("left", expression);
 		final Rule right = Node("right", expression);
 		final Splitter splitter =
@@ -833,58 +833,12 @@ public class Lang {
 		return Tag("case-" + group, value);
 	}
 
-	private static Rule CExpression() {
-		LazyRule expression = new LazyRule();
-		expression.set(Or(Invocation(expression),
-											FieldAccess(expression),
-											Operator("add", "+", expression),
-											Operator("and", "&&", expression),
-											Operator("equals", "==", expression),
-											StringExpr(),
-											CommonRules.Identifier(),
-											Char(),
-											Invalid()));
-		return expression;
-	}
-
-	private static Rule Invocation(Rule expression) {
+	public static Rule Invocation(Rule expression) {
 		return Invokable("invocation", Node("caller", expression), expression);
 	}
 
-	public static Rule CFunctionSegment() {
-		final LazyRule rule = new LazyRule();
-		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", CFunctionSegmentValue(rule)), Invalid()));
-		return rule;
-	}
-
-	private static Rule Invalid() {
+	public static Rule Invalid() {
 		return Tag("invalid", Placeholder(String("value")));
-	}
-
-	private static Rule CFunctionSegmentValue(LazyRule rule) {
-		return Or(LineComment(),
-							Conditional("if", CExpression(), rule),
-							Conditional("while", CExpression(), rule),
-							Break(),
-							Else(rule),
-							CFunctionStatement(),
-							Block(rule));
-	}
-
-	private static Rule CFunctionStatement() {
-		LazyRule functionStatement = new LazyRule();
-		functionStatement.set(Or(Conditional("if", CExpression(), functionStatement),
-														 Suffix(CFunctionStatementValue(), ";")));
-		return functionStatement;
-	}
-
-	private static Rule CFunctionStatementValue() {
-		final Rule expression = CExpression();
-		return Or(Return(expression),
-							Invocation(expression),
-							Initialization(CDefinition(), expression),
-							CDefinition(),
-							PostFix(expression));
 	}
 
 	private static Rule Parameters() {
