@@ -148,7 +148,7 @@ struct JGreaterThan {JExpression left;JExpression right;};
 struct JOr {JExpression left;JExpression right;};
 struct JGreaterThanEquals {JExpression left;JExpression right;};
 struct JLessThan {JExpression left;JExpression right;};
-struct Try {JMethodSegment child;};
+struct Try {JMethodSegment child;Option<> resource;};
 struct Catch {JDefinition definition;JMethodSegment body;};
 struct Yield {JExpression child;};
 struct Variadic {JType child;};
@@ -284,7 +284,11 @@ Rule JMethodSegment_Lang() {
 }
 Rule Try_Lang(LazyRule methodSegment) {
 	Rule child=Node("", methodSegment);
-	Rule resource=Node("", Initialization(JDefinition(), JExpression(methodSegment)));
+	Rule definition=JDefinition();
+	Rule value=JExpression(methodSegment);
+	Rule definition1=Node("", definition);
+	Rule value1=Node("", value);
+	Rule resource=Node("", First(Or(Tag("", definition1)), "", value1));
 	Splitter splitter=new_???(new_???(new_???(new_???())));
 	Rule withResource=new_???("", Strip(Prefix("", new_???(resource, child, splitter))));
 	ContextRule withoutResource=new_???("", child);

@@ -1,15 +1,24 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\Option.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-template<typename T>
-struct Option {map(Function<T, R> mapper);flatMap(Function<T, Option<R>> mapper);/*orElse(T*/ other);};
-template<typename T>
-Option<T> of_Option(T value) {
-	return /*new Some<>(value)*/;
+struct Option {};
+Option<> of_Option(T value) {
+	return new_???(value);
 }
-template<typename T>
-Option<T> empty_Option() {
-	return /*new None<>()*/;
+Option<> empty_Option() {
+	return new_???();
 }
-template<typename T>
-Option<T> ofNullable_Option(T value) {
-	return /*Objects.isNull(value) ? new None<>() : new Some<>(value)*/;
+Option<> ofNullable_Option(T value) {
+	if (Objects.isNull(value))return new_???();
+	return new_???(value);
+}
+Option<> map_Option(R (*mapper)(T)) {
+}
+Option<> flatMap_Option(Option<> (*mapper)(T)) {
+}
+T orElse_Option(T other) {
+}
+Tuple<> toTuple_Option(T other) {
+}
+Option<> or_Option(Supplier<> other) {
+}
+T orElseGet_Option(Supplier<> other) {
 }

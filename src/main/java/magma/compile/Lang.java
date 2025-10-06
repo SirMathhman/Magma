@@ -409,7 +409,7 @@ public class Lang {
 	public record JLessThan(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("try")
-	public record Try(JMethodSegment child) implements JMethodSegment {}
+	public record Try(JMethodSegment child, Option<JInitialization> resource) implements JMethodSegment {}
 
 	@Tag("catch")
 	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {}
@@ -640,7 +640,11 @@ public class Lang {
 
 	private static Rule Try(LazyRule methodSegment) {
 		final Rule child = Node("child", methodSegment);
-		final Rule resource = Node("resource", Initialization(JDefinition(), JExpression(methodSegment)));
+		Rule definition = JDefinition();
+		Rule value = JExpression(methodSegment);
+		final Rule definition1 = Node("definition", definition);
+		final Rule value1 = Node("value", value);
+		final Rule resource = Node("resource", First(Or(Tag("initialization", definition1)), "=", value1));
 		final Splitter splitter = new DividingSplitter(new FoldingDivider(new EscapingFolder(new MyFolder())));
 		final Rule withResource =
 				new ContextRule("With resource", Strip(Prefix("(", new SplitRule(resource, child, splitter))));
