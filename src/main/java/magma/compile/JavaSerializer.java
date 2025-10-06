@@ -202,24 +202,24 @@ public class JavaSerializer {
 				new NodeContext(node)));
 
 		// Try direct permitted subclasses
-		Result<Object, CompileError> directResult = tryDirectPermittedSubclasses(type, node, nodeType);
-		if (directResult instanceof Ok<?, ?>) return directResult;
+		Option<Result<Object, CompileError>> directResult = tryDirectPermittedSubclasses(type, node, nodeType);
+		if (directResult instanceof Some<Result<Object, CompileError>>(Result<Object, CompileError> result)) return result;
 
 		// Try nested sealed interfaces
 		return tryNestedSealedInterfaces(type, node, nodeType);
 	}
 
-	private static Result<Object, CompileError> tryDirectPermittedSubclasses(Class<?> type, Node node, String nodeType) {
+	private static Option<Result<Object, CompileError>> tryDirectPermittedSubclasses(Class<?> type, Node node, String nodeType) {
 		Class<?>[] permittedSubclasses = type.getPermittedSubclasses();
 		int i = 0;
 		while (i < permittedSubclasses.length) {
 			Class<?> permitted = permittedSubclasses[i];
 			Option<String> maybeIdentifier = resolveTypeIdentifier(permitted);
 			if (maybeIdentifier instanceof Some<String>(String identifier) && identifier.equals(nodeType))
-				return deserializeValue(permitted, node);
+				return new Some<>(deserializeValue(permitted, node));
 			i++;
 		}
-		return new Err<>(new CompileError("No direct match found", new NodeContext(node)));
+		return new None<>();
 	}
 
 	private static Result<Object, CompileError> tryNestedSealedInterfaces(Class<?> type, Node node, String nodeType) {
