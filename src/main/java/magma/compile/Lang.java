@@ -62,7 +62,7 @@ public class Lang {
 			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JType extends InstanceOfTarget
-			permits Array, Identifier, Invalid, JGeneric, Variadic, Wildcard {}
+			permits Array, Identifier, Invalid, JGeneric, SubType, Variadic, Wildcard {}
 
 	sealed public interface CType {
 		String stringify();
@@ -477,6 +477,9 @@ public class Lang {
 			return operator;
 		}
 	}
+
+	@Tag("subtype")
+	public record SubType(JType type, String name) implements JType {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));

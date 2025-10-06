@@ -27,8 +27,7 @@ public class TypeTransformer {
 				if (identifier.value().equals("String")) yield new Lang.Pointer(new Lang.Identifier("char"));
 				yield identifier;
 			}
-			case Lang.Wildcard wildcard -> new Lang.Invalid("???");
-			case Lang.Variadic variadic -> new Lang.Invalid("???");
+			default -> new Lang.Invalid("???");
 		};
 	}
 }

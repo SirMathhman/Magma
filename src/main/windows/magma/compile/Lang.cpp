@@ -184,6 +184,7 @@ DivideState fold_OperatorFolder(DivideState state, char c) {
 char* delimiter_OperatorFolder() {
 	return operator;
 }
+struct SubType {JType type;char* name;};
 Rule CRoot_Lang() {
 	return Statements("", Strip("", Or(CStructure(), Function()), ""));
 }
