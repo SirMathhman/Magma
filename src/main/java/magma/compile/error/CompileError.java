@@ -6,9 +6,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.OptionalInt;
 import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
 	public CompileError(String reason, Context sourceCode) {
@@ -28,14 +30,20 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 		if (depth == 0) s = "";
 		else s = System.lineSeparator() + "\t".repeat(depth);
 
-		final String joinedIndices = indices.stream().map(String::valueOf).collect(Collectors.joining("."));
+		final String joinedIndices = getCollect(indices);
 		return s + joinedIndices + ") " + reason + ": " + context.display(depth) + formattedChildren;
 	}
 
+	private String getCollect(Stack<Integer> indices) {
+		final Stream<Integer> stream = indices.stream();
+		final Stream<String> stringStream = stream.map(String::valueOf);
+		return stringStream.collect(Collectors.joining("."));
+	}
+
 	private String joinErrors(int depth, Stack<Integer> indices, List<CompileError> copy) {
-		return IntStream.range(0, copy.size())
-										.mapToObj(index -> formatChild(depth, copy, indices, index))
-										.collect(Collectors.joining());
+		final IntStream range = IntStream.range(0, copy.size());
+		final Stream<String> stringStream = range.mapToObj(index -> formatChild(depth, copy, indices, index));
+		return stringStream.collect(Collectors.joining());
 	}
 
 	private String formatChild(int depth, List<CompileError> copy, Stack<Integer> indices, int last) {
@@ -47,6 +55,8 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 	}
 
 	private int depth() {
-		return 1 + causes.stream().mapToInt(CompileError::depth).max().orElse(0);
+		final IntStream intStream = causes.stream().mapToInt(CompileError::depth);
+		final OptionalInt max = intStream.max();
+		return 1 + max.orElse(0);
 	}
 }
