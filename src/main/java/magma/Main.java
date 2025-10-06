@@ -268,6 +268,8 @@ public class Main {
 			case JAdd add -> new CAdd(transformExpression(add.left()), transformExpression(add.right()));
 			case JString jString -> new CString(jString.content().orElse(""));
 			case JEquals jEquals -> new CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
+			case And and -> new CAnd(transformExpression(and.left()), transformExpression(and.right()));
+			case InstanceOf instanceOf -> new Invalid("???");
 		};
 	}
 
@@ -357,6 +359,7 @@ public class Main {
 				if (identifier.value().equals("String")) yield new Pointer(new Identifier("char"));
 				yield identifier;
 			}
+			case Wildcard wildcard -> new Invalid("???");
 		};
 	}
 }

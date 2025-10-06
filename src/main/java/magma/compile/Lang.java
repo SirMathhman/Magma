@@ -47,7 +47,8 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
 	sealed public interface JExpression
-			permits And, Identifier, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation, JString, Switch {}
+			permits And, Identifier, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation, JString,
+			Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
@@ -57,7 +58,7 @@ public class Lang {
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
 			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
 
-	sealed public interface JType permits Array, Identifier, Invalid, JGeneric, Wildcard {}
+	sealed public interface JType extends InstanceOfTarget permits Array, Identifier, Invalid, JGeneric, Wildcard {}
 
 	sealed public interface CType {
 		String stringify();
@@ -74,13 +75,19 @@ public class Lang {
 	// Sealed interface for C parameter types
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
 
-	public sealed interface CExpression permits CAdd, CEquals, CFieldAccess, CInvocation, CString, Identifier, Invalid {}
+	public sealed interface CExpression
+			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, Identifier, Invalid {}
+
+	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {}
 
 	@Tag("and")
 	public record And(JExpression left, JExpression right) implements JExpression {}
 
+	@Tag("destruct")
+	public record Destruct() implements InstanceOfTarget {}
+
 	@Tag("instanceof")
-	public record InstanceOf() {}
+	public record InstanceOf(JExpression child, InstanceOfTarget target) implements JExpression {}
 
 	@Tag("wildcard")
 	public record Wildcard() implements JType {}
@@ -93,6 +100,9 @@ public class Lang {
 
 	@Tag("equals")
 	public record CEquals(CExpression left, CExpression right) implements CExpression {}
+
+	@Tag("and")
+	public record CAnd(CExpression left, CExpression right) implements CExpression {}
 
 	@Tag("string")
 	public record JString(Option<String> content) implements JExpression {}
@@ -177,7 +187,7 @@ public class Lang {
 
 	@Tag("definition")
 	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
-														Option<List<Identifier>> typeParameters) implements JMethodSegment {}
+														Option<List<Identifier>> typeParameters) implements JMethodSegment, InstanceOfTarget {}
 
 	@Tag("modifier")
 	public record Modifier(String value) {}
