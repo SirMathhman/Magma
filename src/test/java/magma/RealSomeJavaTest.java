@@ -5,7 +5,7 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.transform.RootTransformer;
+import magma.transform.Transformer;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.JRoot;
@@ -54,7 +54,7 @@ public class RealSomeJavaTest {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 				});
 
-				Result<CRoot, CompileError> transformResult = RootTransformer.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + transformOk.value().children().size());

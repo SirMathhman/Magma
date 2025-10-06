@@ -3,7 +3,7 @@ import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
 import magma.result.Result;
-import magma.transform.RootTransformer;
+import magma.transform.Transformer;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
@@ -63,7 +63,7 @@ public class DebugFunctionPointerTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = RootTransformer.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
