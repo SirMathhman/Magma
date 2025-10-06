@@ -561,14 +561,15 @@ public class Lang {
 		Rule inner = JDefinition();
 		methodSegment.set(Strip(Or(Whitespace(),
 															 LineComment(),
+															 Switch("statement", expression, methodSegment),
 															 Conditional("if", expression, methodSegment),
 															 Conditional("while", expression, methodSegment),
-															 Switch("statement", expression, methodSegment),
 															 Else(methodSegment),
 															 Try(methodSegment),
 															 QuantityBlock("catch", "definition", inner, methodSegment),
 															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
-															 Block(methodSegment))));
+															 Block(methodSegment),
+															 BlockComment())));
 		return methodSegment;
 	}
 
@@ -665,6 +666,7 @@ public class Lang {
 											Index(expression),
 											Invokable(expression),
 											FieldAccess(expression),
+											Tag("method-access", Last(Node("child", expression), "::", StrippedIdentifier("name"))),
 											InstanceOf(expression),
 											Operator("add", "+", expression),
 											Operator("subtract", "-", expression),
@@ -730,7 +732,8 @@ public class Lang {
 
 	private static Rule Case(String group, Rule rule) {
 		Rule after = Node("target", Or(JDefinition(), Destruct()));
-		Rule value = First(Or(Prefix("case", after), Strip(Prefix("default", Empty))), "->", Node("value", rule));
+		final Rule defaultCase = Strip(Prefix("default", Empty));
+		Rule value = First(Or(defaultCase, Prefix("case", after)), "->", Node("value", rule));
 		return Tag("case-" + group, value);
 	}
 

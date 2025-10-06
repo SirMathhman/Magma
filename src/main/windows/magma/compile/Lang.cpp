@@ -249,7 +249,7 @@ Rule JMethodSegment_Lang() {
 	new LazyRule();
 	Rule expression=JExpression((methodSegment);
 	Rule inner=JDefinition(();
-	methodSegment.set((Strip((Or((Whitespace((), LineComment((), Conditional(("", expression, methodSegment), Conditional(("", expression, methodSegment), Switch(("", expression, methodSegment), Else((methodSegment), Try((methodSegment), QuantityBlock(("", "", inner, methodSegment), Strip((Suffix((JMethodStatementValue((methodSegment), "")), Block((methodSegment))));
+	methodSegment.set((Strip((Or((Whitespace((), LineComment((), Switch(("", expression, methodSegment), Conditional(("", expression, methodSegment), Conditional(("", expression, methodSegment), Else((methodSegment), Try((methodSegment), QuantityBlock(("", "", inner, methodSegment), Strip((Suffix((JMethodStatementValue((methodSegment), "")), Block((methodSegment), BlockComment(())));
 	return methodSegment;
 }
 Rule Try_Lang(LazyRule methodSegment) {
@@ -307,7 +307,7 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	new LazyRule();
-	expression.set((Or((Lambda((statement, expression), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch(("", expression, CaseExprValue((statement, expression)), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
+	expression.set((Or((Lambda((statement, expression), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch(("", expression, CaseExprValue((statement, expression)), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), Tag(("", Last((Node(("", expression), "", StrippedIdentifier((""))), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
 	return expression;
 }
 Rule CaseExprValue_Lang(Rule statement, LazyRule expression) {
@@ -348,7 +348,8 @@ Rule Switch_Lang(char* group, Rule expression, Rule rule) {
 }
 Rule Case_Lang(char* group, Rule rule) {
 	Rule after=Node(("", Or((JDefinition((), Destruct(()));
-	Rule value=First((Or((Prefix(("", after), Strip((Prefix(("", Empty))), "", Node(("", rule));
+	Rule defaultCase=Strip((Prefix(("", Empty));
+	Rule value=First((Or((defaultCase, Prefix(("", after)), "", Node(("", rule));
 	return Tag((""+group, value);
 }
 Rule CExpression_Lang() {
