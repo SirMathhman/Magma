@@ -32,7 +32,9 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return divider.divide(input)
 									.reduce(new Ok<>(new ArrayList<>()), this::fold, (_, next) -> next)
 									.mapValue(list -> new Node().withNodeList(key, list))
-									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'", new StringContext(input), List.of(err)));
+									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
+																									new StringContext(input),
+																									List.of(err)));
 	}
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
@@ -51,21 +53,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<String, CompileError> generate(Node value) {
-		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(list -> {
-			// Treat missing or empty lists as empty content when generating.
-			if (list.isEmpty()) return new Ok<>("");
-
-			final StringJoiner sb = new StringJoiner(divider.delimiter());
-			for (Node child : list)
-				switch (this.rule.generate(child)) {
-					case Ok<String, CompileError>(String value1) -> sb.add(value1);
-					case Err<String, CompileError>(CompileError error) -> {
-						return new Err<>(error);
-					}
-				}
-
-			return new Ok<>(sb.toString());
-		});
+		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(this::generateList);
 
 		return switch (resultOption) {
 			// If the node-list isn't present at all, treat it as empty rather than an
@@ -73,5 +61,25 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 			case None<Result<String, CompileError>> _ -> new Ok<>("");
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
+	}
+
+	private Result<String, CompileError> generateList(List<Node> list) {
+		// Treat missing or empty lists as empty content when generating.
+		if (list.isEmpty()) return new Ok<>("");
+
+		final StringJoiner sb = new StringJoiner(divider.delimiter());
+		int i = 0;
+		while (i < list.size()) {
+			Node child = list.get(i);
+			switch (this.rule.generate(child)) {
+				case Ok<String, CompileError>(String value1) -> sb.add(value1);
+				case Err<String, CompileError>(CompileError error) -> {
+					return new Err<>(error);
+				}
+			}
+			i++;
+		}
+
+		return new Ok<>(sb.toString());
 	}
 }

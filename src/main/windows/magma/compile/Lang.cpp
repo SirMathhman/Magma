@@ -49,9 +49,9 @@ struct JInvocation {JExpression caller;Option<> arguments;};
 struct Not {JExpression child;};
 struct ExprCaseExprValue {JExpression expression;};
 struct StatementCaseExprValue {JMethodSegment statement;};
-record CaseExpr_Lang(Option<> target, CaseExprValue value) {
+record CaseExpr_Lang(Option<> target, CaseExprValue value, Option<> when) {
 }
-record CaseStatement_Lang(Option<> target, JMethodSegment value) {
+record CaseStatement_Lang(Option<> target, JMethodSegment value, Option<> when) {
 }
 struct SwitchExpr {JExpression value;List<> cases;};
 struct SwitchStatement {JExpression value;List<> cases;};
@@ -377,14 +377,15 @@ Rule Operator_Lang(char* type, char* infix, LazyRule expression) {
 	return Tag(type, First(Node("", expression), infix, Node("", expression)));
 }
 Rule Switch_Lang(char* group, Rule expression, Rule rule) {
-	Rule cases=Statements("", Strip(Or(Case(group, rule), Empty)));
+	Rule cases=Statements("", Strip(Or(Case(group, rule, expression), Empty)));
 	Rule value=Prefix("", Suffix(Node("", expression), ""));
 	return Tag(""+group, Strip(Prefix("", Suffix(First(Strip(value), "", cases), ""))));
 }
-Rule Case_Lang(char* group, Rule rule) {
-	Rule after=Node("", Or(JDefinition(), Destruct()));
+Rule Case_Lang(char* group, Rule rule, Rule expression) {
+	Rule target=Node("", Or(JDefinition(), Destruct()));
 	Rule defaultCase=Strip(Prefix("", Empty));
-	Rule value=First(Or(defaultCase, Prefix("", after)), "", Node("", rule));
+	Rule withWhen=Last(target, "", Node("", expression));
+	Rule value=First(Or(defaultCase, Prefix("", Or(withWhen, target))), "", Node("", rule));
 	return Tag(""+group, value);
 }
 Rule CExpression_Lang() {

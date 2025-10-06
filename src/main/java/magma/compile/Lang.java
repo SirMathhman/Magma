@@ -160,10 +160,10 @@ public class Lang {
 	public record StatementCaseExprValue(JMethodSegment statement) implements CaseExprValue {}
 
 	@Tag("case-expr")
-	public record CaseExpr(Option<CaseTarget> target, CaseExprValue value) {}
+	public record CaseExpr(Option<CaseTarget> target, CaseExprValue value, Option<JExpression> when) {}
 
 	@Tag("case-statement")
-	public record CaseStatement(Option<CaseTarget> target, JMethodSegment value) {}
+	public record CaseStatement(Option<CaseTarget> target, JMethodSegment value, Option<JExpression> when) {}
 
 	@Tag("switch-expr")
 	public record SwitchExpr(JExpression value, List<CaseExpr> cases) implements JExpression {}
@@ -795,15 +795,16 @@ public class Lang {
 	}
 
 	private static Rule Switch(String group, Rule expression, Rule rule) {
-		final Rule cases = Statements("cases", Strip(Or(Case(group, rule), Empty)));
+		final Rule cases = Statements("cases", Strip(Or(Case(group, rule, expression), Empty)));
 		final Rule value = Prefix("(", Suffix(Node("value", expression), ")"));
 		return Tag("switch-" + group, Strip(Prefix("switch ", Suffix(First(Strip(value), "{", cases), "}"))));
 	}
 
-	private static Rule Case(String group, Rule rule) {
-		Rule after = Node("target", Or(JDefinition(), Destruct()));
+	private static Rule Case(String group, Rule rule, Rule expression) {
+		Rule target = Node("target", Or(JDefinition(), Destruct()));
 		final Rule defaultCase = Strip(Prefix("default", Empty));
-		Rule value = First(Or(defaultCase, Prefix("case", after)), "->", Node("value", rule));
+		final Rule withWhen = Last(target, "when", Node("when", expression));
+		Rule value = First(Or(defaultCase, Prefix("case", Or(withWhen, target))), "->", Node("value", rule));
 		return Tag("case-" + group, value);
 	}
 

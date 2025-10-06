@@ -7,13 +7,13 @@ DivideState fold_StatementFolder(DivideState state, char c) {
 	if (/*???*/&&next=='>')
 	{
 	return state.popAndAppendToOption().orElse(state);}}
-	return appended.advance();
+	if (c==';'&&appended.isLevel())return appended.advance();
 	if (c=='}'&&appended.isShallow())
 	{
-	if((/*???*/.orElse((appended).advance(().exit(();
+	if (/*???*/&&next==';')return appended.popAndAppendToOption().orElse(appended).advance().exit();
 	return appended.advance().exit();}
-	if (c=='{' || c == '(')return appended.enter();
-	if (c=='}' || c == ')')return appended.exit();
+	if (c==/*???*/=='(')return appended.enter();
+	if (c==/*???*/==')')return appended.exit();
 	return appended;
 }
 char* delimiter_StatementFolder() {
