@@ -8,27 +8,33 @@ import magma.option.Some;
 public record EscapingFolder(Folder folder) implements Folder {
 	@Override
 	public DivideState fold(DivideState state, char c) {
-		if (c == '\'') return state.append(c)
-				.popAndAppendToTuple()
-				.map(this::foldEscape)
-				.flatMap(DivideState::popAndAppendToOption)
-				.orElse(state);
+		return getDivideState(state, c).or(() -> handleDoubleQuotes(state, c))
+																	 .or(() -> handleComments(state, c))
+																	 .orElseGet(() -> folder.fold(state, c));
+	}
 
-		if (c == '\"') {
-			DivideState current = state.append(c);
-			while (true) {
-				final Option<Tuple<DivideState, Character>> tupleOption = current.popAndAppendToTuple();
-				if (tupleOption instanceof Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> t0)) {
-					current = t0.left();
+	private Option<DivideState> getDivideState(DivideState state, char c) {
+		if (c != '\'') return Option.empty();
+		return Option.of(state.append(c)
+													.popAndAppendToTuple()
+													.map(this::foldEscape)
+													.flatMap(DivideState::popAndAppendToOption)
+													.orElse(state));
+	}
 
-					if (t0.right() == '\\') current = current.popAndAppendToOption().orElse(current);
-					if (t0.right() == '\"') break;
-				} else break;
-			}
-			return current;
+	private Option<DivideState> handleDoubleQuotes(DivideState state, char c) {
+		if (c != '\"') return Option.empty();
+		DivideState current = state.append(c);
+		while (true) {
+			final Option<Tuple<DivideState, Character>> tupleOption = current.popAndAppendToTuple();
+			if (tupleOption instanceof Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> t0)) {
+				current = t0.left();
+
+				if (t0.right() == '\\') current = current.popAndAppendToOption().orElse(current);
+				if (t0.right() == '\"') break;
+			} else break;
 		}
-
-		return handleComments(state, c).orElseGet(() -> folder.fold(state, c));
+		return Option.of(current);
 	}
 
 	private Option<DivideState> handleComments(DivideState state, char c) {
@@ -38,12 +44,11 @@ public record EscapingFolder(Folder folder) implements Folder {
 	}
 
 	private Option<DivideState> handleLineComments(DivideState state) {
-		if (state.peek() instanceof Some<Character>(Character next) && next == '/')
-			while (true) {
-				Option<Character> pop = state.pop();
-				if (pop instanceof None || (pop instanceof Some<Character>(var c) && c == '\n')) return Option.of(state);
-			}
-		return Option.empty();
+		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '/') return Option.empty();
+		while (true) {
+			Option<Character> pop = state.pop();
+			if (pop instanceof None || (pop instanceof Some<Character>(Character c) && c == '\n')) return Option.of(state);
+		}
 	}
 
 	private Option<DivideState> handleBlockComments(DivideState state, char c) {
