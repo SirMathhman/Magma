@@ -367,7 +367,7 @@ public class Lang {
 
 		@Override
 		public String delimiter() {
-			return String.valueOf(open);
+			return "";
 		}
 	}
 
