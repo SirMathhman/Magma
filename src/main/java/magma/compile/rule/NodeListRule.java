@@ -23,7 +23,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return new NodeListRule(key, rule, new DelimitedRule(delimiter));
 	}
 
-	public static Rule Arguments(String key, Rule rule) {
+	public static Rule Expressions(String key, Rule rule) {
 		return new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()));
 	}
 

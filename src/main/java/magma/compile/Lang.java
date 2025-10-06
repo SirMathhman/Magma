@@ -224,7 +224,7 @@ public class Lang {
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<JType> implementsClause) implements JStructure {}
+											 Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -234,7 +234,7 @@ public class Lang {
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
 											 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
-											 Option<JType> implementsClause) implements JStructure {}
+											 Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("struct")
 	public record Structure(String name, List<CDefinition> fields, Option<String> after,
@@ -363,13 +363,13 @@ public class Lang {
 
 	public static Rule Function() {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Arguments("params", Or(CFunctionPointerDefinition(), CDefinition()));
+		final Rule params = Expressions("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Statements("body", CFunctionSegment());
 		final Rule functionDecl =
 				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}"));
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", Identifier()));
 		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
@@ -382,7 +382,7 @@ public class Lang {
 		return Tag("functionPointerDefinition",
 							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
 														"",
-														Arguments("paramTypes", CType())), ")"));
+														Expressions("paramTypes", CType())), ")"));
 	}
 
 	private static Rule CDefinition() {
@@ -393,7 +393,7 @@ public class Lang {
 		final LazyRule rule = new LazyRule();
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
-				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Arguments("paramTypes", rule)), ")"));
+				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
 		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule)));
 		return rule;
 	}
@@ -408,7 +408,7 @@ public class Lang {
 		final Rule structComplete = Suffix(structWithFields, ";");
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Arguments("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", Identifier()));
 		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
@@ -445,10 +445,10 @@ public class Lang {
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
 		final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Node("extendsClause", JType())), maybeWithParameters);
+				Or(Last(maybeWithParameters, "extends", Expressions("superclasses", JType())), maybeWithParameters);
 
 		final Rule beforeContent =
-				Or(Last(maybeWithParameters1, "implements", Node("implementsClause", JType())), maybeWithParameters1);
+				Or(Last(maybeWithParameters1, "implements", Expressions("interfaces", JType())), maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
@@ -462,7 +462,7 @@ public class Lang {
 
 	private static Rule NameWithTypeParameters() {
 		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeParameters = Suffix(First(name, "<", Arguments("typeParameters", Identifier())), ">");
+		final Rule withTypeParameters = Suffix(First(name, "<", Expressions("typeParameters", Identifier())), ">");
 		return Strip(Or(withTypeParameters, name));
 	}
 
@@ -547,7 +547,7 @@ public class Lang {
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
-		final Rule arguments = Arguments("arguments", expression);
+		final Rule arguments = Expressions("arguments", expression);
 		return getTag(type, caller, arguments, '(', ')');
 	}
 
@@ -704,7 +704,7 @@ public class Lang {
 	}
 
 	private static Rule Parameters() {
-		return Arguments("params", Or(ParameterDefinition(), Whitespace()));
+		return Expressions("params", Or(ParameterDefinition(), Whitespace()));
 	}
 
 	private static Rule ParameterDefinition() {
@@ -750,7 +750,7 @@ public class Lang {
 
 	private static Rule Generic(Rule type) {
 		final Rule base = Strip(String("base"));
-		final Rule arguments = Or(Arguments("typeArguments", type), Strip(Empty));
+		final Rule arguments = Or(Expressions("typeArguments", type), Strip(Empty));
 		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
 	}
 }
