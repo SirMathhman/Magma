@@ -4,18 +4,21 @@ public Accumulator_Accumulator() {
 	this((new_???((), new_???(());
 }
 Result<> merge_Accumulator(List<> elements, Result<> (*mapper)(T)) {
-	return elements.stream().reduce(new Accumulator<R>(), (accumulator, rule) -> switch (mapper.apply(rule)) {
-			case Err<R, CompileError> v -> accumulator.addError(v.error());
-			case Ok<R, CompileError> v -> accumulator.setValue(v.value());
-		}, (_, next) -> next).toResult();
+	Accumulator<> identity=new_???(();
+	Stream<> stream=elements.stream(();
+	Accumulator<> reduce=stream.reduce((identity, /*???*/, /*???*/);
+	return reduce.toResult(();
 }
-public Accumulator<> addError_Accumulator(CompileError error) {
+Accumulator<> fold_Accumulator(Result<> (*mapper)(T), Accumulator<> accumulator, T rule) {
+	return ???;
+}
+Accumulator<> addError_Accumulator(CompileError error) {
 	errors.add((error);
 	return this;
 }
-public Accumulator<> setValue_Accumulator(T value) {
+Accumulator<> setValue_Accumulator(T value) {
 	return new_???((new_???((value), errors);
 }
-public Result<> toResult_Accumulator() {
+Result<> toResult_Accumulator() {
 	return ???;
 }

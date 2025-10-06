@@ -11,6 +11,7 @@ import magma.result.Result;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Function;
+import java.util.stream.Stream;
 
 public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	public Accumulator() {
@@ -19,10 +20,20 @@ public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 
 	public static <T, R> Result<R, List<CompileError>> merge(List<T> elements,
 																													 Function<T, Result<R, CompileError>> mapper) {
-		return elements.stream().reduce(new Accumulator<R>(), (accumulator, rule) -> switch (mapper.apply(rule)) {
+		final Accumulator<R> identity = new Accumulator<R>();
+		final Stream<T> stream = elements.stream();
+		final Accumulator<R> reduce =
+				stream.reduce(identity, (accumulator, rule) -> fold(mapper, accumulator, rule), (_, next) -> next);
+		return reduce.toResult();
+	}
+
+	private static <T, R> Accumulator<R> fold(Function<T, Result<R, CompileError>> mapper,
+																						Accumulator<R> accumulator,
+																						T rule) {
+		return switch (mapper.apply(rule)) {
 			case Err<R, CompileError> v -> accumulator.addError(v.error());
 			case Ok<R, CompileError> v -> accumulator.setValue(v.value());
-		}, (_, next) -> next).toResult();
+		};
 	}
 
 	public Accumulator<T> addError(CompileError error) {

@@ -168,8 +168,11 @@ public class Lang {
 	@Tag("statement-lambda-value")
 	public record StatementLambdaValue(JMethodSegment child) implements LambdaValue {}
 
+	@Tag("lambda-param")
+	public record LambdaParam(String value) {}
+
 	@Tag("lambda")
-	public record Lambda(Option<String> param, LambdaValue child) implements JExpression {}
+	public record Lambda(Option<List<LambdaParam>> params, LambdaValue child) implements JExpression {}
 
 	@Tag("new-array")
 	public record NewArray(JType type, JExpression length) implements JExpression {}
@@ -689,7 +692,7 @@ public class Lang {
 	}
 
 	private static Rule Lambda(Rule statement, Rule expression) {
-		final Rule strip = Or(Strip(Prefix("()", Empty)), StrippedIdentifier("param"));
+		final Rule strip = Or(Strip(Prefix("(", Suffix(Or(Expressions("params", StrippedIdentifier("value")), Empty), ")"))), StrippedIdentifier("param"));
 		final Rule child = Node("child",
 														Or(Tag("statement-lambda-value", Node("child", statement)),
 															 Tag("expr-lambda-value", Node("child", expression))));
@@ -713,7 +716,7 @@ public class Lang {
 	}
 
 	private static Rule FieldAccess(Rule expression) {
-		return Tag("field-access", Last(Node("child", expression), ".", Strip(String("name"))));
+		return Tag("field-access", Last(Node("child", expression), ".", StrippedIdentifier("name")));
 	}
 
 	private static Rule StringExpr() {
@@ -799,7 +802,7 @@ public class Lang {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule type = Node("type", JType());
-		final Rule name = String("name");
+		final Rule name = StrippedIdentifier("name");
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
@@ -836,7 +839,7 @@ public class Lang {
 	}
 
 	private static Rule Generic(Rule type) {
-		final Rule base = Strip(String("base"));
+		final Rule base = StrippedIdentifier("base");
 		final Rule arguments = Or(Expressions("typeArguments", type), Strip(Empty));
 		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
 	}
