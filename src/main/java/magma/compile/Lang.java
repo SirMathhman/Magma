@@ -2,6 +2,7 @@ package magma.compile;
 
 import magma.compile.rule.BraceStartFolder;
 import magma.compile.rule.ClosingParenthesesFolder;
+import magma.compile.rule.ContextRule;
 import magma.compile.rule.DivideState;
 import magma.compile.rule.DividingSplitter;
 import magma.compile.rule.EscapingFolder;
@@ -11,6 +12,8 @@ import magma.compile.rule.FoldingDivider;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
+import magma.compile.rule.SplitRule;
+import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TypeFolder;
 import magma.option.None;
@@ -148,10 +151,10 @@ public class Lang {
 	public record StatementCaseExprValue(JMethodSegment statement) implements CaseExprValue {}
 
 	@Tag("case-expr")
-	public record CaseExpr(CaseTarget target, CaseExprValue value) {}
+	public record CaseExpr(Option<CaseTarget> target, CaseExprValue value) {}
 
 	@Tag("case-statement")
-	public record CaseStatement(CaseTarget target, JMethodSegment value) {}
+	public record CaseStatement(Option<CaseTarget> target, JMethodSegment value) {}
 
 	@Tag("switch-expr")
 	public record SwitchExpr(JExpression value, List<CaseExpr> cases) implements JExpression {}
@@ -395,6 +398,21 @@ public class Lang {
 	@Tag("variadic")
 	public record Variadic(JType child) implements JType {}
 
+	private static class MyFolder implements Folder {
+		@Override
+		public DivideState fold(DivideState state, char c) {
+			if (c == '(') return state.append(c).enter();
+			if (c == ')') if (state.isLevel()) return state.advance();
+			else return state.exit().append(c);
+			return state.append(c);
+		}
+
+		@Override
+		public String delimiter() {
+			return "";
+		}
+	}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -547,11 +565,21 @@ public class Lang {
 															 Conditional("while", expression, methodSegment),
 															 Switch("statement", expression, methodSegment),
 															 Else(methodSegment),
-															 Tag("try", Prefix("try ", Node("child", methodSegment))),
+															 Try(methodSegment),
 															 QuantityBlock("catch", "definition", inner, methodSegment),
 															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
 															 Block(methodSegment))));
 		return methodSegment;
+	}
+
+	private static Rule Try(LazyRule methodSegment) {
+		final Rule child = Node("child", methodSegment);
+		final Rule resource = Node("resource", Initialization(JDefinition(), JExpression(methodSegment)));
+		final Splitter splitter = new DividingSplitter(new FoldingDivider(new EscapingFolder(new MyFolder())));
+		final Rule withResource =
+				new ContextRule("With resource", Strip(Prefix("(", new SplitRule(resource, child, splitter))));
+		final ContextRule withoutResource = new ContextRule("Without resource", child);
+		return Tag("try", Prefix("try ", Or(withResource, withoutResource)));
 	}
 
 	private static Rule Block(LazyRule rule) {
@@ -701,9 +729,9 @@ public class Lang {
 	}
 
 	private static Rule Case(String group, Rule rule) {
-		Rule definition = Node("target", Or(JDefinition(), Destruct()));
-		Rule value = First(definition, "->", Node("value", rule));
-		return Tag("case-" + group, Prefix("case", value));
+		Rule after = Node("target", Or(JDefinition(), Destruct()));
+		Rule value = First(Or(Prefix("case", after), Strip(Prefix("default", Empty))), "->", Node("value", rule));
+		return Tag("case-" + group, value);
 	}
 
 	private static Rule CExpression() {

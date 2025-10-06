@@ -45,9 +45,9 @@ struct JInvocation {JExpression caller;Option<> arguments;};
 struct Not {JExpression child;};
 struct ExprCaseExprValue {JExpression expression;};
 struct StatementCaseExprValue {JMethodSegment statement;};
-record CaseExpr_Lang(CaseTarget target, CaseExprValue value) {
+record CaseExpr_Lang(Option<> target, CaseExprValue value) {
 }
-record CaseStatement_Lang(CaseTarget target, JMethodSegment value) {
+record CaseStatement_Lang(Option<> target, JMethodSegment value) {
 }
 struct SwitchExpr {JExpression value;List<> cases;};
 struct SwitchStatement {JExpression value;List<> cases;};
@@ -144,6 +144,16 @@ struct Try {JMethodSegment child;};
 struct Catch {JDefinition definition;JMethodSegment body;};
 struct Yield {JExpression child;};
 struct Variadic {JType child;};
+struct MyFolder {};
+DivideState fold_MyFolder(DivideState state, char c) {
+	if (c=='(')return state.append(c).enter();
+	if (c==')')return state.advance();
+	return state.exit().append(c);
+	return state.append(c);
+}
+char* delimiter_MyFolder() {
+	return "";
+}
 Rule CRoot_Lang() {
 	return Statements(("", Strip(("", Or((CStructure((), Function(()), ""));
 }
@@ -239,8 +249,16 @@ Rule JMethodSegment_Lang() {
 	new LazyRule();
 	Rule expression=JExpression((methodSegment);
 	Rule inner=JDefinition(();
-	methodSegment.set((Strip((Or((Whitespace((), LineComment((), Conditional(("", expression, methodSegment), Conditional(("", expression, methodSegment), Switch(("", expression, methodSegment), Else((methodSegment), Tag(("", Prefix(("", Node(("", methodSegment))), QuantityBlock(("", "", inner, methodSegment), Strip((Suffix((JMethodStatementValue((methodSegment), "")), Block((methodSegment))));
+	methodSegment.set((Strip((Or((Whitespace((), LineComment((), Conditional(("", expression, methodSegment), Conditional(("", expression, methodSegment), Switch(("", expression, methodSegment), Else((methodSegment), Try((methodSegment), QuantityBlock(("", "", inner, methodSegment), Strip((Suffix((JMethodStatementValue((methodSegment), "")), Block((methodSegment))));
 	return methodSegment;
+}
+Rule Try_Lang(LazyRule methodSegment) {
+	Rule child=Node(("", methodSegment);
+	Rule resource=Node(("", Initialization((JDefinition((), JExpression((methodSegment)));
+	Splitter splitter=new_???((new_???((new_???((new_???(())));
+	Rule withResource=new_???(("", Strip((Prefix(("", new_???((resource, child, splitter))));
+	ContextRule withoutResource=new_???(("", child);
+	return Tag(("", Prefix(("", Or((withResource, withoutResource)));
 }
 Rule Block_Lang(LazyRule rule) {
 	return Tag(("", Strip((Prefix(("", Suffix((Statements(("", rule), ""))));
@@ -329,9 +347,9 @@ Rule Switch_Lang(char* group, Rule expression, Rule rule) {
 	return Tag((""+group, Strip((Prefix(("", Suffix((First((Strip((value), "", cases), ""))));
 }
 Rule Case_Lang(char* group, Rule rule) {
-	Rule definition=Node(("", Or((JDefinition((), Destruct(()));
-	Rule value=First((definition, "", Node(("", rule));
-	return Tag((""+group, Prefix(("", value));
+	Rule after=Node(("", Or((JDefinition((), Destruct(()));
+	Rule value=First((Or((Prefix(("", after), Strip((Prefix(("", Empty))), "", Node(("", rule));
+	return Tag((""+group, value);
 }
 Rule CExpression_Lang() {
 	new LazyRule();

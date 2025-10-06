@@ -2,11 +2,14 @@ package magma.compile.rule;
 
 import magma.compile.Node;
 import magma.compile.context.NodeContext;
+import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Result;
+
+import java.util.List;
 
 public record NodeRule(String key, Rule rule) implements Rule {
 	public static Rule Node(String key, Rule rule) {
@@ -15,7 +18,11 @@ public record NodeRule(String key, Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		return rule.lex(content).mapValue(node -> new Node().withNode(key, node));
+		return rule.lex(content)
+							 .mapValue(node -> new Node().withNode(key, node))
+							 .mapErr(error -> new CompileError("Failed to attach node '" + key + "'",
+																								 new StringContext(content),
+																								 List.of(error)));
 	}
 
 	@Override

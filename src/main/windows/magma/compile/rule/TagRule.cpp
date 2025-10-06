@@ -5,9 +5,10 @@ Rule Tag_TagRule(char* type, Rule rule) {
 }
 @Override
 	public Result<> lex_TagRule(char* content) {
-	return rule.lex(content).mapValue(node -> node.retype(tag)).mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-																								 new StringContext(content),
-																								 List.of(error)));
+	final Result<> lex=rule.lex(content);
+	return lex.mapValue(node -> node.retype(tag)).mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
+																								new StringContext(content),
+																								List.of(error)));
 }
 @Override
 	public Result<> generate_TagRule(Node node) {

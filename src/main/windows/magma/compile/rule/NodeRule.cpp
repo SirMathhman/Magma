@@ -5,7 +5,9 @@ Rule Node_NodeRule(char* key, Rule rule) {
 }
 @Override
 	public Result<> lex_NodeRule(char* content) {
-	return rule.lex(content).mapValue(node -> new Node().withNode(key, node));
+	return rule.lex(content).mapValue(node -> new Node().withNode(key, node)).mapErr(error -> new CompileError("Failed to attach node '" + key + "'",
+																								 new StringContext(content),
+																								 List.of(error)));
 }
 @Override
 	public Result<> generate_NodeRule(Node node) {

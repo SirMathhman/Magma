@@ -53,7 +53,9 @@ public class Main {
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 
-			for (Path javaFile : javaFiles) {
+			int i = 0;
+			while (i < javaFiles.size()) {
+				Path javaFile = javaFiles.get(i);
 				System.out.println("Compiling: " + javaFile);
 				Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
 				if (result instanceof Some<ApplicationError>(ApplicationError error)) {
@@ -61,6 +63,7 @@ public class Main {
 					return result; // Fail fast - return the error immediately
 				}
 				System.out.println("Successfully compiled: " + javaFile);
+				i++;
 			}
 
 			return Option.empty();
@@ -155,11 +158,10 @@ public class Main {
 		addRecordParamsAsFields(aClass, fields);
 
 		final String name = aClass.name();
-		for (JStructureSegment child : children) {
-			final Tuple<List<CRootSegment>, Option<CDefinition>> tuple = flattenStructureSegment(child, name);
+		children.stream().map(child -> flattenStructureSegment(child, name)).forEach(tuple -> {
 			segments.addAll(tuple.left());
 			if (tuple.right() instanceof Some<CDefinition>(CDefinition value)) fields.add(value);
-		}
+		});
 
 		final Structure structure =
 				new Structure(name, fields, new Some<>(System.lineSeparator()), aClass.typeParameters());
@@ -172,10 +174,8 @@ public class Main {
 	private static void addRecordParamsAsFields(JStructure aClass, ArrayList<CDefinition> fields) {
 		if (aClass instanceof Lang.Record record) {
 			Option<List<JDefinition>> params = record.params();
-			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList)) for (JDefinition param : paramList) {
-				final CDefinition cDef = transformDefinition(param);
-				fields.add(cDef);
-			}
+			if (params instanceof Some<List<JDefinition>>(List<JDefinition> paramList))
+				paramList.stream().map(Main::transformDefinition).forEach(fields::add);
 		}
 	}
 
@@ -214,9 +214,7 @@ public class Main {
 		final List<CFunctionSegment> bodySegments = switch (method.body()) {
 			case None<List<JMethodSegment>> _ -> Collections.emptyList();
 			case Some<List<JMethodSegment>>(List<JMethodSegment> segments) -> {
-				yield segments.stream().map(segment -> {
-					return transformFunctionSegment(segment);
-				}).toList();
+				yield segments.stream().map(Main::transformFunctionSegment).toList();
 			}
 		};
 
@@ -321,7 +319,7 @@ public class Main {
 
 		// Check parameter types for type variables
 		if (method.params() instanceof Some<List<JDefinition>>(List<JDefinition> paramList))
-			for (JDefinition param : paramList) collectTypeVariables(param.type(), typeVars);
+			paramList.forEach(param -> collectTypeVariables(param.type(), typeVars));
 
 		if (typeVars.isEmpty()) return new None<>();
 
@@ -343,7 +341,7 @@ public class Main {
 					typeVars.add(generic.base());
 				// Collect from type typeArguments
 				final List<JType> listOption = generic.typeArguments().orElse(new ArrayList<>());
-				for (JType arg : listOption) collectTypeVariables(arg, typeVars);
+				listOption.forEach(arg -> collectTypeVariables(arg, typeVars));
 			}
 			case Array array -> collectTypeVariables(array.child(), typeVars);
 			default -> {

@@ -16,11 +16,11 @@ public record TagRule(String tag, Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		return rule.lex(content)
-							 .mapValue(node -> node.retype(tag))
-							 .mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-																								 new StringContext(content),
-																								 List.of(error)));
+		final Result<Node, CompileError> lex = rule.lex(content);
+		return lex.mapValue(node -> node.retype(tag))
+							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
+																								new StringContext(content),
+																								List.of(error)));
 	}
 
 	@Override
