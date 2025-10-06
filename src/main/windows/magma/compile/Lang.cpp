@@ -37,6 +37,7 @@ struct Wildcard {};
 struct JAdd {JExpression left;JExpression right;};
 struct JSubtract {JExpression left;JExpression right;};
 struct JEquals {JExpression left;JExpression right;};
+struct JNotEquals {JExpression left;JExpression right;};
 struct CEquals {CExpression left;CExpression right;};
 struct JString {Option<> content;};
 struct CAdd {CExpression left;CExpression right;};
@@ -321,7 +322,7 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	LazyRule expression=new_???();
-	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
+	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
 	return expression;
 }
 Rule NewArray_Lang(LazyRule expression) {

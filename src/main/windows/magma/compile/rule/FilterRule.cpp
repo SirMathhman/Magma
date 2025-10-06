@@ -5,17 +5,15 @@ public FilterRule_FilterRule(Filter filter, Rule rule) {
 	this.rule=rule;
 }
 Rule Filter_FilterRule(Filter filter, Rule rule) {
-	return new_???((filter, rule);
+	return new_???(filter, rule);
 }
 Rule Identifier_FilterRule(Rule rule) {
-	return Filter((IdentifierFilter.Identifier, rule);
+	return Filter(IdentifierFilter.Identifier, rule);
 }
-@Override
-	public Result<> lex_FilterRule(char* content) {
-	return rule.lex(content);
-	return new_???((new_???((filter.createErrorMessage(), new_???((content)));
+Result<> lex_FilterRule(char* content) {
+	if (filter.test(content))return rule.lex(content);
+	return new_???(new_???(filter.createErrorMessage(), new_???(content)));
 }
-@Override
-	public Result<> generate_FilterRule(Node node) {
+Result<> generate_FilterRule(Node node) {
 	return rule.generate(node);
 }

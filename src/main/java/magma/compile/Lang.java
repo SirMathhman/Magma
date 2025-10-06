@@ -49,8 +49,8 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JOr, JString, JSubtract, Lambda,
-			MethodAccess, NewArray, Not, Quantity, SwitchExpr {}
+			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JNotEquals, JOr, JString, JSubtract,
+			Lambda, MethodAccess, NewArray, Not, Quantity, SwitchExpr {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -121,6 +121,9 @@ public class Lang {
 
 	@Tag("equals")
 	public record JEquals(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("not-equals")
+	public record JNotEquals(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("equals")
 	public record CEquals(CExpression left, CExpression right) implements CExpression {}
@@ -707,6 +710,7 @@ public class Lang {
 											Operator("and", "&&", expression),
 											Operator("or", "||", expression),
 											Operator("equals", "==", expression),
+											Operator("not-equals", "!=", expression),
 											Operator("less-than", "<", expression),
 											Operator("less-than-equals", "<=", expression),
 											Operator("greater-than", ">", expression),
