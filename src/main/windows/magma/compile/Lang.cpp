@@ -27,6 +27,7 @@ struct CaseExprValue {};
 struct LambdaValue {};
 struct LambdaParamSet {};
 struct MethodAccessSource {};
+struct NewArrayValue {};
 struct CharNode {char* value;};
 struct CAnd {CExpression left;CExpression right;};
 struct And {JExpression left;JExpression right;};
@@ -56,7 +57,9 @@ struct SwitchStatement {JExpression value;List<> cases;};
 struct ExprLambdaValue {JExpression child;};
 struct StatementLambdaValue {JMethodSegment child;};
 struct Lambda {LambdaParamSet params;LambdaValue child;};
-struct NewArray {JType type;JExpression length;};
+struct LengthNewArrayValue {JExpression length;};
+struct ArgumentsNewArrayValue {Option<> arguments;};
+struct NewArray {JType type;NewArrayValue value;};
 struct CAssignment {CExpression location;CExpression value;};
 struct CPostFix {CExpression value;};
 struct JAssignment {JExpression location;JExpression value;};
@@ -323,10 +326,11 @@ Rule JExpression_Lang(Rule statement) {
 }
 Rule NewArray_Lang(LazyRule expression) {
 	Rule type=Node("", JType());
-	Rule first=First(type, "", Node("", expression));
-	Rule suffix=Suffix(first, "");
-	Rule strip=new_???("", Strip(First(type, "", Suffix(Expressions("", expression), ""))));
-	return Tag("", Strip(Prefix("", Or(new_???("", suffix), strip))));
+	Rule tag=Tag("", Suffix(Expressions("", expression), ""));
+	Rule tag1=Tag("", Node("", expression));
+	Rule withoutArguments=Suffix(First(type, "", Node("", tag1)), "");
+	Rule withArguments=Strip(First(type, "", Node("", tag)));
+	return Tag("", Strip(Prefix("", Or(withoutArguments, withArguments))));
 }
 Rule MethodAccess_Lang(LazyRule expression) {
 	Rule exprSource=Tag("", Node("", expression));

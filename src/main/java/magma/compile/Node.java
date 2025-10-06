@@ -158,7 +158,9 @@ public final class Node {
 	}
 
 	private String getString(int indentDepth, int level, int maxLevel, Node node) {
-		return "\t".repeat(indentDepth + 2) + node.appendJsonPure(indentDepth + 2, level + 1, maxLevel);
+		final String repeat = "\t".repeat(indentDepth + 2);
+		final String s = node.appendJsonPure(indentDepth + 2, level + 1, maxLevel);
+		return repeat + s;
 	}
 
 	private void extracted(int indentDepth,

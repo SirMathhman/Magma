@@ -93,6 +93,8 @@ public class Lang {
 
 	public sealed interface MethodAccessSource permits ExprMethodAccessSource, TypeMethodAccessSource {}
 
+	public sealed interface NewArrayValue {}
+
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
 
@@ -175,8 +177,14 @@ public class Lang {
 	@Tag("lambda")
 	public record Lambda(LambdaParamSet params, LambdaValue child) implements JExpression {}
 
+	@Tag("length")
+	public record LengthNewArrayValue(JExpression length) implements NewArrayValue {}
+
+	@Tag("arguments")
+	public record ArgumentsNewArrayValue(Option<List<JExpression>> arguments) implements NewArrayValue {}
+
 	@Tag("new-array")
-	public record NewArray(JType type, JExpression length) implements JExpression {}
+	public record NewArray(JType type, NewArrayValue value) implements JExpression {}
 
 	@Tag("assignment")
 	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
@@ -709,11 +717,14 @@ public class Lang {
 
 	private static Rule NewArray(LazyRule expression) {
 		final Rule type = Node("type", JType());
-		final Rule first = First(type, "[", Node("length", expression));
-		final Rule suffix = Suffix(first, "]");
-		final Rule strip =
-				new ContextRule("With arguments", Strip(First(type, "[]{", Suffix(Expressions("arguments", expression), "}"))));
-		return Tag("new-array", Strip(Prefix("new ", Or(new ContextRule("Without arguments", suffix), strip))));
+
+		final Rule tag = Tag("arguments", Suffix(Expressions("arguments", expression), "}"));
+		final Rule tag1 = Tag("length", Node("length", expression));
+
+		final Rule withoutArguments = Suffix(First(type, "[", Node("value", tag1)), "]");
+		final Rule withArguments = Strip(First(type, "[]{", Node("value", tag)));
+
+		return Tag("new-array", Strip(Prefix("new ", Or(withoutArguments, withArguments))));
 	}
 
 	private static Rule MethodAccess(LazyRule expression) {

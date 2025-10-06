@@ -4,13 +4,13 @@ DivideState fold_BraceStartFolder(DivideState state, char c) {
 	if (c=='{')
 	{
 	DivideState entered=state.enter();
-	return entered.advance();
+	if (entered.isShallow())return entered.advance();
 	return entered.append(c);}
 	DivideState state1=state.append(c);
 	if (c=='(')return state1.enter();
-	if (c=='}' || c == ')')return state1.exit();
+	if (c==/*???*/==')')return state1.exit();
 	return state1;
 }
 char* delimiter_BraceStartFolder() {
-	return "{";
+	return "";
 }

@@ -5,10 +5,10 @@ DivideState fold_ClosingParenthesesFolder(DivideState state, char c) {
 	if (c==')')
 	{
 	DivideState exit=state.exit();
-	return exit.advance();
+	if (exit.isLevel())return exit.advance();
 	return exit.append(c);}
 	return state.append(c);
 }
 char* delimiter_ClosingParenthesesFolder() {
-	return ")";
+	return "";
 }
