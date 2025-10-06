@@ -48,7 +48,7 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation,
-			JString, Not, Switch {}
+			JString, JSubtract, Not, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
@@ -94,6 +94,9 @@ public class Lang {
 
 	@Tag("add")
 	public record JAdd(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("subtract")
+	public record JSubtract(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("equals")
 	public record JEquals(JExpression left, JExpression right) implements JExpression {}
@@ -561,8 +564,7 @@ public class Lang {
 											Tag("new-array",
 													Strip(Suffix(First(Prefix("new ", Node("type", JType())), "[", Node("length", expression)),
 																			 "]"))),
-											Tag("index",
-													Strip(Suffix(First(Node("child", expression), "[", Node("index", expression)), "]"))),
+											Index(expression),
 											Invokable(expression),
 											FieldAccess(expression),
 											InstanceOf(expression),
@@ -584,7 +586,7 @@ public class Lang {
 
 	private static Rule Index(LazyRule expression) {
 		return Tag("index",
-							 Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("value", expression)), "]")));
+							 Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("index", expression)), "]")));
 	}
 
 	private static Rule FieldAccess(Rule expression) {
