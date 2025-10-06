@@ -11,14 +11,15 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertTimeout;
+import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class JavaRootOnMainFileTest {
 
 	@Test
 	public void testJavaRootCanBeAppliedToMainJava() {
-		assertTimeout(Duration.ofSeconds(5), () -> {
+		// Use assertTimeoutPreemptively to forcefully terminate if it exceeds 5 seconds
+		assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
 			// Read Main.java from the project
 			Path mainJavaPath = Paths.get("src", "main", "java", "magma", "Main.java");
 			assertTrue(Files.exists(mainJavaPath), "Main.java should exist at " + mainJavaPath);
