@@ -264,7 +264,7 @@ Rule JMethodSegment_Lang() {
 	LazyRule methodSegment=new_???();
 	Rule expression=JExpression(methodSegment);
 	Rule inner=JRules.JDefinition();
-	methodSegment.set(Strip(Or(Whitespace(), LineComment(), Switch("", expression, methodSegment), Conditional("", expression, methodSegment), Conditional("", expression, methodSegment), Else(methodSegment), Try(methodSegment), QuantityBlock("", "", inner, methodSegment), Strip(Suffix(JMethodStatementValue(methodSegment), "")), Block(methodSegment), BlockComment())));
+	methodSegment.set(Strip(Or(LineComment(), Switch("", expression, methodSegment), Conditional("", expression, methodSegment), Conditional("", expression, methodSegment), Else(methodSegment), Try(methodSegment), QuantityBlock("", "", inner, methodSegment), Block(methodSegment), BlockComment(), Strip(Suffix(JMethodStatementValue(methodSegment), "")), Whitespace())));
 	return methodSegment;
 }
 Rule Try_Lang(LazyRule methodSegment) {

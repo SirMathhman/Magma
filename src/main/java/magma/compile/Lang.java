@@ -613,17 +613,17 @@ public class Lang {
 		final LazyRule methodSegment = new LazyRule();
 		final Rule expression = JExpression(methodSegment);
 		Rule inner = JRules.JDefinition();
-		methodSegment.set(Strip(Or(Whitespace(),
-															 LineComment(),
+		methodSegment.set(Strip(Or(LineComment(),
 															 Switch("statement", expression, methodSegment),
 															 Conditional("if", expression, methodSegment),
 															 Conditional("while", expression, methodSegment),
 															 Else(methodSegment),
 															 Try(methodSegment),
 															 QuantityBlock("catch", "definition", inner, methodSegment),
-															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
 															 Block(methodSegment),
-															 BlockComment())));
+															 BlockComment(),
+															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
+															 Whitespace())));
 		return methodSegment;
 	}
 
