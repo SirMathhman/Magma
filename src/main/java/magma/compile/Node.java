@@ -16,12 +16,14 @@ public final class Node {
 	private final Map<String, String> strings = new HashMap<>();
 	public Option<String> maybeType = Option.empty();
 
+	private static final int MAX_FORMAT_LEVEL = 3;
+
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
-								.replace("\"", "\\\"")
-								.replace("\n", "\\n")
-								.replace("\r", "\\r")
-								.replace("\t", "\\t");
+				.replace("\"", "\\\"")
+				.replace("\n", "\\n")
+				.replace("\r", "\\r")
+				.replace("\t", "\\t");
 	}
 
 	@Override
@@ -81,19 +83,21 @@ public final class Node {
 	}
 
 	public String format(int depth) {
-		String indent = "\t".repeat(depth);
-		String childIndent = "\t".repeat(depth + 1);
-		String builder = indent + appendJsonPure(depth);
-		return builder;
+		return format(depth, MAX_FORMAT_LEVEL);
 	}
 
-	private String appendJsonPure(int depth) {
-		final String indent = "\t".repeat(depth);
-		final String childIndent = "\t".repeat(depth + 1);
+	public String format(int depth, int maxLevel) {
+		String indent = "\t".repeat(depth);
+		return indent + appendJsonPure(depth, 0, maxLevel);
+	}
+
+	private String appendJsonPure(int indentDepth, int level, int maxLevel) {
+		final String indent = "\t".repeat(indentDepth);
+		final String childIndent = "\t".repeat(indentDepth + 1);
 		StringBuilder builder = new StringBuilder();
 		builder.append("{");
 
-		boolean[] hasFields = {false};
+		boolean[] hasFields = { false };
 
 		Option<String> typeOpt = maybeType;
 		if (typeOpt instanceof Some<String>(String value)) {
@@ -104,18 +108,22 @@ public final class Node {
 		strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
 			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent)
-						 .append('"')
-						 .append(escape(entry.getKey()))
-						 .append("\": \"")
-						 .append(escape(entry.getValue()))
-						 .append('"');
+					.append('"')
+					.append(escape(entry.getKey()))
+					.append("\": \"")
+					.append(escape(entry.getValue()))
+					.append('"');
 			hasFields[0] = true;
 		});
 
 		nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
 			builder.append(hasFields[0] ? ",\n" : "\n");
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
-			builder.append(entry.getValue().appendJsonPure(depth + 1));
+			if (level + 1 < maxLevel) {
+				builder.append(entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
+			} else {
+				builder.append("{...}");
+			}
 			hasFields[0] = true;
 		});
 
@@ -124,17 +132,22 @@ public final class Node {
 			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
 			List<Node> list = entry.getValue();
 			if (!list.isEmpty()) {
-				builder.append("\n");
-				builder.append(list.stream()
-													 .map(node -> "\t".repeat(depth + 2) + node.appendJsonPure(depth + 2))
-													 .collect(Collectors.joining(",\n")));
-				builder.append("\n").append(childIndent);
+				if (level + 1 < maxLevel) {
+					builder.append("\n");
+					builder.append(list.stream()
+							.map(node -> "\t".repeat(indentDepth + 2) + node.appendJsonPure(indentDepth + 2, level + 1, maxLevel))
+							.collect(Collectors.joining(",\n")));
+					builder.append("\n").append(childIndent);
+				} else {
+					builder.append("...");
+				}
 			}
 			builder.append("]");
 			hasFields[0] = true;
 		});
 
-		if (hasFields[0]) builder.append("\n").append(indent);
+		if (hasFields[0])
+			builder.append("\n").append(indent);
 		builder.append("}");
 		return builder.toString();
 	}
