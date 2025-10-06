@@ -1,32 +1,32 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\error\CompileError.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct CompileError {/*???*/ reason;/*???*/ context;/*???*/ causes;};
+struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 /*???*/ CompileError_CompileError(/*???*/ reason, /*???*/ sourceCode) {
 	this(reason, sourceCode, Collections.emptyList());
 }
 /*???*/ display_CompileError() {
 	return format(/*???*/, new_???());
 }
-/*???*/ format_CompileError(/*???*/ depth, /*???*/ indices) {
-	/*???*/ copy=new_???(causes);
+/*???*/ format_CompileError(/*???*/ depth, Stack<> indices) {
+	ArrayList<> copy=new_???(causes);
 	copy.sort(Comparator.comparingInt(/*???*/));
 	/*???*/ formattedChildren=joinErrors(depth, indices, copy);
 	/*???*/ s;
 	if (depth==/*???*/)s="";
 	/*???*/ s=System.lineSeparator()+"".repeat(depth);
 	/*???*/ joinedIndices=getCollect(indices);
-	/*???*/ formattedChildren;
+	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
 }
-/*???*/ getCollect_CompileError(/*???*/ indices) {
-	/*???*/ stream=indices.stream();
-	/*???*/ stringStream=stream.map(/*???*/);
+/*???*/ getCollect_CompileError(Stack<> indices) {
+	Stream<> stream=indices.stream();
+	Stream<> stringStream=stream.map(/*???*/);
 	return stringStream.collect(Collectors.joining(""));
 }
-/*???*/ joinErrors_CompileError(/*???*/ depth, /*???*/ indices, /*???*/ copy) {
+/*???*/ joinErrors_CompileError(/*???*/ depth, Stack<> indices, List<> copy) {
 	/*???*/ range=IntStream.range(/*???*/, copy.size());
-	/*???*/ stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
+	Stream<> stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
 	return stringStream.collect(Collectors.joining());
 }
-/*???*/ formatChild_CompileError(/*???*/ depth, /*???*/ copy, /*???*/ indices, /*???*/ last) {
+/*???*/ formatChild_CompileError(/*???*/ depth, List<> copy, Stack<> indices, /*???*/ last) {
 	/*???*/ error=copy.get(last);
 	indices.push(last);
 	/*???*/ format=error.format(depth+/*???*/, indices);

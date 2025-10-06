@@ -9,8 +9,8 @@ struct DividingSplitter {/*???*/ divider;/*???*/ merger;};
 /*???*/ KeepLast_DividingSplitter(/*???*/ divider) {
 	return new_???(divider, new_???());
 }
-/*???*/ split_DividingSplitter(/*???*/ input) {
-	/*???*/ segments=divider.divide(input).toList();
+Option<> split_DividingSplitter(/*???*/ input) {
+	List<> segments=divider.divide(input).toList();
 	/*???*/ delimiter=divider.delimiter();
 	return merger.merge(segments, delimiter);
 }
@@ -18,5 +18,5 @@ struct DividingSplitter {/*???*/ divider;/*???*/ merger;};
 	return "";
 }
 /*???*/ merge_DividingSplitter(/*???*/ left, /*???*/ right) {
-	/*???*/ right;
+	return left+divider.delimiter()+right;
 }

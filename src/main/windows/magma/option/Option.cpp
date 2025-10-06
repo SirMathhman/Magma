@@ -1,54 +1,54 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\Option.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Option {};
-/*???*/ of_Option(/*???*/ value) {
+Option<> of_Option(/*???*/ value) {
 	return new_???(value);
 }
-/*???*/ empty_Option() {
+Option<> empty_Option() {
 	return new_???();
 }
-/*???*/ ofNullable_Option(/*???*/ value) {
+Option<> ofNullable_Option(/*???*/ value) {
 	if (Objects.isNull(value))return new_???();
 	return new_???(value);
 }
-/*???*/ map_Option(/*???*/ mapper) {
+Option<> map_Option(Function<> mapper) {
 }
-/*???*/ flatMap_Option(/*???*/ mapper) {
+Option<> flatMap_Option(Function<> mapper) {
 }
 /*???*/ orElse_Option(/*???*/ other) {
 }
-/*???*/ or_Option(/*???*/ other) {
+Option<> or_Option(Supplier<> other) {
 }
-/*???*/ orElseGet_Option(/*???*/ other) {
+/*???*/ orElseGet_Option(Supplier<> other) {
 }
 struct None {};
-/*???*/ map_None(/*???*/ mapper) {
+Option<> map_None(Function<> mapper) {
 	return new_???();
 }
-/*???*/ flatMap_None(/*???*/ mapper) {
+Option<> flatMap_None(Function<> mapper) {
 	return new_???();
 }
 /*???*/ orElse_None(/*???*/ other) {
 	/*???*/ other;
 }
-/*???*/ or_None(/*???*/ other) {
+Option<> or_None(Supplier<> other) {
 	return other.get();
 }
-/*???*/ orElseGet_None(/*???*/ other) {
+/*???*/ orElseGet_None(Supplier<> other) {
 	return other.get();
 }
 struct Some {/*???*/ value;};
-/*???*/ map_Some(/*???*/ mapper) {
+Option<> map_Some(Function<> mapper) {
 	return new_???(mapper.apply(value));
 }
-/*???*/ flatMap_Some(/*???*/ mapper) {
+Option<> flatMap_Some(Function<> mapper) {
 	return mapper.apply(value);
 }
 /*???*/ orElse_Some(/*???*/ other) {
 	/*???*/ value;
 }
-/*???*/ or_Some(/*???*/ other) {
+Option<> or_Some(Supplier<> other) {
 	/*???*/ this;
 }
-/*???*/ orElseGet_Some(/*???*/ other) {
+/*???*/ orElseGet_Some(Supplier<> other) {
 	/*???*/ value;
 }

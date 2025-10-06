@@ -2,7 +2,7 @@
 struct Lang {};
 struct JavaRootSegment {};
 struct CRootSegment {};
-/*???*/ after_CRootSegment() {
+Option<> after_CRootSegment() {
 }
 struct JStructureSegment {};
 struct JExpression {};
@@ -12,9 +12,9 @@ struct JType {};
 struct JStructure {};
 /*???*/ name_JStructure() {
 }
-/*???*/ typeParameters_JStructure() {
+Option<> typeParameters_JStructure() {
 }
-/*???*/ children_JStructure() {
+List<> children_JStructure() {
 }
 struct CParameter {};
 struct CExpression {};
@@ -29,7 +29,7 @@ struct Identifiable {};
 struct CharNode {/*???*/ value;};
 struct CAnd {/*???*/ left;/*???*/ right;};
 struct And {/*???*/ left;/*???*/ right;};
-struct Destruct {/*???*/ type;/*???*/ params;};
+struct Destruct {/*???*/ type;List<> params;};
 struct InstanceOf {/*???*/ child;/*???*/ target;};
 struct Wildcard {};
 struct JAdd {/*???*/ left;/*???*/ right;};
@@ -37,27 +37,27 @@ struct JSubtract {/*???*/ left;/*???*/ right;};
 struct JEquals {/*???*/ left;/*???*/ right;};
 struct JNotEquals {/*???*/ left;/*???*/ right;};
 struct CEquals {/*???*/ left;/*???*/ right;};
-struct JString {/*???*/ content;};
+struct JString {Option<> content;};
 struct CAdd {/*???*/ left;/*???*/ right;};
 struct CString {/*???*/ content;};
 struct JFieldAccess {/*???*/ child;/*???*/ name;};
 struct CFieldAccess {/*???*/ child;/*???*/ name;};
-struct JConstruction {/*???*/ type;/*???*/ arguments;};
-struct JInvocation {/*???*/ caller;/*???*/ arguments;};
+struct JConstruction {/*???*/ type;Option<> arguments;};
+struct JInvocation {/*???*/ caller;Option<> arguments;};
 struct Not {/*???*/ child;};
 struct ExprCaseExprValue {/*???*/ expression;};
 struct StatementCaseExprValue {/*???*/ statement;};
-/*???*/ CaseExpr_Lang(/*???*/ target, /*???*/ value, /*???*/ when) {
+/*???*/ CaseExpr_Lang(Option<> target, /*???*/ value, Option<> when) {
 }
-/*???*/ CaseStatement_Lang(/*???*/ target, /*???*/ value, /*???*/ when) {
+/*???*/ CaseStatement_Lang(Option<> target, /*???*/ value, Option<> when) {
 }
-struct SwitchExpr {/*???*/ value;/*???*/ cases;};
-struct SwitchStatement {/*???*/ value;/*???*/ cases;};
+struct SwitchExpr {/*???*/ value;List<> cases;};
+struct SwitchStatement {/*???*/ value;List<> cases;};
 struct ExprLambdaValue {/*???*/ child;};
 struct StatementLambdaValue {/*???*/ child;};
 struct Lambda {/*???*/ params;/*???*/ child;};
 struct LengthNewArrayValue {/*???*/ length;};
-struct ArgumentsNewArrayValue {/*???*/ arguments;};
+struct ArgumentsNewArrayValue {Option<> arguments;};
 struct NewArray {/*???*/ type;/*???*/ value;};
 struct CAssignment {/*???*/ location;/*???*/ value;};
 struct CPostFix {/*???*/ value;};
@@ -65,45 +65,45 @@ struct JAssignment {/*???*/ location;/*???*/ value;};
 struct JPostFix {/*???*/ value;};
 struct JInitialization {/*???*/ definition;/*???*/ value;};
 struct CInitialization {/*???*/ definition;/*???*/ value;};
-struct CBlock {/*???*/ children;};
-struct JBlock {/*???*/ children;};
+struct CBlock {List<> children;};
+struct JBlock {List<> children;};
 struct JIf {/*???*/ condition;/*???*/ body;};
 struct CIf {/*???*/ condition;/*???*/ body;};
 struct JWhile {/*???*/ condition;/*???*/ body;};
 struct CWhile {/*???*/ condition;/*???*/ body;};
 struct Field {/*???*/ value;};
-struct JGeneric {/*???*/ base;/*???*/ typeArguments;};
-struct CGeneric {/*???*/ base;/*???*/ typeArguments;};
-/*???*/ stringify_CGeneric() {
+struct JGeneric {/*???*/ base;Option<> typeArguments;};
+struct CTemplate {/*???*/ base;List<> typeArguments;};
+/*???*/ stringify_CTemplate() {
 	return base+""+typeArguments.stream().map(/*???*/).collect(Collectors.joining(""));
 }
 struct Array {/*???*/ child;};
-struct JDefinition {/*???*/ name;/*???*/ type;/*???*/ modifiers;/*???*/ typeParameters;};
+struct JDefinition {/*???*/ name;/*???*/ type;Option<> modifiers;Option<> typeParameters;};
 /*???*/ Modifier_Lang(/*???*/ value) {
 }
-struct Method {/*???*/ definition;/*???*/ params;/*???*/ body;/*???*/ typeParameters;};
-struct Invalid {/*???*/ value;/*???*/ after;};
+struct Method {/*???*/ definition;Option<> params;Option<> body;Option<> typeParameters;};
+struct Invalid {/*???*/ value;Option<> after;};
 /*???*/ Invalid_Invalid(/*???*/ value) {
 	this(value, new_???());
 }
 /*???*/ stringify_Invalid() {
 	return "";
 }
-struct JClass {/*???*/ modifiers;/*???*/ name;/*???*/ children;/*???*/ typeParameters;/*???*/ interfaces;};
-struct Interface {/*???*/ modifiers;/*???*/ name;/*???*/ children;/*???*/ typeParameters;/*???*/ interfaces;/*???*/ superclasses;/*???*/ variants;};
-struct RecordNode {/*???*/ modifiers;/*???*/ name;/*???*/ children;/*???*/ typeParameters;/*???*/ params;/*???*/ interfaces;};
-struct Structure {/*???*/ name;/*???*/ fields;/*???*/ after;/*???*/ typeParameters;};
+struct JClass {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> interfaces;};
+struct Interface {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> interfaces;Option<> superclasses;Option<> variants;};
+struct RecordNode {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> params;Option<> interfaces;};
+struct Structure {/*???*/ name;List<> fields;Option<> after;Option<> typeParameters;};
 struct Whitespace {};
 struct Placeholder {/*???*/ value;};
-/*???*/ JRoot_Lang(/*???*/ children) {
+/*???*/ JRoot_Lang(List<> children) {
 }
-/*???*/ CRoot_Lang(/*???*/ children) {
+/*???*/ CRoot_Lang(List<> children) {
 }
 struct Import {/*???*/ location;};
 struct Package {/*???*/ location;};
-struct CDefinition {/*???*/ name;/*???*/ type;/*???*/ typeParameters;};
-struct CFunctionPointerDefinition {/*???*/ name;/*???*/ returnType;/*???*/ paramTypes;};
-struct Function {/*???*/ definition;/*???*/ params;/*???*/ body;/*???*/ after;/*???*/ typeParameters;};
+struct CDefinition {/*???*/ name;/*???*/ type;Option<> typeParameters;};
+struct CFunctionPointerDefinition {/*???*/ name;/*???*/ returnType;List<> paramTypes;};
+struct Function {/*???*/ definition;List<> params;List<> body;Option<> after;Option<> typeParameters;};
 struct Identifier {/*???*/ value;};
 /*???*/ stringify_Identifier() {
 	/*???*/ value;
@@ -118,7 +118,7 @@ struct JReturn {/*???*/ value;};
 struct CReturn {/*???*/ value;};
 struct JElse {/*???*/ child;};
 struct CElse {/*???*/ child;};
-struct CInvocation {/*???*/ caller;/*???*/ arguments;};
+struct CInvocation {/*???*/ caller;List<> arguments;};
 struct Break {};
 struct InvocationFolder {/*???*/ open;/*???*/ close;};
 /*???*/ fold_InvocationFolder(/*???*/ state, /*???*/ c) {
@@ -142,7 +142,7 @@ struct JGreaterThan {/*???*/ left;/*???*/ right;};
 struct JOr {/*???*/ left;/*???*/ right;};
 struct JGreaterThanEquals {/*???*/ left;/*???*/ right;};
 struct JLessThan {/*???*/ left;/*???*/ right;};
-struct Try {/*???*/ child;/*???*/ resource;};
+struct Try {/*???*/ child;Option<> resource;};
 struct Catch {/*???*/ definition;/*???*/ body;};
 struct Yield {/*???*/ child;};
 struct Variadic {/*???*/ child;};
@@ -159,7 +159,7 @@ struct MyFolder {};
 }
 struct EmptyLambdaParam {};
 struct SingleLambdaParam {/*???*/ param;};
-struct MultipleLambdaParam {/*???*/ params;};
+struct MultipleLambdaParam {Option<> params;};
 struct ExprMethodAccessSource {/*???*/ child;};
 struct TypeMethodAccessSource {/*???*/ child;};
 struct MethodAccess {/*???*/ name;/*???*/ source;};
@@ -180,7 +180,11 @@ struct OperatorFolder {/*???*/ operator;};
 }
 /*???*/ QualifiedSegment_Lang(/*???*/ value) {
 }
-struct Qualified {/*???*/ segments;};
+struct JQualified {Option<> segments;};
+/*???*/ last_JQualified() {
+	if (/*???*/)return "";
+	return segments.orElse(new_???()).getLast().value;
+}
 /*???*/ CFunctionPointerDefinition_Lang() {
 	return Tag("", Suffix(First(Suffix(First(Node("", CType()), "", String("")), ""), "", Expressions("", CType())), ""));
 }
@@ -190,7 +194,7 @@ struct Qualified {/*???*/ segments;};
 /*???*/ CType_Lang() {
 	/*???*/ rule=new_???();
 	/*???*/ funcPtr=Tag("", Suffix(First(Node("", rule), "", Expressions("", rule)), ""));
-	rule.set(Or(funcPtr, CommonRules.Identifier(), Tag("", Suffix(Node("", rule), "")), JRules.JGeneric(rule), Invalid()));
+	rule.set(Or(funcPtr, CommonRules.Identifier(), Tag("", Suffix(Node("", rule), "")), JRules.Parameterized("", rule, String("")), Invalid()));
 	/*???*/ rule;
 }
 /*???*/ CStructure_Lang() {

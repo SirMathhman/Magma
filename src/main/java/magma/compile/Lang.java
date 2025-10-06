@@ -19,6 +19,7 @@ import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.option.Option;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -62,7 +63,7 @@ public class Lang {
 			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface JType extends InstanceOfTarget
-			permits Array, Identifier, Invalid, JGeneric, Qualified, Variadic, Wildcard {}
+			permits Array, Identifier, Invalid, JGeneric, JQualified, Variadic, Wildcard {}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
@@ -229,10 +230,10 @@ public class Lang {
 	public record Field(JDefinition value) implements JStructureSegment {}
 
 	@Tag("generic")
-	public record JGeneric(String base, Option<List<JType>> typeArguments) implements JType {}
+	public record JGeneric(JQualified base, Option<List<JType>> typeArguments) implements JType {}
 
-	@Tag("generic")
-	public record CGeneric(String base, List<CLang.CType> typeArguments) implements CLang.CType {
+	@Tag("template")
+	public record CTemplate(String base, List<CLang.CType> typeArguments) implements CLang.CType {
 		@Override
 		public String stringify() {
 			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(Collectors.joining("_"));
@@ -471,7 +472,12 @@ public class Lang {
 	public record QualifiedSegment(String value) {}
 
 	@Tag("qualified")
-	public record Qualified(Option<List<QualifiedSegment>> segments) implements JType {}
+	public record JQualified(Option<List<QualifiedSegment>> segments) implements JType {
+		public String last() {
+			if (segments instanceof Option.None<List<QualifiedSegment>>) return "";
+			return segments.orElse(new ArrayList<>()).getLast().value;
+		}
+	}
 
 	public static Rule CFunctionPointerDefinition() {
 		// Generates: returnType (*name)(paramTypes)
@@ -493,7 +499,7 @@ public class Lang {
 		rule.set(Or(funcPtr,
 								CommonRules.Identifier(),
 								Tag("pointer", Suffix(Node("child", rule), "*")),
-								JRules.JGeneric(rule),
+								JRules.Parameterized("template", rule, String("base")),
 								Invalid()));
 		return rule;
 	}

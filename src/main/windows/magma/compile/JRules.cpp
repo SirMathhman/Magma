@@ -2,7 +2,7 @@
 struct JRules {};
 /*???*/ JDefinition_JRules() {
 	/*???*/ type=Node("", JType());
-	/*???*/ name=CommonRules.StrippedIdentifier("");
+	/*???*/ name=StrippedIdentifier("");
 	/*???*/ modifiers=Delimited("", Tag("", String("")), "");
 	/*???*/ withModifiers=Split(modifiers, KeepLast(new_???(new_???())), type);
 	/*???*/ beforeName=Or(withModifiers, type);
@@ -10,11 +10,11 @@ struct JRules {};
 }
 /*???*/ JType_JRules() {
 	/*???*/ type=new_???();
-	type.set(Or(JGeneric(type), JArray(type), CommonRules.Identifier(), JWildCard(), Tag("", Strip(Suffix(Node("", type), ""))), QualifiedName()));
+	type.set(Or(Parameterized("", type, Node("", JQualifiedName())), JArray(type), CommonRules.Identifier(), JWildCard(), Tag("", Strip(Suffix(Node("", type), ""))), JQualifiedName()));
 	/*???*/ type;
 }
-/*???*/ QualifiedName_JRules() {
-	/*???*/ segment=Tag("", String(""));
+/*???*/ JQualifiedName_JRules() {
+	/*???*/ segment=Tag("", StrippedIdentifier(""));
 	return Tag("", Strip(NodeListRule.Delimited("", segment, "")));
 }
 /*???*/ JWildCard_JRules() {
@@ -23,8 +23,7 @@ struct JRules {};
 /*???*/ JArray_JRules(/*???*/ type) {
 	return Tag("", Strip(Suffix(Node("", type), "")));
 }
-/*???*/ JGeneric_JRules(/*???*/ type) {
-	/*???*/ base=CommonRules.StrippedIdentifier("");
+/*???*/ Parameterized_JRules(/*???*/ tag, /*???*/ type, /*???*/ base) {
 	/*???*/ arguments=Or(Expressions("", type), Strip(Empty));
-	return Tag("", Strip(Suffix(First(base, "", arguments), "")));
+	return Tag(tag, Strip(Suffix(First(base, "", arguments), "")));
 }

@@ -6,9 +6,9 @@ struct PlaceholderRule {/*???*/ rule;};
 /*???*/ Placeholder_PlaceholderRule(/*???*/ rule) {
 	return new_???(rule);
 }
-/*???*/ lex_PlaceholderRule(/*???*/ content) {
+Result<> lex_PlaceholderRule(/*???*/ content) {
 	return rule.lex(content);
 }
-/*???*/ generate_PlaceholderRule(/*???*/ node) {
+Result<> generate_PlaceholderRule(/*???*/ node) {
 	return rule.generate(node).mapValue(/*???*/);
 }

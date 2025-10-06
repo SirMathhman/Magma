@@ -4,8 +4,8 @@ struct NumberFilter {};
 }
 /*???*/ test_NumberFilter(/*???*/ input) {
 	/*???*/ s;
-	/*???*/ s=input.substring(/*???*/);
-	/*???*/ input;
+	if (input.startsWith(""))s==input.substring(/*???*/);
+	/*???*/ s=input;
 	return IntStream.range(/*???*/, s.length()).mapToObj(/*???*/).allMatch(/*???*/);
 }
 /*???*/ createErrorMessage_NumberFilter() {

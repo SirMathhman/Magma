@@ -1,19 +1,19 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct DivideState {/*???*/ segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/*???*/ index;};
-/*???*/ DivideState_DivideState(/*???*/ buffer, /*???*/ depth, /*???*/ segments, /*???*/ input) {
-	/*???*/ buffer;
-	/*???*/ depth;
-	/*???*/ segments;
-	/*???*/ input;
+struct DivideState {List<> segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/*???*/ index;};
+/*???*/ DivideState_DivideState(/*???*/ buffer, /*???*/ depth, List<> segments, /*???*/ input) {
+	this.buffer=buffer;
+	this.depth=depth;
+	this.segments=segments;
+	this.input=input;
 }
 /*???*/ DivideState_DivideState(/*???*/ input) {
 	this(new_???(), /*???*/, new_???(), input);
 }
-/*???*/ stream_DivideState() {
+Stream<> stream_DivideState() {
 	return segments.stream();
 }
 /*???*/ enter_DivideState() {
-	/*???*/ 1;
+	this.depth=depth+/*???*/;
 	/*???*/ this;
 }
 /*???*/ advance_DivideState() {
@@ -26,28 +26,28 @@ struct DivideState {/*???*/ segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;
 	/*???*/ this;
 }
 /*???*/ exit_DivideState() {
-	/*???*/ 1;
+	this.depth=/*???*/;
 	/*???*/ this;
 }
 /*???*/ isShallow_DivideState() {
-	/*???*/ 1;
+	return depth==/*???*/;
 }
 /*???*/ isLevel_DivideState() {
-	/*???*/ 0;
+	return depth==/*???*/;
 }
-/*???*/ pop_DivideState() {
+Option<> pop_DivideState() {
 	if (/*???*/)return Option.empty();
 	/*???*/ c=input.charAt(index);
 	index++;
 	return Option.of(c);
 }
-/*???*/ popAndAppendToTuple_DivideState() {
+Option<> popAndAppendToTuple_DivideState() {
 	return pop().map(/*???*/);
 }
-/*???*/ popAndAppendToOption_DivideState() {
+Option<> popAndAppendToOption_DivideState() {
 	return popAndAppendToTuple().map(/*???*/);
 }
-/*???*/ peek_DivideState() {
+Option<> peek_DivideState() {
 	if (/*???*/)return new_???(input.charAt(index));
 	else
 	return new_???();

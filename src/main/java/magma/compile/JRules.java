@@ -6,6 +6,7 @@ import magma.compile.rule.NodeListRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.TypeFolder;
 
+import static magma.compile.CommonRules.StrippedIdentifier;
 import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.Delimited;
@@ -24,7 +25,7 @@ public class JRules {
 		// Use TypeFolder to properly parse generic types like Function<T, R>
 		// Split into modifiers+type and name using type-aware splitting
 		final Rule type = Node("type", JType());
-		final Rule name = CommonRules.StrippedIdentifier("name");
+		final Rule name = StrippedIdentifier("name");
 
 		// Handle optional modifiers before type
 		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
@@ -36,17 +37,17 @@ public class JRules {
 
 	static Rule JType() {
 		final LazyRule type = new LazyRule();
-		type.set(Or(JGeneric(type),
+		type.set(Or(Parameterized("generic", type, Node("base", JQualifiedName())),
 								JArray(type),
 								CommonRules.Identifier(),
 								JWildCard(),
 								Tag("variadic", Strip(Suffix(Node("child", type), "..."))),
-								QualifiedName()));
+								JQualifiedName()));
 		return type;
 	}
 
-	private static Rule QualifiedName() {
-		final Rule segment = Tag("segment", String("value"));
+	private static Rule JQualifiedName() {
+		final Rule segment = Tag("segment", StrippedIdentifier("value"));
 		return Tag("qualified", Strip(NodeListRule.Delimited("segments", segment, ".")));
 	}
 
@@ -58,9 +59,8 @@ public class JRules {
 		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
 	}
 
-	static Rule JGeneric(Rule type) {
-		final Rule base = CommonRules.StrippedIdentifier("base");
+	static Rule Parameterized(String tag, Rule type, Rule base) {
 		final Rule arguments = Or(Expressions("typeArguments", type), Strip(Empty));
-		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
+		return Tag(tag, Strip(Suffix(First(base, "<", arguments), ">")));
 	}
 }

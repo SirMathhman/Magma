@@ -5,7 +5,7 @@ import java.util.stream.Collectors;
 
 public class CLang {
 	sealed public interface CType
-			permits Lang.CGeneric, CFunctionPointer, Lang.Identifier, Lang.Invalid, Lang.Pointer {
+			permits Lang.CTemplate, CFunctionPointer, Lang.Identifier, Lang.Invalid, Lang.Pointer {
 		String stringify();
 	}
 

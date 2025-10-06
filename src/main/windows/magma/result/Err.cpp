@@ -1,11 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\result\Err.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Err {/*???*/ error;};
-/*???*/ mapValue_Err(/*???*/ fn) {
+Result<> mapValue_Err(Function<> fn) {
 	return new_???(error);
 }
-/*???*/ flatMap_Err(/*???*/ fn) {
+Result<> flatMap_Err(Function<> fn) {
 	return new_???(error);
 }
-/*???*/ mapErr_Err(/*???*/ mapper) {
+Result<> mapErr_Err(Function<> mapper) {
 	return new_???(mapper.apply(error));
 }

@@ -1,17 +1,17 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Main {};
-/*???*/ main_Main(/*???*/ args) {
+/*???*/ main_Main(/*???*/* args) {
 	if (/*???*/)System.err.println(value.display());
 }
-/*???*/ run_Main() {
+Option<> run_Main() {
 	/*???*/ javaSourceRoot=Paths.get("", "", "", "");
 	/*???*/ cOutputRoot=Paths.get("", "", "", "");/*???*//*???*/
 	return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 }
-/*???*/ compileAllJavaFiles_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot) {/*???*//*???*/
+Option<> compileAllJavaFiles_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot) {/*???*//*???*/
 }
-/*???*/ compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, /*???*/ javaFiles) {
-	/*???*/ 0;
+Option<> compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, List<> javaFiles) {
+	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
 	/*???*/ javaFile=javaFiles.get(i);
@@ -25,15 +25,15 @@ struct Main {};
 	i++;}
 	return Option.empty();
 }
-/*???*/ compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ cOutputRoot) {
+Option<> compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ cOutputRoot) {
 	/*???*/ relativePath=javaSourceRoot.relativize(javaFile);
 	/*???*/ fileName=relativePath.getFileName().toString();
 	/*???*/ cFileName=fileName.substring(/*???*/, fileName.lastIndexOf('.'))+"";
 	/*???*/ cFilePath=cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);/*???*//*???*/
-	/*???*/ readResult=readString(javaFile);
+	Result<> readResult=readString(javaFile);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)return Option.empty();
-	/*???*/ compileResult=Compiler.compile(input);
+	Result<> compileResult=Compiler.compile(input);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)
 	{
@@ -45,7 +45,7 @@ struct Main {};
 	/*???*/ relative=Paths.get("").relativize(javaFile);
 	return ""+relative+""+System.lineSeparator();
 }
-/*???*/ writeString_Main(/*???*/ path, /*???*/ result) {/*???*//*???*/
+Option<> writeString_Main(/*???*/ path, /*???*/ result) {/*???*//*???*/
 }
-/*???*/ readString_Main(/*???*/ source) {/*???*//*???*/
+Result<> readString_Main(/*???*/ source) {/*???*//*???*/
 }

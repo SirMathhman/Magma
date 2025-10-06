@@ -167,8 +167,6 @@ public class Transformer {
 			}
 			case Lang.JGeneric generic -> {
 				// Check base type name for type variables
-				if (generic.base().length() == 1 && Character.isUpperCase(generic.base().charAt(0)))
-					typeVars.add(generic.base());
 				// Collect from type typeArguments
 				final List<Lang.JType> listOption = generic.typeArguments().orElse(new ArrayList<>());
 				listOption.forEach(arg -> collectTypeVariables(arg, typeVars));
@@ -278,6 +276,6 @@ public class Transformer {
 			final CLang.CType returnType = transformType(listOption.get(1));
 			return new CLang.CFunctionPointer(returnType, List.of(paramType));
 		}
-		return new Lang.CGeneric(generic.base(), listOption.stream().map(Transformer::transformType).toList());
+		return new Lang.CTemplate(generic.base().last(), listOption.stream().map(Transformer::transformType).toList());
 	}
 }

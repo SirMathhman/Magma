@@ -1,11 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\transform\Transformer.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Transformer {};
 /*???*/ transformMethod_Transformer(/*???*/ method, /*???*/ structName) {
-	/*???*/ oldParams=/*???*/;
-	/*???*/ newParams=oldParams.stream().map(/*???*/).toList();
+	List<> oldParams=/*???*/;
+	List<> newParams=oldParams.stream().map(/*???*/).toList();
 	/*???*/ cDefinition=transformDefinition(method.definition());
-	/*???*/ extractedTypeParams=extractMethodTypeParameters(method);
-	/*???*/ bodySegments=/*???*/;
+	Option<> extractedTypeParams=extractMethodTypeParameters(method);
+	List<> bodySegments=/*???*/;
 	return new_???(new_???(cDefinition.name()+""+structName, cDefinition.type(), cDefinition.typeParameters()), newParams, bodySegments, new_???(System.lineSeparator()), extractedTypeParams);
 }
 /*???*/ transformFunctionSegment_Transformer(/*???*/ segment) {
@@ -28,14 +28,14 @@ struct Transformer {};
 }
 /*???*/ handleConstruction_Transformer(/*???*/ jConstruction) {
 	/*???*/ name=""+transformType(jConstruction.type()).stringify();
-	/*???*/ list=jConstruction.arguments().orElse(new_???()).stream().map(/*???*/).toList();
+	List<> list=jConstruction.arguments().orElse(new_???()).stream().map(/*???*/).toList();
 	return new_???(new_???(name), list);
 }
 /*???*/ transformExpression_Transformer(/*???*/ expression) {
 	return /*???*/;
 }
 /*???*/ transformInvocation_Transformer(/*???*/ jInvocation) {
-	/*???*/ newArguments=jInvocation.arguments().orElse(new_???()).stream().map(/*???*/).toList();
+	List<> newArguments=jInvocation.arguments().orElse(new_???()).stream().map(/*???*/).toList();
 	return new_???(transformExpression(jInvocation.caller()), newArguments);
 }
 /*???*/ transformParameter_Transformer(/*???*/ param) {
@@ -43,50 +43,50 @@ struct Transformer {};
 	if (/*???*/)return new_???(param.name(), returnType, paramTypes);
 	return new_???(param.name(), transformedType, new_???());
 }
-/*???*/ extractMethodTypeParameters_Transformer(/*???*/ method) {
-	/*???*/ typeVars=new_???();
+Option<> extractMethodTypeParameters_Transformer(/*???*/ method) {
+	Set<> typeVars=new_???();
 	collectTypeVariables(method.definition().type(), typeVars);
 	if (/*???*/)paramList.forEach(/*???*/(param.type(), typeVars));
 	if (typeVars.isEmpty())return new_???();
-	/*???*/ identifiers=typeVars.stream().map(/*???*/).toList();
+	List<> identifiers=typeVars.stream().map(/*???*/).toList();
 	return new_???(identifiers);
 }
-/*???*/ collectTypeVariables_Transformer(/*???*/ type, /*???*/ typeVars) {/*???*/
+/*???*/ collectTypeVariables_Transformer(/*???*/ type, Set<> typeVars) {/*???*/
 }
 /*???*/ transformDefinition_Transformer(/*???*/ definition) {
-	/*???*/ typeParams=definition.typeParameters();
+	Option<> typeParams=definition.typeParameters();
 	return new_???(definition.name(), transformType(definition.type()), typeParams);
 }
-/*???*/ flattenRootSegment_Transformer(/*???*/ segment) {
+List<> flattenRootSegment_Transformer(/*???*/ segment) {
 	return /*???*/;
 }
-/*???*/ transform_Transformer(/*???*/ node) {
-	/*???*/ children=node.children();
-	/*???*/ stream=children.stream();
-	/*???*/ listStream=stream.map(/*???*/);
-	/*???*/ cRootSegmentStream=listStream.flatMap(/*???*/);
-	/*???*/ newChildren=cRootSegmentStream.toList();
+Result<> transform_Transformer(/*???*/ node) {
+	List<> children=node.children();
+	Stream<> stream=children.stream();
+	Stream<> listStream=stream.map(/*???*/);
+	Stream<> cRootSegmentStream=listStream.flatMap(/*???*/);
+	List<> newChildren=cRootSegmentStream.toList();
 	return new_???(new_???(newChildren));
 }
-/*???*/ flattenStructureSegment_Transformer(/*???*/ self, /*???*/ name) {
+Tuple<> flattenStructureSegment_Transformer(/*???*/ self, /*???*/ name) {
 	return /*???*/;
 }
-/*???*/ flattenStructure_Transformer(/*???*/ aClass) {
-	/*???*/ children=aClass.children();
-	/*???*/ segments=new_???();
-	/*???*/ fields=new_???(extractRecordParamsAsFields(aClass));
+List<> flattenStructure_Transformer(/*???*/ aClass) {
+	List<> children=aClass.children();
+	ArrayList<> segments=new_???();
+	List<> fields=new_???(extractRecordParamsAsFields(aClass));
 	/*???*/ name=aClass.name();
 	children.stream().map(/*???*/(child, name)).forEach(/*???*/);
 	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
-	/*???*/ copy=new_???();
+	List<> copy=new_???();
 	copy.add(structure);
 	copy.addAll(segments);
 	/*???*/ copy;
 }
-/*???*/ extractRecordParamsAsFields_Transformer(/*???*/ structure) {
+List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	if (/*???*/)
 	{
-	/*???*/ params=record.params();
+	Option<> params=record.params();
 	if (/*???*/)return paramList.stream().map(/*???*/).toList();}
 	return Collections.emptyList();
 }
@@ -102,11 +102,11 @@ struct Transformer {};
 	return new_???(childType);
 }
 /*???*/ transformGeneric_Transformer(/*???*/ generic) {
-	/*???*/ listOption=generic.typeArguments().orElse(new_???());
+	List<> listOption=generic.typeArguments().orElse(new_???());
 	if (generic.base().equals("")&&listOption.size()==/*???*/)
 	{
 	/*???*/ paramType=transformType(listOption.get(/*???*/));
 	/*???*/ returnType=transformType(listOption.get(/*???*/));
 	return new_???(returnType, List.of(paramType));}
-	return new_???(generic.base(), listOption.stream().map(/*???*/).toList());
+	return new_???(generic.base().last(), listOption.stream().map(/*???*/).toList());
 }

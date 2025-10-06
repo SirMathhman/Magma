@@ -6,9 +6,9 @@ struct StripRule {/*???*/ leftKey;/*???*/ rule;/*???*/ rightKey;};
 /*???*/ Strip_StripRule(/*???*/ left, /*???*/ rule, /*???*/ right) {
 	return new_???(left, rule, right);
 }
-/*???*/ lex_StripRule(/*???*/ content) {
+Result<> lex_StripRule(/*???*/ content) {
 	return rule.lex(content.strip());
 }
-/*???*/ generate_StripRule(/*???*/ node) {
+Result<> generate_StripRule(/*???*/ node) {
 	return rule.generate(node).mapValue(/*???*/);
 }
