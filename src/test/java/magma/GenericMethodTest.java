@@ -45,7 +45,7 @@ public class GenericMethodTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + transformOk.value().children().size());

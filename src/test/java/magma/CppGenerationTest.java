@@ -116,7 +116,7 @@ public class CppGenerationTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
@@ -161,7 +161,7 @@ public class CppGenerationTest {
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
-				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
@@ -193,7 +193,7 @@ public class CppGenerationTest {
 
 		System.out.println("=== Testing Full C++ Generation ===");
 
-		Result<String, CompileError> compileResult = Main.compile(input);
+		Result<String, CompileError> compileResult = Compiler.compile(input);
 
 		if (compileResult instanceof Ok<String, CompileError> ok) {
 			System.out.println("Generated C++ code:");

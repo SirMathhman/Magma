@@ -1,4 +1,4 @@
-import magma.Main;
+import magma.Compiler;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -28,7 +28,7 @@ public class ChainedMethodCallsTest {
 				}
 				""";
 
-		final Result<String, CompileError> compile = Main.compile(input);
+		final Result<String, CompileError> compile = Compiler.compile(input);
 		switch (compile) {
 			case Err<String, CompileError> v -> fail(v.error().display());
 			case Ok<String, CompileError> v -> assertNotNull(v.value());

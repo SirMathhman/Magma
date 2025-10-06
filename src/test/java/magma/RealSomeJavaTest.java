@@ -54,7 +54,7 @@ public class RealSomeJavaTest {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 				});
 
-				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + transformOk.value().children().size());
@@ -71,7 +71,7 @@ public class RealSomeJavaTest {
 			System.out.println("❌ Lexing FAILED: " + lexResult);
 		}
 
-		Result<String, CompileError> compileResult = Main.compile(actualSomeJava);
+		Result<String, CompileError> compileResult = Compiler.compile(actualSomeJava);
 
 		if (compileResult instanceof Ok<String, CompileError> ok) {
 			System.out.println("✅ Compilation SUCCESS");

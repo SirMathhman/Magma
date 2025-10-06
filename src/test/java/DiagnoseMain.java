@@ -1,4 +1,4 @@
-import magma.Main;
+import magma.Compiler;
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -71,7 +71,7 @@ public class DiagnoseMain {
 			});
 
 			// Step 3: Transform
-			Result<CRoot, CompileError> transformResult = Main.transform(javaRoot);
+			Result<CRoot, CompileError> transformResult = Compiler.transform(javaRoot);
 			if (transformResult instanceof Err<?, ?> err) {
 				System.err.println("❌ TRANSFORMATION FAILED: " + err.error());
 				fail("Transformation failed: " + err.error());
