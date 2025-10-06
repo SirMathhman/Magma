@@ -246,6 +246,9 @@ public class Main {
 			case JInvocation invocation -> transformInvocation(invocation);
 			case JConstruction jConstruction -> handleConstruction(jConstruction);
 			case JDefinition jDefinition -> transformDefinition(jDefinition);
+			case Catch aCatch -> new Invalid("???");
+			case Switch aSwitch -> new Invalid("???");
+			case Try aTry -> new Invalid("???");
 		};
 	}
 
@@ -270,6 +273,13 @@ public class Main {
 			case JEquals jEquals -> new CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case And and -> new CAnd(transformExpression(and.left()), transformExpression(and.right()));
 			case InstanceOf instanceOf -> new Invalid("???");
+			case Cast cast -> new Invalid("???");
+			case Index index -> new Invalid("???");
+			case JLessThan jLessThan -> new Invalid("???");
+			case JLessThanEquals jLessThanEquals -> new Invalid("???");
+			case JSubtract jSubtract -> new Invalid("???");
+			case Not not -> new Invalid("???");
+			case Quantity quantity -> new Invalid("???");
 		};
 	}
 

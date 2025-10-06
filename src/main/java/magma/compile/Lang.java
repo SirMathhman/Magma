@@ -48,11 +48,11 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Not, Quantity, Switch {}
+			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
-			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Try, Whitespace {}
+			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Switch, Try, Whitespace {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -136,7 +136,10 @@ public class Lang {
 	public record Case(JDefinition definition, JExpression value) {}
 
 	@Tag("switch")
-	public record Switch(JExpression value, List<Case> cases) implements JExpression {}
+	public record Switch(JExpression value, List<Case> cases) implements JExpression, JMethodSegment {}
+
+	@Tag("lambda")
+	public record Lambda(String param, JMethodSegment child) implements JExpression {}
 
 	@Tag("assignment")
 	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
@@ -577,7 +580,7 @@ public class Lang {
 
 	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
-		expression.set(Or(Tag("lambda", First(Strip(String("param")), "->", statement)),
+		expression.set(Or(Lambda(statement),
 											Tag("cast", Strip(Prefix("(", First(Node("type", JType()), ")", Node("child", expression))))),
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
@@ -599,6 +602,10 @@ public class Lang {
 											Operator("less-than-equals", "<=", expression),
 											Identifier()));
 		return expression;
+	}
+
+	private static Rule Lambda(Rule statement) {
+		return Tag("lambda", First(Strip(String("param")), "->", Node("child", statement)));
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {
