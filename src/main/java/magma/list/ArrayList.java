@@ -30,7 +30,11 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public List<T> addAll(List<T> others) {
-		return others.stream().<List<T>>fold(this, List::addLast);
+		return others.stream().fold(getThis(), List::addLast);
+	}
+
+	private List<T> getThis() {
+		return this;
 	}
 
 	@Override
@@ -50,10 +54,8 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public Option<T> getLast() {
-		if (elements.isEmpty()) {
-			return new None<>();
-		}
-		return new Some<>(elements.getLast());
+		if (elements.isEmpty()) return new None<T>();
+		return new Some<T>(elements.getLast());
 	}
 
 	@Override
@@ -62,7 +64,7 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 		return getLast().orElseGet(() -> {
 			// Return a sentinel None wrapped as T for legacy callers
 			@SuppressWarnings("unchecked")
-			final T wrapped = (T) (Object) new None<>();
+			final T wrapped = (T) new None<Object>();
 			return wrapped;
 		});
 	}
@@ -75,8 +77,7 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public Option<Tuple<List<T>, T>> pop() {
-		if (elements.isEmpty())
-			return new None<Tuple<List<T>, T>>();
+		if (elements.isEmpty()) return new None<Tuple<List<T>, T>>();
 
 		final T last = elements.removeLast();
 		return new Some<Tuple<List<T>, T>>(new Tuple<List<T>, T>(this, last));
@@ -84,10 +85,8 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public Option<T> getFirst() {
-		if (elements.isEmpty()) {
-			return new None<>();
-		}
-		return new Some<>(elements.getFirst());
+		if (elements.isEmpty()) return new None<T>();
+		return new Some<T>(elements.getFirst());
 	}
 
 	@Override
@@ -96,7 +95,7 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 		return getFirst().orElseGet(() -> {
 			// Return a sentinel None wrapped as T for legacy callers
 			@SuppressWarnings("unchecked")
-			final T wrapped = (T) (Object) new None<>();
+			final T wrapped = (T) new None<Object>();
 			return wrapped;
 		});
 	}

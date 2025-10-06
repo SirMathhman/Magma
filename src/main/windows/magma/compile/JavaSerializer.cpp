@@ -94,7 +94,7 @@ Result<> deserializeValue_JavaSerializer(Class<> type, /*???*/ node) {
 Result<> deserializeSealed_JavaSerializer(Class<> type, /*???*/ node) {
 	if (/*???*/)return new_???(new_???(""+type.getName()+"", new_???(node)));
 	Option<> directResult=tryDirectPermittedSubclasses(type, node, nodeType);
-	/*???*/ result;
+	if (/*???*/)/*???*/ result;
 	return tryNestedSealedInterfaces(type, node, nodeType);
 }
 Option<> tryDirectPermittedSubclasses_JavaSerializer(Class<> type, /*???*/ node, /*???*/ nodeType) {
@@ -110,11 +110,12 @@ Option<> tryDirectPermittedSubclasses_JavaSerializer(Class<> type, /*???*/ node,
 }
 Result<> tryNestedSealedInterfaces_JavaSerializer(Class<> type, /*???*/ node, /*???*/ nodeType) {
 	Option<> recursiveResult=findNestedSealedDeserialization(type, node, nodeType);
-	/*???*/ value;
+	if (/*???*/)/*???*/ value;
 	/*???*/(type);
 	/*???*/ validTagsList;
 	if (validTags.isEmpty())validTagsList="";
-	/*???*/ validTagsList=validTags.stream().collect(new_???(""));
+	else
+	validTagsList==validTags.stream().collect(new_???(""));
 	/*???*/ suggestion=getSuggestionForUnknownTag(type, nodeType, validTags);
 	return new_???(new_???(""+type.getSimpleName()+""+nodeType+""+""+validTagsList+""+suggestion, new_???(node)));
 }
@@ -125,7 +126,7 @@ Option<> findNestedSealedDeserialization_JavaSerializer(Class<> type, /*???*/ no
 	{
 	Class<> permitted=/*???*/;
 	Option<> recursiveResult=tryDeserializeNestedSealed(type, node, nodeType, permitted);
-	/*???*/ k;
+	if (/*???*/)/*???*/ k;
 	j++;}
 	return new_???();
 }
@@ -157,24 +158,33 @@ Option<> findClosestTag_JavaSerializer(/*???*/ nodeType, List<> validTags) {
 }
 /*???*/ levenshteinDistance_JavaSerializer(/*???*/ s1, /*???*/ s2) {
 	/*???*/** dp=/*???*/;
+	initializeFirstColumn(dp, s1);
+	initializeFirstRow(dp, s2);
+	fillLevenshteinMatrix(dp, s1, s2);
+	return /*???*/;
+}
+/*???*/ initializeFirstColumn_JavaSerializer(/*???*/** dp, /*???*/ s1) {
 	/*???*/ bound=s1.length();
 	/*???*/ i1=/*???*/;
 	while (/*???*/)
 	{
 	/*???*/=i1;
 	i1++;}
+}
+/*???*/ initializeFirstRow_JavaSerializer(/*???*/** dp, /*???*/ s2) {
 	/*???*/ bound1=s2.length();
 	/*???*/ j=/*???*/;
 	while (/*???*/)
 	{
 	/*???*/=j;
 	j++;}
+}
+/*???*/ fillLevenshteinMatrix_JavaSerializer(/*???*/** dp, /*???*/ s1, /*???*/ s2) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
 	fillLevenshteinRow(dp, s1, s2, i);
 	i++;}
-	return /*???*/;
 }
 /*???*/ fillLevenshteinRow_JavaSerializer(/*???*/** dp, /*???*/ s1, /*???*/ s2, /*???*/ i) {
 	/*???*/ j=/*???*/;
@@ -197,8 +207,8 @@ List<> collectAllValidTags_JavaSerializer(Class<> sealedType) {
 	{
 	Class<> permitted=/*???*/;
 	/*???*/(permitted);
-	/*???*/ true;
-	/*???*/ true;
+	if (/*???*/&&tag.equals(nodeType))/*???*/ true;
+	if (permitted.isSealed()&&/*???*/.isRecord())if (canMatchType(permitted, nodeType))/*???*/ true;
 	i++;}
 	/*???*/ false;
 }
@@ -374,9 +384,9 @@ Option<> findStringInChildren_JavaSerializer(/*???*/ node, /*???*/ key) {
 	{
 	/*???*/ child=iterator.next();
 	/*???*/(key);
-	/*???*/ result;
+	if (/*???*/)/*???*/ result;
 	result==findStringInChildren(child, key);
-	/*???*/ result;}}
+	if (/*???*/)/*???*/ result;}}
 	return findStringInNodeLists(node, key);
 }
 Option<> findStringInNodeLists_JavaSerializer(/*???*/ node, /*???*/ key) {
@@ -385,7 +395,7 @@ Option<> findStringInNodeLists_JavaSerializer(/*???*/ node, /*???*/ key) {
 	{
 	/*???*/();
 	/*???*/(children, key);
-	/*???*/ result;}
+	if (/*???*/)/*???*/ result;}
 	return Option.empty();
 }
 Option<> searchChildrenList_JavaSerializer(List<> children, /*???*/ key) {
@@ -394,14 +404,14 @@ Option<> searchChildrenList_JavaSerializer(List<> children, /*???*/ key) {
 	{
 	/*???*/ child=children.getOrNull(i);
 	/*???*/(key);
-	/*???*/ result;
+	if (/*???*/)/*???*/ result;
 	result==findStringInChildren(child, key);
-	/*???*/ result;
+	if (/*???*/)/*???*/ result;
 	i++;}
 	return Option.empty();
 }
 /*???*/ shouldBeDeserializableAs_JavaSerializer(/*???*/ node, Class<> targetClass) {
-	/*???*/ false;
+	if (/*???*/)/*???*/ false;
 	if (/*???*/)
 	{
 	/*???*/ tagAnnotation=targetClass.getAnnotation(Tag.class);

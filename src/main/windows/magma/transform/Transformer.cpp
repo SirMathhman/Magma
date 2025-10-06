@@ -44,14 +44,14 @@ struct Transformer {};
 	return new_???(param.name(), transformedType, new_???());
 }
 Option<> extractMethodTypeParameters_Transformer(/*???*/ method) {
-	Set<> typeVars=new_???();
+	List<> typeVars=new_???();
 	collectTypeVariables(method.definition().type(), typeVars);
-	if (/*???*/)paramList.forEach(/*???*/(param.type(), typeVars));
+	if (/*???*/)paramList.stream().forEach(/*???*/(param.type(), typeVars));
 	if (typeVars.isEmpty())return new_???();
 	List<> identifiers=typeVars.stream().map(/*???*/).toList();
 	return new_???(identifiers);
 }
-/*???*/ collectTypeVariables_Transformer(/*???*/ type, Set<> typeVars) {/*???*/
+/*???*/ collectTypeVariables_Transformer(/*???*/ type, List<> typeVars) {/*???*/
 }
 /*???*/ transformDefinition_Transformer(/*???*/ definition) {
 	Option<> typeParams=definition.typeParameters();
@@ -73,20 +73,20 @@ Tuple<> flattenStructureSegment_Transformer(/*???*/ self, /*???*/ name) {
 }
 List<> flattenStructure_Transformer(/*???*/ aClass) {
 	List<> children=aClass.children();
-	ArrayList<> segments=new_???();
-	List<> fields=new_???(extractRecordParamsAsFields(aClass));
+	List<>* segments=/*???*/;
+	List<> fields=extractRecordParamsAsFields(aClass).copy();
 	/*???*/ name=aClass.name();
 	children.stream().map(/*???*/(child, name)).forEach(/*???*/);
 	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
 	List<> copy=new_???();
-	copy.add(structure);
-	copy.addAll(segments);
+	copy.addLast(structure);
+	copy.addAll(/*???*/);
 	/*???*/ copy;
 }
 List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	if (/*???*/)
 	{
-	Option<> params=record.params();
+	/*???*/();
 	if (/*???*/)return paramList.stream().map(/*???*/).toList();}
 	return Collections.emptyList();
 }
@@ -105,8 +105,8 @@ List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	List<> listOption=generic.typeArguments().orElse(new_???());
 	if (generic.base().equals("")&&listOption.size()==/*???*/)
 	{
-	/*???*/ paramType=transformType(listOption.get(/*???*/));
-	/*???*/ returnType=transformType(listOption.get(/*???*/));
+	/*???*/ paramType=transformType(listOption.getOrNull(/*???*/));
+	/*???*/ returnType=transformType(listOption.getOrNull(/*???*/));
 	return new_???(returnType, List.of(paramType));}
 	return new_???(generic.base().last(), listOption.stream().map(/*???*/).toList());
 }

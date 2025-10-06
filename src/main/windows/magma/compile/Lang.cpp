@@ -127,6 +127,7 @@ struct InvocationFolder {/*???*/ open;/*???*/ close;};
 	{
 	/*???*/ enter=appended.enter();
 	if (enter.isShallow())return enter.advance();
+	else
 	/*???*/ enter;}
 	if (c==close)return appended.exit();
 	/*???*/ appended;
@@ -183,7 +184,7 @@ struct OperatorFolder {/*???*/ operator;};
 struct JQualified {Option<> segments;};
 /*???*/ last_JQualified() {
 	if (/*???*/)return "";
-	return segments.orElse(new_???()).getLastOrNull().value;
+	return segments.orElse(new_???()).getLast().map(/*???*/.value).orElse("");
 }
 /*???*/ CFunctionPointerDefinition_Lang() {
 	return Tag("", Suffix(First(Suffix(First(Node("", CType()), "", String("")), ""), "", Expressions("", CType())), ""));

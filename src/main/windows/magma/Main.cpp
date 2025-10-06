@@ -14,7 +14,7 @@ Option<> compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, List<> jav
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ javaFile=javaFiles.get(i);
+	/*???*/ javaFile=javaFiles.getOrNull(i);
 	System.out.println(""+javaFile);
 	/*???*/(javaFile, javaSourceRoot, cOutputRoot);
 	if (/*???*/)

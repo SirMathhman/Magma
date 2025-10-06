@@ -12,7 +12,8 @@ struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 	/*???*/ formattedChildren=joinErrors(depth, indices, copy);
 	/*???*/ s;
 	if (depth==/*???*/)s="";
-	/*???*/ s=System.lineSeparator()+"".repeat(depth);
+	else
+	s==System.lineSeparator()+"".repeat(depth);
 	/*???*/ joinedIndices=getCollect(indices);
 	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
 }
@@ -24,7 +25,7 @@ struct CompileError {/*???*/ reason;/*???*/ context;List<> causes;};
 /*???*/ joinErrors_CompileError(/*???*/ depth, List<> indices, List<> copy) {
 	Stream<> range=Stream.range(/*???*/, copy.size());
 	Stream<> stringStream=range.map(/*???*/(depth, copy, indices, index));
-	return stringStream.collect(new_???(null));
+	return stringStream.collect(new_???(""));
 }
 /*???*/ formatChild_CompileError(/*???*/ depth, List<> copy, List<> indices, /*???*/ last) {
 	/*???*/ error=copy.getOrNull(last);
