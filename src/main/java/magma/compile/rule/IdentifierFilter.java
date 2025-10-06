@@ -3,7 +3,7 @@ package magma.compile.rule;
 import magma.list.Stream;
 
 public class IdentifierFilter implements Filter {
-	public static Filter Identifier = new IdentifierFilter();
+	public static final Filter Identifier = new IdentifierFilter();
 
 	@Override
 	public boolean test(String input) {

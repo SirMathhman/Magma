@@ -242,11 +242,11 @@ public class Transformer {
 				children.stream().map(child -> flattenStructureSegment(child, name)).toList();
 
 		// Flatten all CRoootSegments produced by the children
-		final List<Lang.CRootSegment> segments = tuples.stream().map(tuple -> tuple.left()).flatMap(List::stream).toList();
+		final List<Lang.CRootSegment> segments = tuples.stream().map(Tuple::left).flatMap(List::stream).toList();
 
 		// Collect any field definitions returned by children
 		final List<Lang.CDefinition> additionalFields = tuples.stream()
-																													.map(tuple -> tuple.right())
+																													.map(Tuple::right)
 																													.filter(opt -> opt instanceof Some<Lang.CDefinition>)
 																													.map(opt -> ((Some<Lang.CDefinition>) opt).value())
 																													.toList();

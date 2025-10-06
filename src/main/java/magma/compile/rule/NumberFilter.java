@@ -3,7 +3,7 @@ package magma.compile.rule;
 import magma.list.Stream;
 
 public class NumberFilter implements Filter {
-	public static Filter Filter = new NumberFilter();
+	public static final Filter Filter = new NumberFilter();
 
 	@Override
 	public boolean test(String input) {
