@@ -117,8 +117,15 @@ public class JavaSerializer {
 			return new Ok<>(new Node()); // Empty node for None
 
 		if (option instanceof Some<?>(Object value1)) {
-			Type elementType = getGenericArgument(component.getGenericType());
-			Class<?> elementClass = erase(elementType);
+			Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
+			if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+				return new Err<>(error);
+			Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+			Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+			if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+				return new Err<>(error);
+			Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 			if (elementClass == String.class)
 				return new Ok<>(new Node().withString(fieldName, (String) value1));
@@ -137,8 +144,15 @@ public class JavaSerializer {
 			return new Err<>(new CompileError("Optional List component '" + fieldName + "' is not a List instance",
 					new StringContext(fieldName)));
 
-		Type elementType = getGenericArgument(listType);
-		Class<?> elementClass = erase(elementType);
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(listType);
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		return serializeListElements(elementClass, list).mapValue(nodes -> {
 			if (nodes.isEmpty())
@@ -154,8 +168,15 @@ public class JavaSerializer {
 			return new Err<>(
 					new CompileError("Component '" + fieldName + "' is not a List instance", new StringContext(fieldName)));
 
-		Type elementType = getGenericArgument(component.getGenericType());
-		Class<?> elementClass = erase(elementType);
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		return serializeListElements(elementClass, list).mapValue(nodes -> {
 			if (nodes.isEmpty())
@@ -459,8 +480,15 @@ public class JavaSerializer {
 
 	private static Result<Object, CompileError> deserializeOptionField(RecordComponent component, Node node,
 			Set<String> consumedFields) {
-		Type elementType = getGenericArgument(component.getGenericType());
-		Class<?> elementClass = erase(elementType);
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 		String fieldName = component.getName();
 
 		if (elementClass == String.class) {
@@ -503,8 +531,15 @@ public class JavaSerializer {
 
 	private static Result<Object, CompileError> deserializeOptionListField(String fieldName, Type listType, Node node,
 			Set<String> consumedFields) {
-		Type elementType = getGenericArgument(listType);
-		Class<?> elementClass = erase(elementType);
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(listType);
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		Option<List<Node>> maybeList = node.findNodeList(fieldName);
 		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
@@ -518,8 +553,15 @@ public class JavaSerializer {
 	private static Result<Object, CompileError> deserializeListField(RecordComponent component, Node node,
 			Set<String> consumedFields) {
 		String fieldName = component.getName();
-		Type elementType = getGenericArgument(component.getGenericType());
-		Class<?> elementClass = erase(elementType);
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
 		Option<List<Node>> maybeList = node.findNodeList(fieldName);
 		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
@@ -589,23 +631,24 @@ public class JavaSerializer {
 		return result;
 	}
 
-	private static Type getGenericArgument(Type type) {
+	private static Result<Type, CompileError> getGenericArgument(Type type) {
 		if (type instanceof ParameterizedType parameterized) {
 			Type[] args = parameterized.getActualTypeArguments();
 			if (args.length > 0)
-				return args[0];
+				return new Ok<>(args[0]);
 		}
 
-		throw new IllegalArgumentException("Type " + type + " does not have generic argument at index " + 0);
+		return new Err<>(new CompileError("Type " + type + " does not have generic argument at index 0",
+				new StringContext(type.toString())));
 	}
 
-	private static Class<?> erase(Type type) {
+	private static Result<Class<?>, CompileError> erase(Type type) {
 		if (type instanceof Class<?> clazz)
-			return clazz;
+			return new Ok<>(clazz);
 		if (type instanceof ParameterizedType parameterized && parameterized.getRawType() instanceof Class<?> raw)
-			return raw;
+			return new Ok<>(raw);
 
-		throw new IllegalArgumentException("Cannot erase type '" + type + "'");
+		return new Err<>(new CompileError("Cannot erase type '" + type + "'", new StringContext(type.toString())));
 	}
 
 	private static Option<String> resolveTypeIdentifier(Class<?> clazz) {
