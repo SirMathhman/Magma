@@ -24,7 +24,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	}
 
 	public static Rule Expressions(String key, Rule rule) {
-		return new NodeListRule(key, rule, new FoldingDivider(new ValueFolder()));
+		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new ValueFolder())));
 	}
 
 	@Override

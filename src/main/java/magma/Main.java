@@ -284,6 +284,7 @@ public class Main {
 			case Quantity quantity -> new Invalid("???");
 			case Lambda lambda -> new Invalid("???");
 			case NewArray newArray -> new Invalid("???");
+			case CharNode charNode -> charNode;
 		};
 	}
 

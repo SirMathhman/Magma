@@ -47,7 +47,7 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
 	sealed public interface JExpression
-			permits And, Cast, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
+			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
 			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
@@ -76,9 +76,12 @@ public class Lang {
 	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
 
 	public sealed interface CExpression
-			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, Identifier, Invalid {}
+			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, CharNode, Identifier, Invalid {}
 
 	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {}
+
+	@Tag("char")
+	public record CharNode(String value) implements JExpression, CExpression {}
 
 	@Tag("and")
 	public record CAnd(CExpression left, CExpression right) implements CExpression {}
@@ -228,8 +231,8 @@ public class Lang {
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
-													Option<List<Identifier>> typeParameters, Option<JType> implementsClause,
-													Option<JType> extendsClause, Option<List<JType>> variants) implements JStructure {}
+													Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces,
+													Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {}
 
 	@Tag("record")
 	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
@@ -365,7 +368,7 @@ public class Lang {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Expressions("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Statements("body", CFunctionSegment());
-		final var first = First(definition, "(", params);
+		final Rule first = First(definition, "(", params);
 		final Rule suffix = Suffix(first, ")");
 		final Rule suffix1 = Suffix(body, System.lineSeparator() + "}");
 		final Rule functionDecl = First(suffix, " {", suffix1);
@@ -586,6 +589,7 @@ public class Lang {
 	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(Lambda(statement),
+											Char(),
 											Tag("cast", Strip(Prefix("(", First(Node("type", JType()), ")", Node("child", expression))))),
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
@@ -607,6 +611,10 @@ public class Lang {
 											Operator("less-than-equals", "<=", expression),
 											Identifier()));
 		return expression;
+	}
+
+	private static Rule Char() {
+		return Tag("char", Strip(Prefix("'", Suffix(String("value"), "'"))));
 	}
 
 	private static Rule Lambda(Rule statement) {
@@ -661,6 +669,7 @@ public class Lang {
 											Operator("equals", "==", expression),
 											StringExpr(),
 											Identifier(),
+											Char(),
 											Invalid()));
 		return expression;
 	}
