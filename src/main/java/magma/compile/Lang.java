@@ -79,6 +79,9 @@ public class Lang {
 	@Tag("and")
 	public record And(JExpression left, JExpression right) implements JExpression {}
 
+	@Tag("instanceof")
+	public record InstanceOf() {}
+
 	@Tag("wildcard")
 	public record Wildcard() implements JType {}
 
@@ -558,8 +561,8 @@ public class Lang {
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {
-		Rule type =
-				Or(JDefinition(), Node("type", JType()), Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
+		final Rule strip = Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
+		Rule type = Node("value", Or(JDefinition(), Node("type", JType()), strip));
 		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
 	}
 

@@ -929,8 +929,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -943,8 +942,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -954,18 +952,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "closestTag"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "tag",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					2) Element at index 23 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -1131,8 +1122,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1145,8 +1135,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -1156,18 +1145,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "childNode"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					3) Element at index 24 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -1303,8 +1285,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1317,8 +1298,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -1328,18 +1308,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "direct"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -1351,8 +1324,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1365,8 +1337,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -1376,18 +1347,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "nested"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					4) Element at index 29 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -1509,8 +1473,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1524,8 +1487,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -1535,18 +1497,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "typeId"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					5) Element at index 31 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -1617,9 +1572,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 									},
 									"condition": {
 										"@type": "instanceof",
-										"name": "parameterized",
 										"child": {...},
-										"type": {...}
+										"value": {...}
 									}
 								}
 								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -1631,9 +1585,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										},
 										"condition": {
 											"@type": "instanceof",
-											"name": "parameterized",
 											"child": {...},
-											"type": {...}
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1645,22 +1598,21 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											},
 											"condition": {
 												"@type": "instanceof",
-												"name": "parameterized",
 												"child": {...},
-												"type": {...}
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
-												"name": "parameterized",
 												"child": {
 													"@type": "identifier",
 													"value": "type"
 												},
-												"type": {
-													"@type": "identifier",
-													"value": "ParameterizedType"
+												"value": {
+													"@type": "definition",
+													"name": "parameterized",
+													"type": {...}
 												}
 											}
 					6) Element at index 36 with type 'method' cannot be deserialized as 'JStructureSegment': 
@@ -1920,8 +1872,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -1934,8 +1885,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -1946,18 +1896,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"name": "maybeType",
 													"child": {...}
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "nodeType",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					8) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -2850,8 +2793,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -2864,8 +2806,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -2875,18 +2816,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "maybeList"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 2 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -3168,8 +3102,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -3182,8 +3115,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -3193,18 +3125,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "maybeList"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 3 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -6013,8 +5938,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -6027,8 +5951,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6038,18 +5961,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "childNode"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 2 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -6248,7 +6164,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -6261,7 +6177,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6271,10 +6187,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "direct"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												1) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -6287,7 +6201,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -6300,7 +6214,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6310,10 +6224,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "nested"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												2) Element at index 5 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -6326,7 +6238,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -6339,7 +6251,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6349,10 +6261,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "wrongTypeNode"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												3) Element at index 7 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -6365,7 +6275,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -6378,7 +6288,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6388,10 +6298,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "wrongTypeList"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 					24) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
@@ -6550,7 +6458,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...}
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -6563,7 +6471,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...}
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6573,10 +6481,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "option"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "None",
-													"typeArguments": [...]
+												"value": {
+													"type": {...}
 												}
 											}
 								2) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -6589,8 +6495,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -6603,8 +6508,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -6614,18 +6518,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "option"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value1",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 										1) Failed to deserialize 'JBlock': 
 											{
@@ -7059,8 +6956,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"left": {
 																	"@type": "instanceof",
 																	"child": {...},
-																	"type": {...},
-																	"params": [...]
+																	"value": {...}
 																},
 																"right": {
 																	"@type": "field-access",
@@ -7075,18 +6971,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"@type": "identifier",
 																		"value": "maybeIdentifier"
 																	},
-																	"type": {
-																		"@type": "generic",
-																		"base": "Some",
-																		"typeArguments": [...]
-																	},
-																	"params": [
-																		{
-																			"@type": "definition",
-																			"name": "identifier",
-																			"type": {...}
-																		}
-																	]
+																	"value": {
+																		"@type": "destruct",
+																		"type": {...},
+																		"params": [...]
+																	}
 																}
 					26) Element at index 19 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -7591,8 +7480,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -7606,8 +7494,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -7617,18 +7504,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "validationError"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "error",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								3) Element at index 10 with type 'if' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -7776,8 +7656,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -7791,8 +7670,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -7802,18 +7680,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "expectedType"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "expectedType0",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 										1) Failed to deserialize 'JIf': 
 											{
@@ -7825,8 +7696,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"condition": {
 													"@type": "instanceof",
 													"child": {...},
-													"type": {...},
-													"params": [...]
+													"value": {...}
 												}
 											}
 											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -7837,18 +7707,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"name": "maybeType",
 														"child": {...}
 													},
-													"type": {
-														"@type": "generic",
-														"base": "Some",
-														"typeArguments": [...]
-													},
-													"params": [
-														{
-															"@type": "definition",
-															"name": "nodeType",
-															"type": {...}
-														}
-													]
+													"value": {
+														"@type": "destruct",
+														"type": {...},
+														"params": [...]
+													}
 												}
 											1) Failed to deserialize 'JBlock': 
 												{
@@ -8173,8 +8036,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...},
-															"params": [...]
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -8188,8 +8050,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...},
-																"params": [...]
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -8199,18 +8060,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "childResult"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Ok",
-																	"typeArguments": [...]
-																},
-																"params": [
-																	{
-																		"@type": "definition",
-																		"name": "value",
-																		"type": {...}
-																	}
-																]
+																"value": {
+																	"@type": "destruct",
+																	"type": {...},
+																	"params": [...]
+																}
 															}
 												1) Element at index 3 with type 'else' cannot be deserialized as 'JMethodSegment': 
 													{
@@ -8241,8 +8095,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"condition": {
 																	"@type": "instanceof",
 																	"child": {...},
-																	"type": {...},
-																	"params": [...]
+																	"value": {...}
 																}
 															}
 															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -8252,18 +8105,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"@type": "identifier",
 																		"value": "childResult"
 																	},
-																	"type": {
-																		"@type": "generic",
-																		"base": "Err",
-																		"typeArguments": [...]
-																	},
-																	"params": [
-																		{
-																			"@type": "definition",
-																			"name": "error",
-																			"type": {...}
-																		}
-																	]
+																	"value": {
+																		"@type": "destruct",
+																		"type": {...},
+																		"params": [...]
+																	}
 																}
 															1) Failed to deserialize 'JIf': 
 																{
@@ -8289,8 +8135,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"right": {
 																			"@type": "instanceof",
 																			"child": {...},
-																			"type": {...},
-																			"params": [...]
+																			"value": {...}
 																		}
 																	}
 																	0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -8301,18 +8146,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																				"name": "maybeType",
 																				"child": {...}
 																			},
-																			"type": {
-																				"@type": "generic",
-																				"base": "Some",
-																				"typeArguments": [...]
-																			},
-																			"params": [
-																				{
-																					"@type": "definition",
-																					"name": "nodeType",
-																					"type": {...}
-																				}
-																			]
+																			"value": {
+																				"@type": "destruct",
+																				"type": {...},
+																				"params": [...]
+																			}
 																		}
 0) Failed to deserialize 'JavaRoot': 
 	{
@@ -9225,8 +9063,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9239,8 +9076,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -9250,18 +9086,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "closestTag"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "tag",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					2) Element at index 23 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -9427,8 +9256,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9441,8 +9269,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -9452,18 +9279,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "childNode"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					3) Element at index 24 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -9599,8 +9419,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9613,8 +9432,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -9624,18 +9442,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "direct"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -9647,8 +9458,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9661,8 +9471,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -9672,18 +9481,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "nested"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					4) Element at index 29 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -9805,8 +9607,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9820,8 +9621,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -9831,18 +9631,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "typeId"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					5) Element at index 31 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -9913,9 +9706,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 									},
 									"condition": {
 										"@type": "instanceof",
-										"name": "parameterized",
 										"child": {...},
-										"type": {...}
+										"value": {...}
 									}
 								}
 								0) Element at index 0 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -9927,9 +9719,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										},
 										"condition": {
 											"@type": "instanceof",
-											"name": "parameterized",
 											"child": {...},
-											"type": {...}
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -9941,22 +9732,21 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											},
 											"condition": {
 												"@type": "instanceof",
-												"name": "parameterized",
 												"child": {...},
-												"type": {...}
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
 											{
 												"@type": "instanceof",
-												"name": "parameterized",
 												"child": {
 													"@type": "identifier",
 													"value": "type"
 												},
-												"type": {
-													"@type": "identifier",
-													"value": "ParameterizedType"
+												"value": {
+													"@type": "definition",
+													"name": "parameterized",
+													"type": {...}
 												}
 											}
 					6) Element at index 36 with type 'method' cannot be deserialized as 'JStructureSegment': 
@@ -10216,8 +10006,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -10230,8 +10019,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -10242,18 +10030,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"name": "maybeType",
 													"child": {...}
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "nodeType",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 					8) Element at index 3 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -11146,8 +10927,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -11160,8 +10940,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -11171,18 +10950,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "maybeList"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 2 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -11464,8 +11236,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -11478,8 +11249,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -11489,18 +11259,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "maybeList"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 3 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -14309,8 +14072,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -14323,8 +14085,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14334,18 +14095,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "childNode"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								1) Element at index 2 with type 'initialization' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -14544,7 +14298,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -14557,7 +14311,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14567,10 +14321,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "direct"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												1) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -14583,7 +14335,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -14596,7 +14348,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14606,10 +14358,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "nested"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												2) Element at index 5 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -14622,7 +14372,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -14635,7 +14385,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14645,10 +14395,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "wrongTypeNode"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 												3) Element at index 7 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -14661,7 +14409,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...}
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -14674,7 +14422,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...}
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14684,10 +14432,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "wrongTypeList"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Some",
-																	"typeArguments": [...]
+																"value": {
+																	"type": {...}
 																}
 															}
 					24) Element at index 6 with type 'method' cannot be deserialized as 'JStructureSegment': 
@@ -14846,7 +14592,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...}
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -14859,7 +14605,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...}
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14869,10 +14615,8 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "option"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "None",
-													"typeArguments": [...]
+												"value": {
+													"type": {...}
 												}
 											}
 								2) Element at index 3 with type 'if' cannot be deserialized as 'JMethodSegment': 
@@ -14885,8 +14629,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -14899,8 +14642,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -14910,18 +14652,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "option"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "value1",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 										1) Failed to deserialize 'JBlock': 
 											{
@@ -15355,8 +15090,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"left": {
 																	"@type": "instanceof",
 																	"child": {...},
-																	"type": {...},
-																	"params": [...]
+																	"value": {...}
 																},
 																"right": {
 																	"@type": "field-access",
@@ -15371,18 +15105,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"@type": "identifier",
 																		"value": "maybeIdentifier"
 																	},
-																	"type": {
-																		"@type": "generic",
-																		"base": "Some",
-																		"typeArguments": [...]
-																	},
-																	"params": [
-																		{
-																			"@type": "definition",
-																			"name": "identifier",
-																			"type": {...}
-																		}
-																	]
+																	"value": {
+																		"@type": "destruct",
+																		"type": {...},
+																		"params": [...]
+																	}
 																}
 					26) Element at index 19 with type 'method' cannot be deserialized as 'JStructureSegment': 
 						{
@@ -15887,8 +15614,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -15902,8 +15628,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -15913,18 +15638,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "validationError"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "error",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 								3) Element at index 10 with type 'if' cannot be deserialized as 'JMethodSegment': 
 									{
@@ -16072,8 +15790,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"condition": {
 											"@type": "instanceof",
 											"child": {...},
-											"type": {...},
-											"params": [...]
+											"value": {...}
 										}
 									}
 									0) Failed to deserialize 'JIf': 
@@ -16087,8 +15804,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 											"condition": {
 												"@type": "instanceof",
 												"child": {...},
-												"type": {...},
-												"params": [...]
+												"value": {...}
 											}
 										}
 										0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -16098,18 +15814,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 													"@type": "identifier",
 													"value": "expectedType"
 												},
-												"type": {
-													"@type": "generic",
-													"base": "Some",
-													"typeArguments": [...]
-												},
-												"params": [
-													{
-														"@type": "definition",
-														"name": "expectedType0",
-														"type": {...}
-													}
-												]
+												"value": {
+													"@type": "destruct",
+													"type": {...},
+													"params": [...]
+												}
 											}
 										1) Failed to deserialize 'JIf': 
 											{
@@ -16121,8 +15830,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 												"condition": {
 													"@type": "instanceof",
 													"child": {...},
-													"type": {...},
-													"params": [...]
+													"value": {...}
 												}
 											}
 											0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -16133,18 +15841,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"name": "maybeType",
 														"child": {...}
 													},
-													"type": {
-														"@type": "generic",
-														"base": "Some",
-														"typeArguments": [...]
-													},
-													"params": [
-														{
-															"@type": "definition",
-															"name": "nodeType",
-															"type": {...}
-														}
-													]
+													"value": {
+														"@type": "destruct",
+														"type": {...},
+														"params": [...]
+													}
 												}
 											1) Failed to deserialize 'JBlock': 
 												{
@@ -16469,8 +16170,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 														"condition": {
 															"@type": "instanceof",
 															"child": {...},
-															"type": {...},
-															"params": [...]
+															"value": {...}
 														}
 													}
 													0) Failed to deserialize 'JIf': 
@@ -16484,8 +16184,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"condition": {
 																"@type": "instanceof",
 																"child": {...},
-																"type": {...},
-																"params": [...]
+																"value": {...}
 															}
 														}
 														0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -16495,18 +16194,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																	"@type": "identifier",
 																	"value": "childResult"
 																},
-																"type": {
-																	"@type": "generic",
-																	"base": "Ok",
-																	"typeArguments": [...]
-																},
-																"params": [
-																	{
-																		"@type": "definition",
-																		"name": "value",
-																		"type": {...}
-																	}
-																]
+																"value": {
+																	"@type": "destruct",
+																	"type": {...},
+																	"params": [...]
+																}
 															}
 												1) Element at index 3 with type 'else' cannot be deserialized as 'JMethodSegment': 
 													{
@@ -16537,8 +16229,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"condition": {
 																	"@type": "instanceof",
 																	"child": {...},
-																	"type": {...},
-																	"params": [...]
+																	"value": {...}
 																}
 															}
 															0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -16548,18 +16239,11 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"@type": "identifier",
 																		"value": "childResult"
 																	},
-																	"type": {
-																		"@type": "generic",
-																		"base": "Err",
-																		"typeArguments": [...]
-																	},
-																	"params": [
-																		{
-																			"@type": "definition",
-																			"name": "error",
-																			"type": {...}
-																		}
-																	]
+																	"value": {
+																		"@type": "destruct",
+																		"type": {...},
+																		"params": [...]
+																	}
 																}
 															1) Failed to deserialize 'JIf': 
 																{
@@ -16585,8 +16269,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																		"right": {
 																			"@type": "instanceof",
 																			"child": {...},
-																			"type": {...},
-																			"params": [...]
+																			"value": {...}
 																		}
 																	}
 																	0) No permitted subtype of 'JExpression' matched node type 'instanceof'. Valid tags are: [and, identifier, invalid, add, construction, equals, field-access, invocation, string, switch]. Did you mean 'switch'? Or add a record type with @Tag("instanceof") to the permitted subtypes of 'JExpression'.: 
@@ -16597,16 +16280,9 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																				"name": "maybeType",
 																				"child": {...}
 																			},
-																			"type": {
-																				"@type": "generic",
-																				"base": "Some",
-																				"typeArguments": [...]
-																			},
-																			"params": [
-																				{
-																					"@type": "definition",
-																					"name": "nodeType",
-																					"type": {...}
-																				}
-																			]
+																			"value": {
+																				"@type": "destruct",
+																				"type": {...},
+																				"params": [...]
+																			}
 																		}
