@@ -75,7 +75,7 @@ List<> flattenStructure_Transformer(/*???*/ aClass) {
 	List<> children=aClass.children();
 	ArrayList<> segments=new_???();
 	ArrayList<> fields=new_???();
-	addRecordParamsAsFields(aClass, fields);
+	fields.addAll(addRecordParamsAsFields(aClass));
 	char* name=aClass.name();
 	children.stream().map(/*???*/(child, name)).forEach(/*???*/);
 	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
@@ -84,11 +84,12 @@ List<> flattenStructure_Transformer(/*???*/ aClass) {
 	copy.addAll(segments);
 	return copy;
 }
-void addRecordParamsAsFields_Transformer(/*???*/ aClass, ArrayList<> fields) {
+List<> addRecordParamsAsFields_Transformer(/*???*/ structure) {
 	if (/*???*/)
 	{
 	Option<> params=record.params();
-	if (/*???*/)paramList.stream().map(/*???*/).forEach(/*???*/);}
+	if (/*???*/)return paramList.stream().map(/*???*/).toList();}
+	return Collections.emptyList();
 }
 /*???*/ transformType_Transformer(/*???*/ type) {
 	return /*???*/;

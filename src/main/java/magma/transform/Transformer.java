@@ -223,10 +223,9 @@ public class Transformer {
 		final List<Lang.JStructureSegment> children = aClass.children();
 
 		final ArrayList<Lang.CRootSegment> segments = new ArrayList<>();
-		final ArrayList<Lang.CDefinition> fields = new ArrayList<>();
 
 		// Special handling for Record params - add them as struct fields
-		addRecordParamsAsFields(aClass, fields);
+		final List<Lang.CDefinition> fields = extractRecordParamsAsFields(aClass);
 
 		final String name = aClass.name();
 		children.stream().map(child -> flattenStructureSegment(child, name)).forEach(tuple -> {
@@ -242,12 +241,13 @@ public class Transformer {
 		return copy;
 	}
 
-	private static void addRecordParamsAsFields(Lang.JStructure aClass, ArrayList<Lang.CDefinition> fields) {
-		if (aClass instanceof Lang.RecordNode record) {
+	private static List<Lang.CDefinition> extractRecordParamsAsFields(Lang.JStructure structure) {
+		if (structure instanceof Lang.RecordNode record) {
 			Option<List<Lang.JDefinition>> params = record.params();
 			if (params instanceof Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
-				paramList.stream().map(Transformer::transformDefinition).forEach(fields::add);
+				return paramList.stream().map(Transformer::transformDefinition).toList();
 		}
+		return Collections.emptyList();
 	}
 
 	static Lang.CType transformType(Lang.JType type) {
