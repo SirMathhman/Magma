@@ -9,7 +9,7 @@ import static magma.compile.rule.TagRule.Tag;
 
 public class CommonRules {
 	public static Rule Identifier() {
-		return Tag("identifier", Lang.StrippedIdentifier("value"));
+		return Tag("identifier", StrippedIdentifier("value"));
 	}
 
 	static Rule StrippedIdentifier(String key) {

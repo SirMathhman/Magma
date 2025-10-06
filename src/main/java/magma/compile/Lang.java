@@ -9,6 +9,8 @@ import magma.compile.rule.EscapingFolder;
 import magma.compile.rule.FilterRule;
 import magma.compile.rule.Folder;
 import magma.compile.rule.FoldingDivider;
+import magma.compile.rule.InfixSplitter;
+import magma.compile.rule.LastLocator;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
@@ -497,7 +499,11 @@ public class Lang {
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
 				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
-		rule.set(Or(funcPtr, CommonRules.Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), JRules.JGeneric(rule), Invalid()));
+		rule.set(Or(funcPtr,
+								CommonRules.Identifier(),
+								Tag("pointer", Suffix(Node("child", rule), "*")),
+								JRules.JGeneric(rule),
+								Invalid()));
 		return rule;
 	}
 
@@ -555,7 +561,8 @@ public class Lang {
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JRules.JType(), ",")), beforeContent);
+		final Rule beforeContent1 =
+				Or(Last(beforeContent, "permits", Delimited("variants", JRules.JType(), ",")), beforeContent);
 
 		final Rule strip = Strip(Or(modifiers, Empty));
 		final Rule first = First(strip, type + " ", beforeContent1);
@@ -565,7 +572,8 @@ public class Lang {
 
 	private static Rule NameWithTypeParameters() {
 		final Rule name = CommonRules.StrippedIdentifier("name");
-		final Rule withTypeParameters = Suffix(First(name, "<", Expressions("typeParameters", CommonRules.Identifier())), ">");
+		final Rule withTypeParameters =
+				Suffix(First(name, "<", Expressions("typeParameters", CommonRules.Identifier())), ">");
 		return Strip(Or(withTypeParameters, name));
 	}
 
@@ -627,7 +635,7 @@ public class Lang {
 		final Rule resource = Node("resource", First(Or(Tag("initialization", definition1)), "=", value1));
 		final Splitter splitter = new DividingSplitter(new FoldingDivider(new EscapingFolder(new MyFolder())));
 		final Rule withResource =
-				new ContextRule("With resource", Strip(Prefix("(", new SplitRule(resource, child, splitter))));
+				new ContextRule("With resource", Strip(Prefix("(", new SplitRule(resource, child, splitter, new LeftFirst()))));
 		final ContextRule withoutResource = new ContextRule("Without resource", child);
 		return Tag("try", Prefix("try ", Or(withResource, withoutResource)));
 	}
@@ -703,7 +711,8 @@ public class Lang {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(JLambda(statement, expression),
 											Char(),
-											Tag("cast", Strip(Prefix("(", First(Node("type", JRules.JType()), ")", Node("child", expression))))),
+											Tag("cast",
+													Strip(Prefix("(", First(Node("type", JRules.JType()), ")", Node("child", expression))))),
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
 											StringExpr(),
@@ -749,7 +758,8 @@ public class Lang {
 	private static Rule MethodAccess(LazyRule expression) {
 		final Rule exprSource = Tag("expr-method-access-source", Node("child", expression));
 		final Rule child = Tag("type-method-access-source", Node("child", JRules.JType()));
-		return Tag("method-access", Last(Node("source", Or(exprSource, child)), "::", CommonRules.StrippedIdentifier("name")));
+		return Tag("method-access",
+							 Last(Node("source", Or(exprSource, child)), "::", CommonRules.StrippedIdentifier("name")));
 	}
 
 	private static Rule CaseExprValue(Rule statement, LazyRule expression) {
@@ -790,7 +800,10 @@ public class Lang {
 	}
 
 	private static Rule FieldAccess(Rule expression) {
-		return Tag("field-access", Last(Node("child", expression), ".", CommonRules.StrippedIdentifier("name")));
+		final Rule child = Node("child", expression);
+		Rule rightRule = CommonRules.StrippedIdentifier("name");
+		final Splitter splitter = new InfixSplitter(".", new LastLocator());
+		return Tag("field-access", new SplitRule(child, rightRule, splitter, new SplitRule.RightFirst()));
 	}
 
 	private static Rule StringExpr() {
