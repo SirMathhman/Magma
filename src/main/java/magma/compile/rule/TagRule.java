@@ -17,15 +17,19 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		return rule.lex(content)
-				.mapValue(node -> node.retype(tag))
-				.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-						new StringContext(content),
-						List.of(error)));
+							 .mapValue(node -> node.retype(tag))
+							 .mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
+																								 new StringContext(content),
+																								 List.of(error)));
 	}
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		if (node.is(tag)) return rule.generate(node);
+		if (node.is(tag)) return rule.generate(node)
+																 .mapErr(error -> new CompileError("Failed to generate with tag '" + tag + "'",
+																																	 new NodeContext(node),
+																																	 List.of(error)));
+
 		else return new Err<>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
 	}
 }

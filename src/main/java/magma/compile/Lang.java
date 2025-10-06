@@ -81,6 +81,9 @@ public class Lang {
 	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {}
 
 	@Tag("and")
+	public record CAnd(CExpression left, CExpression right) implements CExpression {}
+
+	@Tag("and")
 	public record And(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("destruct")
@@ -103,9 +106,6 @@ public class Lang {
 
 	@Tag("equals")
 	public record CEquals(CExpression left, CExpression right) implements CExpression {}
-
-	@Tag("and")
-	public record CAnd(CExpression left, CExpression right) implements CExpression {}
 
 	@Tag("string")
 	public record JString(Option<String> content) implements JExpression {}
@@ -655,9 +655,11 @@ public class Lang {
 		expression.set(Or(Invocation(expression),
 											FieldAccess(expression),
 											Operator("add", "+", expression),
+											Operator("and", "&&", expression),
 											Operator("equals", "==", expression),
 											StringExpr(),
-											Identifier()));
+											Identifier(),
+											Invalid()));
 		return expression;
 	}
 
