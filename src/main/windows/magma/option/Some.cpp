@@ -9,9 +9,6 @@ Option<> flatMap_Some(Option<> (*mapper)(T)) {
 T orElse_Some(T other) {
 	return value;
 }
-Tuple<> toTuple_Some(T other) {
-	return new_???(true, value);
-}
 Option<> or_Some(Supplier<> other) {
 	return this;
 }

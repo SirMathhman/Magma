@@ -9,9 +9,6 @@ Option<> flatMap_None(Option<> (*mapper)(T)) {
 T orElse_None(T other) {
 	return other;
 }
-Tuple<> toTuple_None(T other) {
-	return new_???(false, other);
-}
 Option<> or_None(Supplier<> other) {
 	return other.get();
 }

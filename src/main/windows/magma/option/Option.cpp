@@ -16,8 +16,6 @@ Option<> flatMap_Option(Option<> (*mapper)(T)) {
 }
 T orElse_Option(T other) {
 }
-Tuple<> toTuple_Option(T other) {
-}
 Option<> or_Option(Supplier<> other) {
 }
 T orElseGet_Option(Supplier<> other) {
