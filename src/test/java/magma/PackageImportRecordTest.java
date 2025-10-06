@@ -1,6 +1,7 @@
 package magma;
 
 import magma.compile.JavaSerializer;
+import magma.compile.Lang;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -37,7 +38,7 @@ public class PackageImportRecordTest {
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
-					if (child instanceof magma.compile.Lang.Record record) {
+					if (child instanceof Lang.RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});
@@ -71,7 +72,7 @@ public class PackageImportRecordTest {
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
-					if (child instanceof magma.compile.Lang.Record record) {
+					if (child instanceof Lang.RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});

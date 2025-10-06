@@ -68,7 +68,7 @@ public class Lang {
 		String stringify();
 	}
 
-	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, Record {
+	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
 
 		Option<List<Identifier>> typeParameters();
@@ -280,9 +280,9 @@ public class Lang {
 													Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {}
 
 	@Tag("record")
-	public record Record(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
-											 Option<List<JType>> interfaces) implements JStructure {}
+	public record RecordNode(Option<String> modifiers, String name, List<JStructureSegment> children,
+													 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
+													 Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("struct")
 	public record Structure(String name, List<CDefinition> fields, Option<String> after,

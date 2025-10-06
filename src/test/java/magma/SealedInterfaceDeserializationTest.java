@@ -44,13 +44,13 @@ public class SealedInterfaceDeserializationTest {
 					if (child.is("record")) {
 						System.out.println("Found record node! Trying to deserialize as Record class directly...");
 
-						Result<magma.compile.Lang.Record, CompileError> recordResult = JavaSerializer
-								.deserialize(magma.compile.Lang.Record.class, child);
-						if (recordResult instanceof Ok<magma.compile.Lang.Record, CompileError> recordOk) {
+						Result<RecordNode, CompileError> recordResult = JavaSerializer
+								.deserialize(RecordNode.class, child);
+						if (recordResult instanceof Ok<RecordNode, CompileError> recordOk) {
 							System.out.println("✅ Record deserialization SUCCESS");
 							System.out.println("Record name: " + recordOk.value().name());
 							System.out.println("Record children: " + recordOk.value().children().size());
-						} else if (recordResult instanceof Err<magma.compile.Lang.Record, CompileError> recordErr) {
+						} else if (recordResult instanceof Err<RecordNode, CompileError> recordErr) {
 							System.out.println("❌ Record deserialization FAILED: " + recordErr.error());
 						}
 
@@ -102,7 +102,7 @@ public class SealedInterfaceDeserializationTest {
 				System.out.println("JavaRoot children count: " + javaRootOk.value().children().size());
 				javaRootOk.value().children().forEach(child -> {
 					System.out.println("  Child type: " + child.getClass().getSimpleName());
-					if (child instanceof magma.compile.Lang.Record record) {
+					if (child instanceof RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});

@@ -106,7 +106,7 @@ public class CppGenerationTest {
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
 					System.out.println("  JavaRoot child: " + child.getClass().getSimpleName());
-					if (child instanceof magma.compile.Lang.Record record) {
+					if (child instanceof RecordNode record) {
 						System.out.println("    Record name: " + record.name());
 						System.out.println("    Record params: " + record.params());
 						System.out.println("    Record children count: " + record.children().size());
