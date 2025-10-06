@@ -1,5 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Node {};
+struct Node {int MAX_FORMAT_LEVEL;public Option<> maybeType;};
 new HashMap<>_Node() {
 }
 new HashMap<>_Node() {

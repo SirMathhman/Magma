@@ -128,6 +128,7 @@ struct Index {JExpression child;JExpression index;};
 struct Quantity {JExpression child;};
 struct Cast {JType type;JExpression child;};
 struct JLessThanEquals {JExpression left;JExpression right;};
+struct JGreaterThanEquals {JExpression left;JExpression right;};
 struct JLessThan {JExpression left;JExpression right;};
 struct Try {JMethodSegment child;};
 struct Catch {JDefinition definition;JMethodSegment body;};

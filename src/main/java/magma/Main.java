@@ -187,7 +187,10 @@ public class Main {
 			case JStructure jClass -> new Tuple<>(flattenStructure(jClass), new None<>());
 			case Field field -> new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(field.value())));
 			case Whitespace _, LineComment _, BlockComment _ -> new Tuple<>(Collections.emptyList(), new None<>());
-			case JInitialization jInitialization -> new Tuple<>(Collections.emptyList(), new None<>());
+			case JInitialization jInitialization ->
+					new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(jInitialization.definition())));
+			case JDefinition jDefinition ->
+					new Tuple<>(Collections.emptyList(), new Some<>(transformDefinition(jDefinition)));
 		};
 	}
 
@@ -286,6 +289,7 @@ public class Main {
 			case Lambda lambda -> new Invalid("???");
 			case NewArray newArray -> new Invalid("???");
 			case CharNode charNode -> charNode;
+			case JGreaterThanEquals jGreaterThanEquals -> new Invalid("???");
 		};
 	}
 

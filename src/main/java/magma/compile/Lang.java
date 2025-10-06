@@ -42,7 +42,7 @@ public class Lang {
 	}
 
 	public sealed interface JStructureSegment
-			permits BlockComment, Field, Invalid, JInitialization, JStructure, LineComment, Method, Whitespace {}
+			permits BlockComment, Field, Invalid, JDefinition, JInitialization, JStructure, LineComment, Method, Whitespace {}
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
@@ -202,7 +202,7 @@ public class Lang {
 
 	@Tag("definition")
 	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
-														Option<List<Identifier>> typeParameters) implements JMethodSegment, InstanceOfTarget {}
+														Option<List<Identifier>> typeParameters) implements JMethodSegment, InstanceOfTarget, JStructureSegment {}
 
 	@Tag("modifier")
 	public record Modifier(String value) {}
