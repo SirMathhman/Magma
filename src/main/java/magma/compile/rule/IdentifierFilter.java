@@ -9,7 +9,7 @@ public class IdentifierFilter implements Filter {
 	public boolean test(String input) {
 		return IntStream.range(0, input.length())
 										.mapToObj(input::charAt)
-										.allMatch(ch -> Character.isLetterOrDigit(ch) | ch == '_');
+										.allMatch(ch -> Character.isLetterOrDigit(ch) || ch == '_');
 	}
 
 	@Override

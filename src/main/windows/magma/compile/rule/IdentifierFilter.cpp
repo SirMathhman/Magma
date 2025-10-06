@@ -3,8 +3,8 @@ struct IdentifierFilter {};
 new IdentifierFilter_IdentifierFilter() {
 }
 boolean test_IdentifierFilter(char* input) {
-	return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(ch -> Character.isLetterOrDigit(ch) | ch == '_');
+	return IntStream.range(/*???*/, input.length()).mapToObj(/*???*/).allMatch(/*???*/=='_');
 }
 char* createErrorMessage_IdentifierFilter() {
-	an identifier";
+	return "";
 }

@@ -1,9 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\KeepLastMerger.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct KeepLastMerger {};
-@Override
-	public Option<> merge_KeepLastMerger(List<> segments, char* delimiter) {
-	if (/*???*/)new None<>();
-	char* left=String.join(delimiter, segments.subList(0, segments.size() - 1));
+Option<> merge_KeepLastMerger(List<> segments, char* delimiter) {
+	if (/*???*/)return new_???();
+	char* left=String.join(delimiter, segments.subList(/*???*/, /*???*/));
 	char* right=segments.getLast();
-	return new_???((new_???((left, right));
+	return new_???(new_???(left, right));
 }
