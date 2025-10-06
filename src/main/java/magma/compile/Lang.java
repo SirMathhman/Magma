@@ -591,10 +591,8 @@ public class Lang {
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
 		final Rule arguments = Expressions("arguments", expression);
 		FoldingDivider divider = new FoldingDivider(new EscapingFolder(new InvocationFolder('(', ')')));
-		return Tag(type,
-							 Split(Suffix(caller, String.valueOf('(')),
-										 KeepLast(divider),
-										 Suffix(Or(arguments, Whitespace()), String.valueOf(')'))));
+		final Rule suffix = Strip(Suffix(Or(arguments, Whitespace()), String.valueOf(')')));
+		return Tag(type, Split(Suffix(caller, String.valueOf('(')), KeepLast(divider), suffix));
 	}
 
 	private static Rule Yield(Rule expression) {

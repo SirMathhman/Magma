@@ -266,7 +266,8 @@ Rule Invokable_Lang(Rule expression) {
 Rule Invokable_Lang(char* type, Rule caller, Rule expression) {
 	Rule arguments=Expressions(("", expression);
 	FoldingDivider divider=new_???((new_???((new_???(('(', ')')));
-	return Tag((type, Split((Suffix((caller, String.valueOf('(')), KeepLast((divider), Suffix((Or((arguments, Whitespace(()), String.valueOf(')'))));
+	Rule suffix=Strip((Suffix((Or((arguments, Whitespace(()), String.valueOf(')')));
+	return Tag((type, Split((Suffix((caller, String.valueOf('(')), KeepLast((divider), suffix));
 }
 Rule Yield_Lang(Rule expression) {
 	return Tag(("", Prefix(("", Node(("", expression)));
