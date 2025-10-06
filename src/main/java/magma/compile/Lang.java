@@ -917,7 +917,8 @@ public class Lang {
 								Array(type),
 								Identifier(),
 								WildCard(),
-								Tag("variadic", Strip(Suffix(Node("child", type), "...")))));
+								Tag("variadic", Strip(Suffix(Node("child", type), "..."))),
+								Tag("subtype", Strip(Last(Node("type", type), ".", StrippedIdentifier("name"))))));
 		return type;
 	}
 

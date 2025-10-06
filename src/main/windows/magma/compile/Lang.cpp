@@ -450,7 +450,7 @@ Rule JDefinition_Lang() {
 }
 Rule JType_Lang() {
 	LazyRule type=new_???();
-	type.set(Or(Generic(type), Array(type), Identifier(), WildCard(), Tag("", Strip(Suffix(Node("", type), "")))));
+	type.set(Or(Generic(type), Array(type), Identifier(), WildCard(), Tag("", Strip(Suffix(Node("", type), ""))), Tag("", Strip(Last(Node("", type), "", StrippedIdentifier(""))))));
 	return type;
 }
 Rule WildCard_Lang() {
