@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Stack;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -16,28 +17,33 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 
 	@Override
 	public String display() {
-		return format(0, 0);
+		return format(0, new Stack<>());
 	}
 
-	private String format(int depth, int index) {
+	private String format(int depth, Stack<Integer> indices) {
 		final ArrayList<CompileError> copy = new ArrayList<>(causes);
 		copy.sort(Comparator.comparingInt(CompileError::depth));
-		final String formattedChildren = joinErrors(depth, copy);
+		final String formattedChildren = joinErrors(depth, indices, copy);
 		final String s;
 		if (depth == 0) s = "";
 		else s = System.lineSeparator() + "\t".repeat(depth);
-		return s + index + ") " + reason + ": " + context.display(depth) + formattedChildren;
+
+		final String joinedIndices = indices.stream().map(String::valueOf).collect(Collectors.joining("."));
+		return s + joinedIndices + ") " + reason + ": " + context.display(depth) + formattedChildren;
 	}
 
-	private String joinErrors(int depth, List<CompileError> copy) {
+	private String joinErrors(int depth, Stack<Integer> indices, List<CompileError> copy) {
 		return IntStream.range(0, copy.size())
-				.mapToObj(index -> formatChild(depth, copy, index))
-				.collect(Collectors.joining());
+										.mapToObj(index -> formatChild(depth, copy, indices, index))
+										.collect(Collectors.joining());
 	}
 
-	private String formatChild(int depth, List<CompileError> copy, int i) {
-		CompileError error = copy.get(i);
-		return error.format(depth + 1, i);
+	private String formatChild(int depth, List<CompileError> copy, Stack<Integer> indices, int last) {
+		CompileError error = copy.get(last);
+		indices.push(last);
+		final String format = error.format(depth + 1, indices);
+		indices.pop();
+		return format;
 	}
 
 	private int depth() {
