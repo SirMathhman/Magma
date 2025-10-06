@@ -137,10 +137,11 @@ public class SerializeRoundtripTest {
 
 		final Result<Node, CompileError> s = JavaSerializer.serialize(RString.class, value);
 		Node node2 = assertOkExtract(s);
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
-		String defaultVal = null; // Test assertion compatibility
-		assertEquals("hi", node2.findString("value").map(v -> v).orElse(defaultVal));
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
+		Option<String> valueOpt = node2.findString("value");
+		switch (valueOpt) {
+			case magma.option.Some<String>(String val) -> assertEquals("hi", val, "Expected 'hi'");
+			case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+		}
 	}
 
 	@Test
@@ -153,13 +154,17 @@ public class SerializeRoundtripTest {
 
 		final Result<Node, CompileError> s = JavaSerializer.serialize(RNode.class, value);
 		Node node2 = assertOkExtract(s);
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
-		Node defaultNode = null; // Test assertion compatibility
-		Node childNode = node2.findNode("child").orElse(defaultNode);
-		assertNotNull(childNode);
-		String defaultStr = null; // Test assertion compatibility
-		assertEquals("inner", childNode.findString("name").map(v -> v).orElse(defaultStr));
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
+		Option<Node> childNodeOpt = node2.findNode("child");
+		switch (childNodeOpt) {
+			case magma.option.Some<Node>(Node childNode) -> {
+				Option<String> nameOpt = childNode.findString("name");
+				switch (nameOpt) {
+					case magma.option.Some<String>(String name) -> assertEquals("inner", name);
+					case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+				}
+			}
+			case magma.option.None<Node> ignored -> assertTrue(false, "Expected Some, got None");
+		}
 	}
 
 	@Test
@@ -185,10 +190,11 @@ public class SerializeRoundtripTest {
 
 		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptString.class, value);
 		Node node2 = assertOkExtract(s);
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
-		String defaultVal = null; // Test assertion compatibility
-		assertEquals("optval", node2.findString("maybe").map(v -> v).orElse(defaultVal));
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
+		Option<String> maybeOpt = node2.findString("maybe");
+		switch (maybeOpt) {
+			case magma.option.Some<String>(String val) -> assertEquals("optval", val);
+			case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+		}
 	}
 
 	@Test
@@ -201,13 +207,17 @@ public class SerializeRoundtripTest {
 
 		final Result<Node, CompileError> s = JavaSerializer.serialize(ROptNode.class, value);
 		Node node2 = assertOkExtract(s);
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
-		Node defaultNode = null; // Test assertion compatibility
-		Node maybeNode = node2.findNode("maybe").orElse(defaultNode);
-		assertNotNull(maybeNode);
-		String defaultStr = null; // Test assertion compatibility
-		assertEquals("optinner", maybeNode.findString("name").map(v -> v).orElse(defaultStr));
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
+		Option<Node> maybeNodeOpt = node2.findNode("maybe");
+		switch (maybeNodeOpt) {
+			case magma.option.Some<Node>(Node maybeNode) -> {
+				Option<String> nameOpt = maybeNode.findString("name");
+				switch (nameOpt) {
+					case magma.option.Some<String>(String name) -> assertEquals("optinner", name);
+					case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+				}
+			}
+			case magma.option.None<Node> ignored -> assertTrue(false, "Expected Some, got None");
+		}
 	}
 
 	@Test

@@ -12,30 +12,24 @@ import java.util.function.Predicate;
 public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 	private class FlatMapHead<R> implements Head<R> {
 		private final Function<T, Stream<R>> mapper;
-		private Head<R> currentInnerHead;
+		private Option<Head<R>> currentInnerHead;
 
 		public FlatMapHead(Function<T, Stream<R>> mapper) {
 			this.mapper = mapper;
-			// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
-			Head<R> initialHead = null; // Unavoidable - mutable state pattern
-			currentInnerHead = initialHead;
-			// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
+			currentInnerHead = new None<>();
 		}
 
 		@Override
 		public Option<R> next() {
 			while (true) {
-				// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
 				// If we have a current inner stream, try to get the next element from it
-				if (currentInnerHead != null) {
-					final Option<R> innerNext = currentInnerHead.next();
+				if (currentInnerHead instanceof Some<Head<R>>(Head<R> innerHead)) {
+					final Option<R> innerNext = innerHead.next();
 					if (innerNext instanceof Some<R>(R value))
 						return innerNext;
 					// Current inner stream is exhausted, move to next outer element
-					Head<R> resetHead = null; // Unavoidable - mutable state pattern
-					currentInnerHead = resetHead;
+					currentInnerHead = new None<>();
 				}
-				// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
 
 				// Get the next element from the outer stream
 				final Option<T> outerNext = head.next();
@@ -44,7 +38,7 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 					// Map to inner stream and set it as current
 					final Stream<R> innerStream = mapper.apply(value);
 					if (innerStream instanceof HeadedStream<R>(Head<R> head1)) {
-						currentInnerHead = head1;
+						currentInnerHead = new Some<>(head1);
 					} else {
 						// Return error instead of throwing
 						return new None<R>();

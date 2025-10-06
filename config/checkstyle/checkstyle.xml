@@ -3,13 +3,6 @@
 <module name="Checker">
 	<!-- Ban literal `null` usages. Recommend java.util.Optional instead. -->
 	<module name="TreeWalker">
-		<!-- Enable suppression comments -->
-		<module name="SuppressionCommentFilter">
-			<property name="offCommentFormat" value="CHECKSTYLE\.OFF\: ([\w\|]+)" />
-			<property name="onCommentFormat" value="CHECKSTYLE\.ON\: ([\w\|]+)" />
-			<property name="checkFormat" value="$1" />
-		</module>
-
 		<!-- AST-level check to catch null literals -->
 		<module name="IllegalToken">
 			<property name="tokens" value="LITERAL_NULL" />

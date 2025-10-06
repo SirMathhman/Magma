@@ -49,14 +49,22 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	}
 
 	@Override
-	public T getLastOrNull() {
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
+	public Option<T> getLast() {
 		if (elements.isEmpty()) {
-			T defaultValue = null; // Unavoidable for compatibility
-			return defaultValue;
+			return new None<>();
 		}
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
-		return elements.getLast();
+		return new Some<>(elements.getLast());
+	}
+
+	@Override
+	public T getLastOrNull() {
+		// For compatibility - prefer getLast() which returns Option<T>
+		return getLast().orElseGet(() -> {
+			// Return a sentinel None wrapped as T for legacy callers
+			@SuppressWarnings("unchecked")
+			final T wrapped = (T) (Object) new None<>();
+			return wrapped;
+		});
 	}
 
 	@Override
@@ -75,14 +83,22 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	}
 
 	@Override
-	public T getFirstOrNull() {
-		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
+	public Option<T> getFirst() {
 		if (elements.isEmpty()) {
-			T defaultValue = null; // Unavoidable for compatibility
-			return defaultValue;
+			return new None<>();
 		}
-		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
-		return elements.getFirst();
+		return new Some<>(elements.getFirst());
+	}
+
+	@Override
+	public T getFirstOrNull() {
+		// For compatibility - prefer getFirst() which returns Option<T>
+		return getFirst().orElseGet(() -> {
+			// Return a sentinel None wrapped as T for legacy callers
+			@SuppressWarnings("unchecked")
+			final T wrapped = (T) (Object) new None<>();
+			return wrapped;
+		});
 	}
 
 	@Override

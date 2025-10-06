@@ -25,6 +25,8 @@ public interface List<T> {
 
 	boolean isEmpty();
 
+	Option<T> getLast();
+
 	T getLastOrNull();
 
 	List<T> sort(Comparator<T> comparator);
@@ -34,6 +36,8 @@ public interface List<T> {
 	}
 
 	Option<Tuple<List<T>, T>> pop();
+
+	Option<T> getFirst();
 
 	T getFirstOrNull();
 
