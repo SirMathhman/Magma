@@ -14,8 +14,36 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+/**
+ * Test that ensures JRoot() can be applied to Main.java within a 5-second
+ * timeout.
+ * 
+ * <p>
+ * This is a regression test for lexer performance. Currently, this test FAILS
+ * due to
+ * exponential complexity in the lexer when parsing complex files like Main.java
+ * (338 lines).
+ * The test uses assertTimeoutPreemptively to enforce a strict 5-second timeout.
+ * 
+ * <p>
+ * See docs/JROOT_PERFORMANCE_ISSUE.md for full details on the performance
+ * bottleneck.
+ * 
+ * <p>
+ * <strong>Expected behavior (current):</strong> Test times out after 5 seconds.
+ * <p>
+ * <strong>Desired behavior (future):</strong> Test passes when lexer
+ * performance is optimized.
+ */
 public class JavaRootOnMainFileTest {
 
+	/**
+	 * Tests that JRoot() can lex Main.java within 5 seconds.
+	 * This is a VERY long process due to current lexer performance issues.
+	 * 
+	 * @see <a href="../../../docs/JROOT_PERFORMANCE_ISSUE.md">Performance Issue
+	 *      Documentation</a>
+	 */
 	@Test
 	public void testJavaRootCanBeAppliedToMainJava() {
 		// Use assertTimeoutPreemptively to forcefully terminate if it exceeds 5 seconds
