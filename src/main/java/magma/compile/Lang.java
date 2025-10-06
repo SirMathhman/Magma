@@ -1,6 +1,20 @@
 package magma.compile;
 
-import magma.compile.rule.*;
+import magma.compile.rule.BraceStartFolder;
+import magma.compile.rule.ClosingParenthesesFolder;
+import magma.compile.rule.DivideState;
+import magma.compile.rule.DividingSplitter;
+import magma.compile.rule.EscapingFolder;
+import magma.compile.rule.FilterRule;
+import magma.compile.rule.Folder;
+import magma.compile.rule.FoldingDivider;
+import magma.compile.rule.LazyRule;
+import magma.compile.rule.NodeRule;
+import magma.compile.rule.Rule;
+import magma.compile.rule.SplitRule;
+import magma.compile.rule.Splitter;
+import magma.compile.rule.StringRule;
+import magma.compile.rule.TypeFolder;
 import magma.option.None;
 import magma.option.Option;
 
@@ -243,6 +257,7 @@ public class Lang {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(
 				Tag("lambda", First(Strip(String("param")), "->", statement)),
+				Tag("cast", Strip(Prefix("(", First(Node("type", JType()), ")", Node("child", expression))))),
 				Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 				Tag("not", Strip(Prefix("!", Node("child", expression)))),
 				StringExpr(),
