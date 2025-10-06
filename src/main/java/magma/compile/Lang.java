@@ -443,7 +443,11 @@ public class Lang {
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn, CWhile, Invalid, LineComment, Placeholder, Whitespace {
 	}
 
-	sealed public interface JType {
+	sealed public interface JType permits Array, Identifier, Invalid, JGeneric, Wildcard {
+	}
+
+	@Tag("wildcard")
+	public record Wildcard() implements JType {
 	}
 
 	sealed public interface CType {
