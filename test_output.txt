@@ -1,1 +1,0 @@
-Parse result: Ok[value=JavaRoot[children=[JClass[modifiers=Some[value=public], name=Test, children=[Whitespace[]], typeParameters=magma.option.None@2e5d6d97, implementsClause=magma.option.None@238e0d81], Whitespace[]]]]
