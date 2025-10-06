@@ -614,7 +614,7 @@ public class Lang {
 
 	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
-		expression.set(Or(Lambda(statement),
+		expression.set(Or(Lambda(statement, expression),
 											Char(),
 											Tag("cast", Strip(Prefix("(", First(Node("type", JType()), ")", Node("child", expression))))),
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
@@ -649,8 +649,9 @@ public class Lang {
 		return Tag("char", Strip(Prefix("'", Suffix(String("value"), "'"))));
 	}
 
-	private static Rule Lambda(Rule statement) {
-		return Tag("lambda", First(Strip(String("param")), "->", Node("child", statement)));
+	private static Rule Lambda(Rule statement, Rule expression) {
+		final Rule strip = Or(Strip(Prefix("()", Empty)), Strip(String("param")));
+		return Tag("lambda", First(strip, "->", Node("child", Or(statement, expression))));
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {
@@ -766,8 +767,16 @@ public class Lang {
 
 	private static Rule JType() {
 		final LazyRule type = new LazyRule();
-		type.set(Or(Generic(type), Array(type), Identifier(), Tag("wildcard", Strip(Prefix("?", Empty)))));
+		type.set(Or(Generic(type),
+								Array(type),
+								Identifier(),
+								WildCard(),
+								Tag("variadic", Strip(Suffix(Node("child", type), "...")))));
 		return type;
+	}
+
+	private static Rule WildCard() {
+		return Tag("wildcard", Strip(Prefix("?", Empty)));
 	}
 
 	private static Rule Array(Rule type) {

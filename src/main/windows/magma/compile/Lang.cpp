@@ -294,7 +294,8 @@ Rule Char_Lang() {
 	return Tag(("", Strip((Prefix(("", Suffix((String((""), ""))));
 }
 Rule Lambda_Lang(Rule statement) {
-	return Tag(("", First((Strip((String(("")), "", Node(("", statement)));
+	Rule strip=Or((Strip((Prefix(("", Empty)), Strip((String(("")));
+	return Tag(("", First((strip, "", Node(("", statement)));
 }
 Rule InstanceOf_Lang(LazyRule expression) {
 	Rule strip=Destruct(();
@@ -367,8 +368,11 @@ Rule JDefinition_Lang() {
 }
 Rule JType_Lang() {
 	new LazyRule();
-	type.set((Or((Generic((type), Array((type), Identifier((), Tag(("", Strip((Prefix(("", Empty)))));
+	type.set((Or((Generic((type), Array((type), Identifier((), WildCard((), Tag(("", Strip((Suffix((Node(("", type), "")))));
 	return type;
+}
+Rule WildCard_Lang() {
+	return Tag(("", Strip((Prefix(("", Empty)));
 }
 Rule Array_Lang(Rule type) {
 	return Tag(("", Strip((Suffix((Node(("", type), "")));
