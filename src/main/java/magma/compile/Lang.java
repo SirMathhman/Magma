@@ -46,7 +46,8 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity, Switch {}
+			JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity,
+			Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -350,6 +351,9 @@ public class Lang {
 	@Tag("less-than-equals")
 	public record JLessThanEquals(JExpression left, JExpression right) implements JExpression {}
 
+	@Tag("greater-than-equals")
+	public record JGreaterThanEquals(JExpression left, JExpression right) implements JExpression {}
+
 	@Tag("less-than")
 	public record JLessThan(JExpression left, JExpression right) implements JExpression {}
 
@@ -491,7 +495,7 @@ public class Lang {
 
 	private static Rule Statement() {
 		final Rule initialization = Initialization(JDefinition(), JExpression(JMethodSegment()));
-		return Strip(Suffix(initialization, ";"));
+		return Strip(Suffix(Or(initialization, JDefinition()), ";"));
 	}
 
 	private static Rule JMethod() {
@@ -605,6 +609,7 @@ public class Lang {
 											Operator("equals", "==", expression),
 											Operator("less-than", "<", expression),
 											Operator("less-than-equals", "<=", expression),
+											Operator("greater-than-equals", ">=", expression),
 											Identifier()));
 		return expression;
 	}

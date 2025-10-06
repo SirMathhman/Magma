@@ -214,7 +214,7 @@ Rule LineComment_Lang() {
 }
 Rule Statement_Lang() {
 	Rule initialization=Initialization((JDefinition((), JExpression((JMethodSegment(()));
-	return Strip((Suffix((initialization, ""));
+	return Strip((Suffix((Or((initialization, JDefinition(()), ""));
 }
 Rule JMethod_Lang() {
 	Rule params=Parameters(();
@@ -272,7 +272,7 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	new LazyRule();
-	expression.set((Or((Lambda((statement), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch((expression, Strip((Suffix((expression, ""))), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
+	expression.set((Or((Lambda((statement), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch((expression, Strip((Suffix((expression, ""))), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
 	return expression;
 }
 Rule Char_Lang() {
