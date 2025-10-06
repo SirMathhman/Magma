@@ -19,15 +19,15 @@ public record StringRule(String key) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		if (content.isEmpty())
-			return new Err<>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
-		return new Ok<>(new Node().withString(key, content));
+			return new Err<Node, CompileError>(new CompileError("Content of key '" + key + "' be empty", new StringContext(content)));
+		return new Ok<Node, CompileError>(new Node().withString(key, content));
 	}
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
 		Option<Result<String, CompileError>> resultOption = node.findString(key).map(Ok::new);
 		return switch (resultOption) {
-			case None<Result<String, CompileError>> _ -> new Err<>(
+			case None<Result<String, CompileError>> _ -> new Err<String, CompileError>(
 					new CompileError("String '" + key + "' not present.", new NodeContext(node)));
 			case Some<Result<String, CompileError>>(Result<String, CompileError> value) -> value;
 		};

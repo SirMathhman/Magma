@@ -1,4 +1,5 @@
 import magma.compile.JavaSerializer;
+import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -6,8 +7,7 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class SimpleClassWithMethodTest {
 
@@ -25,25 +25,25 @@ public class SimpleClassWithMethodTest {
 
 		System.out.println("=== Testing class with single static method ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
-		if (lexResult instanceof Err<?, ?> err) {
-			System.err.println("❌ LEXING FAILED: " + err.error());
-			fail("Lexing failed: " + err.error());
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		if (lexResult instanceof Err<?, ?>(? error)) {
+			System.err.println("❌ LEXING FAILED: " + error);
+			fail("Lexing failed: " + error);
 		}
 
-		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
-		magma.compile.Node lexedNode = ((Ok<magma.compile.Node, CompileError>) lexResult).value();
+		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
+		Node lexedNode = ((Ok<Node, CompileError>) lexResult).value();
 		System.out.println("\n✅ Lexing succeeded");
 		System.out.println("\nLexed structure:");
 		System.out.println(lexedNode.format(0));
 
 		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
-		if (deserializeResult instanceof Err<?, ?> err) {
-			System.err.println("\n❌ DESERIALIZATION FAILED: " + err.error());
-			fail("Deserialization failed: " + err.error());
+		if (deserializeResult instanceof Err<?, ?>(? error)) {
+			System.err.println("\n❌ DESERIALIZATION FAILED: " + error);
+			fail("Deserialization failed: " + error);
 		}
 
-		assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
+		assertInstanceOf(Ok<?, ?>.class, deserializeResult, "Deserialization should succeed");
 		JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 		System.out.println("\n✅ Deserialization succeeded");
 		System.out.println("JavaRoot children count: " + javaRoot.children().size());

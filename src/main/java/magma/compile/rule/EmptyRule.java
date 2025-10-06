@@ -12,12 +12,12 @@ public class EmptyRule implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(String content) {
-		if (content.isEmpty()) return new Ok<>(new Node());
-		return new Err<>(new CompileError("Content is not empty", new StringContext(content)));
+		if (content.isEmpty()) return new Ok<Node, CompileError>(new Node());
+		return new Err<Node, CompileError>(new CompileError("Content is not empty", new StringContext(content)));
 	}
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
-		return new Ok<>("");
+		return new Ok<String, CompileError>("");
 	}
 }

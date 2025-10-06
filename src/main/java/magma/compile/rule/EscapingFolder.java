@@ -55,20 +55,20 @@ public record EscapingFolder(Folder folder) implements Folder {
 		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '*') return Option.empty();
 
 		final DivideState withSlash = state.append(c);
-		Tuple<Boolean, DivideState> current = new Tuple<>(true, withSlash.popAndAppendToOption().orElse(state));
+		Tuple<Boolean, DivideState> current = new Tuple<Boolean, DivideState>(true, withSlash.popAndAppendToOption().orElse(state));
 		while (current.left()) current = handle(current.right());
-		return new Some<>(current.right());
+		return new Some<DivideState>(current.right());
 	}
 
 	private Tuple<Boolean, DivideState> handle(DivideState current) {
 		if (!(current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
 				Tuple<DivideState, Character> tuple
-		))) return new Tuple<>(false, current);
+		))) return new Tuple<Boolean, DivideState>(false, current);
 
 		DivideState temp = tuple.left();
 		if (tuple.right() == '*' && temp.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/')
-			return new Tuple<>(false, temp.popAndAppendToOption().orElse(temp).advance());
-		return new Tuple<>(true, temp);
+			return new Tuple<Boolean, DivideState>(false, temp.popAndAppendToOption().orElse(temp).advance());
+		return new Tuple<Boolean, DivideState>(true, temp);
 	}
 
 	@Override

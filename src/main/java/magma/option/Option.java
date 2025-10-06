@@ -6,16 +6,16 @@ import java.util.function.Supplier;
 
 public sealed interface Option<T> permits Some, None {
 	static <T> Option<T> of(T value) {
-		return new Some<>(value);
+		return new Some<T>(value);
 	}
 
 	static <T> Option<T> empty() {
-		return new None<>();
+		return new None<T>();
 	}
 
 	static <T> Option<T> ofNullable(T value) {
-		if (Objects.isNull(value)) return new None<>();
-		return new Some<>(value);
+		if (Objects.isNull(value)) return new None<T>();
+		return new Some<T>(value);
 	}
 
 	<R> Option<R> map(Function<T, R> mapper);

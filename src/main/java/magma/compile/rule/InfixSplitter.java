@@ -9,11 +9,11 @@ public record InfixSplitter(String infix, Locator locator) implements Splitter {
 	@Override
 	public Option<Tuple<String, String>> split(String input) {
 		return switch (locator.locate(input, infix)) {
-			case None<Integer> _ -> new None<>();
+			case None<Integer> _ -> new None<Tuple<String, String>>();
 			case Some<Integer>(Integer index) -> {
 				final String left = input.substring(0, index);
 				final String right = input.substring(index + infix.length());
-				yield new Some<>(new Tuple<>(left, right));
+				yield new Some<Tuple<String, String>>(new Tuple<String, String>(left, right));
 			}
 		};
 	}

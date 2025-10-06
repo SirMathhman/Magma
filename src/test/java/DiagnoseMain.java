@@ -1,5 +1,6 @@
 import magma.compile.CRules;
 import magma.compile.JavaSerializer;
+import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -12,8 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class DiagnoseMain {
 
@@ -28,30 +28,28 @@ public class DiagnoseMain {
 			System.out.println("First 200 chars: " + mainSource.substring(0, Math.min(200, mainSource.length())));
 
 			// Step 1: Lex
-			Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(mainSource);
-			if (lexResult instanceof Err<?, ?> err) {
-				System.err.println("❌ LEXING FAILED: " + err.error());
-				fail("Lexing failed: " + err.error());
+			Result<Node, CompileError> lexResult = JRoot().lex(mainSource);
+			if (lexResult instanceof Err<?, ?>(? error)) {
+				System.err.println("❌ LEXING FAILED: " + error);
+				fail("Lexing failed: " + error);
 			}
 
-			assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
-			magma.compile.Node lexedNode = ((Ok<magma.compile.Node, CompileError>) lexResult).value();
+			assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
+			Node lexedNode = ((Ok<Node, CompileError>) lexResult).value();
 			System.out.println("\n✅ Lexing succeeded");
 			System.out.println("\nLexed node structure (first 5000 chars):");
 			String formatted = lexedNode.format(0);
 			System.out.println(formatted.substring(0, Math.min(5000, formatted.length())));
-			if (formatted.length() > 5000) {
-				System.out.println("... (truncated, total length: " + formatted.length() + ")");
-			}
+			if (formatted.length() > 5000) System.out.println("... (truncated, total length: " + formatted.length() + ")");
 
 			// Step 2: Deserialize to JavaRoot
 			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
-			if (deserializeResult instanceof Err<?, ?> err) {
-				System.err.println("❌ DESERIALIZATION FAILED: " + err.error());
-				fail("Deserialization failed: " + err.error());
+			if (deserializeResult instanceof Err<?, ?>(? error)) {
+				System.err.println("❌ DESERIALIZATION FAILED: " + error);
+				fail("Deserialization failed: " + error);
 			}
 
-			assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
+			assertInstanceOf(Ok<?, ?>.class, deserializeResult, "Deserialization should succeed");
 			JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 			System.out.println("✅ Deserialization succeeded");
 			System.out.println("JavaRoot children count: " + javaRoot.children().size());
@@ -64,21 +62,20 @@ public class DiagnoseMain {
 					System.out.println("    Class children count: " + jClass.children().size());
 					jClass.children().stream().forEach(structChild -> {
 						System.out.println("      Structure child type: " + structChild.getClass().getSimpleName());
-						if (structChild instanceof Method method) {
+						if (structChild instanceof Method method)
 							System.out.println("        Method name: " + method.definition().name());
-						}
 					});
 				}
 			});
 
 			// Step 3: Transform
 			Result<CRoot, CompileError> transformResult = Transformer.transform(javaRoot);
-			if (transformResult instanceof Err<?, ?> err) {
-				System.err.println("❌ TRANSFORMATION FAILED: " + err.error());
-				fail("Transformation failed: " + err.error());
+			if (transformResult instanceof Err<?, ?>(? error)) {
+				System.err.println("❌ TRANSFORMATION FAILED: " + error);
+				fail("Transformation failed: " + error);
 			}
 
-			assertTrue(transformResult instanceof Ok<?, ?>, "Transformation should succeed");
+			assertInstanceOf(Ok<?, ?>.class, transformResult, "Transformation should succeed");
 			CRoot cRoot = ((Ok<CRoot, CompileError>) transformResult).value();
 			System.out.println("\n✅ Transformation succeeded");
 			System.out.println("CRoot children count: " + cRoot.children().size());
@@ -88,30 +85,28 @@ public class DiagnoseMain {
 				if (child instanceof Structure struct) {
 					System.out.println("    Structure name: " + struct.name());
 					System.out.println("    Structure fields count: " + struct.fields().size());
-				} else if (child instanceof Function func) {
-					System.out.println("    Function name: " + func.definition().name());
-				}
+				} else if (child instanceof Function func) System.out.println("    Function name: " + func.definition().name());
 			});
 
 			// Step 4: Serialize to C++
-			Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cRoot);
-			if (serializeResult instanceof Err<?, ?> err) {
-				System.err.println("❌ SERIALIZATION FAILED: " + err.error());
-				fail("Serialization failed: " + err.error());
+			Result<Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cRoot);
+			if (serializeResult instanceof Err<?, ?>(? error)) {
+				System.err.println("❌ SERIALIZATION FAILED: " + error);
+				fail("Serialization failed: " + error);
 			}
 
-			assertTrue(serializeResult instanceof Ok<?, ?>, "Serialization should succeed");
+			assertInstanceOf(Ok<?, ?>.class, serializeResult, "Serialization should succeed");
 			System.out.println("✅ Serialization succeeded");
 
 			// Step 5: Generate C++ code
-			magma.compile.Node serializedNode = ((Ok<magma.compile.Node, CompileError>) serializeResult).value();
+			Node serializedNode = ((Ok<Node, CompileError>) serializeResult).value();
 			Result<String, CompileError> generateResult = CRules.CRoot().generate(serializedNode);
-			if (generateResult instanceof Err<?, ?> err) {
-				System.err.println("❌ GENERATION FAILED: " + err.error());
-				fail("Generation failed: " + err.error());
+			if (generateResult instanceof Err<?, ?>(? error)) {
+				System.err.println("❌ GENERATION FAILED: " + error);
+				fail("Generation failed: " + error);
 			}
 
-			assertTrue(generateResult instanceof Ok<?, ?>, "Generation should succeed");
+			assertInstanceOf(Ok<?, ?>.class, generateResult, "Generation should succeed");
 			String generated = ((Ok<String, CompileError>) generateResult).value();
 			System.out.println("\n✅ Generation succeeded");
 			System.out.println("Generated C++ length: " + generated.length() + " characters");

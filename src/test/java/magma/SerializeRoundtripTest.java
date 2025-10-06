@@ -4,7 +4,9 @@ import magma.compile.JavaSerializer;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.list.List;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
@@ -43,7 +45,7 @@ public class SerializeRoundtripTest {
 
 	// Helper to assert Result is Ok and extract value
 	private static <T> T assertOkExtract(Result<T, CompileError> result) {
-		assertTrue(result instanceof Ok<?, ?>, () -> "Expected Ok but got: " + result);
+		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok but got: " + result);
 		return ((Ok<T, CompileError>) result).value();
 	}
 
@@ -139,8 +141,8 @@ public class SerializeRoundtripTest {
 		Node node2 = assertOkExtract(s);
 		Option<String> valueOpt = node2.findString("value");
 		switch (valueOpt) {
-			case magma.option.Some<String>(String val) -> assertEquals("hi", val, "Expected 'hi'");
-			case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+			case Some<String>(String val) -> assertEquals("hi", val, "Expected 'hi'");
+			case None<String> ignored -> fail("Expected Some, got None");
 		}
 	}
 
@@ -156,14 +158,14 @@ public class SerializeRoundtripTest {
 		Node node2 = assertOkExtract(s);
 		Option<Node> childNodeOpt = node2.findNode("child");
 		switch (childNodeOpt) {
-			case magma.option.Some<Node>(Node childNode) -> {
+			case Some<Node>(Node childNode) -> {
 				Option<String> nameOpt = childNode.findString("name");
 				switch (nameOpt) {
-					case magma.option.Some<String>(String name) -> assertEquals("inner", name);
-					case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+					case Some<String>(String name) -> assertEquals("inner", name);
+					case None<String> ignored -> fail("Expected Some, got None");
 				}
 			}
-			case magma.option.None<Node> ignored -> assertTrue(false, "Expected Some, got None");
+			case None<Node> ignored -> fail("Expected Some, got None");
 		}
 	}
 
@@ -192,8 +194,8 @@ public class SerializeRoundtripTest {
 		Node node2 = assertOkExtract(s);
 		Option<String> maybeOpt = node2.findString("maybe");
 		switch (maybeOpt) {
-			case magma.option.Some<String>(String val) -> assertEquals("optval", val);
-			case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+			case Some<String>(String val) -> assertEquals("optval", val);
+			case None<String> ignored -> fail("Expected Some, got None");
 		}
 	}
 
@@ -209,14 +211,14 @@ public class SerializeRoundtripTest {
 		Node node2 = assertOkExtract(s);
 		Option<Node> maybeNodeOpt = node2.findNode("maybe");
 		switch (maybeNodeOpt) {
-			case magma.option.Some<Node>(Node maybeNode) -> {
+			case Some<Node>(Node maybeNode) -> {
 				Option<String> nameOpt = maybeNode.findString("name");
 				switch (nameOpt) {
-					case magma.option.Some<String>(String name) -> assertEquals("optinner", name);
-					case magma.option.None<String> ignored -> assertTrue(false, "Expected Some, got None");
+					case Some<String>(String name) -> assertEquals("optinner", name);
+					case None<String> ignored -> fail("Expected Some, got None");
 				}
 			}
-			case magma.option.None<Node> ignored -> assertTrue(false, "Expected Some, got None");
+			case None<Node> ignored -> fail("Expected Some, got None");
 		}
 	}
 

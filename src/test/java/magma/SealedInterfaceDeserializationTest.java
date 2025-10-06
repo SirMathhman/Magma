@@ -1,6 +1,7 @@
 package magma;
 
 import magma.compile.JavaSerializer;
+import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.option.Some;
@@ -10,7 +11,7 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 public class SealedInterfaceDeserializationTest {
 
@@ -26,55 +27,50 @@ public class SealedInterfaceDeserializationTest {
 
 		System.out.println("=== Testing Direct Record Deserialization ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			magma.compile.Node rootNode = lexOk.value();
-			System.out
-					.println("Root node children count: " + rootNode.findNodeList("children").map(list -> list.size()).orElse(0));
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Node value = nodeCompileErrorOk.value();
+		System.out.println("Root node children count: " + value.findNodeList("children").map(List::size).orElse(0));
 
-			// Find the record node specifically
-			if (rootNode.findNodeList("children") instanceof Some<?> some) {
-				@SuppressWarnings("unchecked")
-				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
-				children.stream().forEach(child -> {
-					System.out.println("Child @type: " + child.maybeType);
-					if (child.is("record")) {
-						System.out.println("Found record node! Trying to deserialize as Record class directly...");
+		// Find the record node specifically
+		if (value.findNodeList("children") instanceof Some<?>(? value)) {
+			@SuppressWarnings("unchecked")
+			List<Node> children = (List<Node>) value;
+			children.stream().forEach(child -> {
+				System.out.println("Child @type: " + child.maybeType);
+				if (child.is("record")) {
+					System.out.println("Found record node! Trying to deserialize as Record class directly...");
 
-						Result<RecordNode, CompileError> recordResult = JavaSerializer
-								.deserialize(RecordNode.class, child);
-						if (recordResult instanceof Ok<RecordNode, CompileError> recordOk) {
-							System.out.println("✅ Record deserialization SUCCESS");
-							System.out.println("Record name: " + recordOk.value().name());
-							System.out.println("Record children: " + recordOk.value().children().size());
-						} else if (recordResult instanceof Err<RecordNode, CompileError> recordErr) {
-							System.out.println("❌ Record deserialization FAILED: " + recordErr.error());
-						}
+					Result<RecordNode, CompileError> recordResult = JavaSerializer
+							.deserialize(RecordNode.class, child);
+					if (recordResult instanceof Ok<RecordNode, CompileError>(RecordNode value)) {
+						System.out.println("✅ Record deserialization SUCCESS");
+						System.out.println("Record name: " + value.name());
+						System.out.println("Record children: " + value.children().size());
+					} else if (recordResult instanceof Err<RecordNode, CompileError>(CompileError error))
+						System.out.println("❌ Record deserialization FAILED: " + error);
 
-						System.out.println("Now trying to deserialize as JStructure interface...");
-						Result<JStructure, CompileError> jStructResult = JavaSerializer.deserialize(JStructure.class, child);
-						if (jStructResult instanceof Ok<JStructure, CompileError> jStructOk) {
-							System.out.println("✅ JStructure deserialization SUCCESS");
-							System.out.println("JStructure actual type: " + jStructOk.value().getClass().getSimpleName());
-							System.out.println("JStructure name: " + jStructOk.value().name());
-						} else if (jStructResult instanceof Err<JStructure, CompileError> jStructErr) {
-							System.out.println("❌ JStructure deserialization FAILED: " + jStructErr.error());
-						}
+					System.out.println("Now trying to deserialize as JStructure interface...");
+					Result<JStructure, CompileError> jStructResult = JavaSerializer.deserialize(JStructure.class, child);
+					if (jStructResult instanceof Ok<JStructure, CompileError>(JStructure value)) {
+						System.out.println("✅ JStructure deserialization SUCCESS");
+						System.out.println("JStructure actual type: " + value.getClass().getSimpleName());
+						System.out.println("JStructure name: " + value.name());
+					} else if (jStructResult instanceof Err<JStructure, CompileError>(CompileError error))
+						System.out.println("❌ JStructure deserialization FAILED: " + error);
 
-						System.out.println("Finally trying to deserialize as JavaRootSegment interface...");
-						Result<JavaRootSegment, CompileError> segmentResult = JavaSerializer.deserialize(JavaRootSegment.class,
-								child);
-						if (segmentResult instanceof Ok<JavaRootSegment, CompileError> segmentOk) {
-							System.out.println("✅ JavaRootSegment deserialization SUCCESS");
-							System.out.println("Segment actual type: " + segmentOk.value().getClass().getSimpleName());
-						} else if (segmentResult instanceof Err<JavaRootSegment, CompileError> segmentErr) {
-							System.out.println("❌ JavaRootSegment deserialization FAILED: " + segmentErr.error());
-						}
-					}
-				});
-			}
+					System.out.println("Finally trying to deserialize as JavaRootSegment interface...");
+					Result<JavaRootSegment, CompileError> segmentResult = JavaSerializer.deserialize(JavaRootSegment.class,
+							child);
+					if (segmentResult instanceof Ok<JavaRootSegment, CompileError>(JavaRootSegment value)) {
+						System.out.println("✅ JavaRootSegment deserialization SUCCESS");
+						System.out.println("Segment actual type: " + value.getClass().getSimpleName());
+					} else if (segmentResult instanceof Err<JavaRootSegment, CompileError>(CompileError error))
+						System.out.println("❌ JavaRootSegment deserialization FAILED: " + error);
+				}
+			});
 		}
 	}
 
@@ -90,25 +86,22 @@ public class SealedInterfaceDeserializationTest {
 
 		System.out.println("=== Testing JavaRoot with Record ===");
 
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok<?, ?>.class, lexResult, () -> "Lexing failed: " + lexResult);
 
-		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			System.out.println("Trying to deserialize full JavaRoot...");
-			Result<JRoot, CompileError> javaRootResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Node value = nodeCompileErrorOk.value();
+		System.out.println("Trying to deserialize full JavaRoot...");
+		Result<JRoot, CompileError> javaRootResult = JavaSerializer.deserialize(JRoot.class, value);
 
-			if (javaRootResult instanceof Ok<JRoot, CompileError> javaRootOk) {
-				System.out.println("✅ JavaRoot deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + javaRootOk.value().children().size());
-				javaRootOk.value().children().stream().forEach(child -> {
-					System.out.println("  Child type: " + child.getClass().getSimpleName());
-					if (child instanceof RecordNode record) {
-						System.out.println("    ✅ Found Record: " + record.name());
-					}
-				});
-			} else if (javaRootResult instanceof Err<JRoot, CompileError> javaRootErr) {
-				System.out.println("❌ JavaRoot deserialization FAILED: " + javaRootErr.error());
-			}
-		}
+		if (javaRootResult instanceof Ok<JRoot, CompileError>(JRoot value)) {
+			System.out.println("✅ JavaRoot deserialization SUCCESS");
+			System.out.println("JavaRoot children count: " + value.children().size());
+			value.children().stream().forEach(child -> {
+				System.out.println("  Child type: " + child.getClass().getSimpleName());
+				if (child instanceof RecordNode record) System.out.println("    ✅ Found Record: " + record.name());
+			});
+		} else if (javaRootResult instanceof Err<JRoot, CompileError>(CompileError error))
+			System.out.println("❌ JavaRoot deserialization FAILED: " + error);
 	}
 }

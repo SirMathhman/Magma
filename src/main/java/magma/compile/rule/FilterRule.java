@@ -29,7 +29,7 @@ public class FilterRule implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		if (filter.test(content)) return rule.lex(content);
-		return new Err<>(new CompileError(filter.createErrorMessage(), new StringContext(content)));
+		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new StringContext(content)));
 	}
 
 	@Override

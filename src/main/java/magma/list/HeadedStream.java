@@ -16,7 +16,7 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 
 		public FlatMapHead(Function<T, Stream<R>> mapper) {
 			this.mapper = mapper;
-			currentInnerHead = new None<>();
+			currentInnerHead = new None<Head<R>>();
 		}
 
 		@Override
@@ -28,7 +28,7 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 					if (innerNext instanceof Some<R>(R value))
 						return innerNext;
 					// Current inner stream is exhausted, move to next outer element
-					currentInnerHead = new None<>();
+					currentInnerHead = new None<Head<R>>();
 				}
 
 				// Get the next element from the outer stream
@@ -37,12 +37,9 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 				if (outerNext instanceof Some<T>(T value)) {
 					// Map to inner stream and set it as current
 					final Stream<R> innerStream = mapper.apply(value);
-					if (innerStream instanceof HeadedStream<R>(Head<R> head1)) {
-						currentInnerHead = new Some<>(head1);
-					} else {
-						// Return error instead of throwing
-						return new None<R>();
-					}
+					// Return error instead of throwing
+					if (innerStream instanceof HeadedStream<R>(Head<R> head1)) currentInnerHead = new Some<Head<R>>(head1);
+					else return new None<R>();
 					// Continue loop to get first element from this inner stream
 				} else
 					return new None<R>();

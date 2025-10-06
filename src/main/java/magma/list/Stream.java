@@ -7,7 +7,7 @@ import java.util.function.Predicate;
 
 public interface Stream<T> {
 	static Stream<Integer> range(int start, int end) {
-		return new HeadedStream<>(new RangeHead(end - start)).map(offset -> start + offset);
+		return new HeadedStream<Integer>(new RangeHead(end - start)).map(offset -> start + offset);
 	}
 
 	<R> Stream<R> map(Function<T, R> mapper);

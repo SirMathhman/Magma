@@ -15,7 +15,7 @@ public final class ArrayHead<T> implements Head<T> {
 		if (index < array.length) {
 			final T t = array[index];
 			index++;
-			return new Some<>(t);
-		} else return new None<>();
+			return new Some<T>(t);
+		} else return new None<T>();
 	}
 }

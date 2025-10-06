@@ -8,11 +8,8 @@ public record ValueFolder() implements Folder {
 		if (c == ',' && state.isLevel()) return state.advance();
 
 		DivideState appended = state.append(c);
-		if (c == '-') {
-			if (appended.peek() instanceof Some<Character>(var next) && next == '>') {
-				return appended.popAndAppendToOption().orElse(appended);
-			}
-		}
+		if (c == '-') if (appended.peek() instanceof Some<Character>(Character next) && next == '>')
+			return appended.popAndAppendToOption().orElse(appended);
 
 		if (c == '<' || c == '(') return appended.enter();
 		if (c == '>' || c == ')') return appended.exit();

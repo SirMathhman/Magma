@@ -9,6 +9,6 @@ import java.util.regex.Pattern;
 public record DelimitedRule(String delimiter) implements Divider {
 	@Override
 	public Stream<String> divide(String input) {
-		return new HeadedStream<>(new ArrayHead<>(input.split(Pattern.quote(delimiter))));
+		return new HeadedStream<String>(new ArrayHead<String>(input.split(Pattern.quote(delimiter))));
 	}
 }

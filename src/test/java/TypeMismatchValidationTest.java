@@ -1,4 +1,5 @@
 import magma.compile.JavaSerializer;
+import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.option.Some;
 import magma.result.Err;
@@ -7,7 +8,7 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.fail;
 
 /**
@@ -34,37 +35,38 @@ public class TypeMismatchValidationTest {
 		System.out.println("This test verifies that if Method.body was Option<String>,");
 		System.out.println("we would get an error since the parser produces a list.");
 
-		Result<magma.compile.Node, CompileError> lexResult = JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
 
-		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			System.out.println("✅ Lexing succeeded");
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Node value = nodeCompileErrorOk.value();
+		System.out.println("✅ Lexing succeeded");
 
-			// Try to deserialize - this should succeed with our fix
-			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
+		// Try to deserialize - this should succeed with our fix
+		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
 
-			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
-				System.out.println("✅ Deserialization succeeded (as expected with correct types)");
+		if (deserializeResult instanceof Ok<JRoot, CompileError>(JRoot value)) {
+			System.out.println("✅ Deserialization succeeded (as expected with correct types)");
 
-				// Find the method and verify it has a body
-				deserOk.value()
-							 .children()
-							 .stream()
-							 .filter(child -> child instanceof JClass)
-							 .map(child -> (JClass) child)
-							 .flatMap(jClass -> jClass.children().stream())
-							 .filter(seg -> seg instanceof Method)
-							 .map(seg -> (Method) seg)
-							 .forEach(method -> {
-								 System.out.println("Method: " + method.definition().name());
-								 System.out.println("Body present: " + (method.body() instanceof Some<?>)); assertTrue(
-										 method.body() instanceof Some<?>,
-										 "Method body should be present (as list of JFunctionSegment)");
-							 });
-			} else if (deserializeResult instanceof Err<JRoot, CompileError> err) {
-				System.err.println("❌ Deserialization failed: " + err.error());
-				fail("Deserialization should succeed with correct Method type");
-			}
+			// Find the method and verify it has a body
+			value
+						 .children()
+						 .stream()
+						 .filter(child -> child instanceof JClass)
+						 .map(child -> (JClass) child)
+						 .flatMap(jClass -> jClass.children().stream())
+						 .filter(seg -> seg instanceof Method)
+						 .map(seg -> (Method) seg)
+						 .forEach(method -> {
+							 System.out.println("Method: " + method.definition().name());
+							 System.out.println("Body present: " + (method.body() instanceof Some<?>));
+							 assertInstanceOf(Some<?>.class,
+																method.body(),
+																"Method body should be present (as list of JFunctionSegment)");
+						 });
+		} else if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error)) {
+			System.err.println("❌ Deserialization failed: " + error);
+			fail("Deserialization should succeed with correct Method type");
 		}
 	}
 

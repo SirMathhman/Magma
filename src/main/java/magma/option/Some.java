@@ -6,7 +6,7 @@ import java.util.function.Supplier;
 public record Some<T>(T value) implements Option<T> {
 	@Override
 	public <R> Option<R> map(Function<T, R> mapper) {
-		return new magma.option.Some<>(mapper.apply(value));
+		return new Some<R>(mapper.apply(value));
 	}
 
 	@Override

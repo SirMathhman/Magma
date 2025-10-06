@@ -6,12 +6,12 @@ import java.util.function.Supplier;
 public final class None<T> implements Option<T> {
 	@Override
 	public <R> Option<R> map(Function<T, R> mapper) {
-		return new magma.option.None<>();
+		return new None<R>();
 	}
 
 	@Override
 	public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
-		return new magma.option.None<>();
+		return new None<R>();
 	}
 
 	@Override

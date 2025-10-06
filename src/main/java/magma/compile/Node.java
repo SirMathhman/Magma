@@ -13,9 +13,9 @@ import java.util.Set;
 
 public final class Node {
 	private static final int MAX_FORMAT_LEVEL = 3;
-	public final Map<String, List<Node>> nodeLists = new HashMap<>();
-	public final Map<String, Node> nodes = new HashMap<>();
-	private final Map<String, String> strings = new HashMap<>();
+	public final Map<String, List<Node>> nodeLists = new HashMap<String, List<Node>>();
+	public final Map<String, Node> nodes = new HashMap<String, Node>();
+	private final Map<String, String> strings = new HashMap<String, String>();
 	public Option<String> maybeType = Option.empty();
 
 	private static String escape(String value) {
@@ -105,17 +105,11 @@ public final class Node {
 			hasFields[0] = true;
 		}
 
-		strings.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> {
-			extracted(entry, hasFields, builder, childIndent);
-		});
+		strings.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> extracted(entry, hasFields, builder, childIndent));
 
-		nodes.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> {
-			extracted(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent);
-		});
+		nodes.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> extracted(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
 
-		nodeLists.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> {
-			extracted1(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent);
-		});
+		nodeLists.entrySet().stream().sorted(Entry.comparingByKey()).forEach(entry -> extracted1(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
 
 		if (hasFields[0]) builder.append("\n").append(indent);
 		builder.append("}");

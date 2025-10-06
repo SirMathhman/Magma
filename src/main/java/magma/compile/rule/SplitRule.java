@@ -46,7 +46,7 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order 
 	public Result<Node, CompileError> lex(String input) {
 		return switch (splitter.split(input)) {
 			case None<Tuple<String, String>> _ ->
-					new Err<>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
+					new Err<Node, CompileError>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
 			case Some<Tuple<String, String>>(Tuple<String, String> parts) ->
 					order.evaluate(parts.left(), parts.right(), leftRule, rightRule);
 		};

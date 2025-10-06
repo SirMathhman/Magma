@@ -17,9 +17,7 @@ public class KeepLastMerger implements Merger {
 		final String left = segments.subListOrEmpty(0, segments.size() - 1).stream().collect(new Joiner(delimiter));
 
 		final Option<String> lastOpt = segments.getLast();
-		if (lastOpt instanceof Some<String>(String right)) {
-			return new Some<>(new Tuple<>(left, right));
-		}
-		return new None<>();
+		if (lastOpt instanceof Some<String>(String right)) return new Some<Tuple<String, String>>(new Tuple<String, String>(left, right));
+		return new None<Tuple<String, String>>();
 	}
 }

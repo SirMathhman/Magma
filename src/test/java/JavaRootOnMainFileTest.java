@@ -11,8 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 
-import static org.junit.jupiter.api.Assertions.assertTimeoutPreemptively;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Test that ensures JRoot() can be applied to Main.java within a 5-second
@@ -58,10 +57,8 @@ public class JavaRootOnMainFileTest {
 			Result<Node, CompileError> lexResult = Lang.JRoot().lex(mainJavaContent);
 
 			// Assert that lexing succeeded
-			assertTrue(lexResult instanceof Ok<?, ?>, () -> {
-				if (lexResult instanceof Err<?, ?> err) {
-					return "Lexing Main.java failed: " + err.error();
-				}
+			assertInstanceOf(Ok<?, ?>.class, lexResult, () -> {
+				if (lexResult instanceof Err<?, ?>(? error)) return "Lexing Main.java failed: " + error;
 				return "Lexing Main.java failed";
 			});
 		});

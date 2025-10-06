@@ -14,7 +14,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		if (!input.endsWith(suffix()))
-			return new Err<>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
+			return new Err<Node, CompileError>(new CompileError("Suffix '" + suffix + "' not present", new StringContext(input)));
 		final String slice = input.substring(0, input.length() - suffix().length());
 		return getRule().lex(slice);
 	}

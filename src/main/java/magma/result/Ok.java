@@ -5,7 +5,7 @@ import java.util.function.Function;
 public record Ok<T, X>(T value) implements Result<T, X> {
 	@Override
 	public <R> Result<R, X> mapValue(Function<T, R> fn) {
-		return new Ok<>(fn.apply(this.value));
+		return new Ok<R, X>(fn.apply(this.value));
 	}
 
 	@Override
@@ -15,6 +15,6 @@ public record Ok<T, X>(T value) implements Result<T, X> {
 
 	@Override
 	public <R> Result<T, R> mapErr(Function<X, R> mapper) {
-		return new Ok<>(value);
+		return new Ok<T, R>(value);
 	}
 }

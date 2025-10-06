@@ -7,8 +7,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 public interface List<T> {
+	@SafeVarargs
 	static <T> List<T> of(T... elements) {
-		return new ArrayList<>(new java.util.ArrayList<>(Arrays.asList(elements)));
+		return new ArrayList<T>(new java.util.ArrayList<T>(Arrays.asList(elements)));
 	}
 
 	Stream<T> stream();

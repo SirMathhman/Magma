@@ -20,7 +20,7 @@ public class DivideState {
 	}
 
 	public DivideState(String input) {
-		this(new StringBuilder(), 0, new ArrayList<>(), input);
+		this(new StringBuilder(), 0, new ArrayList<String>(), input);
 	}
 
 	Stream<String> stream() {
@@ -57,7 +57,7 @@ public class DivideState {
 	}
 
 	public Option<Tuple<DivideState, Character>> popAndAppendToTuple() {
-		return pop().map(popped -> new Tuple<>(append(popped), popped));
+		return pop().map(popped -> new Tuple<DivideState, Character>(append(popped), popped));
 	}
 
 	public Option<DivideState> popAndAppendToOption() {
@@ -65,7 +65,7 @@ public class DivideState {
 	}
 
 	public Option<Character> peek() {
-		if (index < input.length()) return new Some<>(input.charAt(index));
-		else return new None<>();
+		if (index < input.length()) return new Some<Character>(input.charAt(index));
+		else return new None<Character>();
 	}
 }

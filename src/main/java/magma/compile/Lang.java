@@ -326,7 +326,7 @@ public class Lang {
 			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CLang.CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {
 		public Invalid(String value) {
-			this(value, new None<>());
+			this(value, new None<String>());
 		}
 
 		@Override
@@ -590,9 +590,9 @@ public class Lang {
 		public String last() {
 			if (segments instanceof None<List<QualifiedSegment>>)
 				return "";
-			return segments.orElse(new ArrayList<>()).getLast()
-					.map(seg -> seg.value)
-					.orElse("");
+			return segments.orElse(new ArrayList<QualifiedSegment>()).getLast()
+										 .map(seg -> seg.value)
+										 .orElse("");
 		}
 	}
 

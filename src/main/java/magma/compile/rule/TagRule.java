@@ -29,6 +29,6 @@ public record TagRule(String tag, Rule rule) implements Rule {
 																																	 new NodeContext(node),
 																																	 List.of(error)));
 
-		else return new Err<>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
+		else return new Err<String, CompileError>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
 	}
 }

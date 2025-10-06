@@ -10,6 +10,7 @@ import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
@@ -41,39 +42,38 @@ public class ValidationDemonstrationTest {
 		System.out.println("Creating a record with Option<String> body field...");
 
 		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
-		assertTrue(lexResult instanceof Ok<?, ?>, "Lexing should succeed");
+		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
 
-		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Node value = nodeCompileErrorOk.value();// Find the method node
+		Result<Lang.JRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JRoot.class, value);
+
+		if (rootResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot root)) {
 			// Find the method node
-			Result<Lang.JRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JRoot.class, value);
+			List<Lang.Method> methods = root.children()
+																			.stream()
+																			.filter(child -> child instanceof Lang.JClass)
+																			.map(child -> (Lang.JClass) child)
+																			.flatMap(jClass -> jClass.children().stream())
+																			.filter(seg -> seg instanceof Lang.Method)
+																			.map(seg -> (Lang.Method) seg)
+																			.toList();
+			if (!methods.isEmpty()) {
+				Lang.Method method = methods.getOrNull(0);
+				System.out.println("Found method: " + method.definition().name());
+				System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
-			if (rootResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot root)) {
-				// Find the method node
-				var methods = root.children()
-						.stream()
-						.filter(child -> child instanceof Lang.JClass)
-						.map(child -> (Lang.JClass) child)
-						.flatMap(jClass -> jClass.children().stream())
-						.filter(seg -> seg instanceof Lang.Method)
-						.map(seg -> (Lang.Method) seg)
-						.toList();
-				if (!methods.isEmpty()) {
-					Lang.Method method = methods.getOrNull(0);
-					System.out.println("Found method: " + method.definition().name());
-					System.out.println("Method body type: " + method.body().getClass().getSimpleName());
-
-					// The correct type (Option<List<JFunctionSegment>>) works fine
-					if (method.body() instanceof Some<?>(var bodyValue))
-						System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
-				}
-
-				System.out.println("\n📝 Note: With the correct type Option<List<JFunctionSegment>>,");
-				System.out.println("   deserialization succeeds and body is properly captured.");
-				System.out.println("\n📝 If we tried to deserialize with Option<String> body,");
-				System.out.println("   the validation would throw an error:");
-				System.out.println("   'Field 'body' of type 'Option<String>' found a list instead of string'");
+				// The correct type (Option<List<JFunctionSegment>>) works fine
+				if (method.body() instanceof Some<?>(Object bodyValue))
+					System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
 			}
-		} // Test passes because we're using the correct type
+
+			System.out.println("\n📝 Note: With the correct type Option<List<JFunctionSegment>>,");
+			System.out.println("   deserialization succeeds and body is properly captured.");
+			System.out.println("\n📝 If we tried to deserialize with Option<String> body,");
+			System.out.println("   the validation would throw an error:");
+			System.out.println("   'Field 'body' of type 'Option<String>' found a list instead of string'");
+		}
 		assertTrue(true, "Validation is in place to catch future type mismatches");
 	}
 }

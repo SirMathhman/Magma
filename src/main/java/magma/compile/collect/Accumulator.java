@@ -15,7 +15,7 @@ import java.util.function.Function;
 
 public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	public Accumulator() {
-		this(new None<>(), new ArrayList<>());
+		this(new None<T>(), new ArrayList<CompileError>());
 	}
 
 	public static <T, R> Result<R, List<CompileError>> merge(List<T> elements,
@@ -42,13 +42,13 @@ public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	}
 
 	public Accumulator<T> setValue(T value) {
-		return new Accumulator<>(new Some<>(value), errors);
+		return new Accumulator<T>(new Some<T>(value), errors);
 	}
 
 	public Result<T, List<CompileError>> toResult() {
 		return switch (option) {
-			case None<T> _ -> new Err<>(errors);
-			case Some<T> v -> new Ok<>(v.value());
+			case None<T> _ -> new Err<T, List<CompileError>>(errors);
+			case Some<T> v -> new Ok<T, List<CompileError>>(v.value());
 		};
 	}
 }

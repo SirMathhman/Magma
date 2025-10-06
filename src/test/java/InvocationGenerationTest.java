@@ -25,9 +25,7 @@ public class InvocationGenerationTest {
             long openCount = generated.chars().filter(ch -> ch == '(').count();
             long closeCount = generated.chars().filter(ch -> ch == ')').count();
             assertEquals(openCount, closeCount, "Parentheses should be balanced: " + generated);
-        } else {
-            System.out.println("Generation failed: " + genResult);
-        }
+        } else System.out.println("Generation failed: " + genResult);
     }
     
     @Test
@@ -51,8 +49,6 @@ public class InvocationGenerationTest {
             long openCount = generated.chars().filter(ch -> ch == '(').count();
             long closeCount = generated.chars().filter(ch -> ch == ')').count();
             assertEquals(openCount, closeCount, "Parentheses should be balanced: " + generated);
-        } else {
-            System.out.println("Generation failed: " + genResult);
-        }
+        } else System.out.println("Generation failed: " + genResult);
     }
 }

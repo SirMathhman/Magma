@@ -18,7 +18,7 @@ public class HeadedStreamFlatMapTest {
 	public void testFlatMapWithEmptyOuterStream() {
 		System.out.println("=== Testing flatMap with empty outer stream ===");
 
-		Stream<Integer> emptyStream = new HeadedStream<>(new RangeHead(0));
+		Stream<Integer> emptyStream = new HeadedStream<Integer>(new RangeHead(0));
 		Stream<String> result = emptyStream.flatMap(i -> Stream.range(0, i).map(Object::toString));
 		List<String> resultList = result.toList();
 

@@ -7,6 +7,8 @@ import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.fail;
 
 public class DebugMethodBodyTest {
@@ -23,7 +25,7 @@ public class DebugMethodBodyTest {
 
 		System.out.println("=== Parsing Java code ===");
 		Result<Node, ?> lexResult = Lang.JRoot().lex(code);
-		if (lexResult instanceof Err<?, ?>(var err)) {
+		if (lexResult instanceof Err<?, ?>(Object err)) {
 			fail("Lex failed: " + err);
 			return;
 		}
@@ -33,12 +35,12 @@ public class DebugMethodBodyTest {
 		System.out.println("\n=== Deserializing ===");
 		Result<Lang.JRoot, ?> result = JavaSerializer.deserialize(Lang.JRoot.class, lexed);
 
-		if (result instanceof Ok<Lang.JRoot, ?>(var root)) {
+		if (result instanceof Ok<Lang.JRoot, ?>(Lang.JRoot root)) {
 			System.out.println("✅ Deserialization successful");
 			System.out.println("JavaRoot children: " + root.children().size());
 
 			processRootChildren(root);
-		} else if (result instanceof Err<?, ?>(var err)) {
+		} else if (result instanceof Err<?, ?>(Object err)) {
 			System.out.println("❌ Deserialization failed: " + err);
 			fail("Deserialization should succeed");
 		}
@@ -46,7 +48,7 @@ public class DebugMethodBodyTest {
 
 	private void processRootChildren(Lang.JRoot root) {
 		for (int i = 0; i < root.children().size(); i++) {
-			var child = root.children().getOrNull(i);
+			Lang.JavaRootSegment child = root.children().getOrNull(i);
 			if (child instanceof Lang.JClass jClass) {
 				System.out.println("\n=== Found JClass: " + jClass.name() + " ===");
 				System.out.println("JClass children: " + jClass.children().size());
@@ -57,30 +59,28 @@ public class DebugMethodBodyTest {
 
 	private void processClassChildren(Lang.JClass jClass) {
 		for (int j = 0; j < jClass.children().size(); j++) {
-			var member = jClass.children().getOrNull(j);
+			Lang.JStructureSegment member = jClass.children().getOrNull(j);
 			if (member instanceof Lang.Method method) {
 				System.out.println("\n=== Found Method ===");
 				System.out.println("Method definition: " + method.definition());
 				System.out.println("Body present: " + (method.body() instanceof Some));
 
-				if (method.body() instanceof Some<?>(var body)) {
+				if (method.body() instanceof Some<?>(Object body)) {
 					System.out.println("Body type: " + body.getClass().getName());
 					System.out.println("Body content: " + body);
 
-					if (body instanceof java.util.List<?> list) {
+					if (body instanceof List<?> list) {
 						System.out.println("Body list size: " + list.size());
 						printBodyList(list);
 					}
-				} else {
-					System.out.println("❌ Body is None!");
-				}
+				} else System.out.println("❌ Body is None!");
 			}
 		}
 	}
 
-	private void printBodyList(java.util.List<?> list) {
+	private void printBodyList(List<?> list) {
 		for (int k = 0; k < list.size(); k++) {
-			var item = list.get(k);
+			Object item = list.get(k);
 			System.out.println("  [" + k + "] Type: " + item.getClass().getSimpleName() + ", Value: " + item);
 		}
 	}

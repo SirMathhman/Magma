@@ -29,9 +29,9 @@ public record NonEmptyListRule(String key, Rule innerRule) implements Rule {
 	@Override
 	public Result<String, CompileError> generate(Node node) {
 		return switch (node.findNodeList(key)) {
-			case None<?> _ -> new Err<>(new CompileError("Node list '" + key + "' not present", new NodeContext(node)));
+			case None<?> _ -> new Err<String, CompileError>(new CompileError("Node list '" + key + "' not present", new NodeContext(node)));
 			case Some(List<Node> list) when list.isEmpty() ->
-					new Err<>(new CompileError("Node list '" + key + "' is empty", new NodeContext(node)));
+					new Err<String, CompileError>(new CompileError("Node list '" + key + "' is empty", new NodeContext(node)));
 			case Some<?> _ -> innerRule.generate(node);
 		};
 	}

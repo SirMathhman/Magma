@@ -6,11 +6,8 @@ public class StatementFolder implements Folder {
 	@Override
 	public DivideState fold(DivideState state, char c) {
 		final DivideState appended = state.append(c);
-		if (c == '-') {
-			if (appended.peek() instanceof Some<Character>(Character next) && next == '>') {
-				return state.popAndAppendToOption().orElse(state);
-			}
-		}
+		if (c == '-') if (appended.peek() instanceof Some<Character>(Character next) && next == '>')
+			return state.popAndAppendToOption().orElse(state);
 
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) {
