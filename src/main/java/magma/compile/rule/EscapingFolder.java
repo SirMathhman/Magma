@@ -55,18 +55,20 @@ public record EscapingFolder(Folder folder) implements Folder {
 		if (!(state.peek() instanceof Some<Character>(Character next)) || next != '*') return Option.empty();
 
 		final DivideState withSlash = state.append(c);
-		DivideState current = withSlash.popAndAppendToOption().orElse(state);
-		while (true) if (current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
-				Tuple<DivideState, Character> tuple
-		)) {
-			current = tuple.left();
-			if (tuple.right() == '*') if (current.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/') {
-				current = current.popAndAppendToOption().orElse(current).advance();
-				break;
-			}
-		} else break;
+		Tuple<Boolean, DivideState> current = new Tuple<>(true, withSlash.popAndAppendToOption().orElse(state));
+		while (current.left()) current = handle(current.right());
+		return new Some<>(current.right());
+	}
 
-		return new Some<>(current);
+	private Tuple<Boolean, DivideState> handle(DivideState current) {
+		if (!(current.popAndAppendToTuple() instanceof Some<Tuple<DivideState, Character>>(
+				Tuple<DivideState, Character> tuple
+		))) return new Tuple<>(false, current);
+
+		DivideState temp = tuple.left();
+		if (tuple.right() == '*' && temp.peek() instanceof Some<Character>(Character tuple0) && tuple0 == '/')
+			return new Tuple<>(false, temp.popAndAppendToOption().orElse(temp).advance());
+		return new Tuple<>(true, temp);
 	}
 
 	@Override
