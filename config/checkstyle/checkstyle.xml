@@ -24,5 +24,18 @@
 			<property name="maximumMessage"
 				value="Method contains more than one loop (for/while/do-while). Only one loop per method is allowed." />
 		</module>
+
+		<!-- Ban throw statements -->
+		<module name="IllegalToken">
+			<property name="tokens" value="LITERAL_THROW" />
+		</module>
+
+		<!-- Ban throws declarations -->
+		<module name="RegexpSinglelineJava">
+			<property name="format" value="\bthrows\b" />
+			<property name="message"
+				value="Using 'throws' is banned; use Result or Option types for error handling." />
+			<property name="ignoreComments" value="true" />
+		</module>
 	</module>
 </module>

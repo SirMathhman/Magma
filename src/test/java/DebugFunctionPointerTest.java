@@ -51,7 +51,7 @@ public class DebugFunctionPointerTest {
 											System.out.println("      Param type class: " + def.type().getClass().getSimpleName());
 											if (def.type() instanceof JGeneric gen) {
 												System.out.println("        Generic base: " + gen.base());
-												System.out.println("        Generic args: " + gen.arguments());
+												System.out.println("        Generic args: " + gen.typeArguments());
 											}
 										}
 									});
@@ -75,7 +75,8 @@ public class DebugFunctionPointerTest {
 									System.out.println("    Param (CDefinition): " + def.name() + " : " + def.type());
 									System.out.println("    Param type class: " + def.type().getClass().getSimpleName());
 								} else if (param instanceof CFunctionPointerDefinition fpDef) {
-									System.out.println("    Param (CFunctionPointerDefinition): " + fpDef.name()); System.out.println(
+									System.out.println("    Param (CFunctionPointerDefinition): " + fpDef.name());
+									System.out.println(
 											"      ✅ FunctionPointer! Return: " + fpDef.returnType() + ", Params: " + fpDef.paramTypes());
 								}
 							});
@@ -83,7 +84,7 @@ public class DebugFunctionPointerTest {
 					});
 
 					Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class,
-																																															transformOk.value());
+							transformOk.value());
 					assertTrue(serializeResult instanceof Ok<?, ?>, () -> "Serialization failed: " + serializeResult);
 
 					if (serializeResult instanceof Ok<magma.compile.Node, CompileError> serOk) {
