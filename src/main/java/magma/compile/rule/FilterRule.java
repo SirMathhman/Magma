@@ -22,6 +22,10 @@ public class FilterRule implements Rule {
 		return Filter(IdentifierFilter.Identifier, rule);
 	}
 
+	public static Rule Number(Rule rule) {
+		return Filter(NumberFilter.Filter, rule);
+	}
+
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		if (filter.test(content)) return rule.lex(content);

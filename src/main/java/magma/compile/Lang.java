@@ -715,8 +715,13 @@ public class Lang {
 											Operator("less-than-equals", "<=", expression),
 											Operator("greater-than", ">", expression),
 											Operator("greater-than-equals", ">=", expression),
-											Identifier()));
+											Identifier(),
+											Number()));
 		return expression;
+	}
+
+	public static Rule Number() {
+		return Tag("number", Strip(FilterRule.Number(String("number"))));
 	}
 
 	private static Rule NewArray(LazyRule expression) {
