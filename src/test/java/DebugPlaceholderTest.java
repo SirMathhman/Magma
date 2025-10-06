@@ -18,42 +18,60 @@ public class DebugPlaceholderTest {
 				}
 				""";
 
-		System.out.println("=== Testing JFunctionSegment parsing ==="); System.out.flush();
+		System.out.println("=== Testing JFunctionSegment parsing ===");
+		System.out.flush();
 		Result<Node, ?> result = Lang.JRoot().lex(code);
 
 		if (result instanceof Ok<Node, ?>(var node)) {
-			System.out.println("Lexed successfully"); System.out.flush(); printNode(node, 0); System.out.flush();
+			System.out.println("Lexed successfully");
+			System.out.flush();
+			printNode(node, 0);
+			System.out.flush();
 		} else if (result instanceof Err<?, ?>(var error)) {
-			System.out.println("Lex failed: " + error); System.out.flush();
+			System.out.println("Lex failed: " + error);
+			System.out.flush();
 		}
 	}
 
 	private void printNode(Node node, int depth) {
-		String indent = "  ".repeat(depth); System.out.println(indent + "Node:");
+		String indent = "  ".repeat(depth);
+		System.out.println(indent + "Node:");
 
 		if (node.maybeType instanceof Some<?>(var type)) {
 			System.out.println(indent + "  @type: " + type);
 		}
 
 		// Print string fields
-		for (String key : node.getStringKeys()) {
-			var value = node.findString(key); if (value instanceof Some<?>(var str)) {
-				String escaped = str.toString().replace("\n", "\\n").replace("\t", "\\t");
-				System.out.println(indent + "  " + key + " (string): " + escaped.substring(0, Math.min(50, escaped.length())));
-			}
-		}
+		printStringFields(node, indent);
 
 		// Print node fields
 		node.nodes.forEach((key, child) -> {
-			System.out.println(indent + "  " + key + " (node):"); printNode(child, depth + 2);
+			System.out.println(indent + "  " + key + " (node):");
+			printNode(child, depth + 2);
 		});
 
 		// Print node list fields
 		node.nodeLists.forEach((key, children) -> {
 			System.out.println(indent + "  " + key + " (list): " + children.size() + " items");
-			for (int i = 0; i < children.size() && i < 5; i++) {
-				System.out.println(indent + "    [" + i + "]:"); printNode(children.getOrNull(i), depth + 3);
-			}
+			printNodeList(children, depth, indent);
 		});
+	}
+
+	private void printStringFields(Node node, String indent) {
+		for (String key : node.getStringKeys()) {
+			var value = node.findString(key);
+			if (value instanceof Some<?>(var str)) {
+				String escaped = str.toString().replace("\n", "\\n").replace("\t", "\\t");
+				System.out.println(indent + "  " + key + " (string): " +
+						escaped.substring(0, Math.min(50, escaped.length())));
+			}
+		}
+	}
+
+	private void printNodeList(magma.list.List<Node> children, int depth, String indent) {
+		for (int i = 0; i < children.size() && i < 5; i++) {
+			System.out.println(indent + "    [" + i + "]:");
+			printNode(children.getOrNull(i), depth + 3);
+		}
 	}
 }

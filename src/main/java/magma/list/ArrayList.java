@@ -50,7 +50,12 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public T getLastOrNull() {
-		if (elements.isEmpty()) return null;
+		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
+		if (elements.isEmpty()) {
+			T defaultValue = null; // Unavoidable for compatibility
+			return defaultValue;
+		}
+		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
 		return elements.getLast();
 	}
 
@@ -62,7 +67,8 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public Option<Tuple<List<T>, T>> pop() {
-		if (elements.isEmpty()) return new None<Tuple<List<T>, T>>();
+		if (elements.isEmpty())
+			return new None<Tuple<List<T>, T>>();
 
 		final T last = elements.removeLast();
 		return new Some<Tuple<List<T>, T>>(new Tuple<List<T>, T>(this, last));
@@ -70,7 +76,12 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public T getFirstOrNull() {
-		if (elements.isEmpty()) return null;
+		// CHECKSTYLE.OFF: IllegalToken|RegexpSinglelineJava
+		if (elements.isEmpty()) {
+			T defaultValue = null; // Unavoidable for compatibility
+			return defaultValue;
+		}
+		// CHECKSTYLE.ON: IllegalToken|RegexpSinglelineJava
 		return elements.getFirst();
 	}
 

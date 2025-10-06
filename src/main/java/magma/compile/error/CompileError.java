@@ -26,8 +26,10 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 		copy.sort(Comparator.comparingInt(CompileError::depth));
 		final String formattedChildren = joinErrors(depth, indices, copy);
 		final String s;
-		if (depth == 0) s = "";
-		else s = System.lineSeparator() + "\t".repeat(depth);
+		if (depth == 0)
+			s = "";
+		else
+			s = System.lineSeparator() + "\t".repeat(depth);
 
 		final String joinedIndices = getCollect(indices);
 		return s + joinedIndices + ") " + reason + ": " + context.display(depth) + formattedChildren;
@@ -42,7 +44,7 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 	private String joinErrors(int depth, List<Integer> indices, List<CompileError> copy) {
 		final Stream<Integer> range = Stream.range(0, copy.size());
 		final Stream<String> stringStream = range.map(index -> formatChild(depth, copy, indices, index));
-		return stringStream.collect(new Joiner(null));
+		return stringStream.collect(new Joiner(""));
 	}
 
 	private String formatChild(int depth, List<CompileError> copy, List<Integer> indices, int last) {
