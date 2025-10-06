@@ -8,12 +8,12 @@ import magma.option.Some;
 public record EscapingFolder(Folder folder) implements Folder {
 	@Override
 	public DivideState fold(DivideState state, char c) {
-		return getDivideState(state, c).or(() -> handleDoubleQuotes(state, c))
-																	 .or(() -> handleComments(state, c))
-																	 .orElseGet(() -> folder.fold(state, c));
+		return handleSingleQuotes(state, c).or(() -> handleDoubleQuotes(state, c))
+																			 .or(() -> handleComments(state, c))
+																			 .orElseGet(() -> folder.fold(state, c));
 	}
 
-	private Option<DivideState> getDivideState(DivideState state, char c) {
+	private Option<DivideState> handleSingleQuotes(DivideState state, char c) {
 		if (c != '\'') return Option.empty();
 		return Option.of(state.append(c)
 													.popAndAppendToTuple()
