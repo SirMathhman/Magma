@@ -318,8 +318,15 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	LazyRule expression=new_???();
-	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), Tag("", Strip(Suffix(First(Prefix("", Node("", JType())), "", Node("", expression)), ""))), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
+	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
 	return expression;
+}
+Rule NewArray_Lang(LazyRule expression) {
+	Rule type=Node("", JType());
+	Rule first=First(type, "", Node("", expression));
+	Rule suffix=Suffix(first, "");
+	Rule strip=new_???("", Strip(First(type, "", Suffix(Expressions("", expression), ""))));
+	return Tag("", Strip(Prefix("", Or(new_???("", suffix), strip))));
 }
 Rule MethodAccess_Lang(LazyRule expression) {
 	Rule exprSource=Tag("", Node("", expression));

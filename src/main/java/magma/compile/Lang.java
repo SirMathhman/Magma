@@ -688,9 +688,7 @@ public class Lang {
 											StringExpr(),
 											Switch("expr", expression, CaseExprValue(statement, expression)),
 											Index(expression),
-											Tag("new-array",
-													Strip(Suffix(First(Prefix("new ", Node("type", JType())), "[", Node("length", expression)),
-																			 "]"))),
+											NewArray(expression),
 											Index(expression),
 											Invokable(expression),
 											FieldAccess(expression),
@@ -707,6 +705,15 @@ public class Lang {
 											Operator("greater-than-equals", ">=", expression),
 											Identifier()));
 		return expression;
+	}
+
+	private static Rule NewArray(LazyRule expression) {
+		final Rule type = Node("type", JType());
+		final Rule first = First(type, "[", Node("length", expression));
+		final Rule suffix = Suffix(first, "]");
+		final Rule strip =
+				new ContextRule("With arguments", Strip(First(type, "[]{", Suffix(Expressions("arguments", expression), "}"))));
+		return Tag("new-array", Strip(Prefix("new ", Or(new ContextRule("Without arguments", suffix), strip))));
 	}
 
 	private static Rule MethodAccess(LazyRule expression) {
