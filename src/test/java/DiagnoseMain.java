@@ -1,9 +1,9 @@
-import magma.Compiler;
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.transform.RootTransformer;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
@@ -71,7 +71,7 @@ public class DiagnoseMain {
 			});
 
 			// Step 3: Transform
-			Result<CRoot, CompileError> transformResult = Compiler.transform(javaRoot);
+			Result<CRoot, CompileError> transformResult = RootTransformer.transform(javaRoot);
 			if (transformResult instanceof Err<?, ?> err) {
 				System.err.println("❌ TRANSFORMATION FAILED: " + err.error());
 				fail("Transformation failed: " + err.error());

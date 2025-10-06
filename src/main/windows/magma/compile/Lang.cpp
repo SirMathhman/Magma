@@ -93,7 +93,7 @@ char* stringify_Invalid() {
 }
 struct JClass {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> interfaces;};
 struct Interface {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> interfaces;Option<> superclasses;Option<> variants;};
-struct Record {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> params;Option<> interfaces;};
+struct RecordNode {Option<> modifiers;char* name;List<> children;Option<> typeParameters;Option<> params;Option<> interfaces;};
 struct Structure {char* name;List<> fields;Option<> after;Option<> typeParameters;};
 struct Whitespace {};
 struct Placeholder {char* value;};

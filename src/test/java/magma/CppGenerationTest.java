@@ -5,6 +5,7 @@ import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
+import magma.transform.RootTransformer;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.*;
@@ -116,7 +117,7 @@ public class CppGenerationTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = RootTransformer.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
@@ -161,7 +162,7 @@ public class CppGenerationTest {
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
-				Result<CRoot, CompileError> transformResult = Compiler.transform(deserOk.value());
+				Result<CRoot, CompileError> transformResult = RootTransformer.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
