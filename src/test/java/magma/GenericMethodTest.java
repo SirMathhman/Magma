@@ -38,7 +38,7 @@ public class GenericMethodTest {
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 					if (child instanceof Lang.RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());
@@ -46,8 +46,8 @@ public class GenericMethodTest {
 					}
 				});
 
-				Result<CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
-				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
+				Result<Lang.CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
+				if (transformResult instanceof Ok<Lang.CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + transformOk.value().children().size());
 				} else {

@@ -57,12 +57,12 @@ public class DiagnoseMain {
 			System.out.println("JavaRoot children count: " + javaRoot.children().size());
 
 			// Check what children we got
-			javaRoot.children().forEach(child -> {
+			javaRoot.children().stream().forEach(child -> {
 				System.out.println("  Child type: " + child.getClass().getSimpleName());
 				if (child instanceof JClass jClass) {
 					System.out.println("    Class name: " + jClass.name());
 					System.out.println("    Class children count: " + jClass.children().size());
-					jClass.children().forEach(structChild -> {
+					jClass.children().stream().forEach(structChild -> {
 						System.out.println("      Structure child type: " + structChild.getClass().getSimpleName());
 						if (structChild instanceof Method method) {
 							System.out.println("        Method name: " + method.definition().name());
@@ -83,7 +83,7 @@ public class DiagnoseMain {
 			System.out.println("\n✅ Transformation succeeded");
 			System.out.println("CRoot children count: " + cRoot.children().size());
 
-			cRoot.children().forEach(child -> {
+			cRoot.children().stream().forEach(child -> {
 				System.out.println("  CRoot child type: " + child.getClass().getSimpleName());
 				if (child instanceof Structure struct) {
 					System.out.println("    Structure name: " + struct.name());

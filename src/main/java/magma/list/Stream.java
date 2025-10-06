@@ -24,9 +24,13 @@ public interface Stream<T> {
 
 	<R> Stream<R> flatMap(Function<T, Stream<R>> mapper);
 
+	Stream<T> filter(Predicate<T> predicate);
+
 	default <R> R reduce(R initial, BiFunction<R, T, R> folder) {
 		return fold(initial, folder);
 	}
 
 	boolean allMatch(Predicate<T> predicate);
+
+	boolean anyMatch(Predicate<T> predicate);
 }

@@ -36,7 +36,7 @@ public class PackageImportRecordTest {
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 					if (child instanceof Lang.RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());
@@ -70,7 +70,7 @@ public class PackageImportRecordTest {
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 					if (child instanceof Lang.RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());

@@ -19,19 +19,24 @@ public class TestMethodBodyGeneration {
 				}
 				""";
 
-		var lexResult = Lang.JRoot().lex(code); if (lexResult instanceof Ok<Node, ?>(var node)) {
+		var lexResult = Lang.JRoot().lex(code);
+		if (lexResult instanceof Ok<Node, ?>(var node)) {
 			var deserResult = JavaSerializer.deserialize(Lang.JRoot.class, node);
 			if (deserResult instanceof Ok<Lang.JRoot, ?>(var root)) {
-				for (var child : root.children()) {
+				for (int i = 0; i < root.children().size(); i++) {
+					var child = root.children().getOrNull(i);
 					if (child instanceof Lang.JClass jClass) {
-						for (var member : jClass.children()) {
+						for (int j = 0; j < jClass.children().size(); j++) {
+							var member = jClass.children().getOrNull(j);
 							if (member instanceof Lang.Method method) {
 								System.out.println("=== Method: " + method.definition().name() + " ===");
 								System.out.println("Body: " + method.body());
 
 								if (method.body() instanceof Some<?>(var segments)) {
 									System.out.println("Segments count: " + ((java.util.List<?>) segments).size());
-									for (var segment : (java.util.List<?>) segments) {
+									var segList = (java.util.List<?>) segments;
+									for (int k = 0; k < segList.size(); k++) {
+										var segment = segList.get(k);
 										System.out.println("  Segment type: " + segment.getClass().getSimpleName());
 										if (segment instanceof Lang.Placeholder placeholder) {
 											System.out.println("  Placeholder value: " + placeholder.value());
@@ -43,11 +48,14 @@ public class TestMethodBodyGeneration {
 								final String bodyString = switch (method.body()) {
 									case None<List<Lang.JMethodSegment>> _ -> "";
 									case Some<List<Lang.JMethodSegment>>(var segs) -> {
-										StringBuilder sb = new StringBuilder(); for (Lang.JMethodSegment segment : segs) {
+										StringBuilder sb = new StringBuilder();
+										for (int m = 0; m < segs.size(); m++) {
+											Lang.JMethodSegment segment = segs.getOrNull(m);
 											if (segment instanceof Lang.Placeholder placeholder) {
 												sb.append("/*").append(placeholder.value()).append("*/");
 											}
-										} yield sb.toString();
+										}
+										yield sb.toString();
 									}
 								};
 

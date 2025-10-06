@@ -1,6 +1,7 @@
 package magma;
 
 import magma.compile.JavaSerializer;
+import magma.compile.Lang;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -50,15 +51,15 @@ public class RealSomeJavaTest {
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 				});
 
-				Result<CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
-				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
+				Result<Lang.CRoot, CompileError> transformResult = Transformer.transform(deserOk.value());
+				if (transformResult instanceof Ok<Lang.CRoot, CompileError> transformOk) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + transformOk.value().children().size());
-					transformOk.value().children().forEach(child -> {
+					transformOk.value().children().stream().forEach(child -> {
 						System.out.println("  CRoot child: " + child.getClass().getSimpleName());
 					});
 				} else {

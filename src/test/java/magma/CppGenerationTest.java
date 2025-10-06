@@ -64,12 +64,12 @@ public class CppGenerationTest {
 				System.out.println("Deserialized JavaRoot:");
 				System.out.println("Children count: " + deserOk.value().children().size());
 
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("Child type: " + child.getClass().getSimpleName());
 					if (child instanceof JStructure jStruct) {
 						System.out.println("  Structure name: " + jStruct.name());
 						System.out.println("  Structure children: " + jStruct.children().size());
-						jStruct.children().forEach(structChild -> {
+						jStruct.children().stream().forEach(structChild -> {
 							System.out.println("    Struct child: " + structChild.getClass().getSimpleName());
 							if (structChild instanceof Method method) {
 								System.out.println("      Method definition: " + method.definition());
@@ -105,13 +105,13 @@ public class CppGenerationTest {
 
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("  JavaRoot child: " + child.getClass().getSimpleName());
 					if (child instanceof RecordNode record) {
 						System.out.println("    Record name: " + record.name());
 						System.out.println("    Record params: " + record.params());
 						System.out.println("    Record children count: " + record.children().size());
-						record.children().forEach(structChild -> {
+						record.children().stream().forEach(structChild -> {
 							System.out.println("      Record child: " + structChild.getClass().getSimpleName());
 						});
 					}
@@ -124,7 +124,7 @@ public class CppGenerationTest {
 					System.out.println("Transformed CRoot:");
 					System.out.println("C++ segments count: " + transformOk.value().children().size());
 
-					transformOk.value().children().forEach(segment -> {
+					transformOk.value().children().stream().forEach(segment -> {
 						System.out.println("C++ segment type: " + segment.getClass().getSimpleName());
 						if (segment instanceof Structure struct) {
 							System.out.println("  Structure name: " + struct.name());
@@ -167,7 +167,7 @@ public class CppGenerationTest {
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					Result<magma.compile.Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class,
-																																															transformOk.value());
+							transformOk.value());
 
 					assertTrue(serializeResult instanceof Ok<?, ?>, () -> "C++ Serialization failed: " + serializeResult);
 

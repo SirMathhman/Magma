@@ -25,7 +25,8 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 				// If we have a current inner stream, try to get the next element from it
 				if (currentInnerHead != null) {
 					final Option<R> innerNext = currentInnerHead.next();
-					if (innerNext instanceof Some<R>(R value)) return innerNext;
+					if (innerNext instanceof Some<R>(R value))
+						return innerNext;
 					// Current inner stream is exhausted, move to next outer element
 					currentInnerHead = null;
 				}
@@ -36,10 +37,13 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 				if (outerNext instanceof Some<T>(T value)) {
 					// Map to inner stream and set it as current
 					final Stream<R> innerStream = mapper.apply(value);
-					if (innerStream instanceof HeadedStream<R>(Head<R> head1)) currentInnerHead = head1;
-					else throw new IllegalStateException("flatMap expects HeadedStream");
+					if (innerStream instanceof HeadedStream<R>(Head<R> head1))
+						currentInnerHead = head1;
+					else
+						throw new IllegalStateException("flatMap expects HeadedStream");
 					// Continue loop to get first element from this inner stream
-				} else return new None<R>();
+				} else
+					return new None<R>();
 			}
 		}
 	}
@@ -55,8 +59,10 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 		while (true) {
 			R finalCurrent = current;
 			final Option<R> map = head.next().map(inner -> folder.apply(finalCurrent, inner));
-			if (map instanceof Some<R>(R value)) current = value;
-			else return current;
+			if (map instanceof Some<R>(R value))
+				current = value;
+			else
+				return current;
 		}
 	}
 
@@ -69,8 +75,10 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 	public void forEach(Consumer<T> consumer) {
 		while (true) {
 			final Option<T> next = head.next();
-			if (next instanceof Some<T>(T temp)) consumer.accept(temp);
-			else break;
+			if (next instanceof Some<T>(T temp))
+				consumer.accept(temp);
+			else
+				break;
 		}
 	}
 
@@ -80,7 +88,26 @@ public record HeadedStream<T>(Head<T> head) implements Stream<T> {
 	}
 
 	@Override
+	public Stream<T> filter(Predicate<T> predicate) {
+		return new HeadedStream<T>(() -> {
+			while (true) {
+				final Option<T> next = head.next();
+				if (next instanceof Some<T>(T value)) {
+					if (predicate.test(value))
+						return next;
+				} else
+					return new None<T>();
+			}
+		});
+	}
+
+	@Override
 	public boolean allMatch(Predicate<T> predicate) {
 		return fold(true, (aBoolean, t) -> aBoolean && predicate.test(t));
+	}
+
+	@Override
+	public boolean anyMatch(Predicate<T> predicate) {
+		return fold(false, (aBoolean, t) -> aBoolean || predicate.test(t));
 	}
 }

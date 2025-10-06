@@ -23,8 +23,9 @@ public class ValidationDemonstrationTest {
 	// Simulated "buggy" method record (like the original bug)
 	@Tag("buggy-method")
 	public record BuggyMethod(Lang.JDefinition definition, Option<List<Lang.JDefinition>> params,
-														Option<String> body, // WRONG: should be Option<List<JFunctionSegment>>
-														Option<List<Lang.Identifier>> typeParameters) {}
+			Option<String> body, // WRONG: should be Option<List<JFunctionSegment>>
+			Option<List<Lang.Identifier>> typeParameters) {
+	}
 
 	@Test
 	public void testValidationCatchesTypeMismatch() {
@@ -48,22 +49,23 @@ public class ValidationDemonstrationTest {
 
 			if (rootResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot root)) {
 				// Find the method node
-				root.children()
+				var methods = root.children()
 						.stream()
 						.filter(child -> child instanceof Lang.JClass)
 						.map(child -> (Lang.JClass) child)
 						.flatMap(jClass -> jClass.children().stream())
 						.filter(seg -> seg instanceof Lang.Method)
 						.map(seg -> (Lang.Method) seg)
-						.findFirst()
-						.ifPresent(method -> {
-							System.out.println("Found method: " + method.definition().name());
-							System.out.println("Method body type: " + method.body().getClass().getSimpleName());
+						.toList();
+				if (!methods.isEmpty()) {
+					Lang.Method method = methods.getOrNull(0);
+					System.out.println("Found method: " + method.definition().name());
+					System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
-							// The correct type (Option<List<JFunctionSegment>>) works fine
-							if (method.body() instanceof Some<?>(var bodyValue))
-								System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
-						});
+					// The correct type (Option<List<JFunctionSegment>>) works fine
+					if (method.body() instanceof Some<?>(var bodyValue))
+						System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
+				}
 
 				System.out.println("\n📝 Note: With the correct type Option<List<JFunctionSegment>>,");
 				System.out.println("   deserialization succeeds and body is properly captured.");
@@ -71,9 +73,7 @@ public class ValidationDemonstrationTest {
 				System.out.println("   the validation would throw an error:");
 				System.out.println("   'Field 'body' of type 'Option<String>' found a list instead of string'");
 			}
-		}
-
-		// Test passes because we're using the correct type
+		} // Test passes because we're using the correct type
 		assertTrue(true, "Validation is in place to catch future type mismatches");
 	}
 }

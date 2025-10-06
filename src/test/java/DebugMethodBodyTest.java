@@ -21,10 +21,14 @@ public class DebugMethodBodyTest {
 				}
 				""";
 
-		System.out.println("=== Parsing Java code ==="); Result<Node, ?> lexResult = Lang.JRoot().lex(code);
+		System.out.println("=== Parsing Java code ===");
+		Result<Node, ?> lexResult = Lang.JRoot().lex(code);
 		if (lexResult instanceof Err<?, ?>(var err)) {
-			fail("Lex failed: " + err); return;
-		} Node lexed = ((Ok<Node, ?>) lexResult).value(); System.out.println("Lexed successfully");
+			fail("Lex failed: " + err);
+			return;
+		}
+		Node lexed = ((Ok<Node, ?>) lexResult).value();
+		System.out.println("Lexed successfully");
 
 		System.out.println("\n=== Deserializing ===");
 		Result<Lang.JRoot, ?> result = JavaSerializer.deserialize(Lang.JRoot.class, lexed);
@@ -33,12 +37,14 @@ public class DebugMethodBodyTest {
 			System.out.println("✅ Deserialization successful");
 			System.out.println("JavaRoot children: " + root.children().size());
 
-			for (var child : root.children()) {
+			for (int i = 0; i < root.children().size(); i++) {
+				var child = root.children().getOrNull(i);
 				if (child instanceof Lang.JClass jClass) {
 					System.out.println("\n=== Found JClass: " + jClass.name() + " ===");
 					System.out.println("JClass children: " + jClass.children().size());
 
-					for (var member : jClass.children()) {
+					for (int j = 0; j < jClass.children().size(); j++) {
+						var member = jClass.children().getOrNull(j);
 						if (member instanceof Lang.Method method) {
 							System.out.println("\n=== Found Method ===");
 							System.out.println("Method definition: " + method.definition());
@@ -49,9 +55,10 @@ public class DebugMethodBodyTest {
 								System.out.println("Body content: " + body);
 
 								if (body instanceof java.util.List<?> list) {
-									System.out.println("Body list size: " + list.size()); for (int i = 0; i < list.size(); i++) {
-										var item = list.get(i);
-										System.out.println("  [" + i + "] Type: " + item.getClass().getSimpleName() + ", Value: " + item);
+									System.out.println("Body list size: " + list.size());
+									for (int k = 0; k < list.size(); k++) {
+										var item = list.get(k);
+										System.out.println("  [" + k + "] Type: " + item.getClass().getSimpleName() + ", Value: " + item);
 									}
 								}
 							} else {
@@ -62,7 +69,8 @@ public class DebugMethodBodyTest {
 				}
 			}
 		} else if (result instanceof Err<?, ?>(var err)) {
-			System.out.println("❌ Deserialization failed: " + err); fail("Deserialization should succeed");
+			System.out.println("❌ Deserialization failed: " + err);
+			fail("Deserialization should succeed");
 		}
 	}
 }

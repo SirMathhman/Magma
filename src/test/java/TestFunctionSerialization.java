@@ -11,21 +11,25 @@ public class TestFunctionSerialization {
 	@Test
 	public void testSerializeFunction() {
 		// Create a simple Function with a body (list of CFunctionSegment)
-		List<Lang.CFunctionSegment> body = java.util.List.of(new Lang.Placeholder("/*test body*/")); var func =
-				new Lang.Function(new Lang.CDefinition("testFunc", new Lang.Identifier("void"), magma.option.Option.empty()),
-													java.util.Collections.emptyList(),
-													body,
-													new Some<>(System.lineSeparator()),
-													magma.option.Option.empty());
+		List<Lang.CFunctionSegment> body = List.of(new Lang.Placeholder("/*test body*/"));
+		var func = new Lang.Function(
+				new Lang.CDefinition("testFunc", new Lang.Identifier("void"), magma.option.Option.empty()),
+				List.of(),
+				body,
+				new Some<>(System.lineSeparator()),
+				magma.option.Option.empty());
 
 		System.out.println("Created function with body size: " + func.body().size());
 
 		// Serialize it
-		var serResult = JavaSerializer.serialize(Lang.Function.class, func); if (serResult instanceof Ok<Node, ?>(var node)) {
-			System.out.println("Serialization successful"); System.out.println("Node: " + node);
+		var serResult = JavaSerializer.serialize(Lang.Function.class, func);
+		if (serResult instanceof Ok<Node, ?>(var node)) {
+			System.out.println("Serialization successful");
+			System.out.println("Node: " + node);
 
 			// Try to generate it
-			var genResult = CRules.CFunction().generate(node); if (genResult instanceof Ok<String, ?>(var text)) {
+			var genResult = CRules.CFunction().generate(node);
+			if (genResult instanceof Ok<String, ?>(var text)) {
 				System.out.println("Generation successful");
 				System.out.println("Generated text length: " + ((String) text).length());
 				System.out.println("Generated text: " + text);

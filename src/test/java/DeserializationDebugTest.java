@@ -36,14 +36,14 @@ public class DeserializationDebugTest {
 				System.out.println("JavaRoot children count: " + javaRoot.children().size());
 
 				// Check for methods in the children
-				javaRoot.children().forEach(child -> {
+				javaRoot.children().stream().forEach(child -> {
 					System.out.println("Child type: " + child.getClass().getSimpleName());
 
 					// Need to handle this more carefully since Method is a JavaStructureSegment,
 					// not JavaRootSegment
 					if (child instanceof Lang.JStructure jStructure) {
 						System.out.println("  JStructure found with " + jStructure.children().size() + " children");
-						jStructure.children().forEach(structChild -> {
+						jStructure.children().stream().forEach(structChild -> {
 							System.out.println("    StructChild type: " + structChild.getClass().getSimpleName());
 							if (structChild instanceof Lang.Method method) {
 								System.out.println("    Method found!");

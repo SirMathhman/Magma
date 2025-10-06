@@ -38,7 +38,7 @@ public class SealedInterfaceDeserializationTest {
 			if (rootNode.findNodeList("children") instanceof Some<?> some) {
 				@SuppressWarnings("unchecked")
 				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
-				children.forEach(child -> {
+				children.stream().forEach(child -> {
 					System.out.println("Child @type: " + child.maybeType);
 					if (child.is("record")) {
 						System.out.println("Found record node! Trying to deserialize as Record class directly...");
@@ -64,7 +64,8 @@ public class SealedInterfaceDeserializationTest {
 						}
 
 						System.out.println("Finally trying to deserialize as JavaRootSegment interface...");
-						Result<JavaRootSegment, CompileError> segmentResult = JavaSerializer.deserialize(JavaRootSegment.class, child);
+						Result<JavaRootSegment, CompileError> segmentResult = JavaSerializer.deserialize(JavaRootSegment.class,
+								child);
 						if (segmentResult instanceof Ok<JavaRootSegment, CompileError> segmentOk) {
 							System.out.println("✅ JavaRootSegment deserialization SUCCESS");
 							System.out.println("Segment actual type: " + segmentOk.value().getClass().getSimpleName());
@@ -99,7 +100,7 @@ public class SealedInterfaceDeserializationTest {
 			if (javaRootResult instanceof Ok<JRoot, CompileError> javaRootOk) {
 				System.out.println("✅ JavaRoot deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + javaRootOk.value().children().size());
-				javaRootOk.value().children().forEach(child -> {
+				javaRootOk.value().children().stream().forEach(child -> {
 					System.out.println("  Child type: " + child.getClass().getSimpleName());
 					if (child instanceof RecordNode record) {
 						System.out.println("    ✅ Found Record: " + record.name());

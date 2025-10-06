@@ -40,10 +40,10 @@ public class DebugFunctionPointerTest {
 
 			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("\n=== Deserialized JavaRoot ===");
-				deserOk.value().children().forEach(child -> {
+				deserOk.value().children().stream().forEach(child -> {
 					System.out.println("Child: " + child.getClass().getSimpleName());
 					if (child instanceof JClass jClass) {
-						jClass.children().forEach(structChild -> {
+						jClass.children().stream().forEach(structChild -> {
 							System.out.println("  StructChild: " + structChild.getClass().getSimpleName());
 							if (structChild instanceof Method method) {
 								System.out.println("    Method: " + method.definition().name());
@@ -69,11 +69,11 @@ public class DebugFunctionPointerTest {
 
 				if (transformResult instanceof Ok<CRoot, CompileError> transformOk) {
 					System.out.println("\n=== Transformed CRoot ===");
-					transformOk.value().children().forEach(child -> {
+					transformOk.value().children().stream().forEach(child -> {
 						System.out.println("Child: " + child.getClass().getSimpleName());
 						if (child instanceof Function func) {
 							System.out.println("  Function: " + func.definition().name());
-							func.params().forEach(param -> {
+							func.params().stream().forEach(param -> {
 								if (param instanceof CDefinition def) {
 									System.out.println("    Param (CDefinition): " + def.name() + " : " + def.type());
 									System.out.println("    Param type class: " + def.type().getClass().getSimpleName());

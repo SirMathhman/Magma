@@ -37,7 +37,7 @@ public class MethodDeserializationTest {
 				@SuppressWarnings("unchecked")
 				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
 
-				children.forEach(child -> {
+				children.stream().forEach(child -> {
 					if (child.is("record")) {
 						System.out.println("Found record node!");
 
@@ -47,7 +47,7 @@ public class MethodDeserializationTest {
 							List<magma.compile.Node> recordChildren = (List<magma.compile.Node>) recordChildrenSome.value();
 
 							System.out.println("Record has " + recordChildren.size() + " children:");
-							recordChildren.forEach(recordChild -> {
+							recordChildren.stream().forEach(recordChild -> {
 								System.out.println("  Child @type: " + recordChild.maybeType);
 
 								if (recordChild.is("method")) {
@@ -64,8 +64,8 @@ public class MethodDeserializationTest {
 									}
 
 									// Try to deserialize as JavaStructureSegment interface
-									Result<JStructureSegment, CompileError> segmentResult =
-											JavaSerializer.deserialize(JStructureSegment.class, recordChild);
+									Result<JStructureSegment, CompileError> segmentResult = JavaSerializer
+											.deserialize(JStructureSegment.class, recordChild);
 									if (segmentResult instanceof Ok<JStructureSegment, CompileError> segmentOk) {
 										System.out.println("  ✅ JavaStructureSegment deserialization SUCCESS");
 										System.out.println("    Segment actual type: " + segmentOk.value().getClass().getSimpleName());
