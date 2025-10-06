@@ -73,4 +73,9 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 		if (elements.isEmpty()) return null;
 		return elements.getFirst();
 	}
+
+	@Override
+	public List<T> subListOrEmpty(int start, int end) {
+		return new ArrayList<T>(elements.subList(start, end));
+	}
 }

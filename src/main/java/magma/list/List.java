@@ -36,4 +36,6 @@ public interface List<T> {
 	Option<Tuple<List<T>, T>> pop();
 
 	T getFirstOrNull();
+
+	List<T> subListOrEmpty(int start, int end);
 }
