@@ -55,8 +55,9 @@ public class Lang {
 			Lambda, MethodAccess, NewArray, Not, NumberNode, Quantity, SwitchExpr {}
 
 	sealed public interface JMethodSegment
-			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
-			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try, Whitespace, Yield {}
+			permits BlockComment, Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf,
+			JInitialization, JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try,
+			Whitespace, Yield {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -346,7 +347,7 @@ public class Lang {
 	public record LineComment(String value) implements JStructureSegment, JMethodSegment, CFunctionSegment {}
 
 	@Tag("block-comment")
-	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment {}
+	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment, JMethodSegment {}
 
 	@Tag("return")
 	public record JReturn(JExpression value) implements JMethodSegment {}
