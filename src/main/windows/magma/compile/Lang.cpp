@@ -283,9 +283,12 @@ Rule Lambda_Lang(Rule statement) {
 	return Tag(("", First((Strip((String(("")), "", Node(("", statement)));
 }
 Rule InstanceOf_Lang(LazyRule expression) {
-	Rule strip=Tag(("", Strip((Suffix((First((Node(("", JType(()), "", Parameters(()), "")));
+	Rule strip=Destruct(();
 	Rule type=Node(("", Or((JDefinition((), JType((), strip));
 	return Tag(("", Last((Node(("", expression), "", type));
+}
+Rule Destruct_Lang() {
+	return Tag(("", Strip((Suffix((First((Node(("", JType(()), "", Parameters(()), "")));
 }
 Rule Index_Lang(LazyRule expression) {
 	return Tag(("", Strip((Suffix((Last((new_NodeRule(("", expression), "", new_NodeRule(("", expression)), "")));
@@ -305,7 +308,7 @@ Rule Switch_Lang(Rule expression, Rule rule) {
 	return Tag(("", Strip((Prefix(("", Suffix((First((Strip((value), "", cases), ""))));
 }
 Rule Case_Lang(Rule rule) {
-	Rule definition=Node(("", JDefinition(());
+	Rule definition=Node(("", Or((JDefinition((), Destruct(()));
 	Rule value=First((Or((definition, getType(()), "", Node(("", rule));
 	return Prefix(("", value);
 }

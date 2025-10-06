@@ -623,9 +623,13 @@ public class Lang {
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {
-		final Rule strip = Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
+		final Rule strip = Destruct();
 		Rule type = Node("target", Or(JDefinition(), JType(), strip));
 		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
+	}
+
+	private static Rule Destruct() {
+		return Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
 	}
 
 	private static Rule Index(LazyRule expression) {
@@ -652,7 +656,7 @@ public class Lang {
 	}
 
 	private static Rule Case(Rule rule) {
-		Rule definition = Node("definition", JDefinition());
+		Rule definition = Node("target", Or(JDefinition(), Destruct()));
 		Rule value = First(Or(definition, getType()), "->", Node("value", rule));
 		return Prefix("case", value);
 	}
