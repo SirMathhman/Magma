@@ -1,7 +1,7 @@
 import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
-import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -42,9 +42,9 @@ public class DebugMethodBodyTest {
 						if (member instanceof Lang.Method method) {
 							System.out.println("\n=== Found Method ===");
 							System.out.println("Method definition: " + method.definition());
-							System.out.println("Body present: " + (method.body() instanceof Option.Some));
+							System.out.println("Body present: " + (method.body() instanceof Some));
 
-							if (method.body() instanceof Option.Some<?>(var body)) {
+							if (method.body() instanceof Some<?>(var body)) {
 								System.out.println("Body type: " + body.getClass().getName());
 								System.out.println("Body content: " + body);
 

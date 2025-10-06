@@ -4,10 +4,9 @@ import magma.compile.Node;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.list.List;
 import magma.result.Err;
 import magma.result.Result;
-
-import java.util.List;
 
 public record TagRule(String tag, Rule rule) implements Rule {
 	public static Rule Tag(String type, Rule rule) {

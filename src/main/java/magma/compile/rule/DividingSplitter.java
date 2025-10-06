@@ -1,9 +1,8 @@
 package magma.compile.rule;
 
 import magma.Tuple;
+import magma.list.List;
 import magma.option.Option;
-
-import java.util.List;
 
 public record DividingSplitter(Divider divider, Merger merger) implements Splitter {
 	public DividingSplitter(Divider divider) {

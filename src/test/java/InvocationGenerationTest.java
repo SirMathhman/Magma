@@ -1,11 +1,10 @@
 import magma.compile.CRules;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
+import magma.list.List;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 

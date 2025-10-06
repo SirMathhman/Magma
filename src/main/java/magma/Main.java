@@ -3,7 +3,10 @@ package magma;
 import magma.compile.error.ApplicationError;
 import magma.compile.error.CompileError;
 import magma.compile.error.ThrowableError;
+import magma.list.ArrayList;
+import magma.list.List;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
@@ -12,13 +15,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.List;
 import java.util.stream.Stream;
 
 public class Main {
 
 	public static void main(String[] args) {
-		if (run() instanceof Option.Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
+		if (run() instanceof Some<ApplicationError>(ApplicationError value)) System.err.println(value.display());
 	}
 
 	private static Option<ApplicationError> run() {
@@ -37,8 +39,9 @@ public class Main {
 
 	private static Option<ApplicationError> compileAllJavaFiles(Path javaSourceRoot, Path cOutputRoot) {
 		try (Stream<Path> paths = Files.walk(javaSourceRoot)) {
-			List<Path> javaFiles =
-					paths.filter(Files::isRegularFile).filter(path -> path.toString().endsWith(".java")).toList();
+			List<Path> javaFiles = new ArrayList<Path>(paths.filter(Files::isRegularFile)
+																											.filter(path -> path.toString().endsWith(".java"))
+																											.toList());
 
 			System.out.println("Found " + javaFiles.size() + " Java files to compile");
 			return compileAll(javaSourceRoot, cOutputRoot, javaFiles);
@@ -50,10 +53,10 @@ public class Main {
 	private static Option<ApplicationError> compileAll(Path javaSourceRoot, Path cOutputRoot, List<Path> javaFiles) {
 		int i = 0;
 		while (i < javaFiles.size()) {
-			Path javaFile = javaFiles.get(i);
+			Path javaFile = javaFiles.getOrNull(i);
 			System.out.println("Compiling: " + javaFile);
 			Option<ApplicationError> result = compileJavaFile(javaFile, javaSourceRoot, cOutputRoot);
-			if (result instanceof Option.Some<ApplicationError>(ApplicationError error)) {
+			if (result instanceof Some<ApplicationError>(ApplicationError error)) {
 				System.err.println("Failed to compile " + javaFile + ": " + error.display());
 				return result;
 			}
@@ -116,9 +119,9 @@ public class Main {
 
 	private static Result<String, ThrowableError> readString(Path source) {
 		try {
-			return new Ok<>(Files.readString(source));
+			return new Ok<String, ThrowableError>(Files.readString(source));
 		} catch (IOException e) {
-			return new Err<>(new ThrowableError(e));
+			return new Err<String, ThrowableError>(new ThrowableError(e));
 		}
 	}
 }

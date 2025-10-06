@@ -1,19 +1,21 @@
 package magma.compile.collect;
 
 import magma.compile.error.CompileError;
+import magma.list.ArrayList;
+import magma.list.List;
+import magma.list.Stream;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	public Accumulator() {
-		this(new Option.None<>(), new ArrayList<>());
+		this(new None<>(), new ArrayList<>());
 	}
 
 	public static <T, R> Result<R, List<CompileError>> merge(List<T> elements,
@@ -21,7 +23,7 @@ public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 		final Accumulator<R> identity = new Accumulator<R>();
 		final Stream<T> stream = elements.stream();
 		final Accumulator<R> reduce =
-				stream.reduce(identity, (accumulator, rule) -> fold(mapper, accumulator, rule), (_, next) -> next);
+				stream.reduce(identity, (accumulator, rule) -> fold(mapper, accumulator, rule));
 		return reduce.toResult();
 	}
 
@@ -35,18 +37,18 @@ public record Accumulator<T>(Option<T> option, List<CompileError> errors) {
 	}
 
 	public Accumulator<T> addError(CompileError error) {
-		errors.add(error);
+		errors.addLast(error);
 		return this;
 	}
 
 	public Accumulator<T> setValue(T value) {
-		return new Accumulator<>(new Option.Some<>(value), errors);
+		return new Accumulator<>(new Some<>(value), errors);
 	}
 
 	public Result<T, List<CompileError>> toResult() {
 		return switch (option) {
-			case Option.None<T> _ -> new Err<>(errors);
-			case Option.Some<T> v -> new Ok<>(v.value());
+			case None<T> _ -> new Err<>(errors);
+			case Some<T> v -> new Ok<>(v.value());
 		};
 	}
 }

@@ -4,9 +4,8 @@ import magma.compile.Node;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.list.List;
 import magma.result.Result;
-
-import java.util.List;
 
 public record ContextRule(String whenErr, Rule child) implements Rule {
 	@Override

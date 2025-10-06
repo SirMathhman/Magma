@@ -1,11 +1,12 @@
 package magma.compile.rule;
 
 import magma.Tuple;
+import magma.list.ArrayList;
+import magma.list.List;
+import magma.list.Stream;
+import magma.option.None;
 import magma.option.Option;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Stream;
+import magma.option.Some;
 
 public class DivideState {
 	public final List<String> segments;
@@ -31,7 +32,7 @@ public class DivideState {
 	}
 
 	public DivideState advance() {
-		segments.add(buffer.toString()); this.buffer = new StringBuilder(); return this;
+		segments.addLast(buffer.toString());this.buffer = new StringBuilder(); return this;
 	}
 
 	public DivideState append(char c) {
@@ -64,7 +65,7 @@ public class DivideState {
 	}
 
 	public Option<Character> peek() {
-		if (index < input.length()) return new Option.Some<>(input.charAt(index));
-		else return new Option.None<>();
+		if (index < input.length()) return new Some<>(input.charAt(index));
+		else return new None<>();
 	}
 }

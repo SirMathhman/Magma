@@ -1,16 +1,15 @@
 package magma.compile.error;
 
 import magma.compile.context.Context;
+import magma.list.ArrayList;
+import magma.list.Collections;
+import magma.list.Joiner;
+import magma.list.List;
+import magma.list.Max;
+import magma.list.Stream;
+import magma.option.Option;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
-import java.util.OptionalInt;
-import java.util.Stack;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public record CompileError(String reason, Context context, List<CompileError> causes) implements Error {
 	public CompileError(String reason, Context sourceCode) {
@@ -19,11 +18,11 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 
 	@Override
 	public String display() {
-		return format(0, new Stack<>());
+		return format(0, new ArrayList<Integer>());
 	}
 
-	private String format(int depth, Stack<Integer> indices) {
-		final ArrayList<CompileError> copy = new ArrayList<>(causes);
+	private String format(int depth, List<Integer> indices) {
+		final List<CompileError> copy = causes.copy();
 		copy.sort(Comparator.comparingInt(CompileError::depth));
 		final String formattedChildren = joinErrors(depth, indices, copy);
 		final String s;
@@ -34,20 +33,20 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 		return s + joinedIndices + ") " + reason + ": " + context.display(depth) + formattedChildren;
 	}
 
-	private String getCollect(Stack<Integer> indices) {
+	private String getCollect(List<Integer> indices) {
 		final Stream<Integer> stream = indices.stream();
 		final Stream<String> stringStream = stream.map(String::valueOf);
-		return stringStream.collect(Collectors.joining("."));
+		return stringStream.collect(new Joiner("."));
 	}
 
-	private String joinErrors(int depth, Stack<Integer> indices, List<CompileError> copy) {
-		final IntStream range = IntStream.range(0, copy.size());
-		final Stream<String> stringStream = range.mapToObj(index -> formatChild(depth, copy, indices, index));
-		return stringStream.collect(Collectors.joining());
+	private String joinErrors(int depth, List<Integer> indices, List<CompileError> copy) {
+		final Stream<Integer> range = Stream.range(0, copy.size());
+		final Stream<String> stringStream = range.map(index -> formatChild(depth, copy, indices, index));
+		return stringStream.collect(new Joiner(null));
 	}
 
-	private String formatChild(int depth, List<CompileError> copy, Stack<Integer> indices, int last) {
-		CompileError error = copy.get(last);
+	private String formatChild(int depth, List<CompileError> copy, List<Integer> indices, int last) {
+		CompileError error = copy.getOrNull(last);
 		indices.push(last);
 		final String format = error.format(depth + 1, indices);
 		indices.pop();
@@ -55,8 +54,8 @@ public record CompileError(String reason, Context context, List<CompileError> ca
 	}
 
 	private int depth() {
-		final IntStream intStream = causes.stream().mapToInt(CompileError::depth);
-		final OptionalInt max = intStream.max();
+		final Stream<Integer> intStream = causes.stream().map(CompileError::depth);
+		final Option<Integer> max = intStream.collect(new Max());
 		return 1 + max.orElse(0);
 	}
 }

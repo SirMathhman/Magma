@@ -3,13 +3,15 @@ package magma.compile.rule;
 import magma.compile.Node;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.list.ArrayList;
+import magma.list.List;
+import magma.option.None;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.StringJoiner;
 
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
@@ -28,7 +30,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		return divider.divide(input)
-									.reduce(new Ok<>(new ArrayList<>()), this::fold, (_, next) -> next)
+									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
 									.mapValue(list -> new Node().withNodeList(key, list))
 									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
 																									new StringContext(input),
@@ -37,13 +39,14 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
 		return switch (current) {
-			case Err<List<Node>, CompileError> v -> new Err<>(v.error());
+			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
-				case Err<Node, CompileError> v ->
-						new Err<>(new CompileError("Failed to lex segment", new StringContext(element), List.of(v.error())));
+				case Err<Node, CompileError> v -> new Err<List<Node>, CompileError>(new CompileError("Failed to lex segment",
+																																														 new StringContext(element),
+																																														 List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
-					list.add(node);
-					yield new Ok<>(list);
+					list.addLast(node);
+					yield new Ok<List<Node>, CompileError>(list);
 				}
 			};
 		};
@@ -56,28 +59,28 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		return switch (resultOption) {
 			// If the node-list isn't present at all, treat it as empty rather than an
 			// error.
-			case Option.None<Result<String, CompileError>> _ -> new Ok<>("");
-			case Option.Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
+			case None<Result<String, CompileError>> _ -> new Ok<String, CompileError>("");
+			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
 		};
 	}
 
 	private Result<String, CompileError> generateList(List<Node> list) {
 		// Treat missing or empty lists as empty content when generating.
-		if (list.isEmpty()) return new Ok<>("");
+		if (list.isEmpty()) return new Ok<String, CompileError>("");
 
 		final StringJoiner sb = new StringJoiner(divider.delimiter());
 		int i = 0;
 		while (i < list.size()) {
-			Node child = list.get(i);
+			Node child = list.getOrNull(i);
 			switch (this.rule.generate(child)) {
 				case Ok<String, CompileError>(String value1) -> sb.add(value1);
 				case Err<String, CompileError>(CompileError error) -> {
-					return new Err<>(error);
+					return new Err<String, CompileError>(error);
 				}
 			}
 			i++;
 		}
 
-		return new Ok<>(sb.toString());
+		return new Ok<String, CompileError>(sb.toString());
 	}
 }

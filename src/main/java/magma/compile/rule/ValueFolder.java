@@ -1,6 +1,6 @@
 package magma.compile.rule;
 
-import magma.option.Option;
+import magma.option.Some;
 
 public record ValueFolder() implements Folder {
 	@Override
@@ -9,7 +9,7 @@ public record ValueFolder() implements Folder {
 
 		DivideState appended = state.append(c);
 		if (c == '-') {
-			if (appended.peek() instanceof Option.Some<Character>(var next) && next == '>') {
+			if (appended.peek() instanceof Some<Character>(var next) && next == '>') {
 				return appended.popAndAppendToOption().orElse(appended);
 			}
 		}

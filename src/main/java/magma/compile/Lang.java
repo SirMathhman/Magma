@@ -17,11 +17,12 @@ import magma.compile.rule.Rule;
 import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
+import magma.list.ArrayList;
+import magma.list.Joiner;
+import magma.list.List;
+import magma.option.None;
 import magma.option.Option;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.stream.Collectors;
+import magma.option.Some;
 
 import static magma.compile.rule.DividingSplitter.KeepFirst;
 import static magma.compile.rule.DividingSplitter.KeepLast;
@@ -236,7 +237,7 @@ public class Lang {
 	public record CTemplate(String base, List<CLang.CType> typeArguments) implements CLang.CType {
 		@Override
 		public String stringify() {
-			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(Collectors.joining("_"));
+			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(new Joiner("_"));
 		}
 	}
 
@@ -260,7 +261,7 @@ public class Lang {
 			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CLang.CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {
 		public Invalid(String value) {
-			this(value, new Option.None<>());
+			this(value, new None<>());
 		}
 
 		@Override
@@ -450,7 +451,7 @@ public class Lang {
 		@Override
 		public DivideState fold(DivideState state, char c) {
 			if (c == operator.charAt(0)) {
-				if (operator.length() > 1 && state.peek() instanceof Option.Some<Character>(Character next) &&
+				if (operator.length() > 1 && state.peek() instanceof Some<Character>(Character next) &&
 						next == operator.charAt(1)) {
 					state.pop();
 					return state.advance();
@@ -474,8 +475,8 @@ public class Lang {
 	@Tag("qualified")
 	public record JQualified(Option<List<QualifiedSegment>> segments) implements JType {
 		public String last() {
-			if (segments instanceof Option.None<List<QualifiedSegment>>) return "";
-			return segments.orElse(new ArrayList<>()).getLast().value;
+			if (segments instanceof None<List<QualifiedSegment>>) return "";
+			return segments.orElse(new ArrayList<>()).getLastOrNull().value;
 		}
 	}
 

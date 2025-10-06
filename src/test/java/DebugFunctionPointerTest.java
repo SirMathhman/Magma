@@ -1,7 +1,7 @@
 import magma.compile.CRules;
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
-import magma.option.Option;
+import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 import magma.transform.Transformer;
@@ -47,7 +47,7 @@ public class DebugFunctionPointerTest {
 							System.out.println("  StructChild: " + structChild.getClass().getSimpleName());
 							if (structChild instanceof Method method) {
 								System.out.println("    Method: " + method.definition().name());
-								if (method.params() instanceof Option.Some<?>(var paramsList)) {
+								if (method.params() instanceof Some<?>(var paramsList)) {
 									((java.util.List<?>) paramsList).forEach(param -> {
 										if (param instanceof JDefinition def) {
 											System.out.println("      Param: " + def.name() + " : " + def.type());

@@ -6,16 +6,15 @@ import magma.compile.context.Context;
 import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
+import magma.list.List;
 import magma.result.Result;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public record OrRule(List<Rule> rules) implements Rule {
 	public static Rule Or(Rule... rules) {
-		return new OrRule(Arrays.asList(rules));
+		return new OrRule(List.of(rules));
 	}
 
 	@Override

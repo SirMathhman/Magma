@@ -2,13 +2,12 @@ package magma;
 
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
-import magma.option.Option;
+import magma.list.List;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static magma.compile.Lang.*;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,7 +35,7 @@ public class SealedInterfaceDeserializationTest {
 					.println("Root node children count: " + rootNode.findNodeList("children").map(list -> list.size()).orElse(0));
 
 			// Find the record node specifically
-			if (rootNode.findNodeList("children") instanceof Option.Some<?> some) {
+			if (rootNode.findNodeList("children") instanceof Some<?> some) {
 				@SuppressWarnings("unchecked")
 				List<magma.compile.Node> children = (List<magma.compile.Node>) some.value();
 				children.forEach(child -> {

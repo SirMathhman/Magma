@@ -1,6 +1,6 @@
 package magma.compile.rule;
 
-import java.util.stream.Stream;
+import magma.list.Stream;
 
 public interface Divider {
 	Stream<String> divide(String input);

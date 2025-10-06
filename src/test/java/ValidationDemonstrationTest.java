@@ -3,12 +3,12 @@ import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.Tag;
 import magma.compile.error.CompileError;
+import magma.list.List;
 import magma.option.Option;
+import magma.option.Some;
 import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
-
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -61,7 +61,7 @@ public class ValidationDemonstrationTest {
 							System.out.println("Method body type: " + method.body().getClass().getSimpleName());
 
 							// The correct type (Option<List<JFunctionSegment>>) works fine
-							if (method.body() instanceof Option.Some<?>(var bodyValue))
+							if (method.body() instanceof Some<?>(var bodyValue))
 								System.out.println("✅ Body is present as: " + bodyValue.getClass().getSimpleName());
 						});
 

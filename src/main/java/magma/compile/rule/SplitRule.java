@@ -4,7 +4,8 @@ import magma.Tuple;
 import magma.compile.Node;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
-import magma.option.Option;
+import magma.option.None;
+import magma.option.Some;
 import magma.result.Err;
 import magma.result.Result;
 
@@ -44,9 +45,9 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order 
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		return switch (splitter.split(input)) {
-			case Option.None<Tuple<String, String>> _ ->
+			case None<Tuple<String, String>> _ ->
 					new Err<>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
-			case Option.Some<Tuple<String, String>>(Tuple<String, String> parts) ->
+			case Some<Tuple<String, String>>(Tuple<String, String> parts) ->
 					order.evaluate(parts.left(), parts.right(), leftRule, rightRule);
 		};
 	}
