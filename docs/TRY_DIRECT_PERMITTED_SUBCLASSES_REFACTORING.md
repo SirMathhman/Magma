@@ -26,7 +26,6 @@ mvn -Dtest=SealedInterfaceDeserializationTest test
 ```
 
 Expected result: All tests pass. The test exercises sealed interface deserialization with nested permitted subclasses, verifying that:
-
 - Direct matches work correctly
 - Nested sealed interfaces are properly handled
 - Error messages are clear when no match is found

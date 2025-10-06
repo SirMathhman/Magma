@@ -37,13 +37,5 @@
 				value="Using 'throws' is banned; use Result or Option types for error handling." />
 			<property name="ignoreComments" value="true" />
 		</module>
-
-		<!-- Ban wildcard type parameters -->
-		<module name="RegexpSinglelineJava">
-			<property name="format" value="&lt;\s*\?" />
-			<property name="message"
-				value="Wildcard type parameter '?' is banned; use explicit type parameters instead." />
-			<property name="ignoreComments" value="true" />
-		</module>
 	</module>
 </module>

@@ -209,9 +209,7 @@ public class JavaSerializer {
 		return tryNestedSealedInterfaces(type, node, nodeType);
 	}
 
-	private static Option<Result<Object, CompileError>> tryDirectPermittedSubclasses(Class<?> type,
-																																									 Node node,
-																																									 String nodeType) {
+	private static Option<Result<Object, CompileError>> tryDirectPermittedSubclasses(Class<?> type, Node node, String nodeType) {
 		Class<?>[] permittedSubclasses = type.getPermittedSubclasses();
 		int i = 0;
 		while (i < permittedSubclasses.length) {
