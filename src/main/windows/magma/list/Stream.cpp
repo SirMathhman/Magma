@@ -3,7 +3,7 @@ struct Stream {};
 Stream<> range_Stream(/*???*/ start, /*???*/ end) {
 	return new_???(/*???*/+offset);
 }
-Stream<> map_Stream(Function<> mapper) {
+Stream<> map_Stream(/*???*/ (*mapper)(/*???*/)) {
 }
 /*???*/ fold_Stream(/*???*/ initial, BiFunction<> folder) {
 }
@@ -14,7 +14,7 @@ List<> toList_Stream() {
 }
 /*???*/ forEach_Stream(Consumer<> consumer) {
 }
-Stream<> flatMap_Stream(Function<> mapper) {
+Stream<> flatMap_Stream(Stream<> (*mapper)(/*???*/)) {
 }
 Stream<> filter_Stream(Predicate<> predicate) {
 }

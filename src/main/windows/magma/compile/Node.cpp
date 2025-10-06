@@ -62,9 +62,9 @@ Set<> getStringKeys_Node() {
 	{
 	builder.append("").append(childIndent).append("").append(escape(value)).append("");
 	/*???*/=true;}
-	strings.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
-	nodes.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
-	nodeLists.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/);
+	strings.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/(entry, hasFields, builder, childIndent));
+	nodes.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
+	nodeLists.entrySet().stream().sorted(Entry.comparingByKey()).forEach(/*???*/(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
 	if (/*???*/)builder.append("").append(indent);
 	builder.append("");
 	return builder.toString();

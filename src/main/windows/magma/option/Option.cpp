@@ -10,13 +10,15 @@ Option<> ofNullable_Option(/*???*/ value) {
 	if (Objects.isNull(value))return new_???();
 	return new_???(value);
 }
-Option<> map_Option(Function<> mapper) {
+Option<> map_Option(/*???*/ (*mapper)(/*???*/)) {
 }
-Option<> flatMap_Option(Function<> mapper) {
+Option<> flatMap_Option(Option<> (*mapper)(/*???*/)) {
 }
 /*???*/ orElse_Option(/*???*/ other) {
 }
 Option<> or_Option(Supplier<> other) {
 }
 /*???*/ orElseGet_Option(Supplier<> other) {
+}
+Option<> filter_Option(Predicate<> predicate) {
 }

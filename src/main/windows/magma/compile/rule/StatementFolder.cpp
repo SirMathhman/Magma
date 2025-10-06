@@ -2,11 +2,7 @@
 struct StatementFolder {};
 /*???*/ fold_StatementFolder(/*???*/ state, /*???*/ c) {
 	/*???*/ appended=state.append(c);
-	if (c=='-')
-	{
-	if (/*???*/&&next=='>')
-	{
-	return state.popAndAppendToOption().orElse(state);}}
+	if (c=='-')if (/*???*/&&next=='>')return state.popAndAppendToOption().orElse(state);
 	if (c==';'&&appended.isLevel())return appended.advance();
 	if (c=='}'&&appended.isShallow())
 	{

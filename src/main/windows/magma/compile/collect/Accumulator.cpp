@@ -3,13 +3,13 @@ struct Accumulator {Option<> option;List<> errors;};
 /*???*/ Accumulator_Accumulator() {
 	this(new_???(), new_???());
 }
-Result<> merge_Accumulator(List<> elements, Function<> mapper) {
+Result<> merge_Accumulator(List<> elements, Result<> (*mapper)(/*???*/)) {
 	Accumulator<> identity=new_???();
 	Stream<> stream=elements.stream();
 	Accumulator<> reduce=stream.reduce(identity, /*???*/(mapper, accumulator, rule));
 	return reduce.toResult();
 }
-Accumulator<> fold_Accumulator(Function<> mapper, Accumulator<> accumulator, /*???*/ rule) {
+Accumulator<> fold_Accumulator(Result<> (*mapper)(/*???*/), Accumulator<> accumulator, /*???*/ rule) {
 	return /*???*/;
 }
 Accumulator<> addError_Accumulator(/*???*/ error) {

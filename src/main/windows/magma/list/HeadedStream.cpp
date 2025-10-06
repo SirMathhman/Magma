@@ -1,7 +1,7 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\HeadedStream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct HeadedStream {Head<> head;};
-struct FlatMapHead {Function<> mapper;Option<> currentInnerHead;};
-/*???*/ FlatMapHead_FlatMapHead(Function<> mapper) {
+struct FlatMapHead {Stream<> (*)(/*???*/) mapper;Option<> currentInnerHead;};
+/*???*/ FlatMapHead_FlatMapHead(Stream<> (*mapper)(/*???*/)) {
 	this.mapper=mapper;
 	currentInnerHead=new_???();
 }
@@ -17,16 +17,13 @@ Option<> next_FlatMapHead() {
 	if (/*???*/)
 	{
 	Stream<> innerStream=mapper.apply(value);
-	if (/*???*/)
-	{
-	currentInnerHead=new_???(head1);}
+	if (/*???*/)currentInnerHead=new_???(head1);
 	else
-	{
-	return new_???();}}
+	return new_???();}
 	else
 	return new_???();}
 }
-Stream<> map_HeadedStream(Function<> mapper) {
+Stream<> map_HeadedStream(/*???*/ (*mapper)(/*???*/)) {
 	return new_???(/*???*/.next().map(mapper));
 }
 /*???*/ fold_HeadedStream(/*???*/ initial, BiFunction<> folder) {
@@ -50,7 +47,7 @@ Stream<> map_HeadedStream(Function<> mapper) {
 	else
 	break}
 }
-Stream<> flatMap_HeadedStream(Function<> mapper) {
+Stream<> flatMap_HeadedStream(Stream<> (*mapper)(/*???*/)) {
 	return new_???(new_???(mapper));
 }
 Stream<> filter_HeadedStream(Predicate<> predicate) {

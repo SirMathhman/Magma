@@ -2,6 +2,7 @@ package magma.option;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public sealed interface Option<T> permits Some, None {
@@ -27,4 +28,6 @@ public sealed interface Option<T> permits Some, None {
 	Option<T> or(Supplier<Option<T>> other);
 
 	T orElseGet(Supplier<T> other);
+
+	Option<T> filter(Predicate<T> predicate);
 }

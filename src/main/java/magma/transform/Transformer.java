@@ -120,8 +120,11 @@ public class Transformer {
 	}
 
 	private static Lang.CInvocation transformInvocation(Lang.JInvocation jInvocation) {
-		final List<Lang.CExpression> newArguments =
-				jInvocation.arguments().orElse(new ArrayList<Lang.JExpression>()).stream().map(Transformer::transformExpression).toList();
+		final List<Lang.CExpression> newArguments = jInvocation.arguments()
+																													 .orElse(new ArrayList<Lang.JExpression>())
+																													 .stream()
+																													 .map(Transformer::transformExpression)
+																													 .toList();
 		return new Lang.CInvocation(transformExpression(jInvocation.caller()), newArguments);
 	}
 
@@ -160,7 +163,8 @@ public class Transformer {
 		switch (type) {
 			case Lang.Identifier ident -> {
 				// Single letter identifiers are likely type variables (R, E, etc.)
-				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0))) typeVars.addLast(ident.value());
+				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0)))
+					typeVars.addLast(ident.value());
 			}
 			case Lang.JGeneric generic -> {
 				// Check base type name for type variables
@@ -201,39 +205,61 @@ public class Transformer {
 	static Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>> flattenStructureSegment(Lang.JStructureSegment self,
 																																													String name) {
 		return switch (self) {
-			case Lang.Invalid invalid -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
-			case Lang.Method method -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(transformMethod(method, name)), new None<Lang.CDefinition>());
-			case Lang.JStructure jClass -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(flattenStructure(jClass), new None<Lang.CDefinition>());
-			case Lang.Field field ->
-					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(), new Some<Lang.CDefinition>(transformDefinition(field.value())));
-			case Lang.JInitialization jInitialization ->
-					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(), new Some<Lang.CDefinition>(transformDefinition(jInitialization.definition())));
+			case Lang.Invalid invalid ->
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
+			case Lang.Method method ->
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(transformMethod(method, name)),
+																																			 new None<Lang.CDefinition>());
+			case Lang.JStructure jClass ->
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(flattenStructure(jClass),
+																																			 new None<Lang.CDefinition>());
+			case Lang.Field field -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
+																																														new Some<Lang.CDefinition>(
+																																																transformDefinition(
+																																																		field.value())));
+			case Lang.JInitialization jInitialization -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(
+					Collections.emptyList(),
+					new Some<Lang.CDefinition>(transformDefinition(jInitialization.definition())));
 			case Lang.JDefinition jDefinition ->
-					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(), new Some<Lang.CDefinition>(transformDefinition(jDefinition)));
-			default -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(), new None<Lang.CDefinition>());
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
+																																			 new Some<Lang.CDefinition>(transformDefinition(
+																																					 jDefinition)));
+			default -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
+																																							new None<Lang.CDefinition>());
 		};
 	}
 
 	static List<Lang.CRootSegment> flattenStructure(Lang.JStructure aClass) {
 		final List<Lang.JStructureSegment> children = aClass.children();
 
-		final List<Lang.CRootSegment>[] segments = new ArrayList<Lang.CRootSegment>[]{new ArrayList<Lang.CRootSegment>()};
-
 		// Special handling for Record params - add them as struct fields
-		final List<Lang.CDefinition> fields = extractRecordParamsAsFields(aClass).copy();
+		final List<Lang.CDefinition> recordFields = extractRecordParamsAsFields(aClass).copy();
 
 		final String name = aClass.name();
-		children.stream().map(child -> flattenStructureSegment(child, name)).forEach(tuple -> {
-			segments[0] = segments[0].addAll(tuple.left());
-			if (tuple.right() instanceof Some<Lang.CDefinition>(Lang.CDefinition value)) fields.addLast(value);
-		});
+
+		// Collect tuples for each child once (avoids re-evaluating and allows immutable construction)
+		final List<Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>> tuples =
+				children.stream().map(child -> flattenStructureSegment(child, name)).toList();
+
+		// Flatten all CRoootSegments produced by the children
+		final List<Lang.CRootSegment> segments = tuples.stream().map(tuple -> tuple.left()).flatMap(List::stream).toList();
+
+		// Collect any field definitions returned by children
+		final List<Lang.CDefinition> additionalFields = tuples.stream()
+																													.map(tuple -> tuple.right())
+																													.filter(opt -> opt instanceof Some<Lang.CDefinition>)
+																													.map(opt -> ((Some<Lang.CDefinition>) opt).value())
+																													.toList();
+
+		// Combine record fields and additional fields immutably
+		final List<Lang.CDefinition> fields = recordFields.addAll(additionalFields);
 
 		final Lang.Structure structure =
 				new Lang.Structure(name, fields, new Some<String>(System.lineSeparator()), aClass.typeParameters());
-		final List<Lang.CRootSegment> copy = new ArrayList<Lang.CRootSegment>();
-		copy.addLast(structure);
-		copy.addAll(segments[0]);
-		return copy;
+
+		// Build resulting root segments list: structure followed by flattened child segments
+
+		return new ArrayList<Lang.CRootSegment>().addLast(structure).addAll(segments);
 	}
 
 	private static List<Lang.CDefinition> extractRecordParamsAsFields(Lang.JStructure structure) {
@@ -268,7 +294,7 @@ public class Transformer {
 	private static CLang.CType transformGeneric(Lang.JGeneric generic) {
 		// Convert Function<T, R> to function pointer R (*)(T)
 		final List<Lang.JType> listOption = generic.typeArguments().orElse(new ArrayList<Lang.JType>());
-		if (generic.base().equals("Function") && listOption.size() == 2) {
+		if (generic.base().endsWith("Function") && listOption.size() == 2) {
 			final CLang.CType paramType = transformType(listOption.getOrNull(0));
 			final CLang.CType returnType = transformType(listOption.getOrNull(1));
 			return new CLang.CFunctionPointer(returnType, List.of(paramType));

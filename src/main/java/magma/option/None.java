@@ -1,6 +1,7 @@
 package magma.option;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 public final class None<T> implements Option<T> {
@@ -27,5 +28,10 @@ public final class None<T> implements Option<T> {
 	@Override
 	public T orElseGet(Supplier<T> other) {
 		return other.get();
+	}
+
+	@Override
+	public Option<T> filter(Predicate<T> predicate) {
+		return this;
 	}
 }
