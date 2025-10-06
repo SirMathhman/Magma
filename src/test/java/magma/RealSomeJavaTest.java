@@ -8,7 +8,6 @@ import magma.result.Result;
 import magma.transform.RootTransformer;
 import org.junit.jupiter.api.Test;
 
-import static magma.compile.Lang.CRoot;
 import static magma.compile.Lang.JRoot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;

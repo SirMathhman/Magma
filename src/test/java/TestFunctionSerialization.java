@@ -1,3 +1,4 @@
+import magma.compile.CRules;
 import magma.compile.JavaSerializer;
 import magma.compile.Lang;
 import magma.compile.Node;
@@ -25,7 +26,7 @@ public class TestFunctionSerialization {
 			System.out.println("Serialization successful"); System.out.println("Node: " + node);
 
 			// Try to generate it
-			var genResult = Lang.Function().generate(node); if (genResult instanceof Ok<String, ?>(var text)) {
+			var genResult = CRules.CFunction().generate(node); if (genResult instanceof Ok<String, ?>(var text)) {
 				System.out.println("Generation successful");
 				System.out.println("Generated text length: " + ((String) text).length());
 				System.out.println("Generated text: " + text);

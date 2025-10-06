@@ -1,4 +1,4 @@
-import magma.compile.Lang;
+import magma.compile.CRules;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
@@ -8,7 +8,6 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class InvocationGenerationTest {
     @Test
@@ -19,7 +18,7 @@ public class InvocationGenerationTest {
             .withNode("caller", new Node().retype("identifier").withString("value", "foo"))
             .withNodeList("arguments", List.of());
         
-        Result<String, CompileError> genResult = Lang.CRoot().generate(invocationNode);
+        Result<String, CompileError> genResult = CRules.CRoot().generate(invocationNode);
         
         if (genResult instanceof Ok<String, CompileError>(String generated)) {
             System.out.println("Generated from invocation node: " + generated);
@@ -45,7 +44,7 @@ public class InvocationGenerationTest {
             .withNode("caller", new Node().retype("identifier").withString("value", "foo"))
             .withNodeList("arguments", List.of(barCall));
         
-        Result<String, CompileError> genResult = Lang.CRoot().generate(fooCall);
+        Result<String, CompileError> genResult = CRules.CRoot().generate(fooCall);
         
         if (genResult instanceof Ok<String, CompileError>(String generated)) {
             System.out.println("Generated from nested invocation: " + generated);

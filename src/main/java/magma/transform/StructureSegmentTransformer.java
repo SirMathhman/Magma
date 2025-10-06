@@ -18,13 +18,12 @@ public class StructureSegmentTransformer {
 			case Lang.JStructure jClass -> new Tuple<>(StructureTransformer.flattenStructure(jClass), new None<>());
 			case Lang.Field field ->
 					new Tuple<>(Collections.emptyList(), new Some<>(Transformer.transformDefinition(field.value())));
-			case Lang.Whitespace _, Lang.LineComment _, Lang.BlockComment _ ->
-					new Tuple<>(Collections.emptyList(), new None<>());
 			case Lang.JInitialization jInitialization -> new Tuple<>(Collections.emptyList(),
 																															 new Some<>(Transformer.transformDefinition(
 																																	 jInitialization.definition())));
 			case Lang.JDefinition jDefinition ->
 					new Tuple<>(Collections.emptyList(), new Some<>(Transformer.transformDefinition(jDefinition)));
+			default -> new Tuple<>(Collections.emptyList(), new None<>());
 		};
 	}
 }

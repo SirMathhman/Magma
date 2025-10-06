@@ -6,7 +6,7 @@ import magma.compile.error.CompileError;
 import magma.result.Result;
 import magma.transform.RootTransformer;
 
-import static magma.compile.Lang.CRoot;
+import static magma.compile.CRules.CRoot;
 import static magma.compile.Lang.JRoot;
 
 public class Compiler {

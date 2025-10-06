@@ -1,3 +1,4 @@
+import magma.compile.CRules;
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Ok;
@@ -92,7 +93,7 @@ public class DebugFunctionPointerTest {
 						System.out.println("\n=== Serialized Node ===");
 						System.out.println(serOk.value().format(0));
 
-						Result<String, CompileError> generateResult = CRoot().generate(serOk.value());
+						Result<String, CompileError> generateResult = CRules.CRoot().generate(serOk.value());
 						assertTrue(generateResult instanceof Ok<?, ?>, () -> "Generation failed: " + generateResult);
 
 						if (generateResult instanceof Ok<String, CompileError> genOk) {

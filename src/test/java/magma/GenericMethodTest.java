@@ -9,7 +9,6 @@ import magma.result.Result;
 import magma.transform.RootTransformer;
 import org.junit.jupiter.api.Test;
 
-import static magma.compile.Lang.CRoot;
 import static magma.compile.Lang.JRoot;
 
 public class GenericMethodTest {

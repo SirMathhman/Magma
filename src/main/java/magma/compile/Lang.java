@@ -15,7 +15,6 @@ import magma.compile.rule.Rule;
 import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
-import magma.compile.rule.TypeFolder;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -481,29 +480,7 @@ public class Lang {
 	@Tag("subtype")
 	public record SubType(JType type, String name) implements JType {}
 
-	public static Rule CRoot() {
-		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
-	}
-
-	public static Rule Function() {
-		final NodeRule definition = new NodeRule("definition", CDefinition());
-		final Rule params = Expressions("params", Or(CFunctionPointerDefinition(), CDefinition()));
-		final Rule body = Statements("body", CFunctionSegment());
-		final Rule first = First(definition, "(", params);
-		final Rule suffix = Suffix(first, ")");
-		final Rule suffix1 = Suffix(body, System.lineSeparator() + "}");
-		final Rule functionDecl = First(suffix, " {", suffix1);
-
-		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", Identifier()));
-		final Rule templateDecl =
-				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
-		final Rule maybeTemplate = Or(templateDecl, Empty);
-
-		return Tag("function", First(maybeTemplate, "", functionDecl));
-	}
-
-	private static Rule CFunctionPointerDefinition() {
+	public static Rule CFunctionPointerDefinition() {
 		// Generates: returnType (*name)(paramTypes)
 		return Tag("functionPointerDefinition",
 							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
@@ -511,7 +488,7 @@ public class Lang {
 														Expressions("paramTypes", CType())), ")"));
 	}
 
-	private static Rule CDefinition() {
+	public static Rule CDefinition() {
 		return Last(Node("type", CType()), " ", new StringRule("name"));
 	}
 
@@ -520,21 +497,21 @@ public class Lang {
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
 				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
-		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
+		rule.set(Or(funcPtr, CommonRules.Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), JRules.JGeneric(rule), Invalid()));
 		return rule;
 	}
 
-	private static Rule CStructure() {
+	public static Rule CStructure() {
 		// For template structs, use plain name without type parameters in the
 		// declaration
-		final Rule plainName = StrippedIdentifier("name");
+		final Rule plainName = CommonRules.StrippedIdentifier("name");
 		final Rule structPrefix = Prefix("struct ", plainName);
 		final Rule fields = Statements("fields", Suffix(CDefinition(), ";"));
 		final Rule structWithFields = Suffix(First(structPrefix, " {", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
 
 		// Add template declaration only if type parameters exist (non-empty list)
-		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", Identifier()));
+		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", CommonRules.Identifier()));
 		final Rule templateDecl =
 				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
@@ -571,14 +548,14 @@ public class Lang {
 				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
 		final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Expressions("superclasses", JType())), maybeWithParameters);
+				Or(Last(maybeWithParameters, "extends", Expressions("superclasses", JRules.JType())), maybeWithParameters);
 
 		final Rule beforeContent =
-				Or(Last(maybeWithParameters1, "implements", Expressions("interfaces", JType())), maybeWithParameters1);
+				Or(Last(maybeWithParameters1, "implements", Expressions("interfaces", JRules.JType())), maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JType(), ",")), beforeContent);
+		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JRules.JType(), ",")), beforeContent);
 
 		final Rule strip = Strip(Or(modifiers, Empty));
 		final Rule first = First(strip, type + " ", beforeContent1);
@@ -587,8 +564,8 @@ public class Lang {
 	}
 
 	private static Rule NameWithTypeParameters() {
-		final Rule name = StrippedIdentifier("name");
-		final Rule withTypeParameters = Suffix(First(name, "<", Expressions("typeParameters", Identifier())), ">");
+		final Rule name = CommonRules.StrippedIdentifier("name");
+		final Rule withTypeParameters = Suffix(First(name, "<", Expressions("typeParameters", CommonRules.Identifier())), ">");
 		return Strip(Or(withTypeParameters, name));
 	}
 
@@ -612,13 +589,13 @@ public class Lang {
 	}
 
 	private static Rule Statement() {
-		final Rule initialization = Initialization(JDefinition(), JExpression(JMethodSegment()));
-		return Strip(Suffix(Or(initialization, JDefinition()), ";"));
+		final Rule initialization = Initialization(JRules.JDefinition(), JExpression(JMethodSegment()));
+		return Strip(Suffix(Or(initialization, JRules.JDefinition()), ";"));
 	}
 
 	private static Rule JMethod() {
 		Rule params = Parameters();
-		final Rule header = Strip(Suffix(Last(Node("definition", JDefinition()), "(", params), ")"));
+		final Rule header = Strip(Suffix(Last(Node("definition", JRules.JDefinition()), "(", params), ")"));
 		final Rule withBody = Suffix(First(header, "{", Statements("body", JMethodSegment())), "}");
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
 	}
@@ -626,7 +603,7 @@ public class Lang {
 	private static Rule JMethodSegment() {
 		final LazyRule methodSegment = new LazyRule();
 		final Rule expression = JExpression(methodSegment);
-		Rule inner = JDefinition();
+		Rule inner = JRules.JDefinition();
 		methodSegment.set(Strip(Or(Whitespace(),
 															 LineComment(),
 															 Switch("statement", expression, methodSegment),
@@ -643,7 +620,7 @@ public class Lang {
 
 	private static Rule Try(LazyRule methodSegment) {
 		final Rule child = Node("child", methodSegment);
-		Rule definition = JDefinition();
+		Rule definition = JRules.JDefinition();
 		Rule value = JExpression(methodSegment);
 		final Rule definition1 = Node("definition", definition);
 		final Rule value1 = Node("value", value);
@@ -665,8 +642,8 @@ public class Lang {
 							PostFix(expression),
 							Return(expression),
 							Yield(expression),
-							Initialization(JDefinition(), expression),
-							JDefinition(),
+							Initialization(JRules.JDefinition(), expression),
+							JRules.JDefinition(),
 							Invokable(expression));
 	}
 
@@ -724,9 +701,9 @@ public class Lang {
 
 	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
-		expression.set(Or(Lambda(statement, expression),
+		expression.set(Or(JLambda(statement, expression),
 											Char(),
-											Tag("cast", Strip(Prefix("(", First(Node("type", JType()), ")", Node("child", expression))))),
+											Tag("cast", Strip(Prefix("(", First(Node("type", JRules.JType()), ")", Node("child", expression))))),
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
 											StringExpr(),
@@ -748,7 +725,7 @@ public class Lang {
 											Operator("less-than-equals", "<=", expression),
 											Operator("greater-than", ">", expression),
 											Operator("greater-than-equals", ">=", expression),
-											Identifier(),
+											CommonRules.Identifier(),
 											Number()));
 		return expression;
 	}
@@ -758,7 +735,7 @@ public class Lang {
 	}
 
 	private static Rule NewArray(LazyRule expression) {
-		final Rule type = Node("type", JType());
+		final Rule type = Node("type", JRules.JType());
 
 		final Rule tag = Tag("arguments", Suffix(Expressions("arguments", expression), "}"));
 		final Rule tag1 = Tag("length", Node("length", expression));
@@ -771,8 +748,8 @@ public class Lang {
 
 	private static Rule MethodAccess(LazyRule expression) {
 		final Rule exprSource = Tag("expr-method-access-source", Node("child", expression));
-		final Rule child = Tag("type-method-access-source", Node("child", JType()));
-		return Tag("method-access", Last(Node("source", Or(exprSource, child)), "::", StrippedIdentifier("name")));
+		final Rule child = Tag("type-method-access-source", Node("child", JRules.JType()));
+		return Tag("method-access", Last(Node("source", Or(exprSource, child)), "::", CommonRules.StrippedIdentifier("name")));
 	}
 
 	private static Rule CaseExprValue(Rule statement, LazyRule expression) {
@@ -784,9 +761,9 @@ public class Lang {
 		return Tag("char", Strip(Prefix("'", Suffix(String("value"), "'"))));
 	}
 
-	private static Rule Lambda(Rule statement, Rule expression) {
-		final Rule param = Tag("single", StrippedIdentifier("param"));
-		final Rule expressions = Tag("multiple", Expressions("params", StrippedIdentifier("param")));
+	private static Rule JLambda(Rule statement, Rule expression) {
+		final Rule param = Tag("single", CommonRules.StrippedIdentifier("param"));
+		final Rule expressions = Tag("multiple", Expressions("params", CommonRules.StrippedIdentifier("param")));
 		final Rule tag = Tag("none", Empty);
 
 		final Rule strip = Or(Strip(Prefix("(", Suffix(Or(expressions, tag), ")"))), param);
@@ -799,12 +776,12 @@ public class Lang {
 
 	private static Rule InstanceOf(LazyRule expression) {
 		final Rule strip = Destruct();
-		Rule type = Node("target", Or(JDefinition(), JType(), strip));
+		Rule type = Node("target", Or(JRules.JDefinition(), JRules.JType(), strip));
 		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
 	}
 
 	private static Rule Destruct() {
-		return Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
+		return Tag("destruct", Strip(Suffix(First(Node("type", JRules.JType()), "(", Parameters()), ")")));
 	}
 
 	private static Rule Index(LazyRule expression) {
@@ -813,7 +790,7 @@ public class Lang {
 	}
 
 	private static Rule FieldAccess(Rule expression) {
-		return Tag("field-access", Last(Node("child", expression), ".", StrippedIdentifier("name")));
+		return Tag("field-access", Last(Node("child", expression), ".", CommonRules.StrippedIdentifier("name")));
 	}
 
 	private static Rule StringExpr() {
@@ -835,7 +812,7 @@ public class Lang {
 	}
 
 	private static Rule Case(String group, Rule rule, Rule expression) {
-		Rule target = Node("target", Or(JDefinition(), Destruct()));
+		Rule target = Node("target", Or(JRules.JDefinition(), Destruct()));
 		final Rule defaultCase = Strip(Prefix("default", Empty));
 		final Rule withWhen = Last(target, "when", Node("when", expression));
 		Rule value = First(Or(defaultCase, Prefix("case", Or(withWhen, target))), "->", Node("value", rule));
@@ -850,7 +827,7 @@ public class Lang {
 											Operator("and", "&&", expression),
 											Operator("equals", "==", expression),
 											StringExpr(),
-											Identifier(),
+											CommonRules.Identifier(),
 											Char(),
 											Invalid()));
 		return expression;
@@ -860,7 +837,7 @@ public class Lang {
 		return Invokable("invocation", Node("caller", expression), expression);
 	}
 
-	private static Rule CFunctionSegment() {
+	public static Rule CFunctionSegment() {
 		final LazyRule rule = new LazyRule();
 		rule.set(Or(Whitespace(), Prefix(System.lineSeparator() + "\t", CFunctionSegmentValue(rule)), Invalid()));
 		return rule;
@@ -897,53 +874,6 @@ public class Lang {
 	}
 
 	private static Rule Parameters() {
-		return Expressions("params", Or(JDefinition(), Whitespace()));
-	}
-
-	private static Rule JDefinition() {
-		// Use TypeFolder to properly parse generic types like Function<T, R>
-		// Split into modifiers+type and name using type-aware splitting
-		final Rule type = Node("type", JType());
-		final Rule name = StrippedIdentifier("name");
-
-		// Handle optional modifiers before type
-		final Rule modifiers = Delimited("modifiers", Tag("modifier", String("value")), " ");
-		final Rule withModifiers = Split(modifiers, KeepLast(new FoldingDivider(new TypeFolder())), type);
-
-		Rule beforeName = Or(withModifiers, type);
-		return Tag("definition", Strip(Last(beforeName, " ", name)));
-	}
-
-	private static Rule JType() {
-		final LazyRule type = new LazyRule();
-		type.set(Or(Generic(type),
-								Array(type),
-								Identifier(),
-								WildCard(),
-								Tag("variadic", Strip(Suffix(Node("child", type), "..."))),
-								Tag("subtype", Strip(Last(Node("type", type), ".", StrippedIdentifier("name"))))));
-		return type;
-	}
-
-	private static Rule WildCard() {
-		return Tag("wildcard", Strip(Prefix("?", Empty)));
-	}
-
-	private static Rule Array(Rule type) {
-		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
-	}
-
-	private static Rule Identifier() {
-		return Tag("identifier", StrippedIdentifier("value"));
-	}
-
-	private static Rule StrippedIdentifier(String key) {
-		return Strip(FilterRule.Identifier(String(key)));
-	}
-
-	private static Rule Generic(Rule type) {
-		final Rule base = StrippedIdentifier("base");
-		final Rule arguments = Or(Expressions("typeArguments", type), Strip(Empty));
-		return Tag("generic", Strip(Suffix(First(base, "<", arguments), ">")));
+		return Expressions("params", Or(JRules.JDefinition(), Whitespace()));
 	}
 }

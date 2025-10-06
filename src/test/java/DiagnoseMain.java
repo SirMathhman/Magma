@@ -1,3 +1,4 @@
+import magma.compile.CRules;
 import magma.compile.JavaSerializer;
 import magma.compile.error.CompileError;
 import magma.result.Err;
@@ -104,7 +105,7 @@ public class DiagnoseMain {
 
 			// Step 5: Generate C++ code
 			magma.compile.Node serializedNode = ((Ok<magma.compile.Node, CompileError>) serializeResult).value();
-			Result<String, CompileError> generateResult = CRoot().generate(serializedNode);
+			Result<String, CompileError> generateResult = CRules.CRoot().generate(serializedNode);
 			if (generateResult instanceof Err<?, ?> err) {
 				System.err.println("❌ GENERATION FAILED: " + err.error());
 				fail("Generation failed: " + err.error());
