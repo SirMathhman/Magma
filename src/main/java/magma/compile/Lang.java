@@ -48,11 +48,11 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JInvocation, JString, JSubtract, Not, Quantity, Switch {}
+			JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
-			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
-			JReturn, JWhile, LineComment, Placeholder, Whitespace, JDefinition {}
+			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
+			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -339,6 +339,15 @@ public class Lang {
 	@Tag("cast")
 	public record Cast(JType type, JExpression child) implements JExpression {}
 
+	@Tag("less-than-equals")
+	public record JLessThanEquals(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("less-than")
+	public record JLessThan(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("catch")
+	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -481,6 +490,7 @@ public class Lang {
 	private static Rule JMethodSegment() {
 		final LazyRule methodSegment = new LazyRule();
 		final Rule expression = JExpression(methodSegment);
+		Rule inner = JDefinition();
 		methodSegment.set(Strip(Or(Whitespace(),
 															 LineComment(),
 															 Conditional("if", expression, methodSegment),
@@ -488,7 +498,7 @@ public class Lang {
 															 Switch(expression, methodSegment),
 															 Else(methodSegment),
 															 Tag("try", Prefix("try ", Node("child", methodSegment))),
-															 Conditional("catch", JDefinition(), methodSegment),
+															 QuantityBlock("catch", "definition", inner, methodSegment),
 															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
 															 Block(methodSegment))));
 		return methodSegment;
@@ -549,7 +559,11 @@ public class Lang {
 	}
 
 	private static Rule Conditional(String tag, Rule inner, Rule statement) {
-		final Rule condition = Node("condition", inner);
+		return QuantityBlock(tag, "condition", inner, statement);
+	}
+
+	private static Rule QuantityBlock(String tag, String key, Rule inner, Rule statement) {
+		final Rule condition = Node(key, inner);
 		final Rule body = Node("body", statement);
 		final Rule split = Split(Prefix("(", condition),
 														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
