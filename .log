@@ -1497,7 +1497,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 									}
 								]
 							}
-							0) Failed to deserialize 2 of 14 list elements as 'JMethodSegment': 
+							0) Failed to deserialize 1 of 14 list elements as 'JMethodSegment': 
 								{
 									"@type": "initialization",
 									"definition": {
@@ -1511,23 +1511,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"arguments": [...]
 									}
 								}
-								0) Element at index 11 with type 'try' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "try",
-										"child": {
-											"@type": "block",
-											"children": [...]
-										}
-									}
-									0) No permitted subtype of 'JMethodSegment' matched node type 'try'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("try") to the permitted subtypes of 'JMethodSegment'.: 
-										{
-											"@type": "try",
-											"child": {
-												"@type": "block",
-												"children": [...]
-											}
-										}
-								1) Element at index 7 with type 'invocation' cannot be deserialized as 'JMethodSegment': 
+								0) Element at index 7 with type 'invocation' cannot be deserialized as 'JMethodSegment': 
 									{
 										"@type": "invocation",
 										"caller": {
@@ -1832,7 +1816,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"children": [...]
 														}
 													}
-													0) No permitted subtype of 'JMethodSegment' matched node type 'try'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("try") to the permitted subtypes of 'JMethodSegment'.: 
+													0) Failed to deserialize 'Try': 
 														{
 															"@type": "try",
 															"child": {
@@ -1840,6 +1824,86 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"children": [...]
 															}
 														}
+														0) Failed to deserialize 'JBlock': 
+															{
+																"@type": "block",
+																"children": [
+																	{
+																		"@type": "initialization",
+																		"definition": {...},
+																		"value": {...}
+																	},
+																	{
+																		"@type": "initialization",
+																		"definition": {...},
+																		"value": {...}
+																	},
+																	{
+																		"@type": "switch",
+																		"value": {...},
+																		"cases": [...]
+																	},
+																	{
+																		"@type": "whitespace"
+																	}
+																]
+															}
+															0) Failed to deserialize 1 of 4 list elements as 'JMethodSegment': 
+																{
+																	"@type": "initialization",
+																	"definition": {
+																		"@type": "definition",
+																		"name": "fieldValue",
+																		"type": {...}
+																	},
+																	"value": {
+																		"@type": "field-access",
+																		"name": "invoke(value)",
+																		"child": {...}
+																	}
+																}
+																0) Element at index 2 with type 'switch' cannot be deserialized as 'JMethodSegment': 
+																	{
+																		"@type": "switch",
+																		"value": {
+																			"@type": "identifier",
+																			"value": "fieldResult"
+																		},
+																		"cases": [
+																			{
+																				"type": {...},
+																				"value": {...},
+																				"params": [...]
+																			},
+																			{
+																				"type": {...},
+																				"value": {...},
+																				"params": [...]
+																			},
+																			{}
+																		]
+																	}
+																	0) No permitted subtype of 'JMethodSegment' matched node type 'switch'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, try, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("switch") to the permitted subtypes of 'JMethodSegment'.: 
+																		{
+																			"@type": "switch",
+																			"value": {
+																				"@type": "identifier",
+																				"value": "fieldResult"
+																			},
+																			"cases": [
+																				{
+																					"type": {...},
+																					"value": {...},
+																					"params": [...]
+																				},
+																				{
+																					"type": {...},
+																					"value": {...},
+																					"params": [...]
+																				},
+																				{}
+																			]
+																		}
 0) Failed to deserialize 'JavaRoot': 
 	{
 		"children": [
@@ -3319,7 +3383,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 									}
 								]
 							}
-							0) Failed to deserialize 2 of 14 list elements as 'JMethodSegment': 
+							0) Failed to deserialize 1 of 14 list elements as 'JMethodSegment': 
 								{
 									"@type": "initialization",
 									"definition": {
@@ -3333,23 +3397,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 										"arguments": [...]
 									}
 								}
-								0) Element at index 11 with type 'try' cannot be deserialized as 'JMethodSegment': 
-									{
-										"@type": "try",
-										"child": {
-											"@type": "block",
-											"children": [...]
-										}
-									}
-									0) No permitted subtype of 'JMethodSegment' matched node type 'try'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("try") to the permitted subtypes of 'JMethodSegment'.: 
-										{
-											"@type": "try",
-											"child": {
-												"@type": "block",
-												"children": [...]
-											}
-										}
-								1) Element at index 7 with type 'invocation' cannot be deserialized as 'JMethodSegment': 
+								0) Element at index 7 with type 'invocation' cannot be deserialized as 'JMethodSegment': 
 									{
 										"@type": "invocation",
 										"caller": {
@@ -3654,7 +3702,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 															"children": [...]
 														}
 													}
-													0) No permitted subtype of 'JMethodSegment' matched node type 'try'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("try") to the permitted subtypes of 'JMethodSegment'.: 
+													0) Failed to deserialize 'Try': 
 														{
 															"@type": "try",
 															"child": {
@@ -3662,3 +3710,83 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 																"children": [...]
 															}
 														}
+														0) Failed to deserialize 'JBlock': 
+															{
+																"@type": "block",
+																"children": [
+																	{
+																		"@type": "initialization",
+																		"definition": {...},
+																		"value": {...}
+																	},
+																	{
+																		"@type": "initialization",
+																		"definition": {...},
+																		"value": {...}
+																	},
+																	{
+																		"@type": "switch",
+																		"value": {...},
+																		"cases": [...]
+																	},
+																	{
+																		"@type": "whitespace"
+																	}
+																]
+															}
+															0) Failed to deserialize 1 of 4 list elements as 'JMethodSegment': 
+																{
+																	"@type": "initialization",
+																	"definition": {
+																		"@type": "definition",
+																		"name": "fieldValue",
+																		"type": {...}
+																	},
+																	"value": {
+																		"@type": "field-access",
+																		"name": "invoke(value)",
+																		"child": {...}
+																	}
+																}
+																0) Element at index 2 with type 'switch' cannot be deserialized as 'JMethodSegment': 
+																	{
+																		"@type": "switch",
+																		"value": {
+																			"@type": "identifier",
+																			"value": "fieldResult"
+																		},
+																		"cases": [
+																			{
+																				"type": {...},
+																				"value": {...},
+																				"params": [...]
+																			},
+																			{
+																				"type": {...},
+																				"value": {...},
+																				"params": [...]
+																			},
+																			{}
+																		]
+																	}
+																	0) No permitted subtype of 'JMethodSegment' matched node type 'switch'. Valid tags are: [break, catch, invalid, assignment, block, construction, definition, else, if, initialization, invocation, postFix, return, while, line-comment, placeholder, try, whitespace]. Did you mean 'whitespace'? Or add a record type with @Tag("switch") to the permitted subtypes of 'JMethodSegment'.: 
+																		{
+																			"@type": "switch",
+																			"value": {
+																				"@type": "identifier",
+																				"value": "fieldResult"
+																			},
+																			"cases": [
+																				{
+																					"type": {...},
+																					"value": {...},
+																					"params": [...]
+																				},
+																				{
+																					"type": {...},
+																					"value": {...},
+																					"params": [...]
+																				},
+																				{}
+																			]
+																		}

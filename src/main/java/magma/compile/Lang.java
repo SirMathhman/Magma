@@ -52,7 +52,7 @@ public class Lang {
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
-			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Whitespace {}
+			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, Try, Whitespace {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -344,6 +344,9 @@ public class Lang {
 
 	@Tag("less-than")
 	public record JLessThan(JExpression left, JExpression right) implements JExpression {}
+
+	@Tag("try")
+	public record Try(JMethodSegment child) implements JMethodSegment {}
 
 	@Tag("catch")
 	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {}
