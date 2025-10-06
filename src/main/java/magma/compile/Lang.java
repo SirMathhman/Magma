@@ -612,12 +612,12 @@ public class Lang {
 	private static Rule JMethodStatementValue(Rule statement) {
 		final Rule expression = JExpression(statement);
 		return Or(Break(),
+							PostFix(expression),
 							Return(expression),
 							Yield(expression),
-							Invokable(expression),
 							Initialization(JDefinition(), expression),
-							PostFix(expression),
-							JDefinition());
+							JDefinition(),
+							Invokable(expression));
 	}
 
 	private static Rule Break() {
