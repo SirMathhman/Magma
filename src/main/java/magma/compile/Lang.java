@@ -84,7 +84,7 @@ public class Lang {
 	public record And(JExpression left, JExpression right) implements JExpression {}
 
 	@Tag("destruct")
-	public record Destruct() implements InstanceOfTarget {}
+	public record Destruct(JType type, List<JDefinition> params) implements InstanceOfTarget {}
 
 	@Tag("instanceof")
 	public record InstanceOf(JExpression child, InstanceOfTarget target) implements JExpression {}
@@ -572,7 +572,7 @@ public class Lang {
 
 	private static Rule InstanceOf(LazyRule expression) {
 		final Rule strip = Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
-		Rule type = Node("value", Or(JDefinition(), Node("type", JType()), strip));
+		Rule type = Node("target", Or(JDefinition(), Node("type", JType()), strip));
 		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
 	}
 
