@@ -421,7 +421,7 @@ public class Lang {
 
 	public static Rule JRoot() {
 		final Rule segment =
-				Or(Namespace("package"), Namespace("import"), Structures(StructureSegment()), BlockComment(), Whitespace());
+				Or(Namespace("package"), Namespace("import"), Structures(JStructureSegment()), BlockComment(), Whitespace());
 		return Statements("children", segment);
 	}
 
@@ -469,7 +469,7 @@ public class Lang {
 		return Strip(Or(withTypeParameters, name));
 	}
 
-	private static Rule StructureSegment() {
+	private static Rule JStructureSegment() {
 		final LazyRule structureMember = new LazyRule();
 		structureMember.set(Or(Structures(structureMember),
 													 Statement(),
@@ -489,7 +489,8 @@ public class Lang {
 	}
 
 	private static Rule Statement() {
-		return Tag("statement", Strip(Suffix(Node("value", JDefinition()), ";")));
+		final var initialization = Initialization(JDefinition(), JExpression(JMethodSegment()));
+		return Strip(Suffix(initialization, ";"));
 	}
 
 	private static Rule JMethod() {

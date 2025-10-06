@@ -171,7 +171,7 @@ Rule CStructure_Lang() {
 	return Tag(("", First((maybeTemplate, "", structComplete));
 }
 Rule JRoot_Lang() {
-	Rule segment=Or((Namespace((""), Namespace((""), Structures((StructureSegment(()), BlockComment((), Whitespace(());
+	Rule segment=Or((Namespace((""), Namespace((""), Structures((JStructureSegment(()), BlockComment((), Whitespace(());
 	return Statements(("", segment);
 }
 Rule Structures_Lang(Rule structureMember) {
@@ -201,7 +201,7 @@ Rule NameWithTypeParameters_Lang() {
 	Rule withTypeParameters=Suffix((First((name, "", Expressions(("", Identifier(())), "");
 	return Strip((Or((withTypeParameters, name));
 }
-Rule StructureSegment_Lang() {
+Rule JStructureSegment_Lang() {
 	new LazyRule();
 	structureMember.set((Or((Structures((structureMember), Statement((), JMethod((), LineComment((), BlockComment((), Whitespace(()));
 	return structureMember;
@@ -213,7 +213,8 @@ Rule LineComment_Lang() {
 	return Tag(("", Strip((Prefix(("", String((""))));
 }
 Rule Statement_Lang() {
-	return Tag(("", Strip((Suffix((Node(("", JDefinition(()), "")));
+	var initialization=Initialization((JDefinition((), JExpression((JMethodSegment(()));
+	return Strip((Suffix((initialization, ""));
 }
 Rule JMethod_Lang() {
 	Rule params=Parameters(();
