@@ -57,7 +57,8 @@ public class Lang {
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
 			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
 
-	sealed public interface JType extends InstanceOfTarget permits Array, Identifier, Invalid, JGeneric, Wildcard {}
+	sealed public interface JType extends InstanceOfTarget
+			permits Array, Identifier, Invalid, JGeneric, Variadic, Wildcard {}
 
 	sealed public interface CType {
 		String stringify();
@@ -82,6 +83,8 @@ public class Lang {
 	public sealed interface CaseTarget permits JDefinition, Destruct {}
 
 	public sealed interface CaseExprValue permits ExprCaseExprValue, StatementCaseExprValue {}
+
+	public sealed interface LambdaValue {}
 
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
@@ -156,8 +159,14 @@ public class Lang {
 	@Tag("switch-statement")
 	public record SwitchStatement(JExpression value, List<CaseStatement> cases) implements JMethodSegment {}
 
+	@Tag("expr-lambda-value")
+	public record ExprLambdaValue(JExpression child) implements LambdaValue {}
+
+	@Tag("statement-lambda-value")
+	public record StatementLambdaValue(JMethodSegment child) implements LambdaValue {}
+
 	@Tag("lambda")
-	public record Lambda(String param, JMethodSegment child) implements JExpression {}
+	public record Lambda(Option<String> param, LambdaValue child) implements JExpression {}
 
 	@Tag("new-array")
 	public record NewArray(JType type, JExpression length) implements JExpression {}
@@ -383,6 +392,9 @@ public class Lang {
 	@Tag("yield")
 	public record Yield(JExpression child) implements JMethodSegment {}
 
+	@Tag("variadic")
+	public record Variadic(JType child) implements JType {}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -422,7 +434,7 @@ public class Lang {
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
 		final Rule funcPtr =
 				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
-		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule)));
+		rule.set(Or(funcPtr, Identifier(), Tag("pointer", Suffix(Node("child", rule), "*")), Generic(rule), Invalid()));
 		return rule;
 	}
 
@@ -589,7 +601,6 @@ public class Lang {
 		return Tag("yield", Prefix("yield ", Node("child", expression)));
 	}
 
-
 	private static Rule Return(Rule expression) {
 		return Tag("return", Prefix("return ", Node("value", expression)));
 	}
@@ -650,8 +661,12 @@ public class Lang {
 	}
 
 	private static Rule Lambda(Rule statement, Rule expression) {
-		final Rule strip = Or(Strip(Prefix("()", Empty)), Strip(String("param")));
-		return Tag("lambda", First(strip, "->", Node("child", Or(statement, expression))));
+		final Rule strip = Or(Strip(Prefix("()", Empty)), StrippedIdentifier("param"));
+		final Rule child = Node("child",
+														Or(Tag("statement-lambda-value", Node("child", statement)),
+															 Tag("expr-lambda-value", Node("child", expression))));
+
+		return Tag("lambda", First(strip, "->", child));
 	}
 
 	private static Rule InstanceOf(LazyRule expression) {

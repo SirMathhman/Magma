@@ -4,8 +4,8 @@ new EmptyRule_EmptyRule() {
 }
 @Override
 	public Result<> lex_EmptyRule(char* content) {
-	if (content.isEmpty())return new_Ok_((new_Node(());
-	return new_Err_((new_CompileError(("", new_StringContext((content)));
+	if (content.isEmpty())return new_???((new_???(());
+	return new_???((new_???(("", new_???((content)));
 }
 @Override
 	public Result<> generate_EmptyRule(Node node) {

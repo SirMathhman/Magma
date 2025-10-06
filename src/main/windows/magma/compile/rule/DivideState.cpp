@@ -7,7 +7,7 @@ public DivideState_DivideState(StringBuilder buffer, int depth, List<> segments,
 	this.input=input;
 }
 public DivideState_DivideState(char* input) {
-	this((new_StringBuilder((), 0, new_ArrayList_((), input);
+	this((new_???((), 0, new_???((), input);
 }
 Stream<> stream_DivideState() {
 	return segments.stream();

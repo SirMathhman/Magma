@@ -1,23 +1,23 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\JavaSerializer.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct JavaSerializer {};
 Result<> deserialize_JavaSerializer(Class<> clazz, Node node) {
-	if (Objects.isNull(clazz))return new_Err_((new_CompileError(("", new_NodeContext((node)));
-	if (Objects.isNull(node))return new_Err_((new_CompileError(("", new_StringContext((clazz.getName())));
+	if (Objects.isNull(clazz))return new_???((new_???(("", new_???((node)));
+	if (Objects.isNull(node))return new_???((new_???(("", new_???((clazz.getName())));
 	return deserializeValue((clazz, node).mapValue(clazz::cast);
 }
 Result<> serialize_JavaSerializer(Class<> clazz, T value) {
-	if (Objects.isNull(clazz))return new_Err_((new_CompileError(("", new_StringContext(("")));
-	if (Objects.isNull(value))return new_Err_((new_CompileError((""+clazz.getName()+"", new_StringContext(("")));
+	if (Objects.isNull(clazz))return new_???((new_???(("", new_???(("")));
+	if (Objects.isNull(value))return new_???((new_???((""+clazz.getName()+"", new_???(("")));
 	return serializeValue((clazz, value);
 }
 private static Result<> serializeValue_JavaSerializer(Class<> type, Object value) {
 	if (type.isSealed()&&/*???*/.isRecord())return serializeSealed((type, value);
-	if (/*???*/.isRecord())return new_Err_((new_CompileError((""+type.getName()+"", new_StringContext((type.getName())));
+	if (/*???*/.isRecord())return new_???((new_???((""+type.getName()+"", new_???((type.getName())));
 	return serializeRecord((type, value);
 }
 private static Result<> serializeSealed_JavaSerializer(Class<> type, Object value) {
 	final Class<> concreteClass=value.getClass();
-	if (/*???*/.isAssignableFrom(concreteClass))return new_Err_((new_CompileError((""+concreteClass.getName()+""+type.getName()+"", new_StringContext((concreteClass.getName())));
+	if (/*???*/.isAssignableFrom(concreteClass))return new_???((new_???((""+concreteClass.getName()+""+type.getName()+"", new_???((concreteClass.getName())));
 	return serializeValue((concreteClass, value);
 }
 private static Result<> serializeRecord_JavaSerializer(Class<> type, Object value) {
@@ -30,21 +30,21 @@ private static Result<> serializeRecord_JavaSerializer(Class<> type, Object valu
 	RecordComponent component=/*???*/;/*???*//*???*/
 	i++;}
 	new Ok<>(result);
-	return new_Err_((new_CompileError((""+type.getSimpleName()+"", new_StringContext((type.getName()), errors));
+	return new_???((new_???((""+type.getSimpleName()+"", new_???((type.getName()), errors));
 }
 private static Result<> serializeField_JavaSerializer(RecordComponent component, Object value) {
 	char* fieldName=component.getName();
 	Class<> fieldType=component.getType();
-	if (Objects.isNull(value))return new_Err_((new_CompileError((""+fieldName+"", new_StringContext((fieldName)));
-	if (fieldType==String.class)return new_Ok_((new_Node(().withString(fieldName, (String) value));
+	if (Objects.isNull(value))return new_???((new_???((""+fieldName+"", new_???((fieldName)));
+	if (fieldType==String.class)return new_???((new_???(().withString(fieldName, (String) value));
 	if (Option.class.isAssignableFrom(fieldType))return serializeOptionField((component, value);
 	if (List.class.isAssignableFrom(fieldType))return serializeListField((component, value);
 	return serializeValue((fieldType, value).mapValue(childNode -> new Node().withNode(fieldName, childNode));
 }
 private static Result<> serializeOptionField_JavaSerializer(RecordComponent component, Object value) {
 	char* fieldName=component.getName();
-	if (/*???*/)return new_Err_((new_CompileError((""+fieldName+"", new_StringContext((fieldName)));
-	if (/*???*/)return new_Ok_((new_Node(());
+	if (/*???*/)return new_???((new_???((""+fieldName+"", new_???((fieldName)));
+	if (/*???*/)return new_???((new_???(());
 	if (/*???*/)
 	{
 	Result<> elementTypeResult=getGenericArgument((component.getGenericType());
@@ -53,13 +53,13 @@ private static Result<> serializeOptionField_JavaSerializer(RecordComponent comp
 	Result<> elementClassResult=erase((elementType);
 	new Err<>(error);
 	Class<> elementClass=/*???*/.value();
-	if (elementClass==String.class)return new_Ok_((new_Node(().withString(fieldName, (String) value1));
+	if (elementClass==String.class)return new_???((new_???(().withString(fieldName, (String) value1));
 	if (List.class.isAssignableFrom(elementClass))return serializeOptionListField((fieldName, elementType, value1);
 	return serializeValue((elementClass, value1).mapValue(childNode -> new Node().withNode(fieldName, childNode));}
-	return new_Ok_((new_Node(());
+	return new_???((new_???(());
 }
 private static Result<> serializeOptionListField_JavaSerializer(char* fieldName, Type listType, Object content) {
-	if (/*???*/)return new_Err_((new_CompileError((""+fieldName+"", new_StringContext((fieldName)));
+	if (/*???*/)return new_???((new_???((""+fieldName+"", new_???((fieldName)));
 	Result<> elementTypeResult=getGenericArgument((listType);
 	new Err<>(error);
 	Type elementType=/*???*/.value();
@@ -73,7 +73,7 @@ private static Result<> serializeOptionListField_JavaSerializer(char* fieldName,
 }
 private static Result<> serializeListField_JavaSerializer(RecordComponent component, Object value) {
 	char* fieldName=component.getName();
-	if (/*???*/)return new_Err_((new_CompileError((""+fieldName+"", new_StringContext((fieldName)));
+	if (/*???*/)return new_???((new_???((""+fieldName+"", new_???((fieldName)));
 	Result<> elementTypeResult=getGenericArgument((component.getGenericType());
 	new Err<>(error);
 	Type elementType=/*???*/.value();
@@ -90,15 +90,15 @@ private static Result<> serializeListElements_JavaSerializer(Class<> elementClas
 	new ArrayList<>();
 	list.stream(().map((element -> serializeValue(elementClass, element)).forEach((/*???*/);
 	new Ok<>(nodes);
-	return new_Err_((new_CompileError(("", new_StringContext((""), errors));
+	return new_???((new_???(("", new_???((""), errors));
 }
 private static Result<> deserializeValue_JavaSerializer(Class<> type, Node node) {
 	if (type.isSealed()&&/*???*/.isRecord())return deserializeSealed((type, node);
-	if (/*???*/.isRecord())return new_Err_((new_CompileError((""+type.getName()+"", new_NodeContext((node)));
+	if (/*???*/.isRecord())return new_???((new_???((""+type.getName()+"", new_???((node)));
 	return deserializeRecord((type, node);
 }
 private static Result<> deserializeSealed_JavaSerializer(Class<> type, Node node) {
-	if (/*???*/)return new_Err_((new_CompileError((""+type.getName()+"", new_NodeContext((node)));
+	if (/*???*/)return new_???((new_???((""+type.getName()+"", new_???((node)));
 	Option<> directResult=tryDirectPermittedSubclasses((type, node, nodeType);
 	return result;
 	return tryNestedSealedInterfaces((type, node, nodeType);
@@ -110,7 +110,7 @@ private static Option<> tryDirectPermittedSubclasses_JavaSerializer(Class<> type
 	{
 	Class<> permitted=/*???*/;
 	Option<> maybeIdentifier=resolveTypeIdentifier((permitted);
-	if (/*???*/&&identifier.equals(nodeType))return new_Some_((deserializeValue((permitted, node));
+	if (/*???*/&&identifier.equals(nodeType))return new_???((deserializeValue((permitted, node));
 	i++;}
 	new None<>();
 }
@@ -122,7 +122,7 @@ private static Result<> tryNestedSealedInterfaces_JavaSerializer(Class<> type, N
 	if (validTags.isEmpty())validTagsList="";
 	else validTagsList=String.join(", ", validTags);
 	char* suggestion=getSuggestionForUnknownTag((type, nodeType, validTags);
-	return new_Err_((new_CompileError((""+type.getSimpleName()+""+nodeType+""+""+validTagsList+""+suggestion, new_NodeContext((node)));
+	return new_???((new_???((""+type.getSimpleName()+""+nodeType+""+""+validTagsList+""+suggestion, new_???((node)));
 }
 private static Option<> findNestedSealedDeserialization_JavaSerializer(Class<> type, Node node, char* nodeType) {
 	Class<>* subclasses=type.getPermittedSubclasses();
@@ -212,9 +212,9 @@ private static Result<> deserializeRecord_JavaSerializer(Class<> type, Node node
 	if (/*???*/)
 	if (/*???*/)
 	{
-	if (/*???*/.is(expectedType0))return new_Err_((new_CompileError((""+expectedType0+""+nodeType+"", new_NodeContext((node)));}
+	if (/*???*/.is(expectedType0))return new_???((new_???((""+expectedType0+""+nodeType+"", new_???((node)));}
 	else
-	return new_Err_((new_CompileError((""+type.getSimpleName()+""+expectedType0+"", new_NodeContext((node)));
+	return new_???((new_???((""+type.getSimpleName()+""+expectedType0+"", new_???((node)));
 	RecordComponent* components=type.getRecordComponents();
 	new Object[components.length];
 	new ArrayList<>();
@@ -222,7 +222,7 @@ private static Result<> deserializeRecord_JavaSerializer(Class<> type, Node node
 	IntStream.range((0, components.length).forEach((/*???*/);
 	Option<> validationError=validateAllFieldsConsumed((node, consumedFields, type);
 	if (/*???*/)errors.add((error);
-	if (/*???*/.isEmpty())return new_Err_((new_CompileError((""+type.getSimpleName()+"", new_NodeContext((node), errors));/*???*//*???*/
+	if (/*???*/.isEmpty())return new_???((new_???((""+type.getSimpleName()+"", new_???((node), errors));/*???*//*???*/
 }
 private static Result<> deserializeField_JavaSerializer(RecordComponent component, Node node, Set<> consumedFields) {
 	char* fieldName=component.getName();
@@ -236,7 +236,7 @@ private static Result<> deserializeField_JavaSerializer(RecordComponent componen
 	consumedFields.add((fieldName);
 	return deserializeValue((fieldType, value);}
 	else
-	return new_Err_((new_CompileError((""+fieldName+""+fieldType.getSimpleName()+"", new_NodeContext((node)));
+	return new_???((new_???((""+fieldName+""+fieldType.getSimpleName()+"", new_???((node)));
 }
 private static Result<> deserializeStringField_JavaSerializer(char* fieldName, Node node, Set<> consumedFields) {
 	Option<> direct=node.findString(fieldName);
@@ -250,7 +250,7 @@ private static Result<> deserializeStringField_JavaSerializer(char* fieldName, N
 	consumedFields.add((fieldName);
 	new Ok<>(value);}
 	else
-	return new_Err_((new_CompileError((""+fieldName+"", new_NodeContext((node)));
+	return new_???((new_???((""+fieldName+"", new_???((node)));
 }
 private static Result<> deserializeOptionField_JavaSerializer(RecordComponent component, Node node, Set<> consumedFields) {
 	Result<> elementTypeResult=getGenericArgument((component.getGenericType());
@@ -273,9 +273,9 @@ private static Result<> deserializeOptionField_JavaSerializer(RecordComponent co
 	consumedFields.add((fieldName);
 	new Ok<>(nested);}
 	Option<> wrongTypeNode=node.findNode(fieldName);
-	if (/*???*/)return new_Err_((new_CompileError((""+fieldName+""+node.maybeType.orElse("unknown")+"", new_NodeContext((node)));
+	if (/*???*/)return new_???((new_???((""+fieldName+""+node.maybeType.orElse("unknown")+"", new_???((node)));
 	Option<> wrongTypeList=node.findNodeList(fieldName);
-	if (/*???*/)return new_Err_((new_CompileError((""+fieldName+""+node.maybeType.orElse("unknown")+"", new_NodeContext((node)));
+	if (/*???*/)return new_???((new_???((""+fieldName+""+node.maybeType.orElse("unknown")+"", new_???((node)));
 	new Ok<>(Option.empty());}
 	if (List.class.isAssignableFrom(elementClass))return deserializeOptionListField((fieldName, elementType, node, consumedFields);
 	Option<> childNode=node.findNode(fieldName);
@@ -315,7 +315,7 @@ private static Result<> deserializeListField_JavaSerializer(RecordComponent comp
 	Result<> elementsResult=deserializeListElements((elementClass, value);
 	return elementsResult.mapValue(List::copyOf);}
 	else
-	return new_Err_((new_CompileError((""+fieldName+"", new_NodeContext((node)));
+	return new_???((new_???((""+fieldName+"", new_???((node)));
 }
 private static Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nodeList) {
 	new ArrayList<>();
@@ -331,14 +331,14 @@ private static Result<> deserializeListElements_JavaSerializer(Class<> elementCl
 	if (/*???*/)
 	if (elementClass.isSealed()&&/*???*/)
 	{
-	CompileError wrappedError=new_CompileError((""+index+""+nodeType+""+elementClass.getSimpleName()+"", new_NodeContext((childNode), List.of(error));
+	CompileError wrappedError=new_???((""+index+""+nodeType+""+elementClass.getSimpleName()+"", new_???((childNode), List.of(error));
 	errors.add((wrappedError);}
 	else
 	if (shouldBeDeserializableAs((childNode, elementClass))errors.add((error);
 	index++;
 	i++;}
 	new Ok<>(results);
-	return new_Err_((new_CompileError((""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_NodeContext((nodeList.getFirst()), errors));
+	return new_???((new_???((""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???((nodeList.getFirst()), errors));
 }
 Node createNodeWithType_JavaSerializer(Class<> type) {
 	new Node();
@@ -358,12 +358,12 @@ private static Result<> getGenericArgument_JavaSerializer(Type type) {
 	{
 	Type* args=parameterized.getActualTypeArguments();
 	if (args.length > 0)new Ok<>(args[0]);}
-	return new_Err_((new_CompileError((""+type+"", new_StringContext((type.toString())));
+	return new_???((new_???((""+type+"", new_???((type.toString())));
 }
 private static Result<> erase_JavaSerializer(Type type) {
 	new Ok<>(clazz);
 	new Ok<>(raw);
-	return new_Err_((new_CompileError((""+type+"", new_StringContext((type.toString())));
+	return new_???((new_???((""+type+"", new_???((type.toString())));
 }
 private static Option<> resolveTypeIdentifier_JavaSerializer(Class<> clazz) {
 	Tag annotation=clazz.getAnnotation(Tag.class);

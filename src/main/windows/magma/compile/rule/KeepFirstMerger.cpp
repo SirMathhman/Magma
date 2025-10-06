@@ -5,5 +5,5 @@ struct KeepFirstMerger {};
 	if (/*???*/)new None<>();
 	char* left=segments.getFirst();
 	char* right=String.join(delimiter, segments.subList(1, segments.size()));
-	return new_Some_((new_Tuple_((left, right));
+	return new_???((new_???((left, right));
 }

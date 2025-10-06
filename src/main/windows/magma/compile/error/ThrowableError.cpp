@@ -2,6 +2,6 @@
 struct ThrowableError {Throwable e;};
 char* display_ThrowableError() {
 	new StringWriter();
-	e.printStackTrace((new_PrintWriter((writer));
+	e.printStackTrace((new_???((writer));
 	return writer.toString();
 }

@@ -4,7 +4,7 @@ public CompileError_CompileError(char* reason, Context sourceCode) {
 	this((reason, sourceCode, Collections.emptyList());
 }
 char* display_CompileError() {
-	return format((0, new_Stack_(());
+	return format((0, new_???(());
 }
 char* format_CompileError(int depth, Stack<> indices) {
 	new ArrayList<>(causes);

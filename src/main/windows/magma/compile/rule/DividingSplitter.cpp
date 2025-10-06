@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DividingSplitter.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct DividingSplitter {Divider divider;Merger merger;};
 public DividingSplitter_DividingSplitter(Divider divider) {
-	this((divider, new_KeepFirstMerger(());
+	this((divider, new_???(());
 }
 DividingSplitter KeepFirst_DividingSplitter(Divider divider) {
-	return new_DividingSplitter((divider, new_KeepFirstMerger(());
+	return new_???((divider, new_???(());
 }
 DividingSplitter KeepLast_DividingSplitter(Divider divider) {
-	return new_DividingSplitter((divider, new_KeepLastMerger(());
+	return new_???((divider, new_???(());
 }
 @Override
 	public Option<> split_DividingSplitter(char* input) {

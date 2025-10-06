@@ -253,6 +253,7 @@ public class Main {
 			case Catch aCatch -> new Invalid("???");
 			case Try aTry -> new Invalid("???");
 			case SwitchStatement switchStatement -> new Invalid("???");
+			case Yield yield -> new Invalid("???");
 		};
 	}
 
@@ -379,6 +380,7 @@ public class Main {
 				yield identifier;
 			}
 			case Wildcard wildcard -> new Invalid("???");
+			case Variadic variadic -> new Invalid("???");
 		};
 	}
 }

@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\NodeListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct NodeListRule {char* key;Rule rule;Divider divider;};
 Rule Statements_NodeListRule(char* key, Rule rule) {
-	return new_NodeListRule((key, rule, new_FoldingDivider((new_EscapingFolder((new_StatementFolder(())));
+	return new_???((key, rule, new_???((new_???((new_???(())));
 }
 Rule Delimited_NodeListRule(char* key, Rule rule, char* delimiter) {
-	return new_NodeListRule((key, rule, new_DelimitedRule((delimiter));
+	return new_???((key, rule, new_???((delimiter));
 }
 Rule Expressions_NodeListRule(char* key, Rule rule) {
-	return new_NodeListRule((key, rule, new_FoldingDivider((new_EscapingFolder((new_ValueFolder(())));
+	return new_???((key, rule, new_???((new_???((new_???(())));
 }
 @Override
 	public Result<> lex_NodeListRule(char* input) {
