@@ -105,45 +105,72 @@ public final class Node {
 		}
 
 		strings.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-			if (hasFields[0]) builder.append(",\n");
-			else builder.append("\n");
-			builder.append(childIndent)
-						 .append('"')
-						 .append(escape(entry.getKey()))
-						 .append("\": \"")
-						 .append(escape(entry.getValue()))
-						 .append('"');
-			hasFields[0] = true;
+			extracted(entry, hasFields, builder, childIndent);
 		});
 
 		nodes.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-			if (hasFields[0]) builder.append(",\n");
-			else builder.append("\n");
-			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
-			if (level + 1 < maxLevel) builder.append(entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
-			else builder.append("{...}");
-			hasFields[0] = true;
+			extracted(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent);
 		});
 
 		nodeLists.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
-			if (hasFields[0]) builder.append(",\n");
-			else builder.append("\n");
-			builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
-			List<Node> list = entry.getValue();
-			if (!list.isEmpty()) if (level + 1 < maxLevel) {
-				builder.append("\n");
-				builder.append(list.stream()
-													 .map(node -> "\t".repeat(indentDepth + 2) +
-																				node.appendJsonPure(indentDepth + 2, level + 1, maxLevel))
-													 .collect(Collectors.joining(",\n")));
-				builder.append("\n").append(childIndent);
-			} else builder.append("...");
-			builder.append("]");
-			hasFields[0] = true;
+			extracted1(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent);
 		});
 
 		if (hasFields[0]) builder.append("\n").append(indent);
 		builder.append("}");
 		return builder.toString();
+	}
+
+	private void extracted1(int indentDepth,
+													int level,
+													int maxLevel,
+													Map.Entry<String, List<Node>> entry,
+													boolean[] hasFields,
+													StringBuilder builder,
+													String childIndent) {
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
+		builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
+		List<Node> list = entry.getValue();
+		if (!list.isEmpty()) if (level + 1 < maxLevel) {
+			builder.append("\n");
+			builder.append(list.stream()
+												 .map(node -> "\t".repeat(indentDepth + 2) +
+																			node.appendJsonPure(indentDepth + 2, level + 1, maxLevel))
+												 .collect(Collectors.joining(",\n")));
+			builder.append("\n").append(childIndent);
+		} else builder.append("...");
+		builder.append("]");
+		hasFields[0] = true;
+	}
+
+	private void extracted(int indentDepth,
+												 int level,
+												 int maxLevel,
+												 Map.Entry<String, Node> entry,
+												 boolean[] hasFields,
+												 StringBuilder builder,
+												 String childIndent) {
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
+		builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
+		if (level + 1 < maxLevel) builder.append(entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
+		else builder.append("{...}");
+		hasFields[0] = true;
+	}
+
+	private void extracted(Map.Entry<String, String> entry,
+												 boolean[] hasFields,
+												 StringBuilder builder,
+												 String childIndent) {
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
+		builder.append(childIndent)
+					 .append('"')
+					 .append(escape(entry.getKey()))
+					 .append("\": \"")
+					 .append(escape(entry.getValue()))
+					 .append('"');
+		hasFields[0] = true;
 	}
 }

@@ -75,3 +75,33 @@ char* appendJsonPure_Node(int indentDepth, int level, int maxLevel) {
 	builder.append(("");
 	return builder.toString();
 }
+void extracted1_Node(int indentDepth, int level, int maxLevel, Map.Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+	if (/*???*/)builder.append(("");
+	else builder.append("\n");
+	builder.append((childIndent).append(('"').append((escape(entry.getKey())).append(("");
+	List<> list=entry.getValue();
+	if (/*???*/.isEmpty())
+	if (/*???*/)
+	{
+	builder.append(("");
+	builder.append((list.stream().map(node -> "\t".repeat(indentDepth + 2) +
+																			node.appendJsonPure(indentDepth + 2, level + 1, maxLevel)).collect(Collectors.joining(",\n")));
+	builder.append(("\n").append((childIndent);}
+	else builder.append("...");
+	builder.append(("");
+	/*???*/=true;
+}
+void extracted_Node(int indentDepth, int level, int maxLevel, Map.Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+	if (/*???*/)builder.append(("");
+	else builder.append("\n");
+	builder.append((childIndent).append(('"').append((escape(entry.getKey())).append(("");
+	if (/*???*/)builder.append((entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
+	else builder.append("{...}");
+	/*???*/=true;
+}
+void extracted_Node(Map.Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
+	if (/*???*/)builder.append(("");
+	else builder.append("\n");
+	builder.append((childIndent).append(('"').append((escape(entry.getKey())).append(("\": \"").append((escape(entry.getValue())).append(('"');
+	/*???*/=true;
+}
