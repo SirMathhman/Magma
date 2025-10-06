@@ -31,8 +31,8 @@ public class ComprehensiveFieldValidationTest {
 	public void testPerfectMatch() {
 		Node node = new Node().retype("Person").withString("name", "Alice").withString("email", "alice@example.com");
 
-		Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, node);
-		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected successful deserialization but got: " + result);
+	Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, node);
+	assertInstanceOf(Ok.class, result, () -> "Expected successful deserialization but got: " + result);
 	}
 
 	@Test
@@ -41,7 +41,7 @@ public class ComprehensiveFieldValidationTest {
 		Node node1 = new Node().retype("Employee").withString("name", "Bob").withString("department", "Engineering");
 
 		Result<Employee, CompileError> result1 = JavaSerializer.deserialize(Employee.class, node1);
-		assertInstanceOf(Ok<?, ?>.class, result1, () -> "Expected Ok when optional absent but got: " + result1);
+		assertInstanceOf(Ok.class, result1, () -> "Expected Ok when optional absent but got: " + result1);
 
 		// Test 2: With optional field
 		Node node2 = new Node().retype("Employee")
@@ -50,7 +50,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("title", "Senior Manager");
 
 		Result<Employee, CompileError> result2 = JavaSerializer.deserialize(Employee.class, node2);
-		assertInstanceOf(Ok<?, ?>.class, result2, () -> "Expected Ok when optional present but got: " + result2);
+		assertInstanceOf(Ok.class, result2, () -> "Expected Ok when optional present but got: " + result2);
 
 		// Test 3: With extra field that should cause error
 		Node node3 = new Node().retype("Employee")
@@ -60,7 +60,7 @@ public class ComprehensiveFieldValidationTest {
 													 .withString("salary", "100000"); // This should cause an error
 
 		Result<Employee, CompileError> result3 = JavaSerializer.deserialize(Employee.class, node3);
-		assertInstanceOf(Err<?, ?>.class, result3, () -> "Expected Err due to extra field 'salary' but got: " + result3);
+		assertInstanceOf(Err.class, result3, () -> "Expected Err due to extra field 'salary' but got: " + result3);
 	}
 
 	@Test
@@ -72,8 +72,8 @@ public class ComprehensiveFieldValidationTest {
 															.withString("name", "Development Team")
 															.withNodeList("members", List.of(person1, person2));
 
-		Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
-		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok when list fields consumed but got: " + result);
+	Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
+	assertInstanceOf(Ok.class, result, () -> "Expected Ok when list fields consumed but got: " + result);
 	}
 
 	@Test
@@ -86,8 +86,8 @@ public class ComprehensiveFieldValidationTest {
 		Node teamNode =
 				new Node().retype("Team").withString("name", "QA Team").withNodeList("members", List.of(personWithExtra));
 
-		Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
-		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to nested leftover fields but got: " + result);
+	Result<Team, CompileError> result = JavaSerializer.deserialize(Team.class, teamNode);
+	assertInstanceOf(Err.class, result, () -> "Expected Err due to nested leftover fields but got: " + result);
 	}
 
 	@Test
@@ -100,7 +100,7 @@ public class ComprehensiveFieldValidationTest {
 																					 new Node().withString("theme", "dark")) // Leftover nested object
 																 .withNodeList("tags", List.of(new Node().withString("tag", "vip"))); // Leftover list
 
-		Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, complexNode);
-		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to multiple leftover fields but got: " + result);
+	Result<Person, CompileError> result = JavaSerializer.deserialize(Person.class, complexNode);
+	assertInstanceOf(Err.class, result, () -> "Expected Err due to multiple leftover fields but got: " + result);
 	}
 }

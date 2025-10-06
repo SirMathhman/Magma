@@ -29,7 +29,7 @@ public class DebugPlaceholderTest {
 			System.out.flush();
 			printNode(node, 0);
 			System.out.flush();
-		} else if (result instanceof Err<?, ?>(Object error)) {
+		} else if (result instanceof Err(Object error)) {
 			System.out.println("Lex failed: " + error);
 			System.out.flush();
 		}

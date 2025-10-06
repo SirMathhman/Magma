@@ -34,8 +34,8 @@ public class FieldConsumptionValidationTest {
 		// Create a Node with exactly the fields needed for TestRecord
 		Node node = new Node().retype("TestRecord").withString("name", "John").withString("age", "25");
 
-		Result<TestRecord, CompileError> result = JavaSerializer.deserialize(TestRecord.class, node);
-		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok but got: " + result);
+	Result<TestRecord, CompileError> result = JavaSerializer.deserialize(TestRecord.class, node);
+	assertInstanceOf(Ok.class, result, () -> "Expected Ok but got: " + result);
 	}
 
 	/**
@@ -51,8 +51,8 @@ public class FieldConsumptionValidationTest {
 													.withString("age", "25") // This field won't be consumed by PartialRecord
 													.withString("email", "john@example.com"); // This field won't be consumed either
 
-		Result<PartialRecord, CompileError> result = JavaSerializer.deserialize(PartialRecord.class, node);
-		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to leftover fields but got: " + result);
+	Result<PartialRecord, CompileError> result = JavaSerializer.deserialize(PartialRecord.class, node);
+	assertInstanceOf(Err.class, result, () -> "Expected Err due to leftover fields but got: " + result);
 	}
 
 	/**
@@ -71,7 +71,7 @@ public class FieldConsumptionValidationTest {
 													.withNode("profile", nestedNode) // Extra nested object
 													.withString("department", "Engineering"); // Extra string field
 
-		Result<TestRecord, CompileError> result = JavaSerializer.deserialize(TestRecord.class, node);
-		assertInstanceOf(Err<?, ?>.class, result, () -> "Expected Err due to extra fields but got: " + result);
+	Result<TestRecord, CompileError> result = JavaSerializer.deserialize(TestRecord.class, node);
+	assertInstanceOf(Err.class, result, () -> "Expected Err due to extra fields but got: " + result);
 	}
 }

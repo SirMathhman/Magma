@@ -25,7 +25,7 @@ public class DebugMethodBodyTest {
 
 		System.out.println("=== Parsing Java code ===");
 		Result<Node, ?> lexResult = Lang.JRoot().lex(code);
-		if (lexResult instanceof Err<?, ?>(Object err)) {
+		if (lexResult instanceof Err(Object err)) {
 			fail("Lex failed: " + err);
 			return;
 		}
@@ -35,15 +35,15 @@ public class DebugMethodBodyTest {
 		System.out.println("\n=== Deserializing ===");
 		Result<Lang.JRoot, ?> result = JavaSerializer.deserialize(Lang.JRoot.class, lexed);
 
-		if (result instanceof Ok<Lang.JRoot, ?>(Lang.JRoot root)) {
-			System.out.println("✅ Deserialization successful");
-			System.out.println("JavaRoot children: " + root.children().size());
+	if (result instanceof Ok<Lang.JRoot, ?>(Lang.JRoot root)) {
+		System.out.println("✅ Deserialization successful");
+		System.out.println("JavaRoot children: " + root.children().size());
 
-			processRootChildren(root);
-		} else if (result instanceof Err<?, ?>(Object err)) {
-			System.out.println("❌ Deserialization failed: " + err);
-			fail("Deserialization should succeed");
-		}
+		processRootChildren(root);
+	} else if (result instanceof Err(Object err)) {
+		System.out.println("❌ Deserialization failed: " + err);
+		fail("Deserialization should succeed");
+	}
 	}
 
 	private void processRootChildren(Lang.JRoot root) {

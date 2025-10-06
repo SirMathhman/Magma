@@ -29,12 +29,12 @@ public class DiagnoseMain {
 
 			// Step 1: Lex
 			Result<Node, CompileError> lexResult = JRoot().lex(mainSource);
-			if (lexResult instanceof Err<?, ?>(? error)) {
+			if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
 				System.err.println("❌ LEXING FAILED: " + error);
 				fail("Lexing failed: " + error);
 			}
 
-			assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
+			assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");
 			Node lexedNode = ((Ok<Node, CompileError>) lexResult).value();
 			System.out.println("\n✅ Lexing succeeded");
 			System.out.println("\nLexed node structure (first 5000 chars):");
@@ -42,14 +42,14 @@ public class DiagnoseMain {
 			System.out.println(formatted.substring(0, Math.min(5000, formatted.length())));
 			if (formatted.length() > 5000) System.out.println("... (truncated, total length: " + formatted.length() + ")");
 
-			// Step 2: Deserialize to JavaRoot
-			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
-			if (deserializeResult instanceof Err<?, ?>(? error)) {
-				System.err.println("❌ DESERIALIZATION FAILED: " + error);
-				fail("Deserialization failed: " + error);
-			}
+		// Step 2: Deserialize to JavaRoot
+		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
+		if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error)) {
+			System.err.println("❌ DESERIALIZATION FAILED: " + error);
+			fail("Deserialization failed: " + error);
+		}
 
-			assertInstanceOf(Ok<?, ?>.class, deserializeResult, "Deserialization should succeed");
+		assertInstanceOf(Ok.class, deserializeResult, "Deserialization should succeed");
 			JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 			System.out.println("✅ Deserialization succeeded");
 			System.out.println("JavaRoot children count: " + javaRoot.children().size());
@@ -68,14 +68,14 @@ public class DiagnoseMain {
 				}
 			});
 
-			// Step 3: Transform
-			Result<CRoot, CompileError> transformResult = Transformer.transform(javaRoot);
-			if (transformResult instanceof Err<?, ?>(? error)) {
-				System.err.println("❌ TRANSFORMATION FAILED: " + error);
-				fail("Transformation failed: " + error);
-			}
+		// Step 3: Transform
+		Result<CRoot, CompileError> transformResult = Transformer.transform(javaRoot);
+		if (transformResult instanceof Err<CRoot, CompileError>(CompileError error)) {
+			System.err.println("❌ TRANSFORMATION FAILED: " + error);
+			fail("Transformation failed: " + error);
+		}
 
-			assertInstanceOf(Ok<?, ?>.class, transformResult, "Transformation should succeed");
+		assertInstanceOf(Ok.class, transformResult, "Transformation should succeed");
 			CRoot cRoot = ((Ok<CRoot, CompileError>) transformResult).value();
 			System.out.println("\n✅ Transformation succeeded");
 			System.out.println("CRoot children count: " + cRoot.children().size());
@@ -88,25 +88,25 @@ public class DiagnoseMain {
 				} else if (child instanceof Function func) System.out.println("    Function name: " + func.definition().name());
 			});
 
-			// Step 4: Serialize to C++
-			Result<Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cRoot);
-			if (serializeResult instanceof Err<?, ?>(? error)) {
-				System.err.println("❌ SERIALIZATION FAILED: " + error);
-				fail("Serialization failed: " + error);
-			}
+		// Step 4: Serialize to C++
+		Result<Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cRoot);
+		if (serializeResult instanceof Err<Node, CompileError>(CompileError error)) {
+			System.err.println("❌ SERIALIZATION FAILED: " + error);
+			fail("Serialization failed: " + error);
+		}
 
-			assertInstanceOf(Ok<?, ?>.class, serializeResult, "Serialization should succeed");
+		assertInstanceOf(Ok.class, serializeResult, "Serialization should succeed");
 			System.out.println("✅ Serialization succeeded");
 
 			// Step 5: Generate C++ code
-			Node serializedNode = ((Ok<Node, CompileError>) serializeResult).value();
-			Result<String, CompileError> generateResult = CRules.CRoot().generate(serializedNode);
-			if (generateResult instanceof Err<?, ?>(? error)) {
-				System.err.println("❌ GENERATION FAILED: " + error);
-				fail("Generation failed: " + error);
-			}
+		Node serializedNode = ((Ok<Node, CompileError>) serializeResult).value();
+		Result<String, CompileError> generateResult = CRules.CRoot().generate(serializedNode);
+		if (generateResult instanceof Err<String, CompileError>(CompileError error)) {
+			System.err.println("❌ GENERATION FAILED: " + error);
+			fail("Generation failed: " + error);
+		}
 
-			assertInstanceOf(Ok<?, ?>.class, generateResult, "Generation should succeed");
+		assertInstanceOf(Ok.class, generateResult, "Generation should succeed");
 			String generated = ((Ok<String, CompileError>) generateResult).value();
 			System.out.println("\n✅ Generation succeeded");
 			System.out.println("Generated C++ length: " + generated.length() + " characters");

@@ -26,24 +26,24 @@ public class SimpleClassWithMethodTest {
 		System.out.println("=== Testing class with single static method ===");
 
 		Result<Node, CompileError> lexResult = JRoot().lex(input);
-		if (lexResult instanceof Err<?, ?>(? error)) {
+		if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
 			System.err.println("❌ LEXING FAILED: " + error);
 			fail("Lexing failed: " + error);
 		}
 
-		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
+		assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");
 		Node lexedNode = ((Ok<Node, CompileError>) lexResult).value();
 		System.out.println("\n✅ Lexing succeeded");
 		System.out.println("\nLexed structure:");
 		System.out.println(lexedNode.format(0));
 
 		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
-		if (deserializeResult instanceof Err<?, ?>(? error)) {
+		if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error)) {
 			System.err.println("\n❌ DESERIALIZATION FAILED: " + error);
 			fail("Deserialization failed: " + error);
 		}
 
-		assertInstanceOf(Ok<?, ?>.class, deserializeResult, "Deserialization should succeed");
+		assertInstanceOf(Ok.class, deserializeResult, "Deserialization should succeed");
 		JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 		System.out.println("\n✅ Deserialization succeeded");
 		System.out.println("JavaRoot children count: " + javaRoot.children().size());

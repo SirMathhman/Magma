@@ -34,16 +34,16 @@ public class PackageImportRecordTest {
 			System.out.println("✅ Lexing SUCCESS");
 
 			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
-			if (deserializeResult instanceof Ok<JRoot, CompileError>(JRoot value)) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError>(JRoot javaRoot)) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + value.children().size());
-				value.children().stream().forEach(child -> {
+				System.out.println("JavaRoot children count: " + javaRoot.children().size());
+				javaRoot.children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 					if (child instanceof Lang.RecordNode record) System.out.println("    ✅ Found Record: " + record.name());
 				});
 			} else if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error))
 				System.out.println("❌ Deserialization FAILED: " + error);
-		} else if (lexResult instanceof Err<?, ?>(? error)) System.out.println("❌ Lexing FAILED: " + error);
+		} else if (lexResult instanceof Err<Node, CompileError>(CompileError error)) System.out.println("❌ Lexing FAILED: " + error);
 	}
 
 	@Test
@@ -63,15 +63,15 @@ public class PackageImportRecordTest {
 			System.out.println("✅ Lexing SUCCESS");
 
 			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
-			if (deserializeResult instanceof Ok<JRoot, CompileError>(JRoot value)) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError>(JRoot javaRoot)) {
 				System.out.println("✅ Deserialization SUCCESS");
-				System.out.println("JavaRoot children count: " + value.children().size());
-				value.children().stream().forEach(child -> {
+				System.out.println("JavaRoot children count: " + javaRoot.children().size());
+				javaRoot.children().stream().forEach(child -> {
 					System.out.println("  Child: " + child.getClass().getSimpleName());
 					if (child instanceof Lang.RecordNode record) System.out.println("    ✅ Found Record: " + record.name());
 				});
 			} else if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error))
 				System.out.println("❌ Deserialization FAILED: " + error);
-		} else if (lexResult instanceof Err<?, ?>(? error)) System.out.println("❌ Lexing FAILED: " + error);
+		} else if (lexResult instanceof Err<Node, CompileError>(CompileError error)) System.out.println("❌ Lexing FAILED: " + error);
 	}
 }

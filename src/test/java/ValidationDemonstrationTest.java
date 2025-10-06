@@ -41,10 +41,8 @@ public class ValidationDemonstrationTest {
 		System.out.println("=== Demonstrating Validation Catches Type Mismatch ===");
 		System.out.println("Creating a record with Option<String> body field...");
 
-		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
-		assertInstanceOf(Ok<?, ?>.class, lexResult, "Lexing should succeed");
-
-		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+	Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
+	assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk.value();// Find the method node
 		Result<Lang.JRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JRoot.class, value);
 

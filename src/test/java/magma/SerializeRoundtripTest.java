@@ -45,7 +45,7 @@ public class SerializeRoundtripTest {
 
 	// Helper to assert Result is Ok and extract value
 	private static <T> T assertOkExtract(Result<T, CompileError> result) {
-		assertInstanceOf(Ok<?, ?>.class, result, () -> "Expected Ok but got: " + result);
+		assertInstanceOf(Ok.class, result, () -> "Expected Ok but got: " + result);
 		return ((Ok<T, CompileError>) result).value();
 	}
 
