@@ -48,7 +48,7 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation,
-			JString, JSubtract, Not, Switch {}
+			JString, JSubtract, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
@@ -332,6 +332,9 @@ public class Lang {
 
 	@Tag("index")
 	public record Index(JExpression child, JExpression index) implements JExpression {}
+
+	@Tag("quantity")
+	public record Quantity(JExpression child) implements JExpression {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
