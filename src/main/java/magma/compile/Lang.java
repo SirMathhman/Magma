@@ -365,8 +365,9 @@ public class Lang {
 		final NodeRule definition = new NodeRule("definition", CDefinition());
 		final Rule params = Expressions("params", Or(CFunctionPointerDefinition(), CDefinition()));
 		final Rule body = Statements("body", CFunctionSegment());
-		final Rule functionDecl =
-				First(Suffix(First(definition, "(", params), ")"), " {", Suffix(body, System.lineSeparator() + "}"));
+		final Rule suffix = Suffix(First(definition, "(", params), ")");
+		final Rule suffix1 = Suffix(body, System.lineSeparator() + "}");
+		final Rule functionDecl = First(suffix, " {", suffix1);
 
 		// Add template declaration only if type parameters exist (non-empty list)
 		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", Identifier()));
