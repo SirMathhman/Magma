@@ -9,12 +9,12 @@ import java.util.Comparator;
 
 public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 	public ArrayList() {
-		this(new java.util.ArrayList<>());
+		this(new java.util.ArrayList<T>());
 	}
 
 	@Override
 	public Stream<T> stream() {
-		return new HeadedStream<>(new RangeHead(elements.size())).map(elements::get);
+		return new HeadedStream<Integer>(new RangeHead(elements.size())).map(elements::get);
 	}
 
 	@Override
@@ -25,7 +25,7 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public List<T> copy() {
-		return new ArrayList<>(new java.util.ArrayList<>(elements));
+		return new ArrayList<T>(new java.util.ArrayList<T>(elements));
 	}
 
 	@Override
@@ -62,9 +62,15 @@ public record ArrayList<T>(java.util.List<T> elements) implements List<T> {
 
 	@Override
 	public Option<Tuple<List<T>, T>> pop() {
-		if (elements.isEmpty()) return new None<>();
+		if (elements.isEmpty()) return new None<Tuple<List<T>, T>>();
 
 		final T last = elements.removeLast();
-		return new Some<>(new Tuple<>(this, last));
+		return new Some<Tuple<List<T>, T>>(new Tuple<List<T>, T>(this, last));
+	}
+
+	@Override
+	public T getFirstOrNull() {
+		if (elements.isEmpty()) return null;
+		return elements.getFirst();
 	}
 }
