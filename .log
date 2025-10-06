@@ -113,251 +113,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 				"@type": "class",
 				"modifiers": "@Actual\r\npublic",
 				"name": "JavaSerializer",
-				"children": [
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "whitespace"
-					}
-				]
+				"children": [...]
 			},
 			{
 				"@type": "whitespace"
@@ -377,2126 +133,243 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 				"children": [
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserialize",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serialize",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeValue",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeRecord",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(result)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeOptionField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeOptionListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "listType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "content",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeListElements",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(nodes)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "elementClass",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "list",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeValue",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "directResult",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryDirectPermittedSubclasses",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryNestedSealedInterfaces",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTagsList",
-								"type": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findNestedSealedDeserialization",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryDeserializeNestedSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Some<>(recursiveResult)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Some<>(recursiveResult)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "permitted",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getSuggestionForUnknownTag",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTags",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findClosestTag",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "closest",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTags",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "levenshteinDistance",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "dp[s1.length()][s2.length()]",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "s1",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s2",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "fillLevenshteinRow",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "dp",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s1",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s2",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "i",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "collectAllValidTags",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "tags",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "sealedType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "canMatchType",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "sealedType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeRecord",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Object[components.length]",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "HashSet<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "try",
-								"child": {...}
-							},
-							{
-								"@type": "catch",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeStringField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeOptionField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(Option.empty())",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeOptionListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(Option.empty())",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "listType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeListElements",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(results)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "elementClass",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeList",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "createNodeWithType",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Node()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "mergeNodes",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Node()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "assignment",
-								"location": {...},
-								"value": {...}
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "result",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "base",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "addition",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getGenericArgument",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "erase",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Ok<>(clazz)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(raw)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "resolveTypeIdentifier",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Option.of(annotation.value())",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findStringInChildren",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "block",
-								"children": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findStringInNodeLists",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "searchChildrenList",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "children",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "shouldBeDeserializableAs",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "targetClass",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "validateAllFieldsConsumed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "HashSet<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "HashSet<>(allFields)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "targetClass",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getStringKeys",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "node.getStringKeys()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "whitespace"
@@ -2511,2126 +384,243 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 					"children": [
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserialize",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serialize",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeRecord",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(result)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeOptionField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeOptionListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "listType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "content",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeListElements",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(nodes)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "elementClass",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "list",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "directResult",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDirectPermittedSubclasses",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryNestedSealedInterfaces",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTagsList",
-									"type": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findNestedSealedDeserialization",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDeserializeNestedSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Some<>(recursiveResult)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Some<>(recursiveResult)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "permitted",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getSuggestionForUnknownTag",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTags",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findClosestTag",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "closest",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTags",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "levenshteinDistance",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "dp[s1.length()][s2.length()]",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "s1",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s2",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "fillLevenshteinRow",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "dp",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s1",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s2",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "i",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "collectAllValidTags",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "tags",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "sealedType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "canMatchType",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "sealedType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeRecord",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Object[components.length]",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "HashSet<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "try",
-									"child": {...}
-								},
-								{
-									"@type": "catch",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeStringField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeOptionField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(Option.empty())",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeOptionListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(Option.empty())",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "listType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeListElements",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(results)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "elementClass",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeList",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "createNodeWithType",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Node()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "mergeNodes",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Node()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "assignment",
-									"location": {...},
-									"value": {...}
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "result",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "base",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "addition",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getGenericArgument",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "erase",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Ok<>(clazz)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(raw)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "resolveTypeIdentifier",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Option.of(annotation.value())",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findStringInChildren",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "block",
-									"children": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findStringInNodeLists",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "searchChildrenList",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "children",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "shouldBeDeserializableAs",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "targetClass",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "validateAllFieldsConsumed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "HashSet<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "HashSet<>(allFields)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "targetClass",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getStringKeys",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "node.getStringKeys()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "whitespace"
@@ -4732,251 +722,7 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 				"@type": "class",
 				"modifiers": "@Actual\r\npublic",
 				"name": "JavaSerializer",
-				"children": [
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "method",
-						"definition": {...},
-						"body": [...],
-						"params": [...]
-					},
-					{
-						"@type": "whitespace"
-					}
-				]
+				"children": [...]
 			},
 			{
 				"@type": "whitespace"
@@ -4996,2126 +742,243 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 				"children": [
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserialize",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serialize",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeValue",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeRecord",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(result)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeOptionField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeOptionListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "listType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "content",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "serializeListElements",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(nodes)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "elementClass",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "list",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeValue",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "directResult",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryDirectPermittedSubclasses",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryNestedSealedInterfaces",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "value",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTagsList",
-								"type": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findNestedSealedDeserialization",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "tryDeserializeNestedSealed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Some<>(recursiveResult)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Some<>(recursiveResult)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "None<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "permitted",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getSuggestionForUnknownTag",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTags",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findClosestTag",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "closest",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "validTags",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "levenshteinDistance",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "dp[s1.length()][s2.length()]",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "s1",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s2",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "fillLevenshteinRow",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "dp",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s1",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "s2",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "i",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "collectAllValidTags",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "tags",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "sealedType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "canMatchType",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "sealedType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeType",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeRecord",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Object[components.length]",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "HashSet<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "try",
-								"child": {...}
-							},
-							{
-								"@type": "catch",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeStringField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeOptionField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(Option.empty())",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeOptionListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(Option.empty())",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "fieldName",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "listType",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeListField",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Err<>(error)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "else",
-								"child": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "component",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "deserializeListElements",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "ArrayList<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(results)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "elementClass",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "nodeList",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "createNodeWithType",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Node()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "mergeNodes",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Node()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "assignment",
-								"location": {...},
-								"value": {...}
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "result",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "base",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "addition",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getGenericArgument",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "erase",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "Ok<>(clazz)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Ok<>(raw)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "type",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "resolveTypeIdentifier",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "Option.of(annotation.value())",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "clazz",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findStringInChildren",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "block",
-								"children": [...]
-							},
-							{
-								"@type": "return",
-								"value": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "findStringInNodeLists",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "searchChildrenList",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "initialization",
-								"definition": {...},
-								"value": {...}
-							},
-							{
-								"@type": "while",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "children",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "key",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "shouldBeDeserializableAs",
-							"type": {...},
-							"modifiers": [...]
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "false",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "targetClass",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "validateAllFieldsConsumed",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "HashSet<>()",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "definition",
-								"name": "HashSet<>(allFields)",
-								"type": {...},
-								"modifiers": [...]
-							},
-							{
-								"@type": "invocation",
-								"caller": {...},
-								"arguments": [...]
-							},
-							{
-								"@type": "if",
-								"body": {...},
-								"condition": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "Option.empty()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "consumedFields",
-								"type": {...}
-							},
-							{
-								"@type": "definition",
-								"name": "targetClass",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "method",
-						"definition": {
-							"@type": "definition",
-							"name": "getStringKeys",
-							"type": {...}
-						},
-						"body": [
-							{
-								"@type": "definition",
-								"name": "node.getStringKeys()",
-								"type": {...}
-							},
-							{
-								"@type": "whitespace"
-							}
-						],
-						"params": [
-							{
-								"@type": "definition",
-								"name": "node",
-								"type": {...}
-							}
-						]
+						"definition": {...},
+						"body": [...],
+						"params": [...]
 					},
 					{
 						"@type": "whitespace"
@@ -7130,2126 +993,243 @@ Failed to compile .\src\main\java\magma\compile\JavaSerializer.java: 0) Failed t
 					"children": [
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserialize",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serialize",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeRecord",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(result)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeOptionField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeOptionListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "listType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "content",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "serializeListElements",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(nodes)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "elementClass",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "list",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeValue",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "directResult",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDirectPermittedSubclasses",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryNestedSealedInterfaces",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "value",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTagsList",
-									"type": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findNestedSealedDeserialization",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "tryDeserializeNestedSealed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Some<>(recursiveResult)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Some<>(recursiveResult)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "None<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "permitted",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getSuggestionForUnknownTag",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTags",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findClosestTag",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "closest",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "validTags",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "levenshteinDistance",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "dp[s1.length()][s2.length()]",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "s1",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s2",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "fillLevenshteinRow",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "dp",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s1",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "s2",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "i",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "collectAllValidTags",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "tags",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "sealedType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "canMatchType",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "sealedType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeType",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeRecord",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Object[components.length]",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "HashSet<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "try",
-									"child": {...}
-								},
-								{
-									"@type": "catch",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeStringField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeOptionField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(Option.empty())",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeOptionListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(Option.empty())",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "fieldName",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "listType",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeListField",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Err<>(error)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "else",
-									"child": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "component",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "deserializeListElements",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "ArrayList<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(results)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "elementClass",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "nodeList",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "createNodeWithType",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Node()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "mergeNodes",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Node()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "assignment",
-									"location": {...},
-									"value": {...}
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "result",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "base",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "addition",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getGenericArgument",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "erase",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "Ok<>(clazz)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Ok<>(raw)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "type",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "resolveTypeIdentifier",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "Option.of(annotation.value())",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "clazz",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findStringInChildren",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "block",
-									"children": [...]
-								},
-								{
-									"@type": "return",
-									"value": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "findStringInNodeLists",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "searchChildrenList",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "initialization",
-									"definition": {...},
-									"value": {...}
-								},
-								{
-									"@type": "while",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "children",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "key",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "shouldBeDeserializableAs",
-								"type": {...},
-								"modifiers": [...]
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "false",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "targetClass",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "validateAllFieldsConsumed",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "HashSet<>()",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "definition",
-									"name": "HashSet<>(allFields)",
-									"type": {...},
-									"modifiers": [...]
-								},
-								{
-									"@type": "invocation",
-									"caller": {...},
-									"arguments": [...]
-								},
-								{
-									"@type": "if",
-									"body": {...},
-									"condition": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "Option.empty()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "consumedFields",
-									"type": {...}
-								},
-								{
-									"@type": "definition",
-									"name": "targetClass",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "method",
-							"definition": {
-								"@type": "definition",
-								"name": "getStringKeys",
-								"type": {...}
-							},
-							"body": [
-								{
-									"@type": "definition",
-									"name": "node.getStringKeys()",
-									"type": {...}
-								},
-								{
-									"@type": "whitespace"
-								}
-							],
-							"params": [
-								{
-									"@type": "definition",
-									"name": "node",
-									"type": {...}
-								}
-							]
+							"definition": {...},
+							"body": [...],
+							"params": [...]
 						},
 						{
 							"@type": "whitespace"

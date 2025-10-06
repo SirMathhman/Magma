@@ -16,7 +16,7 @@ public final class Node {
 	private final Map<String, String> strings = new HashMap<>();
 	public Option<String> maybeType = Option.empty();
 
-	private static final int MAX_FORMAT_LEVEL = 3;
+	private static final int MAX_FORMAT_LEVEL = 2;
 
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
