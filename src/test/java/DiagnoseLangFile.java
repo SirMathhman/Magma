@@ -28,12 +28,13 @@ public class DiagnoseLangFile {
 
 			Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
 
-		if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
-			System.err.println("❌ Lexing failed: " + error.display());
-			fail("Lexing should succeed");
-		}
+			if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
+				System.err.println("❌ Lexing failed: " + error.display());
+				fail("Lexing should succeed");
+			}
 
-		assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");			Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+			assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");
+			Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 			Node lexedNode = nodeCompileErrorOk.value();
 			System.out.println("\n✅ Lexing succeeded");
 
@@ -67,7 +68,8 @@ public class DiagnoseLangFile {
 				System.err.println("❌ Deserialization failed:");
 				System.err.println(error.display());
 				// Don't fail the test - we expect this to fail
-			} else System.out.println("✅ Deserialization succeeded!");
+			} else
+				System.out.println("✅ Deserialization succeeded!");
 		} catch (Exception e) {
 			fail("Unexpected exception: " + e.getMessage());
 		}

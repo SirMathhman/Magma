@@ -39,7 +39,8 @@ public class DebugPlaceholderTest {
 		String indent = "  ".repeat(depth);
 		System.out.println(indent + "Node:");
 
-		if (node.maybeType instanceof Some<?>(Object type)) System.out.println(indent + "  @type: " + type);
+		if (node.maybeType instanceof Some<?>(Object type))
+			System.out.println(indent + "  @type: " + type);
 
 		// Print string fields
 		printStringFields(node, indent);

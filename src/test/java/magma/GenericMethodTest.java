@@ -51,9 +51,11 @@ public class GenericMethodTest {
 				if (transformResult instanceof Ok<Lang.CRoot, CompileError>(Lang.CRoot cppRoot)) {
 					System.out.println("✅ Transform SUCCESS");
 					System.out.println("CRoot children count: " + cppRoot.children().size());
-				} else System.out.println("❌ Transform FAILED: " + transformResult);
-		} else if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error))
-			System.out.println("❌ Deserialization FAILED: " + error);
-	} else if (lexResult instanceof Err<Node, CompileError>(CompileError error)) System.out.println("❌ Lexing FAILED: " + error);
+				} else
+					System.out.println("❌ Transform FAILED: " + transformResult);
+			} else if (deserializeResult instanceof Err<JRoot, CompileError>(CompileError error))
+				System.out.println("❌ Deserialization FAILED: " + error);
+		} else if (lexResult instanceof Err<Node, CompileError>(CompileError error))
+			System.out.println("❌ Lexing FAILED: " + error);
 	}
 }

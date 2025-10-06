@@ -41,21 +41,22 @@ public class ValidationDemonstrationTest {
 		System.out.println("=== Demonstrating Validation Catches Type Mismatch ===");
 		System.out.println("Creating a record with Option<String> body field...");
 
-	Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
-	assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
+		assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk.value();// Find the method node
 		Result<Lang.JRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JRoot.class, value);
 
 		if (rootResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot root)) {
 			// Find the method node
 			List<Lang.Method> methods = root.children()
-																			.stream()
-																			.filter(child -> child instanceof Lang.JClass)
-																			.map(child -> (Lang.JClass) child)
-																			.flatMap(jClass -> jClass.children().stream())
-																			.filter(seg -> seg instanceof Lang.Method)
-																			.map(seg -> (Lang.Method) seg)
-																			.toList();
+					.stream()
+					.filter(child -> child instanceof Lang.JClass)
+					.map(child -> (Lang.JClass) child)
+					.flatMap(jClass -> jClass.children().stream())
+					.filter(seg -> seg instanceof Lang.Method)
+					.map(seg -> (Lang.Method) seg)
+					.toList();
 			if (!methods.isEmpty()) {
 				Lang.Method method = methods.getOrNull(0);
 				System.out.println("Found method: " + method.definition().name());

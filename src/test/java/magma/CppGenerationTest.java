@@ -29,9 +29,10 @@ public class CppGenerationTest {
 		System.out.println("=== Testing Simple Java Class Lexing ===");
 		System.out.println("Input: " + input);
 
-	Result<Node, CompileError> lexResult = JRoot().lex(input);
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
 
-	assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk.value();
 		System.out.println("Lexed Node:");
 		System.out.println(value.format(0));
@@ -57,9 +58,10 @@ public class CppGenerationTest {
 		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk.value();
 		{
-		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
 
-		assertInstanceOf(Ok.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);			Ok<JRoot, CompileError> jRootCompileErrorOk = (Ok<JRoot, CompileError>) deserializeResult;
+			assertInstanceOf(Ok.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
+			Ok<JRoot, CompileError> jRootCompileErrorOk = (Ok<JRoot, CompileError>) deserializeResult;
 			JRoot javaRoot = jRootCompileErrorOk.value();
 			System.out.println("Deserialized JavaRoot:");
 			System.out.println("Children count: " + javaRoot.children().size());
@@ -93,17 +95,18 @@ public class CppGenerationTest {
 				}
 				""";
 
-	System.out.println("=== Testing Java to C++ Transformation ===");
+		System.out.println("=== Testing Java to C++ Transformation ===");
 
-	Result<Node, CompileError> lexResult = JRoot().lex(input);
-	assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk.value();
 		{
-				Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
-				assertInstanceOf(Ok.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
+			assertInstanceOf(Ok.class, deserializeResult, () -> "Deserialization failed: " + deserializeResult);
 
-				Ok<JRoot, CompileError> jRootCompileErrorOk = (Ok<JRoot, CompileError>) deserializeResult;
-				JRoot javaRoot = jRootCompileErrorOk.value();
+			Ok<JRoot, CompileError> jRootCompileErrorOk = (Ok<JRoot, CompileError>) deserializeResult;
+			JRoot javaRoot = jRootCompileErrorOk.value();
 			{
 				System.out.println("JavaRoot children count: " + javaRoot.children().size());
 				javaRoot.children().stream().forEach(child -> {
@@ -112,12 +115,14 @@ public class CppGenerationTest {
 						System.out.println("    Record name: " + record.name());
 						System.out.println("    Record params: " + record.params());
 						System.out.println("    Record children count: " + record.children().size());
-						record.children().stream().forEach(structChild -> System.out.println("      Record child: " + structChild.getClass().getSimpleName()));
+						record.children().stream().forEach(
+								structChild -> System.out.println("      Record child: " + structChild.getClass().getSimpleName()));
 					}
 				});
 
-					Result<CRoot, CompileError> transformResult = Transformer.transform(javaRoot);
-					assertInstanceOf(Ok.class, transformResult, () -> "Transform failed: " + transformResult);				Ok<CRoot, CompileError> cRootCompileErrorOk = (Ok<CRoot, CompileError>) transformResult;
+				Result<CRoot, CompileError> transformResult = Transformer.transform(javaRoot);
+				assertInstanceOf(Ok.class, transformResult, () -> "Transform failed: " + transformResult);
+				Ok<CRoot, CompileError> cRootCompileErrorOk = (Ok<CRoot, CompileError>) transformResult;
 				CRoot cppRoot = cRootCompileErrorOk.value();
 				System.out.println("Transformed CRoot:");
 				System.out.println("C++ segments count: " + cppRoot.children().size());
@@ -149,10 +154,11 @@ public class CppGenerationTest {
 				}
 				""";
 
-	System.out.println("=== Testing C++ Serialization ===");
+		System.out.println("=== Testing C++ Serialization ===");
 
-	Result<Node, CompileError> lexResult = JRoot().lex(input);
-	assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);		Ok<Node, CompileError> nodeCompileErrorOk1 = (Ok<Node, CompileError>) lexResult;
+		Result<Node, CompileError> lexResult = JRoot().lex(input);
+		assertInstanceOf(Ok.class, lexResult, () -> "Lexing failed: " + lexResult);
+		Ok<Node, CompileError> nodeCompileErrorOk1 = (Ok<Node, CompileError>) lexResult;
 		Node value = nodeCompileErrorOk1.value();
 		{
 			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, value);
@@ -167,9 +173,10 @@ public class CppGenerationTest {
 				Ok<CRoot, CompileError> cRootCompileErrorOk = (Ok<CRoot, CompileError>) transformResult;
 				CRoot cppRoot = cRootCompileErrorOk.value();
 				{
-				Result<Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cppRoot);
+					Result<Node, CompileError> serializeResult = JavaSerializer.serialize(CRoot.class, cppRoot);
 
-				assertInstanceOf(Ok.class, serializeResult, () -> "C++ Serialization failed: " + serializeResult);					Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) serializeResult;
+					assertInstanceOf(Ok.class, serializeResult, () -> "C++ Serialization failed: " + serializeResult);
+					Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) serializeResult;
 					Node serializedNode = nodeCompileErrorOk.value();
 					System.out.println("Serialized C++ Node:");
 					System.out.println(serializedNode.format(0));

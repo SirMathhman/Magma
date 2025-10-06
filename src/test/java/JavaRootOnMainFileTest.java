@@ -58,7 +58,8 @@ public class JavaRootOnMainFileTest {
 
 			// Assert that lexing succeeded
 			assertInstanceOf(Ok.class, lexResult, () -> {
-				if (lexResult instanceof Err<Node, CompileError>(CompileError error)) return "Lexing Main.java failed: " + error;
+				if (lexResult instanceof Err<Node, CompileError>(CompileError error))
+					return "Lexing Main.java failed: " + error;
 				return "Lexing Main.java failed";
 			});
 		});

@@ -35,15 +35,15 @@ public class DebugMethodBodyTest {
 		System.out.println("\n=== Deserializing ===");
 		Result<Lang.JRoot, ?> result = JavaSerializer.deserialize(Lang.JRoot.class, lexed);
 
-	if (result instanceof Ok<Lang.JRoot, ?>(Lang.JRoot root)) {
-		System.out.println("✅ Deserialization successful");
-		System.out.println("JavaRoot children: " + root.children().size());
+		if (result instanceof Ok<Lang.JRoot, ?>(Lang.JRoot root)) {
+			System.out.println("✅ Deserialization successful");
+			System.out.println("JavaRoot children: " + root.children().size());
 
-		processRootChildren(root);
-	} else if (result instanceof Err(Object err)) {
-		System.out.println("❌ Deserialization failed: " + err);
-		fail("Deserialization should succeed");
-	}
+			processRootChildren(root);
+		} else if (result instanceof Err(Object err)) {
+			System.out.println("❌ Deserialization failed: " + err);
+			fail("Deserialization should succeed");
+		}
 	}
 
 	private void processRootChildren(Lang.JRoot root) {
@@ -73,7 +73,8 @@ public class DebugMethodBodyTest {
 						System.out.println("Body list size: " + list.size());
 						printBodyList(list);
 					}
-				} else System.out.println("❌ Body is None!");
+				} else
+					System.out.println("❌ Body is None!");
 			}
 		}
 	}

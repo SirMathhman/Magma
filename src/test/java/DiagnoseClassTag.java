@@ -34,12 +34,13 @@ public class DiagnoseClassTag {
 
 		Result<Node, CompileError> lexResult = Lang.JRoot().lex(input);
 
-	if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
-		System.err.println("❌ Lexing failed: " + error);
-		fail("Lexing should succeed");
-	}
+		if (lexResult instanceof Err<Node, CompileError>(CompileError error)) {
+			System.err.println("❌ Lexing failed: " + error);
+			fail("Lexing should succeed");
+		}
 
-	assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
+		assertInstanceOf(Ok.class, lexResult, "Lexing should succeed");
+		Ok<Node, CompileError> nodeCompileErrorOk = (Ok<Node, CompileError>) lexResult;
 		Node lexedNode = nodeCompileErrorOk.value();
 		System.out.println("\n✅ Lexing succeeded");
 		System.out.println("\nLexed AST:");
@@ -67,6 +68,7 @@ public class DiagnoseClassTag {
 					}
 				}
 			}
-		} else System.out.println("\n✅ Deserialization succeeded!");
+		} else
+			System.out.println("\n✅ Deserialization succeeded!");
 	}
 }
