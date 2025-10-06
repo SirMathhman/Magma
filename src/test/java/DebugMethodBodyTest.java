@@ -26,9 +26,9 @@ public class DebugMethodBodyTest {
 		} Node lexed = ((Ok<Node, ?>) lexResult).value(); System.out.println("Lexed successfully");
 
 		System.out.println("\n=== Deserializing ===");
-		Result<Lang.JavaRoot, ?> result = JavaSerializer.deserialize(Lang.JavaRoot.class, lexed);
+		Result<Lang.JRoot, ?> result = JavaSerializer.deserialize(Lang.JRoot.class, lexed);
 
-		if (result instanceof Ok<Lang.JavaRoot, ?>(var root)) {
+		if (result instanceof Ok<Lang.JRoot, ?>(var root)) {
 			System.out.println("✅ Deserialization successful");
 			System.out.println("JavaRoot children: " + root.children().size());
 

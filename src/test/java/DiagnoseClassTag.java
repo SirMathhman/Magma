@@ -8,7 +8,8 @@ import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DiagnoseClassTag {
 
@@ -43,9 +44,9 @@ public class DiagnoseClassTag {
 			System.out.println(lexedNode.format(0));
 
 			// Now deserialize and see what happens
-			Result<Lang.JavaRoot, CompileError> deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, lexedNode);
+			Result<Lang.JRoot, CompileError> deserResult = JavaSerializer.deserialize(Lang.JRoot.class, lexedNode);
 
-			if (deserResult instanceof Err<Lang.JavaRoot, CompileError>(CompileError error)) {
+			if (deserResult instanceof Err<Lang.JRoot, CompileError>(CompileError error)) {
 				System.err.println("\n❌ Deserialization failed:");
 				System.err.println(error.display());
 

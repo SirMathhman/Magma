@@ -32,10 +32,10 @@ public class DebugFunctionPointerTest {
 			System.out.println("\n=== Lexed Node ===");
 			System.out.println(lexOk.value().format(0));
 
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("\n=== Deserialized JavaRoot ===");
 				deserOk.value().children().forEach(child -> {
 					System.out.println("Child: " + child.getClass().getSimpleName());

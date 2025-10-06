@@ -55,11 +55,11 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("Deserialized JavaRoot:");
 				System.out.println("Children count: " + deserOk.value().children().size());
 
@@ -99,10 +99,10 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
 					System.out.println("  JavaRoot child: " + child.getClass().getSimpleName());
@@ -157,10 +157,10 @@ public class CppGenerationTest {
 		assertTrue(lexResult instanceof Ok<?, ?>, () -> "Lexing failed: " + lexResult);
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 			assertTrue(deserializeResult instanceof Ok<?, ?>, () -> "Deserialization failed: " + deserializeResult);
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				Result<CRoot, CompileError> transformResult = Main.transform(deserOk.value());
 				assertTrue(transformResult instanceof Ok<?, ?>, () -> "Transform failed: " + transformResult);
 

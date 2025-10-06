@@ -24,10 +24,10 @@ public class MainIntegrationTest {
 
 		Node node = ((Ok<Node, CompileError>) lex).value();
 
-		Result<Lang.JavaRoot, CompileError> des = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
+		Result<Lang.JRoot, CompileError> des = JavaSerializer.deserialize(Lang.JRoot.class, node);
 		assertTrue(des instanceof Ok<?, ?>, () -> "Deserialization failed: " + des);
 
-		Lang.JavaRoot javaRoot = ((Ok<Lang.JavaRoot, CompileError>) des).value();
+		Lang.JRoot javaRoot = ((Ok<Lang.JRoot, CompileError>) des).value();
 		assertNotNull(javaRoot.children());
 		assertFalse(javaRoot.children().isEmpty(), "JavaRoot should contain at least one child (the class)");
 	}

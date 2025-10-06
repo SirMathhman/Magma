@@ -95,9 +95,9 @@ public class SealedInterfaceDeserializationTest {
 
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("Trying to deserialize full JavaRoot...");
-			Result<JavaRoot, CompileError> javaRootResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> javaRootResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 
-			if (javaRootResult instanceof Ok<JavaRoot, CompileError> javaRootOk) {
+			if (javaRootResult instanceof Ok<JRoot, CompileError> javaRootOk) {
 				System.out.println("✅ JavaRoot deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + javaRootOk.value().children().size());
 				javaRootOk.value().children().forEach(child -> {
@@ -106,7 +106,7 @@ public class SealedInterfaceDeserializationTest {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});
-			} else if (javaRootResult instanceof Err<JavaRoot, CompileError> javaRootErr) {
+			} else if (javaRootResult instanceof Err<JRoot, CompileError> javaRootErr) {
 				System.out.println("❌ JavaRoot deserialization FAILED: " + javaRootErr.error());
 			}
 		}

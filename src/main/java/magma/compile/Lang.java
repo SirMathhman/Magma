@@ -87,9 +87,11 @@ public class Lang {
 
 	public sealed interface CaseExprValue permits ExprCaseExprValue, StatementCaseExprValue {}
 
-	public sealed interface LambdaValue {}
+	public sealed interface LambdaValue permits ExprLambdaValue, StatementLambdaValue {}
 
-	public sealed interface LambdaParamSet {}
+	public sealed interface LambdaParamSet permits EmptyLambdaParam, MultipleLambdaParam, SingleLambdaParam {}
+
+	public sealed interface MethodAccessSource permits ExprMethodAccessSource, TypeMethodAccessSource {}
 
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
@@ -280,7 +282,7 @@ public class Lang {
 	@Tag("placeholder")
 	public record Placeholder(String value) implements JMethodSegment, CFunctionSegment {}
 
-	public record JavaRoot(List<JavaRootSegment> children) {}
+	public record JRoot(List<JavaRootSegment> children) {}
 
 	public record CRoot(List<CRootSegment> children) {}
 
@@ -422,13 +424,16 @@ public class Lang {
 	public record SingleLambdaParam(String param) implements LambdaParamSet {}
 
 	@Tag("multiple")
-	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {
+	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {}
 
-	}
+	@Tag("expr-method-access-source")
+	public record ExprMethodAccessSource(JExpression child) implements MethodAccessSource {}
+
+	@Tag("type-method-access-source")
+	public record TypeMethodAccessSource(JType child) implements MethodAccessSource {}
 
 	@Tag("method-access")
-	public record MethodAccess(String name, JExpression child) implements JExpression {
-	}
+	public record MethodAccess(String name, MethodAccessSource source) implements JExpression {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
@@ -683,7 +688,7 @@ public class Lang {
 											Index(expression),
 											Invokable(expression),
 											FieldAccess(expression),
-											Tag("method-access", Last(Node("child", expression), "::", StrippedIdentifier("name"))),
+											MethodAccess(expression),
 											InstanceOf(expression),
 											Operator("add", "+", expression),
 											Operator("subtract", "-", expression),
@@ -695,6 +700,12 @@ public class Lang {
 											Operator("greater-than-equals", ">=", expression),
 											Identifier()));
 		return expression;
+	}
+
+	private static Rule MethodAccess(LazyRule expression) {
+		final Rule exprSource = Tag("expr-method-access-source", Node("child", expression));
+		final Rule child = Tag("type-method-access-source", Node("child", expression));
+		return Tag("method-access", Last(Node("source", Or(exprSource, child)), "::", StrippedIdentifier("name")));
 	}
 
 	private static Rule CaseExprValue(Rule statement, LazyRule expression) {

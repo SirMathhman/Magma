@@ -126,13 +126,13 @@ public class Main {
 
 	public static Result<String, CompileError> compile(String input) {
 		return JRoot().lex(input)
-									.flatMap(node -> Serializers.deserialize(JavaRoot.class, node))
+									.flatMap(node -> Serializers.deserialize(JRoot.class, node))
 									.flatMap(Main::transform)
 									.flatMap(cRoot -> Serializers.serialize(CRoot.class, cRoot))
 									.flatMap(CRoot()::generate);
 	}
 
-	public static Result<CRoot, CompileError> transform(JavaRoot node) {
+	public static Result<CRoot, CompileError> transform(JRoot node) {
 		return new Ok<>(new CRoot(node.children()
 																	.stream()
 																	.map(Main::flattenRootSegment)

@@ -8,7 +8,6 @@ import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
 import static magma.compile.Lang.JRoot;
-import static magma.compile.Lang.JavaRoot;
 
 public class PackageImportRecordTest {
 
@@ -32,8 +31,8 @@ public class PackageImportRecordTest {
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
@@ -42,7 +41,7 @@ public class PackageImportRecordTest {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+			} else if (deserializeResult instanceof Err<JRoot, CompileError> err) {
 				System.out.println("❌ Deserialization FAILED: " + err.error());
 			}
 		} else if (lexResult instanceof Err<?, ?> err) {
@@ -66,8 +65,8 @@ public class PackageImportRecordTest {
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {
@@ -76,7 +75,7 @@ public class PackageImportRecordTest {
 						System.out.println("    ✅ Found Record: " + record.name());
 					}
 				});
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+			} else if (deserializeResult instanceof Err<JRoot, CompileError> err) {
 				System.out.println("❌ Deserialization FAILED: " + err.error());
 			}
 		} else if (lexResult instanceof Err<?, ?> err) {

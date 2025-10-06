@@ -26,12 +26,12 @@ public class IfStatementTest {
 
 		if (lexResult instanceof Ok<Node, CompileError>(var node)) {
 			System.out.println("=== Lexed node structure ==="); System.out.println(node); System.out.println();
-			var deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
+			var deserResult = JavaSerializer.deserialize(Lang.JRoot.class, node);
 			System.out.println("Deserialization result: " + deserResult);
 
-			if (deserResult instanceof Ok<Lang.JavaRoot, CompileError>) {
+			if (deserResult instanceof Ok<Lang.JRoot, CompileError>) {
 				fail("Deserialization should have failed due to unknown 'if' tag!");
-			} else if (deserResult instanceof Err<Lang.JavaRoot, CompileError>(var err)) {
+			} else if (deserResult instanceof Err<Lang.JRoot, CompileError>(var err)) {
 				System.out.println("✅ Deserialization correctly failed!"); System.out.println("Error: " + err.display());
 
 				// Check that the error mentions the 'if' tag

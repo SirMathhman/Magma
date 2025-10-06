@@ -45,9 +45,9 @@ public class ValidationDemonstrationTest {
 
 		if (lexResult instanceof Ok<Node, CompileError>(Node value)) {
 			// Find the method node
-			Result<Lang.JavaRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JavaRoot.class, value);
+			Result<Lang.JRoot, CompileError> rootResult = JavaSerializer.deserialize(Lang.JRoot.class, value);
 
-			if (rootResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot root)) {
+			if (rootResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot root)) {
 				// Find the method node
 				root.children()
 						.stream()

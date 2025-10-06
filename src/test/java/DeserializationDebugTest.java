@@ -28,9 +28,9 @@ public class DeserializationDebugTest {
 			System.out.println(node.format(0));
 
 			// Step 2: Try to deserialize
-			Result<Lang.JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
+			Result<Lang.JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(Lang.JRoot.class, node);
 
-			if (deserializeResult instanceof Ok<Lang.JavaRoot, CompileError>(Lang.JavaRoot javaRoot)) {
+			if (deserializeResult instanceof Ok<Lang.JRoot, CompileError>(Lang.JRoot javaRoot)) {
 				System.out.println("\n=== Deserialization Success ===");
 				System.out.println("JavaRoot children count: " + javaRoot.children().size());
 

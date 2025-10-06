@@ -7,7 +7,8 @@ import magma.result.Ok;
 import magma.result.Result;
 import org.junit.jupiter.api.Test;
 
-import static magma.compile.Lang.*;
+import static magma.compile.Lang.CRoot;
+import static magma.compile.Lang.JRoot;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -45,8 +46,8 @@ public class RealSomeJavaTest {
 		if (lexResult instanceof Ok<magma.compile.Node, CompileError> lexOk) {
 			System.out.println("✅ Lexing SUCCESS");
 
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization SUCCESS");
 				System.out.println("JavaRoot children count: " + deserOk.value().children().size());
 				deserOk.value().children().forEach(child -> {

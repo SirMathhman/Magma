@@ -44,14 +44,14 @@ public class DiagnoseMain {
 			}
 
 			// Step 2: Deserialize to JavaRoot
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexedNode);
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
 			if (deserializeResult instanceof Err<?, ?> err) {
 				System.err.println("❌ DESERIALIZATION FAILED: " + err.error());
 				fail("Deserialization failed: " + err.error());
 			}
 
 			assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
-			JavaRoot javaRoot = ((Ok<JavaRoot, CompileError>) deserializeResult).value();
+			JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 			System.out.println("✅ Deserialization succeeded");
 			System.out.println("JavaRoot children count: " + javaRoot.children().size());
 

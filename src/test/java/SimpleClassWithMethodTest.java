@@ -34,13 +34,13 @@ public class SimpleClassWithMethodTest {
 		System.out.println("\n✅ Lexing succeeded"); System.out.println("\nLexed structure:");
 		System.out.println(lexedNode.format(0));
 
-		Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexedNode);
+		Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexedNode);
 		if (deserializeResult instanceof Err<?, ?> err) {
 			System.err.println("\n❌ DESERIALIZATION FAILED: " + err.error()); fail("Deserialization failed: " + err.error());
 		}
 
 		assertTrue(deserializeResult instanceof Ok<?, ?>, "Deserialization should succeed");
-		JavaRoot javaRoot = ((Ok<JavaRoot, CompileError>) deserializeResult).value();
+		JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 		System.out.println("\n✅ Deserialization succeeded");
 		System.out.println("JavaRoot children count: " + javaRoot.children().size());
 

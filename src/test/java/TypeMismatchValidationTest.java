@@ -40,9 +40,9 @@ public class TypeMismatchValidationTest {
 			System.out.println("✅ Lexing succeeded");
 
 			// Try to deserialize - this should succeed with our fix
-			Result<JavaRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JavaRoot.class, lexOk.value());
+			Result<JRoot, CompileError> deserializeResult = JavaSerializer.deserialize(JRoot.class, lexOk.value());
 
-			if (deserializeResult instanceof Ok<JavaRoot, CompileError> deserOk) {
+			if (deserializeResult instanceof Ok<JRoot, CompileError> deserOk) {
 				System.out.println("✅ Deserialization succeeded (as expected with correct types)");
 
 				// Find the method and verify it has a body
@@ -60,7 +60,7 @@ public class TypeMismatchValidationTest {
 										 method.body() instanceof magma.option.Some<?>,
 										 "Method body should be present (as list of JFunctionSegment)");
 							 });
-			} else if (deserializeResult instanceof Err<JavaRoot, CompileError> err) {
+			} else if (deserializeResult instanceof Err<JRoot, CompileError> err) {
 				System.err.println("❌ Deserialization failed: " + err.error());
 				fail("Deserialization should succeed with correct Method type");
 			}

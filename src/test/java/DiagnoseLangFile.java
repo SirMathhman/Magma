@@ -11,7 +11,8 @@ import org.junit.jupiter.api.Test;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 public class DiagnoseLangFile {
 
@@ -59,9 +60,9 @@ public class DiagnoseLangFile {
 
 				// Now try deserialization
 				System.out.println("\n=== Attempting Deserialization ===");
-				Result<Lang.JavaRoot, CompileError> deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, lexedNode);
+				Result<Lang.JRoot, CompileError> deserResult = JavaSerializer.deserialize(Lang.JRoot.class, lexedNode);
 
-				if (deserResult instanceof Err<Lang.JavaRoot, CompileError>(CompileError error)) {
+				if (deserResult instanceof Err<Lang.JRoot, CompileError>(CompileError error)) {
 					System.err.println("❌ Deserialization failed:");
 					System.err.println(error.display());
 					// Don't fail the test - we expect this to fail

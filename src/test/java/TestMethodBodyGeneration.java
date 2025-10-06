@@ -18,8 +18,8 @@ public class TestMethodBodyGeneration {
 				""";
 
 		var lexResult = Lang.JRoot().lex(code); if (lexResult instanceof Ok<Node, ?>(var node)) {
-			var deserResult = JavaSerializer.deserialize(Lang.JavaRoot.class, node);
-			if (deserResult instanceof Ok<Lang.JavaRoot, ?>(var root)) {
+			var deserResult = JavaSerializer.deserialize(Lang.JRoot.class, node);
+			if (deserResult instanceof Ok<Lang.JRoot, ?>(var root)) {
 				for (var child : root.children()) {
 					if (child instanceof Lang.JClass jClass) {
 						for (var member : jClass.children()) {
