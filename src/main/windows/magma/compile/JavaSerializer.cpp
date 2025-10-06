@@ -24,7 +24,7 @@ Result<> serializeRecord_JavaSerializer(Class<> type, Object value) {
 	Node result=createNodeWithType(type);
 	/*???*/=new_???();
 	RecordComponent* recordComponents=type.getRecordComponents();
-	int i=0;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	RecordComponent component=/*???*/;/*???*//*???*/
@@ -99,7 +99,7 @@ Result<> deserializeSealed_JavaSerializer(Class<> type, Node node) {
 }
 Option<> tryDirectPermittedSubclasses_JavaSerializer(Class<> type, Node node, char* nodeType) {
 	Class<>* permittedSubclasses=type.getPermittedSubclasses();
-	int i=0;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	Class<> permitted=/*???*/;
@@ -120,7 +120,7 @@ Result<> tryNestedSealedInterfaces_JavaSerializer(Class<> type, Node node, char*
 }
 Option<> findNestedSealedDeserialization_JavaSerializer(Class<> type, Node node, char* nodeType) {
 	Class<>* subclasses=type.getPermittedSubclasses();
-	int j=0;
+	int j=/*???*/;
 	while (/*???*/)
 	{
 	Class<> permitted=/*???*/;
@@ -145,7 +145,7 @@ char* getSuggestionForUnknownTag_JavaSerializer(Class<> type, char* nodeType, Li
 Option<> findClosestTag_JavaSerializer(char* nodeType, List<> validTags) {
 	/*???*/=Option.empty();
 	int minDistance=Integer.MAX_VALUE;
-	int i=0;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	char* tag=validTags.get(i);
@@ -158,18 +158,18 @@ Option<> findClosestTag_JavaSerializer(char* nodeType, List<> validTags) {
 int levenshteinDistance_JavaSerializer(char* s1, char* s2) {
 	int** dp=/*???*/;
 	int bound=s1.length();
-	int i1=0;
+	int i1=/*???*/;
 	while (/*???*/)
 	{
 	/*???*/=i1;
 	i1++;}
 	int bound1=s2.length();
-	int j=0;
+	int j=/*???*/;
 	while (/*???*/)
 	{
 	/*???*/=j;
 	j++;}
-	int i=1;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	fillLevenshteinRow(dp, s1, s2, i);
@@ -177,12 +177,12 @@ int levenshteinDistance_JavaSerializer(char* s1, char* s2) {
 	return /*???*/;
 }
 void fillLevenshteinRow_JavaSerializer(int** dp, char* s1, char* s2, int i) {
-	int j=1;
+	int j=/*???*/;
 	while (/*???*/)
 	{
 	if (s1.charAt(/*???*/)==s2.charAt(/*???*/))/*???*/=/*???*/;
 	else
-	/*???*/=1+Math.min(/*???*/, Math.min(/*???*/, /*???*/));
+	/*???*/=/*???*/+Math.min(/*???*/, Math.min(/*???*/, /*???*/));
 	j++;}
 }
 List<> collectAllValidTags_JavaSerializer(Class<> sealedType) {
@@ -192,7 +192,7 @@ List<> collectAllValidTags_JavaSerializer(Class<> sealedType) {
 }
 boolean canMatchType_JavaSerializer(Class<> sealedType, char* nodeType) {
 	Class<>* permittedSubclasses=sealedType.getPermittedSubclasses();
-	int i=0;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	Class<> permitted=/*???*/;
@@ -214,7 +214,7 @@ Result<> deserializeRecord_JavaSerializer(Class<> type, Node node) {
 	Object* arguments=/*???*/;
 	/*???*/=new_???();
 	/*???*/=new_???();
-	IntStream.range(0, components.length).forEach(/*???*/);
+	IntStream.range(/*???*/, components.length).forEach(/*???*/);
 	/*???*/=validateAllFieldsConsumed(node, consumedFields, type);
 	if (/*???*/)errors.add(error);
 	if (/*???*/.isEmpty())return new_???(new_???(""+type.getSimpleName()+"", new_???(node), errors));/*???*//*???*/
@@ -317,8 +317,8 @@ Result<> deserializeListField_JavaSerializer(RecordComponent component, Node nod
 Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nodeList) {
 	/*???*/=new_???();
 	/*???*/=new_???();
-	int index=0;
-	int i=0;
+	int index=/*???*/;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	Node childNode=nodeList.get(i);
@@ -389,7 +389,7 @@ Option<> findStringInNodeLists_JavaSerializer(Node node, char* key) {
 	return Option.empty();
 }
 Option<> searchChildrenList_JavaSerializer(List<> children, char* key) {
-	int i=0;
+	int i=/*???*/;
 	while (/*???*/)
 	{
 	Node child=children.get(i);

@@ -10,6 +10,9 @@ Rule Filter_FilterRule(Filter filter, Rule rule) {
 Rule Identifier_FilterRule(Rule rule) {
 	return Filter(IdentifierFilter.Identifier, rule);
 }
+Rule Number_FilterRule(Rule rule) {
+	return Filter(NumberFilter.Filter, rule);
+}
 Result<> lex_FilterRule(char* content) {
 	if (filter.test(content))return rule.lex(content);
 	return new_???(new_???(filter.createErrorMessage(), new_???(content)));

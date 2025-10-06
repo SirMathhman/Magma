@@ -169,6 +169,7 @@ struct MultipleLambdaParam {Option<> params;};
 struct ExprMethodAccessSource {JExpression child;};
 struct TypeMethodAccessSource {JType child;};
 struct MethodAccess {char* name;MethodAccessSource source;};
+struct NumberNode {char* number;};
 Rule CRoot_Lang() {
 	return Statements("", Strip("", Or(CStructure(), Function()), ""));
 }
@@ -322,8 +323,11 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	LazyRule expression=new_???();
-	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier()));
+	expression.set(Or(Lambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Identifier(), Number()));
 	return expression;
+}
+Rule Number_Lang() {
+	return Tag("", Strip(FilterRule.Number(String(""))));
 }
 Rule NewArray_Lang(LazyRule expression) {
 	Rule type=Node("", JType());

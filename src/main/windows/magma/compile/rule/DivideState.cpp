@@ -7,13 +7,13 @@ public DivideState_DivideState(StringBuilder buffer, int depth, List<> segments,
 	this.input=input;
 }
 public DivideState_DivideState(char* input) {
-	this(new_???(), 0, new_???(), input);
+	this(new_???(), /*???*/, new_???(), input);
 }
 Stream<> stream_DivideState() {
 	return segments.stream();
 }
 DivideState enter_DivideState() {
-	this.depth=depth+1;
+	this.depth=depth+/*???*/;
 	return this;
 }
 DivideState advance_DivideState() {
@@ -30,10 +30,10 @@ DivideState exit_DivideState() {
 	return this;
 }
 boolean isShallow_DivideState() {
-	return depth==1;
+	return depth==/*???*/;
 }
 boolean isLevel_DivideState() {
-	return depth==0;
+	return depth==/*???*/;
 }
 Option<> pop_DivideState() {
 	if (/*???*/)return Option.empty();

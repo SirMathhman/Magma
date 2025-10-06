@@ -4,14 +4,14 @@ public CompileError_CompileError(char* reason, Context sourceCode) {
 	this(reason, sourceCode, Collections.emptyList());
 }
 char* display_CompileError() {
-	return format(0, new_???());
+	return format(/*???*/, new_???());
 }
 char* format_CompileError(int depth, Stack<> indices) {
 	ArrayList<> copy=new_???(causes);
 	copy.sort(Comparator.comparingInt(/*???*/));
 	char* formattedChildren=joinErrors(depth, indices, copy);
 	char* s;
-	if (depth==0)s="";
+	if (depth==/*???*/)s="";
 	else s=System.lineSeparator()+"".repeat(depth);
 	char* joinedIndices=getCollect(indices);
 	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
@@ -22,19 +22,19 @@ char* getCollect_CompileError(Stack<> indices) {
 	return stringStream.collect(Collectors.joining(""));
 }
 char* joinErrors_CompileError(int depth, Stack<> indices, List<> copy) {
-	IntStream range=IntStream.range(0, copy.size());
+	IntStream range=IntStream.range(/*???*/, copy.size());
 	Stream<> stringStream=range.mapToObj(/*???*/(depth, copy, indices, index));
 	return stringStream.collect(Collectors.joining());
 }
 char* formatChild_CompileError(int depth, List<> copy, Stack<> indices, int last) {
 	CompileError error=copy.get(last);
 	indices.push(last);
-	char* format=error.format(depth+1, indices);
+	char* format=error.format(depth+/*???*/, indices);
 	indices.pop();
 	return format;
 }
 int depth_CompileError() {
 	IntStream intStream=causes.stream().mapToInt(/*???*/);
 	OptionalInt max=intStream.max();
-	return 1+max.orElse(0);
+	return /*???*/+max.orElse(/*???*/);
 }

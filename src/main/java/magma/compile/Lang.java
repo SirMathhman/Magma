@@ -50,7 +50,7 @@ public class Lang {
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
 			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JNotEquals, JOr, JString, JSubtract,
-			Lambda, MethodAccess, NewArray, Not, Quantity, SwitchExpr {}
+			Lambda, MethodAccess, NewArray, Not, NumberNode, Quantity, SwitchExpr {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -451,6 +451,9 @@ public class Lang {
 
 	@Tag("method-access")
 	public record MethodAccess(String name, MethodAccessSource source) implements JExpression {}
+
+	@Tag("number")
+	public record NumberNode(String number) implements JExpression {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));

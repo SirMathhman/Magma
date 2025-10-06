@@ -4,7 +4,7 @@ char* escape_Node(char* value) {
 	return value.replace("", "").replace("", "").replace("", "").replace("", "").replace("", "");
 }
 char* toString_Node() {
-	return format(0);
+	return format(/*???*/);
 }
 Node withString_Node(char* key, char* value) {
 	strings.put(key, value);
@@ -49,11 +49,11 @@ char* format_Node(int depth) {
 }
 char* format_Node(int depth, int maxLevel) {
 	char* indent="".repeat(depth);
-	return indent+appendJsonPure(depth, 0, maxLevel);
+	return indent+appendJsonPure(depth, /*???*/, maxLevel);
 }
 char* appendJsonPure_Node(int indentDepth, int level, int maxLevel) {
 	char* indent="".repeat(indentDepth);
-	char* childIndent="".repeat(indentDepth+1);
+	char* childIndent="".repeat(indentDepth+/*???*/);
 	StringBuilder builder=new_???();
 	builder.append("");
 	boolean* hasFields=/*???*/;
@@ -90,8 +90,8 @@ StringBuilder extracted_Node(int indentDepth, int level, int maxLevel, Entry<> e
 	return builder;
 }
 char* getString_Node(int indentDepth, int level, int maxLevel, Node node) {
-	char* repeat="".repeat(indentDepth+2);
-	char* s=node.appendJsonPure(indentDepth+2, level+1, maxLevel);
+	char* repeat="".repeat(indentDepth+/*???*/);
+	char* s=node.appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel);
 	return repeat+s;
 }
 void extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, boolean* hasFields, StringBuilder builder, char* childIndent) {
@@ -99,7 +99,7 @@ void extracted_Node(int indentDepth, int level, int maxLevel, Entry<> entry, boo
 	else
 	builder.append("");
 	builder.append(childIndent).append('"').append(escape(entry.getKey())).append("");
-	if (/*???*/)builder.append(entry.getValue().appendJsonPure(indentDepth+1, level+1, maxLevel));
+	if (/*???*/)builder.append(entry.getValue().appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel));
 	else
 	builder.append("");
 	/*???*/=true;
