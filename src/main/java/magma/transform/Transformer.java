@@ -64,10 +64,7 @@ public class Transformer {
 			case Lang.JInvocation invocation -> transformInvocation(invocation);
 			case Lang.JConstruction jConstruction -> handleConstruction(jConstruction);
 			case Lang.JDefinition jDefinition -> transformDefinition(jDefinition);
-			case Lang.Catch aCatch -> new Lang.Invalid("???");
-			case Lang.Try aTry -> new Lang.Invalid("???");
-			case Lang.SwitchStatement switchStatement -> new Lang.Invalid("???");
-			case Lang.Yield yield -> new Lang.Invalid("???");
+			default -> new Lang.Invalid("???");
 		};
 	}
 
@@ -182,5 +179,13 @@ public class Transformer {
 		// Default to no type parameters for backward compatibility
 		final Option<List<Lang.Identifier>> typeParams = definition.typeParameters();
 		return new Lang.CDefinition(definition.name(), TypeTransformer.transformType(definition.type()), typeParams);
+	}
+
+	static List<Lang.CRootSegment> flattenRootSegment(Lang.JavaRootSegment segment) {
+		return switch (segment) {
+			case Lang.JStructure jStructure -> StructureTransformer.flattenStructure(jStructure);
+			case Lang.Invalid invalid -> List.of(invalid);
+			default -> Collections.emptyList();
+		};
 	}
 }

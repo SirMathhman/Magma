@@ -57,3 +57,6 @@ void collectTypeVariables_Transformer(/*???*/ type, Set<> typeVars) {/*???*/
 	Option<> typeParams=definition.typeParameters();
 	return new_???(definition.name(), TypeTransformer.transformType(definition.type()), typeParams);
 }
+List<> flattenRootSegment_Transformer(/*???*/ segment) {
+	return /*???*/;
+}

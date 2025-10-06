@@ -13,7 +13,7 @@ public class RootTransformer {
 	public static Result<Lang.CRoot, CompileError> transform(Lang.JRoot node) {
 		final List<Lang.JavaRootSegment> children = node.children();
 		final Stream<Lang.JavaRootSegment> stream = children.stream();
-		final Stream<List<Lang.CRootSegment>> listStream = stream.map(RootSegmentTransformer::flattenRootSegment);
+		final Stream<List<Lang.CRootSegment>> listStream = stream.map(Transformer::flattenRootSegment);
 		final Stream<Lang.CRootSegment> cRootSegmentStream = listStream.flatMap(Collection::stream);
 		final List<Lang.CRootSegment> newChildren = cRootSegmentStream.toList();
 		return new Ok<>(new Lang.CRoot(newChildren));
