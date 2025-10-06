@@ -289,6 +289,7 @@ public class Main {
 			case NewArray newArray -> new Invalid("???");
 			case CharNode charNode -> charNode;
 			case JGreaterThanEquals jGreaterThanEquals -> new Invalid("???");
+			case MethodAccess methodAccess -> new Invalid("???");
 		};
 	}
 

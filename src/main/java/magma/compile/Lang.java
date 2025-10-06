@@ -49,8 +49,8 @@ public class Lang {
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
-			JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, NewArray, Not, Quantity,
-			SwitchExpr {}
+			JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JString, JSubtract, Lambda, MethodAccess, NewArray,
+			Not, Quantity, SwitchExpr {}
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
@@ -426,6 +426,10 @@ public class Lang {
 
 	}
 
+	@Tag("method-access")
+	public record MethodAccess(String name, JExpression child) implements JExpression {
+	}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -684,6 +688,7 @@ public class Lang {
 											Operator("add", "+", expression),
 											Operator("subtract", "-", expression),
 											Operator("and", "&&", expression),
+											Operator("or", "||", expression),
 											Operator("equals", "==", expression),
 											Operator("less-than", "<", expression),
 											Operator("less-than-equals", "<=", expression),
