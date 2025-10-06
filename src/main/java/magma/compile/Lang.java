@@ -47,8 +47,8 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
 	sealed public interface JExpression
-			permits And, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation,
-			JString, JSubtract, Not, Quantity, Switch {}
+			permits And, Cast, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
+			JInvocation, JString, JSubtract, Not, Quantity, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
@@ -335,6 +335,9 @@ public class Lang {
 
 	@Tag("quantity")
 	public record Quantity(JExpression child) implements JExpression {}
+
+	@Tag("cast")
+	public record Cast(JType type, JExpression child) implements JExpression {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
