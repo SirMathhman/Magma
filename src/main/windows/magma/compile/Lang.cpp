@@ -9,9 +9,6 @@ struct JExpression {};
 struct JMethodSegment {};
 struct CFunctionSegment {};
 struct JType {};
-struct CType {};
-char* stringify_CType() {
-}
 struct JStructure {};
 char* name_JStructure() {
 }
@@ -103,20 +100,16 @@ record CRoot_Lang(List<> children) {
 }
 struct Import {char* location;};
 struct Package {char* location;};
-struct CDefinition {char* name;CType type;Option<> typeParameters;};
-struct CFunctionPointerDefinition {char* name;CType returnType;List<> paramTypes;};
+struct CDefinition {char* name;/*???*/ type;Option<> typeParameters;};
+struct CFunctionPointerDefinition {char* name;/*???*/ returnType;List<> paramTypes;};
 struct Function {CDefinition definition;List<> params;List<> body;Option<> after;Option<> typeParameters;};
 struct Identifier {char* value;};
 char* stringify_Identifier() {
 	return value;
 }
-struct Pointer {CType child;};
+struct Pointer {/*???*/ child;};
 char* stringify_Pointer() {
 	return child.stringify()+"";
-}
-struct FunctionPointer {CType returnType;List<> paramTypes;};
-char* stringify_FunctionPointer() {
-	return ""+paramTypes.stream().map(/*???*/).collect(Collectors.joining(""))+""+returnType.stringify();
 }
 struct LineComment {char* value;};
 struct BlockComment {char* value;};

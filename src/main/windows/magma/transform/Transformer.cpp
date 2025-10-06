@@ -74,8 +74,7 @@ Tuple<> flattenStructureSegment_Transformer(/*???*/ self, char* name) {
 List<> flattenStructure_Transformer(/*???*/ aClass) {
 	List<> children=aClass.children();
 	ArrayList<> segments=new_???();
-	ArrayList<> fields=new_???();
-	fields.addAll(addRecordParamsAsFields(aClass));
+	List<> fields=new_???(extractRecordParamsAsFields(aClass));
 	char* name=aClass.name();
 	children.stream().map(/*???*/(child, name)).forEach(/*???*/);
 	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
@@ -84,7 +83,7 @@ List<> flattenStructure_Transformer(/*???*/ aClass) {
 	copy.addAll(segments);
 	return copy;
 }
-List<> addRecordParamsAsFields_Transformer(/*???*/ structure) {
+List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	if (/*???*/)
 	{
 	Option<> params=record.params();

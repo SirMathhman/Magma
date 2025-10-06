@@ -66,10 +66,6 @@ public class Lang {
 	sealed public interface JType extends InstanceOfTarget
 			permits Array, Identifier, Invalid, JGeneric, SubType, Variadic, Wildcard {}
 
-	sealed public interface CType {
-		String stringify();
-	}
-
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
 
@@ -236,10 +232,10 @@ public class Lang {
 	public record JGeneric(String base, Option<List<JType>> typeArguments) implements JType {}
 
 	@Tag("generic")
-	public record CGeneric(String base, List<CType> typeArguments) implements CType {
+	public record CGeneric(String base, List<CLang.CType> typeArguments) implements CLang.CType {
 		@Override
 		public String stringify() {
-			return base + "_" + typeArguments.stream().map(CType::stringify).collect(Collectors.joining("_"));
+			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(Collectors.joining("_"));
 		}
 	}
 
@@ -260,7 +256,7 @@ public class Lang {
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CType, JMethodSegment, CFunctionSegment,
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CLang.CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {
 		public Invalid(String value) {
 			this(value, new None<>());
@@ -307,11 +303,11 @@ public class Lang {
 	public record Package(String location) implements JavaRootSegment {}
 
 	@Tag("definition")
-	public record CDefinition(String name, CType type, Option<List<Identifier>> typeParameters)
+	public record CDefinition(String name, CLang.CType type, Option<List<Identifier>> typeParameters)
 			implements CParameter, CFunctionSegment {}
 
 	@Tag("functionPointerDefinition")
-	public record CFunctionPointerDefinition(String name, CType returnType, List<CType> paramTypes)
+	public record CFunctionPointerDefinition(String name, CLang.CType returnType, List<CLang.CType> paramTypes)
 			implements CParameter {}
 
 	@Tag("function")
@@ -319,7 +315,7 @@ public class Lang {
 												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JType, CType, JExpression, CExpression {
+	public record Identifier(String value) implements JType, CLang.CType, JExpression, CExpression {
 		@Override
 		public String stringify() {
 			return value;
@@ -327,19 +323,10 @@ public class Lang {
 	}
 
 	@Tag("pointer")
-	public record Pointer(CType child) implements CType {
+	public record Pointer(CLang.CType child) implements CLang.CType {
 		@Override
 		public String stringify() {
 			return child.stringify() + "_ref";
-		}
-	}
-
-	@Tag("functionPointer")
-	public record FunctionPointer(CType returnType, List<CType> paramTypes) implements CType {
-		@Override
-		public String stringify() {
-			return "fn_" + paramTypes.stream().map(CType::stringify).collect(Collectors.joining("_")) + "_" +
-						 returnType.stringify();
 		}
 	}
 
