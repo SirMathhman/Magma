@@ -7,6 +7,7 @@ import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.Collections;
 import magma.list.List;
+import magma.list.NonEmptyList;
 import magma.list.Stream;
 import magma.option.None;
 import magma.option.Option;
@@ -299,6 +300,8 @@ public class Transformer {
 			final CLang.CType returnType = transformType(listOption.get(1).orElse(null));
 			return new CLang.CFunctionPointer(returnType, List.of(paramType));
 		}
-		return new Lang.CTemplate(generic.base().last(), listOption.stream().map(Transformer::transformType).toList());
+
+		final List<CLang.CType> list = listOption.stream().map(Transformer::transformType).toList();
+		return new Lang.CTemplate(generic.base().last(), NonEmptyList.from(list));
 	}
 }

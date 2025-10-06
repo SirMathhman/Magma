@@ -37,7 +37,7 @@ public class JRules {
 
 	static Rule JType() {
 		final LazyRule type = new LazyRule();
-		type.set(Or(Parameterized("generic", type, Node("base", JQualifiedName())),
+		type.set(Or(Parameterized("generic", Node("base", JQualifiedName()), type),
 								JArray(type),
 								CommonRules.Identifier(),
 								JWildCard(),
@@ -59,8 +59,8 @@ public class JRules {
 		return Tag("array", Strip(Suffix(Node("child", type), "[]")));
 	}
 
-	static Rule Parameterized(String tag, Rule type, Rule base) {
-		final Rule arguments = Or(Expressions("typeArguments", type), Strip(Empty));
+	static Rule Parameterized(String tag, Rule base, Rule children) {
+		final Rule arguments = Or(Expressions("typeArguments", children), Strip(Empty));
 		return Tag(tag, Strip(Suffix(First(base, "<", arguments), ">")));
 	}
 }
