@@ -47,8 +47,8 @@ public class Lang {
 			permits Invalid, JStructure, Method, Whitespace, Field, LineComment, BlockComment {}
 
 	sealed public interface JExpression
-			permits And, Identifier, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation, JString,
-			Switch {}
+			permits And, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess, JInvocation,
+			JString, Not, Switch {}
 
 	sealed public interface JMethodSegment
 			permits Break, Invalid, JAssignment, JBlock, JConstruction, JElse, JIf, JInitialization, JInvocation, JPostFix,
@@ -125,6 +125,9 @@ public class Lang {
 	@Tag("invocation")
 	public record JInvocation(JExpression caller, Option<List<JExpression>> arguments)
 			implements JExpression, JMethodSegment {}
+
+	@Tag("not")
+	public record Not(JExpression child) implements JExpression {}
 
 	@Tag("case")
 	public record Case(JDefinition definition, JExpression value) {}
@@ -323,6 +326,9 @@ public class Lang {
 			return String.valueOf(open);
 		}
 	}
+
+	@Tag("index")
+	public record Index(JExpression child, JExpression index) implements JExpression {}
 
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
@@ -572,7 +578,7 @@ public class Lang {
 
 	private static Rule InstanceOf(LazyRule expression) {
 		final Rule strip = Tag("destruct", Strip(Suffix(First(Node("type", JType()), "(", Parameters()), ")")));
-		Rule type = Node("target", Or(JDefinition(), Node("type", JType()), strip));
+		Rule type = Node("target", Or(JDefinition(), JType(), strip));
 		return Tag("instanceof", Last(Node("child", expression), "instanceof", type));
 	}
 
