@@ -139,6 +139,7 @@ struct JGreaterThanEquals {JExpression left;JExpression right;};
 struct JLessThan {JExpression left;JExpression right;};
 struct Try {JMethodSegment child;};
 struct Catch {JDefinition definition;JMethodSegment body;};
+struct Yield {JExpression child;};
 Rule CRoot_Lang() {
 	return Statements(("", Strip(("", Or((CStructure((), Function(()), ""));
 }
@@ -242,7 +243,7 @@ Rule Block_Lang(LazyRule rule) {
 }
 Rule JMethodStatementValue_Lang(Rule statement) {
 	Rule expression=JExpression((statement);
-	return Or((Break((), Return((expression), Invokable((expression), Initialization((JDefinition((), expression), PostFix((expression), JDefinition(());
+	return Or((Break((), Return((expression), Yield((expression), Invokable((expression), Initialization((JDefinition((), expression), PostFix((expression), JDefinition(());
 }
 Rule Break_Lang() {
 	return Tag(("", Strip((Prefix(("", Empty)));
@@ -262,6 +263,9 @@ Rule Invokable_Lang(char* type, Rule caller, Rule expression) {
 	Rule arguments=Expressions(("", expression);
 	FoldingDivider divider=new_FoldingDivider((new_EscapingFolder((new_InvocationFolder(('(', ')')));
 	return Tag((type, Split((Suffix((caller, String.valueOf('(')), KeepLast((divider), Suffix((Or((arguments, Whitespace(()), String.valueOf(')'))));
+}
+Rule Yield_Lang(Rule expression) {
+	return Tag(("", Prefix(("", Node(("", expression)));
 }
 Rule Return_Lang(Rule expression) {
 	return Tag(("", Prefix(("", Node(("", expression)));

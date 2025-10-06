@@ -51,7 +51,7 @@ public class Lang {
 
 	sealed public interface JMethodSegment
 			permits Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf, JInitialization,
-			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try, Whitespace {}
+			JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try, Whitespace, Yield {}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
@@ -380,6 +380,9 @@ public class Lang {
 	@Tag("catch")
 	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {}
 
+	@Tag("yield")
+	public record Yield(JExpression child) implements JMethodSegment {}
+
 	public static Rule CRoot() {
 		return Statements("children", Strip("", Or(CStructure(), Function()), "after"));
 	}
@@ -547,6 +550,7 @@ public class Lang {
 		final Rule expression = JExpression(statement);
 		return Or(Break(),
 							Return(expression),
+							Yield(expression),
 							Invokable(expression),
 							Initialization(JDefinition(), expression),
 							PostFix(expression),
@@ -580,6 +584,11 @@ public class Lang {
 										 KeepLast(divider),
 										 Suffix(Or(arguments, Whitespace()), String.valueOf(')'))));
 	}
+
+	private static Rule Yield(Rule expression) {
+		return Tag("yield", Prefix("yield ", Node("child", expression)));
+	}
+
 
 	private static Rule Return(Rule expression) {
 		return Tag("return", Prefix("return ", Node("value", expression)));
