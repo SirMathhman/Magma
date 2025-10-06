@@ -81,6 +81,8 @@ public class Lang {
 
 	public sealed interface CaseTarget permits JDefinition, Destruct {}
 
+	public sealed interface CaseExprValue permits ExprCaseExprValue, StatementCaseExprValue {}
+
 	@Tag("char")
 	public record CharNode(String value) implements JExpression, CExpression {}
 
@@ -136,8 +138,14 @@ public class Lang {
 	@Tag("not")
 	public record Not(JExpression child) implements JExpression {}
 
+	@Tag("expr-case-expr-value")
+	public record ExprCaseExprValue(JExpression expression) implements CaseExprValue {}
+
+	@Tag("statement-case-expr-value")
+	public record StatementCaseExprValue(JMethodSegment statement) implements CaseExprValue {}
+
 	@Tag("case-expr")
-	public record CaseExpr(CaseTarget target, JExpression value) {}
+	public record CaseExpr(CaseTarget target, CaseExprValue value) {}
 
 	@Tag("case-statement")
 	public record CaseStatement(CaseTarget target, JMethodSegment value) {}
@@ -603,7 +611,7 @@ public class Lang {
 											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
 											Tag("not", Strip(Prefix("!", Node("child", expression)))),
 											StringExpr(),
-											Switch("expr", expression, Strip(Suffix(expression, ";"))),
+											Switch("expr", expression, CaseExprValue(statement, expression)),
 											Index(expression),
 											Tag("new-array",
 													Strip(Suffix(First(Prefix("new ", Node("type", JType())), "[", Node("length", expression)),
@@ -621,6 +629,11 @@ public class Lang {
 											Operator("greater-than-equals", ">=", expression),
 											Identifier()));
 		return expression;
+	}
+
+	private static Rule CaseExprValue(Rule statement, LazyRule expression) {
+		return Or(Tag("expr-case-expr-value", Node("expression", Strip(Suffix(expression, ";")))),
+							Tag("statement-case-expr-value", Node("statement", statement)));
 	}
 
 	private static Rule Char() {

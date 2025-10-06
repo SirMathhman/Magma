@@ -23,6 +23,7 @@ struct CParameter {};
 struct CExpression {};
 struct InstanceOfTarget {};
 struct CaseTarget {};
+struct CaseExprValue {};
 struct CharNode {char* value;};
 struct CAnd {CExpression left;CExpression right;};
 struct And {JExpression left;JExpression right;};
@@ -41,7 +42,9 @@ struct CFieldAccess {CExpression child;char* name;};
 struct JConstruction {JType type;Option<> arguments;};
 struct JInvocation {JExpression caller;Option<> arguments;};
 struct Not {JExpression child;};
-record CaseExpr_Lang(CaseTarget target, JExpression value) {
+struct ExprCaseExprValue {JExpression expression;};
+struct StatementCaseExprValue {JMethodSegment statement;};
+record CaseExpr_Lang(CaseTarget target, CaseExprValue value) {
 }
 record CaseStatement_Lang(CaseTarget target, JMethodSegment value) {
 }
@@ -277,8 +280,11 @@ Rule QuantityBlock_Lang(char* tag, char* key, Rule inner, Rule statement) {
 }
 Rule JExpression_Lang(Rule statement) {
 	new LazyRule();
-	expression.set((Or((Lambda((statement), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch(("", expression, Strip((Suffix((expression, ""))), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
+	expression.set((Or((Lambda((statement), Char((), Tag(("", Strip((Prefix(("", First((Node(("", JType(()), "", Node(("", expression))))), Tag(("", Strip((Prefix(("", Suffix((Node(("", expression), "")))), Tag(("", Strip((Prefix(("", Node(("", expression)))), StringExpr((), Switch(("", expression, CaseExprValue((statement, expression)), Index((expression), Tag(("", Strip((Suffix((First((Prefix(("", Node(("", JType(())), "", Node(("", expression)), ""))), Index((expression), Invokable((expression), FieldAccess((expression), InstanceOf((expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Operator(("", "", expression), Identifier(()));
 	return expression;
+}
+Rule CaseExprValue_Lang(Rule statement, LazyRule expression) {
+	return Or((Tag(("", Node(("", Strip((Suffix((expression, "")))), Tag(("", Node(("", statement)));
 }
 Rule Char_Lang() {
 	return Tag(("", Strip((Prefix(("", Suffix((String((""), ""))));
