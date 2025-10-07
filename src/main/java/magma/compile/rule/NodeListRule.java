@@ -5,6 +5,7 @@ import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.List;
+import magma.list.NonEmptyList;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -30,11 +31,18 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		return divider.divide(input)
-									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
-									.mapValue(list -> new Node().withNodeList(key, list))
-									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
-																									new StringContext(input),
-																									List.of(err)));
+				.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
+				.mapValue(list -> {
+					// Only add to nodeLists if non-empty
+					if (list.isEmpty())
+						return new Node();
+					return NonEmptyList.fromList(list)
+							.map(nonEmptyList -> new Node().withNodeList(key, nonEmptyList))
+							.orElse(new Node()); // Should never happen since we checked isEmpty
+				})
+				.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
+						new StringContext(input),
+						List.of(err)));
 	}
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
@@ -42,8 +50,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
 				case Err<Node, CompileError> v -> new Err<List<Node>, CompileError>(new CompileError("Failed to lex segment",
-																																														 new StringContext(element),
-																																														 List.of(v.error())));
+						new StringContext(element),
+						List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
 					list.addLast(node);
 					yield new Ok<List<Node>, CompileError>(list);
@@ -64,10 +72,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 		};
 	}
 
-	private Result<String, CompileError> generateList(List<Node> list) {
-		// Treat missing or empty lists as empty content when generating.
-		if (list.isEmpty()) return new Ok<String, CompileError>("");
-
+	private Result<String, CompileError> generateList(NonEmptyList<Node> list) {
+		// NonEmptyList is never empty, so no isEmpty check needed
 		final StringJoiner sb = new StringJoiner(divider.delimiter());
 		int i = 0;
 		while (i < list.size()) {

@@ -6,6 +6,7 @@ import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
+import magma.list.NonEmptyList;
 import magma.list.Stream;
 import magma.option.None;
 import magma.option.Option;
@@ -174,7 +175,10 @@ public class JavaSerializer {
 		return serializeListElements(elementClass, list).mapValue(nodes -> {
 			if (nodes.isEmpty())
 				return new Node();
-			return new Node().withNodeList(fieldName, nodes);
+			// Convert to NonEmptyList since we know it's non-empty
+			return NonEmptyList.fromList(nodes)
+					.map(nonEmptyNodes -> new Node().withNodeList(fieldName, nonEmptyNodes))
+					.orElse(new Node()); // Should never happen since we checked isEmpty
 		});
 	}
 
@@ -198,7 +202,12 @@ public class JavaSerializer {
 
 		// Convert NonEmptyList to List for serialization
 		final List<?> list = nonEmptyList.toList();
-		return serializeListElements(elementClass, list).mapValue(nodes -> new Node().withNodeList(fieldName, nodes));
+		return serializeListElements(elementClass, list).mapValue(nodes -> {
+			// NonEmptyList should always serialize to a non-empty list of nodes
+			return NonEmptyList.fromList(nodes)
+					.map(nonEmptyNodes -> new Node().withNodeList(fieldName, nonEmptyNodes))
+					.orElse(new Node()); // Should never happen for a NonEmptyList
+		});
 	}
 
 	private static Result<Node, CompileError> serializeListField(RecordComponent component, Object value) {
@@ -221,7 +230,10 @@ public class JavaSerializer {
 		return serializeListElements(elementClass, list).mapValue(nodes -> {
 			if (nodes.isEmpty())
 				return new Node();
-			return new Node().withNodeList(fieldName, nodes);
+			// NonEmptyList should never serialize to empty, but handle defensively
+			return NonEmptyList.fromList(nodes)
+					.map(nonEmptyNodes -> new Node().withNodeList(fieldName, nonEmptyNodes))
+					.orElse(new Node()); // Should never happen for a NonEmptyList
 		});
 	}
 
@@ -580,8 +592,8 @@ public class JavaSerializer {
 						"Field '" + fieldName + "' of type 'Option<String>' found a node instead of string in '" +
 								node.maybeType.orElse("unknown") + "'",
 						new NodeContext(node)));
-			Option<List<Node>> wrongTypeList = node.findNodeList(fieldName);
-			if (wrongTypeList instanceof Some<List<Node>>)
+			Option<NonEmptyList<Node>> wrongTypeList = node.findNodeList(fieldName);
+			if (wrongTypeList instanceof Some<NonEmptyList<Node>>)
 				return new Err<Object, CompileError>(new CompileError(
 						"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
 								node.maybeType.orElse("unknown") + "'",
@@ -615,10 +627,10 @@ public class JavaSerializer {
 			return new Err<Object, CompileError>(error);
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
+		Option<NonEmptyList<Node>> maybeList = node.findNodeList(fieldName);
+		if (maybeList instanceof Some<NonEmptyList<Node>>(NonEmptyList<Node> value)) {
 			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
+			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value.toList());
 			return elementsResult.mapValue(list -> Option.of(list.copy()));
 		} else
 			return new Ok<Object, CompileError>(Option.empty());
@@ -638,15 +650,13 @@ public class JavaSerializer {
 			return new Err<Object, CompileError>(error);
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
+		Option<NonEmptyList<Node>> maybeList = node.findNodeList(fieldName);
+		if (maybeList instanceof Some<NonEmptyList<Node>>(NonEmptyList<Node> value)) {
 			consumedFields.add(fieldName);
 
-			if (value.isEmpty())
-				return new Err<Object, CompileError>(new CompileError(
-						"NonEmptyList component '" + fieldName + "' cannot be empty", new NodeContext(node)));
+			// NonEmptyList is never empty, so no need to check
 
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
+			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value.toList());
 			if (elementsResult instanceof Err<List<Object>, CompileError>(CompileError error))
 				return new Err<Object, CompileError>(error);
 
@@ -678,10 +688,10 @@ public class JavaSerializer {
 			return new Err<Object, CompileError>(error);
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
+		Option<NonEmptyList<Node>> maybeList = node.findNodeList(fieldName);
+		if (maybeList instanceof Some<NonEmptyList<Node>>(NonEmptyList<Node> value)) {
 			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
+			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value.toList());
 			return elementsResult.mapValue(List::copy);
 		} else
 			return new Err<Object, CompileError>(new CompileError(
@@ -794,9 +804,9 @@ public class JavaSerializer {
 	}
 
 	private static Option<String> findStringInNodeLists(Node node, String key) {
-		Iterator<List<Node>> iterator = node.nodeLists.values().iterator();
+		Iterator<NonEmptyList<Node>> iterator = node.nodeLists.values().iterator();
 		while (iterator.hasNext()) {
-			List<Node> children = iterator.next();
+			List<Node> children = iterator.next().toList();
 			Option<String> result = searchChildrenList(children, key);
 			if (result instanceof Some<String>)
 				return result;
