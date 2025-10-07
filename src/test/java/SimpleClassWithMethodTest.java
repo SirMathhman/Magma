@@ -46,9 +46,10 @@ public class SimpleClassWithMethodTest {
 		assertInstanceOf(Ok.class, deserializeResult, "Deserialization should succeed");
 		JRoot javaRoot = ((Ok<JRoot, CompileError>) deserializeResult).value();
 		System.out.println("\n✅ Deserialization succeeded");
-		System.out.println("JavaRoot children count: " + javaRoot.children().size());
+		int childrenCount = javaRoot.children().map(nel -> nel.size()).orElse(0);
+		System.out.println("JavaRoot children count: " + childrenCount);
 
-		javaRoot.children().stream().forEach(child -> {
+		javaRoot.children().map(nel -> nel.toList()).orElse(new magma.list.ArrayList<>()).stream().forEach(child -> {
 			System.out.println("  Child type: " + child.getClass().getSimpleName());
 			if (child instanceof JClass jClass) {
 				System.out.println("    Class name: " + jClass.name());
@@ -66,6 +67,8 @@ public class SimpleClassWithMethodTest {
 
 		// Check that the class has at least one method
 		boolean hasMethod = javaRoot.children()
+				.map(nel -> nel.toList())
+				.orElse(new magma.list.ArrayList<>())
 				.stream()
 				.filter(child -> child instanceof JClass)
 				.map(child -> (JClass) child)

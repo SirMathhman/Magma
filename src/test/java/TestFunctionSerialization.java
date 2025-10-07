@@ -4,6 +4,7 @@ import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
 import magma.list.List;
+import magma.list.NonEmptyList;
 import magma.option.Option;
 import magma.option.Some;
 import magma.result.Ok;
@@ -17,8 +18,8 @@ public class TestFunctionSerialization {
 		List<Lang.CFunctionSegment> body = List.of(new Lang.Placeholder("/*test body*/"));
 		Lang.Function func = new Lang.Function(
 				new Lang.CDefinition("testFunc", new Lang.Identifier("void"), Option.empty()),
-				List.of(),
-				body,
+				Option.empty(),
+				NonEmptyList.from(body),
 				new Some<String>(System.lineSeparator()),
 				Option.empty());
 
@@ -36,7 +37,9 @@ public class TestFunctionSerialization {
 				System.out.println("Generation successful");
 				System.out.println("Generated text length: " + text.length());
 				System.out.println("Generated text: " + text);
-			} else System.out.println("Generation failed: " + genResult);
-		} else System.out.println("Serialization failed: " + serResult);
+			} else
+				System.out.println("Generation failed: " + genResult);
+		} else
+			System.out.println("Serialization failed: " + serResult);
 	}
 }
