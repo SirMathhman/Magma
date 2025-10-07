@@ -7,7 +7,7 @@ import magma.compile.rule.Rule;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.Expressions;
 import static magma.compile.rule.NodeListRule.Statements;
-import static magma.compile.rule.NonEmptyListRule.NonEmptyList;
+import static magma.compile.rule.NodeListRule.NonEmptyList;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PrefixRule.Prefix;
 import static magma.compile.rule.SplitRule.First;
@@ -31,8 +31,8 @@ public class CRules {
 
 		// Add template declaration only if type parameters exist (non-empty list)
 		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", CommonRules.Identifier()));
-		final Rule templateDecl =
-				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
+		final Rule templateDecl = NonEmptyList("typeParameters",
+				Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
 
 		return Tag("function", First(maybeTemplate, "", functionDecl));
@@ -41,14 +41,14 @@ public class CRules {
 	private static Rule CExpression() {
 		LazyRule expression = new LazyRule();
 		expression.set(Or(Lang.Invocation(expression),
-											Lang.FieldAccess(expression),
-											Lang.Operator("add", "+", expression),
-											Lang.Operator("and", "&&", expression),
-											Lang.Operator("equals", "==", expression),
-											Lang.StringExpr(),
-											CommonRules.Identifier(),
-											Lang.Char(),
-											Lang.Invalid()));
+				Lang.FieldAccess(expression),
+				Lang.Operator("add", "+", expression),
+				Lang.Operator("and", "&&", expression),
+				Lang.Operator("equals", "==", expression),
+				Lang.StringExpr(),
+				CommonRules.Identifier(),
+				Lang.Char(),
+				Lang.Invalid()));
 		return expression;
 	}
 
@@ -60,27 +60,27 @@ public class CRules {
 
 	private static Rule CFunctionSegmentValue(LazyRule rule) {
 		return Or(Lang.LineComment(),
-							Lang.Conditional("if", CExpression(), rule),
-							Lang.Conditional("while", CExpression(), rule),
-							Lang.Break(),
-							Lang.Else(rule),
-							CFunctionStatement(),
-							Lang.Block(rule));
+				Lang.Conditional("if", CExpression(), rule),
+				Lang.Conditional("while", CExpression(), rule),
+				Lang.Break(),
+				Lang.Else(rule),
+				CFunctionStatement(),
+				Lang.Block(rule));
 	}
 
 	private static Rule CFunctionStatement() {
 		LazyRule functionStatement = new LazyRule();
 		functionStatement.set(Or(Lang.Conditional("if", CExpression(), functionStatement),
-														 Suffix(CFunctionStatementValue(), ";")));
+				Suffix(CFunctionStatementValue(), ";")));
 		return functionStatement;
 	}
 
 	private static Rule CFunctionStatementValue() {
 		final Rule expression = CExpression();
 		return Or(Lang.Return(expression),
-							Lang.Invocation(expression),
-							Lang.Initialization(Lang.CDefinition(), expression),
-							Lang.CDefinition(),
-							Lang.PostFix(expression));
+				Lang.Invocation(expression),
+				Lang.Initialization(Lang.CDefinition(), expression),
+				Lang.CDefinition(),
+				Lang.PostFix(expression));
 	}
 }

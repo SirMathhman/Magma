@@ -1,13 +1,13 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.NodeContext;
 import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.List;
 import magma.list.NonEmptyList;
 import magma.option.None;
-import magma.option.Option;
 import magma.option.Some;
 import magma.result.Err;
 import magma.result.Ok;
@@ -15,6 +15,18 @@ import magma.result.Result;
 
 import java.util.StringJoiner;
 
+/**
+ * A rule that handles node lists.
+ * Lists are only stored in Node.nodeLists when non-empty (enforced by
+ * NonEmptyList type).
+ * Generation fails when list is missing (allowing Or to try alternatives).
+ * When list is present, iterates through each element, generates it, and joins
+ * with the divider.
+ * 
+ * @param key     the key for the node list
+ * @param rule    the rule to apply to each element
+ * @param divider the divider to use between elements
+ */
 public record NodeListRule(String key, Rule rule, Divider divider) implements Rule {
 	public static Rule Statements(String key, Rule rule) {
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new StatementFolder())));
@@ -26,6 +38,18 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	public static Rule Expressions(String key, Rule rule) {
 		return new NodeListRule(key, rule, new FoldingDivider(new EscapingFolder(new ValueFolder())));
+	}
+
+	/**
+	 * Alias for creating a node list rule with an empty delimiter.
+	 * Commonly used with Or to provide fallback when list is missing.
+	 * 
+	 * @param key  the key for the node list
+	 * @param rule the rule to apply to each element
+	 * @return a node list rule with empty delimiter
+	 */
+	public static Rule NonEmptyList(String key, Rule rule) {
+		return new NodeListRule(key, rule, new DelimitedRule(""));
 	}
 
 	@Override
@@ -62,31 +86,38 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 
 	@Override
 	public Result<String, CompileError> generate(Node value) {
-		Option<Result<String, CompileError>> resultOption = value.findNodeList(key).map(this::generateList);
-
-		return switch (resultOption) {
-			// If the node-list isn't present at all, treat it as empty rather than an
-			// error.
-			case None<Result<String, CompileError>> _ -> new Ok<String, CompileError>("");
-			case Some<Result<String, CompileError>>(Result<String, CompileError> value2) -> value2;
+		return switch (value.findNodeList(key)) {
+			// List missing - fail to allow Or to try alternatives
+			case None<?> _ -> new Err<String, CompileError>(
+					new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
+			// List present and non-empty - iterate and generate each element
+			case Some<NonEmptyList<Node>>(NonEmptyList<Node> list) -> generateList(list);
 		};
 	}
 
 	private Result<String, CompileError> generateList(NonEmptyList<Node> list) {
-		// NonEmptyList is never empty, so no isEmpty check needed
 		final StringJoiner sb = new StringJoiner(divider.delimiter());
 		int i = 0;
 		while (i < list.size()) {
-			Node child = list.get(i).orElse(null);
-			switch (this.rule.generate(child)) {
-				case Ok<String, CompileError>(String value1) -> sb.add(value1);
-				case Err<String, CompileError>(CompileError error) -> {
-					return new Err<String, CompileError>(error);
+			switch (list.get(i)) {
+				case Some<Node>(Node child) -> {
+					switch (rule.generate(child)) {
+						case Ok<String, CompileError>(String generated) -> sb.add(generated);
+						case Err<String, CompileError>(CompileError error) -> {
+							return new Err<String, CompileError>(error);
+						}
+					}
+				}
+				case None<?> _ -> {
+					// Should never happen - NonEmptyList guarantees elements exist
+					return new Err<String, CompileError>(
+							new CompileError("Unexpected missing element in NonEmptyList at index " + i,
+									new NodeContext(list.first())));
 				}
 			}
 			i++;
 		}
-
 		return new Ok<String, CompileError>(sb.toString());
 	}
+
 }
