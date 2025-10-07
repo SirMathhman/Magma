@@ -73,7 +73,7 @@ struct JWhile {/*???*/ condition;/*???*/ body;};
 struct CWhile {/*???*/ condition;/*???*/ body;};
 struct Field {/*???*/ value;};
 struct JGeneric {/*???*/ base;Option<> typeArguments;};
-struct CTemplate {/*???*/ base;List<> typeArguments;};
+struct CTemplate {/*???*/ base;NonEmptyList<> typeArguments;};
 /*???*/ stringify_CTemplate() {
 	return base+""+typeArguments.stream().map(/*???*/).collect(new_???(""));
 }

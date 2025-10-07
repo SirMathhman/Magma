@@ -107,5 +107,6 @@ List<> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
 	/*???*/ paramType=transformType(listOption.get(/*???*/).orElse(null));
 	/*???*/ returnType=transformType(listOption.get(/*???*/).orElse(null));
 	return new_???(returnType, List.of(paramType));}
-	return new_???(generic.base().last(), listOption.stream().map(/*???*/).toList());
+	List<> transformedTypes=listOption.stream().map(/*???*/).toList();
+	return magma.list.NonEmptyList.fromList(transformedTypes).map(/*???*/).orElse(new_???(""+generic.base().last(), new_???()));
 }

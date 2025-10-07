@@ -38,6 +38,7 @@ Result<> serializeField_JavaSerializer(/*???*/ component, /*???*/ value) {
 	if (Objects.isNull(value))return new_???(new_???(""+fieldName+"", new_???(fieldName)));
 	if (fieldType==String.class)return new_???(new_???(fieldName, /*???*/));
 	if (Option.class.isAssignableFrom(fieldType))return serializeOptionField(component, value);
+	if (magma.list.NonEmptyList.class.isAssignableFrom(fieldType))return serializeNonEmptyListField(component, value);
 	if (List.class.isAssignableFrom(fieldType))return serializeListField(component, value);
 	return serializeValue(fieldType, value).mapValue(/*???*/.withNode(fieldName, childNode));
 }
@@ -67,6 +68,18 @@ Result<> serializeOptionListField_JavaSerializer(/*???*/ fieldName, /*???*/ list
 	if (/*???*/)return new_???(error);
 	Class<> elementClass=/*???*/.value();
 	return serializeListElements(elementClass, list).mapValue(/*???*/);
+}
+Result<> serializeNonEmptyListField_JavaSerializer(/*???*/ component, /*???*/ value) {
+	/*???*/ fieldName=component.getName();
+	if (/*???*/)return new_???(new_???(""+fieldName+"", new_???(fieldName)));
+	Result<> elementTypeResult=getGenericArgument(component.getGenericType());
+	if (/*???*/)return new_???(error);
+	/*???*/ elementType=/*???*/.value();
+	Result<> elementClassResult=erase(elementType);
+	if (/*???*/)return new_???(error);
+	Class<> elementClass=/*???*/.value();
+	List<> list=nonEmptyList.toList();
+	return serializeListElements(elementClass, list).mapValue(/*???*/.withNodeList(fieldName, nodes));
 }
 Result<> serializeListField_JavaSerializer(/*???*/ component, /*???*/ value) {
 	/*???*/ fieldName=component.getName();
@@ -234,6 +247,7 @@ Result<> deserializeField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> 
 	Class<> fieldType=component.getType();
 	if (fieldType==String.class)return deserializeStringField(fieldName, node, consumedFields);
 	if (Option.class.isAssignableFrom(fieldType))return deserializeOptionField(component, node, consumedFields);
+	if (magma.list.NonEmptyList.class.isAssignableFrom(fieldType))return deserializeNonEmptyListField(component, node, consumedFields);
 	if (List.class.isAssignableFrom(fieldType))return deserializeListField(component, node, consumedFields);
 	/*???*/(fieldName);
 	if (/*???*/)
@@ -306,6 +320,29 @@ Result<> deserializeOptionListField_JavaSerializer(/*???*/ fieldName, /*???*/ li
 	return elementsResult.mapValue(/*???*/.of(list.copy()));}
 	else
 	return new_???(Option.empty());
+}
+Result<> deserializeNonEmptyListField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> consumedFields) {
+	/*???*/ fieldName=component.getName();
+	Result<> elementTypeResult=getGenericArgument(component.getGenericType());
+	if (/*???*/)return new_???(error);
+	/*???*/ elementType=/*???*/.value();
+	Result<> elementClassResult=erase(elementType);
+	if (/*???*/)return new_???(error);
+	Class<> elementClass=/*???*/.value();
+	/*???*/(fieldName);
+	if (/*???*/)
+	{
+	consumedFields.add(fieldName);
+	if (value.isEmpty())return new_???(new_???(""+fieldName+"", new_???(node)));
+	Result<> elementsResult=deserializeListElements(elementClass, value);
+	if (/*???*/)return new_???(error);
+	/*???*/();
+	/*???*/(elements);
+	if (/*???*/)return new_???(nel);
+	else
+	return new_???(new_???(""+fieldName+"", new_???(node)));}
+	else
+	return new_???(new_???(""+fieldName+"", new_???(node)));
 }
 Result<> deserializeListField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> consumedFields) {
 	/*???*/ fieldName=component.getName();

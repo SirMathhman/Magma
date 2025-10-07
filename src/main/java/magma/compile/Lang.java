@@ -40,31 +40,37 @@ import static magma.compile.rule.SuffixRule.Suffix;
 import static magma.compile.rule.TagRule.Tag;
 
 public class Lang {
-	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {}
+	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {
+	}
 
 	sealed public interface CRootSegment permits Invalid, Structure, Function {
 		Option<String> after();
 	}
 
 	public sealed interface JStructureSegment
-			permits BlockComment, Field, Invalid, JDefinition, JInitialization, JStructure, LineComment, Method, Whitespace {}
+			permits BlockComment, Field, Invalid, JDefinition, JInitialization, JStructure, LineComment, Method, Whitespace {
+	}
 
 	sealed public interface JExpression
 			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
 			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JNotEquals, JOr, JString, JSubtract,
-			Lambda, MethodAccess, NewArray, Not, NumberNode, Quantity, SwitchExpr {}
+			Lambda, MethodAccess, NewArray, Not, NumberNode, Quantity, SwitchExpr {
+	}
 
 	sealed public interface JMethodSegment
 			permits BlockComment, Break, Catch, Invalid, JAssignment, JBlock, JConstruction, JDefinition, JElse, JIf,
 			JInitialization, JInvocation, JPostFix, JReturn, JWhile, LineComment, Placeholder, SwitchStatement, Try,
-			Whitespace, Yield {}
+			Whitespace, Yield {
+	}
 
 	sealed public interface CFunctionSegment
 			permits Break, CAssignment, CBlock, CDefinition, CElse, CIf, CInitialization, CInvocation, CPostFix, CReturn,
-			CWhile, Invalid, LineComment, Placeholder, Whitespace {}
+			CWhile, Invalid, LineComment, Placeholder, Whitespace {
+	}
 
 	sealed public interface JType extends InstanceOfTarget
-			permits Array, Identifier, Invalid, JGeneric, JQualified, Variadic, Wildcard {}
+			permits Array, Identifier, Invalid, JGeneric, JQualified, Variadic, Wildcard {
+	}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
@@ -75,166 +81,221 @@ public class Lang {
 	}
 
 	// Sealed interface for C parameter types
-	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {}
+	public sealed interface CParameter permits CDefinition, CFunctionPointerDefinition {
+	}
 
 	public sealed interface CExpression
-			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, CharNode, Identifier, Invalid {}
+			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, CharNode, Identifier, Invalid {
+	}
 
-	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {}
+	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {
+	}
 
-	public sealed interface CaseTarget permits JDefinition, Destruct {}
+	public sealed interface CaseTarget permits JDefinition, Destruct {
+	}
 
-	public sealed interface CaseExprValue permits ExprCaseExprValue, StatementCaseExprValue {}
+	public sealed interface CaseExprValue permits ExprCaseExprValue, StatementCaseExprValue {
+	}
 
-	public sealed interface LambdaValue permits ExprLambdaValue, StatementLambdaValue {}
+	public sealed interface LambdaValue permits ExprLambdaValue, StatementLambdaValue {
+	}
 
-	public sealed interface LambdaParamSet permits EmptyLambdaParam, MultipleLambdaParam, SingleLambdaParam {}
+	public sealed interface LambdaParamSet permits EmptyLambdaParam, MultipleLambdaParam, SingleLambdaParam {
+	}
 
-	public sealed interface MethodAccessSource permits ExprMethodAccessSource, TypeMethodAccessSource {}
+	public sealed interface MethodAccessSource permits ExprMethodAccessSource, TypeMethodAccessSource {
+	}
 
-	public sealed interface NewArrayValue {}
+	public sealed interface NewArrayValue {
+	}
 
-	public sealed interface Identifiable permits Identifier {}
+	public sealed interface Identifiable permits Identifier {
+	}
 
 	@Tag("char")
-	public record CharNode(String value) implements JExpression, CExpression {}
+	public record CharNode(String value) implements JExpression, CExpression {
+	}
 
 	@Tag("and")
-	public record CAnd(CExpression left, CExpression right) implements CExpression {}
+	public record CAnd(CExpression left, CExpression right) implements CExpression {
+	}
 
 	@Tag("and")
-	public record And(JExpression left, JExpression right) implements JExpression {}
+	public record And(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("destruct")
-	public record Destruct(JType type, List<JDefinition> params) implements InstanceOfTarget, CaseTarget {}
+	public record Destruct(JType type, List<JDefinition> params) implements InstanceOfTarget, CaseTarget {
+	}
 
 	@Tag("instanceof")
-	public record InstanceOf(JExpression child, InstanceOfTarget target) implements JExpression {}
+	public record InstanceOf(JExpression child, InstanceOfTarget target) implements JExpression {
+	}
 
 	@Tag("wildcard")
-	public record Wildcard() implements JType {}
+	public record Wildcard() implements JType {
+	}
 
 	@Tag("add")
-	public record JAdd(JExpression left, JExpression right) implements JExpression {}
+	public record JAdd(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("subtract")
-	public record JSubtract(JExpression left, JExpression right) implements JExpression {}
+	public record JSubtract(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("equals")
-	public record JEquals(JExpression left, JExpression right) implements JExpression {}
+	public record JEquals(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("not-equals")
-	public record JNotEquals(JExpression left, JExpression right) implements JExpression {}
+	public record JNotEquals(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("equals")
-	public record CEquals(CExpression left, CExpression right) implements CExpression {}
+	public record CEquals(CExpression left, CExpression right) implements CExpression {
+	}
 
 	@Tag("string")
-	public record JString(Option<String> content) implements JExpression {}
+	public record JString(Option<String> content) implements JExpression {
+	}
 
 	@Tag("add")
-	public record CAdd(CExpression left, CExpression right) implements CExpression {}
+	public record CAdd(CExpression left, CExpression right) implements CExpression {
+	}
 
 	@Tag("string")
-	public record CString(String content) implements CExpression {}
+	public record CString(String content) implements CExpression {
+	}
 
 	@Tag("field-access")
-	public record JFieldAccess(JExpression child, String name) implements JExpression {}
+	public record JFieldAccess(JExpression child, String name) implements JExpression {
+	}
 
 	@Tag("field-access")
-	public record CFieldAccess(CExpression child, String name) implements CExpression {}
+	public record CFieldAccess(CExpression child, String name) implements CExpression {
+	}
 
 	@Tag("construction")
-	public record JConstruction(JType type, Option<List<JExpression>> arguments) implements JExpression, JMethodSegment {}
+	public record JConstruction(JType type, Option<List<JExpression>> arguments) implements JExpression, JMethodSegment {
+	}
 
 	@Tag("invocation")
 	public record JInvocation(JExpression caller, Option<List<JExpression>> arguments)
-			implements JExpression, JMethodSegment {}
+			implements JExpression, JMethodSegment {
+	}
 
 	@Tag("not")
-	public record Not(JExpression child) implements JExpression {}
+	public record Not(JExpression child) implements JExpression {
+	}
 
 	@Tag("expr-case-expr-value")
-	public record ExprCaseExprValue(JExpression expression) implements CaseExprValue {}
+	public record ExprCaseExprValue(JExpression expression) implements CaseExprValue {
+	}
 
 	@Tag("statement-case-expr-value")
-	public record StatementCaseExprValue(JMethodSegment statement) implements CaseExprValue {}
+	public record StatementCaseExprValue(JMethodSegment statement) implements CaseExprValue {
+	}
 
 	@Tag("case-expr")
-	public record CaseExpr(Option<CaseTarget> target, CaseExprValue value, Option<JExpression> when) {}
+	public record CaseExpr(Option<CaseTarget> target, CaseExprValue value, Option<JExpression> when) {
+	}
 
 	@Tag("case-statement")
-	public record CaseStatement(Option<CaseTarget> target, JMethodSegment value, Option<JExpression> when) {}
+	public record CaseStatement(Option<CaseTarget> target, JMethodSegment value, Option<JExpression> when) {
+	}
 
 	@Tag("switch-expr")
-	public record SwitchExpr(JExpression value, List<CaseExpr> cases) implements JExpression {}
+	public record SwitchExpr(JExpression value, List<CaseExpr> cases) implements JExpression {
+	}
 
 	@Tag("switch-statement")
-	public record SwitchStatement(JExpression value, List<CaseStatement> cases) implements JMethodSegment {}
+	public record SwitchStatement(JExpression value, List<CaseStatement> cases) implements JMethodSegment {
+	}
 
 	@Tag("expr-lambda-value")
-	public record ExprLambdaValue(JExpression child) implements LambdaValue {}
+	public record ExprLambdaValue(JExpression child) implements LambdaValue {
+	}
 
 	@Tag("statement-lambda-value")
-	public record StatementLambdaValue(JMethodSegment child) implements LambdaValue {}
+	public record StatementLambdaValue(JMethodSegment child) implements LambdaValue {
+	}
 
 	@Tag("lambda")
-	public record Lambda(LambdaParamSet params, LambdaValue child) implements JExpression {}
+	public record Lambda(LambdaParamSet params, LambdaValue child) implements JExpression {
+	}
 
 	@Tag("length")
-	public record LengthNewArrayValue(JExpression length) implements NewArrayValue {}
+	public record LengthNewArrayValue(JExpression length) implements NewArrayValue {
+	}
 
 	@Tag("arguments")
-	public record ArgumentsNewArrayValue(Option<List<JExpression>> arguments) implements NewArrayValue {}
+	public record ArgumentsNewArrayValue(Option<List<JExpression>> arguments) implements NewArrayValue {
+	}
 
 	@Tag("new-array")
-	public record NewArray(JType type, NewArrayValue value) implements JExpression {}
+	public record NewArray(JType type, NewArrayValue value) implements JExpression {
+	}
 
 	@Tag("assignment")
-	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {}
+	public record CAssignment(CExpression location, CExpression value) implements CFunctionSegment {
+	}
 
 	@Tag("postFix")
-	public record CPostFix(CExpression value) implements CFunctionSegment {}
+	public record CPostFix(CExpression value) implements CFunctionSegment {
+	}
 
 	@Tag("assignment")
-	public record JAssignment(JExpression location, JExpression value) implements JMethodSegment {}
+	public record JAssignment(JExpression location, JExpression value) implements JMethodSegment {
+	}
 
 	@Tag("postFix")
-	public record JPostFix(JExpression value) implements JMethodSegment {}
+	public record JPostFix(JExpression value) implements JMethodSegment {
+	}
 
 	@Tag("initialization")
 	public record JInitialization(JDefinition definition, JExpression value)
-			implements JMethodSegment, JStructureSegment {}
+			implements JMethodSegment, JStructureSegment {
+	}
 
 	@Tag("initialization")
-	public record CInitialization(CDefinition definition, CExpression value) implements CFunctionSegment {}
+	public record CInitialization(CDefinition definition, CExpression value) implements CFunctionSegment {
+	}
 
 	@Tag("block")
-	public record CBlock(List<CFunctionSegment> children) implements CFunctionSegment {}
+	public record CBlock(List<CFunctionSegment> children) implements CFunctionSegment {
+	}
 
 	@Tag("block")
-	public record JBlock(List<JMethodSegment> children) implements JMethodSegment {}
+	public record JBlock(List<JMethodSegment> children) implements JMethodSegment {
+	}
 
 	@Tag("if")
-	public record JIf(JExpression condition, JMethodSegment body) implements JMethodSegment {}
+	public record JIf(JExpression condition, JMethodSegment body) implements JMethodSegment {
+	}
 
 	@Tag("if")
-	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
+	public record CIf(CExpression condition, CFunctionSegment body) implements CFunctionSegment {
+	}
 
 	@Tag("while")
-	public record JWhile(JExpression condition, JMethodSegment body) implements JMethodSegment {}
+	public record JWhile(JExpression condition, JMethodSegment body) implements JMethodSegment {
+	}
 
 	@Tag("while")
-	public record CWhile(CExpression condition, CFunctionSegment body) implements CFunctionSegment {}
+	public record CWhile(CExpression condition, CFunctionSegment body) implements CFunctionSegment {
+	}
 
 	@Tag("statement")
-	public record Field(JDefinition value) implements JStructureSegment {}
+	public record Field(JDefinition value) implements JStructureSegment {
+	}
 
 	@Tag("generic")
-	public record JGeneric(JQualified base, Option<List<JType>> typeArguments) implements JType {}
+	public record JGeneric(JQualified base, Option<List<JType>> typeArguments) implements JType {
+	}
 
 	@Tag("template")
-	public record CTemplate(String base, List<CLang.CType> typeArguments) implements CLang.CType {
+	public record CTemplate(String base, magma.list.NonEmptyList<CLang.CType> typeArguments) implements CLang.CType {
 		@Override
 		public String stringify() {
 			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(new Joiner("_"));
@@ -242,19 +303,23 @@ public class Lang {
 	}
 
 	@Tag("array")
-	public record Array(JType child) implements JType {}
+	public record Array(JType child) implements JType {
+	}
 
 	@Tag("definition")
 	public record JDefinition(String name, JType type, Option<List<Modifier>> modifiers,
-														Option<List<Identifier>> typeParameters)
-			implements JMethodSegment, InstanceOfTarget, JStructureSegment, CaseTarget {}
+			Option<List<Identifier>> typeParameters)
+			implements JMethodSegment, InstanceOfTarget, JStructureSegment, CaseTarget {
+	}
 
 	@Tag("modifier")
-	public record Modifier(String value) {}
+	public record Modifier(String value) {
+	}
 
 	@Tag("method")
 	public record Method(JDefinition definition, Option<List<JDefinition>> params, Option<List<JMethodSegment>> body,
-											 Option<List<Identifier>> typeParameters) implements JStructureSegment {}
+			Option<List<Identifier>> typeParameters) implements JStructureSegment {
+	}
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
@@ -272,49 +337,62 @@ public class Lang {
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces) implements JStructure {}
+			Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces) implements JStructure {
+	}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
-													Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces,
-													Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {}
+			Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces,
+			Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {
+	}
 
 	@Tag("record")
 	public record RecordNode(Option<String> modifiers, String name, List<JStructureSegment> children,
-													 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
-													 Option<List<JType>> interfaces) implements JStructure {}
+			Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
+			Option<List<JType>> interfaces) implements JStructure {
+	}
 
 	@Tag("struct")
 	public record Structure(String name, List<CDefinition> fields, Option<String> after,
-													Option<List<Identifier>> typeParameters) implements CRootSegment {}
+			Option<List<Identifier>> typeParameters) implements CRootSegment {
+	}
 
 	@Tag("whitespace")
-	public record Whitespace() implements JavaRootSegment, JStructureSegment, JMethodSegment, CFunctionSegment {}
+	public record Whitespace() implements JavaRootSegment, JStructureSegment, JMethodSegment, CFunctionSegment {
+	}
 
 	@Tag("placeholder")
-	public record Placeholder(String value) implements JMethodSegment, CFunctionSegment {}
+	public record Placeholder(String value) implements JMethodSegment, CFunctionSegment {
+	}
 
-	public record JRoot(List<JavaRootSegment> children) {}
+	public record JRoot(List<JavaRootSegment> children) {
+	}
 
-	public record CRoot(List<CRootSegment> children) {}
+	public record CRoot(List<CRootSegment> children) {
+	}
 
 	@Tag("import")
-	public record Import(String location) implements JavaRootSegment {}
+	public record Import(String location) implements JavaRootSegment {
+	}
 
 	@Tag("package")
-	public record Package(String location) implements JavaRootSegment {}
+	public record Package(String location) implements JavaRootSegment {
+	}
 
 	@Tag("definition")
 	public record CDefinition(String name, CLang.CType type, Option<List<Identifier>> typeParameters)
-			implements CParameter, CFunctionSegment {}
+			implements CParameter, CFunctionSegment {
+	}
 
 	@Tag("functionPointerDefinition")
 	public record CFunctionPointerDefinition(String name, CLang.CType returnType, List<CLang.CType> paramTypes)
-			implements CParameter {}
+			implements CParameter {
+	}
 
 	@Tag("function")
 	public record Function(CDefinition definition, List<CParameter> params, List<CFunctionSegment> body,
-												 Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {}
+			Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {
+	}
 
 	@Tag("identifier")
 	public record Identifier(String value) implements JType, CLang.CType, JExpression, CExpression, Identifiable {
@@ -333,28 +411,36 @@ public class Lang {
 	}
 
 	@Tag("line-comment")
-	public record LineComment(String value) implements JStructureSegment, JMethodSegment, CFunctionSegment {}
+	public record LineComment(String value) implements JStructureSegment, JMethodSegment, CFunctionSegment {
+	}
 
 	@Tag("block-comment")
-	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment, JMethodSegment {}
+	public record BlockComment(String value) implements JStructureSegment, JavaRootSegment, JMethodSegment {
+	}
 
 	@Tag("return")
-	public record JReturn(JExpression value) implements JMethodSegment {}
+	public record JReturn(JExpression value) implements JMethodSegment {
+	}
 
 	@Tag("return")
-	public record CReturn(CExpression value) implements CFunctionSegment {}
+	public record CReturn(CExpression value) implements CFunctionSegment {
+	}
 
 	@Tag("else")
-	public record JElse(JMethodSegment child) implements JMethodSegment {}
+	public record JElse(JMethodSegment child) implements JMethodSegment {
+	}
 
 	@Tag("else")
-	public record CElse(CFunctionSegment child) implements CFunctionSegment {}
+	public record CElse(CFunctionSegment child) implements CFunctionSegment {
+	}
 
 	@Tag("invocation")
-	public record CInvocation(CExpression caller, List<CExpression> arguments) implements CFunctionSegment, CExpression {}
+	public record CInvocation(CExpression caller, List<CExpression> arguments) implements CFunctionSegment, CExpression {
+	}
 
 	@Tag("break")
-	public record Break() implements JMethodSegment, CFunctionSegment {}
+	public record Break() implements JMethodSegment, CFunctionSegment {
+	}
 
 	private record InvocationFolder(char open, char close) implements Folder {
 		@Override
@@ -362,10 +448,13 @@ public class Lang {
 			DivideState appended = state.append(c);
 			if (c == open) {
 				DivideState enter = appended.enter();
-				if (enter.isShallow()) return enter.advance();
-				else return enter;
+				if (enter.isShallow())
+					return enter.advance();
+				else
+					return enter;
 			}
-			if (c == close) return appended.exit();
+			if (c == close)
+				return appended.exit();
 			return appended;
 		}
 
@@ -376,47 +465,63 @@ public class Lang {
 	}
 
 	@Tag("index")
-	public record Index(JExpression child, JExpression index) implements JExpression {}
+	public record Index(JExpression child, JExpression index) implements JExpression {
+	}
 
 	@Tag("quantity")
-	public record Quantity(JExpression child) implements JExpression {}
+	public record Quantity(JExpression child) implements JExpression {
+	}
 
 	@Tag("cast")
-	public record Cast(JType type, JExpression child) implements JExpression {}
+	public record Cast(JType type, JExpression child) implements JExpression {
+	}
 
 	@Tag("less-than-equals")
-	public record JLessThanEquals(JExpression left, JExpression right) implements JExpression {}
+	public record JLessThanEquals(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("greater-than")
-	public record JGreaterThan(JExpression left, JExpression right) implements JExpression {}
+	public record JGreaterThan(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("or")
-	public record JOr(JExpression left, JExpression right) implements JExpression {}
+	public record JOr(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("greater-than-equals")
-	public record JGreaterThanEquals(JExpression left, JExpression right) implements JExpression {}
+	public record JGreaterThanEquals(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("less-than")
-	public record JLessThan(JExpression left, JExpression right) implements JExpression {}
+	public record JLessThan(JExpression left, JExpression right) implements JExpression {
+	}
 
 	@Tag("try")
-	public record Try(JMethodSegment child, Option<JInitialization> resource) implements JMethodSegment {}
+	public record Try(JMethodSegment child, Option<JInitialization> resource) implements JMethodSegment {
+	}
 
 	@Tag("catch")
-	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {}
+	public record Catch(JDefinition definition, JMethodSegment body) implements JMethodSegment {
+	}
 
 	@Tag("yield")
-	public record Yield(JExpression child) implements JMethodSegment {}
+	public record Yield(JExpression child) implements JMethodSegment {
+	}
 
 	@Tag("variadic")
-	public record Variadic(JType child) implements JType {}
+	public record Variadic(JType child) implements JType {
+	}
 
 	private static class MyFolder implements Folder {
 		@Override
 		public DivideState fold(DivideState state, char c) {
-			if (c == '(') return state.append(c).enter();
-			if (c == ')') if (state.isLevel()) return state.advance();
-			else return state.exit().append(c);
+			if (c == '(')
+				return state.append(c).enter();
+			if (c == ')')
+				if (state.isLevel())
+					return state.advance();
+				else
+					return state.exit().append(c);
 			return state.append(c);
 		}
 
@@ -427,25 +532,32 @@ public class Lang {
 	}
 
 	@Tag("none")
-	public record EmptyLambdaParam() implements LambdaParamSet {}
+	public record EmptyLambdaParam() implements LambdaParamSet {
+	}
 
 	@Tag("single")
-	public record SingleLambdaParam(String param) implements LambdaParamSet {}
+	public record SingleLambdaParam(String param) implements LambdaParamSet {
+	}
 
 	@Tag("multiple")
-	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {}
+	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {
+	}
 
 	@Tag("expr-method-access-source")
-	public record ExprMethodAccessSource(JExpression child) implements MethodAccessSource {}
+	public record ExprMethodAccessSource(JExpression child) implements MethodAccessSource {
+	}
 
 	@Tag("type-method-access-source")
-	public record TypeMethodAccessSource(JType child) implements MethodAccessSource {}
+	public record TypeMethodAccessSource(JType child) implements MethodAccessSource {
+	}
 
 	@Tag("method-access")
-	public record MethodAccess(String name, MethodAccessSource source) implements JExpression {}
+	public record MethodAccess(String name, MethodAccessSource source) implements JExpression {
+	}
 
 	@Tag("number")
-	public record NumberNode(String number) implements JExpression {}
+	public record NumberNode(String number) implements JExpression {
+	}
 
 	private record OperatorFolder(String operator) implements Folder {
 		@Override
@@ -470,12 +582,14 @@ public class Lang {
 	}
 
 	@Tag("segment")
-	public record QualifiedSegment(String value) {}
+	public record QualifiedSegment(String value) {
+	}
 
 	@Tag("qualified")
 	public record JQualified(Option<List<QualifiedSegment>> segments) implements JType {
 		public String last() {
-			if (segments instanceof None<List<QualifiedSegment>>) return "";
+			if (segments instanceof None<List<QualifiedSegment>>)
+				return "";
 			return segments.orElse(new ArrayList<QualifiedSegment>()).getLast().map(seg -> seg.value).orElse("");
 		}
 
@@ -494,9 +608,9 @@ public class Lang {
 	public static Rule CFunctionPointerDefinition() {
 		// Generates: returnType (*name)(paramTypes)
 		return Tag("functionPointerDefinition",
-							 Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
-														"",
-														Expressions("paramTypes", CType())), ")"));
+				Suffix(First(Suffix(First(Node("returnType", CType()), " (*", String("name")), ")("),
+						"",
+						Expressions("paramTypes", CType())), ")"));
 	}
 
 	public static Rule CDefinition() {
@@ -506,13 +620,13 @@ public class Lang {
 	private static Rule CType() {
 		final LazyRule rule = new LazyRule();
 		// Function pointer: returnType (*)(paramType1, paramType2, ...)
-		final Rule funcPtr =
-				Tag("functionPointer", Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
+		final Rule funcPtr = Tag("functionPointer",
+				Suffix(First(Node("returnType", rule), " (*)(", Expressions("paramTypes", rule)), ")"));
 		rule.set(Or(funcPtr,
-								CommonRules.Identifier(),
-								Tag("pointer", Suffix(Node("child", rule), "*")),
-								JRules.Parameterized("template", rule, String("base")),
-								Invalid()));
+				CommonRules.Identifier(),
+				Tag("pointer", Suffix(Node("child", rule), "*")),
+				JRules.Parameterized("template", rule, String("base")),
+				Invalid()));
 		return rule;
 	}
 
@@ -527,23 +641,23 @@ public class Lang {
 
 		// Add template declaration only if type parameters exist (non-empty list)
 		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", CommonRules.Identifier()));
-		final Rule templateDecl =
-				NonEmptyList("typeParameters", Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
+		final Rule templateDecl = NonEmptyList("typeParameters",
+				Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
 		final Rule maybeTemplate = Or(templateDecl, Empty);
 
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	}
 
 	public static Rule JRoot() {
-		final Rule segment =
-				Or(Namespace("package"), Namespace("import"), Structures(JStructureSegment()), BlockComment(), Whitespace());
+		final Rule segment = Or(Namespace("package"), Namespace("import"), Structures(JStructureSegment()), BlockComment(),
+				Whitespace());
 		return Statements("children", segment);
 	}
 
 	private static Rule Structures(Rule structureMember) {
 		return Or(JStructure("class", structureMember),
-							JStructure("interface", structureMember),
-							JStructure("record", structureMember));
+				JStructure("interface", structureMember),
+				JStructure("record", structureMember));
 	}
 
 	public static Rule Whitespace() {
@@ -559,19 +673,19 @@ public class Lang {
 
 		final Rule maybeWithTypeArguments = NameWithTypeParameters();
 
-		final Rule maybeWithParameters =
-				Strip(Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
+		final Rule maybeWithParameters = Strip(
+				Or(Suffix(First(maybeWithTypeArguments, "(", Parameters()), ")"), maybeWithTypeArguments));
 
-		final Rule maybeWithParameters1 =
-				Or(Last(maybeWithParameters, "extends", Expressions("superclasses", JRules.JType())), maybeWithParameters);
+		final Rule maybeWithParameters1 = Or(
+				Last(maybeWithParameters, "extends", Expressions("superclasses", JRules.JType())), maybeWithParameters);
 
-		final Rule beforeContent =
-				Or(Last(maybeWithParameters1, "implements", Expressions("interfaces", JRules.JType())), maybeWithParameters1);
+		final Rule beforeContent = Or(Last(maybeWithParameters1, "implements", Expressions("interfaces", JRules.JType())),
+				maybeWithParameters1);
 
 		final Rule children = Statements("children", rule);
 
-		final Rule beforeContent1 =
-				Or(Last(beforeContent, "permits", Delimited("variants", JRules.JType(), ",")), beforeContent);
+		final Rule beforeContent1 = Or(Last(beforeContent, "permits", Delimited("variants", JRules.JType(), ",")),
+				beforeContent);
 
 		final Rule strip = Strip(Or(modifiers, Empty));
 		final Rule first = First(strip, type + " ", beforeContent1);
@@ -581,19 +695,19 @@ public class Lang {
 
 	private static Rule NameWithTypeParameters() {
 		final Rule name = CommonRules.StrippedIdentifier("name");
-		final Rule withTypeParameters =
-				Suffix(First(name, "<", Expressions("typeParameters", CommonRules.Identifier())), ">");
+		final Rule withTypeParameters = Suffix(First(name, "<", Expressions("typeParameters", CommonRules.Identifier())),
+				">");
 		return Strip(Or(withTypeParameters, name));
 	}
 
 	private static Rule JStructureSegment() {
 		final LazyRule structureMember = new LazyRule();
 		structureMember.set(Or(Structures(structureMember),
-													 Statement(),
-													 JMethod(),
-													 LineComment(),
-													 BlockComment(),
-													 Whitespace()));
+				Statement(),
+				JMethod(),
+				LineComment(),
+				BlockComment(),
+				Whitespace()));
 		return structureMember;
 	}
 
@@ -622,16 +736,16 @@ public class Lang {
 		final Rule expression = JExpression(methodSegment);
 		Rule inner = JRules.JDefinition();
 		methodSegment.set(Strip(Or(LineComment(),
-															 Switch("statement", expression, methodSegment),
-															 Conditional("if", expression, methodSegment),
-															 Conditional("while", expression, methodSegment),
-															 Else(methodSegment),
-															 Try(methodSegment),
-															 QuantityBlock("catch", "definition", inner, methodSegment),
-															 Block(methodSegment),
-															 BlockComment(),
-															 Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
-															 Whitespace())));
+				Switch("statement", expression, methodSegment),
+				Conditional("if", expression, methodSegment),
+				Conditional("while", expression, methodSegment),
+				Else(methodSegment),
+				Try(methodSegment),
+				QuantityBlock("catch", "definition", inner, methodSegment),
+				Block(methodSegment),
+				BlockComment(),
+				Strip(Suffix(JMethodStatementValue(methodSegment), ";")),
+				Whitespace())));
 		return methodSegment;
 	}
 
@@ -643,8 +757,8 @@ public class Lang {
 		final Rule value1 = Node("value", value);
 		final Rule resource = Node("resource", First(Or(Tag("initialization", definition1)), "=", value1));
 		final Splitter splitter = new DividingSplitter(new FoldingDivider(new EscapingFolder(new MyFolder())));
-		final Rule withResource =
-				new ContextRule("With resource", Strip(Prefix("(", new SplitRule(resource, child, splitter, new LeftFirst()))));
+		final Rule withResource = new ContextRule("With resource",
+				Strip(Prefix("(", new SplitRule(resource, child, splitter, new LeftFirst()))));
 		final ContextRule withoutResource = new ContextRule("Without resource", child);
 		return Tag("try", Prefix("try ", Or(withResource, withoutResource)));
 	}
@@ -656,12 +770,12 @@ public class Lang {
 	private static Rule JMethodStatementValue(Rule statement) {
 		final Rule expression = JExpression(statement);
 		return Or(Break(),
-							PostFix(expression),
-							Return(expression),
-							Yield(expression),
-							Initialization(JRules.JDefinition(), expression),
-							JRules.JDefinition(),
-							Invokable(expression));
+				PostFix(expression),
+				Return(expression),
+				Yield(expression),
+				Initialization(JRules.JDefinition(), expression),
+				JRules.JDefinition(),
+				Invokable(expression));
 	}
 
 	public static Rule Break() {
@@ -680,7 +794,7 @@ public class Lang {
 
 	private static Rule Invokable(Rule expression) {
 		return Or(Invocation(expression),
-							Invokable("construction", Strip(Prefix("new ", Node("type", CType()))), expression));
+				Invokable("construction", Strip(Prefix("new ", Node("type", CType()))), expression));
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
@@ -710,8 +824,8 @@ public class Lang {
 		final Rule condition = Node(key, inner);
 		final Rule body = Node("body", statement);
 		final Rule split = Split(Prefix("(", condition),
-														 KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
-														 body);
+				KeepFirst(new FoldingDivider(new EscapingFolder(new ClosingParenthesesFolder()))),
+				body);
 
 		return Tag(tag, Prefix(tag + " ", Strip(split)));
 	}
@@ -719,32 +833,32 @@ public class Lang {
 	private static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(JLambda(statement, expression),
-											Char(),
-											Tag("cast",
-													Strip(Prefix("(", First(Node("type", JRules.JType()), ")", Node("child", expression))))),
-											Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
-											Tag("not", Strip(Prefix("!", Node("child", expression)))),
-											StringExpr(),
-											Switch("expr", expression, CaseExprValue(statement, expression)),
-											Index(expression),
-											NewArray(expression),
-											Index(expression),
-											Invokable(expression),
-											FieldAccess(expression),
-											MethodAccess(expression),
-											InstanceOf(expression),
-											Operator("add", "+", expression),
-											Operator("subtract", "-", expression),
-											Operator("and", "&&", expression),
-											Operator("or", "||", expression),
-											Operator("equals", "==", expression),
-											Operator("not-equals", "!=", expression),
-											Operator("less-than", "<", expression),
-											Operator("less-than-equals", "<=", expression),
-											Operator("greater-than", ">", expression),
-											Operator("greater-than-equals", ">=", expression),
-											CommonRules.Identifier(),
-											Number()));
+				Char(),
+				Tag("cast",
+						Strip(Prefix("(", First(Node("type", JRules.JType()), ")", Node("child", expression))))),
+				Tag("quantity", Strip(Prefix("(", Suffix(Node("child", expression), ")")))),
+				Tag("not", Strip(Prefix("!", Node("child", expression)))),
+				StringExpr(),
+				Switch("expr", expression, CaseExprValue(statement, expression)),
+				Index(expression),
+				NewArray(expression),
+				Index(expression),
+				Invokable(expression),
+				FieldAccess(expression),
+				MethodAccess(expression),
+				InstanceOf(expression),
+				Operator("add", "+", expression),
+				Operator("subtract", "-", expression),
+				Operator("and", "&&", expression),
+				Operator("or", "||", expression),
+				Operator("equals", "==", expression),
+				Operator("not-equals", "!=", expression),
+				Operator("less-than", "<", expression),
+				Operator("less-than-equals", "<=", expression),
+				Operator("greater-than", ">", expression),
+				Operator("greater-than-equals", ">=", expression),
+				CommonRules.Identifier(),
+				Number()));
 		return expression;
 	}
 
@@ -768,12 +882,12 @@ public class Lang {
 		final Rule exprSource = Tag("expr-method-access-source", Node("child", expression));
 		final Rule child = Tag("type-method-access-source", Node("child", JRules.JType()));
 		return Tag("method-access",
-							 Last(Node("source", Or(exprSource, child)), "::", CommonRules.StrippedIdentifier("name")));
+				Last(Node("source", Or(exprSource, child)), "::", CommonRules.StrippedIdentifier("name")));
 	}
 
 	private static Rule CaseExprValue(Rule statement, LazyRule expression) {
 		return Or(Tag("expr-case-expr-value", Node("expression", Strip(Suffix(expression, ";")))),
-							Tag("statement-case-expr-value", Node("statement", statement)));
+				Tag("statement-case-expr-value", Node("statement", statement)));
 	}
 
 	public static Rule Char() {
@@ -787,8 +901,8 @@ public class Lang {
 
 		final Rule strip = Or(Strip(Prefix("(", Suffix(Or(expressions, tag), ")"))), param);
 		final Rule child = Node("child",
-														Or(Tag("statement-lambda-value", Node("child", statement)),
-															 Tag("expr-lambda-value", Node("child", expression))));
+				Or(Tag("statement-lambda-value", Node("child", statement)),
+						Tag("expr-lambda-value", Node("child", expression))));
 
 		return Tag("lambda", First(Node("params", strip), "->", child));
 	}
@@ -805,7 +919,7 @@ public class Lang {
 
 	private static Rule Index(LazyRule expression) {
 		return Tag("index",
-							 Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("index", expression)), "]")));
+				Strip(Suffix(Last(new NodeRule("child", expression), "[", new NodeRule("index", expression)), "]")));
 	}
 
 	public static Rule FieldAccess(Rule expression) {
@@ -822,8 +936,8 @@ public class Lang {
 	public static Rule Operator(String type, String infix, LazyRule expression) {
 		final Rule left = Node("left", expression);
 		final Rule right = Node("right", expression);
-		final Splitter splitter =
-				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(infix))));
+		final Splitter splitter = DividingSplitter
+				.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(infix))));
 		return Tag(type, SplitRule.Split(left, splitter, right));
 	}
 
