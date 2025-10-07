@@ -13,7 +13,7 @@ import java.time.Duration;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.fail;
 
-public class TransformerPerformanceTest {
+public class SwitchPerformanceTest {
 	@Test
 	void test() {
 		final String s = """
