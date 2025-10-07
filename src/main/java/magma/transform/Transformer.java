@@ -5,7 +5,7 @@ import magma.compile.CNodes;
 import magma.compile.JNodes;
 import magma.compile.Lang;
 import magma.compile.error.CompileError;
-import magma.compile.rule.RootTokenSequence;
+import magma.compile.rule.StringTokenSequence;
 import magma.compile.rule.TokenSequence;
 import magma.list.ArrayList;
 import magma.list.Collections;
@@ -20,8 +20,8 @@ import magma.result.Ok;
 import magma.result.Result;
 
 public class Transformer {
-	private static final TokenSequence INVALID_MARKER = new RootTokenSequence("???");
-	private static final TokenSequence EMPTY_ROOT_TOKEN_SEQUENCE = new RootTokenSequence("");
+	private static final TokenSequence INVALID_MARKER = new StringTokenSequence("???");
+	private static final TokenSequence EMPTY_ROOT_TOKEN_SEQUENCE = new StringTokenSequence("");
 
 	public static Lang.CFunction transformMethod(Lang.JMethod method, TokenSequence structName) {
 		final Option<NonEmptyList<Lang.JDefinition>> maybeOldParams = method.params();
@@ -44,11 +44,11 @@ public class Transformer {
 																																	 .map(Transformer::getCFunctionSegmentNonEmptyList)
 																																	 .orElse(NonEmptyList.of(new Lang.Invalid(
 																																			 INVALID_MARKER)));
-		final TokenSequence name = new RootTokenSequence(cDefinition.name().value() + "_" + structName.value());
+		final TokenSequence name = new StringTokenSequence(cDefinition.name().value() + "_" + structName.value());
 		return new Lang.CFunction(new Lang.CDefinition(name, cDefinition.type(), cDefinition.typeParameters()),
 															newParams,
 															bodySegments,
-															new Some<TokenSequence>(new RootTokenSequence(System.lineSeparator())),
+															new Some<TokenSequence>(new StringTokenSequence(System.lineSeparator())),
 															extractedTypeParams);
 	}
 
@@ -115,7 +115,7 @@ public class Transformer {
 		final Option<NonEmptyList<Lang.CExpression>> list =
 				jConstruction.arguments().flatMap(Transformer::transformExpressionList);
 
-		return new Lang.CInvocation(new Lang.Identifier(new RootTokenSequence(name)), list);
+		return new Lang.CInvocation(new Lang.Identifier(new StringTokenSequence(name)), list);
 	}
 
 	static Lang.CExpression transformExpression(Lang.JExpression expression) {
@@ -134,21 +134,21 @@ public class Transformer {
 			case Lang.CharNode charNode -> charNode;
 			case JNodes.JCast cast -> new CNodes.Cast(transformType(cast.type()), transformExpression(cast.child()));
 			case Lang.Index index -> new Lang.Invalid(INVALID_MARKER);
-			case Lang.InstanceOf instanceOf -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JGreaterThanEquals jGreaterThanEquals -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JLessThan jLessThan -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JLessThanEquals jLessThanEquals -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JNotEquals jNotEquals -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JOr jOr -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.JSubtract jSubtract -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.Lambda lambda -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.MethodAccess methodAccess -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.NewArray newArray -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.Not not -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.NumberNode numberNode -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.Quantity quantity -> new Lang.Invalid(new RootTokenSequence("???"));
-			case Lang.SwitchExpr switchExpr -> new Lang.Invalid(new RootTokenSequence("???"));
+			case Lang.InstanceOf instanceOf -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JGreaterThanEquals jGreaterThanEquals -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JLessThan jLessThan -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JLessThanEquals jLessThanEquals -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JNotEquals jNotEquals -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JOr jOr -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.JSubtract jSubtract -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.Lambda lambda -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.MethodAccess methodAccess -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.NewArray newArray -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.Not not -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.NumberNode numberNode -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.Quantity quantity -> new Lang.Invalid(new StringTokenSequence("???"));
+			case Lang.SwitchExpr switchExpr -> new Lang.Invalid(new StringTokenSequence("???"));
 		};
 	}
 
@@ -189,7 +189,7 @@ public class Transformer {
 		if (typeVars.isEmpty()) return new None<NonEmptyList<Lang.Identifier>>();
 
 		// Convert to Identifier objects
-		return typeVars.stream().map(s -> new Lang.Identifier(new RootTokenSequence(s))).collect(NonEmptyList.collector());
+		return typeVars.stream().map(s -> new Lang.Identifier(new StringTokenSequence(s))).collect(NonEmptyList.collector());
 	}
 
 	private static void collectTypeVariables(Lang.JType type, List<String> typeVars) {
@@ -290,7 +290,7 @@ public class Transformer {
 
 		final Lang.CStructure structure = new Lang.CStructure(name,
 																													fields,
-																													new Some<TokenSequence>(new RootTokenSequence(System.lineSeparator())),
+																													new Some<TokenSequence>(new StringTokenSequence(System.lineSeparator())),
 																													aClass.typeParameters());
 
 		// Build resulting root segments list: structure followed by flattened child
@@ -315,14 +315,14 @@ public class Transformer {
 			case Lang.Array array -> transformArray(array);
 			case Lang.Identifier identifier -> transformIdentifier(identifier);
 			case Lang.JQualified qualified -> new Lang.Identifier(qualified.last());
-			case Lang.Variadic variadic -> new Lang.Invalid(new RootTokenSequence(type.toString()));
-			case Lang.Wildcard wildcard -> new Lang.Invalid(new RootTokenSequence(type.toString()));
+			case Lang.Variadic variadic -> new Lang.Invalid(new StringTokenSequence(type.toString()));
+			case Lang.Wildcard wildcard -> new Lang.Invalid(new StringTokenSequence(type.toString()));
 		};
 	}
 
 	private static CNodes.CType transformIdentifier(Lang.Identifier identifier) {
 		final TokenSequence value = identifier.value();
-		if (value.equalsSlice("String")) return new Lang.Pointer(new Lang.Identifier(new RootTokenSequence("char")));
+		if (value.equalsSlice("String")) return new Lang.Pointer(new Lang.Identifier(new StringTokenSequence("char")));
 		return identifier;
 	}
 
@@ -349,7 +349,7 @@ public class Transformer {
 		return NonEmptyList.fromList(transformedTypes)
 											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(generic.base().last(),
 																																							 nonEmptyTypes))
-											 .orElse(new Lang.Invalid(new RootTokenSequence(
+											 .orElse(new Lang.Invalid(new StringTokenSequence(
 													 "Empty type arguments for generic " + generic.base().last()), new None<TokenSequence>()));
 	}
 }

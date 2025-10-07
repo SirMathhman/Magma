@@ -17,19 +17,21 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	public Result<Node, CompileError> lex(TokenSequence content) {
 		final Result<Node, CompileError> lex = rule.lex(content);
 		return lex.mapValue(node -> node.retype(tag))
-							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-																								new TokenSequenceContext(content),
-																								List.of(error)));
+				.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
+						new TokenSequenceContext(content),
+						List.of(error)));
 	}
 
 	@Override
 	public Result<TokenSequence, CompileError> generate(Node node) {
-		if (node.is(tag)) return rule.generate(node)
-																 .mapErr(error -> new CompileError("Failed to generate with tag '" + tag + "'",
-																																	 new NodeContext(node),
-																																	 List.of(error)));
+		if (node.is(tag))
+			return rule.generate(node)
+					.mapErr(error -> new CompileError("Failed to generate with tag '" + tag + "'",
+							new NodeContext(node),
+							List.of(error)));
 
 		else
-			return new Err<String, CompileError>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
+			return new Err<TokenSequence, CompileError>(
+					new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
 	}
 }

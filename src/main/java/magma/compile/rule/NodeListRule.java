@@ -55,17 +55,18 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence tokenSequence) {
 		return divider.divide(tokenSequence)
-									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
-									.mapValue(list -> {
-										// Only add to nodeLists if non-empty
-										if (list.isEmpty()) return new Node();
-										return NonEmptyList.fromList(list)
-																			 .map(nonEmptyList -> new Node().withNodeList(key, nonEmptyList))
-																			 .orElse(new Node()); // Should never happen since we checked isEmpty
-									})
-									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
-																									new TokenSequenceContext(tokenSequence),
-																									List.of(err)));
+				.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
+				.mapValue(list -> {
+					// Only add to nodeLists if non-empty
+					if (list.isEmpty())
+						return new Node();
+					return NonEmptyList.fromList(list)
+							.map(nonEmptyList -> new Node().withNodeList(key, nonEmptyList))
+							.orElse(new Node()); // Should never happen since we checked isEmpty
+				})
+				.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
+						new TokenSequenceContext(tokenSequence),
+						List.of(err)));
 	}
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, TokenSequence element) {
@@ -73,8 +74,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
 				case Err<Node, CompileError> v -> new Err<List<Node>, CompileError>(new CompileError("Failed to lex segment",
-																																														 new TokenSequenceContext(element),
-																																														 List.of(v.error())));
+						new TokenSequenceContext(element),
+						List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
 					list.addLast(node);
 					yield new Ok<List<Node>, CompileError>(list);
@@ -87,35 +88,34 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	public Result<TokenSequence, CompileError> generate(Node value) {
 		return switch (value.findNodeList(key)) {
 			// List missing - fail to allow Or to try alternatives
-			case None<?> _ -> new Err<String, CompileError>(new CompileError("Node list '" + key + "' not present",
-																																			 new NodeContext(value)));
+			case None<?> _ -> new Err<TokenSequence, CompileError>(new CompileError("Node list '" + key + "' not present",
+					new NodeContext(value)));
 			// List present and non-empty - iterate and generate each element
 			case Some<NonEmptyList<Node>>(NonEmptyList<Node> list) -> generateList(list);
 		};
 	}
 
-	private Result<String, CompileError> generateList(NonEmptyList<Node> list) {
+	private Result<TokenSequence, CompileError> generateList(NonEmptyList<Node> list) {
 		final StringJoiner sb = new StringJoiner(divider.delimiter());
 		int i = 0;
 		while (i < list.size()) {
 			switch (list.get(i)) {
 				case Some<Node>(Node child) -> {
 					switch (rule.generate(child)) {
-						case Ok<String, CompileError>(String generated) -> sb.add(generated);
-						case Err<String, CompileError>(CompileError error) -> {
-							return new Err<String, CompileError>(error);
+						case Ok<TokenSequence, CompileError>(TokenSequence generated) -> sb.add(generated.display());
+						case Err<TokenSequence, CompileError>(CompileError error) -> {
+							return new Err<TokenSequence, CompileError>(error);
 						}
 					}
 				}
 				case None<?> _ -> {
 					// Should never happen - NonEmptyList guarantees elements exist
-					return new Err<String, CompileError>(new CompileError(
+					return new Err<TokenSequence, CompileError>(new CompileError(
 							"Unexpected missing element in NonEmptyList at index " + i, new NodeContext(list.first())));
 				}
 			}
 			i++;
 		}
-		return new Ok<String, CompileError>(sb.toString());
+		return new Ok<TokenSequence, CompileError>(new StringTokenSequence(sb.toString()));
 	}
-
 }

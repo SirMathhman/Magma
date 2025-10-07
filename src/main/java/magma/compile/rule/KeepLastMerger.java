@@ -13,7 +13,7 @@ public class KeepLastMerger implements Merger {
 		if (segments.size() < 2) return new None<Tuple<TokenSequence, TokenSequence>>();
 
 		// Join all but last element
-		final TokenSequence left = new RootTokenSequence(segments.subListOrEmpty(0, segments.size() - 1)
+		final TokenSequence left = new StringTokenSequence(segments.subListOrEmpty(0, segments.size() - 1)
 																														 .stream()
 																														 .map(TokenSequence::value)
 																														 .collect(new Joiner(delimiter)));

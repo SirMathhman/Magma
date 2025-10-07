@@ -28,7 +28,7 @@ public class DivideState {
 	}
 
 	public DivideState advance() {
-		segments.addLast(new RootTokenSequence(buffer.toString()));
+		segments.addLast(new StringTokenSequence(buffer.toString()));
 		this.buffer = new StringBuilder();
 		return this;
 	}

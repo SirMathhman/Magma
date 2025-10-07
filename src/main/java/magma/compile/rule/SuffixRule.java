@@ -15,13 +15,13 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 	public Result<Node, CompileError> lex(TokenSequence input) {
 		if (!input.endsWith(suffix))
 			return new Err<Node, CompileError>(new CompileError("Suffix '" + suffix + "' not present",
-																													new TokenSequenceContext(input)));
+					new TokenSequenceContext(input)));
 		final var slice = input.substring(0, input.length() - suffix.length());
 		return rule.lex(slice);
 	}
 
 	@Override
 	public Result<TokenSequence, CompileError> generate(Node node) {
-		return rule.generate(node).mapValue(value -> value + suffix);
+		return rule.generate(node).mapValue(value -> value.appendSlice(suffix));
 	}
 }

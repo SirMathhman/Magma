@@ -13,12 +13,15 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
-		if (content.startsWith(prefix)) return rule.lex(content.substring(prefix.length()));
-		else return new Err<Node, CompileError>(new CompileError("Prefix '" + prefix + "' not present", new TokenSequenceContext(content)));
+		if (content.startsWith(prefix))
+			return rule.lex(content.substring(prefix.length()));
+		else
+			return new Err<Node, CompileError>(
+					new CompileError("Prefix '" + prefix + "' not present", new TokenSequenceContext(content)));
 	}
 
 	@Override
 	public Result<TokenSequence, CompileError> generate(Node node) {
-		return rule.generate(node).mapValue(inner -> prefix + inner);
+		return rule.generate(node).mapValue(inner -> new StringTokenSequence(prefix).appendSequence(inner));
 	}
 }

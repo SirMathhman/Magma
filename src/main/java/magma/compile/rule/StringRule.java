@@ -18,8 +18,9 @@ public record StringRule(String key) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
-		if (content.isEmpty()) return new Err<Node, CompileError>(new CompileError("Content of key '" + key + "' be empty",
-																																							 new TokenSequenceContext(content)));
+		if (content.isEmpty())
+			return new Err<Node, CompileError>(new CompileError("Content of key '" + key + "' be empty",
+					new TokenSequenceContext(content)));
 		return new Ok<Node, CompileError>(new Node().withSlice(key, content));
 	}
 
@@ -28,8 +29,9 @@ public record StringRule(String key) implements Rule {
 		Option<TokenSequence> resultOption = node.findSlice(key);
 		return switch (resultOption) {
 			case None<TokenSequence> _ ->
-					new Err<String, CompileError>(new CompileError("String '" + key + "' not present.", new NodeContext(node)));
-			case Some<TokenSequence>(TokenSequence value) -> new Ok<String, CompileError>(value.value());
+				new Err<TokenSequence, CompileError>(
+						new CompileError("String '" + key + "' not present.", new NodeContext(node)));
+			case Some<TokenSequence>(TokenSequence value) -> new Ok<TokenSequence, CompileError>(value);
 		};
 	}
 }
