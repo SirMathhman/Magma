@@ -38,7 +38,6 @@ Result<> serializeField_JavaSerializer(/*???*/ component, /*???*/ value) {
 	if (Objects.isNull(value))return new_???(new_???(""+fieldName+"", new_???(fieldName)));
 	if (fieldType==String.class)return new_???(new_???(fieldName, /*???*/));
 	if (Option.class.isAssignableFrom(fieldType))return serializeOptionField(component, value);
-	if (NonEmptyList.class.isAssignableFrom(fieldType))return serializeNonEmptyListField(component, value);
 	if (List.class.isAssignableFrom(fieldType))return serializeListField(component, value);
 	return serializeValue(fieldType, value).mapValue(/*???*/.withNode(fieldName, childNode));
 }
@@ -55,7 +54,6 @@ Result<> serializeOptionField_JavaSerializer(/*???*/ component, /*???*/ value) {
 	if (/*???*/)return new_???(error);
 	Class<> elementClass=/*???*/.value();
 	if (elementClass==String.class)return new_???(new_???(fieldName, /*???*/));
-	if (NonEmptyList.class.isAssignableFrom(elementClass))return serializeOptionNonEmptyListField(fieldName, elementType, value1);
 	if (List.class.isAssignableFrom(elementClass))return serializeOptionListField(fieldName, elementType, value1);
 	return serializeValue(elementClass, value1).mapValue(/*???*/.withNode(fieldName, childNode));}
 	return new_???(new_???());
@@ -87,27 +85,6 @@ Result<> serializeListElements_JavaSerializer(Class<> elementClass, List<> list)
 	list.stream().map(/*???*/(elementClass, element)).forEach(/*???*/);
 	if (errors.isEmpty())return new_???(nodes);
 	return new_???(new_???("", new_???(""), errors));
-}
-Result<> serializeNonEmptyListField_JavaSerializer(/*???*/ component, /*???*/ value) {
-	/*???*/ fieldName=component.getName();
-	if (/*???*/)return new_???(new_???(""+fieldName+"", new_???(fieldName)));
-	Result<> elementTypeResult=getGenericArgument(component.getGenericType());
-	if (/*???*/)return new_???(error);
-	/*???*/ elementType=/*???*/.value();
-	Result<> elementClassResult=erase(elementType);
-	if (/*???*/)return new_???(error);
-	Class<> elementClass=/*???*/.value();
-	return serializeListElements(elementClass, nonEmptyList.toList()).mapValue(/*???*/.withNodeList(fieldName, nodes));
-}
-Result<> serializeOptionNonEmptyListField_JavaSerializer(/*???*/ fieldName, /*???*/ listType, /*???*/ content) {
-	if (/*???*/)return new_???(new_???(""+fieldName+"", new_???(fieldName)));
-	Result<> elementTypeResult=getGenericArgument(listType);
-	if (/*???*/)return new_???(error);
-	/*???*/ elementType=/*???*/.value();
-	Result<> elementClassResult=erase(elementType);
-	if (/*???*/)return new_???(error);
-	Class<> elementClass=/*???*/.value();
-	return serializeListElements(elementClass, nonEmptyList.toList()).mapValue(/*???*/.withNodeList(fieldName, nodes));
 }
 Result<> deserializeValue_JavaSerializer(Class<> type, /*???*/ node) {
 	if (type.isSealed()&&/*???*/.isRecord())return deserializeSealed(type, node);
@@ -257,7 +234,6 @@ Result<> deserializeField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> 
 	Class<> fieldType=component.getType();
 	if (fieldType==String.class)return deserializeStringField(fieldName, node, consumedFields);
 	if (Option.class.isAssignableFrom(fieldType))return deserializeOptionField(component, node, consumedFields);
-	if (NonEmptyList.class.isAssignableFrom(fieldType))return deserializeNonEmptyListField(component, node, consumedFields);
 	if (List.class.isAssignableFrom(fieldType))return deserializeListField(component, node, consumedFields);
 	/*???*/(fieldName);
 	if (/*???*/)
@@ -306,7 +282,6 @@ Result<> deserializeOptionField_JavaSerializer(/*???*/ component, /*???*/ node, 
 	/*???*/(fieldName);
 	if (/*???*/)return new_???(new_???(""+fieldName+""+node.maybeType.orElse("")+"", new_???(node)));
 	return new_???(Option.empty());}
-	if (NonEmptyList.class.isAssignableFrom(elementClass))return deserializeOptionNonEmptyListField(fieldName, elementType, node, consumedFields);
 	if (List.class.isAssignableFrom(elementClass))return deserializeOptionListField(fieldName, elementType, node, consumedFields);
 	/*???*/(fieldName);
 	if (/*???*/)
@@ -371,41 +346,6 @@ Result<> deserializeListElements_JavaSerializer(Class<> elementClass, List<> nod
 	i++;}
 	if (errors.isEmpty())return new_???(results);
 	return new_???(new_???(""+errors.size()+""+nodeList.size()+""+elementClass.getSimpleName()+"", new_???(nodeList.getFirst().orElse(null)), errors));
-}
-Result<> deserializeNonEmptyListField_JavaSerializer(/*???*/ component, /*???*/ node, Set<> consumedFields) {
-	/*???*/ fieldName=component.getName();
-	Result<> elementTypeResult=getGenericArgument(component.getGenericType());
-	if (/*???*/)return new_???(error);
-	/*???*/ elementType=/*???*/.value();
-	Result<> elementClassResult=erase(elementType);
-	if (/*???*/)return new_???(error);
-	Class<> elementClass=/*???*/.value();
-	/*???*/(fieldName);
-	if (/*???*/)
-	{
-	if (value.isEmpty())return new_???(new_???(""+fieldName+"", new_???(node)));
-	consumedFields.add(fieldName);
-	Result<> elementsResult=deserializeListElements(elementClass, value);
-	return elementsResult.mapValue(/*???*/.from(list.copy()));}
-	else
-	return new_???(new_???(""+fieldName+"", new_???(node)));
-}
-Result<> deserializeOptionNonEmptyListField_JavaSerializer(/*???*/ fieldName, /*???*/ listType, /*???*/ node, Set<> consumedFields) {
-	Result<> elementTypeResult=getGenericArgument(listType);
-	if (/*???*/)return new_???(error);
-	/*???*/ elementType=/*???*/.value();
-	Result<> elementClassResult=erase(elementType);
-	if (/*???*/)return new_???(error);
-	Class<> elementClass=/*???*/.value();
-	/*???*/(fieldName);
-	if (/*???*/)
-	{
-	if (value.isEmpty())return new_???(new_???(""+fieldName+"", new_???(node)));
-	consumedFields.add(fieldName);
-	Result<> elementsResult=deserializeListElements(elementClass, value);
-	return elementsResult.mapValue(/*???*/.of(NonEmptyList.from(list.copy())));}
-	else
-	return new_???(Option.empty());
 }
 /*???*/ createNodeWithType_JavaSerializer(Class<> type) {
 	/*???*/ node=new_???();

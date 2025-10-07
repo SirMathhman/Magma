@@ -613,9 +613,6 @@ public class JavaSerializer {
 			return new Ok<Object, CompileError>(Option.empty());
 		}
 
-		if (NonEmptyList.class.isAssignableFrom(elementClass))
-			return deserializeOptionNonEmptyListField(fieldName, elementType, node, consumedFields);
-
 		if (List.class.isAssignableFrom(elementClass))
 			return deserializeOptionListField(fieldName, elementType, node, consumedFields);
 

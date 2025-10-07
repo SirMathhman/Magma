@@ -29,7 +29,7 @@ struct Identifiable {};
 struct CharNode {/*???*/ value;};
 struct CAnd {/*???*/ left;/*???*/ right;};
 struct And {/*???*/ left;/*???*/ right;};
-struct Destruct {/*???*/ type;Option<> params;};
+struct Destruct {/*???*/ type;List<> params;};
 struct InstanceOf {/*???*/ child;/*???*/ target;};
 struct Wildcard {};
 struct JAdd {/*???*/ left;/*???*/ right;};
@@ -51,8 +51,8 @@ struct StatementCaseExprValue {/*???*/ statement;};
 }
 /*???*/ CaseStatement_Lang(Option<> target, /*???*/ value, Option<> when) {
 }
-struct SwitchExpr {/*???*/ value;NonEmptyList<> cases;};
-struct SwitchStatement {/*???*/ value;NonEmptyList<> cases;};
+struct SwitchExpr {/*???*/ value;List<> cases;};
+struct SwitchStatement {/*???*/ value;List<> cases;};
 struct ExprLambdaValue {/*???*/ child;};
 struct StatementLambdaValue {/*???*/ child;};
 struct Lambda {/*???*/ params;/*???*/ child;};
@@ -65,17 +65,17 @@ struct JAssignment {/*???*/ location;/*???*/ value;};
 struct JPostFix {/*???*/ value;};
 struct JInitialization {/*???*/ definition;/*???*/ value;};
 struct CInitialization {/*???*/ definition;/*???*/ value;};
-struct CBlock {Option<> children;};
-struct JBlock {Option<> children;};
+struct CBlock {List<> children;};
+struct JBlock {List<> children;};
 struct JIf {/*???*/ condition;/*???*/ body;};
 struct CIf {/*???*/ condition;/*???*/ body;};
 struct JWhile {/*???*/ condition;/*???*/ body;};
 struct CWhile {/*???*/ condition;/*???*/ body;};
 struct Field {/*???*/ value;};
 struct JGeneric {/*???*/ base;Option<> typeArguments;};
-struct CTemplate {/*???*/ base;NonEmptyList<> typeArguments;};
+struct CTemplate {/*???*/ base;List<> typeArguments;};
 /*???*/ stringify_CTemplate() {
-	return base+""+typeArguments.toList().stream().map(/*???*/).collect(new_???(""));
+	return base+""+typeArguments.stream().map(/*???*/).collect(new_???(""));
 }
 struct Array {/*???*/ child;};
 struct JDefinition {/*???*/ name;/*???*/ type;Option<> modifiers;Option<> typeParameters;};
@@ -92,18 +92,18 @@ struct Invalid {/*???*/ value;Option<> after;};
 struct JClass {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> interfaces;};
 struct Interface {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> interfaces;Option<> superclasses;Option<> variants;};
 struct RecordNode {Option<> modifiers;/*???*/ name;List<> children;Option<> typeParameters;Option<> params;Option<> interfaces;};
-struct Structure {/*???*/ name;Option<> fields;Option<> after;Option<> typeParameters;};
+struct Structure {/*???*/ name;List<> fields;Option<> after;Option<> typeParameters;};
 struct Whitespace {};
 struct Placeholder {/*???*/ value;};
-/*???*/ JRoot_Lang(Option<> children) {
+/*???*/ JRoot_Lang(List<> children) {
 }
-/*???*/ CRoot_Lang(Option<> children) {
+/*???*/ CRoot_Lang(List<> children) {
 }
 struct Import {/*???*/ location;};
 struct Package {/*???*/ location;};
 struct CDefinition {/*???*/ name;/*???*/ type;Option<> typeParameters;};
-struct CFunctionPointerDefinition {/*???*/ name;/*???*/ returnType;Option<> paramTypes;};
-struct Function {/*???*/ definition;Option<> params;NonEmptyList<> body;Option<> after;Option<> typeParameters;};
+struct CFunctionPointerDefinition {/*???*/ name;/*???*/ returnType;List<> paramTypes;};
+struct Function {/*???*/ definition;List<> params;List<> body;Option<> after;Option<> typeParameters;};
 struct Identifier {/*???*/ value;};
 /*???*/ stringify_Identifier() {
 	/*???*/ value;
@@ -127,7 +127,6 @@ struct InvocationFolder {/*???*/ open;/*???*/ close;};
 	{
 	/*???*/ enter=appended.enter();
 	if (enter.isShallow())return enter.advance();
-	else
 	/*???*/ enter;}
 	if (c==close)return appended.exit();
 	/*???*/ appended;
