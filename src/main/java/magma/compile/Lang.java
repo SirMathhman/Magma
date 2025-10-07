@@ -20,7 +20,6 @@ import magma.compile.rule.StringRule;
 import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
-import magma.list.NonEmptyList;
 import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
@@ -235,7 +234,7 @@ public class Lang {
 	public record JGeneric(JQualified base, Option<List<JType>> typeArguments) implements JType {}
 
 	@Tag("template")
-	public record CTemplate(String base, NonEmptyList<CLang.CType> typeArguments) implements CLang.CType {
+	public record CTemplate(String base, List<CLang.CType> typeArguments) implements CLang.CType {
 		@Override
 		public String stringify() {
 			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(new Joiner("_"));
@@ -512,7 +511,7 @@ public class Lang {
 		rule.set(Or(funcPtr,
 								CommonRules.Identifier(),
 								Tag("pointer", Suffix(Node("child", rule), "*")),
-								JRules.Parameterized("template", String("base"), rule),
+								JRules.Parameterized("template", rule, String("base")),
 								Invalid()));
 		return rule;
 	}
