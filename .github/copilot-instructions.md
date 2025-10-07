@@ -39,13 +39,9 @@ Integration points & external dependencies
 
 Files to inspect for context when tackling a change
 
-- `README.md` — project overview, quick start, and feature summary. Start here for project understanding.
-- `docs/ARCHITECTURE.md` — comprehensive system architecture, components, and data flow. Read when understanding how pieces fit together.
-- `docs/DEVELOPER_GUIDE.md` — practical how-to guide for common development tasks (adding nodes, debugging, testing).
-- `docs/INDEX.md` — organized catalog of all feature documentation with reading guides by audience.
 - `pom.xml` — Java version and test framework configuration (JUnit added). Update here to add dependencies or plugin tweaks.
 - `FIELD_VALIDATION_FEATURE.md` — feature spec and expected behavior for field-consumption validation.
-- `src/main/java/magma/compile/JavaSerializer.java` (formerly Serialize.java) — core behavior for deserialization; test failures often trace back here.
+- `src/main/java/magma/compile/Serialize.java` — core behavior for deserialization; test failures often trace back here.
 - `src/main/java/magma/result/` and `src/main/java/magma/option/` — small ADTs used pervasively; changing their APIs affects many call sites.
 - `src/test/java/*` — canonical examples/tests for the library's expected behavior.
 
@@ -57,11 +53,8 @@ How to make safe changes
 
 Examples of common tasks and where to start
 
-- **Getting oriented**: Read `README.md`, then `docs/ARCHITECTURE.md` for system understanding.
-- **Adding a new AST node**: See step-by-step guide in `docs/DEVELOPER_GUIDE.md` → "Adding a New AST Node Type"
-- **Fix failing deserialization**: reproduce failing test, open `JavaSerializer.deserialize` and the relevant `rule` classes that consume fields.
-- **Debugging issues**: See `docs/DEVELOPER_GUIDE.md` → "Debugging Techniques" for practical tips.
-- **Understanding validation**: Read `FIELD_VALIDATION_FEATURE.md`, then `docs/TYPE_MISMATCH_VALIDATION.md` and related docs.
+- Fix failing deserialization: reproduce failing test, open `Serialize.deserialize` and the relevant `rule` classes that consume fields.
+- Add a new AST node: update `magma.compile.Node`, serialization rules in `magma.compile.rule`, and add tests under `src/test/java` following existing test patterns.
 
 Notes & gotchas
 
@@ -74,12 +67,8 @@ If you modify or add tests, run them locally and keep assertions explicit about 
 
 IMPORTANT: After any substantive code or behavioral change (new feature, public API change, bugfix that affects users or tests), the agent MUST create or update documentation. This can be:
 
-- a new markdown file under `docs/` describing the change and rationale (follow format in existing docs),
-- an update to `README.md` when public APIs or usage change,
-- an update to `docs/ARCHITECTURE.md` when system structure changes,
-- an update to `docs/DEVELOPER_GUIDE.md` when new development patterns are introduced,
-- an entry in `docs/INDEX.md` categorizing the new documentation,
-- an update to feature-specific docs (e.g., `FIELD_VALIDATION_FEATURE.md`), or
+- an update to `FIELD_VALIDATION_FEATURE.md` or a new markdown under `docs/` describing the change and rationale,
+- a short note in `README.md` when public APIs or usage change, or
 - an updated test or developer note in `src/test/java/` explaining the expected behavior.
 
-The documentation change should include: what changed, why, and how to verify (commands to run and expected results). Keep the documentation concise (3–8 sentences per section) and add file references where appropriate. Follow the format in `docs/DOCUMENTATION_ORGANIZATION.md` for guidance on documentation standards.
+The documentation change should include: what changed, why, and how to verify (commands to run and expected results). Keep the documentation concise (3–8 sentences) and add file references where appropriate.
