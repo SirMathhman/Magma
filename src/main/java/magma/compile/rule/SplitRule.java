@@ -2,7 +2,7 @@ package magma.compile.rule;
 
 import magma.Tuple;
 import magma.compile.Node;
-import magma.compile.context.InputContext;
+import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Some;
@@ -46,7 +46,7 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order 
 	public Result<Node, CompileError> lex(TokenSequence tokenSequence) {
 		return switch (splitter.split(tokenSequence)) {
 			case None<Tuple<TokenSequence, TokenSequence>> _ ->
-					new Err<Node, CompileError>(new CompileError(splitter.createErrorMessage(), new InputContext(tokenSequence)));
+					new Err<Node, CompileError>(new CompileError(splitter.createErrorMessage(), new TokenSequenceContext(tokenSequence)));
 			case Some<Tuple<TokenSequence, TokenSequence>>(Tuple<TokenSequence, TokenSequence> parts) ->
 					order.evaluate(parts.left(), parts.right(), leftRule, rightRule);
 		};

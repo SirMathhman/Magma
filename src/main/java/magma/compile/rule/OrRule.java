@@ -3,8 +3,8 @@ package magma.compile.rule;
 import magma.compile.Node;
 import magma.compile.collect.Accumulator;
 import magma.compile.context.Context;
-import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
+import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.result.Result;
@@ -19,7 +19,7 @@ public record OrRule(List<Rule> rules) implements Rule {
 
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
-		return foldAll(rule1 -> rule1.lex(content), () -> new InputContext(content));
+		return foldAll(rule1 -> rule1.lex(content), () -> new TokenSequenceContext(content));
 	}
 
 	private <T> Result<T, CompileError> foldAll(Function<Rule, Result<T, CompileError>> mapper,

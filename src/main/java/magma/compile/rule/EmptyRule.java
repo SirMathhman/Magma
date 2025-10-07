@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.InputContext;
+import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -13,7 +13,7 @@ public class EmptyRule implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
 		if (content.isEmpty()) return new Ok<Node, CompileError>(new Node());
-		return new Err<Node, CompileError>(new CompileError("Content is not empty", new InputContext(content)));
+		return new Err<Node, CompileError>(new CompileError("Content is not empty", new TokenSequenceContext(content)));
 	}
 
 	@Override

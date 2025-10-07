@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
+import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Option;
@@ -19,7 +19,7 @@ public record StringRule(String key) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
 		if (content.isEmpty()) return new Err<Node, CompileError>(new CompileError("Content of key '" + key + "' be empty",
-																																							 new InputContext(content)));
+																																							 new TokenSequenceContext(content)));
 		return new Ok<Node, CompileError>(new Node().withSlice(key, content));
 	}
 

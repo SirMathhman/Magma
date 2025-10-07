@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.InputContext;
+import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
@@ -15,7 +15,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 	public Result<Node, CompileError> lex(TokenSequence input) {
 		if (!input.endsWith(suffix))
 			return new Err<Node, CompileError>(new CompileError("Suffix '" + suffix + "' not present",
-																													new InputContext(input)));
+																													new TokenSequenceContext(input)));
 		final var slice = input.substring(0, input.length() - suffix.length());
 		return rule.lex(slice);
 	}
