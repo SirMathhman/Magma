@@ -11,7 +11,9 @@ String format_CompileError() {
 	copy.sort();
 	String formattedChildren=joinErrors();
 	String s;
-	if (depth==/*???*/)s="";
+	if (depth==/*???*/)
+	{
+	s="";}
 	else
 	s==System.lineSeparator()+"".repeat();
 	String joinedIndices=getCollect();

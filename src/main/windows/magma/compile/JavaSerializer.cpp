@@ -1,23 +1,37 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\JavaSerializer.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct JavaSerializer {};
 Result<T, CompileError> deserialize_JavaSerializer() {
-	if (Objects.isNull())return new_???();
-	if (Objects.isNull())return new_???();
+	if (Objects.isNull())
+	{
+	return new_???();}
+	if (Objects.isNull())
+	{
+	return new_???();}
 	return deserializeValue().mapValue();
 }
 Result<Node, CompileError> serialize_JavaSerializer() {
-	if (Objects.isNull())return new_???();
-	if (Objects.isNull())return new_???();
+	if (Objects.isNull())
+	{
+	return new_???();}
+	if (Objects.isNull())
+	{
+	return new_???();}
 	return serializeValue();
 }
 Result<Node, CompileError> serializeValue_JavaSerializer() {
-	if (type.isSealed()&&/*???*/.isRecord())return serializeSealed();
-	if (/*???*/.isRecord())return new_???();
+	if (type.isSealed()&&/*???*/.isRecord())
+	{
+	return serializeSealed();}
+	if (/*???*/.isRecord())
+	{
+	return new_???();}
 	return serializeRecord();
 }
 Result<Node, CompileError> serializeSealed_JavaSerializer() {
 	Class</*Wildcard[]*/> concreteClass=value.getClass();
-	if (/*???*/.isAssignableFrom())return new_???();
+	if (/*???*/.isAssignableFrom())
+	{
+	return new_???();}
 	return serializeValue();
 }
 Result<Node, CompileError> serializeRecord_JavaSerializer() {
@@ -29,77 +43,127 @@ Result<Node, CompileError> serializeRecord_JavaSerializer() {
 	{
 	RecordComponent component=/*???*/;/*???*//*???*/
 	i++;}
-	if (errors.isEmpty())return new_???();
+	if (errors.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 Result<Node, CompileError> serializeField_JavaSerializer() {
 	String fieldName=component.getName();
 	Class</*Wildcard[]*/> fieldType=component.getType();
-	if (Objects.isNull())return new_???();
-	if (fieldType==String.class)return new_???();
-	if (Option.class.isAssignableFrom())return serializeOptionField();
-	if (magma.list.NonEmptyList.class.isAssignableFrom())return serializeNonEmptyListField();
-	if (List.class.isAssignableFrom())return serializeListField();
+	if (Objects.isNull())
+	{
+	return new_???();}
+	if (fieldType==String.class)
+	{
+	return new_???();}
+	if (Option.class.isAssignableFrom())
+	{
+	return serializeOptionField();}
+	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	{
+	return serializeNonEmptyListField();}
+	if (List.class.isAssignableFrom())
+	{
+	return serializeListField();}
 	return serializeValue().mapValue();
 }
 Result<Node, CompileError> serializeOptionField_JavaSerializer() {
 	String fieldName=component.getName();
-	if (/*???*/)return new_???();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
+	if (/*???*/)
+	{
+	return new_???();}
 	if (/*???*/)
 	{
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
-	if (elementClass==String.class)return new_???();
-	if (magma.list.NonEmptyList.class.isAssignableFrom())return serializeOptionNonEmptyListField();
-	if (List.class.isAssignableFrom())return serializeOptionListField();
+	if (elementClass==String.class)
+	{
+	return new_???();}
+	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	{
+	return serializeOptionNonEmptyListField();}
+	if (List.class.isAssignableFrom())
+	{
+	return serializeOptionListField();}
 	return serializeValue().mapValue();}
 	return new_???();
 }
 Result<Node, CompileError> serializeOptionListField_JavaSerializer() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	return serializeListElements().mapValue();
 }
 Result<Node, CompileError> serializeOptionNonEmptyListField_JavaSerializer() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	return serializeListElements().mapValue();
 }
 Result<Node, CompileError> serializeNonEmptyListField_JavaSerializer() {
 	String fieldName=component.getName();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	List</*Wildcard[]*/> list=nonEmptyList.toList();
 	return serializeListElements().mapValue();
 }
 Result<Node, CompileError> serializeListField_JavaSerializer() {
 	String fieldName=component.getName();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	return serializeListElements().mapValue();
 }
@@ -107,18 +171,28 @@ Result<List<Node>, CompileError> serializeListElements_JavaSerializer() {
 	/*???*/=new_???();
 	/*???*/=new_???();
 	list.stream().map().forEach();
-	if (errors.isEmpty())return new_???();
+	if (errors.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 Result<Object, CompileError> deserializeValue_JavaSerializer() {
-	if (type.isSealed()&&/*???*/.isRecord())return deserializeSealed();
-	if (/*???*/.isRecord())return new_???();
+	if (type.isSealed()&&/*???*/.isRecord())
+	{
+	return deserializeSealed();}
+	if (/*???*/.isRecord())
+	{
+	return new_???();}
 	return deserializeRecord();
 }
 Result<Object, CompileError> deserializeSealed_JavaSerializer() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Option<Result<Object, CompileError>> directResult=tryDirectPermittedSubclasses();
-	if (/*???*/)return result;
+	if (/*???*/)
+	{
+	return result;}
 	return tryNestedSealedInterfaces();
 }
 Option<Result<Object, CompileError>> tryDirectPermittedSubclasses_JavaSerializer() {
@@ -128,16 +202,22 @@ Option<Result<Object, CompileError>> tryDirectPermittedSubclasses_JavaSerializer
 	{
 	Class</*Wildcard[]*/> permitted=/*???*/;
 	/*???*/();
-	if (/*???*/&&identifier.equals())return new_???();
+	if (/*???*/&&identifier.equals())
+	{
+	return new_???();}
 	i++;}
 	return new_???();
 }
 Result<Object, CompileError> tryNestedSealedInterfaces_JavaSerializer() {
 	Option<Result<Object, CompileError>> recursiveResult=findNestedSealedDeserialization();
-	if (/*???*/)return value;
+	if (/*???*/)
+	{
+	return value;}
 	/*???*/();
 	String validTagsList;
-	if (validTags.isEmpty())validTagsList="";
+	if (validTags.isEmpty())
+	{
+	validTagsList="";}
 	else
 	validTagsList==validTags.stream().collect();
 	String suggestion=getSuggestionForUnknownTag();
@@ -150,21 +230,33 @@ Option<Result<Object, CompileError>> findNestedSealedDeserialization_JavaSeriali
 	{
 	Class</*Wildcard[]*/> permitted=/*???*/;
 	Option<Result<Object, CompileError>> recursiveResult=tryDeserializeNestedSealed();
-	if (/*???*/)return k;
+	if (/*???*/)
+	{
+	return k;}
 	j++;}
 	return new_???();
 }
 Option<Result<Object, CompileError>> tryDeserializeNestedSealed_JavaSerializer() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Result<Object, CompileError> recursiveResult=deserializeSealed();
-	if (/*???*/&&type.isAssignableFrom())return new_???();
-	if (/*???*/&&canMatchType())return new_???();
+	if (/*???*/&&type.isAssignableFrom())
+	{
+	return new_???();}
+	if (/*???*/&&canMatchType())
+	{
+	return new_???();}
 	return new_???();
 }
 String getSuggestionForUnknownTag_JavaSerializer() {
-	if (validTags.isEmpty())return "";
+	if (validTags.isEmpty())
+	{
+	return "";}
 	/*???*/();
-	if (/*???*/)return ""+tag+""+nodeType+""+type.getSimpleName()+"";
+	if (/*???*/)
+	{
+	return ""+tag+""+nodeType+""+type.getSimpleName()+"";}
 	return ""+nodeType+""+type.getSimpleName()+"";
 }
 Option<String> findClosestTag_JavaSerializer() {
@@ -175,7 +267,9 @@ Option<String> findClosestTag_JavaSerializer() {
 	{
 	String tag=validTags.get().orElse();
 	int distance=levenshteinDistance();
-	if (/*???*/)minDistance=distance;
+	if (/*???*/)
+	{
+	minDistance=distance;}
 	closest==Option.of();
 	i++;}
 	return closest;
@@ -214,7 +308,9 @@ void fillLevenshteinRow_JavaSerializer() {
 	int j=/*???*/;
 	while (/*???*/)
 	{
-	if (s1.charAt()==s2.charAt())/*???*/=/*???*/;
+	if (s1.charAt()==s2.charAt())
+	{
+	/*???*/=/*???*/;}
 	else
 	/*???*/==/*???*/+Math.min();
 	j++;}
@@ -231,17 +327,26 @@ boolean canMatchType_JavaSerializer() {
 	{
 	Class</*Wildcard[]*/> permitted=/*???*/;
 	/*???*/();
-	if (/*???*/&&tag.equals())return true;
-	if (permitted.isSealed()&&/*???*/.isRecord())if (canMatchType())return true;
+	if (/*???*/&&tag.equals())
+	{
+	return true;}
+	if (permitted.isSealed()&&/*???*/.isRecord())
+	{
+	if (canMatchType())
+	{
+	return true;}}
 	i++;}
 	return false;
 }
 Result<Object, CompileError> deserializeRecord_JavaSerializer() {
 	/*???*/();
 	if (/*???*/)
+	{
 	if (/*???*/)
 	{
-	if (/*???*/.is())return new_???();}
+	if (/*???*/.is())
+	{
+	return new_???();}}}
 	else
 	return new_???();
 	RecordComponent* components=type.getRecordComponents();
@@ -250,16 +355,28 @@ Result<Object, CompileError> deserializeRecord_JavaSerializer() {
 	/*???*/=new_???();
 	Stream.range().forEach();
 	/*???*/();
-	if (/*???*/)errors.addLast();
-	if (/*???*/.isEmpty())return new_???();/*???*//*???*/
+	if (/*???*/)
+	{
+	errors.addLast();}
+	if (/*???*/.isEmpty())
+	{
+	return new_???();}/*???*//*???*/
 }
 Result<Object, CompileError> deserializeField_JavaSerializer() {
 	String fieldName=component.getName();
 	Class</*Wildcard[]*/> fieldType=component.getType();
-	if (fieldType==String.class)return deserializeStringField();
-	if (Option.class.isAssignableFrom())return deserializeOptionField();
-	if (magma.list.NonEmptyList.class.isAssignableFrom())return deserializeNonEmptyListField();
-	if (List.class.isAssignableFrom())return deserializeListField();
+	if (fieldType==String.class)
+	{
+	return deserializeStringField();}
+	if (Option.class.isAssignableFrom())
+	{
+	return deserializeOptionField();}
+	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	{
+	return deserializeNonEmptyListField();}
+	if (List.class.isAssignableFrom())
+	{
+	return deserializeListField();}
 	/*???*/();
 	if (/*???*/)
 	{
@@ -284,10 +401,14 @@ Result<Object, CompileError> deserializeStringField_JavaSerializer() {
 }
 Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	String fieldName=component.getName();
 	if (elementClass==String.class)
@@ -303,12 +424,20 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	consumedFields.add();
 	return new_???();}
 	/*???*/();
-	if (/*???*/)return new_???();
-	/*???*/();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
 	return new_???();}
-	if (magma.list.NonEmptyList.class.isAssignableFrom())return deserializeOptionNonEmptyListField();
-	if (List.class.isAssignableFrom())return deserializeOptionListField();
+	/*???*/();
+	if (/*???*/)
+	{
+	return new_???();}
+	return new_???();}
+	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	{
+	return deserializeOptionNonEmptyListField();}
+	if (List.class.isAssignableFrom())
+	{
+	return deserializeOptionListField();}
 	/*???*/();
 	if (/*???*/)
 	{
@@ -319,10 +448,14 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 }
 Result<Object, CompileError> deserializeOptionListField_JavaSerializer() {
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	/*???*/();
 	if (/*???*/)
@@ -335,40 +468,56 @@ Result<Object, CompileError> deserializeOptionListField_JavaSerializer() {
 }
 Result<Object, CompileError> deserializeOptionNonEmptyListField_JavaSerializer() {
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	/*???*/();
 	if (/*???*/)
 	{
 	consumedFields.add();
 	Result<List<Object>, CompileError> elementsResult=deserializeListElements();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	/*???*/();
 	/*???*/();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	return new_???();}
 	return new_???();
 }
 Result<Object, CompileError> deserializeNonEmptyListField_JavaSerializer() {
 	String fieldName=component.getName();
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	/*???*/();
 	if (/*???*/)
 	{
 	consumedFields.add();
 	Result<List<Object>, CompileError> elementsResult=deserializeListElements();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	/*???*/();
 	/*???*/();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	else
 	return new_???();}
 	else
@@ -377,10 +526,14 @@ Result<Object, CompileError> deserializeNonEmptyListField_JavaSerializer() {
 Result<Object, CompileError> deserializeListField_JavaSerializer() {
 	String fieldName=component.getName();
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Type elementType=/*???*/.value();
 	Result<Class</*Wildcard[]*/>, CompileError> elementClassResult=erase();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	/*???*/();
 	if (/*???*/)
@@ -400,24 +553,33 @@ Result<List<Object>, CompileError> deserializeListElements_JavaSerializer() {
 	{
 	Node childNode=nodeList.get().orElse();
 	Result<Object, CompileError> childResult=deserializeValue();
-	if (/*???*/)results.addLast();
+	if (/*???*/)
+	{
+	results.addLast();}
 	else
 	if (/*???*/)
+	{
 	if (elementClass.isSealed()&&/*???*/)
 	{
 	CompileError wrappedError=new_???();
-	errors.addLast();}
+	errors.addLast();}}
 	else
-	if (shouldBeDeserializableAs())errors.addLast();
+	if (shouldBeDeserializableAs())
+	{
+	errors.addLast();}
 	index++;
 	i++;}
-	if (errors.isEmpty())return new_???();
+	if (errors.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 Node createNodeWithType_JavaSerializer() {
 	Node node=new_???();
 	/*???*/();
-	if (/*???*/)node.retype();
+	if (/*???*/)
+	{
+	node.retype();}
 	return node;
 }
 Node mergeNodes_JavaSerializer() {
@@ -431,17 +593,25 @@ Result<Type, CompileError> getGenericArgument_JavaSerializer() {
 	if (/*???*/)
 	{
 	Type* args=parameterized.getActualTypeArguments();
-	if (/*???*/)return new_???();}
+	if (/*???*/)
+	{
+	return new_???();}}
 	return new_???();
 }
 Result<Class</*Wildcard[]*/>, CompileError> erase_JavaSerializer() {
-	if (/*???*/)return new_???();
-	if (/*???*/&&/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
+	if (/*???*/&&/*???*/)
+	{
+	return new_???();}
 	return new_???();
 }
 Option<String> resolveTypeIdentifier_JavaSerializer() {
 	Tag annotation=clazz.getAnnotation();
-	if (Objects.isNull())return Option.empty();
+	if (Objects.isNull())
+	{
+	return Option.empty();}
 	return Option.of();
 }
 Option<String> findStringInChildren_JavaSerializer() {
@@ -451,9 +621,13 @@ Option<String> findStringInChildren_JavaSerializer() {
 	{
 	Node child=iterator.next();
 	/*???*/();
-	if (/*???*/)return result;
+	if (/*???*/)
+	{
+	return result;}
 	result==findStringInChildren();
-	if (/*???*/)return result;}}
+	if (/*???*/)
+	{
+	return result;}}}
 	return findStringInNodeLists();
 }
 Option<String> findStringInNodeLists_JavaSerializer() {
@@ -462,7 +636,9 @@ Option<String> findStringInNodeLists_JavaSerializer() {
 	{
 	/*???*/();
 	/*???*/();
-	if (/*???*/)return result;}
+	if (/*???*/)
+	{
+	return result;}}
 	return Option.empty();
 }
 Option<String> searchChildrenList_JavaSerializer() {
@@ -471,18 +647,26 @@ Option<String> searchChildrenList_JavaSerializer() {
 	{
 	Node child=children.get().orElse();
 	/*???*/();
-	if (/*???*/)return result;
+	if (/*???*/)
+	{
+	return result;}
 	result==findStringInChildren();
-	if (/*???*/)return result;
+	if (/*???*/)
+	{
+	return result;}
 	i++;}
 	return Option.empty();
 }
 boolean shouldBeDeserializableAs_JavaSerializer() {
-	if (/*???*/)return false;
+	if (/*???*/)
+	{
+	return false;}
 	if (/*???*/)
 	{
 	Tag tagAnnotation=targetClass.getAnnotation();
-	if (Objects.nonNull())return nodeType.equals();
+	if (Objects.nonNull())
+	{
+	return nodeType.equals();}
 	String targetName=targetClass.getSimpleName().toLowerCase();
 	return /*???*/;}
 	return false;

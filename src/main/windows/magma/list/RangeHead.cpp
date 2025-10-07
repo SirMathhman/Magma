@@ -4,7 +4,9 @@ public RangeHead_RangeHead() {
 	this.length=length;
 }
 Option<Integer> next_RangeHead() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	int current=counter;
 	counter++;
 	return new_???();

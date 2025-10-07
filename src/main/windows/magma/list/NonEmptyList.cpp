@@ -8,7 +8,9 @@ NonEmptyList<T> of_NonEmptyList() {
 	return new_???();
 }
 Option<NonEmptyList<T>> fromList_NonEmptyList() {
-	if (list.isEmpty())return new_???();
+	if (list.isEmpty())
+	{
+	return new_???();}
 	return list.getFirst().map();
 }
 Collector<T, Option<NonEmptyList<T>>> collector_NonEmptyList() {

@@ -2,6 +2,8 @@
 struct LastLocator {};
 Option<Integer> locate_LastLocator() {
 	int index=input.lastIndexOf();
-	if (index==/*???*/)return Option.empty();
+	if (index==/*???*/)
+	{
+	return Option.empty();}
 	return Option.of();
 }

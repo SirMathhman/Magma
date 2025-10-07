@@ -27,6 +27,12 @@ CBlock transformBlock_Transformer() {
 	return new_???();
 }
 CIf transformIf_Transformer() {
+	CFunctionSegment body=transformFunctionSegment();
+	CBlock record;
+	if (/*???*/)
+	{
+	record=b;}
+	else record=new_???();
 	return new_???();
 }
 CInvocation handleConstruction_Transformer() {
@@ -41,16 +47,25 @@ CInvocation transformInvocation_Transformer() {
 	Option<NonEmptyList<CExpression>> newArguments=jInvocation.arguments().flatMap();
 	return new_???();
 }
+Option<NonEmptyList<CExpression>> transformExpressionList_Transformer() {
+	return list.stream().map().collect();
+}
 CParameter transformParameter_Transformer() {
 	CType transformedType=transformType();
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	return new_???();
 }
 Option<NonEmptyList<Identifier>> extractMethodTypeParameters_Transformer() {
 	List<String> typeVars=new_???();
 	collectTypeVariables();
-	if (/*???*/)paramList.stream().forEach();
-	if (typeVars.isEmpty())return new_???();
+	if (/*???*/)
+	{
+	paramList.stream().forEach();}
+	if (typeVars.isEmpty())
+	{
+	return new_???();}
 	return typeVars.stream().map().collect();
 }
 void collectTypeVariables_Transformer() {/*???*/
@@ -88,14 +103,18 @@ List<CDefinition> extractRecordParamsAsFields_Transformer() {
 	if (/*???*/)
 	{
 	/*???*/();
-	if (/*???*/)return paramList.stream().map().toList();}
+	if (/*???*/)
+	{
+	return paramList.stream().map().toList();}}
 	return Collections.emptyList();
 }
 CType transformType_Transformer() {
 	return /*???*/;
 }
 CType transformIdentifier_Transformer() {
-	if (identifier.value().equals())return new_???();
+	if (identifier.value().equals())
+	{
+	return new_???();}
 	return identifier;
 }
 Pointer transformArray_Transformer() {

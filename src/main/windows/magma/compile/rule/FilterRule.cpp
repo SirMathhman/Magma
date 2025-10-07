@@ -14,7 +14,9 @@ Rule Number_FilterRule() {
 	return Filter();
 }
 Result<Node, CompileError> lex_FilterRule() {
-	if (filter.test())return rule.lex();
+	if (filter.test())
+	{
+	return rule.lex();}
 	return new_???();
 }
 Result<String, CompileError> generate_FilterRule() {

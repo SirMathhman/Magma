@@ -65,12 +65,16 @@ String appendJsonPure_Node() {
 	strings.entrySet().stream().sorted().forEach();
 	nodes.entrySet().stream().sorted().forEach();
 	nodeLists.entrySet().stream().sorted().forEach();
-	if (/*???*/)builder.append().append();
+	if (/*???*/)
+	{
+	builder.append().append();}
 	builder.append();
 	return builder.toString();
 }
 void extracted1_Node() {
-	if (/*???*/)builder.append();
+	if (/*???*/)
+	{
+	builder.append();}
 	else
 	builder.append();
 	builder.append().append().append().append();
@@ -94,17 +98,23 @@ String getString_Node() {
 	return repeat+s;
 }
 void extracted_Node() {
-	if (/*???*/)builder.append();
+	if (/*???*/)
+	{
+	builder.append();}
 	else
 	builder.append();
 	builder.append().append().append().append();
-	if (/*???*/)builder.append();
+	if (/*???*/)
+	{
+	builder.append();}
 	else
 	builder.append();
 	/*???*/=true;
 }
 void extracted_Node() {
-	if (/*???*/)builder.append();
+	if (/*???*/)
+	{
+	builder.append();}
 	else
 	builder.append();
 	builder.append().append().append().append().append().append();

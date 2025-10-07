@@ -4,11 +4,15 @@ DivideState fold_EscapingFolder() {
 	return handleSingleQuotes().or().or().orElseGet();
 }
 Option<DivideState> handleSingleQuotes_EscapingFolder() {
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.empty();}
 	return Option.of();
 }
 Option<DivideState> handleDoubleQuotes_EscapingFolder() {
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.empty();}
 	DivideState current=state.append();
 	while (true)
 	{
@@ -16,25 +20,36 @@ Option<DivideState> handleDoubleQuotes_EscapingFolder() {
 	if (/*???*/)
 	{
 	current==t0.left();
-	if (t0.right()=='\\')current==current.popAndAppendToOption().orElse();
+	if (t0.right()=='\\')
+	{
+	current==current.popAndAppendToOption().orElse();}
 	if (t0.right()=='\"')
-	break}
+	{
+	break}}
 	else break;}
 	return Option.of();
 }
 Option<DivideState> handleComments_EscapingFolder() {
-	if (c=='/'&&state.isLevel())return handleLineComments().or();
+	if (c=='/'&&state.isLevel())
+	{
+	return handleLineComments().or();}
 	return Option.empty();
 }
 Option<DivideState> handleLineComments_EscapingFolder() {
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.empty();}
 	while (true)
 	{
 	/*???*/();
-	if (/*???*/)return Option.of();}
+	if (/*???*/)
+	{
+	return Option.of();}}
 }
 Option<DivideState> handleBlockComments_EscapingFolder() {
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.empty();}
 	DivideState withSlash=state.append();
 	Tuple<Boolean, DivideState> current=new_???();
 	while (current.left())
@@ -42,16 +57,22 @@ Option<DivideState> handleBlockComments_EscapingFolder() {
 	return new_???();
 }
 Tuple<Boolean, DivideState> handle_EscapingFolder() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	DivideState temp=tuple.left();
-	if (tuple.right()=='*'&&/*???*/&&tuple0=='/')return new_???();
+	if (tuple.right()=='*'&&/*???*/&&tuple0=='/')
+	{
+	return new_???();}
 	return new_???();
 }
 String delimiter_EscapingFolder() {
 	return folder.delimiter();
 }
 DivideState foldEscape_EscapingFolder() {
-	if (tuple.right()=='\\')return tuple.left().popAndAppendToOption().orElse();
+	if (tuple.right()=='\\')
+	{
+	return tuple.left().popAndAppendToOption().orElse();}
 	else
 	return tuple.left();
 }

@@ -2,14 +2,26 @@
 struct StatementFolder {};
 DivideState fold_StatementFolder() {
 	DivideState appended=state.append();
-	if (c=='-')if (/*???*/&&next=='>')return state.popAndAppendToOption().orElse();
-	if (c==';'&&appended.isLevel())return appended.advance();
+	if (c=='-')
+	{
+	if (/*???*/&&next=='>')
+	{
+	return state.popAndAppendToOption().orElse();}}
+	if (c==';'&&appended.isLevel())
+	{
+	return appended.advance();}
 	if (c=='}'&&appended.isShallow())
 	{
-	if (/*???*/&&next==';')return appended.popAndAppendToOption().orElse().advance().exit();
+	if (/*???*/&&next==';')
+	{
+	return appended.popAndAppendToOption().orElse().advance().exit();}
 	return appended.advance().exit();}
-	if (c==/*???*/=='(')return appended.enter();
-	if (c==/*???*/==')')return appended.exit();
+	if (c==/*???*/=='(')
+	{
+	return appended.enter();}
+	if (c==/*???*/==')')
+	{
+	return appended.exit();}
 	return appended;
 }
 String delimiter_StatementFolder() {

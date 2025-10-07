@@ -4,7 +4,9 @@ Rule String_StringRule() {
 	return new_???();
 }
 Result<Node, CompileError> lex_StringRule() {
-	if (content.isEmpty())return new_???();
+	if (content.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 Result<String, CompileError> generate_StringRule() {

@@ -3,7 +3,9 @@ struct EmptyRule {};
 new EmptyRule_EmptyRule() {/*???*/
 }
 Result<Node, CompileError> lex_EmptyRule() {
-	if (content.isEmpty())return new_???();
+	if (content.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 Result<String, CompileError> generate_EmptyRule() {

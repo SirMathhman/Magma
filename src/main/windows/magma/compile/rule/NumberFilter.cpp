@@ -4,7 +4,9 @@ new NumberFilter_NumberFilter() {/*???*/
 }
 boolean test_NumberFilter() {
 	String s;
-	if (input.startsWith())s==input.substring();
+	if (input.startsWith())
+	{
+	s==input.substring();}
 	else s=input;
 	/*???*/();
 	return integerStream.map().allMatch();

@@ -4,6 +4,8 @@ Option<Integer> initial_Max() {
 	return new_???();
 }
 Option<Integer> fold_Max() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	return new_???();
 }

@@ -2,6 +2,8 @@
 struct FirstLocator {};
 Option<Integer> locate_FirstLocator() {
 	int index=input.indexOf();
-	if (index==/*???*/)return Option.empty();
+	if (index==/*???*/)
+	{
+	return Option.empty();}
 	return Option.of();
 }

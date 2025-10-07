@@ -1,7 +1,9 @@
 // Generated transpiled C++ from 'src\main\java\magma\Main.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Main {};
 void main_Main() {
-	if (/*???*/)System.err.println();
+	if (/*???*/)
+	{
+	System.err.println();}
 }
 Option<ApplicationError> run_Main() {
 	Path javaSourceRoot=Paths.get();
@@ -31,10 +33,16 @@ Option<ApplicationError> compileJavaFile_Main() {
 	String cFileName=fileName.substring()+"";
 	Path cFilePath=cOutputRoot.resolve().resolve();/*???*//*???*/
 	Result<String, ThrowableError> readResult=readString();
-	if (/*???*/)return Option.of();
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.of();}
+	if (/*???*/)
+	{
+	return Option.empty();}
 	Result<String, CompileError> compileResult=Compiler.compile();
-	if (/*???*/)return Option.of();
+	if (/*???*/)
+	{
+	return Option.of();}
 	if (/*???*/)
 	{
 	String message=formatMessage();

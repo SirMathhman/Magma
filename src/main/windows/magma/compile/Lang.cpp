@@ -126,10 +126,14 @@ DivideState fold_InvocationFolder() {
 	if (c==open)
 	{
 	DivideState enter=appended.enter();
-	if (enter.isShallow())return enter.advance();
+	if (enter.isShallow())
+	{
+	return enter.advance();}
 	else
 	return enter;}
-	if (c==close)return appended.exit();
+	if (c==close)
+	{
+	return appended.exit();}
 	return appended;
 }
 String delimiter_InvocationFolder() {
@@ -149,8 +153,14 @@ struct Yield {};
 struct Variadic {};
 struct MyFolder {};
 DivideState fold_MyFolder() {
-	if (c=='(')return state.append().enter();
-	if (c==')')if (state.isLevel())return state.advance();
+	if (c=='(')
+	{
+	return state.append().enter();}
+	if (c==')')
+	{
+	if (state.isLevel())
+	{
+	return state.advance();}}
 	else
 	return state.exit().append();
 	return state.append();
@@ -183,14 +193,18 @@ record QualifiedSegment_Lang() {
 }
 struct JQualified {};
 String last_JQualified() {
-	if (/*???*/)return "";
+	if (/*???*/)
+	{
+	return "";}
 	return segments.orElse().getLast().map().orElse();
 }
 boolean endsWith_JQualified() {
 	return /*???*/;
 }
 List<String> unwrap_JQualified() {
-	if (/*???*/)return list.stream().map().toList();
+	if (/*???*/)
+	{
+	return list.stream().map().toList();}
 	return new_???();
 }
 Rule CFunctionPointerDefinition_Lang() {

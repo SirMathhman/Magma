@@ -4,7 +4,9 @@ Rule Suffix_SuffixRule() {
 	return new_???();
 }
 Result<Node, CompileError> lex_SuffixRule() {
-	if (/*???*/.endsWith())return new_???();
+	if (/*???*/.endsWith())
+	{
+	return new_???();}
 	String slice=input.substring();
 	return getRule().lex();
 }

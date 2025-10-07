@@ -4,7 +4,9 @@ Rule Prefix_PrefixRule() {
 	return new_???();
 }
 Result<Node, CompileError> lex_PrefixRule() {
-	if (content.startsWith())return rule.lex();
+	if (content.startsWith())
+	{
+	return rule.lex();}
 	else
 	return new_???();
 }

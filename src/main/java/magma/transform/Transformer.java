@@ -21,9 +21,10 @@ public class Transformer {
 	public static Lang.CFunction transformMethod(Lang.JMethod method, String structName) {
 		final Option<NonEmptyList<Lang.JDefinition>> maybeOldParams = method.params();
 
-		final Option<NonEmptyList<Lang.CParameter>> newParams = maybeOldParams.flatMap(params -> {
-			return NonEmptyList.fromList(params.stream().map(Transformer::transformParameter).toList());
-		});
+		final Option<NonEmptyList<Lang.CParameter>> newParams =
+				maybeOldParams.flatMap(params -> NonEmptyList.fromList(params.stream()
+																																		 .map(Transformer::transformParameter)
+																																		 .toList()));
 
 		final Lang.CDefinition cDefinition = transformDefinition(method.definition());
 
@@ -90,18 +91,25 @@ public class Transformer {
 	}
 
 	private static Lang.CBlock transformBlock(Lang.JBlock jBlock) {
-		return new Lang.CBlock(jBlock.children().stream().map(Transformer::transformFunctionSegment).toList());
+		return new Lang.CBlock(jBlock.children()
+																 .stream()
+																 .map(Transformer::transformFunctionSegment)
+																 .collect(new NonEmptyListCollector<Lang.CFunctionSegment>()));
 	}
 
 	private static Lang.CIf transformIf(Lang.JIf anIf) {
-		return new Lang.CIf(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
+		final Lang.CFunctionSegment body = transformFunctionSegment(anIf.body());
+		final Lang.CBlock record;
+		if (body instanceof Lang.CBlock b) record = b;
+		else record = new Lang.CBlock(new Some<NonEmptyList<Lang.CFunctionSegment>>(NonEmptyList.of(body)));
+
+		return new Lang.CIf(transformExpression(anIf.condition()), record);
 	}
 
 	private static Lang.CInvocation handleConstruction(Lang.JConstruction jConstruction) {
 		String name = "new_" + transformType(jConstruction.type()).stringify();
-		final Option<NonEmptyList<Lang.CExpression>> list = jConstruction.arguments().flatMap(copy -> {
-			return copy.stream().map(Transformer::transformExpression).collect(new NonEmptyListCollector<>());
-		});
+		final Option<NonEmptyList<Lang.CExpression>> list =
+				jConstruction.arguments().flatMap(Transformer::transformExpressionList);
 
 		return new Lang.CInvocation(new Lang.Identifier(name), list);
 	}
@@ -125,12 +133,14 @@ public class Transformer {
 	}
 
 	private static Lang.CInvocation transformInvocation(Lang.JInvocation jInvocation) {
-		final Option<NonEmptyList<Lang.CExpression>> newArguments = jInvocation.arguments()
-																																					 .flatMap(list -> list.stream()
-																																																.map(Transformer::transformExpression)
-																																																.collect(new NonEmptyListCollector<>()));
+		final Option<NonEmptyList<Lang.CExpression>> newArguments =
+				jInvocation.arguments().flatMap(Transformer::transformExpressionList);
 
 		return new Lang.CInvocation(transformExpression(jInvocation.caller()), newArguments);
+	}
+
+	private static Option<NonEmptyList<Lang.CExpression>> transformExpressionList(NonEmptyList<Lang.JExpression> list) {
+		return list.stream().map(Transformer::transformExpression).collect(new NonEmptyListCollector<Lang.CExpression>());
 	}
 
 	private static Lang.CParameter transformParameter(Lang.JDefinition param) {
@@ -315,6 +325,6 @@ public class Transformer {
 		return NonEmptyList.fromList(transformedTypes)
 											 .map(nonEmptyTypes -> (CLang.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
 											 .orElse(new Lang.Invalid("Empty type arguments for generic " + generic.base().last(),
-																								new None<>()));
+																								new None<String>()));
 	}
 }

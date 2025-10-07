@@ -264,7 +264,7 @@ public class Lang {
 	}
 
 	@Tag("block")
-	public record CBlock(List<CFunctionSegment> children) implements CFunctionSegment {
+	public record CBlock(Option<NonEmptyList<CFunctionSegment>> children) implements CFunctionSegment {
 	}
 
 	@Tag("block")

@@ -13,13 +13,17 @@ Option<R> next_FlatMapHead() {
 	if (/*???*/)
 	{
 	Option<R> innerNext=innerHead.next();
-	if (/*???*/)return innerNext;
+	if (/*???*/)
+	{
+	return innerNext;}
 	currentInnerHead=new_???();}
 	Option<T> outerNext=head.next();
 	if (/*???*/)
 	{
 	Stream<R> innerStream=mapper.apply();
-	if (/*???*/)currentInnerHead=new_???();
+	if (/*???*/)
+	{
+	currentInnerHead=new_???();}
 	else
 	return new_???();}
 	else
@@ -34,7 +38,9 @@ R fold_HeadedStream() {
 	{
 	R finalCurrent=current;
 	Option<R> map=head.next().map();
-	if (/*???*/)current=value;
+	if (/*???*/)
+	{
+	current=value;}
 	else
 	return current;}
 }
@@ -45,7 +51,9 @@ void forEach_HeadedStream() {
 	while (true)
 	{
 	Option<T> next=head.next();
-	if (/*???*/)consumer.accept();
+	if (/*???*/)
+	{
+	consumer.accept();}
 	else
 	break}
 }

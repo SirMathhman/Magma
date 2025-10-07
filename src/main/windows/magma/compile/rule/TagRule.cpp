@@ -8,7 +8,9 @@ Result<Node, CompileError> lex_TagRule() {
 	return lex.mapValue().mapErr();
 }
 Result<String, CompileError> generate_TagRule() {
-	if (node.is())return rule.generate().mapErr();
+	if (node.is())
+	{
+	return rule.generate().mapErr();}
 	else
 	return new_???();
 }

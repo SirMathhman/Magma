@@ -24,7 +24,9 @@ int size_ArrayList() {
 	return elements.size();
 }
 Option<T> get_ArrayList() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	else
 	return new_???();
 }
@@ -32,7 +34,9 @@ boolean isEmpty_ArrayList() {
 	return elements.isEmpty();
 }
 Option<T> getLast_ArrayList() {
-	if (elements.isEmpty())return new_???();
+	if (elements.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 List<T> sort_ArrayList() {
@@ -40,12 +44,16 @@ List<T> sort_ArrayList() {
 	return this;
 }
 Option<Tuple<List<T>, T>> removeLast_ArrayList() {
-	if (elements.isEmpty())return new_???();
+	if (elements.isEmpty())
+	{
+	return new_???();}
 	T last=elements.removeLast();
 	return new_???();
 }
 Option<T> getFirst_ArrayList() {
-	if (elements.isEmpty())return new_???();
+	if (elements.isEmpty())
+	{
+	return new_???();}
 	return new_???();
 }
 List<T> subListOrEmpty_ArrayList() {

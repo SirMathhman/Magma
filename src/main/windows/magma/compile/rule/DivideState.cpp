@@ -36,7 +36,9 @@ boolean isLevel_DivideState() {
 	return depth==/*???*/;
 }
 Option<Character> pop_DivideState() {
-	if (/*???*/)return Option.empty();
+	if (/*???*/)
+	{
+	return Option.empty();}
 	char c=input.charAt();
 	index++;
 	return Option.of();
@@ -48,7 +50,9 @@ Option<DivideState> popAndAppendToOption_DivideState() {
 	return popAndAppendToTuple().map();
 }
 Option<Character> peek_DivideState() {
-	if (/*???*/)return new_???();
+	if (/*???*/)
+	{
+	return new_???();}
 	else
 	return new_???();
 }

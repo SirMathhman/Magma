@@ -8,7 +8,9 @@ Option<T> empty_Option() {
 	return new_???();
 }
 Option<T> ofNullable_Option() {
-	if (Objects.isNull())return new_???();
+	if (Objects.isNull())
+	{
+	return new_???();}
 	return new_???();
 }
 Option<R> map_Option() {/*???*/

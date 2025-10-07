@@ -9,8 +9,11 @@ Stream<String> divide_FoldingDivider() {
 	{
 	Option<Character> pop=current.pop();
 	if (/*???*/)
-	break
-	if (/*???*/)current==folder.fold();}
+	{
+	break}
+	if (/*???*/)
+	{
+	current==folder.fold();}}
 	return current.advance().stream();
 }
 String delimiter_FoldingDivider() {

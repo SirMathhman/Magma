@@ -6,7 +6,9 @@ T first_ArrayNonEmptyList() {
 }
 T last_ArrayNonEmptyList() {
 	Option<T> tailLast=tail.getLast();
-	if (/*???*/)return value;
+	if (/*???*/)
+	{
+	return value;}
 	return head;
 }
 List<T> rest_ArrayNonEmptyList() {
@@ -23,7 +25,9 @@ int size_ArrayNonEmptyList() {
 	return /*???*/+tail.size();
 }
 Option<T> get_ArrayNonEmptyList() {
-	if (index==/*???*/)return new_???();
+	if (index==/*???*/)
+	{
+	return new_???();}
 	return tail.get();
 }
 List<T> toList_ArrayNonEmptyList() {
