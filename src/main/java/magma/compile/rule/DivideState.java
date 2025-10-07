@@ -28,7 +28,7 @@ public class DivideState {
 	}
 
 	public DivideState advance() {
-		segments.addLast(new Slice(buffer.toString()));
+		segments.addLast(new RootSlice(buffer.toString()));
 		this.buffer = new StringBuilder();
 		return this;
 	}

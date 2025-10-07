@@ -1,61 +1,30 @@
 package magma.compile.rule;
 
-import magma.list.ArrayHead;
-import magma.list.HeadedStream;
 import magma.list.List;
-import magma.list.ListCollector;
-import magma.option.None;
 import magma.option.Option;
-import magma.option.Some;
 
-public record Slice(String value) {
-	public boolean isEmpty() {
-		return value.isEmpty();
-	}
+public interface Slice {
+	boolean isEmpty();
 
-	public boolean startsWith(String slice) {
-		return value.startsWith(slice);
-	}
+	boolean startsWith(String slice);
 
-	public Slice substring(int extent) {
-		return new Slice(value.substring(extent));
-	}
+	Slice substring(int extent);
 
-	public Slice strip() {
-		return new Slice(value.strip());
-	}
+	Slice strip();
 
-	public boolean endsWith(String slice) {
-		return value.endsWith(slice);
-	}
+	boolean endsWith(String slice);
 
-	public int length() {
-		return value.length();
-	}
+	int length();
 
-	public Slice substring(int start, int end) {
-		return new Slice(value.substring(start, end));
-	}
+	Slice substring(int start, int end);
 
-	public Option<Integer> indexOf(String infix) {
-		final int index = value.indexOf(infix);
-		if (index == -1) return new None<Integer>();
-		return new Some<Integer>(index);
-	}
+	Option<Integer> indexOf(String infix);
 
-	public List<Slice> split(String regex) {
-		return new HeadedStream<String>(new ArrayHead<String>(value.split(regex))).map(Slice::new)
-																																							.collect(new ListCollector<Slice>());
-	}
+	List<Slice> split(String regex);
 
-	public Option<Character> charAt(int index) {
-		if (index < value.length()) return new Some<Character>(value.charAt(index));
-		else return new None<Character>();
-	}
+	Option<Character> charAt(int index);
 
-	public Option<Integer> lastIndexOf(String infix) {
-		final int index = value.lastIndexOf(infix);
-		if (index == -1) return new None<Integer>();
-		return new Some<Integer>(index);
-	}
+	Option<Integer> lastIndexOf(String infix);
+
+	String value();
 }

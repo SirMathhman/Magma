@@ -13,10 +13,10 @@ public class KeepLastMerger implements Merger {
 		if (segments.size() < 2) return new None<Tuple<Slice, Slice>>();
 
 		// Join all but last element
-		final Slice left = new Slice(segments.subListOrEmpty(0, segments.size() - 1)
-																				 .stream()
-																				 .map(Slice::value)
-																				 .collect(new Joiner(delimiter)));
+		final Slice left = new RootSlice(segments.subListOrEmpty(0, segments.size() - 1)
+																						 .stream()
+																						 .map(Slice::value)
+																						 .collect(new Joiner(delimiter)));
 
 		final Option<Slice> lastOpt = segments.getLast();
 		if (lastOpt instanceof Some<Slice>(Slice right))
