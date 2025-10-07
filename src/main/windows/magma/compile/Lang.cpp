@@ -127,6 +127,7 @@ struct InvocationFolder {/*???*/ open;/*???*/ close;};
 	{
 	/*???*/ enter=appended.enter();
 	if (enter.isShallow())return enter.advance();
+	else
 	/*???*/ enter;}
 	if (c==close)return appended.exit();
 	/*???*/ appended;
