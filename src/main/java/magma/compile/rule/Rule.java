@@ -7,5 +7,5 @@ import magma.result.Result;
 public interface Rule {
 	Result<Node, CompileError> lex(TokenSequence content);
 
-	Result<String, CompileError> generate(Node node);
+	Result<TokenSequence, CompileError> generate(Node node);
 }

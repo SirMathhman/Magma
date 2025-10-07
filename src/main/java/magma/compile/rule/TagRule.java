@@ -23,7 +23,7 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<String, CompileError> generate(Node node) {
+	public Result<TokenSequence, CompileError> generate(Node node) {
 		if (node.is(tag)) return rule.generate(node)
 																 .mapErr(error -> new CompileError("Failed to generate with tag '" + tag + "'",
 																																	 new NodeContext(node),

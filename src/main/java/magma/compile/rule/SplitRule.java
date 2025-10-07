@@ -53,7 +53,7 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order 
 	}
 
 	@Override
-	public Result<String, CompileError> generate(Node node) {
+	public Result<TokenSequence, CompileError> generate(Node node) {
 		return leftRule.generate(node)
 									 .flatMap(left -> rightRule.generate(node).mapValue(right -> splitter.merge(left, right)));
 	}

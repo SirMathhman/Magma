@@ -33,7 +33,7 @@ public class FilterRule implements Rule {
 	}
 
 	@Override
-	public Result<String, CompileError> generate(Node node) {
+	public Result<TokenSequence, CompileError> generate(Node node) {
 		return rule.generate(node);
 	}
 }
