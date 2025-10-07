@@ -31,13 +31,16 @@ public interface NonEmptyList<T> {
 	 * Returns None if the list is empty.
 	 */
 	static <T> Option<NonEmptyList<T>> fromList(List<T> list) {
-		if (list.isEmpty())
-			return new None<>();
+		if (list.isEmpty()) return new None<>();
 
 		return list.getFirst().map(head -> {
 			final List<T> tail = list.subListOrEmpty(1, list.size());
 			return new ArrayNonEmptyList<>(head, tail);
 		});
+	}
+
+	static <T> Collector<T, Option<NonEmptyList<T>>> collector() {
+		return new NonEmptyListCollector<>();
 	}
 
 	/**

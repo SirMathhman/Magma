@@ -30,7 +30,6 @@ import static magma.compile.rule.DividingSplitter.KeepLast;
 import static magma.compile.rule.EmptyRule.Empty;
 import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.NodeRule.Node;
-import static magma.compile.rule.NodeListRule.NonEmptyList;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PlaceholderRule.Placeholder;
 import static magma.compile.rule.PrefixRule.Prefix;
@@ -44,7 +43,7 @@ public class Lang {
 	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {
 	}
 
-	sealed public interface CRootSegment permits Invalid, CStructure, Function {
+	sealed public interface CRootSegment permits Invalid, CStructure, CFunction {
 		Option<String> after();
 	}
 
@@ -318,8 +317,8 @@ public class Lang {
 	}
 
 	@Tag("method")
-	public record Method(JDefinition definition, Option<List<JDefinition>> params, Option<List<JMethodSegment>> body,
-			Option<List<Identifier>> typeParameters) implements JStructureSegment {
+	public record Method(JDefinition definition, Option<NonEmptyList<JDefinition>> params, Option<NonEmptyList<JMethodSegment>> body,
+			Option<NonEmptyList<Identifier>> typeParameters) implements JStructureSegment {
 	}
 
 	@Tag("invalid")
@@ -391,8 +390,8 @@ public class Lang {
 	}
 
 	@Tag("function")
-	public record Function(CDefinition definition, List<CParameter> params, List<CFunctionSegment> body,
-			Option<String> after, Option<List<Identifier>> typeParameters) implements CRootSegment {
+	public record CFunction(CDefinition definition, Option<NonEmptyList<CParameter>> params, Option<NonEmptyList<CFunctionSegment>> body,
+													Option<String> after, Option<NonEmptyList<Identifier>> typeParameters) implements CRootSegment {
 	}
 
 	@Tag("identifier")
@@ -642,7 +641,7 @@ public class Lang {
 		// declaration
 		final Rule plainName = CommonRules.StrippedIdentifier("name");
 		final Rule structPrefix = Prefix("struct ", plainName);
-		final Rule fields = Statements("fields", Suffix(CDefinition(), ";"));
+		final Rule fields = Or(Statements("fields", Suffix(CDefinition(), ";")), Empty);
 		final Rule structWithFields = Suffix(First(structPrefix, " {", fields), "}");
 		final Rule structComplete = Suffix(structWithFields, ";");
 

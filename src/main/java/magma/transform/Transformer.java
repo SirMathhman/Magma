@@ -17,36 +17,35 @@ import magma.result.Result;
 
 public class Transformer {
 
-	public static Lang.Function transformMethod(Lang.Method method, String structName) {
-		final List<Lang.JDefinition> oldParams = switch (method.params()) {
-			case None<List<Lang.JDefinition>> _ -> Collections.emptyList();
-			case Some<List<Lang.JDefinition>> v -> v.value();
-		};
+	public static Lang.CFunction transformMethod(Lang.Method method, String structName) {
+		final Option<NonEmptyList<Lang.JDefinition>> maybeOldParams = method.params();
 
-		final List<Lang.CParameter> newParams = oldParams.stream().map(Transformer::transformParameter).toList();
+		final Option<NonEmptyList<Lang.CParameter>> newParams = maybeOldParams.flatMap(params -> {
+			return NonEmptyList.fromList(params.stream().map(Transformer::transformParameter).toList());
+		});
 
 		final Lang.CDefinition cDefinition = transformDefinition(method.definition());
 
 		// Extract type parameters from method signature
-		final Option<List<Lang.Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
+		final Option<NonEmptyList<Lang.Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
 		// Convert method body from Option<List<JFunctionSegment>> to
 		// List<CFunctionSegment>
 		// JFunctionSegment and CFunctionSegment share the same implementations
 		// (Placeholder, Whitespace, Invalid)
-		final List<Lang.CFunctionSegment> bodySegments = switch (method.body()) {
-			case None<List<Lang.JMethodSegment>> _ -> Collections.emptyList();
-			case Some<List<Lang.JMethodSegment>>(List<Lang.JMethodSegment> segments) ->
-					segments.stream().map(Transformer::transformFunctionSegment).toList();
+		final Option<NonEmptyList<Lang.CFunctionSegment>> bodySegments = switch (method.body()) {
+			case None<NonEmptyList<Lang.JMethodSegment>> _ -> new None<>();
+			case Some<NonEmptyList<Lang.JMethodSegment>>(NonEmptyList<Lang.JMethodSegment> segments) ->
+					NonEmptyList.fromList(segments.stream().map(Transformer::transformFunctionSegment).toList());
 		};
 
-		return new Lang.Function(new Lang.CDefinition(cDefinition.name() + "_" + structName,
-																									cDefinition.type(),
-																									cDefinition.typeParameters()),
-														 newParams,
-														 bodySegments,
-														 new Some<String>(System.lineSeparator()),
-														 extractedTypeParams);
+		return new Lang.CFunction(new Lang.CDefinition(cDefinition.name() + "_" + structName,
+																									 cDefinition.type(),
+																									 cDefinition.typeParameters()),
+															newParams,
+															bodySegments,
+															new Some<String>(System.lineSeparator()),
+															extractedTypeParams);
 	}
 
 	static Lang.CFunctionSegment transformFunctionSegment(Lang.JMethodSegment segment) {
@@ -141,7 +140,7 @@ public class Transformer {
 		return new Lang.CDefinition(param.name(), transformedType, new None<List<Lang.Identifier>>());
 	}
 
-	private static Option<List<Lang.Identifier>> extractMethodTypeParameters(Lang.Method method) {
+	private static Option<NonEmptyList<Lang.Identifier>> extractMethodTypeParameters(Lang.Method method) {
 		// Analyze method signature to detect generic type parameters
 		final List<String> typeVars = new ArrayList<String>();
 
@@ -149,15 +148,13 @@ public class Transformer {
 		collectTypeVariables(method.definition().type(), typeVars);
 
 		// Check parameter types for type variables
-		if (method.params() instanceof Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
+		if (method.params() instanceof Some<NonEmptyList<Lang.JDefinition>>(NonEmptyList<Lang.JDefinition> paramList))
 			paramList.stream().forEach(param -> collectTypeVariables(param.type(), typeVars));
 
-		if (typeVars.isEmpty()) return new None<List<Lang.Identifier>>();
+		if (typeVars.isEmpty()) return new None<NonEmptyList<Lang.Identifier>>();
 
 		// Convert to Identifier objects
-		final List<Lang.Identifier> identifiers = typeVars.stream().map(Lang.Identifier::new).toList();
-
-		return new Some<List<Lang.Identifier>>(identifiers);
+		return typeVars.stream().map(Lang.Identifier::new).collect(NonEmptyList.collector());
 	}
 
 	private static void collectTypeVariables(Lang.JType type, List<String> typeVars) {
