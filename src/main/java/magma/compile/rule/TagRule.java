@@ -16,7 +16,10 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(String content) {
 		final Result<Node, CompileError> lex = rule.lex(content);
-		return lex.mapValue(node -> node.retype(tag))
+		return lex.mapValue(node -> {
+								if (tag.equals("method")) System.out.println(content);
+								return node.retype(tag);
+							})
 							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
 																								new StringContext(content),
 																								List.of(error)));
@@ -29,6 +32,7 @@ public record TagRule(String tag, Rule rule) implements Rule {
 																																	 new NodeContext(node),
 																																	 List.of(error)));
 
-		else return new Err<String, CompileError>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
+		else
+			return new Err<String, CompileError>(new CompileError("Type '" + tag + "' not present", new NodeContext(node)));
 	}
 }
