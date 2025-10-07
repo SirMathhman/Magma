@@ -17,6 +17,7 @@ Previously, types like `CTemplate` used `List<CLang.CType> typeArguments`, which
 **File**: `src/main/java/magma/list/NonEmptyList.java`
 
 Key methods:
+
 - `T first()` — Returns the first element (always present, no Option wrapper needed)
 - `T last()` — Returns the last element (always present, no Option wrapper needed)
 - `List<T> rest()` — Returns the remaining elements after the first
@@ -29,6 +30,7 @@ Key methods:
 **File**: `src/main/java/magma/list/ArrayNonEmptyList.java`
 
 The implementation is a record with two fields:
+
 - `T head` — The first element (guaranteed to exist)
 - `List<T> tail` — The remaining elements (may be empty)
 
@@ -85,10 +87,10 @@ private static CLang.CType transformGeneric(Lang.JGeneric generic) {
         final CLang.CType returnType = transformType(listOption.get(1).orElse(null));
         return new CLang.CFunctionPointer(returnType, List.of(paramType));
     }
-    
+
     // Transform type arguments to CType list
     final List<CLang.CType> transformedTypes = listOption.stream().map(Transformer::transformType).toList();
-    
+
     // Create NonEmptyList from the transformed types
     // If the list is empty, this is an error case - generics should always have type arguments
     return magma.list.NonEmptyList.fromList(transformedTypes)
@@ -146,6 +148,7 @@ Expected: All Java files should compile successfully, including files using `CTe
 ## Future Opportunities
 
 Other candidates for `NonEmptyList<T>`:
+
 - Constructor parameter lists that must have at least one parameter
 - Method parameter lists for non-nullary methods
 - Generic type parameter lists (similar to `CTemplate`)
