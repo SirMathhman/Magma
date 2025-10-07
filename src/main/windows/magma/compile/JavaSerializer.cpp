@@ -57,7 +57,7 @@ Result<Node, CompileError> serializeField_JavaSerializer() {
 	if (Objects.isNull())
 	{
 	return new_???();}
-	if (fieldType==Slice.class)
+	if (fieldType==TokenSequence.class)
 	{
 	return new_???();}
 	if (Option.class.isAssignableFrom())
@@ -91,7 +91,7 @@ Result<Node, CompileError> serializeOptionField_JavaSerializer() {
 	{
 	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
-	if (elementClass==Slice.class)
+	if (elementClass==TokenSequence.class)
 	{
 	return new_???();}
 	if (NonEmptyList.class.isAssignableFrom())
@@ -355,7 +355,7 @@ Result<Object, CompileError> deserializeRecord_JavaSerializer() {
 Result<Object, CompileError> deserializeField_JavaSerializer() {
 	String fieldName=component.getName();
 	Class</*Wildcard[]*/> fieldType=component.getType();
-	if (fieldType==Slice.class)
+	if (fieldType==TokenSequence.class)
 	{
 	return deserializeSliceField();}
 	if (Option.class.isAssignableFrom())
@@ -401,7 +401,7 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	String fieldName=component.getName();
-	if (elementClass==Slice.class)
+	if (elementClass==TokenSequence.class)
 	{
 	/*???*/();
 	if (/*???*/)
@@ -604,7 +604,7 @@ Option<String> resolveTypeIdentifier_JavaSerializer() {
 	return Option.empty();}
 	return Option.of();
 }
-Option<Slice> findSliceInChildren_JavaSerializer() {
+Option<TokenSequence> findSliceInChildren_JavaSerializer() {
 	{
 	/*???*/();
 	while (iterator.hasNext())
@@ -616,7 +616,7 @@ Option<Slice> findSliceInChildren_JavaSerializer() {
 	return result;}}
 	return findSliceInNodeLists();
 }
-Option<Slice> findSliceInNodeLists_JavaSerializer() {
+Option<TokenSequence> findSliceInNodeLists_JavaSerializer() {
 	/*???*/();
 	while (iterator.hasNext())
 	{
@@ -625,7 +625,7 @@ Option<Slice> findSliceInNodeLists_JavaSerializer() {
 	return result;}
 	return Option.empty();
 }
-Option<Slice> searchChildrenList_JavaSerializer() {
+Option<TokenSequence> searchChildrenList_JavaSerializer() {
 	int i=/*???*/;
 	while (/*???*/)
 	{

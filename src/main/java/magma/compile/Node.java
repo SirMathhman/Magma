@@ -190,7 +190,7 @@ public final class Node {
 					 .append('"')
 					 .append(escape(entry.getKey()))
 					 .append("\": \"")
-					 .append(escape(entry.getValue().value()))
+					 .append(escape(entry.getValue().display()))
 					 .append('"');
 		hasFields[0] = true;
 	}

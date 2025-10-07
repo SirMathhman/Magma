@@ -3,13 +3,12 @@ struct NumberFilter {};
 new NumberFilter_NumberFilter() {/*???*/
 }
 boolean test_NumberFilter() {
-	String s;
+	TokenSequence s;
 	if (input.startsWith())
 	{
 	s==input.substring();}
 	else s=input;
-	/*???*/();
-	return integerStream.map().allMatch();
+	return Stream.range().map().flatMap().allMatch();
 }
 String createErrorMessage_NumberFilter() {
 	return "";

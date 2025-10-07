@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 public interface Filter {
-	boolean test(String input);
+	boolean test(TokenSequence input);
 
 	String createErrorMessage();
 }

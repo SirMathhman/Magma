@@ -2,7 +2,7 @@
 struct Lang {};
 struct JavaRootSegment {};
 struct CRootSegment {};
-Option<Slice> after_CRootSegment() {/*???*/
+Option<TokenSequence> after_CRootSegment() {/*???*/
 }
 struct JStructureSegment {};
 struct JExpression {};
@@ -10,7 +10,7 @@ struct JMethodSegment {};
 struct CFunctionSegment {};
 struct JType {};
 struct JStructure {};
-Slice name_JStructure() {/*???*/
+TokenSequence name_JStructure() {/*???*/
 }
 Option<NonEmptyList<Identifier>> typeParameters_JStructure() {/*???*/
 }
@@ -190,20 +190,11 @@ String delimiter_OperatorFolder() {
 record QualifiedSegment_Lang() {
 }
 struct JQualified {};
-String last_JQualified() {
-	if (/*???*/)
-	{
-	return "";}
-	return segments.orElse().getLast().map().orElse();
+TokenSequence last_JQualified() {
+	return segments.last().value;
 }
 boolean endsWith_JQualified() {
-	return /*???*/;
-}
-List<String> unwrap_JQualified() {
-	if (/*???*/)
-	{
-	return list.stream().map().toList();}
-	return new_???();
+	return last().endsWith();
 }
 Rule CFunctionPointerDefinition_Lang() {
 	return Tag();

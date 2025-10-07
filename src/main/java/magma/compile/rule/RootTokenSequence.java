@@ -75,6 +75,11 @@ public record RootTokenSequence(String value) implements TokenSequence {
 	}
 
 	@Override
+	public String display() {
+		return value;
+	}
+
+	@Override
 	public boolean equalsSlice(String value) {
 		return this.value.equals(value);
 	}

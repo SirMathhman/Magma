@@ -3,8 +3,7 @@ struct IdentifierFilter {};
 new IdentifierFilter_IdentifierFilter() {/*???*/
 }
 boolean test_IdentifierFilter() {
-	/*???*/();
-	return integerStream.map().allMatch();
+	return Stream.range().map().flatMap().allMatch();
 }
 String createErrorMessage_IdentifierFilter() {
 	return "";
