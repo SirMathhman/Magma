@@ -4,6 +4,8 @@ import magma.list.List;
 import magma.option.Option;
 
 public interface Slice {
+	boolean equalsSlice(String value);
+
 	boolean isEmpty();
 
 	boolean startsWith(String slice);
@@ -26,5 +28,6 @@ public interface Slice {
 
 	Option<Integer> lastIndexOf(String infix);
 
+	@Deprecated
 	String value();
 }

@@ -288,8 +288,10 @@ public class Transformer {
 		// Combine record fields and additional fields immutably
 		final List<Lang.CDefinition> fields = recordFields.addAll(additionalFields);
 
-		final Lang.CStructure structure =
-				new Lang.CStructure(name, fields, new Some<Slice>(new RootSlice(System.lineSeparator())), aClass.typeParameters());
+		final Lang.CStructure structure = new Lang.CStructure(name,
+																													fields,
+																													new Some<Slice>(new RootSlice(System.lineSeparator())),
+																													aClass.typeParameters());
 
 		// Build resulting root segments list: structure followed by flattened child
 		// segments
@@ -319,7 +321,8 @@ public class Transformer {
 	}
 
 	private static CNodes.CType transformIdentifier(Lang.Identifier identifier) {
-		if (identifier.value().value().equals("String")) return new Lang.Pointer(new Lang.Identifier(new RootSlice("char")));
+		final Slice value = identifier.value();
+		if (value.equalsSlice("String")) return new Lang.Pointer(new Lang.Identifier(new RootSlice("char")));
 		return identifier;
 	}
 
@@ -346,7 +349,7 @@ public class Transformer {
 		return NonEmptyList.fromList(transformedTypes)
 											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(new RootSlice(generic.base().last()),
 																																							 nonEmptyTypes))
-											 .orElse(new Lang.Invalid(new RootSlice("Empty type arguments for generic " + generic.base().last()),
-																								new None<Slice>()));
+											 .orElse(new Lang.Invalid(new RootSlice(
+													 "Empty type arguments for generic " + generic.base().last()), new None<Slice>()));
 	}
 }

@@ -73,4 +73,9 @@ public record RootSlice(String value) implements Slice {
 		if (index == -1) return new None<Integer>();
 		return new Some<Integer>(index);
 	}
+
+	@Override
+	public boolean equalsSlice(String value) {
+		return this.value.equals(value);
+	}
 }
