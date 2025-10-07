@@ -30,15 +30,6 @@
 			<property name="tokens" value="LITERAL_THROW" />
 		</module>
 
-		<!-- Ban all 'for' loop constructs (traditional indexed for and enhanced-for). Prefer
-		     'while' loops or Java Streams (forEach/map) for iteration.
-		-->
-		<module name="IllegalToken">
-			<property name="tokens" value="LITERAL_FOR" />
-			<message key="default"
-				value="'for' loops are banned; use a 'while' loop or Streams (forEach/map) instead." />
-		</module>
-
 		<!-- Ban throws declarations -->
 		<module name="RegexpSinglelineJava">
 			<property name="format" value="\bthrows\b" />

@@ -39,7 +39,6 @@ These guides complement the [main README](../README.md), which provides project 
 - **[CHECKSTYLE_COMPLIANCE_FIX.md](CHECKSTYLE_COMPLIANCE_FIX.md)** — General checkstyle compliance fixes and improvements
 - **[ONE_LOOP_PER_METHOD_CHECKSTYLE.md](ONE_LOOP_PER_METHOD_CHECKSTYLE.md)** — Enforcement of "one loop per method" rule by extracting nested loops into helper methods
 - **[SPLITTER_REFACTORING.md](SPLITTER_REFACTORING.md)** — Refactoring of string splitting utilities
-- **[BAN_FOR_LOOPS_CHECKSTYLE.md](BAN_FOR_LOOPS_CHECKSTYLE.md)** — New Checkstyle rule banning traditional indexed `for` loops; prefer `while` or Streams
 
 - **[JAVA_CONVENTIONS.md](JAVA_CONVENTIONS.md)** — Non-traditional Java conventions used across the codebase (Result/Option, sealed interfaces, pattern matching, NonEmptyList, one-loop-per-method)
 
