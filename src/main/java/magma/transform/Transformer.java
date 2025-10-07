@@ -111,7 +111,7 @@ public class Transformer {
 	}
 
 	private static Lang.CInvocation handleConstruction(Lang.JConstruction jConstruction) {
-		String name = "new_" + transformType(jConstruction.type()).stringify();
+		String name = "new_" + transformType(jConstruction.type()).toTokens();
 		final Option<NonEmptyList<Lang.CExpression>> list =
 				jConstruction.arguments().flatMap(Transformer::transformExpressionList);
 
