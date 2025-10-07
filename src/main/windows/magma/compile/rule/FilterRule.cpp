@@ -13,10 +13,10 @@ struct FilterRule {/*???*/ filter;/*???*/ rule;};
 /*???*/ Number_FilterRule(/*???*/ rule) {
 	return Filter(NumberFilter.Filter, rule);
 }
-Result<> lex_FilterRule(/*???*/ content) {
+Result</*???*/, /*???*/> lex_FilterRule(/*???*/ content) {
 	if (filter.test(content))return rule.lex(content);
 	return new_???(new_???(filter.createErrorMessage(), new_???(content)));
 }
-Result<> generate_FilterRule(/*???*/ node) {
+Result</*???*/, /*???*/> generate_FilterRule(/*???*/ node) {
 	return rule.generate(node);
 }

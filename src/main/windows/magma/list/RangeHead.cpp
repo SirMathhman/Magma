@@ -3,7 +3,7 @@ struct RangeHead {/*???*/ length;/*???*/ counter;};
 /*???*/ RangeHead_RangeHead(/*???*/ length) {
 	this.length=length;
 }
-Option<> next_RangeHead() {
+Option</*???*/> next_RangeHead() {
 	if (/*???*/)return new_???();
 	/*???*/ current=counter;
 	counter++;

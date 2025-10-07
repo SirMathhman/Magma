@@ -1,8 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Serializers.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Serializers {};
-Result<> deserialize_Serializers(Class<> clazz, /*???*/ node) {
+Result</*???*/, /*???*/> deserialize_Serializers(Class</*???*/> clazz, /*???*/ node) {
 	return JavaSerializer.deserialize(clazz, node);
 }
-Result<> serialize_Serializers(Class<> clazz, /*???*/ root) {
+Result</*???*/, /*???*/> serialize_Serializers(Class</*???*/> clazz, /*???*/ root) {
 	return JavaSerializer.serialize(clazz, root);
 }

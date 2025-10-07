@@ -1,6 +1,6 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct DivideState {List<> segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/*???*/ index;};
-/*???*/ DivideState_DivideState(/*???*/ buffer, /*???*/ depth, List<> segments, /*???*/ input) {
+struct DivideState {List</*???*/> segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/*???*/ index;};
+/*???*/ DivideState_DivideState(/*???*/ buffer, /*???*/ depth, List</*???*/> segments, /*???*/ input) {
 	this.buffer=buffer;
 	this.depth=depth;
 	this.segments=segments;
@@ -9,7 +9,7 @@ struct DivideState {List<> segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/
 /*???*/ DivideState_DivideState(/*???*/ input) {
 	this(new_???(), /*???*/, new_???(), input);
 }
-Stream<> stream_DivideState() {
+Stream</*???*/> stream_DivideState() {
 	return segments.stream();
 }
 /*???*/ enter_DivideState() {
@@ -35,19 +35,19 @@ Stream<> stream_DivideState() {
 /*???*/ isLevel_DivideState() {
 	return depth==/*???*/;
 }
-Option<> pop_DivideState() {
+Option</*???*/> pop_DivideState() {
 	if (/*???*/)return Option.empty();
 	/*???*/ c=input.charAt(index);
 	index++;
 	return Option.of(c);
 }
-Option<> popAndAppendToTuple_DivideState() {
+Option<Tuple</*???*/, /*???*/>> popAndAppendToTuple_DivideState() {
 	return pop().map(/*???*/);
 }
-Option<> popAndAppendToOption_DivideState() {
+Option</*???*/> popAndAppendToOption_DivideState() {
 	return popAndAppendToTuple().map(/*???*/);
 }
-Option<> peek_DivideState() {
+Option</*???*/> peek_DivideState() {
 	if (/*???*/)return new_???(input.charAt(index));
 	else
 	return new_???();

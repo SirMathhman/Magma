@@ -3,7 +3,7 @@ struct CLang {};
 struct CType {};
 /*???*/ stringify_CType() {
 }
-struct CFunctionPointer {/*???*/ returnType;List<> paramTypes;};
+struct CFunctionPointer {/*???*/ returnType;List</*???*/> paramTypes;};
 /*???*/ stringify_CFunctionPointer() {
 	return ""+paramTypes.stream().map(/*???*/).collect(new_???(""))+""+returnType.stringify();
 }

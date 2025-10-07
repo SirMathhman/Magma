@@ -3,11 +3,11 @@ struct FoldingDivider {/*???*/ folder;};
 /*???*/ FoldingDivider_FoldingDivider(/*???*/ folder) {
 	this.folder=folder;
 }
-Stream<> divide_FoldingDivider(/*???*/ input) {
+Stream</*???*/> divide_FoldingDivider(/*???*/ input) {
 	/*???*/ current=new_???(input);
 	while (true)
 	{
-	Option<> pop=current.pop();
+	Option</*???*/> pop=current.pop();
 	if (/*???*/)
 	break
 	if (/*???*/)current==folder.fold(current, c);}

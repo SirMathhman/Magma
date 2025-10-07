@@ -3,7 +3,7 @@ struct ArrayHead {/*???*/* array;/*???*/ index;};
 /*???*/ ArrayHead_ArrayHead(/*???*/* array) {
 	this.array=array;
 }
-Option<> next_ArrayHead() {
+Option</*???*/> next_ArrayHead() {
 	if (/*???*/)
 	{
 	/*???*/ t=/*???*/;

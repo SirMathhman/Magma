@@ -3,14 +3,14 @@ struct Main {};
 /*???*/ main_Main(/*???*/* args) {
 	if (/*???*/)System.err.println(value.display());
 }
-Option<> run_Main() {
+Option</*???*/> run_Main() {
 	/*???*/ javaSourceRoot=Paths.get("", "", "", "");
 	/*???*/ cOutputRoot=Paths.get("", "", "", "");/*???*//*???*/
 	return compileAllJavaFiles(javaSourceRoot, cOutputRoot);
 }
-Option<> compileAllJavaFiles_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot) {/*???*//*???*/
+Option</*???*/> compileAllJavaFiles_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot) {/*???*//*???*/
 }
-Option<> compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, List<> javaFiles) {
+Option</*???*/> compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, List</*???*/> javaFiles) {
 	/*???*/ i=/*???*/;
 	while (/*???*/)
 	{
@@ -25,15 +25,15 @@ Option<> compileAll_Main(/*???*/ javaSourceRoot, /*???*/ cOutputRoot, List<> jav
 	i++;}
 	return Option.empty();
 }
-Option<> compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ cOutputRoot) {
+Option</*???*/> compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ cOutputRoot) {
 	/*???*/ relativePath=javaSourceRoot.relativize(javaFile);
 	/*???*/ fileName=relativePath.getFileName().toString();
 	/*???*/ cFileName=fileName.substring(/*???*/, fileName.lastIndexOf('.'))+"";
 	/*???*/ cFilePath=cOutputRoot.resolve(relativePath.getParent()).resolve(cFileName);/*???*//*???*/
-	Result<> readResult=readString(javaFile);
+	Result</*???*/, /*???*/> readResult=readString(javaFile);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)return Option.empty();
-	Result<> compileResult=Compiler.compile(input);
+	Result</*???*/, /*???*/> compileResult=Compiler.compile(input);
 	if (/*???*/)return Option.of(new_???(error));
 	if (/*???*/)
 	{
@@ -45,7 +45,7 @@ Option<> compileJavaFile_Main(/*???*/ javaFile, /*???*/ javaSourceRoot, /*???*/ 
 	/*???*/ relative=Paths.get("").relativize(javaFile);
 	return ""+relative+""+System.lineSeparator();
 }
-Option<> writeString_Main(/*???*/ path, /*???*/ result) {/*???*//*???*/
+Option</*???*/> writeString_Main(/*???*/ path, /*???*/ result) {/*???*//*???*/
 }
-Result<> readString_Main(/*???*/ source) {/*???*//*???*/
+Result</*???*/, /*???*/> readString_Main(/*???*/ source) {/*???*//*???*/
 }

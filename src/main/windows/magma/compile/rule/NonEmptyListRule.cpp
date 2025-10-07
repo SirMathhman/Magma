@@ -3,9 +3,9 @@ struct NonEmptyListRule {/*???*/ key;/*???*/ innerRule;};
 /*???*/ NonEmptyList_NonEmptyListRule(/*???*/ key, /*???*/ innerRule) {
 	return new_???(key, innerRule);
 }
-Result<> lex_NonEmptyListRule(/*???*/ content) {
+Result</*???*/, /*???*/> lex_NonEmptyListRule(/*???*/ content) {
 	return innerRule.lex(content);
 }
-Result<> generate_NonEmptyListRule(/*???*/ node) {
+Result</*???*/, /*???*/> generate_NonEmptyListRule(/*???*/ node) {
 	return /*???*/;
 }
