@@ -1,28 +1,28 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\NonEmptyList.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct NonEmptyList {};
-NonEmptyList</*???*/> of_NonEmptyList(/*???*/ element) {
+NonEmptyList<T> of_NonEmptyList(T element) {
 	return new_???(element, new_???());
 }
-NonEmptyList</*???*/> of_NonEmptyList(/*???*/ first, /*???*/ others) {
+NonEmptyList<T> of_NonEmptyList(T first, T others) {
 	return new_???(first, List.of(others));
 }
-Option<NonEmptyList</*???*/>> fromList_NonEmptyList(List</*???*/> list) {
+Option<NonEmptyList<T>> fromList_NonEmptyList(List<T> list) {
 	if (list.isEmpty())return new_???();
 	return list.getFirst().map(/*???*/);
 }
-/*???*/ first_NonEmptyList() {
+T first_NonEmptyList() {
 }
-/*???*/ last_NonEmptyList() {
+T last_NonEmptyList() {
 }
-List</*???*/> rest_NonEmptyList() {
+List<T> rest_NonEmptyList() {
 }
-Stream</*???*/> stream_NonEmptyList() {
+Stream<T> stream_NonEmptyList() {
 }
-NonEmptyList</*???*/> addLast_NonEmptyList(/*???*/ element) {
+NonEmptyList<T> addLast_NonEmptyList(T element) {
 }
-/*???*/ size_NonEmptyList() {
+int size_NonEmptyList() {
 }
-Option</*???*/> get_NonEmptyList(/*???*/ index) {
+Option<T> get_NonEmptyList(int index) {
 }
-List</*???*/> toList_NonEmptyList() {
+List<T> toList_NonEmptyList() {
 }

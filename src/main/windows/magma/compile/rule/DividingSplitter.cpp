@@ -1,22 +1,22 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DividingSplitter.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct DividingSplitter {/*???*/ divider;/*???*/ merger;};
-/*???*/ DividingSplitter_DividingSplitter(/*???*/ divider) {
+struct DividingSplitter {Divider divider;Merger merger;};
+public DividingSplitter_DividingSplitter(Divider divider) {
 	this(divider, new_???());
 }
-/*???*/ KeepFirst_DividingSplitter(/*???*/ divider) {
+DividingSplitter KeepFirst_DividingSplitter(Divider divider) {
 	return new_???(divider, new_???());
 }
-/*???*/ KeepLast_DividingSplitter(/*???*/ divider) {
+DividingSplitter KeepLast_DividingSplitter(Divider divider) {
 	return new_???(divider, new_???());
 }
-Option<Tuple</*???*/, /*???*/>> split_DividingSplitter(/*???*/ input) {
-	List</*???*/> segments=divider.divide(input).toList();
-	/*???*/ delimiter=divider.delimiter();
+Option<Tuple<String, String>> split_DividingSplitter(String input) {
+	List<String> segments=divider.divide(input).toList();
+	String delimiter=divider.delimiter();
 	return merger.merge(segments, delimiter);
 }
-/*???*/ createErrorMessage_DividingSplitter() {
+String createErrorMessage_DividingSplitter() {
 	return "";
 }
-/*???*/ merge_DividingSplitter(/*???*/ left, /*???*/ right) {
+String merge_DividingSplitter(String left, String right) {
 	return left+divider.delimiter()+right;
 }

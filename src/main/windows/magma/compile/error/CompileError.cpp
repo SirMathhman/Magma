@@ -1,41 +1,41 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\error\CompileError.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct CompileError {/*???*/ reason;/*???*/ context;List</*???*/> causes;};
-/*???*/ CompileError_CompileError(/*???*/ reason, /*???*/ sourceCode) {
+struct CompileError {String reason;Context context;List<CompileError> causes;};
+public CompileError_CompileError(String reason, Context sourceCode) {
 	this(reason, sourceCode, Collections.emptyList());
 }
-/*???*/ display_CompileError() {
+String display_CompileError() {
 	return format(/*???*/, new_???());
 }
-/*???*/ format_CompileError(/*???*/ depth, List</*???*/> indices) {
-	List</*???*/> copy=causes.copy();
+String format_CompileError(int depth, List<Integer> indices) {
+	List<CompileError> copy=causes.copy();
 	copy.sort(Comparator.comparingInt(/*???*/));
-	/*???*/ formattedChildren=joinErrors(depth, indices, copy);
-	/*???*/ s;
+	String formattedChildren=joinErrors(depth, indices, copy);
+	String s;
 	if (depth==/*???*/)s="";
 	else
 	s==System.lineSeparator()+"".repeat(depth);
-	/*???*/ joinedIndices=getCollect(indices);
+	String joinedIndices=getCollect(indices);
 	return s+joinedIndices+""+reason+""+context.display(depth)+formattedChildren;
 }
-/*???*/ getCollect_CompileError(List</*???*/> indices) {
-	Stream</*???*/> stream=indices.stream();
-	Stream</*???*/> stringStream=stream.map(/*???*/);
+String getCollect_CompileError(List<Integer> indices) {
+	Stream<Integer> stream=indices.stream();
+	Stream<String> stringStream=stream.map(/*???*/);
 	return stringStream.collect(new_???(""));
 }
-/*???*/ joinErrors_CompileError(/*???*/ depth, List</*???*/> indices, List</*???*/> copy) {
-	Stream</*???*/> range=Stream.range(/*???*/, copy.size());
-	Stream</*???*/> stringStream=range.map(/*???*/(depth, copy, indices, index));
+String joinErrors_CompileError(int depth, List<Integer> indices, List<CompileError> copy) {
+	Stream<Integer> range=Stream.range(/*???*/, copy.size());
+	Stream<String> stringStream=range.map(/*???*/(depth, copy, indices, index));
 	return stringStream.collect(new_???(""));
 }
-/*???*/ formatChild_CompileError(/*???*/ depth, List</*???*/> copy, List</*???*/> indices, /*???*/ last) {
-	/*???*/ error=copy.get(last).orElse(null);
+String formatChild_CompileError(int depth, List<CompileError> copy, List<Integer> indices, int last) {
+	CompileError error=copy.get(last).orElse(null);
 	indices.addLast(last);
-	/*???*/ format=error.format(depth+/*???*/, indices);
+	String format=error.format(depth+/*???*/, indices);
 	indices.removeLast();
-	/*???*/ format;
+	return format;
 }
-/*???*/ depth_CompileError() {
-	Stream</*???*/> intStream=causes.stream().map(/*???*/);
-	Option</*???*/> max=intStream.collect(new_???());
+int depth_CompileError() {
+	Stream<Integer> intStream=causes.stream().map(/*???*/);
+	Option<Integer> max=intStream.collect(new_???());
 	return /*???*/+max.orElse(/*???*/);
 }

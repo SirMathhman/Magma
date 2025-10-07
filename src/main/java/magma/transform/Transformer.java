@@ -280,7 +280,8 @@ public class Transformer {
 			case Lang.JGeneric generic -> transformGeneric(generic);
 			case Lang.Array array -> transformArray(array);
 			case Lang.Identifier identifier -> transformIdentifier(identifier);
-			default -> new Lang.Invalid("???");
+			case Lang.JQualified qualified -> new Lang.Identifier(qualified.last());
+			default -> new Lang.Invalid(type.toString());
 		};
 	}
 

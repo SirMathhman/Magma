@@ -1,22 +1,22 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\Some.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Some {/*???*/ value;};
-Option</*???*/> map_Some(/*???*/ (*mapper)(/*???*/)) {
+struct Some {T value;};
+Option<R> map_Some(R (*mapper)(T)) {
 	return new_???(mapper.apply(value));
 }
-Option</*???*/> flatMap_Some(Option</*???*/> (*mapper)(/*???*/)) {
+Option<R> flatMap_Some(Option<R> (*mapper)(T)) {
 	return mapper.apply(value);
 }
-/*???*/ orElse_Some(/*???*/ other) {
-	/*???*/ value;
+T orElse_Some(T other) {
+	return value;
 }
-Option</*???*/> or_Some(Supplier<Option</*???*/>> other) {
-	/*???*/ this;
+Option<T> or_Some(Supplier<Option<T>> other) {
+	return this;
 }
-/*???*/ orElseGet_Some(Supplier</*???*/> other) {
-	/*???*/ value;
+T orElseGet_Some(Supplier<T> other) {
+	return value;
 }
-Option</*???*/> filter_Some(Predicate</*???*/> predicate) {
-	/*???*/ this;
+Option<T> filter_Some(Predicate<T> predicate) {
+	return this;
 	else
 	return new_???();
 }

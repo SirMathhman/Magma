@@ -1,30 +1,30 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\ArrayNonEmptyList.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct ArrayNonEmptyList {/*???*/ head;List</*???*/> tail;};
-/*???*/ first_ArrayNonEmptyList() {
-	/*???*/ head;
+struct ArrayNonEmptyList {T head;List<T> tail;};
+T first_ArrayNonEmptyList() {
+	return head;
 }
-/*???*/ last_ArrayNonEmptyList() {
-	Option</*???*/> tailLast=tail.getLast();
-	if (/*???*/)/*???*/ value;
-	/*???*/ head;
+T last_ArrayNonEmptyList() {
+	Option<T> tailLast=tail.getLast();
+	if (/*???*/)return value;
+	return head;
 }
-List</*???*/> rest_ArrayNonEmptyList() {
-	/*???*/ tail;
+List<T> rest_ArrayNonEmptyList() {
+	return tail;
 }
-Stream</*???*/> stream_ArrayNonEmptyList() {
-	List</*???*/> combined=new_???(tail);
+Stream<T> stream_ArrayNonEmptyList() {
+	List<T> combined=new_???(tail);
 	return combined.stream();
 }
-NonEmptyList</*???*/> addLast_ArrayNonEmptyList(/*???*/ element) {
+NonEmptyList<T> addLast_ArrayNonEmptyList(T element) {
 	return new_???(head, tail.addLast(element));
 }
-/*???*/ size_ArrayNonEmptyList() {
+int size_ArrayNonEmptyList() {
 	return /*???*/+tail.size();
 }
-Option</*???*/> get_ArrayNonEmptyList(/*???*/ index) {
+Option<T> get_ArrayNonEmptyList(int index) {
 	if (index==/*???*/)return new_???(head);
 	return tail.get(/*???*/);
 }
-List</*???*/> toList_ArrayNonEmptyList() {
+List<T> toList_ArrayNonEmptyList() {
 	return new_???(tail);
 }

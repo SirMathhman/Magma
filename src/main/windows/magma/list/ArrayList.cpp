@@ -1,52 +1,52 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\ArrayList.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct ArrayList {List</*???*/> elements;};
-/*???*/ ArrayList_ArrayList() {
+struct ArrayList {List<T> elements;};
+public ArrayList_ArrayList() {
 	this(new_???());
 }
-Stream</*???*/> stream_ArrayList() {
+Stream<T> stream_ArrayList() {
 	return new_???(/*???*/);
 }
-List</*???*/> addLast_ArrayList(/*???*/ element) {
+List<T> addLast_ArrayList(T element) {
 	elements.add(element);
-	/*???*/ this;
+	return this;
 }
-List</*???*/> copy_ArrayList() {
+List<T> copy_ArrayList() {
 	return new_???(new_???(elements));
 }
-List</*???*/> addAll_ArrayList(List</*???*/> others) {
+List<T> addAll_ArrayList(List<T> others) {
 	return others.stream().fold(getThis(), /*???*/);
 }
-List</*???*/> getThis_ArrayList() {
-	/*???*/ this;
+List<T> getThis_ArrayList() {
+	return this;
 }
-/*???*/ size_ArrayList() {
+int size_ArrayList() {
 	return elements.size();
 }
-Option</*???*/> get_ArrayList(/*???*/ index) {
+Option<T> get_ArrayList(int index) {
 	if (/*???*/)return new_???(elements.get(index));
 	else
 	return new_???();
 }
-/*???*/ isEmpty_ArrayList() {
+boolean isEmpty_ArrayList() {
 	return elements.isEmpty();
 }
-Option</*???*/> getLast_ArrayList() {
+Option<T> getLast_ArrayList() {
 	if (elements.isEmpty())return new_???();
 	return new_???(elements.getLast());
 }
-List</*???*/> sort_ArrayList(Comparator</*???*/> comparator) {
+List<T> sort_ArrayList(Comparator<T> comparator) {
 	elements.sort(comparator);
-	/*???*/ this;
+	return this;
 }
-Option<Tuple<List</*???*/>, /*???*/>> removeLast_ArrayList() {
+Option<Tuple<List<T>, T>> removeLast_ArrayList() {
 	if (elements.isEmpty())return new_???();
-	/*???*/ last=elements.removeLast();
+	T last=elements.removeLast();
 	return new_???(new_???(this, last));
 }
-Option</*???*/> getFirst_ArrayList() {
+Option<T> getFirst_ArrayList() {
 	if (elements.isEmpty())return new_???();
 	return new_???(elements.getFirst());
 }
-List</*???*/> subListOrEmpty_ArrayList(/*???*/ start, /*???*/ end) {
+List<T> subListOrEmpty_ArrayList(int start, int end) {
 	return new_???(elements.subList(start, end));
 }

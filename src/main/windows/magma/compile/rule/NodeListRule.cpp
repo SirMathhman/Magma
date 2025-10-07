@@ -1,31 +1,31 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\NodeListRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct NodeListRule {/*???*/ key;/*???*/ rule;/*???*/ divider;};
-/*???*/ Statements_NodeListRule(/*???*/ key, /*???*/ rule) {
+struct NodeListRule {String key;Rule rule;Divider divider;};
+Rule Statements_NodeListRule(String key, Rule rule) {
 	return new_???(key, rule, new_???(new_???(new_???())));
 }
-/*???*/ Delimited_NodeListRule(/*???*/ key, /*???*/ rule, /*???*/ delimiter) {
+Rule Delimited_NodeListRule(String key, Rule rule, String delimiter) {
 	return new_???(key, rule, new_???(delimiter));
 }
-/*???*/ Expressions_NodeListRule(/*???*/ key, /*???*/ rule) {
+Rule Expressions_NodeListRule(String key, Rule rule) {
 	return new_???(key, rule, new_???(new_???(new_???())));
 }
-Result</*???*/, /*???*/> lex_NodeListRule(/*???*/ input) {
+Result<Node, CompileError> lex_NodeListRule(String input) {
 	return divider.divide(input).reduce(new_???(new_???()), /*???*/).mapValue(/*???*/.withNodeList(key, list)).mapErr(/*???*/);
 }
-Result<List</*???*/>, /*???*/> fold_NodeListRule(Result<List</*???*/>, /*???*/> current, /*???*/ element) {
+Result<List<Node>, CompileError> fold_NodeListRule(Result<List<Node>, CompileError> current, String element) {
 	return /*???*/;
 }
-Result</*???*/, /*???*/> generate_NodeListRule(/*???*/ value) {
-	Option<Result</*???*/, /*???*/>> resultOption=value.findNodeList(key).map(/*???*/);
+Result<String, CompileError> generate_NodeListRule(Node value) {
+	Option<Result<String, CompileError>> resultOption=value.findNodeList(key).map(/*???*/);
 	return /*???*/;
 }
-Result</*???*/, /*???*/> generateList_NodeListRule(List</*???*/> list) {
+Result<String, CompileError> generateList_NodeListRule(List<Node> list) {
 	if (list.isEmpty())return new_???("");
-	/*???*/ sb=new_???(divider.delimiter());
-	/*???*/ i=/*???*/;
+	StringJoiner sb=new_???(divider.delimiter());
+	int i=/*???*/;
 	while (/*???*/)
 	{
-	/*???*/ child=list.get(i).orElse(null);/*???*/
+	Node child=list.get(i).orElse(null);/*???*/
 	i++;}
 	return new_???(sb.toString());
 }

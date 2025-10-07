@@ -1,14 +1,14 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\PlaceholderRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct PlaceholderRule {/*???*/ rule;};
-/*???*/ wrap_PlaceholderRule(/*???*/ input) {
+struct PlaceholderRule {Rule rule;};
+String wrap_PlaceholderRule(String input) {
 	return ""+input.replace("", "").replace("", "")+"";
 }
-/*???*/ Placeholder_PlaceholderRule(/*???*/ rule) {
+Rule Placeholder_PlaceholderRule(Rule rule) {
 	return new_???(rule);
 }
-Result</*???*/, /*???*/> lex_PlaceholderRule(/*???*/ content) {
+Result<Node, CompileError> lex_PlaceholderRule(String content) {
 	return rule.lex(content);
 }
-Result</*???*/, /*???*/> generate_PlaceholderRule(/*???*/ node) {
+Result<String, CompileError> generate_PlaceholderRule(Node node) {
 	return rule.generate(node).mapValue(/*???*/);
 }

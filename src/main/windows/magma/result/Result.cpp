@@ -1,8 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\result\Result.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Result {};
-Result</*???*/, /*???*/> mapValue_Result(/*???*/ (*fn)(/*???*/)) {
+Result<R, X> mapValue_Result(R (*fn)(T)) {
 }
-Result</*???*/, /*???*/> flatMap_Result(Result</*???*/, /*???*/> (*fn)(/*???*/)) {
+Result<R, X> flatMap_Result(Result<R, X> (*fn)(T)) {
 }
-Result</*???*/, /*???*/> mapErr_Result(/*???*/ (*mapper)(/*???*/)) {
+Result<T, R> mapErr_Result(R (*mapper)(X)) {
 }

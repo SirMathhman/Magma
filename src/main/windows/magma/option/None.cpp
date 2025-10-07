@@ -1,20 +1,20 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\None.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct None {};
-Option</*???*/> map_None(/*???*/ (*mapper)(/*???*/)) {
+Option<R> map_None(R (*mapper)(T)) {
 	return new_???();
 }
-Option</*???*/> flatMap_None(Option</*???*/> (*mapper)(/*???*/)) {
+Option<R> flatMap_None(Option<R> (*mapper)(T)) {
 	return new_???();
 }
-/*???*/ orElse_None(/*???*/ other) {
-	/*???*/ other;
+T orElse_None(T other) {
+	return other;
 }
-Option</*???*/> or_None(Supplier<Option</*???*/>> other) {
+Option<T> or_None(Supplier<Option<T>> other) {
 	return other.get();
 }
-/*???*/ orElseGet_None(Supplier</*???*/> other) {
+T orElseGet_None(Supplier<T> other) {
 	return other.get();
 }
-Option</*???*/> filter_None(Predicate</*???*/> predicate) {
-	/*???*/ this;
+Option<T> filter_None(Predicate<T> predicate) {
+	return this;
 }

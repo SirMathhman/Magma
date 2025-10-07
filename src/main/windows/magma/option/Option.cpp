@@ -1,24 +1,24 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\Option.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Option {};
-Option</*???*/> of_Option(/*???*/ value) {
+Option<T> of_Option(T value) {
 	return new_???(value);
 }
-Option</*???*/> empty_Option() {
+Option<T> empty_Option() {
 	return new_???();
 }
-Option</*???*/> ofNullable_Option(/*???*/ value) {
+Option<T> ofNullable_Option(T value) {
 	if (Objects.isNull(value))return new_???();
 	return new_???(value);
 }
-Option</*???*/> map_Option(/*???*/ (*mapper)(/*???*/)) {
+Option<R> map_Option(R (*mapper)(T)) {
 }
-Option</*???*/> flatMap_Option(Option</*???*/> (*mapper)(/*???*/)) {
+Option<R> flatMap_Option(Option<R> (*mapper)(T)) {
 }
-/*???*/ orElse_Option(/*???*/ other) {
+T orElse_Option(T other) {
 }
-Option</*???*/> or_Option(Supplier<Option</*???*/>> other) {
+Option<T> or_Option(Supplier<Option<T>> other) {
 }
-/*???*/ orElseGet_Option(Supplier</*???*/> other) {
+T orElseGet_Option(Supplier<T> other) {
 }
-Option</*???*/> filter_Option(Predicate</*???*/> predicate) {
+Option<T> filter_Option(Predicate<T> predicate) {
 }

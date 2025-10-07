@@ -1,11 +1,11 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\InfixSplitter.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct InfixSplitter {/*???*/ infix;/*???*/ locator;};
-Option<Tuple</*???*/, /*???*/>> split_InfixSplitter(/*???*/ input) {
+struct InfixSplitter {String infix;Locator locator;};
+Option<Tuple<String, String>> split_InfixSplitter(String input) {
 	return /*???*/;
 }
-/*???*/ createErrorMessage_InfixSplitter() {
+String createErrorMessage_InfixSplitter() {
 	return ""+infix+"";
 }
-/*???*/ merge_InfixSplitter(/*???*/ left, /*???*/ right) {
+String merge_InfixSplitter(String left, String right) {
 	return left+infix+right;
 }

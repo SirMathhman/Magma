@@ -2,7 +2,7 @@
 struct Lang {};
 struct JavaRootSegment {};
 struct CRootSegment {};
-Option</*???*/> after_CRootSegment() {
+Option<String> after_CRootSegment() {
 }
 struct JStructureSegment {};
 struct JExpression {};
@@ -10,11 +10,11 @@ struct JMethodSegment {};
 struct CFunctionSegment {};
 struct JType {};
 struct JStructure {};
-/*???*/ name_JStructure() {
+String name_JStructure() {
 }
-Option<List</*???*/>> typeParameters_JStructure() {
+Option<List<Identifier>> typeParameters_JStructure() {
 }
-List</*???*/> children_JStructure() {
+List<JStructureSegment> children_JStructure() {
 }
 struct CParameter {};
 struct CExpression {};
@@ -26,146 +26,146 @@ struct LambdaParamSet {};
 struct MethodAccessSource {};
 struct NewArrayValue {};
 struct Identifiable {};
-struct CharNode {/*???*/ value;};
-struct CAnd {/*???*/ left;/*???*/ right;};
-struct And {/*???*/ left;/*???*/ right;};
-struct Destruct {/*???*/ type;List</*???*/> params;};
-struct InstanceOf {/*???*/ child;/*???*/ target;};
+struct CharNode {String value;};
+struct CAnd {CExpression left;CExpression right;};
+struct And {JExpression left;JExpression right;};
+struct Destruct {JType type;List<JDefinition> params;};
+struct InstanceOf {JExpression child;InstanceOfTarget target;};
 struct Wildcard {};
-struct JAdd {/*???*/ left;/*???*/ right;};
-struct JSubtract {/*???*/ left;/*???*/ right;};
-struct JEquals {/*???*/ left;/*???*/ right;};
-struct JNotEquals {/*???*/ left;/*???*/ right;};
-struct CEquals {/*???*/ left;/*???*/ right;};
-struct JString {Option</*???*/> content;};
-struct CAdd {/*???*/ left;/*???*/ right;};
-struct CString {/*???*/ content;};
-struct JFieldAccess {/*???*/ child;/*???*/ name;};
-struct CFieldAccess {/*???*/ child;/*???*/ name;};
-struct JConstruction {/*???*/ type;Option<List</*???*/>> arguments;};
-struct JInvocation {/*???*/ caller;Option<List</*???*/>> arguments;};
-struct Not {/*???*/ child;};
-struct ExprCaseExprValue {/*???*/ expression;};
-struct StatementCaseExprValue {/*???*/ statement;};
-/*???*/ CaseExpr_Lang(Option</*???*/> target, /*???*/ value, Option</*???*/> when) {
+struct JAdd {JExpression left;JExpression right;};
+struct JSubtract {JExpression left;JExpression right;};
+struct JEquals {JExpression left;JExpression right;};
+struct JNotEquals {JExpression left;JExpression right;};
+struct CEquals {CExpression left;CExpression right;};
+struct JString {Option<String> content;};
+struct CAdd {CExpression left;CExpression right;};
+struct CString {String content;};
+struct JFieldAccess {JExpression child;String name;};
+struct CFieldAccess {CExpression child;String name;};
+struct JConstruction {JType type;Option<List<JExpression>> arguments;};
+struct JInvocation {JExpression caller;Option<List<JExpression>> arguments;};
+struct Not {JExpression child;};
+struct ExprCaseExprValue {JExpression expression;};
+struct StatementCaseExprValue {JMethodSegment statement;};
+record CaseExpr_Lang(Option<CaseTarget> target, CaseExprValue value, Option<JExpression> when) {
 }
-/*???*/ CaseStatement_Lang(Option</*???*/> target, /*???*/ value, Option</*???*/> when) {
+record CaseStatement_Lang(Option<CaseTarget> target, JMethodSegment value, Option<JExpression> when) {
 }
-struct SwitchExpr {/*???*/ value;List</*???*/> cases;};
-struct SwitchStatement {/*???*/ value;List</*???*/> cases;};
-struct ExprLambdaValue {/*???*/ child;};
-struct StatementLambdaValue {/*???*/ child;};
-struct Lambda {/*???*/ params;/*???*/ child;};
-struct LengthNewArrayValue {/*???*/ length;};
-struct ArgumentsNewArrayValue {Option<List</*???*/>> arguments;};
-struct NewArray {/*???*/ type;/*???*/ value;};
-struct CAssignment {/*???*/ location;/*???*/ value;};
-struct CPostFix {/*???*/ value;};
-struct JAssignment {/*???*/ location;/*???*/ value;};
-struct JPostFix {/*???*/ value;};
-struct JInitialization {/*???*/ definition;/*???*/ value;};
-struct CInitialization {/*???*/ definition;/*???*/ value;};
-struct CBlock {List</*???*/> children;};
-struct JBlock {List</*???*/> children;};
-struct JIf {/*???*/ condition;/*???*/ body;};
-struct CIf {/*???*/ condition;/*???*/ body;};
-struct JWhile {/*???*/ condition;/*???*/ body;};
-struct CWhile {/*???*/ condition;/*???*/ body;};
-struct Field {/*???*/ value;};
-struct JGeneric {/*???*/ base;Option<List</*???*/>> typeArguments;};
-struct CTemplate {/*???*/ base;NonEmptyList</*???*/> typeArguments;};
-/*???*/ stringify_CTemplate() {
+struct SwitchExpr {JExpression value;List<CaseExpr> cases;};
+struct SwitchStatement {JExpression value;List<CaseStatement> cases;};
+struct ExprLambdaValue {JExpression child;};
+struct StatementLambdaValue {JMethodSegment child;};
+struct Lambda {LambdaParamSet params;LambdaValue child;};
+struct LengthNewArrayValue {JExpression length;};
+struct ArgumentsNewArrayValue {Option<List<JExpression>> arguments;};
+struct NewArray {JType type;NewArrayValue value;};
+struct CAssignment {CExpression location;CExpression value;};
+struct CPostFix {CExpression value;};
+struct JAssignment {JExpression location;JExpression value;};
+struct JPostFix {JExpression value;};
+struct JInitialization {JDefinition definition;JExpression value;};
+struct CInitialization {CDefinition definition;CExpression value;};
+struct CBlock {List<CFunctionSegment> children;};
+struct JBlock {List<JMethodSegment> children;};
+struct JIf {JExpression condition;JMethodSegment body;};
+struct CIf {CExpression condition;CFunctionSegment body;};
+struct JWhile {JExpression condition;JMethodSegment body;};
+struct CWhile {CExpression condition;CFunctionSegment body;};
+struct Field {JDefinition value;};
+struct JGeneric {JQualified base;Option<List<JType>> typeArguments;};
+struct CTemplate {String base;NonEmptyList<CType> typeArguments;};
+String stringify_CTemplate() {
 	return base+""+typeArguments.stream().map(/*???*/).collect(new_???(""));
 }
-struct Array {/*???*/ child;};
-struct JDefinition {/*???*/ name;/*???*/ type;Option<List</*???*/>> modifiers;Option<List</*???*/>> typeParameters;};
-/*???*/ Modifier_Lang(/*???*/ value) {
+struct Array {JType child;};
+struct JDefinition {String name;JType type;Option<List<Modifier>> modifiers;Option<List<Identifier>> typeParameters;};
+record Modifier_Lang(String value) {
 }
-struct Method {/*???*/ definition;Option<List</*???*/>> params;Option<List</*???*/>> body;Option<List</*???*/>> typeParameters;};
-struct Invalid {/*???*/ value;Option</*???*/> after;};
-/*???*/ Invalid_Invalid(/*???*/ value) {
+struct Method {JDefinition definition;Option<List<JDefinition>> params;Option<List<JMethodSegment>> body;Option<List<Identifier>> typeParameters;};
+struct Invalid {String value;Option<String> after;};
+public Invalid_Invalid(String value) {
 	this(value, new_???());
 }
-/*???*/ stringify_Invalid() {
+String stringify_Invalid() {
 	return "";
 }
-struct JClass {Option</*???*/> modifiers;/*???*/ name;List</*???*/> children;Option<List</*???*/>> typeParameters;Option<List</*???*/>> interfaces;};
-struct Interface {Option</*???*/> modifiers;/*???*/ name;List</*???*/> children;Option<List</*???*/>> typeParameters;Option<List</*???*/>> interfaces;Option<List</*???*/>> superclasses;Option<List</*???*/>> variants;};
-struct RecordNode {Option</*???*/> modifiers;/*???*/ name;List</*???*/> children;Option<List</*???*/>> typeParameters;Option<List</*???*/>> params;Option<List</*???*/>> interfaces;};
-struct Structure {/*???*/ name;List</*???*/> fields;Option</*???*/> after;Option<List</*???*/>> typeParameters;};
+struct JClass {Option<String> modifiers;String name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JType>> interfaces;};
+struct Interface {Option<String> modifiers;String name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JType>> interfaces;Option<List<JType>> superclasses;Option<List<JType>> variants;};
+struct RecordNode {Option<String> modifiers;String name;List<JStructureSegment> children;Option<List<Identifier>> typeParameters;Option<List<JDefinition>> params;Option<List<JType>> interfaces;};
+struct Structure {String name;List<CDefinition> fields;Option<String> after;Option<List<Identifier>> typeParameters;};
 struct Whitespace {};
-struct Placeholder {/*???*/ value;};
-/*???*/ JRoot_Lang(List</*???*/> children) {
+struct Placeholder {String value;};
+record JRoot_Lang(List<JavaRootSegment> children) {
 }
-/*???*/ CRoot_Lang(List</*???*/> children) {
+record CRoot_Lang(List<CRootSegment> children) {
 }
-struct Import {/*???*/ location;};
-struct Package {/*???*/ location;};
-struct CDefinition {/*???*/ name;/*???*/ type;Option<List</*???*/>> typeParameters;};
-struct CFunctionPointerDefinition {/*???*/ name;/*???*/ returnType;List</*???*/> paramTypes;};
-struct Function {/*???*/ definition;List</*???*/> params;List</*???*/> body;Option</*???*/> after;Option<List</*???*/>> typeParameters;};
-struct Identifier {/*???*/ value;};
-/*???*/ stringify_Identifier() {
-	/*???*/ value;
+struct Import {String location;};
+struct Package {String location;};
+struct CDefinition {String name;CType type;Option<List<Identifier>> typeParameters;};
+struct CFunctionPointerDefinition {String name;CType returnType;List<CType> paramTypes;};
+struct Function {CDefinition definition;List<CParameter> params;List<CFunctionSegment> body;Option<String> after;Option<List<Identifier>> typeParameters;};
+struct Identifier {String value;};
+String stringify_Identifier() {
+	return value;
 }
-struct Pointer {/*???*/ child;};
-/*???*/ stringify_Pointer() {
+struct Pointer {CType child;};
+String stringify_Pointer() {
 	return child.stringify()+"";
 }
-struct LineComment {/*???*/ value;};
-struct BlockComment {/*???*/ value;};
-struct JReturn {/*???*/ value;};
-struct CReturn {/*???*/ value;};
-struct JElse {/*???*/ child;};
-struct CElse {/*???*/ child;};
-struct CInvocation {/*???*/ caller;List</*???*/> arguments;};
+struct LineComment {String value;};
+struct BlockComment {String value;};
+struct JReturn {JExpression value;};
+struct CReturn {CExpression value;};
+struct JElse {JMethodSegment child;};
+struct CElse {CFunctionSegment child;};
+struct CInvocation {CExpression caller;List<CExpression> arguments;};
 struct Break {};
-struct InvocationFolder {/*???*/ open;/*???*/ close;};
-/*???*/ fold_InvocationFolder(/*???*/ state, /*???*/ c) {
-	/*???*/ appended=state.append(c);
+struct InvocationFolder {char open;char close;};
+DivideState fold_InvocationFolder(DivideState state, char c) {
+	DivideState appended=state.append(c);
 	if (c==open)
 	{
-	/*???*/ enter=appended.enter();
+	DivideState enter=appended.enter();
 	if (enter.isShallow())return enter.advance();
-	/*???*/ enter;}
+	return enter;}
 	if (c==close)return appended.exit();
-	/*???*/ appended;
+	return appended;
 }
-/*???*/ delimiter_InvocationFolder() {
+String delimiter_InvocationFolder() {
 	return "";
 }
-struct Index {/*???*/ child;/*???*/ index;};
-struct Quantity {/*???*/ child;};
-struct Cast {/*???*/ type;/*???*/ child;};
-struct JLessThanEquals {/*???*/ left;/*???*/ right;};
-struct JGreaterThan {/*???*/ left;/*???*/ right;};
-struct JOr {/*???*/ left;/*???*/ right;};
-struct JGreaterThanEquals {/*???*/ left;/*???*/ right;};
-struct JLessThan {/*???*/ left;/*???*/ right;};
-struct Try {/*???*/ child;Option</*???*/> resource;};
-struct Catch {/*???*/ definition;/*???*/ body;};
-struct Yield {/*???*/ child;};
-struct Variadic {/*???*/ child;};
+struct Index {JExpression child;JExpression index;};
+struct Quantity {JExpression child;};
+struct Cast {JType type;JExpression child;};
+struct JLessThanEquals {JExpression left;JExpression right;};
+struct JGreaterThan {JExpression left;JExpression right;};
+struct JOr {JExpression left;JExpression right;};
+struct JGreaterThanEquals {JExpression left;JExpression right;};
+struct JLessThan {JExpression left;JExpression right;};
+struct Try {JMethodSegment child;Option<JInitialization> resource;};
+struct Catch {JDefinition definition;JMethodSegment body;};
+struct Yield {JExpression child;};
+struct Variadic {JType child;};
 struct MyFolder {};
-/*???*/ fold_MyFolder(/*???*/ state, /*???*/ c) {
+DivideState fold_MyFolder(DivideState state, char c) {
 	if (c=='(')return state.append(c).enter();
 	if (c==')')if (state.isLevel())return state.advance();
 	else
 	return state.exit().append(c);
 	return state.append(c);
 }
-/*???*/ delimiter_MyFolder() {
+String delimiter_MyFolder() {
 	return "";
 }
 struct EmptyLambdaParam {};
-struct SingleLambdaParam {/*???*/ param;};
-struct MultipleLambdaParam {Option<List</*???*/>> params;};
-struct ExprMethodAccessSource {/*???*/ child;};
-struct TypeMethodAccessSource {/*???*/ child;};
-struct MethodAccess {/*???*/ name;/*???*/ source;};
-struct NumberNode {/*???*/ number;};
-struct OperatorFolder {/*???*/ operator;};
-/*???*/ fold_OperatorFolder(/*???*/ state, /*???*/ c) {
+struct SingleLambdaParam {String param;};
+struct MultipleLambdaParam {Option<List<SingleLambdaParam>> params;};
+struct ExprMethodAccessSource {JExpression child;};
+struct TypeMethodAccessSource {JType child;};
+struct MethodAccess {String name;MethodAccessSource source;};
+struct NumberNode {String number;};
+struct OperatorFolder {String operator;};
+DivideState fold_OperatorFolder(DivideState state, char c) {
 	if (c==operator.charAt(/*???*/))
 	{
 	if (/*???*/)
@@ -175,246 +175,246 @@ struct OperatorFolder {/*???*/ operator;};
 	return state.advance();}
 	return state.append(c);
 }
-/*???*/ delimiter_OperatorFolder() {
-	/*???*/ operator;
+String delimiter_OperatorFolder() {
+	return operator;
 }
-/*???*/ QualifiedSegment_Lang(/*???*/ value) {
+record QualifiedSegment_Lang(String value) {
 }
-struct JQualified {Option<List</*???*/>> segments;};
-/*???*/ last_JQualified() {
+struct JQualified {Option<List<QualifiedSegment>> segments;};
+String last_JQualified() {
 	if (/*???*/)return "";
 	return segments.orElse(new_???()).getLast().map(/*???*/.value).orElse("");
 }
-/*???*/ endsWith_JQualified(/*???*/ name) {
+boolean endsWith_JQualified(String name) {
 	return /*???*/;
 }
-List</*???*/> unwrap_JQualified() {
+List<String> unwrap_JQualified() {
 	if (/*???*/)return list.stream().map(/*???*/.value).toList();
 	return new_???();
 }
-/*???*/ CFunctionPointerDefinition_Lang() {
+Rule CFunctionPointerDefinition_Lang() {
 	return Tag("", Suffix(First(Suffix(First(Node("", CType()), "", String("")), ""), "", Expressions("", CType())), ""));
 }
-/*???*/ CDefinition_Lang() {
+Rule CDefinition_Lang() {
 	return Last(Node("", CType()), "", new_???(""));
 }
-/*???*/ CType_Lang() {
-	/*???*/ rule=new_???();
-	/*???*/ funcPtr=Tag("", Suffix(First(Node("", rule), "", Expressions("", rule)), ""));
+Rule CType_Lang() {
+	LazyRule rule=new_???();
+	Rule funcPtr=Tag("", Suffix(First(Node("", rule), "", Expressions("", rule)), ""));
 	rule.set(Or(funcPtr, CommonRules.Identifier(), Tag("", Suffix(Node("", rule), "")), CTemplate(rule), Invalid()));
-	/*???*/ rule;
+	return rule;
 }
-/*???*/ CTemplate_Lang(/*???*/ rule) {
-	/*???*/ base=String("");
-	/*???*/ arguments=Or(Expressions("", rule));
+Rule CTemplate_Lang(LazyRule rule) {
+	Rule base=String("");
+	Rule arguments=Or(Expressions("", rule));
 	return Tag("", Strip(Suffix(First(base, "", arguments), "")));
 }
-/*???*/ CStructure_Lang() {
-	/*???*/ plainName=CommonRules.StrippedIdentifier("");
-	/*???*/ structPrefix=Prefix("", plainName);
-	/*???*/ fields=Statements("", Suffix(CDefinition(), ""));
-	/*???*/ structWithFields=Suffix(First(structPrefix, "", fields), "");
-	/*???*/ structComplete=Suffix(structWithFields, "");
-	/*???*/ templateParams=Expressions("", Prefix("", CommonRules.Identifier()));
-	/*???*/ templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
-	/*???*/ maybeTemplate=Or(templateDecl, Empty);
+Rule CStructure_Lang() {
+	Rule plainName=CommonRules.StrippedIdentifier("");
+	Rule structPrefix=Prefix("", plainName);
+	Rule fields=Statements("", Suffix(CDefinition(), ""));
+	Rule structWithFields=Suffix(First(structPrefix, "", fields), "");
+	Rule structComplete=Suffix(structWithFields, "");
+	Rule templateParams=Expressions("", Prefix("", CommonRules.Identifier()));
+	Rule templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
+	Rule maybeTemplate=Or(templateDecl, Empty);
 	return Tag("", First(maybeTemplate, "", structComplete));
 }
-/*???*/ JRoot_Lang() {
-	/*???*/ segment=Or(Namespace(""), Namespace(""), Structures(JStructureSegment()), BlockComment(), Whitespace());
+Rule JRoot_Lang() {
+	Rule segment=Or(Namespace(""), Namespace(""), Structures(JStructureSegment()), BlockComment(), Whitespace());
 	return Statements("", segment);
 }
-/*???*/ Structures_Lang(/*???*/ structureMember) {
+Rule Structures_Lang(Rule structureMember) {
 	return Or(JStructure("", structureMember), JStructure("", structureMember), JStructure("", structureMember));
 }
-/*???*/ Whitespace_Lang() {
+Rule Whitespace_Lang() {
 	return Tag("", Strip(Empty));
 }
-/*???*/ Namespace_Lang(/*???*/ type) {
+Rule Namespace_Lang(String type) {
 	return Tag(type, Strip(Prefix(type+"", Suffix(String(""), ""))));
 }
-/*???*/ JStructure_Lang(/*???*/ type, /*???*/ rule) {
-	/*???*/ modifiers=String("");
-	/*???*/ maybeWithTypeArguments=NameWithTypeParameters();
-	/*???*/ maybeWithParameters=Strip(Or(Suffix(First(maybeWithTypeArguments, "", Parameters()), ""), maybeWithTypeArguments));
-	/*???*/ maybeWithParameters1=Or(Last(maybeWithParameters, "", Expressions("", JRules.JType())), maybeWithParameters);
-	/*???*/ beforeContent=Or(Last(maybeWithParameters1, "", Expressions("", JRules.JType())), maybeWithParameters1);
-	/*???*/ children=Statements("", rule);
-	/*???*/ beforeContent1=Or(Last(beforeContent, "", Delimited("", JRules.JType(), "")), beforeContent);
-	/*???*/ strip=Strip(Or(modifiers, Empty));
-	/*???*/ first=First(strip, type+"", beforeContent1);
-	/*???*/ aClass=Split(first, new_???(new_???(new_???())), children);
+Rule JStructure_Lang(String type, Rule rule) {
+	Rule modifiers=String("");
+	Rule maybeWithTypeArguments=NameWithTypeParameters();
+	Rule maybeWithParameters=Strip(Or(Suffix(First(maybeWithTypeArguments, "", Parameters()), ""), maybeWithTypeArguments));
+	Rule maybeWithParameters1=Or(Last(maybeWithParameters, "", Expressions("", JRules.JType())), maybeWithParameters);
+	Rule beforeContent=Or(Last(maybeWithParameters1, "", Expressions("", JRules.JType())), maybeWithParameters1);
+	Rule children=Statements("", rule);
+	Rule beforeContent1=Or(Last(beforeContent, "", Delimited("", JRules.JType(), "")), beforeContent);
+	Rule strip=Strip(Or(modifiers, Empty));
+	Rule first=First(strip, type+"", beforeContent1);
+	Rule aClass=Split(first, new_???(new_???(new_???())), children);
 	return Tag(type, Strip(Suffix(aClass, "")));
 }
-/*???*/ NameWithTypeParameters_Lang() {
-	/*???*/ name=CommonRules.StrippedIdentifier("");
-	/*???*/ withTypeParameters=Suffix(First(name, "", Expressions("", CommonRules.Identifier())), "");
+Rule NameWithTypeParameters_Lang() {
+	Rule name=CommonRules.StrippedIdentifier("");
+	Rule withTypeParameters=Suffix(First(name, "", Expressions("", CommonRules.Identifier())), "");
 	return Strip(Or(withTypeParameters, name));
 }
-/*???*/ JStructureSegment_Lang() {
-	/*???*/ structureMember=new_???();
+Rule JStructureSegment_Lang() {
+	LazyRule structureMember=new_???();
 	structureMember.set(Or(Structures(structureMember), Statement(), JMethod(), LineComment(), BlockComment(), Whitespace()));
-	/*???*/ structureMember;
+	return structureMember;
 }
-/*???*/ BlockComment_Lang() {
+Rule BlockComment_Lang() {
 	return Tag("", Strip(Prefix("", Suffix(String(""), ""))));
 }
-/*???*/ LineComment_Lang() {
+Rule LineComment_Lang() {
 	return Tag("", Strip(Prefix("", String(""))));
 }
-/*???*/ Statement_Lang() {
-	/*???*/ initialization=Initialization(JRules.JDefinition(), JExpression(JMethodSegment()));
+Rule Statement_Lang() {
+	Rule initialization=Initialization(JRules.JDefinition(), JExpression(JMethodSegment()));
 	return Strip(Suffix(Or(initialization, JRules.JDefinition()), ""));
 }
-/*???*/ JMethod_Lang() {
-	/*???*/ params=Parameters();
-	/*???*/ header=Strip(Suffix(Last(Node("", JRules.JDefinition()), "", params), ""));
-	/*???*/ withBody=Suffix(First(header, "", Statements("", JMethodSegment())), "");
+Rule JMethod_Lang() {
+	Rule params=Parameters();
+	Rule header=Strip(Suffix(Last(Node("", JRules.JDefinition()), "", params), ""));
+	Rule withBody=Suffix(First(header, "", Statements("", JMethodSegment())), "");
 	return Tag("", Strip(Or(Suffix(header, ""), withBody)));
 }
-/*???*/ JMethodSegment_Lang() {
-	/*???*/ methodSegment=new_???();
-	/*???*/ expression=JExpression(methodSegment);
-	/*???*/ inner=JRules.JDefinition();
+Rule JMethodSegment_Lang() {
+	LazyRule methodSegment=new_???();
+	Rule expression=JExpression(methodSegment);
+	Rule inner=JRules.JDefinition();
 	methodSegment.set(Strip(Or(LineComment(), Switch("", expression, methodSegment), Conditional("", expression, methodSegment), Conditional("", expression, methodSegment), Else(methodSegment), Try(methodSegment), QuantityBlock("", "", inner, methodSegment), Block(methodSegment), BlockComment(), Strip(Suffix(JMethodStatementValue(methodSegment), "")), Whitespace())));
-	/*???*/ methodSegment;
+	return methodSegment;
 }
-/*???*/ Try_Lang(/*???*/ methodSegment) {
-	/*???*/ child=Node("", methodSegment);
-	/*???*/ definition=JRules.JDefinition();
-	/*???*/ value=JExpression(methodSegment);
-	/*???*/ definition1=Node("", definition);
-	/*???*/ value1=Node("", value);
-	/*???*/ resource=Node("", First(Or(Tag("", definition1)), "", value1));
-	/*???*/ splitter=new_???(new_???(new_???(new_???())));
-	/*???*/ withResource=new_???("", Strip(Prefix("", new_???(resource, child, splitter, new_???()))));
-	/*???*/ withoutResource=new_???("", child);
+Rule Try_Lang(LazyRule methodSegment) {
+	Rule child=Node("", methodSegment);
+	Rule definition=JRules.JDefinition();
+	Rule value=JExpression(methodSegment);
+	Rule definition1=Node("", definition);
+	Rule value1=Node("", value);
+	Rule resource=Node("", First(Or(Tag("", definition1)), "", value1));
+	Splitter splitter=new_???(new_???(new_???(new_???())));
+	Rule withResource=new_???("", Strip(Prefix("", new_???(resource, child, splitter, new_???()))));
+	ContextRule withoutResource=new_???("", child);
 	return Tag("", Prefix("", Or(withResource, withoutResource)));
 }
-/*???*/ Block_Lang(/*???*/ rule) {
+Rule Block_Lang(LazyRule rule) {
 	return Tag("", Strip(Prefix("", Suffix(Statements("", rule), ""))));
 }
-/*???*/ JMethodStatementValue_Lang(/*???*/ statement) {
-	/*???*/ expression=JExpression(statement);
+Rule JMethodStatementValue_Lang(Rule statement) {
+	Rule expression=JExpression(statement);
 	return Or(Break(), PostFix(expression), Return(expression), Yield(expression), Initialization(JRules.JDefinition(), expression), JRules.JDefinition(), Invokable(expression));
 }
-/*???*/ Break_Lang() {
+Rule Break_Lang() {
 	return Tag("", Strip(Prefix("", Empty)));
 }
-/*???*/ PostFix_Lang(/*???*/ expression) {
+Rule PostFix_Lang(Rule expression) {
 	return Tag("", Strip(Suffix(Node("", expression), "")));
 }
-/*???*/ Initialization_Lang(/*???*/ definition, /*???*/ value) {
-	/*???*/ definition1=Node("", definition);
-	/*???*/ value1=Node("", value);
+Rule Initialization_Lang(Rule definition, Rule value) {
+	Rule definition1=Node("", definition);
+	Rule value1=Node("", value);
 	return First(Or(Tag("", definition1), Tag("", Node("", value))), "", value1);
 }
-/*???*/ Invokable_Lang(/*???*/ expression) {
+Rule Invokable_Lang(Rule expression) {
 	return Or(Invocation(expression), Invokable("", Strip(Prefix("", Node("", CType()))), expression));
 }
-/*???*/ Invokable_Lang(/*???*/ type, /*???*/ caller, /*???*/ expression) {
-	/*???*/ arguments=Expressions("", expression);
-	/*???*/ divider=new_???(new_???(new_???('(', ')')));
-	/*???*/ suffix=Strip(Suffix(Or(arguments, Whitespace()), String.valueOf(')')));
+Rule Invokable_Lang(String type, Rule caller, Rule expression) {
+	Rule arguments=Expressions("", expression);
+	FoldingDivider divider=new_???(new_???(new_???('(', ')')));
+	Rule suffix=Strip(Suffix(Or(arguments, Whitespace()), String.valueOf(')')));
 	return Tag(type, Split(Suffix(caller, String.valueOf('(')), KeepLast(divider), suffix));
 }
-/*???*/ Yield_Lang(/*???*/ expression) {
+Rule Yield_Lang(Rule expression) {
 	return Tag("", Prefix("", Node("", expression)));
 }
-/*???*/ Return_Lang(/*???*/ expression) {
+Rule Return_Lang(Rule expression) {
 	return Tag("", Prefix("", Node("", expression)));
 }
-/*???*/ Else_Lang(/*???*/ statement) {
+Rule Else_Lang(Rule statement) {
 	return Tag("", Prefix("", Node("", statement)));
 }
-/*???*/ Conditional_Lang(/*???*/ tag, /*???*/ inner, /*???*/ statement) {
+Rule Conditional_Lang(String tag, Rule inner, Rule statement) {
 	return QuantityBlock(tag, "", inner, statement);
 }
-/*???*/ QuantityBlock_Lang(/*???*/ tag, /*???*/ key, /*???*/ inner, /*???*/ statement) {
-	/*???*/ condition=Node(key, inner);
-	/*???*/ body=Node("", statement);
-	/*???*/ split=Split(Prefix("", condition), KeepFirst(new_???(new_???(new_???()))), body);
+Rule QuantityBlock_Lang(String tag, String key, Rule inner, Rule statement) {
+	Rule condition=Node(key, inner);
+	Rule body=Node("", statement);
+	Rule split=Split(Prefix("", condition), KeepFirst(new_???(new_???(new_???()))), body);
 	return Tag(tag, Prefix(tag+"", Strip(split)));
 }
-/*???*/ JExpression_Lang(/*???*/ statement) {
-	/*???*/ expression=new_???();
+Rule JExpression_Lang(Rule statement) {
+	LazyRule expression=new_???();
 	expression.set(Or(JLambda(statement, expression), Char(), Tag("", Strip(Prefix("", First(Node("", JRules.JType()), "", Node("", expression))))), Tag("", Strip(Prefix("", Suffix(Node("", expression), "")))), Tag("", Strip(Prefix("", Node("", expression)))), StringExpr(), Switch("", expression, CaseExprValue(statement, expression)), Index(expression), NewArray(expression), Index(expression), Invokable(expression), FieldAccess(expression), MethodAccess(expression), InstanceOf(expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), Operator("", "", expression), CommonRules.Identifier(), Number()));
-	/*???*/ expression;
+	return expression;
 }
-/*???*/ Number_Lang() {
+Rule Number_Lang() {
 	return Tag("", Strip(FilterRule.Number(String(""))));
 }
-/*???*/ NewArray_Lang(/*???*/ expression) {
-	/*???*/ type=Node("", JRules.JType());
-	/*???*/ tag=Tag("", Suffix(Expressions("", expression), ""));
-	/*???*/ tag1=Tag("", Node("", expression));
-	/*???*/ withoutArguments=Suffix(First(type, "", Node("", tag1)), "");
-	/*???*/ withArguments=Strip(First(type, "", Node("", tag)));
+Rule NewArray_Lang(LazyRule expression) {
+	Rule type=Node("", JRules.JType());
+	Rule tag=Tag("", Suffix(Expressions("", expression), ""));
+	Rule tag1=Tag("", Node("", expression));
+	Rule withoutArguments=Suffix(First(type, "", Node("", tag1)), "");
+	Rule withArguments=Strip(First(type, "", Node("", tag)));
 	return Tag("", Strip(Prefix("", Or(withoutArguments, withArguments))));
 }
-/*???*/ MethodAccess_Lang(/*???*/ expression) {
-	/*???*/ exprSource=Tag("", Node("", expression));
-	/*???*/ child=Tag("", Node("", JRules.JType()));
+Rule MethodAccess_Lang(LazyRule expression) {
+	Rule exprSource=Tag("", Node("", expression));
+	Rule child=Tag("", Node("", JRules.JType()));
 	return Tag("", Last(Node("", Or(exprSource, child)), "", CommonRules.StrippedIdentifier("")));
 }
-/*???*/ CaseExprValue_Lang(/*???*/ statement, /*???*/ expression) {
+Rule CaseExprValue_Lang(Rule statement, LazyRule expression) {
 	return Or(Tag("", Node("", Strip(Suffix(expression, "")))), Tag("", Node("", statement)));
 }
-/*???*/ Char_Lang() {
+Rule Char_Lang() {
 	return Tag("", Strip(Prefix("", Suffix(String(""), ""))));
 }
-/*???*/ JLambda_Lang(/*???*/ statement, /*???*/ expression) {
-	/*???*/ param=Tag("", CommonRules.StrippedIdentifier(""));
-	/*???*/ expressions=Tag("", Expressions("", CommonRules.StrippedIdentifier("")));
-	/*???*/ tag=Tag("", Empty);
-	/*???*/ strip=Or(Strip(Prefix("", Suffix(Or(expressions, tag), ""))), param);
-	/*???*/ child=Node("", Or(Tag("", Node("", statement)), Tag("", Node("", expression))));
+Rule JLambda_Lang(Rule statement, Rule expression) {
+	Rule param=Tag("", CommonRules.StrippedIdentifier(""));
+	Rule expressions=Tag("", Expressions("", CommonRules.StrippedIdentifier("")));
+	Rule tag=Tag("", Empty);
+	Rule strip=Or(Strip(Prefix("", Suffix(Or(expressions, tag), ""))), param);
+	Rule child=Node("", Or(Tag("", Node("", statement)), Tag("", Node("", expression))));
 	return Tag("", First(Node("", strip), "", child));
 }
-/*???*/ InstanceOf_Lang(/*???*/ expression) {
-	/*???*/ strip=Destruct();
-	/*???*/ type=Node("", Or(JRules.JDefinition(), JRules.JType(), strip));
+Rule InstanceOf_Lang(LazyRule expression) {
+	Rule strip=Destruct();
+	Rule type=Node("", Or(JRules.JDefinition(), JRules.JType(), strip));
 	return Tag("", Last(Node("", expression), "", type));
 }
-/*???*/ Destruct_Lang() {
+Rule Destruct_Lang() {
 	return Tag("", Strip(Suffix(First(Node("", JRules.JType()), "", Parameters()), "")));
 }
-/*???*/ Index_Lang(/*???*/ expression) {
+Rule Index_Lang(LazyRule expression) {
 	return Tag("", Strip(Suffix(Last(new_???("", expression), "", new_???("", expression)), "")));
 }
-/*???*/ FieldAccess_Lang(/*???*/ expression) {
-	/*???*/ child=Node("", expression);
-	/*???*/ rightRule=CommonRules.StrippedIdentifier("");
-	/*???*/ splitter=new_???("", new_???());
+Rule FieldAccess_Lang(Rule expression) {
+	Rule child=Node("", expression);
+	Rule rightRule=CommonRules.StrippedIdentifier("");
+	Splitter splitter=new_???("", new_???());
 	return Tag("", new_???(child, rightRule, splitter, new_???()));
 }
-/*???*/ StringExpr_Lang() {
+Rule StringExpr_Lang() {
 	return Tag("", Strip(Prefix("", Suffix(Or(String(""), Empty), ""))));
 }
-/*???*/ Operator_Lang(/*???*/ type, /*???*/ infix, /*???*/ expression) {
-	/*???*/ left=Node("", expression);
-	/*???*/ right=Node("", expression);
-	/*???*/ splitter=DividingSplitter.KeepFirst(new_???(new_???(new_???(infix))));
+Rule Operator_Lang(String type, String infix, LazyRule expression) {
+	Rule left=Node("", expression);
+	Rule right=Node("", expression);
+	Splitter splitter=DividingSplitter.KeepFirst(new_???(new_???(new_???(infix))));
 	return Tag(type, SplitRule.Split(left, splitter, right));
 }
-/*???*/ Switch_Lang(/*???*/ group, /*???*/ expression, /*???*/ rule) {
-	/*???*/ cases=Statements("", Strip(Or(Case(group, rule, expression), Empty)));
-	/*???*/ value=Prefix("", Suffix(Node("", expression), ""));
+Rule Switch_Lang(String group, Rule expression, Rule rule) {
+	Rule cases=Statements("", Strip(Or(Case(group, rule, expression), Empty)));
+	Rule value=Prefix("", Suffix(Node("", expression), ""));
 	return Tag(""+group, Strip(Prefix("", Suffix(First(Strip(value), "", cases), ""))));
 }
-/*???*/ Case_Lang(/*???*/ group, /*???*/ rule, /*???*/ expression) {
-	/*???*/ target=Node("", Or(JRules.JDefinition(), Destruct()));
-	/*???*/ defaultCase=Strip(Prefix("", Empty));
-	/*???*/ withWhen=Last(target, "", Node("", expression));
-	/*???*/ value=First(Or(defaultCase, Prefix("", Or(withWhen, target))), "", Node("", rule));
+Rule Case_Lang(String group, Rule rule, Rule expression) {
+	Rule target=Node("", Or(JRules.JDefinition(), Destruct()));
+	Rule defaultCase=Strip(Prefix("", Empty));
+	Rule withWhen=Last(target, "", Node("", expression));
+	Rule value=First(Or(defaultCase, Prefix("", Or(withWhen, target))), "", Node("", rule));
 	return Tag(""+group, value);
 }
-/*???*/ Invocation_Lang(/*???*/ expression) {
+Rule Invocation_Lang(Rule expression) {
 	return Invokable("", Node("", expression), expression);
 }
-/*???*/ Invalid_Lang() {
+Rule Invalid_Lang() {
 	return Tag("", Placeholder(String("")));
 }
-/*???*/ Parameters_Lang() {
+Rule Parameters_Lang() {
 	return Expressions("", Or(JRules.JDefinition(), Whitespace()));
 }

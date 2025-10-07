@@ -1,62 +1,62 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\Node.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct Node {/*???*/ MAX_FORMAT_LEVEL;Map</*???*/, List</*???*/>> nodeLists;Map</*???*/, /*???*/> nodes;Map</*???*/, /*???*/> strings;Option</*???*/> maybeType;};
-/*???*/ escape_Node(/*???*/ value) {
+struct Node {int MAX_FORMAT_LEVEL;Map<String, List<Node>> nodeLists;Map<String, Node> nodes;Map<String, String> strings;Option<String> maybeType;};
+String escape_Node(String value) {
 	return value.replace("", "").replace("", "").replace("", "").replace("", "").replace("", "");
 }
-/*???*/ toString_Node() {
+String toString_Node() {
 	return format(/*???*/);
 }
-/*???*/ withString_Node(/*???*/ key, /*???*/ value) {
+Node withString_Node(String key, String value) {
 	strings.put(key, value);
-	/*???*/ this;
+	return this;
 }
-Option</*???*/> findString_Node(/*???*/ key) {
+Option<String> findString_Node(String key) {
 	return Option.ofNullable(strings.get(key));
 }
-/*???*/ merge_Node(/*???*/ node) {
+Node merge_Node(Node node) {
 	maybeType=/*???*/;
 	this.strings.putAll(node.strings);
 	nodeLists.putAll(node.nodeLists);
 	nodes.putAll(node.nodes);
-	/*???*/ this;
+	return this;
 }
-/*???*/ withNodeList_Node(/*???*/ key, List</*???*/> values) {
+Node withNodeList_Node(String key, List<Node> values) {
 	nodeLists.put(key, values);
-	/*???*/ this;
+	return this;
 }
-Option<List</*???*/>> findNodeList_Node(/*???*/ key) {
+Option<List<Node>> findNodeList_Node(String key) {
 	return Option.ofNullable(nodeLists.get(key));
 }
-/*???*/ withNode_Node(/*???*/ key, /*???*/ node) {
+Node withNode_Node(String key, Node node) {
 	nodes.put(key, node);
-	/*???*/ this;
+	return this;
 }
-Option</*???*/> findNode_Node(/*???*/ key) {
+Option<Node> findNode_Node(String key) {
 	return Option.ofNullable(nodes.get(key));
 }
-/*???*/ retype_Node(/*???*/ type) {
+Node retype_Node(String type) {
 	this.maybeType==Option.of(type);
-	/*???*/ this;
+	return this;
 }
-/*???*/ is_Node(/*???*/ type) {
+boolean is_Node(String type) {
 	return this.maybeType.map(/*???*/.equals(type)).orElse(false);
 }
-Set</*???*/> getStringKeys_Node() {
+Set<String> getStringKeys_Node() {
 	return strings.keySet();
 }
-/*???*/ format_Node(/*???*/ depth) {
+String format_Node(int depth) {
 	return format(depth, MAX_FORMAT_LEVEL);
 }
-/*???*/ format_Node(/*???*/ depth, /*???*/ maxLevel) {
-	/*???*/ indent="".repeat(depth);
+String format_Node(int depth, int maxLevel) {
+	String indent="".repeat(depth);
 	return indent+appendJsonPure(depth, /*???*/, maxLevel);
 }
-/*???*/ appendJsonPure_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel) {
-	/*???*/ indent="".repeat(indentDepth);
-	/*???*/ childIndent="".repeat(indentDepth+/*???*/);
-	/*???*/ builder=new_???();
+String appendJsonPure_Node(int indentDepth, int level, int maxLevel) {
+	String indent="".repeat(indentDepth);
+	String childIndent="".repeat(indentDepth+/*???*/);
+	StringBuilder builder=new_???();
 	builder.append("");
-	/*???*/* hasFields=/*???*/;
+	boolean* hasFields=/*???*/;
 	/*???*/=maybeType;
 	if (/*???*/)
 	{
@@ -69,7 +69,7 @@ Set</*???*/> getStringKeys_Node() {
 	builder.append("");
 	return builder.toString();
 }
-/*???*/ extracted1_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, Entry</*???*/, List</*???*/>> entry, /*???*/* hasFields, /*???*/ builder, /*???*/ childIndent) {
+void extracted1_Node(int indentDepth, int level, int maxLevel, Entry<String, List<Node>> entry, boolean* hasFields, StringBuilder builder, String childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");
@@ -77,24 +77,24 @@ Set</*???*/> getStringKeys_Node() {
 	extracted(indentDepth, level, maxLevel, entry, builder, childIndent).append("");
 	/*???*/=true;
 }
-/*???*/ extracted_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, Entry</*???*/, List</*???*/>> entry, /*???*/ builder, /*???*/ childIndent) {
+StringBuilder extracted_Node(int indentDepth, int level, int maxLevel, Entry<String, List<Node>> entry, StringBuilder builder, String childIndent) {
 	/*???*/();
-	/*???*/ builder;
+	return builder;
 	if (/*???*/)
 	{
 	builder.append("");
-	/*???*/ builder;}
+	return builder;}
 	builder.append("");
 	builder.append(list.stream().map(/*???*/(indentDepth, level, maxLevel, node)).collect(new_???("")));
 	builder.append("").append(childIndent);
-	/*???*/ builder;
+	return builder;
 }
-/*???*/ getString_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, /*???*/ node) {
-	/*???*/ repeat="".repeat(indentDepth+/*???*/);
-	/*???*/ s=node.appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel);
+String getString_Node(int indentDepth, int level, int maxLevel, Node node) {
+	String repeat="".repeat(indentDepth+/*???*/);
+	String s=node.appendJsonPure(indentDepth+/*???*/, level+/*???*/, maxLevel);
 	return repeat+s;
 }
-/*???*/ extracted_Node(/*???*/ indentDepth, /*???*/ level, /*???*/ maxLevel, Entry</*???*/, /*???*/> entry, /*???*/* hasFields, /*???*/ builder, /*???*/ childIndent) {
+void extracted_Node(int indentDepth, int level, int maxLevel, Entry<String, Node> entry, boolean* hasFields, StringBuilder builder, String childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");
@@ -104,7 +104,7 @@ Set</*???*/> getStringKeys_Node() {
 	builder.append("");
 	/*???*/=true;
 }
-/*???*/ extracted_Node(Entry</*???*/, /*???*/> entry, /*???*/* hasFields, /*???*/ builder, /*???*/ childIndent) {
+void extracted_Node(Entry<String, String> entry, boolean* hasFields, StringBuilder builder, String childIndent) {
 	if (/*???*/)builder.append("");
 	else
 	builder.append("");

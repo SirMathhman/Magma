@@ -1,112 +1,112 @@
 // Generated transpiled C++ from 'src\main\java\magma\transform\Transformer.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Transformer {};
-/*???*/ transformMethod_Transformer(/*???*/ method, /*???*/ structName) {
-	List</*???*/> oldParams=/*???*/;
-	List</*???*/> newParams=oldParams.stream().map(/*???*/).toList();
-	/*???*/ cDefinition=transformDefinition(method.definition());
-	Option<List</*???*/>> extractedTypeParams=extractMethodTypeParameters(method);
-	List</*???*/> bodySegments=/*???*/;
+Function transformMethod_Transformer(Method method, String structName) {
+	List<JDefinition> oldParams=/*???*/;
+	List<CParameter> newParams=oldParams.stream().map(/*???*/).toList();
+	CDefinition cDefinition=transformDefinition(method.definition());
+	Option<List<Identifier>> extractedTypeParams=extractMethodTypeParameters(method);
+	List<CFunctionSegment> bodySegments=/*???*/;
 	return new_???(new_???(cDefinition.name()+""+structName, cDefinition.type(), cDefinition.typeParameters()), newParams, bodySegments, new_???(System.lineSeparator()), extractedTypeParams);
 }
-/*???*/ transformFunctionSegment_Transformer(/*???*/ segment) {
+CFunctionSegment transformFunctionSegment_Transformer(JMethodSegment segment) {
 	return /*???*/;
 }
-/*???*/ transformWhile_Transformer(/*???*/ jWhile) {
+CWhile transformWhile_Transformer(JWhile jWhile) {
 	return new_???(transformExpression(jWhile.condition()), transformFunctionSegment(jWhile.body()));
 }
-/*???*/ transformAssignment_Transformer(/*???*/ jAssignment) {
+CAssignment transformAssignment_Transformer(JAssignment jAssignment) {
 	return new_???(transformExpression(jAssignment.location()), transformExpression(jAssignment.value()));
 }
-/*???*/ transformInitialization_Transformer(/*???*/ jInitialization) {
+CInitialization transformInitialization_Transformer(JInitialization jInitialization) {
 	return new_???(transformDefinition(jInitialization.definition()), transformExpression(jInitialization.value()));
 }
-/*???*/ transformBlock_Transformer(/*???*/ jBlock) {
+CBlock transformBlock_Transformer(JBlock jBlock) {
 	return new_???(jBlock.children().stream().map(/*???*/).toList());
 }
-/*???*/ transformIf_Transformer(/*???*/ anIf) {
+CIf transformIf_Transformer(JIf anIf) {
 	return new_???(transformExpression(anIf.condition()), transformFunctionSegment(anIf.body()));
 }
-/*???*/ handleConstruction_Transformer(/*???*/ jConstruction) {
-	/*???*/ name=""+transformType(jConstruction.type()).stringify();
-	List</*???*/> list=jConstruction.arguments().orElse(new_???()).stream().map(/*???*/).toList();
+CInvocation handleConstruction_Transformer(JConstruction jConstruction) {
+	String name=""+transformType(jConstruction.type()).stringify();
+	List<CExpression> list=jConstruction.arguments().orElse(new_???()).stream().map(/*???*/).toList();
 	return new_???(new_???(name), list);
 }
-/*???*/ transformExpression_Transformer(/*???*/ expression) {
+CExpression transformExpression_Transformer(JExpression expression) {
 	return /*???*/;
 }
-/*???*/ transformInvocation_Transformer(/*???*/ jInvocation) {
-	List</*???*/> newArguments=jInvocation.arguments().orElse(new_???()).stream().map(/*???*/).toList();
+CInvocation transformInvocation_Transformer(JInvocation jInvocation) {
+	List<CExpression> newArguments=jInvocation.arguments().orElse(new_???()).stream().map(/*???*/).toList();
 	return new_???(transformExpression(jInvocation.caller()), newArguments);
 }
-/*???*/ transformParameter_Transformer(/*???*/ param) {
-	/*???*/ transformedType=transformType(param.type());
+CParameter transformParameter_Transformer(JDefinition param) {
+	CType transformedType=transformType(param.type());
 	if (/*???*/)return new_???(param.name(), returnType, paramTypes);
 	return new_???(param.name(), transformedType, new_???());
 }
-Option<List</*???*/>> extractMethodTypeParameters_Transformer(/*???*/ method) {
-	List</*???*/> typeVars=new_???();
+Option<List<Identifier>> extractMethodTypeParameters_Transformer(Method method) {
+	List<String> typeVars=new_???();
 	collectTypeVariables(method.definition().type(), typeVars);
 	if (/*???*/)paramList.stream().forEach(/*???*/(param.type(), typeVars));
 	if (typeVars.isEmpty())return new_???();
-	List</*???*/> identifiers=typeVars.stream().map(/*???*/).toList();
+	List<Identifier> identifiers=typeVars.stream().map(/*???*/).toList();
 	return new_???(identifiers);
 }
-/*???*/ collectTypeVariables_Transformer(/*???*/ type, List</*???*/> typeVars) {/*???*/
+void collectTypeVariables_Transformer(JType type, List<String> typeVars) {/*???*/
 }
-/*???*/ transformDefinition_Transformer(/*???*/ definition) {
-	Option<List</*???*/>> typeParams=definition.typeParameters();
+CDefinition transformDefinition_Transformer(JDefinition definition) {
+	Option<List<Identifier>> typeParams=definition.typeParameters();
 	return new_???(definition.name(), transformType(definition.type()), typeParams);
 }
-List</*???*/> flattenRootSegment_Transformer(/*???*/ segment) {
+List<CRootSegment> flattenRootSegment_Transformer(JavaRootSegment segment) {
 	return /*???*/;
 }
-Result</*???*/, /*???*/> transform_Transformer(/*???*/ node) {
-	List</*???*/> children=node.children();
-	Stream</*???*/> stream=children.stream();
-	Stream<List</*???*/>> listStream=stream.map(/*???*/);
-	Stream</*???*/> cRootSegmentStream=listStream.flatMap(/*???*/);
-	List</*???*/> newChildren=cRootSegmentStream.toList();
+Result<CRoot, CompileError> transform_Transformer(JRoot node) {
+	List<JavaRootSegment> children=node.children();
+	Stream<JavaRootSegment> stream=children.stream();
+	Stream<List<CRootSegment>> listStream=stream.map(/*???*/);
+	Stream<CRootSegment> cRootSegmentStream=listStream.flatMap(/*???*/);
+	List<CRootSegment> newChildren=cRootSegmentStream.toList();
 	return new_???(new_???(newChildren));
 }
-Tuple<List</*???*/>, Option</*???*/>> flattenStructureSegment_Transformer(/*???*/ self, /*???*/ name) {
+Tuple<List<CRootSegment>, Option<CDefinition>> flattenStructureSegment_Transformer(JStructureSegment self, String name) {
 	return /*???*/;
 }
-List</*???*/> flattenStructure_Transformer(/*???*/ aClass) {
-	List</*???*/> children=aClass.children();
-	List</*???*/> recordFields=extractRecordParamsAsFields(aClass).copy();
-	/*???*/ name=aClass.name();
-	List<Tuple<List</*???*/>, Option</*???*/>>> tuples=children.stream().map(/*???*/(child, name)).toList();
-	List</*???*/> segments=tuples.stream().map(/*???*/).flatMap(/*???*/).toList();
-	List</*???*/> additionalFields=tuples.stream().map(/*???*/).filter(/*???*/).map(/*???*/(/*???*/).value()).toList();
-	List</*???*/> fields=recordFields.addAll(additionalFields);
-	/*???*/ structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
+List<CRootSegment> flattenStructure_Transformer(JStructure aClass) {
+	List<JStructureSegment> children=aClass.children();
+	List<CDefinition> recordFields=extractRecordParamsAsFields(aClass).copy();
+	String name=aClass.name();
+	List<Tuple<List<CRootSegment>, Option<CDefinition>>> tuples=children.stream().map(/*???*/(child, name)).toList();
+	List<CRootSegment> segments=tuples.stream().map(/*???*/).flatMap(/*???*/).toList();
+	List<CDefinition> additionalFields=tuples.stream().map(/*???*/).filter(/*???*/).map(/*???*/(/*???*/).value()).toList();
+	List<CDefinition> fields=recordFields.addAll(additionalFields);
+	Structure structure=new_???(name, fields, new_???(System.lineSeparator()), aClass.typeParameters());
 	return new_???(segments);
 }
-List</*???*/> extractRecordParamsAsFields_Transformer(/*???*/ structure) {
+List<CDefinition> extractRecordParamsAsFields_Transformer(JStructure structure) {
 	if (/*???*/)
 	{
 	/*???*/();
 	if (/*???*/)return paramList.stream().map(/*???*/).toList();}
 	return Collections.emptyList();
 }
-/*???*/ transformType_Transformer(/*???*/ type) {
+CType transformType_Transformer(JType type) {
 	return /*???*/;
 }
-/*???*/ transformIdentifier_Transformer(/*???*/ identifier) {
+CType transformIdentifier_Transformer(Identifier identifier) {
 	if (identifier.value().equals(""))return new_???(new_???(""));
-	/*???*/ identifier;
+	return identifier;
 }
-/*???*/ transformArray_Transformer(/*???*/ array) {
-	/*???*/ childType=transformType(array.child());
+Pointer transformArray_Transformer(Array array) {
+	CType childType=transformType(array.child());
 	return new_???(childType);
 }
-/*???*/ transformGeneric_Transformer(/*???*/ generic) {
-	List</*???*/> listOption=generic.typeArguments().orElse(new_???());
+CType transformGeneric_Transformer(JGeneric generic) {
+	List<JType> listOption=generic.typeArguments().orElse(new_???());
 	if (generic.base().endsWith("")&&listOption.size()==/*???*/)
 	{
-	/*???*/ paramType=transformType(listOption.get(/*???*/).orElse(null));
-	/*???*/ returnType=transformType(listOption.get(/*???*/).orElse(null));
+	CType paramType=transformType(listOption.get(/*???*/).orElse(null));
+	CType returnType=transformType(listOption.get(/*???*/).orElse(null));
 	return new_???(returnType, List.of(paramType));}
-	List</*???*/> transformedTypes=listOption.stream().map(/*???*/).toList();
+	List<CType> transformedTypes=listOption.stream().map(/*???*/).toList();
 	return magma.list.NonEmptyList.fromList(transformedTypes).map(/*???*/).orElse(new_???(""+generic.base().last(), new_???()));
 }

@@ -1,8 +1,8 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\Splitter.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Splitter {};
-Option<Tuple</*???*/, /*???*/>> split_Splitter(/*???*/ input) {
+Option<Tuple<String, String>> split_Splitter(String input) {
 }
-/*???*/ createErrorMessage_Splitter() {
+String createErrorMessage_Splitter() {
 }
-/*???*/ merge_Splitter(/*???*/ left, /*???*/ right) {
+String merge_Splitter(String left, String right) {
 }

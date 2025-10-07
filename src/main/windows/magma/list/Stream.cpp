@@ -1,27 +1,27 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\Stream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Stream {};
-Stream</*???*/> range_Stream(/*???*/ start, /*???*/ end) {
+Stream<Integer> range_Stream(int start, int end) {
 	return new_???(/*???*/+offset);
 }
-Stream</*???*/> map_Stream(/*???*/ (*mapper)(/*???*/)) {
+Stream<R> map_Stream(R (*mapper)(T)) {
 }
-/*???*/ fold_Stream(/*???*/ initial, BiFunction</*???*/, /*???*/, /*???*/> folder) {
+R fold_Stream(R initial, BiFunction<R, T, R> folder) {
 }
-/*???*/ collect_Stream(Collector</*???*/, /*???*/> collector) {
+R collect_Stream(Collector<T, R> collector) {
 }
-List</*???*/> toList_Stream() {
+List<T> toList_Stream() {
 	return collect(new_???());
 }
-/*???*/ forEach_Stream(Consumer</*???*/> consumer) {
+void forEach_Stream(Consumer<T> consumer) {
 }
-Stream</*???*/> flatMap_Stream(Stream</*???*/> (*mapper)(/*???*/)) {
+Stream<R> flatMap_Stream(Stream<R> (*mapper)(T)) {
 }
-Stream</*???*/> filter_Stream(Predicate</*???*/> predicate) {
+Stream<T> filter_Stream(Predicate<T> predicate) {
 }
-/*???*/ reduce_Stream(/*???*/ initial, BiFunction</*???*/, /*???*/, /*???*/> folder) {
+R reduce_Stream(R initial, BiFunction<R, T, R> folder) {
 	return fold(initial, folder);
 }
-/*???*/ allMatch_Stream(Predicate</*???*/> predicate) {
+boolean allMatch_Stream(Predicate<T> predicate) {
 }
-/*???*/ anyMatch_Stream(Predicate</*???*/> predicate) {
+boolean anyMatch_Stream(Predicate<T> predicate) {
 }

@@ -1,40 +1,40 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\CRules.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct CRules {};
-/*???*/ CRoot_CRules() {
+Rule CRoot_CRules() {
 	return Statements("", Strip("", Or(Lang.CStructure(), CFunction()), ""));
 }
-/*???*/ CFunction_CRules() {
-	/*???*/ definition=new_???("", Lang.CDefinition());
-	/*???*/ params=Expressions("", Or(Lang.CFunctionPointerDefinition(), Lang.CDefinition()));
-	/*???*/ body=Statements("", CFunctionSegment());
-	/*???*/ first=First(definition, "", params);
-	/*???*/ suffix=Suffix(first, "");
-	/*???*/ suffix1=Suffix(body, System.lineSeparator()+"");
-	/*???*/ functionDecl=First(suffix, "", suffix1);
-	/*???*/ templateParams=Expressions("", Prefix("", CommonRules.Identifier()));
-	/*???*/ templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
-	/*???*/ maybeTemplate=Or(templateDecl, Empty);
+Rule CFunction_CRules() {
+	NodeRule definition=new_???("", Lang.CDefinition());
+	Rule params=Expressions("", Or(Lang.CFunctionPointerDefinition(), Lang.CDefinition()));
+	Rule body=Statements("", CFunctionSegment());
+	Rule first=First(definition, "", params);
+	Rule suffix=Suffix(first, "");
+	Rule suffix1=Suffix(body, System.lineSeparator()+"");
+	Rule functionDecl=First(suffix, "", suffix1);
+	Rule templateParams=Expressions("", Prefix("", CommonRules.Identifier()));
+	Rule templateDecl=NonEmptyList("", Prefix("", Suffix(templateParams, ""+System.lineSeparator())));
+	Rule maybeTemplate=Or(templateDecl, Empty);
 	return Tag("", First(maybeTemplate, "", functionDecl));
 }
-/*???*/ CExpression_CRules() {
-	/*???*/ expression=new_???();
+Rule CExpression_CRules() {
+	LazyRule expression=new_???();
 	expression.set(Or(Lang.Invocation(expression), Lang.FieldAccess(expression), Lang.Operator("", "", expression), Lang.Operator("", "", expression), Lang.Operator("", "", expression), Lang.StringExpr(), CommonRules.Identifier(), Lang.Char(), Lang.Invalid()));
-	/*???*/ expression;
+	return expression;
 }
-/*???*/ CFunctionSegment_CRules() {
-	/*???*/ rule=new_???();
+Rule CFunctionSegment_CRules() {
+	LazyRule rule=new_???();
 	rule.set(Or(Lang.Whitespace(), Prefix(System.lineSeparator()+"", CFunctionSegmentValue(rule)), Lang.Invalid()));
-	/*???*/ rule;
+	return rule;
 }
-/*???*/ CFunctionSegmentValue_CRules(/*???*/ rule) {
+Rule CFunctionSegmentValue_CRules(LazyRule rule) {
 	return Or(Lang.LineComment(), Lang.Conditional("", CExpression(), rule), Lang.Conditional("", CExpression(), rule), Lang.Break(), Lang.Else(rule), CFunctionStatement(), Lang.Block(rule));
 }
-/*???*/ CFunctionStatement_CRules() {
-	/*???*/ functionStatement=new_???();
+Rule CFunctionStatement_CRules() {
+	LazyRule functionStatement=new_???();
 	functionStatement.set(Or(Lang.Conditional("", CExpression(), functionStatement), Suffix(CFunctionStatementValue(), "")));
-	/*???*/ functionStatement;
+	return functionStatement;
 }
-/*???*/ CFunctionStatementValue_CRules() {
-	/*???*/ expression=CExpression();
+Rule CFunctionStatementValue_CRules() {
+	Rule expression=CExpression();
 	return Or(Lang.Return(expression), Lang.Invocation(expression), Lang.Initialization(Lang.CDefinition(), expression), Lang.CDefinition(), Lang.PostFix(expression));
 }

@@ -1,29 +1,29 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\JRules.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct JRules {};
-/*???*/ JDefinition_JRules() {
-	/*???*/ type=Node("", JType());
-	/*???*/ name=StrippedIdentifier("");
-	/*???*/ modifiers=Delimited("", Tag("", String("")), "");
-	/*???*/ withModifiers=Split(modifiers, KeepLast(new_???(new_???())), type);
-	/*???*/ beforeName=Or(withModifiers, type);
+Rule JDefinition_JRules() {
+	Rule type=Node("", JType());
+	Rule name=StrippedIdentifier("");
+	Rule modifiers=Delimited("", Tag("", String("")), "");
+	Rule withModifiers=Split(modifiers, KeepLast(new_???(new_???())), type);
+	Rule beforeName=Or(withModifiers, type);
 	return Tag("", Strip(Last(beforeName, "", name)));
 }
-/*???*/ JType_JRules() {
-	/*???*/ type=new_???();
+Rule JType_JRules() {
+	LazyRule type=new_???();
 	type.set(Or(Parameterized("", type, Node("", JQualifiedName())), JArray(type), CommonRules.Identifier(), JWildCard(), Tag("", Strip(Suffix(Node("", type), ""))), JQualifiedName()));
-	/*???*/ type;
+	return type;
 }
-/*???*/ JQualifiedName_JRules() {
-	/*???*/ segment=Tag("", StrippedIdentifier(""));
+Rule JQualifiedName_JRules() {
+	Rule segment=Tag("", StrippedIdentifier(""));
 	return Tag("", Strip(NodeListRule.Delimited("", segment, "")));
 }
-/*???*/ JWildCard_JRules() {
+Rule JWildCard_JRules() {
 	return Tag("", Strip(Prefix("", Empty)));
 }
-/*???*/ JArray_JRules(/*???*/ type) {
+Rule JArray_JRules(Rule type) {
 	return Tag("", Strip(Suffix(Node("", type), "")));
 }
-/*???*/ Parameterized_JRules(/*???*/ tag, /*???*/ type, /*???*/ base) {
-	/*???*/ arguments=Or(Expressions("", type), Strip(Empty));
+Rule Parameterized_JRules(String tag, Rule type, Rule base) {
+	Rule arguments=Or(Expressions("", type), Strip(Empty));
 	return Tag(tag, Strip(Suffix(First(base, "", arguments), "")));
 }

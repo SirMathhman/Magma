@@ -1,29 +1,29 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\List.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct List {};
-List</*???*/> of_List(/*???*/ elements) {
+List<T> of_List(T elements) {
 	return new_???(new_???(Arrays.asList(elements)));
 }
-Stream</*???*/> stream_List() {
+Stream<T> stream_List() {
 }
-List</*???*/> addLast_List(/*???*/ element) {
+List<T> addLast_List(T element) {
 }
-List</*???*/> copy_List() {
+List<T> copy_List() {
 }
-List</*???*/> addAll_List(List</*???*/> others) {
+List<T> addAll_List(List<T> others) {
 }
-/*???*/ size_List() {
+int size_List() {
 }
-Option</*???*/> get_List(/*???*/ index) {
+Option<T> get_List(int index) {
 }
-/*???*/ isEmpty_List() {
+boolean isEmpty_List() {
 }
-Option</*???*/> getLast_List() {
+Option<T> getLast_List() {
 }
-List</*???*/> sort_List(Comparator</*???*/> comparator) {
+List<T> sort_List(Comparator<T> comparator) {
 }
-Option<Tuple<List</*???*/>, /*???*/>> removeLast_List() {
+Option<Tuple<List<T>, T>> removeLast_List() {
 }
-Option</*???*/> getFirst_List() {
+Option<T> getFirst_List() {
 }
-List</*???*/> subListOrEmpty_List(/*???*/ start, /*???*/ end) {
+List<T> subListOrEmpty_List(int start, int end) {
 }

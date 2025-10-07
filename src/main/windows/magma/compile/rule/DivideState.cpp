@@ -1,53 +1,53 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct DivideState {List</*???*/> segments;/*???*/ input;/*???*/ buffer;/*???*/ depth;/*???*/ index;};
-/*???*/ DivideState_DivideState(/*???*/ buffer, /*???*/ depth, List</*???*/> segments, /*???*/ input) {
+struct DivideState {List<String> segments;String input;StringBuilder buffer;int depth;int index;};
+public DivideState_DivideState(StringBuilder buffer, int depth, List<String> segments, String input) {
 	this.buffer=buffer;
 	this.depth=depth;
 	this.segments=segments;
 	this.input=input;
 }
-/*???*/ DivideState_DivideState(/*???*/ input) {
+public DivideState_DivideState(String input) {
 	this(new_???(), /*???*/, new_???(), input);
 }
-Stream</*???*/> stream_DivideState() {
+Stream<String> stream_DivideState() {
 	return segments.stream();
 }
-/*???*/ enter_DivideState() {
+DivideState enter_DivideState() {
 	this.depth=depth+/*???*/;
-	/*???*/ this;
+	return this;
 }
-/*???*/ advance_DivideState() {
+DivideState advance_DivideState() {
 	segments.addLast(buffer.toString());
 	this.buffer=new_???();
-	/*???*/ this;
+	return this;
 }
-/*???*/ append_DivideState(/*???*/ c) {
+DivideState append_DivideState(char c) {
 	buffer.append(c);
-	/*???*/ this;
+	return this;
 }
-/*???*/ exit_DivideState() {
+DivideState exit_DivideState() {
 	this.depth=/*???*/;
-	/*???*/ this;
+	return this;
 }
-/*???*/ isShallow_DivideState() {
+boolean isShallow_DivideState() {
 	return depth==/*???*/;
 }
-/*???*/ isLevel_DivideState() {
+boolean isLevel_DivideState() {
 	return depth==/*???*/;
 }
-Option</*???*/> pop_DivideState() {
+Option<Character> pop_DivideState() {
 	if (/*???*/)return Option.empty();
-	/*???*/ c=input.charAt(index);
+	char c=input.charAt(index);
 	index++;
 	return Option.of(c);
 }
-Option<Tuple</*???*/, /*???*/>> popAndAppendToTuple_DivideState() {
+Option<Tuple<DivideState, Character>> popAndAppendToTuple_DivideState() {
 	return pop().map(/*???*/);
 }
-Option</*???*/> popAndAppendToOption_DivideState() {
+Option<DivideState> popAndAppendToOption_DivideState() {
 	return popAndAppendToTuple().map(/*???*/);
 }
-Option</*???*/> peek_DivideState() {
+Option<Character> peek_DivideState() {
 	if (/*???*/)return new_???(input.charAt(index));
 	else
 	return new_???();

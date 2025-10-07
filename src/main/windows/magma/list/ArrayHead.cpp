@@ -1,12 +1,12 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\ArrayHead.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct ArrayHead {/*???*/* array;/*???*/ index;};
-/*???*/ ArrayHead_ArrayHead(/*???*/* array) {
+struct ArrayHead {T* array;int index;};
+public ArrayHead_ArrayHead(T* array) {
 	this.array=array;
 }
-Option</*???*/> next_ArrayHead() {
+Option<T> next_ArrayHead() {
 	if (/*???*/)
 	{
-	/*???*/ t=/*???*/;
+	T t=/*???*/;
 	index++;
 	return new_???(t);}
 	else

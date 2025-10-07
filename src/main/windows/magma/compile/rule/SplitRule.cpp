@@ -1,33 +1,33 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\SplitRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct SplitRule {/*???*/ leftRule;/*???*/ rightRule;/*???*/ splitter;/*???*/ order;};
+struct SplitRule {Rule leftRule;Rule rightRule;Splitter splitter;Order order;};
 struct Order {};
-Result</*???*/, /*???*/> evaluate_Order(/*???*/ left, /*???*/ right, /*???*/ leftRule, /*???*/ rightRule) {
+Result<Node, CompileError> evaluate_Order(String left, String right, Rule leftRule, Rule rightRule) {
 }
 struct LeftFirst {};
-Result</*???*/, /*???*/> evaluate_LeftFirst(/*???*/ left, /*???*/ right, /*???*/ leftRule, /*???*/ rightRule) {
+Result<Node, CompileError> evaluate_LeftFirst(String left, String right, Rule leftRule, Rule rightRule) {
 	return leftRule.lex(left).flatMap(/*???*/.lex(right).mapValue(/*???*/));
 }
 struct RightFirst {};
-Result</*???*/, /*???*/> evaluate_RightFirst(/*???*/ left, /*???*/ right, /*???*/ leftRule, /*???*/ rightRule) {
+Result<Node, CompileError> evaluate_RightFirst(String left, String right, Rule leftRule, Rule rightRule) {
 	return rightRule.lex(right).flatMap(/*???*/.lex(left).mapValue(/*???*/));
 }
-/*???*/ First_SplitRule(/*???*/ left, /*???*/ infix, /*???*/ right) {
-	/*???*/ splitter=new_???(infix, new_???());
+Rule First_SplitRule(Rule left, String infix, Rule right) {
+	Splitter splitter=new_???(infix, new_???());
 	return new_???(left, right, splitter, new_???());
 }
-/*???*/ Last_SplitRule(/*???*/ leftRule, /*???*/ infix, /*???*/ rightRule) {
-	/*???*/ splitter=new_???(infix, new_???());
+Rule Last_SplitRule(Rule leftRule, String infix, Rule rightRule) {
+	Splitter splitter=new_???(infix, new_???());
 	return new_???(leftRule, rightRule, splitter, new_???());
 }
-/*???*/ Split_SplitRule(/*???*/ left, /*???*/ splitter, /*???*/ right) {
+Rule Split_SplitRule(Rule left, Splitter splitter, Rule right) {
 	return new_???(left, right, splitter, new_???());
 }
-Result</*???*/, /*???*/> lex_SplitRule(/*???*/ input) {
+Result<Node, CompileError> lex_SplitRule(String input) {
 	return /*???*/;
 }
-Result</*???*/, /*???*/> evaluate_SplitRule(/*???*/ left, /*???*/ right) {
+Result<Node, CompileError> evaluate_SplitRule(String left, String right) {
 	return leftRule.lex(left).flatMap(/*???*/.lex(right).mapValue(/*???*/));
 }
-Result</*???*/, /*???*/> generate_SplitRule(/*???*/ node) {
+Result<String, CompileError> generate_SplitRule(Node node) {
 	return leftRule.generate(node).flatMap(/*???*/.generate(node).mapValue(/*???*/.merge(left, right)));
 }

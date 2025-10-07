@@ -1,61 +1,61 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\HeadedStream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct HeadedStream {Head</*???*/> head;};
-struct FlatMapHead {Stream</*???*/> (*)(/*???*/) mapper;Option<Head</*???*/>> currentInnerHead;};
-/*???*/ FlatMapHead_FlatMapHead(Stream</*???*/> (*mapper)(/*???*/)) {
+struct HeadedStream {Head<T> head;};
+struct FlatMapHead {Stream<R> (*)(T) mapper;Option<Head<R>> currentInnerHead;};
+public FlatMapHead_FlatMapHead(Stream<R> (*mapper)(T)) {
 	this.mapper=mapper;
 	currentInnerHead=new_???();
 }
-Option</*???*/> next_FlatMapHead() {
+Option<R> next_FlatMapHead() {
 	while (true)
 	{
 	if (/*???*/)
 	{
-	Option</*???*/> innerNext=innerHead.next();
-	if (/*???*/)/*???*/ innerNext;
+	Option<R> innerNext=innerHead.next();
+	if (/*???*/)return innerNext;
 	currentInnerHead=new_???();}
-	Option</*???*/> outerNext=head.next();
+	Option<T> outerNext=head.next();
 	if (/*???*/)
 	{
-	Stream</*???*/> innerStream=mapper.apply(value);
+	Stream<R> innerStream=mapper.apply(value);
 	if (/*???*/)currentInnerHead=new_???(head1);
 	else
 	return new_???();}
 	else
 	return new_???();}
 }
-Stream</*???*/> map_HeadedStream(/*???*/ (*mapper)(/*???*/)) {
+Stream<R> map_HeadedStream(R (*mapper)(T)) {
 	return new_???(/*???*/.next().map(mapper));
 }
-/*???*/ fold_HeadedStream(/*???*/ initial, BiFunction</*???*/, /*???*/, /*???*/> folder) {
-	/*???*/ current=initial;
+R fold_HeadedStream(R initial, BiFunction<R, T, R> folder) {
+	R current=initial;
 	while (true)
 	{
-	/*???*/ finalCurrent=current;
-	Option</*???*/> map=head.next().map(/*???*/.apply(finalCurrent, inner));
+	R finalCurrent=current;
+	Option<R> map=head.next().map(/*???*/.apply(finalCurrent, inner));
 	if (/*???*/)current=value;
 	else
-	/*???*/ current;}
+	return current;}
 }
-/*???*/ collect_HeadedStream(Collector</*???*/, /*???*/> collector) {
+R collect_HeadedStream(Collector<T, R> collector) {
 	return fold(collector.initial(), /*???*/);
 }
-/*???*/ forEach_HeadedStream(Consumer</*???*/> consumer) {
+void forEach_HeadedStream(Consumer<T> consumer) {
 	while (true)
 	{
-	Option</*???*/> next=head.next();
+	Option<T> next=head.next();
 	if (/*???*/)consumer.accept(temp);
 	else
 	break}
 }
-Stream</*???*/> flatMap_HeadedStream(Stream</*???*/> (*mapper)(/*???*/)) {
+Stream<R> flatMap_HeadedStream(Stream<R> (*mapper)(T)) {
 	return new_???(new_???(mapper));
 }
-Stream</*???*/> filter_HeadedStream(Predicate</*???*/> predicate) {
+Stream<T> filter_HeadedStream(Predicate<T> predicate) {
 	return new_???(/*???*/);
 }
-/*???*/ allMatch_HeadedStream(Predicate</*???*/> predicate) {
+boolean allMatch_HeadedStream(Predicate<T> predicate) {
 	return fold(true, /*???*/&&predicate.test(t));
 }
-/*???*/ anyMatch_HeadedStream(Predicate</*???*/> predicate) {
+boolean anyMatch_HeadedStream(Predicate<T> predicate) {
 	return fold(false, /*???*/);
 }
