@@ -20,10 +20,10 @@ public final class Node {
 
 	private static String escape(String value) {
 		return value.replace("\\", "\\\\")
-				.replace("\"", "\\\"")
-				.replace("\n", "\\n")
-				.replace("\r", "\\r")
-				.replace("\t", "\\t");
+								.replace("\"", "\\\"")
+								.replace("\n", "\\n")
+								.replace("\r", "\\r")
+								.replace("\t", "\\t");
 	}
 
 	@Override
@@ -97,7 +97,7 @@ public final class Node {
 		StringBuilder builder = new StringBuilder();
 		builder.append("{");
 
-		boolean[] hasFields = new boolean[] { false };
+		boolean[] hasFields = new boolean[]{false};
 
 		Option<String> typeOpt = maybeType;
 		if (typeOpt instanceof Some<String>(String value)) {
@@ -105,43 +105,46 @@ public final class Node {
 			hasFields[0] = true;
 		}
 
-		strings.entrySet().stream().sorted(Entry.comparingByKey())
-				.forEach(entry -> extracted(entry, hasFields, builder, childIndent));
+		strings.entrySet()
+					 .stream()
+					 .sorted(Entry.comparingByKey())
+					 .forEach(entry -> extracted(entry, hasFields, builder, childIndent));
 
-		nodes.entrySet().stream().sorted(Entry.comparingByKey())
-				.forEach(entry -> extracted(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
+		nodes.entrySet()
+				 .stream()
+				 .sorted(Entry.comparingByKey())
+				 .forEach(entry -> extracted(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
 
-		nodeLists.entrySet().stream().sorted(Entry.comparingByKey())
-				.forEach(entry -> extracted1(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
+		nodeLists.entrySet()
+						 .stream()
+						 .sorted(Entry.comparingByKey())
+						 .forEach(entry -> extracted1(indentDepth, level, maxLevel, entry, hasFields, builder, childIndent));
 
-		if (hasFields[0])
-			builder.append("\n").append(indent);
+		if (hasFields[0]) builder.append("\n").append(indent);
 		builder.append("}");
 		return builder.toString();
 	}
 
 	private void extracted1(int indentDepth,
-			int level,
-			int maxLevel,
-			Entry<String, NonEmptyList<Node>> entry,
-			boolean[] hasFields,
-			StringBuilder builder,
-			String childIndent) {
-		if (hasFields[0])
-			builder.append(",\n");
-		else
-			builder.append("\n");
+													int level,
+													int maxLevel,
+													Entry<String, NonEmptyList<Node>> entry,
+													boolean[] hasFields,
+													StringBuilder builder,
+													String childIndent) {
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
 		builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": [");
 		extracted(indentDepth, level, maxLevel, entry, builder, childIndent).append("]");
 		hasFields[0] = true;
 	}
 
 	private StringBuilder extracted(int indentDepth,
-			int level,
-			int maxLevel,
-			Entry<String, NonEmptyList<Node>> entry,
-			StringBuilder builder,
-			String childIndent) {
+																	int level,
+																	int maxLevel,
+																	Entry<String, NonEmptyList<Node>> entry,
+																	StringBuilder builder,
+																	String childIndent) {
 		NonEmptyList<Node> list = entry.getValue();
 		// No need to check isEmpty - NonEmptyList is never empty
 		if (level + 1 >= maxLevel) {
@@ -150,9 +153,7 @@ public final class Node {
 		}
 
 		builder.append("\n");
-		builder.append(list.stream()
-				.map(node -> getString(indentDepth, level, maxLevel, node))
-				.collect(new Joiner(",\n")));
+		builder.append(list.stream().map(node -> getString(indentDepth, level, maxLevel, node)).collect(new Joiner(",\n")));
 		builder.append("\n").append(childIndent);
 		return builder;
 	}
@@ -164,35 +165,29 @@ public final class Node {
 	}
 
 	private void extracted(int indentDepth,
-			int level,
-			int maxLevel,
-			Entry<String, Node> entry,
-			boolean[] hasFields,
-			StringBuilder builder,
-			String childIndent) {
-		if (hasFields[0])
-			builder.append(",\n");
-		else
-			builder.append("\n");
+												 int level,
+												 int maxLevel,
+												 Entry<String, Node> entry,
+												 boolean[] hasFields,
+												 StringBuilder builder,
+												 String childIndent) {
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
 		builder.append(childIndent).append('"').append(escape(entry.getKey())).append("\": ");
-		if (level + 1 < maxLevel)
-			builder.append(entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
-		else
-			builder.append("{...}");
+		if (level + 1 < maxLevel) builder.append(entry.getValue().appendJsonPure(indentDepth + 1, level + 1, maxLevel));
+		else builder.append("{...}");
 		hasFields[0] = true;
 	}
 
 	private void extracted(Entry<String, String> entry, boolean[] hasFields, StringBuilder builder, String childIndent) {
-		if (hasFields[0])
-			builder.append(",\n");
-		else
-			builder.append("\n");
+		if (hasFields[0]) builder.append(",\n");
+		else builder.append("\n");
 		builder.append(childIndent)
-				.append('"')
-				.append(escape(entry.getKey()))
-				.append("\": \"")
-				.append(escape(entry.getValue()))
-				.append('"');
+					 .append('"')
+					 .append(escape(entry.getKey()))
+					 .append("\": \"")
+					 .append(escape(entry.getValue()))
+					 .append('"');
 		hasFields[0] = true;
 	}
 }
