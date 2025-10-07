@@ -6,16 +6,16 @@ String escape_Node() {
 String toString_Node() {
 	return format();
 }
-Node withString_Node() {
-	strings.put();
+Node withSlice_Node() {
+	slices.put();
 	return this;
 }
-Option<String> findString_Node() {
+Option<Slice> findSlice_Node() {
 	return Option.ofNullable();
 }
 Node merge_Node() {
 	maybeType=/*???*/;
-	this.strings.putAll();
+	this.slices.putAll();
 	nodeLists.putAll();
 	nodes.putAll();
 	return this;
@@ -42,27 +42,27 @@ boolean is_Node() {
 	return this.maybeType.map().orElse();
 }
 Set<String> getStringKeys_Node() {
-	return strings.keySet();
+	return slices.keySet();
 }
 String format_Node() {
 	return format();
 }
 String format_Node() {
-	String indent="".repeat();
+	var indent="".repeat();
 	return indent+appendJsonPure();
 }
 String appendJsonPure_Node() {
-	String indent="".repeat();
-	String childIndent="".repeat();
-	StringBuilder builder=new_???();
+	var indent="".repeat();
+	var childIndent="".repeat();
+	var builder=new_???();
 	builder.append();
-	boolean* hasFields=/*???*/;
-	/*???*/=maybeType;
+	var hasFields=/*???*/;
+	var typeOpt=maybeType;
 	if (/*???*/)
 	{
 	builder.append().append().append().append().append();
 	/*???*/=true;}
-	strings.entrySet().stream().sorted().forEach();
+	slices.entrySet().stream().sorted().forEach();
 	nodes.entrySet().stream().sorted().forEach();
 	nodeLists.entrySet().stream().sorted().forEach();
 	if (/*???*/)
@@ -82,7 +82,7 @@ void extracted1_Node() {
 	/*???*/=true;
 }
 StringBuilder extracted_Node() {
-	/*???*/();
+	var list=entry.getValue();
 	if (/*???*/)
 	{
 	builder.append();
@@ -93,8 +93,8 @@ StringBuilder extracted_Node() {
 	return builder;
 }
 String getString_Node() {
-	String repeat="".repeat();
-	String s=node.appendJsonPure();
+	var repeat="".repeat();
+	var s=node.appendJsonPure();
 	return repeat+s;
 }
 void extracted_Node() {
@@ -111,7 +111,7 @@ void extracted_Node() {
 	builder.append();
 	/*???*/=true;
 }
-void extracted_Node() {
+void appendSliceEntry_Node() {
 	if (/*???*/)
 	{
 	builder.append();}

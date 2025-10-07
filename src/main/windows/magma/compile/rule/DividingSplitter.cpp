@@ -9,9 +9,9 @@ DividingSplitter KeepFirst_DividingSplitter() {
 DividingSplitter KeepLast_DividingSplitter() {
 	return new_???();
 }
-Option<Tuple<String, String>> split_DividingSplitter() {
-	List<String> segments=divider.divide().toList();
-	String delimiter=divider.delimiter();
+Option<Tuple<Slice, Slice>> split_DividingSplitter() {
+	var segments=divider.divide().toList();
+	var delimiter=divider.delimiter();
 	return merger.merge();
 }
 String createErrorMessage_DividingSplitter() {

@@ -10,6 +10,6 @@ Result<Node, CompileError> lex_StringRule() {
 	return new_???();
 }
 Result<String, CompileError> generate_StringRule() {
-	Option<Result<String, CompileError>> resultOption=node.findString().map();
+	/*???*/();
 	return /*???*/;
 }

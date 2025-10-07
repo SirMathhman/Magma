@@ -2,7 +2,7 @@
 struct Lang {};
 struct JavaRootSegment {};
 struct CRootSegment {};
-Option<String> after_CRootSegment() {/*???*/
+Option<Slice> after_CRootSegment() {/*???*/
 }
 struct JStructureSegment {};
 struct JExpression {};
@@ -10,7 +10,7 @@ struct JMethodSegment {};
 struct CFunctionSegment {};
 struct JType {};
 struct JStructure {};
-String name_JStructure() {/*???*/
+Slice name_JStructure() {/*???*/
 }
 Option<NonEmptyList<Identifier>> typeParameters_JStructure() {/*???*/
 }
@@ -75,7 +75,7 @@ struct Field {};
 struct JGeneric {};
 struct CTemplate {};
 String stringify_CTemplate() {
-	return base+""+typeArguments.stream().map().collect();
+	return base.value()+""+typeArguments.stream().map().collect();
 }
 struct Array {};
 struct JDefinition {};
@@ -106,7 +106,7 @@ struct CFunctionPointerDefinition {};
 struct CFunction {};
 struct Identifier {};
 String stringify_Identifier() {
-	return value;
+	return value.value();
 }
 struct Pointer {};
 String stringify_Pointer() {
@@ -129,7 +129,6 @@ DivideState fold_InvocationFolder() {
 	if (enter.isShallow())
 	{
 	return enter.advance();}
-	else
 	return enter;}
 	if (c==close)
 	{
@@ -176,7 +175,7 @@ struct MethodAccess {};
 struct NumberNode {};
 struct OperatorFolder {};
 DivideState fold_OperatorFolder() {
-	if (c==operator.charAt())
+	if (c==operator.value().charAt())
 	{
 	if (/*???*/)
 	{
@@ -186,7 +185,7 @@ DivideState fold_OperatorFolder() {
 	return state.append();
 }
 String delimiter_OperatorFolder() {
-	return operator;
+	return operator.value();
 }
 record QualifiedSegment_Lang() {
 }

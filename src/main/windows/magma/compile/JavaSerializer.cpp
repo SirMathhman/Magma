@@ -48,19 +48,22 @@ Result<Node, CompileError> serializeRecord_JavaSerializer() {
 	return new_???();}
 	return new_???();
 }
+InputContext createContext_JavaSerializer() {
+	return new_???();
+}
 Result<Node, CompileError> serializeField_JavaSerializer() {
 	String fieldName=component.getName();
 	Class</*Wildcard[]*/> fieldType=component.getType();
 	if (Objects.isNull())
 	{
 	return new_???();}
-	if (fieldType==String.class)
+	if (fieldType==Slice.class)
 	{
 	return new_???();}
 	if (Option.class.isAssignableFrom())
 	{
 	return serializeOptionField();}
-	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	if (NonEmptyList.class.isAssignableFrom())
 	{
 	return serializeNonEmptyListField();}
 	if (List.class.isAssignableFrom())
@@ -88,10 +91,10 @@ Result<Node, CompileError> serializeOptionField_JavaSerializer() {
 	{
 	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
-	if (elementClass==String.class)
+	if (elementClass==Slice.class)
 	{
 	return new_???();}
-	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	if (NonEmptyList.class.isAssignableFrom())
 	{
 	return serializeOptionNonEmptyListField();}
 	if (List.class.isAssignableFrom())
@@ -190,9 +193,7 @@ Result<Object, CompileError> deserializeSealed_JavaSerializer() {
 	{
 	return new_???();}
 	Option<Result<Object, CompileError>> directResult=tryDirectPermittedSubclasses();
-	if (/*???*/)
-	{
-	return result;}
+	return result;
 	return tryNestedSealedInterfaces();
 }
 Option<Result<Object, CompileError>> tryDirectPermittedSubclasses_JavaSerializer() {
@@ -210,16 +211,13 @@ Option<Result<Object, CompileError>> tryDirectPermittedSubclasses_JavaSerializer
 }
 Result<Object, CompileError> tryNestedSealedInterfaces_JavaSerializer() {
 	Option<Result<Object, CompileError>> recursiveResult=findNestedSealedDeserialization();
-	if (/*???*/)
-	{
-	return value;}
+	return value;
 	/*???*/();
 	String validTagsList;
 	if (validTags.isEmpty())
 	{
 	validTagsList="";}
-	else
-	validTagsList==validTags.stream().collect();
+	else validTagsList=validTags.stream().collect();
 	String suggestion=getSuggestionForUnknownTag();
 	return new_???();
 }
@@ -230,9 +228,7 @@ Option<Result<Object, CompileError>> findNestedSealedDeserialization_JavaSeriali
 	{
 	Class</*Wildcard[]*/> permitted=/*???*/;
 	Option<Result<Object, CompileError>> recursiveResult=tryDeserializeNestedSealed();
-	if (/*???*/)
-	{
-	return k;}
+	return k;
 	j++;}
 	return new_???();
 }
@@ -327,14 +323,8 @@ boolean canMatchType_JavaSerializer() {
 	{
 	Class</*Wildcard[]*/> permitted=/*???*/;
 	/*???*/();
-	if (/*???*/&&tag.equals())
-	{
-	return true;}
-	if (permitted.isSealed()&&/*???*/.isRecord())
-	{
-	if (canMatchType())
-	{
-	return true;}}
+	return true;
+	return true;
 	i++;}
 	return false;
 }
@@ -365,13 +355,16 @@ Result<Object, CompileError> deserializeRecord_JavaSerializer() {
 Result<Object, CompileError> deserializeField_JavaSerializer() {
 	String fieldName=component.getName();
 	Class</*Wildcard[]*/> fieldType=component.getType();
+	if (fieldType==Slice.class)
+	{
+	return deserializeSliceField();}
 	if (fieldType==String.class)
 	{
 	return deserializeStringField();}
 	if (Option.class.isAssignableFrom())
 	{
 	return deserializeOptionField();}
-	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	if (NonEmptyList.class.isAssignableFrom())
 	{
 	return deserializeNonEmptyListField();}
 	if (List.class.isAssignableFrom())
@@ -382,6 +375,20 @@ Result<Object, CompileError> deserializeField_JavaSerializer() {
 	{
 	consumedFields.add();
 	return deserializeValue();}
+	else
+	return new_???();
+}
+Result<Object, CompileError> deserializeSliceField_JavaSerializer() {
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
 	else
 	return new_???();
 }
@@ -411,6 +418,27 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	return new_???();}
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	String fieldName=component.getName();
+	if (elementClass==Slice.class)
+	{
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	return new_???();}
+	return new_???();}
 	if (elementClass==String.class)
 	{
 	/*???*/();
@@ -432,7 +460,7 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	{
 	return new_???();}
 	return new_???();}
-	if (magma.list.NonEmptyList.class.isAssignableFrom())
+	if (NonEmptyList.class.isAssignableFrom())
 	{
 	return deserializeOptionNonEmptyListField();}
 	if (List.class.isAssignableFrom())
@@ -614,53 +642,41 @@ Option<String> resolveTypeIdentifier_JavaSerializer() {
 	return Option.empty();}
 	return Option.of();
 }
-Option<String> findStringInChildren_JavaSerializer() {
+Option<Slice> findSliceInChildren_JavaSerializer() {
 	{
 	/*???*/();
 	while (iterator.hasNext())
 	{
 	Node child=iterator.next();
 	/*???*/();
-	if (/*???*/)
-	{
-	return result;}
-	result==findStringInChildren();
-	if (/*???*/)
-	{
-	return result;}}}
-	return findStringInNodeLists();
+	return result;
+	result==findSliceInChildren();
+	return result;}}
+	return findSliceInNodeLists();
 }
-Option<String> findStringInNodeLists_JavaSerializer() {
+Option<Slice> findSliceInNodeLists_JavaSerializer() {
 	/*???*/();
 	while (iterator.hasNext())
 	{
 	/*???*/();
 	/*???*/();
-	if (/*???*/)
-	{
-	return result;}}
+	return result;}
 	return Option.empty();
 }
-Option<String> searchChildrenList_JavaSerializer() {
+Option<Slice> searchChildrenList_JavaSerializer() {
 	int i=/*???*/;
 	while (/*???*/)
 	{
 	Node child=children.get().orElse();
 	/*???*/();
-	if (/*???*/)
-	{
-	return result;}
-	result==findStringInChildren();
-	if (/*???*/)
-	{
-	return result;}
+	return result;
+	result==findSliceInChildren();
+	return result;
 	i++;}
 	return Option.empty();
 }
 boolean shouldBeDeserializableAs_JavaSerializer() {
-	if (/*???*/)
-	{
-	return false;}
+	return false;
 	if (/*???*/)
 	{
 	Tag tagAnnotation=targetClass.getAnnotation();

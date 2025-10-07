@@ -7,12 +7,9 @@ Result<Node, CompileError> lex_SuffixRule() {
 	if (/*???*/.endsWith())
 	{
 	return new_???();}
-	String slice=input.substring();
-	return getRule().lex();
+	var slice=input.substring();
+	return rule.lex();
 }
 Result<String, CompileError> generate_SuffixRule() {
 	return rule.generate().mapValue();
-}
-Rule getRule_SuffixRule() {
-	return rule;
 }

@@ -25,9 +25,6 @@ Rule Split_SplitRule() {
 Result<Node, CompileError> lex_SplitRule() {
 	return /*???*/;
 }
-Result<Node, CompileError> evaluate_SplitRule() {
-	return leftRule.lex().flatMap();
-}
 Result<String, CompileError> generate_SplitRule() {
 	return leftRule.generate().flatMap();
 }
