@@ -177,11 +177,11 @@ public class Lang {
 	}
 
 	@Tag("construction")
-	public record JConstruction(JType type, Option<List<JExpression>> arguments) implements JExpression, JMethodSegment {
+	public record JConstruction(JType type, Option<NonEmptyList<JExpression>> arguments) implements JExpression, JMethodSegment {
 	}
 
 	@Tag("invocation")
-	public record JInvocation(JExpression caller, Option<List<JExpression>> arguments)
+	public record JInvocation(JExpression caller, Option<NonEmptyList<JExpression>> arguments)
 			implements JExpression, JMethodSegment {
 	}
 
@@ -435,7 +435,7 @@ public class Lang {
 	}
 
 	@Tag("invocation")
-	public record CInvocation(CExpression caller, List<CExpression> arguments) implements CFunctionSegment, CExpression {
+	public record CInvocation(CExpression caller, Option<NonEmptyList<CExpression>> arguments) implements CFunctionSegment, CExpression {
 	}
 
 	@Tag("break")
@@ -804,7 +804,7 @@ public class Lang {
 	}
 
 	private static Rule Invokable(String type, Rule caller, Rule expression) {
-		final Rule arguments = Expressions("arguments", expression);
+		final Rule arguments =  Or(Expressions("arguments", expression), Empty);
 		FoldingDivider divider = new FoldingDivider(new EscapingFolder(new InvocationFolder('(', ')')));
 		final Rule suffix = Strip(Suffix(Or(arguments, Whitespace()), String.valueOf(')')));
 		return Tag(type, Split(Suffix(caller, String.valueOf('(')), KeepLast(divider), suffix));

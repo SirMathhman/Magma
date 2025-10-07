@@ -35,11 +35,7 @@ public class Transformer {
 		// JMethodSegment and CFunctionSegment share the same implementations
 		// (Placeholder, Whitespace, Invalid)
 		final NonEmptyList<Lang.CFunctionSegment> bodySegments = method.body()
-																																	 .map(body -> body.stream()
-																																										.map(Transformer::transformFunctionSegment)
-																																										.collect(new NonEmptyListCollector<Lang.CFunctionSegment>())
-																																										.orElse(NonEmptyList.of(new Lang.Invalid(
-																																												"???"))))
+																																	 .map(Transformer::getCFunctionSegmentNonEmptyList)
 																																	 .orElse(NonEmptyList.of(new Lang.Invalid("???")));
 
 		return new Lang.CFunction(new Lang.CDefinition(cDefinition.name() + "_" + structName,
@@ -49,6 +45,13 @@ public class Transformer {
 															bodySegments,
 															new Some<String>(System.lineSeparator()),
 															extractedTypeParams);
+	}
+
+	private static NonEmptyList<Lang.CFunctionSegment> getCFunctionSegmentNonEmptyList(NonEmptyList<Lang.JMethodSegment> body) {
+		return body.stream()
+							 .map(Transformer::transformFunctionSegment)
+							 .collect(new NonEmptyListCollector<Lang.CFunctionSegment>())
+							 .orElse(NonEmptyList.of(new Lang.Invalid("???")));
 	}
 
 	static Lang.CFunctionSegment transformFunctionSegment(Lang.JMethodSegment segment) {
@@ -96,11 +99,10 @@ public class Transformer {
 
 	private static Lang.CInvocation handleConstruction(Lang.JConstruction jConstruction) {
 		String name = "new_" + transformType(jConstruction.type()).stringify();
-		final List<Lang.CExpression> list = jConstruction.arguments()
-																										 .orElse(new ArrayList<Lang.JExpression>())
-																										 .stream()
-																										 .map(Transformer::transformExpression)
-																										 .toList();
+		final Option<NonEmptyList<Lang.CExpression>> list = jConstruction.arguments().flatMap(copy -> {
+			return copy.stream().map(Transformer::transformExpression).collect(new NonEmptyListCollector<>());
+		});
+
 		return new Lang.CInvocation(new Lang.Identifier(name), list);
 	}
 
@@ -123,11 +125,11 @@ public class Transformer {
 	}
 
 	private static Lang.CInvocation transformInvocation(Lang.JInvocation jInvocation) {
-		final List<Lang.CExpression> newArguments = jInvocation.arguments()
-																													 .orElse(new ArrayList<Lang.JExpression>())
-																													 .stream()
-																													 .map(Transformer::transformExpression)
-																													 .toList();
+		final Option<NonEmptyList<Lang.CExpression>> newArguments = jInvocation.arguments()
+																																					 .flatMap(list -> list.stream()
+																																																.map(Transformer::transformExpression)
+																																																.collect(new NonEmptyListCollector<>()));
+
 		return new Lang.CInvocation(transformExpression(jInvocation.caller()), newArguments);
 	}
 
