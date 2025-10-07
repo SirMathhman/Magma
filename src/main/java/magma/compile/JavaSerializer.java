@@ -6,7 +6,6 @@ import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
-import magma.list.NonEmptyList;
 import magma.list.Stream;
 import magma.option.None;
 import magma.option.Option;
@@ -114,9 +113,6 @@ public class JavaSerializer {
 		if (Option.class.isAssignableFrom(fieldType))
 			return serializeOptionField(component, value);
 
-		if (NonEmptyList.class.isAssignableFrom(fieldType))
-			return serializeNonEmptyListField(component, value);
-
 		if (List.class.isAssignableFrom(fieldType))
 			return serializeListField(component, value);
 
@@ -146,9 +142,6 @@ public class JavaSerializer {
 
 			if (elementClass == String.class)
 				return new Ok<Node, CompileError>(new Node().withString(fieldName, (String) value1));
-
-			if (NonEmptyList.class.isAssignableFrom(elementClass))
-				return serializeOptionNonEmptyListField(fieldName, elementType, value1);
 
 			if (List.class.isAssignableFrom(elementClass))
 				return serializeOptionListField(fieldName, elementType, value1);
@@ -222,48 +215,6 @@ public class JavaSerializer {
 		return new Err<List<Node>, CompileError>(new CompileError("Failed to serialize list elements",
 				new StringContext("list"),
 				errors));
-	}
-
-	private static Result<Node, CompileError> serializeNonEmptyListField(RecordComponent component, Object value) {
-		String fieldName = component.getName();
-
-		if (!(value instanceof NonEmptyList<?> nonEmptyList))
-			return new Err<Node, CompileError>(new CompileError(
-					"Component '" + fieldName + "' is not a NonEmptyList instance", new StringContext(fieldName)));
-
-		Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
-		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
-			return new Err<Node, CompileError>(error);
-		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
-
-		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
-		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
-			return new Err<Node, CompileError>(error);
-		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
-
-		return serializeListElements(elementClass, nonEmptyList.toList())
-				.mapValue(nodes -> new Node().withNodeList(fieldName, nodes));
-	}
-
-	private static Result<Node, CompileError> serializeOptionNonEmptyListField(String fieldName, Type listType,
-			Object content) {
-		if (!(content instanceof NonEmptyList<?> nonEmptyList))
-			return new Err<Node, CompileError>(new CompileError(
-					"Optional NonEmptyList component '" + fieldName + "' is not a NonEmptyList instance",
-					new StringContext(fieldName)));
-
-		Result<Type, CompileError> elementTypeResult = getGenericArgument(listType);
-		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
-			return new Err<Node, CompileError>(error);
-		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
-
-		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
-		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
-			return new Err<Node, CompileError>(error);
-		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
-
-		return serializeListElements(elementClass, nonEmptyList.toList())
-				.mapValue(nodes -> new Node().withNodeList(fieldName, nodes));
 	}
 
 	// Pure recursive deserialization
@@ -535,9 +486,6 @@ public class JavaSerializer {
 		if (Option.class.isAssignableFrom(fieldType))
 			return deserializeOptionField(component, node, consumedFields);
 
-		if (NonEmptyList.class.isAssignableFrom(fieldType))
-			return deserializeNonEmptyListField(component, node, consumedFields);
-
 		if (List.class.isAssignableFrom(fieldType))
 			return deserializeListField(component, node, consumedFields);
 
@@ -708,61 +656,6 @@ public class JavaSerializer {
 				"Failed to deserialize " + errors.size() + " of " + nodeList.size() + " list elements as '" +
 						elementClass.getSimpleName() + "'",
 				new NodeContext(nodeList.getFirst().orElse(null)), errors));
-	}
-
-	private static Result<Object, CompileError> deserializeNonEmptyListField(RecordComponent component,
-			Node node,
-			Set<String> consumedFields) {
-		String fieldName = component.getName();
-		Result<Type, CompileError> elementTypeResult = getGenericArgument(component.getGenericType());
-		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
-			return new Err<Object, CompileError>(error);
-		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
-
-		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
-		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
-			return new Err<Object, CompileError>(error);
-		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
-
-		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
-			if (value.isEmpty())
-				return new Err<Object, CompileError>(new CompileError(
-						"Required component '" + fieldName + "' of type 'NonEmptyList' is present but empty",
-						new NodeContext(node)));
-			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
-			return elementsResult.mapValue(list -> NonEmptyList.from(list.copy()));
-		} else
-			return new Err<Object, CompileError>(new CompileError(
-					"Required component '" + fieldName + "' of type 'NonEmptyList' not present", new NodeContext(node)));
-	}
-
-	private static Result<Object, CompileError> deserializeOptionNonEmptyListField(String fieldName,
-			Type listType,
-			Node node,
-			Set<String> consumedFields) {
-		Result<Type, CompileError> elementTypeResult = getGenericArgument(listType);
-		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
-			return new Err<Object, CompileError>(error);
-		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
-
-		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
-		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
-			return new Err<Object, CompileError>(error);
-		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
-
-		Option<List<Node>> maybeList = node.findNodeList(fieldName);
-		if (maybeList instanceof Some<List<Node>>(List<Node> value)) {
-			if (value.isEmpty())
-				return new Err<Object, CompileError>(new CompileError(
-						"Optional component '" + fieldName + "' of type 'Option<NonEmptyList>' is present but empty",
-						new NodeContext(node)));
-			consumedFields.add(fieldName);
-			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value);
-			return elementsResult.mapValue(list -> Option.of(NonEmptyList.from(list.copy())));
-		} else
-			return new Ok<Object, CompileError>(Option.empty());
 	}
 
 	// Pure helper functions
