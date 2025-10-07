@@ -43,7 +43,7 @@ import static magma.compile.rule.TagRule.Tag;
 public class Lang {
 	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {}
 
-	sealed public interface CRootSegment permits Invalid, Structure, Function {
+	sealed public interface CRootSegment permits Invalid, CStructure, Function {
 		Option<String> after();
 	}
 
@@ -70,7 +70,7 @@ public class Lang {
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
 		String name();
 
-		Option<List<Identifier>> typeParameters();
+		Option<NonEmptyList<Identifier>> typeParameters();
 
 		List<JStructureSegment> children();
 	}
@@ -273,21 +273,21 @@ public class Lang {
 
 	@Tag("class")
 	public record JClass(Option<String> modifiers, String name, List<JStructureSegment> children,
-											 Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces) implements JStructure {}
+											 Option<NonEmptyList<Identifier>> typeParameters, Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("interface")
 	public record Interface(Option<String> modifiers, String name, List<JStructureSegment> children,
-													Option<List<Identifier>> typeParameters, Option<List<JType>> interfaces,
+													Option<NonEmptyList<Identifier>> typeParameters, Option<List<JType>> interfaces,
 													Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {}
 
 	@Tag("record")
 	public record RecordNode(Option<String> modifiers, String name, List<JStructureSegment> children,
-													 Option<List<Identifier>> typeParameters, Option<List<JDefinition>> params,
+													 Option<NonEmptyList<Identifier>> typeParameters, Option<List<JDefinition>> params,
 													 Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("struct")
-	public record Structure(String name, List<CDefinition> fields, Option<String> after,
-													Option<List<Identifier>> typeParameters) implements CRootSegment {}
+	public record CStructure(String name, List<CDefinition> fields, Option<String> after,
+													 Option<NonEmptyList<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JStructureSegment, JMethodSegment, CFunctionSegment {}

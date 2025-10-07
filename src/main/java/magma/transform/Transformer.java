@@ -7,6 +7,7 @@ import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.Collections;
 import magma.list.List;
+import magma.list.NonEmptyList;
 import magma.list.Stream;
 import magma.option.None;
 import magma.option.Option;
@@ -36,16 +37,16 @@ public class Transformer {
 		final List<Lang.CFunctionSegment> bodySegments = switch (method.body()) {
 			case None<List<Lang.JMethodSegment>> _ -> Collections.emptyList();
 			case Some<List<Lang.JMethodSegment>>(List<Lang.JMethodSegment> segments) ->
-				segments.stream().map(Transformer::transformFunctionSegment).toList();
+					segments.stream().map(Transformer::transformFunctionSegment).toList();
 		};
 
 		return new Lang.Function(new Lang.CDefinition(cDefinition.name() + "_" + structName,
-				cDefinition.type(),
-				cDefinition.typeParameters()),
-				newParams,
-				bodySegments,
-				new Some<String>(System.lineSeparator()),
-				extractedTypeParams);
+																									cDefinition.type(),
+																									cDefinition.typeParameters()),
+														 newParams,
+														 bodySegments,
+														 new Some<String>(System.lineSeparator()),
+														 extractedTypeParams);
 	}
 
 	static Lang.CFunctionSegment transformFunctionSegment(Lang.JMethodSegment segment) {
@@ -80,7 +81,7 @@ public class Transformer {
 
 	private static Lang.CInitialization transformInitialization(Lang.JInitialization jInitialization) {
 		return new Lang.CInitialization(transformDefinition(jInitialization.definition()),
-				transformExpression(jInitialization.value()));
+																		transformExpression(jInitialization.value()));
 	}
 
 	private static Lang.CBlock transformBlock(Lang.JBlock jBlock) {
@@ -94,10 +95,10 @@ public class Transformer {
 	private static Lang.CInvocation handleConstruction(Lang.JConstruction jConstruction) {
 		String name = "new_" + transformType(jConstruction.type()).stringify();
 		final List<Lang.CExpression> list = jConstruction.arguments()
-				.orElse(new ArrayList<Lang.JExpression>())
-				.stream()
-				.map(Transformer::transformExpression)
-				.toList();
+																										 .orElse(new ArrayList<Lang.JExpression>())
+																										 .stream()
+																										 .map(Transformer::transformExpression)
+																										 .toList();
 		return new Lang.CInvocation(new Lang.Identifier(name), list);
 	}
 
@@ -106,13 +107,13 @@ public class Transformer {
 			case Lang.Invalid invalid -> invalid;
 			case Lang.Identifier identifier -> identifier;
 			case Lang.JFieldAccess fieldAccess ->
-				new Lang.CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
+					new Lang.CFieldAccess(transformExpression(fieldAccess.child()), fieldAccess.name());
 			case Lang.JInvocation jInvocation -> transformInvocation(jInvocation);
 			case Lang.JConstruction jConstruction -> handleConstruction(jConstruction);
 			case Lang.JAdd add -> new Lang.CAdd(transformExpression(add.left()), transformExpression(add.right()));
 			case Lang.JString jString -> new Lang.CString(jString.content().orElse(""));
 			case Lang.JEquals jEquals ->
-				new Lang.CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
+					new Lang.CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case Lang.And and -> new Lang.CAnd(transformExpression(and.left()), transformExpression(and.right()));
 			case Lang.CharNode charNode -> charNode;
 			default -> new Lang.Invalid("???");
@@ -121,10 +122,10 @@ public class Transformer {
 
 	private static Lang.CInvocation transformInvocation(Lang.JInvocation jInvocation) {
 		final List<Lang.CExpression> newArguments = jInvocation.arguments()
-				.orElse(new ArrayList<Lang.JExpression>())
-				.stream()
-				.map(Transformer::transformExpression)
-				.toList();
+																													 .orElse(new ArrayList<Lang.JExpression>())
+																													 .stream()
+																													 .map(Transformer::transformExpression)
+																													 .toList();
 		return new Lang.CInvocation(transformExpression(jInvocation.caller()), newArguments);
 	}
 
@@ -151,8 +152,7 @@ public class Transformer {
 		if (method.params() instanceof Some<List<Lang.JDefinition>>(List<Lang.JDefinition> paramList))
 			paramList.stream().forEach(param -> collectTypeVariables(param.type(), typeVars));
 
-		if (typeVars.isEmpty())
-			return new None<List<Lang.Identifier>>();
+		if (typeVars.isEmpty()) return new None<List<Lang.Identifier>>();
 
 		// Convert to Identifier objects
 		final List<Lang.Identifier> identifiers = typeVars.stream().map(Lang.Identifier::new).toList();
@@ -204,29 +204,29 @@ public class Transformer {
 	}
 
 	static Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>> flattenStructureSegment(Lang.JStructureSegment self,
-			String name) {
+																																													String name) {
 		return switch (self) {
 			case Lang.Invalid invalid ->
-				new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
 			case Lang.Method method ->
-				new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(transformMethod(method, name)),
-						new None<Lang.CDefinition>());
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(transformMethod(method, name)),
+																																			 new None<Lang.CDefinition>());
 			case Lang.JStructure jClass ->
-				new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(flattenStructure(jClass),
-						new None<Lang.CDefinition>());
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(flattenStructure(jClass),
+																																			 new None<Lang.CDefinition>());
 			case Lang.Field field -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
-					new Some<Lang.CDefinition>(
-							transformDefinition(
-									field.value())));
+																																														new Some<Lang.CDefinition>(
+																																																transformDefinition(
+																																																		field.value())));
 			case Lang.JInitialization jInitialization -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(
 					Collections.emptyList(),
 					new Some<Lang.CDefinition>(transformDefinition(jInitialization.definition())));
 			case Lang.JDefinition jDefinition ->
-				new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
-						new Some<Lang.CDefinition>(transformDefinition(
-								jDefinition)));
+					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
+																																			 new Some<Lang.CDefinition>(transformDefinition(
+																																					 jDefinition)));
 			default -> new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(Collections.emptyList(),
-					new None<Lang.CDefinition>());
+																																							new None<Lang.CDefinition>());
 		};
 	}
 
@@ -240,24 +240,24 @@ public class Transformer {
 
 		// Collect tuples for each child once (avoids re-evaluating and allows immutable
 		// construction)
-		final List<Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>> tuples = children.stream()
-				.map(child -> flattenStructureSegment(child, name)).toList();
+		final List<Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>> tuples =
+				children.stream().map(child -> flattenStructureSegment(child, name)).toList();
 
 		// Flatten all CRoootSegments produced by the children
 		final List<Lang.CRootSegment> segments = tuples.stream().map(Tuple::left).flatMap(List::stream).toList();
 
 		// Collect any field definitions returned by children
 		final List<Lang.CDefinition> additionalFields = tuples.stream()
-				.map(Tuple::right)
-				.filter(opt -> opt instanceof Some<Lang.CDefinition>)
-				.map(opt -> ((Some<Lang.CDefinition>) opt).value())
-				.toList();
+																													.map(Tuple::right)
+																													.filter(opt -> opt instanceof Some<Lang.CDefinition>)
+																													.map(opt -> ((Some<Lang.CDefinition>) opt).value())
+																													.toList();
 
 		// Combine record fields and additional fields immutably
 		final List<Lang.CDefinition> fields = recordFields.addAll(additionalFields);
 
-		final Lang.Structure structure = new Lang.Structure(name, fields, new Some<String>(System.lineSeparator()),
-				aClass.typeParameters());
+		final Lang.CStructure structure =
+				new Lang.CStructure(name, fields, new Some<String>(System.lineSeparator()), aClass.typeParameters());
 
 		// Build resulting root segments list: structure followed by flattened child
 		// segments
@@ -286,8 +286,7 @@ public class Transformer {
 	}
 
 	private static CLang.CType transformIdentifier(Lang.Identifier identifier) {
-		if (identifier.value().equals("String"))
-			return new Lang.Pointer(new Lang.Identifier("char"));
+		if (identifier.value().equals("String")) return new Lang.Pointer(new Lang.Identifier("char"));
 		return identifier;
 	}
 
@@ -311,9 +310,9 @@ public class Transformer {
 		// Create NonEmptyList from the transformed types
 		// If the list is empty, this is an error case - generics should always have
 		// type arguments
-		return magma.list.NonEmptyList.fromList(transformedTypes)
-				.map(nonEmptyTypes -> (CLang.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
-				.orElse(
-						new Lang.Invalid("Empty type arguments for generic " + generic.base().last(), new magma.option.None<>()));
+		return NonEmptyList.fromList(transformedTypes)
+											 .map(nonEmptyTypes -> (CLang.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
+											 .orElse(new Lang.Invalid("Empty type arguments for generic " + generic.base().last(),
+																								new None<>()));
 	}
 }
