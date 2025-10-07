@@ -13,6 +13,7 @@ import magma.compile.rule.InfixSplitter;
 import magma.compile.rule.LastLocator;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
+import magma.compile.rule.OptionalNodeListRule;
 import magma.compile.rule.Rule;
 import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
@@ -649,7 +650,7 @@ public class Lang {
 		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", CommonRules.Identifier()));
 		final Rule templateDecl = NonEmptyList("typeParameters",
 				Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
-		final Rule maybeTemplate = Or(templateDecl, Empty);
+		final Rule maybeTemplate = new OptionalNodeListRule("typeParameters", templateDecl, Empty);
 
 		return Tag("struct", First(maybeTemplate, "", structComplete));
 	}

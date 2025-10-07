@@ -190,4 +190,8 @@ public final class Node {
 					 .append('"');
 		hasFields[0] = true;
 	}
+
+	public boolean hasNodeList(String key) {
+		return nodeLists.containsKey(key);
+	}
 }
