@@ -141,7 +141,6 @@ String delimiter_InvocationFolder() {
 }
 struct Index {};
 struct Quantity {};
-struct Cast {};
 struct JLessThanEquals {};
 struct JGreaterThan {};
 struct JOr {};
