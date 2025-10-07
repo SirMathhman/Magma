@@ -5,6 +5,7 @@ import magma.compile.CNodes;
 import magma.compile.JNodes;
 import magma.compile.Lang;
 import magma.compile.error.CompileError;
+import magma.compile.rule.Slice;
 import magma.list.ArrayList;
 import magma.list.Collections;
 import magma.list.List;
@@ -18,8 +19,10 @@ import magma.result.Ok;
 import magma.result.Result;
 
 public class Transformer {
+	private static final Slice INVALID_MARKER = new Slice("???");
+	private static final Slice EMPTY_SLICE = new Slice("");
 
-	public static Lang.CFunction transformMethod(Lang.JMethod method, String structName) {
+	public static Lang.CFunction transformMethod(Lang.JMethod method, Slice structName) {
 		final Option<NonEmptyList<Lang.JDefinition>> maybeOldParams = method.params();
 
 		final Option<NonEmptyList<Lang.CParameter>> newParams =
@@ -38,14 +41,13 @@ public class Transformer {
 		// (Placeholder, Whitespace, Invalid)
 		final NonEmptyList<Lang.CFunctionSegment> bodySegments = method.body()
 																																	 .map(Transformer::getCFunctionSegmentNonEmptyList)
-																																	 .orElse(NonEmptyList.of(new Lang.Invalid("???")));
-
-		return new Lang.CFunction(new Lang.CDefinition(cDefinition.name() + "_" + structName,
-																									 cDefinition.type(),
-																									 cDefinition.typeParameters()),
+																																	 .orElse(NonEmptyList.of(new Lang.Invalid(
+																																			 INVALID_MARKER)));
+		final Slice name = new Slice(cDefinition.name().value() + "_" + structName.value());
+		return new Lang.CFunction(new Lang.CDefinition(name, cDefinition.type(), cDefinition.typeParameters()),
 															newParams,
 															bodySegments,
-															new Some<String>(System.lineSeparator()),
+															new Some<Slice>(new Slice(System.lineSeparator())),
 															extractedTypeParams);
 	}
 
@@ -53,7 +55,7 @@ public class Transformer {
 		return body.stream()
 							 .map(Transformer::transformFunctionSegment)
 							 .collect(new NonEmptyListCollector<Lang.CFunctionSegment>())
-							 .orElse(NonEmptyList.of(new Lang.Invalid("???")));
+							 .orElse(NonEmptyList.of(new Lang.Invalid(INVALID_MARKER)));
 	}
 
 	static Lang.CFunctionSegment transformFunctionSegment(Lang.JMethodSegment segment) {
@@ -74,7 +76,7 @@ public class Transformer {
 			case Lang.JInvocation invocation -> transformInvocation(invocation);
 			case Lang.JConstruction jConstruction -> handleConstruction(jConstruction);
 			case Lang.JDefinition jDefinition -> transformDefinition(jDefinition);
-			default -> new Lang.Invalid("???");
+			default -> new Lang.Invalid(INVALID_MARKER);
 		};
 	}
 
@@ -112,7 +114,7 @@ public class Transformer {
 		final Option<NonEmptyList<Lang.CExpression>> list =
 				jConstruction.arguments().flatMap(Transformer::transformExpressionList);
 
-		return new Lang.CInvocation(new Lang.Identifier(name), list);
+		return new Lang.CInvocation(new Lang.Identifier(new Slice(name)), list);
 	}
 
 	static Lang.CExpression transformExpression(Lang.JExpression expression) {
@@ -124,28 +126,28 @@ public class Transformer {
 			case Lang.JInvocation jInvocation -> transformInvocation(jInvocation);
 			case Lang.JConstruction jConstruction -> handleConstruction(jConstruction);
 			case Lang.JAdd add -> new Lang.CAdd(transformExpression(add.left()), transformExpression(add.right()));
-			case Lang.JString jString -> new Lang.CString(jString.content().orElse(""));
+			case Lang.JString jString -> new Lang.CString(jString.content().orElse(EMPTY_SLICE));
 			case Lang.JEquals jEquals ->
 					new Lang.CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case Lang.And and -> new Lang.CAnd(transformExpression(and.left()), transformExpression(and.right()));
 			case Lang.CharNode charNode -> charNode;
 			case JNodes.JCast cast -> new CNodes.Cast(transformType(cast.type()), transformExpression(cast.child()));
-			case Lang.Index index -> new Lang.Invalid("???");
-			case Lang.InstanceOf instanceOf -> new Lang.Invalid("???");
-			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid("???");
-			case Lang.JGreaterThanEquals jGreaterThanEquals -> new Lang.Invalid("???");
-			case Lang.JLessThan jLessThan -> new Lang.Invalid("???");
-			case Lang.JLessThanEquals jLessThanEquals -> new Lang.Invalid("???");
-			case Lang.JNotEquals jNotEquals -> new Lang.Invalid("???");
-			case Lang.JOr jOr -> new Lang.Invalid("???");
-			case Lang.JSubtract jSubtract -> new Lang.Invalid("???");
-			case Lang.Lambda lambda -> new Lang.Invalid("???");
-			case Lang.MethodAccess methodAccess -> new Lang.Invalid("???");
-			case Lang.NewArray newArray -> new Lang.Invalid("???");
-			case Lang.Not not -> new Lang.Invalid("???");
-			case Lang.NumberNode numberNode -> new Lang.Invalid("???");
-			case Lang.Quantity quantity -> new Lang.Invalid("???");
-			case Lang.SwitchExpr switchExpr -> new Lang.Invalid("???");
+			case Lang.Index index -> new Lang.Invalid(INVALID_MARKER);
+			case Lang.InstanceOf instanceOf -> new Lang.Invalid(new Slice("???"));
+			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid(new Slice("???"));
+			case Lang.JGreaterThanEquals jGreaterThanEquals -> new Lang.Invalid(new Slice("???"));
+			case Lang.JLessThan jLessThan -> new Lang.Invalid(new Slice("???"));
+			case Lang.JLessThanEquals jLessThanEquals -> new Lang.Invalid(new Slice("???"));
+			case Lang.JNotEquals jNotEquals -> new Lang.Invalid(new Slice("???"));
+			case Lang.JOr jOr -> new Lang.Invalid(new Slice("???"));
+			case Lang.JSubtract jSubtract -> new Lang.Invalid(new Slice("???"));
+			case Lang.Lambda lambda -> new Lang.Invalid(new Slice("???"));
+			case Lang.MethodAccess methodAccess -> new Lang.Invalid(new Slice("???"));
+			case Lang.NewArray newArray -> new Lang.Invalid(new Slice("???"));
+			case Lang.Not not -> new Lang.Invalid(new Slice("???"));
+			case Lang.NumberNode numberNode -> new Lang.Invalid(new Slice("???"));
+			case Lang.Quantity quantity -> new Lang.Invalid(new Slice("???"));
+			case Lang.SwitchExpr switchExpr -> new Lang.Invalid(new Slice("???"));
 		};
 	}
 
@@ -186,15 +188,15 @@ public class Transformer {
 		if (typeVars.isEmpty()) return new None<NonEmptyList<Lang.Identifier>>();
 
 		// Convert to Identifier objects
-		return typeVars.stream().map(Lang.Identifier::new).collect(NonEmptyList.collector());
+		return typeVars.stream().map(s -> new Lang.Identifier(new Slice(s))).collect(NonEmptyList.collector());
 	}
 
 	private static void collectTypeVariables(Lang.JType type, List<String> typeVars) {
 		switch (type) {
 			case Lang.Identifier ident -> {
 				// Single letter identifiers are likely type variables (R, E, etc.)
-				if (ident.value().length() == 1 && Character.isUpperCase(ident.value().charAt(0)))
-					typeVars.addLast(ident.value());
+				String identValue = ident.value().value();
+				if (identValue.length() == 1 && Character.isUpperCase(identValue.charAt(0))) typeVars.addLast(identValue);
 			}
 			case Lang.JGeneric generic -> {
 				// Check base type name for type variables
@@ -233,7 +235,7 @@ public class Transformer {
 	}
 
 	static Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>> flattenStructureSegment(Lang.JStructureSegment self,
-																																													String name) {
+																																													Slice name) {
 		return switch (self) {
 			case Lang.Invalid invalid ->
 					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
@@ -265,7 +267,7 @@ public class Transformer {
 		// Special handling for Record params - add them as struct fields
 		final List<Lang.CDefinition> recordFields = extractRecordParamsAsFields(aClass).copy();
 
-		final String name = aClass.name();
+		final Slice name = aClass.name();
 
 		// Collect tuples for each child once (avoids re-evaluating and allows immutable
 		// construction)
@@ -286,7 +288,7 @@ public class Transformer {
 		final List<Lang.CDefinition> fields = recordFields.addAll(additionalFields);
 
 		final Lang.CStructure structure =
-				new Lang.CStructure(name, fields, new Some<String>(System.lineSeparator()), aClass.typeParameters());
+				new Lang.CStructure(name, fields, new Some<Slice>(new Slice(System.lineSeparator())), aClass.typeParameters());
 
 		// Build resulting root segments list: structure followed by flattened child
 		// segments
@@ -309,14 +311,14 @@ public class Transformer {
 			case Lang.JGeneric generic -> transformGeneric(generic);
 			case Lang.Array array -> transformArray(array);
 			case Lang.Identifier identifier -> transformIdentifier(identifier);
-			case Lang.JQualified qualified -> new Lang.Identifier(qualified.last());
-			case Lang.Variadic variadic -> new Lang.Invalid(type.toString());
-			case Lang.Wildcard wildcard -> new Lang.Invalid(type.toString());
+			case Lang.JQualified qualified -> new Lang.Identifier(new Slice(qualified.last()));
+			case Lang.Variadic variadic -> new Lang.Invalid(new Slice(type.toString()));
+			case Lang.Wildcard wildcard -> new Lang.Invalid(new Slice(type.toString()));
 		};
 	}
 
 	private static CNodes.CType transformIdentifier(Lang.Identifier identifier) {
-		if (identifier.value().equals("String")) return new Lang.Pointer(new Lang.Identifier("char"));
+		if (identifier.value().value().equals("String")) return new Lang.Pointer(new Lang.Identifier(new Slice("char")));
 		return identifier;
 	}
 
@@ -341,8 +343,9 @@ public class Transformer {
 		// If the list is empty, this is an error case - generics should always have
 		// type arguments
 		return NonEmptyList.fromList(transformedTypes)
-											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
-											 .orElse(new Lang.Invalid("Empty type arguments for generic " + generic.base().last(),
-																								new None<String>()));
+											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(new Slice(generic.base().last()),
+																																							 nonEmptyTypes))
+											 .orElse(new Lang.Invalid(new Slice("Empty type arguments for generic " + generic.base().last()),
+																								new None<Slice>()));
 	}
 }
