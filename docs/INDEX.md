@@ -40,8 +40,6 @@ These guides complement the [main README](../README.md), which provides project 
 - **[ONE_LOOP_PER_METHOD_CHECKSTYLE.md](ONE_LOOP_PER_METHOD_CHECKSTYLE.md)** — Enforcement of "one loop per method" rule by extracting nested loops into helper methods
 - **[SPLITTER_REFACTORING.md](SPLITTER_REFACTORING.md)** — Refactoring of string splitting utilities
 
-- **[JAVA_CONVENTIONS.md](JAVA_CONVENTIONS.md)** — Non-traditional Java conventions used across the codebase (Result/Option, sealed interfaces, pattern matching, NonEmptyList, one-loop-per-method)
-
 ### Serialization & Transformation
 
 - **[JAVA_SERIALIZER_RENAME.md](JAVA_SERIALIZER_RENAME.md)** — Renaming of `Serialize` class to `JavaSerializer` for clarity
