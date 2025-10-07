@@ -1,7 +1,7 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\HeadedStream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct HeadedStream {Head<T> head;};
-struct FlatMapHead {Stream<R> (*)(T) mapper;Option<Head<R>> currentInnerHead;};
-public FlatMapHead_FlatMapHead(Stream<R> (*mapper)(T)) {
+struct HeadedStream {};
+struct FlatMapHead {};
+public FlatMapHead_FlatMapHead() {
 	this.mapper=mapper;
 	currentInnerHead=new_???();
 }
@@ -16,46 +16,46 @@ Option<R> next_FlatMapHead() {
 	Option<T> outerNext=head.next();
 	if (/*???*/)
 	{
-	Stream<R> innerStream=mapper.apply(value);
-	if (/*???*/)currentInnerHead=new_???(head1);
+	Stream<R> innerStream=mapper.apply();
+	if (/*???*/)currentInnerHead=new_???();
 	else
 	return new_???();}
 	else
 	return new_???();}
 }
-Stream<R> map_HeadedStream(R (*mapper)(T)) {
-	return new_???(/*???*/.next().map(mapper));
+Stream<R> map_HeadedStream() {
+	return new_???();
 }
-R fold_HeadedStream(R initial, BiFunction<R, T, R> folder) {
+R fold_HeadedStream() {
 	R current=initial;
 	while (true)
 	{
 	R finalCurrent=current;
-	Option<R> map=head.next().map(/*???*/.apply(finalCurrent, inner));
+	Option<R> map=head.next().map();
 	if (/*???*/)current=value;
 	else
 	return current;}
 }
-R collect_HeadedStream(Collector<T, R> collector) {
-	return fold(collector.initial(), /*???*/);
+R collect_HeadedStream() {
+	return fold();
 }
-void forEach_HeadedStream(Consumer<T> consumer) {
+void forEach_HeadedStream() {
 	while (true)
 	{
 	Option<T> next=head.next();
-	if (/*???*/)consumer.accept(temp);
+	if (/*???*/)consumer.accept();
 	else
 	break}
 }
-Stream<R> flatMap_HeadedStream(Stream<R> (*mapper)(T)) {
-	return new_???(new_???(mapper));
+Stream<R> flatMap_HeadedStream() {
+	return new_???();
 }
-Stream<T> filter_HeadedStream(Predicate<T> predicate) {
-	return new_???(/*???*/);
+Stream<T> filter_HeadedStream() {
+	return new_???();
 }
-boolean allMatch_HeadedStream(Predicate<T> predicate) {
-	return fold(true, /*???*/&&predicate.test(t));
+boolean allMatch_HeadedStream() {
+	return fold();
 }
-boolean anyMatch_HeadedStream(Predicate<T> predicate) {
-	return fold(false, /*???*/);
+boolean anyMatch_HeadedStream() {
+	return fold();
 }

@@ -3,7 +3,7 @@ struct Max {};
 Option<Integer> initial_Max() {
 	return new_???();
 }
-Option<Integer> fold_Max(Option<Integer> current, Integer element) {
-	if (/*???*/)return new_???(element);
-	return new_???(Math.max(inner, element));
+Option<Integer> fold_Max() {
+	if (/*???*/)return new_???();
+	return new_???();
 }

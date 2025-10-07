@@ -1,27 +1,27 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\Stream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
 struct Stream {};
-Stream<Integer> range_Stream(int start, int end) {
-	return new_???(/*???*/+offset);
+Stream<Integer> range_Stream() {
+	return new_???();
 }
-Stream<R> map_Stream(R (*mapper)(T)) {
+Stream<R> map_Stream() {/*???*/
 }
-R fold_Stream(R initial, BiFunction<R, T, R> folder) {
+R fold_Stream() {/*???*/
 }
-R collect_Stream(Collector<T, R> collector) {
+R collect_Stream() {/*???*/
 }
 List<T> toList_Stream() {
-	return collect(new_???());
+	return collect();
 }
-void forEach_Stream(Consumer<T> consumer) {
+void forEach_Stream() {/*???*/
 }
-Stream<R> flatMap_Stream(Stream<R> (*mapper)(T)) {
+Stream<R> flatMap_Stream() {/*???*/
 }
-Stream<T> filter_Stream(Predicate<T> predicate) {
+Stream<T> filter_Stream() {/*???*/
 }
-R reduce_Stream(R initial, BiFunction<R, T, R> folder) {
-	return fold(initial, folder);
+R reduce_Stream() {
+	return fold();
 }
-boolean allMatch_Stream(Predicate<T> predicate) {
+boolean allMatch_Stream() {/*???*/
 }
-boolean anyMatch_Stream(Predicate<T> predicate) {
+boolean anyMatch_Stream() {/*???*/
 }

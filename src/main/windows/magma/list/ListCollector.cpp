@@ -3,6 +3,6 @@ struct ListCollector {};
 List<T> initial_ListCollector() {
 	return new_???();
 }
-List<T> fold_ListCollector(List<T> current, T element) {
-	return current.addLast(element);
+List<T> fold_ListCollector() {
+	return current.addLast();
 }

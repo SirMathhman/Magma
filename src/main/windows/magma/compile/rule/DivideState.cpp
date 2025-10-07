@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\DivideState.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct DivideState {List<String> segments;String input;StringBuilder buffer;int depth;int index;};
-public DivideState_DivideState(StringBuilder buffer, int depth, List<String> segments, String input) {
+struct DivideState {};
+public DivideState_DivideState() {
 	this.buffer=buffer;
 	this.depth=depth;
 	this.segments=segments;
 	this.input=input;
 }
-public DivideState_DivideState(String input) {
-	this(new_???(), /*???*/, new_???(), input);
+public DivideState_DivideState() {
+	this();
 }
 Stream<String> stream_DivideState() {
 	return segments.stream();
@@ -17,12 +17,12 @@ DivideState enter_DivideState() {
 	return this;
 }
 DivideState advance_DivideState() {
-	segments.addLast(buffer.toString());
+	segments.addLast();
 	this.buffer=new_???();
 	return this;
 }
-DivideState append_DivideState(char c) {
-	buffer.append(c);
+DivideState append_DivideState() {
+	buffer.append();
 	return this;
 }
 DivideState exit_DivideState() {
@@ -37,18 +37,18 @@ boolean isLevel_DivideState() {
 }
 Option<Character> pop_DivideState() {
 	if (/*???*/)return Option.empty();
-	char c=input.charAt(index);
+	char c=input.charAt();
 	index++;
-	return Option.of(c);
+	return Option.of();
 }
 Option<Tuple<DivideState, Character>> popAndAppendToTuple_DivideState() {
-	return pop().map(/*???*/);
+	return pop().map();
 }
 Option<DivideState> popAndAppendToOption_DivideState() {
-	return popAndAppendToTuple().map(/*???*/);
+	return popAndAppendToTuple().map();
 }
 Option<Character> peek_DivideState() {
-	if (/*???*/)return new_???(input.charAt(index));
+	if (/*???*/)return new_???();
 	else
 	return new_???();
 }

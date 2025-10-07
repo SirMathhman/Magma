@@ -1,15 +1,15 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\SuffixRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct SuffixRule {Rule rule;String suffix;};
-Rule Suffix_SuffixRule(Rule rule, String suffix) {
-	return new_???(rule, suffix);
+struct SuffixRule {};
+Rule Suffix_SuffixRule() {
+	return new_???();
 }
-Result<Node, CompileError> lex_SuffixRule(String input) {
-	if (/*???*/.endsWith(suffix()))return new_???(new_???(""+suffix+"", new_???(input)));
-	String slice=input.substring(/*???*/, /*???*/);
-	return getRule().lex(slice);
+Result<Node, CompileError> lex_SuffixRule() {
+	if (/*???*/.endsWith())return new_???();
+	String slice=input.substring();
+	return getRule().lex();
 }
-Result<String, CompileError> generate_SuffixRule(Node node) {
-	return rule.generate(node).mapValue(/*???*/+suffix());
+Result<String, CompileError> generate_SuffixRule() {
+	return rule.generate().mapValue();
 }
 Rule getRule_SuffixRule() {
 	return rule;

@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\StringRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct StringRule {String key;};
-Rule String_StringRule(String key) {
-	return new_???(key);
+struct StringRule {};
+Rule String_StringRule() {
+	return new_???();
 }
-Result<Node, CompileError> lex_StringRule(String content) {
-	if (content.isEmpty())return new_???(new_???(""+key+"", new_???(content)));
-	return new_???(new_???(key, content));
+Result<Node, CompileError> lex_StringRule() {
+	if (content.isEmpty())return new_???();
+	return new_???();
 }
-Result<String, CompileError> generate_StringRule(Node node) {
-	Option<Result<String, CompileError>> resultOption=node.findString(key).map(/*???*/);
+Result<String, CompileError> generate_StringRule() {
+	Option<Result<String, CompileError>> resultOption=node.findString().map();
 	return /*???*/;
 }

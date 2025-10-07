@@ -1,13 +1,13 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\PrefixRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct PrefixRule {String prefix;Rule rule;};
-Rule Prefix_PrefixRule(String prefix, Rule rule) {
-	return new_???(prefix, rule);
+struct PrefixRule {};
+Rule Prefix_PrefixRule() {
+	return new_???();
 }
-Result<Node, CompileError> lex_PrefixRule(String content) {
-	if (content.startsWith(prefix))return rule.lex(content.substring(prefix.length()));
+Result<Node, CompileError> lex_PrefixRule() {
+	if (content.startsWith())return rule.lex();
 	else
-	return new_???(new_???(""+prefix+"", new_???(content)));
+	return new_???();
 }
-Result<String, CompileError> generate_PrefixRule(Node node) {
-	return rule.generate(node).mapValue(/*???*/+inner);
+Result<String, CompileError> generate_PrefixRule() {
+	return rule.generate().mapValue();
 }

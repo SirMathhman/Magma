@@ -1,22 +1,22 @@
 // Generated transpiled C++ from 'src\main\java\magma\compile\rule\FilterRule.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
-struct FilterRule {Filter filter;Rule rule;};
-public FilterRule_FilterRule(Filter filter, Rule rule) {
+struct FilterRule {};
+public FilterRule_FilterRule() {
 	this.filter=filter;
 	this.rule=rule;
 }
-Rule Filter_FilterRule(Filter filter, Rule rule) {
-	return new_???(filter, rule);
+Rule Filter_FilterRule() {
+	return new_???();
 }
-Rule Identifier_FilterRule(Rule rule) {
-	return Filter(IdentifierFilter.Identifier, rule);
+Rule Identifier_FilterRule() {
+	return Filter();
 }
-Rule Number_FilterRule(Rule rule) {
-	return Filter(NumberFilter.Filter, rule);
+Rule Number_FilterRule() {
+	return Filter();
 }
-Result<Node, CompileError> lex_FilterRule(String content) {
-	if (filter.test(content))return rule.lex(content);
-	return new_???(new_???(filter.createErrorMessage(), new_???(content)));
+Result<Node, CompileError> lex_FilterRule() {
+	if (filter.test())return rule.lex();
+	return new_???();
 }
-Result<String, CompileError> generate_FilterRule(Node node) {
-	return rule.generate(node);
+Result<String, CompileError> generate_FilterRule() {
+	return rule.generate();
 }
