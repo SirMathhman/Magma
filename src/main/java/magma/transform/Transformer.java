@@ -128,7 +128,23 @@ public class Transformer {
 					new Lang.CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case Lang.And and -> new Lang.CAnd(transformExpression(and.left()), transformExpression(and.right()));
 			case Lang.CharNode charNode -> charNode;
-			default -> new Lang.Invalid("???");
+			case Lang.Cast cast -> new Lang.Invalid("???");
+			case Lang.Index index -> new Lang.Invalid("???");
+			case Lang.InstanceOf instanceOf -> new Lang.Invalid("???");
+			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid("???");
+			case Lang.JGreaterThanEquals jGreaterThanEquals -> new Lang.Invalid("???");
+			case Lang.JLessThan jLessThan -> new Lang.Invalid("???");
+			case Lang.JLessThanEquals jLessThanEquals -> new Lang.Invalid("???");
+			case Lang.JNotEquals jNotEquals -> new Lang.Invalid("???");
+			case Lang.JOr jOr -> new Lang.Invalid("???");
+			case Lang.JSubtract jSubtract -> new Lang.Invalid("???");
+			case Lang.Lambda lambda -> new Lang.Invalid("???");
+			case Lang.MethodAccess methodAccess -> new Lang.Invalid("???");
+			case Lang.NewArray newArray -> new Lang.Invalid("???");
+			case Lang.Not not -> new Lang.Invalid("???");
+			case Lang.NumberNode numberNode -> new Lang.Invalid("???");
+			case Lang.Quantity quantity -> new Lang.Invalid("???");
+			case Lang.SwitchExpr switchExpr -> new Lang.Invalid("???");
 		};
 	}
 
@@ -293,7 +309,8 @@ public class Transformer {
 			case Lang.Array array -> transformArray(array);
 			case Lang.Identifier identifier -> transformIdentifier(identifier);
 			case Lang.JQualified qualified -> new Lang.Identifier(qualified.last());
-			default -> new Lang.Invalid(type.toString());
+			case Lang.Variadic variadic -> new Lang.Invalid(type.toString());
+			case Lang.Wildcard wildcard -> new Lang.Invalid(type.toString());
 		};
 	}
 
