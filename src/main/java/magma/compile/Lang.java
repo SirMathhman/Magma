@@ -733,7 +733,7 @@ public class Lang {
 		return Tag("method", Strip(Or(Suffix(header, ";"), withBody)));
 	}
 
-	private static Rule JMethodSegment() {
+	public static Rule JMethodSegment() {
 		final LazyRule methodSegment = new LazyRule();
 		final Rule expression = JExpression(methodSegment);
 		Rule inner = JRules.JDefinition();
@@ -832,7 +832,7 @@ public class Lang {
 		return Tag(tag, Prefix(tag + " ", Strip(split)));
 	}
 
-	private static Rule JExpression(Rule statement) {
+	public static Rule JExpression(Rule statement) {
 		final LazyRule expression = new LazyRule();
 		expression.set(Or(JLambda(statement, expression),
 				Char(),
