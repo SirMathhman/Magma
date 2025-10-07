@@ -48,7 +48,7 @@ public class Lang {
 	}
 
 	public sealed interface JStructureSegment
-			permits BlockComment, Field, Invalid, JDefinition, JInitialization, JStructure, LineComment, Method, Whitespace {
+			permits BlockComment, Field, Invalid, JDefinition, JInitialization, JStructure, LineComment, JMethod, Whitespace {
 	}
 
 	sealed public interface JExpression
@@ -317,8 +317,8 @@ public class Lang {
 	}
 
 	@Tag("method")
-	public record Method(JDefinition definition, Option<NonEmptyList<JDefinition>> params, Option<NonEmptyList<JMethodSegment>> body,
-			Option<NonEmptyList<Identifier>> typeParameters) implements JStructureSegment {
+	public record JMethod(JDefinition definition, Option<NonEmptyList<JDefinition>> params, Option<NonEmptyList<JMethodSegment>> body,
+												Option<NonEmptyList<Identifier>> typeParameters) implements JStructureSegment {
 	}
 
 	@Tag("invalid")

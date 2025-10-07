@@ -17,7 +17,7 @@ import magma.result.Result;
 
 public class Transformer {
 
-	public static Lang.CFunction transformMethod(Lang.Method method, String structName) {
+	public static Lang.CFunction transformMethod(Lang.JMethod method, String structName) {
 		final Option<NonEmptyList<Lang.JDefinition>> maybeOldParams = method.params();
 
 		final Option<NonEmptyList<Lang.CParameter>> newParams = maybeOldParams.flatMap(params -> {
@@ -140,7 +140,7 @@ public class Transformer {
 		return new Lang.CDefinition(param.name(), transformedType, new None<List<Lang.Identifier>>());
 	}
 
-	private static Option<NonEmptyList<Lang.Identifier>> extractMethodTypeParameters(Lang.Method method) {
+	private static Option<NonEmptyList<Lang.Identifier>> extractMethodTypeParameters(Lang.JMethod method) {
 		// Analyze method signature to detect generic type parameters
 		final List<String> typeVars = new ArrayList<String>();
 
@@ -205,7 +205,7 @@ public class Transformer {
 		return switch (self) {
 			case Lang.Invalid invalid ->
 					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(invalid), new None<Lang.CDefinition>());
-			case Lang.Method method ->
+			case Lang.JMethod method ->
 					new Tuple<List<Lang.CRootSegment>, Option<Lang.CDefinition>>(List.of(transformMethod(method, name)),
 																																			 new None<Lang.CDefinition>());
 			case Lang.JStructure jClass ->
