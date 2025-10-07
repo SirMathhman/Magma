@@ -390,7 +390,7 @@ public class Lang {
 	}
 
 	@Tag("function")
-	public record CFunction(CDefinition definition, Option<NonEmptyList<CParameter>> params, Option<NonEmptyList<CFunctionSegment>> body,
+	public record CFunction(CDefinition definition, Option<NonEmptyList<CParameter>> params, NonEmptyList<CFunctionSegment> body,
 													Option<String> after, Option<NonEmptyList<Identifier>> typeParameters) implements CRootSegment {
 	}
 

@@ -8,6 +8,7 @@ import magma.list.ArrayList;
 import magma.list.Collections;
 import magma.list.List;
 import magma.list.NonEmptyList;
+import magma.list.NonEmptyListCollector;
 import magma.list.Stream;
 import magma.option.None;
 import magma.option.Option;
@@ -29,15 +30,17 @@ public class Transformer {
 		// Extract type parameters from method signature
 		final Option<NonEmptyList<Lang.Identifier>> extractedTypeParams = extractMethodTypeParameters(method);
 
-		// Convert method body from Option<List<JFunctionSegment>> to
-		// List<CFunctionSegment>
-		// JFunctionSegment and CFunctionSegment share the same implementations
+		// Convert method body from Option<NonEmptyList<JMethodSegment>> to
+		// NonEmptyList<CFunctionSegment>
+		// JMethodSegment and CFunctionSegment share the same implementations
 		// (Placeholder, Whitespace, Invalid)
-		final Option<NonEmptyList<Lang.CFunctionSegment>> bodySegments = switch (method.body()) {
-			case None<NonEmptyList<Lang.JMethodSegment>> _ -> new None<>();
-			case Some<NonEmptyList<Lang.JMethodSegment>>(NonEmptyList<Lang.JMethodSegment> segments) ->
-					NonEmptyList.fromList(segments.stream().map(Transformer::transformFunctionSegment).toList());
-		};
+		final NonEmptyList<Lang.CFunctionSegment> bodySegments = method.body()
+																																	 .map(body -> body.stream()
+																																										.map(Transformer::transformFunctionSegment)
+																																										.collect(new NonEmptyListCollector<Lang.CFunctionSegment>())
+																																										.orElse(NonEmptyList.of(new Lang.Invalid(
+																																												"???"))))
+																																	 .orElse(NonEmptyList.of(new Lang.Invalid("???")));
 
 		return new Lang.CFunction(new Lang.CDefinition(cDefinition.name() + "_" + structName,
 																									 cDefinition.type(),

@@ -5,9 +5,7 @@ import magma.compile.rule.NodeRule;
 import magma.compile.rule.Rule;
 
 import static magma.compile.rule.EmptyRule.Empty;
-import static magma.compile.rule.NodeListRule.Expressions;
-import static magma.compile.rule.NodeListRule.Statements;
-import static magma.compile.rule.NodeListRule.NonEmptyList;
+import static magma.compile.rule.NodeListRule.*;
 import static magma.compile.rule.OrRule.Or;
 import static magma.compile.rule.PrefixRule.Prefix;
 import static magma.compile.rule.SplitRule.First;
@@ -24,7 +22,7 @@ public class CRules {
 		final NodeRule definition = new NodeRule("definition", Lang.CDefinition());
 		final Rule params = Expressions("params", Or(Lang.CFunctionPointerDefinition(), Lang.CDefinition()));
 		final Rule body = Statements("body", CFunctionSegment());
-		final Rule first = First(definition, "(", params);
+		final Rule first = First(definition, "(", Or(params, Empty));
 		final Rule suffix = Suffix(first, ")");
 		final Rule suffix1 = Suffix(body, System.lineSeparator() + "}");
 		final Rule functionDecl = First(suffix, " {", suffix1);

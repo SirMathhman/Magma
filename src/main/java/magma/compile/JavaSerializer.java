@@ -147,6 +147,9 @@ public class JavaSerializer {
 			if (elementClass == String.class)
 				return new Ok<Node, CompileError>(new Node().withString(fieldName, (String) value1));
 
+			if (magma.list.NonEmptyList.class.isAssignableFrom(elementClass))
+				return serializeOptionNonEmptyListField(fieldName, elementType, value1);
+
 			if (List.class.isAssignableFrom(elementClass))
 				return serializeOptionListField(fieldName, elementType, value1);
 
@@ -181,6 +184,30 @@ public class JavaSerializer {
 					.orElse(new Node()); // Should never happen since we checked isEmpty
 		});
 	}
+
+private static Result<Node, CompileError> serializeOptionNonEmptyListField(String fieldName,
+		Type nonEmptyListType,
+		Object content) {
+	if (!(content instanceof magma.list.NonEmptyList<?> nonEmptyList))
+		return new Err<Node, CompileError>(new CompileError(
+				"Optional NonEmptyList component '" + fieldName + "' is not a NonEmptyList instance",
+				new StringContext(fieldName)));
+
+	Result<Type, CompileError> elementTypeResult = getGenericArgument(nonEmptyListType);
+	if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+		return new Err<Node, CompileError>(error);
+	Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+	Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+	if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+		return new Err<Node, CompileError>(error);
+	Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
+
+	return serializeListElements(elementClass, nonEmptyList.toList()).mapValue(nodes ->
+		NonEmptyList.fromList(nodes)
+				.map(nonEmptyNodes -> new Node().withNodeList(fieldName, nonEmptyNodes))
+				.orElse(new Node()));
+}
 
 	private static Result<Node, CompileError> serializeNonEmptyListField(RecordComponent component, Object value) {
 		String fieldName = component.getName();
@@ -602,6 +629,9 @@ public class JavaSerializer {
 			return new Ok<Object, CompileError>(Option.empty());
 		}
 
+		if (magma.list.NonEmptyList.class.isAssignableFrom(elementClass))
+			return deserializeOptionNonEmptyListField(fieldName, elementType, node, consumedFields);
+
 		if (List.class.isAssignableFrom(elementClass))
 			return deserializeOptionListField(fieldName, elementType, node, consumedFields);
 
@@ -634,6 +664,37 @@ public class JavaSerializer {
 			return elementsResult.mapValue(list -> Option.of(list.copy()));
 		} else
 			return new Ok<Object, CompileError>(Option.empty());
+	}
+
+	private static Result<Object, CompileError> deserializeOptionNonEmptyListField(String fieldName,
+			Type nonEmptyListType,
+			Node node,
+			Set<String> consumedFields) {
+		Result<Type, CompileError> elementTypeResult = getGenericArgument(nonEmptyListType);
+		if (elementTypeResult instanceof Err<Type, CompileError>(CompileError error))
+			return new Err<Object, CompileError>(error);
+		Type elementType = ((Ok<Type, CompileError>) elementTypeResult).value();
+
+		Result<Class<?>, CompileError> elementClassResult = erase(elementType);
+		if (elementClassResult instanceof Err<Class<?>, CompileError>(CompileError error))
+			return new Err<Object, CompileError>(error);
+		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
+
+		Option<NonEmptyList<Node>> maybeList = node.findNodeList(fieldName);
+		if (maybeList instanceof Some<NonEmptyList<Node>>(NonEmptyList<Node> value)) {
+			consumedFields.add(fieldName);
+			Result<List<Object>, CompileError> elementsResult = deserializeListElements(elementClass, value.toList());
+			if (elementsResult instanceof Err<List<Object>, CompileError>(CompileError error))
+				return new Err<Object, CompileError>(error);
+
+			List<Object> elements = ((Ok<List<Object>, CompileError>) elementsResult).value();
+			Option<magma.list.NonEmptyList<Object>> maybeNonEmpty = magma.list.NonEmptyList.fromList(elements);
+			if (maybeNonEmpty instanceof Some<magma.list.NonEmptyList<Object>>(magma.list.NonEmptyList<Object> nel))
+				return new Ok<Object, CompileError>(Option.of(nel));
+			return new Ok<Object, CompileError>(Option.empty());
+		}
+
+		return new Ok<Object, CompileError>(Option.empty());
 	}
 
 	private static Result<Object, CompileError> deserializeNonEmptyListField(RecordComponent component,
