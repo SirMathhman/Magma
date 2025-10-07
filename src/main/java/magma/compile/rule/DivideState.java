@@ -4,43 +4,43 @@ import magma.Tuple;
 import magma.list.ArrayList;
 import magma.list.List;
 import magma.list.Stream;
-import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
 
 public class DivideState {
-	public final List<String> segments;
-	private final String input;
-	private StringBuilder buffer;
-	private int depth;
+	public final List<Slice> segments = new ArrayList<Slice>();
+	private final Slice input;
+	private StringBuilder buffer = new StringBuilder();
+	private int depth = 0;
 	private int index;
 
-	public DivideState(StringBuilder buffer, int depth, List<String> segments, String input) {
-		this.buffer = buffer; this.depth = depth; this.segments = segments; this.input = input;
+	public DivideState(Slice input) {
+		this.input = input;
 	}
 
-	public DivideState(String input) {
-		this(new StringBuilder(), 0, new ArrayList<String>(), input);
-	}
-
-	Stream<String> stream() {
+	Stream<Slice> stream() {
 		return segments.stream();
 	}
 
 	public DivideState enter() {
-		this.depth = depth + 1; return this;
+		this.depth = depth + 1;
+		return this;
 	}
 
 	public DivideState advance() {
-		segments.addLast(buffer.toString());this.buffer = new StringBuilder(); return this;
+		segments.addLast(new Slice(buffer.toString()));
+		this.buffer = new StringBuilder();
+		return this;
 	}
 
 	public DivideState append(char c) {
-		buffer.append(c); return this;
+		buffer.append(c);
+		return this;
 	}
 
 	public DivideState exit() {
-		this.depth = depth - 1; return this;
+		this.depth = depth - 1;
+		return this;
 	}
 
 	public boolean isShallow() {
@@ -52,8 +52,9 @@ public class DivideState {
 	}
 
 	public Option<Character> pop() {
-		if (index >= input.length()) return Option.empty(); final char c = input.charAt(index); index++;
-		return Option.of(c);
+		final Option<Character> maybeNext = input.charAt(index);
+		if (maybeNext instanceof Some<Character>) index++;
+		return maybeNext;
 	}
 
 	public Option<Tuple<DivideState, Character>> popAndAppendToTuple() {
@@ -65,7 +66,6 @@ public class DivideState {
 	}
 
 	public Option<Character> peek() {
-		if (index < input.length()) return new Some<Character>(input.charAt(index));
-		else return new None<Character>();
+		return input.charAt(index);
 	}
 }

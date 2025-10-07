@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.result.Err;
@@ -14,14 +14,14 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		final Result<Node, CompileError> lex = rule.lex(content);
 		return lex.mapValue(node -> {
 								if (tag.equals("method")) System.out.println(content);
 								return node.retype(tag);
 							})
 							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-																								new StringContext(content),
+																								new InputContext(content),
 																								List.of(error)));
 	}
 

@@ -3,7 +3,7 @@ package magma.compile.rule;
 import magma.list.Stream;
 
 public interface Divider {
-	Stream<String> divide(String input);
+	Stream<Slice> divide(Slice slice);
 
 	String delimiter();
 }

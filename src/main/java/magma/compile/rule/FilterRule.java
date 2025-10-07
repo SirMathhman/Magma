@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.StringContext;
+import magma.compile.context.InputContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
@@ -27,9 +27,9 @@ public class FilterRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
-		if (filter.test(content)) return rule.lex(content);
-		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new StringContext(content)));
+	public Result<Node, CompileError> lex(Slice content) {
+		if (filter.test(content.value())) return rule.lex(content);
+		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new InputContext(content)));
 	}
 
 	@Override

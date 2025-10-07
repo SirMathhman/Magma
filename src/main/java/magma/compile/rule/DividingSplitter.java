@@ -1,7 +1,6 @@
 package magma.compile.rule;
 
 import magma.Tuple;
-import magma.list.List;
 import magma.option.Option;
 
 public record DividingSplitter(Divider divider, Merger merger) implements Splitter {
@@ -19,9 +18,9 @@ public record DividingSplitter(Divider divider, Merger merger) implements Splitt
 	}
 
 	@Override
-	public Option<Tuple<String, String>> split(String input) {
-		final List<String> segments = divider.divide(input).toList();
-		final String delimiter = divider.delimiter();
+	public Option<Tuple<Slice, Slice>> split(Slice slice) {
+		final var segments = divider.divide(slice).toList();
+		final var delimiter = divider.delimiter();
 
 		return merger.merge(segments, delimiter);
 	}

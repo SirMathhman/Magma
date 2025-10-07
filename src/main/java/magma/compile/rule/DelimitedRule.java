@@ -1,14 +1,12 @@
 package magma.compile.rule;
 
-import magma.list.ArrayHead;
-import magma.list.HeadedStream;
 import magma.list.Stream;
 
 import java.util.regex.Pattern;
 
 public record DelimitedRule(String delimiter) implements Divider {
 	@Override
-	public Stream<String> divide(String input) {
-		return new HeadedStream<String>(new ArrayHead<String>(input.split(Pattern.quote(delimiter))));
+	public Stream<Slice> divide(Slice slice) {
+		return slice.split(Pattern.quote(delimiter)).stream();
 	}
 }

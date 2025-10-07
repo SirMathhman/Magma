@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.option.None;
@@ -16,11 +16,11 @@ public record NodeRule(String key, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		return rule.lex(content)
 							 .mapValue(node -> new Node().withNode(key, node))
 							 .mapErr(error -> new CompileError("Failed to attach node '" + key + "'",
-																								 new StringContext(content),
+																								 new InputContext(content),
 																								 List.of(error)));
 	}
 

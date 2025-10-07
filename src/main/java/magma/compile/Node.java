@@ -1,5 +1,6 @@
 package magma.compile;
 
+import magma.compile.rule.Slice;
 import magma.list.Joiner;
 import magma.list.NonEmptyList;
 import magma.option.None;
@@ -15,7 +16,7 @@ public final class Node {
 	private static final int MAX_FORMAT_LEVEL = 3;
 	public final Map<String, NonEmptyList<Node>> nodeLists = new HashMap<String, NonEmptyList<Node>>();
 	public final Map<String, Node> nodes = new HashMap<String, Node>();
-	private final Map<String, String> strings = new HashMap<String, String>();
+	private final Map<String, Slice> slices = new HashMap<String, Slice>();
 	public Option<String> maybeType = Option.empty();
 
 	private static String escape(String value) {
@@ -31,13 +32,13 @@ public final class Node {
 		return format(0);
 	}
 
-	public Node withString(String key, String value) {
-		strings.put(key, value);
+	public Node withSlice(String key, Slice value) {
+		slices.put(key, value);
 		return this;
 	}
 
-	public Option<String> findString(String key) {
-		return Option.ofNullable(strings.get(key));
+	public Option<Slice> findSlice(String key) {
+		return Option.ofNullable(slices.get(key));
 	}
 
 	public Node merge(Node node) {
@@ -45,7 +46,7 @@ public final class Node {
 			case None<String> _ -> node.maybeType;
 			case Some<String> _ -> maybeType;
 		};
-		this.strings.putAll(node.strings);
+		this.slices.putAll(node.slices);
 		nodeLists.putAll(node.nodeLists);
 		nodes.putAll(node.nodes);
 		return this;
@@ -79,7 +80,7 @@ public final class Node {
 	}
 
 	public Set<String> getStringKeys() {
-		return strings.keySet();
+		return slices.keySet();
 	}
 
 	public String format(int depth) {
@@ -87,28 +88,28 @@ public final class Node {
 	}
 
 	public String format(int depth, int maxLevel) {
-		String indent = "\t".repeat(depth);
+		var indent = "\t".repeat(depth);
 		return indent + appendJsonPure(depth, 0, maxLevel);
 	}
 
 	private String appendJsonPure(int indentDepth, int level, int maxLevel) {
-		final String indent = "\t".repeat(indentDepth);
-		final String childIndent = "\t".repeat(indentDepth + 1);
-		StringBuilder builder = new StringBuilder();
+		final var indent = "\t".repeat(indentDepth);
+		final var childIndent = "\t".repeat(indentDepth + 1);
+		var builder = new StringBuilder();
 		builder.append("{");
 
-		boolean[] hasFields = new boolean[]{false};
+		var hasFields = new boolean[]{false};
 
-		Option<String> typeOpt = maybeType;
-		if (typeOpt instanceof Some<String>(String value)) {
+		var typeOpt = maybeType;
+		if (typeOpt instanceof Some<String>(var value)) {
 			builder.append("\n").append(childIndent).append("\"@type\": \"").append(escape(value)).append("\"");
 			hasFields[0] = true;
 		}
 
-		strings.entrySet()
-					 .stream()
-					 .sorted(Entry.comparingByKey())
-					 .forEach(entry -> extracted(entry, hasFields, builder, childIndent));
+		slices.entrySet()
+					.stream()
+					.sorted(Entry.comparingByKey())
+					.forEach(entry -> appendSliceEntry(entry, hasFields, builder, childIndent));
 
 		nodes.entrySet()
 				 .stream()
@@ -145,7 +146,7 @@ public final class Node {
 																	Entry<String, NonEmptyList<Node>> entry,
 																	StringBuilder builder,
 																	String childIndent) {
-		NonEmptyList<Node> list = entry.getValue();
+		var list = entry.getValue();
 		// No need to check isEmpty - NonEmptyList is never empty
 		if (level + 1 >= maxLevel) {
 			builder.append("...");
@@ -159,8 +160,8 @@ public final class Node {
 	}
 
 	private String getString(int indentDepth, int level, int maxLevel, Node node) {
-		final String repeat = "\t".repeat(indentDepth + 2);
-		final String s = node.appendJsonPure(indentDepth + 2, level + 1, maxLevel);
+		final var repeat = "\t".repeat(indentDepth + 2);
+		final var s = node.appendJsonPure(indentDepth + 2, level + 1, maxLevel);
 		return repeat + s;
 	}
 
@@ -179,14 +180,17 @@ public final class Node {
 		hasFields[0] = true;
 	}
 
-	private void extracted(Entry<String, String> entry, boolean[] hasFields, StringBuilder builder, String childIndent) {
+	private void appendSliceEntry(Entry<String, Slice> entry,
+																boolean[] hasFields,
+																StringBuilder builder,
+																String childIndent) {
 		if (hasFields[0]) builder.append(",\n");
 		else builder.append("\n");
 		builder.append(childIndent)
 					 .append('"')
 					 .append(escape(entry.getKey()))
 					 .append("\": \"")
-					 .append(escape(entry.getValue()))
+					 .append(escape(entry.getValue().value()))
 					 .append('"');
 		hasFields[0] = true;
 	}

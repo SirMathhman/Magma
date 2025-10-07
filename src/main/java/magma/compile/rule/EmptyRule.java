@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.StringContext;
+import magma.compile.context.InputContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Ok;
@@ -11,9 +11,9 @@ public class EmptyRule implements Rule {
 	public static final Rule Empty = new EmptyRule();
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		if (content.isEmpty()) return new Ok<Node, CompileError>(new Node());
-		return new Err<Node, CompileError>(new CompileError("Content is not empty", new StringContext(content)));
+		return new Err<Node, CompileError>(new CompileError("Content is not empty", new InputContext(content)));
 	}
 
 	@Override

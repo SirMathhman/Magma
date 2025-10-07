@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.list.ArrayList;
 import magma.list.List;
@@ -53,8 +53,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String input) {
-		return divider.divide(input)
+	public Result<Node, CompileError> lex(Slice slice) {
+		return divider.divide(slice)
 									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
 									.mapValue(list -> {
 										// Only add to nodeLists if non-empty
@@ -64,16 +64,16 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 																			 .orElse(new Node()); // Should never happen since we checked isEmpty
 									})
 									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
-																									new StringContext(input),
+																									new InputContext(slice),
 																									List.of(err)));
 	}
 
-	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
+	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, Slice element) {
 		return switch (current) {
 			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
 				case Err<Node, CompileError> v -> new Err<List<Node>, CompileError>(new CompileError("Failed to lex segment",
-																																														 new StringContext(element),
+																																														 new InputContext(element),
 																																														 List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
 					list.addLast(node);

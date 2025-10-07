@@ -2,7 +2,7 @@ package magma.compile.rule;
 
 import magma.Tuple;
 import magma.compile.Node;
-import magma.compile.context.StringContext;
+import magma.compile.context.InputContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Some;
@@ -11,19 +11,19 @@ import magma.result.Result;
 
 public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order order) implements Rule {
 	public sealed interface Order {
-		Result<Node, CompileError> evaluate(String left, String right, Rule leftRule, Rule rightRule);
+		Result<Node, CompileError> evaluate(Slice left, Slice right, Rule leftRule, Rule rightRule);
 	}
 
 	public static final class LeftFirst implements Order {
 		@Override
-		public Result<Node, CompileError> evaluate(String left, String right, Rule leftRule, Rule rightRule) {
+		public Result<Node, CompileError> evaluate(Slice left, Slice right, Rule leftRule, Rule rightRule) {
 			return leftRule.lex(left).flatMap(leftNode -> rightRule.lex(right).mapValue(leftNode::merge));
 		}
 	}
 
 	public static final class RightFirst implements Order {
 		@Override
-		public Result<Node, CompileError> evaluate(String left, String right, Rule leftRule, Rule rightRule) {
+		public Result<Node, CompileError> evaluate(Slice left, Slice right, Rule leftRule, Rule rightRule) {
 			return rightRule.lex(right).flatMap(rightNode -> leftRule.lex(left).mapValue(rightNode::merge));
 		}
 	}
@@ -43,17 +43,13 @@ public record SplitRule(Rule leftRule, Rule rightRule, Splitter splitter, Order 
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String input) {
-		return switch (splitter.split(input)) {
-			case None<Tuple<String, String>> _ ->
-					new Err<Node, CompileError>(new CompileError(splitter.createErrorMessage(), new StringContext(input)));
-			case Some<Tuple<String, String>>(Tuple<String, String> parts) ->
+	public Result<Node, CompileError> lex(Slice slice) {
+		return switch (splitter.split(slice)) {
+			case None<Tuple<Slice, Slice>> _ ->
+					new Err<Node, CompileError>(new CompileError(splitter.createErrorMessage(), new InputContext(slice)));
+			case Some<Tuple<Slice, Slice>>(Tuple<Slice, Slice> parts) ->
 					order.evaluate(parts.left(), parts.right(), leftRule, rightRule);
 		};
-	}
-
-	private Result<Node, CompileError> evaluate(String left, String right) {
-		return leftRule.lex(left).flatMap(leftNode -> rightRule.lex(right).mapValue(leftNode::merge));
 	}
 
 	@Override

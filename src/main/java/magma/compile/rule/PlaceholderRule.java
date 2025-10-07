@@ -14,7 +14,7 @@ public record PlaceholderRule(Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		return rule.lex(content);
 	}
 

@@ -5,7 +5,7 @@ import magma.compile.error.CompileError;
 import magma.result.Result;
 
 public interface Rule {
-	Result<Node, CompileError> lex(String content);
+	Result<Node, CompileError> lex(Slice content);
 
 	Result<String, CompileError> generate(Node node);
 }

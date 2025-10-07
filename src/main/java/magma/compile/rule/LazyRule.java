@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.StringContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Option;
@@ -18,10 +18,10 @@ public class LazyRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(String content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		return switch (maybeChild.map(child -> child.lex(content))) {
 			case None<Result<Node, CompileError>> _ ->
-					new Err<Node, CompileError>(new CompileError("Child not set", new StringContext(content)));
+					new Err<Node, CompileError>(new CompileError("Child not set", new InputContext(content)));
 			case Some<Result<Node, CompileError>> v -> v.value();
 		};
 	}
