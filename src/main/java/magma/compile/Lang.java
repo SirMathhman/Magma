@@ -53,7 +53,7 @@ public class Lang {
 	}
 
 	sealed public interface JExpression
-			permits And, Cast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
+			permits And, JNodes.JCast, CharNode, Identifier, Index, InstanceOf, Invalid, JAdd, JConstruction, JEquals, JFieldAccess,
 			JGreaterThan, JGreaterThanEquals, JInvocation, JLessThan, JLessThanEquals, JNotEquals, JOr, JString, JSubtract,
 			Lambda, MethodAccess, NewArray, Not, NumberNode, Quantity, SwitchExpr {
 	}
@@ -86,7 +86,7 @@ public class Lang {
 	}
 
 	public sealed interface CExpression
-			permits CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, CharNode, Identifier, Invalid {
+			permits CNodes.Cast, CAdd, CAnd, CEquals, CFieldAccess, CInvocation, CString, CharNode, Identifier, Invalid {
 	}
 
 	public sealed interface InstanceOfTarget permits JDefinition, JType, Destruct {
@@ -296,10 +296,10 @@ public class Lang {
 	}
 
 	@Tag("template")
-	public record CTemplate(String base, NonEmptyList<CLang.CType> typeArguments) implements CLang.CType {
+	public record CTemplate(String base, NonEmptyList<CNodes.CType> typeArguments) implements CNodes.CType {
 		@Override
 		public String stringify() {
-			return base + "_" + typeArguments.stream().map(CLang.CType::stringify).collect(new Joiner("_"));
+			return base + "_" + typeArguments.stream().map(CNodes.CType::stringify).collect(new Joiner("_"));
 		}
 	}
 
@@ -324,7 +324,7 @@ public class Lang {
 
 	@Tag("invalid")
 	public record Invalid(String value, Option<String> after)
-			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CLang.CType, JMethodSegment, CFunctionSegment,
+			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CNodes.CType, JMethodSegment, CFunctionSegment,
 			JExpression, CExpression {
 		public Invalid(String value) {
 			this(value, new None<String>());
@@ -381,12 +381,12 @@ public class Lang {
 	}
 
 	@Tag("definition")
-	public record CDefinition(String name, CLang.CType type, Option<List<Identifier>> typeParameters)
+	public record CDefinition(String name, CNodes.CType type, Option<List<Identifier>> typeParameters)
 			implements CParameter, CFunctionSegment {
 	}
 
 	@Tag("functionPointerDefinition")
-	public record CFunctionPointerDefinition(String name, CLang.CType returnType, List<CLang.CType> paramTypes)
+	public record CFunctionPointerDefinition(String name, CNodes.CType returnType, List<CNodes.CType> paramTypes)
 			implements CParameter {
 	}
 
@@ -396,7 +396,7 @@ public class Lang {
 	}
 
 	@Tag("identifier")
-	public record Identifier(String value) implements JType, CLang.CType, JExpression, CExpression, Identifiable {
+	public record Identifier(String value) implements JType, CNodes.CType, JExpression, CExpression, Identifiable {
 		@Override
 		public String stringify() {
 			return value;
@@ -404,7 +404,7 @@ public class Lang {
 	}
 
 	@Tag("pointer")
-	public record Pointer(CLang.CType child) implements CLang.CType {
+	public record Pointer(CNodes.CType child) implements CNodes.CType {
 		@Override
 		public String stringify() {
 			return child.stringify() + "_ref";
@@ -471,10 +471,6 @@ public class Lang {
 
 	@Tag("quantity")
 	public record Quantity(JExpression child) implements JExpression {
-	}
-
-	@Tag("cast")
-	public record Cast(JType type, JExpression child) implements JExpression {
 	}
 
 	@Tag("less-than-equals")

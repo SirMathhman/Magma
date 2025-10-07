@@ -1,7 +1,8 @@
 package magma.transform;
 
 import magma.Tuple;
-import magma.compile.CLang;
+import magma.compile.CNodes;
+import magma.compile.JNodes;
 import magma.compile.Lang;
 import magma.compile.error.CompileError;
 import magma.list.ArrayList;
@@ -128,7 +129,7 @@ public class Transformer {
 					new Lang.CEquals(transformExpression(jEquals.left()), transformExpression(jEquals.right()));
 			case Lang.And and -> new Lang.CAnd(transformExpression(and.left()), transformExpression(and.right()));
 			case Lang.CharNode charNode -> charNode;
-			case Lang.Cast cast -> new Lang.Invalid("???");
+			case JNodes.JCast cast -> new CNodes.Cast(transformType(cast.type()), transformExpression(cast.child()));
 			case Lang.Index index -> new Lang.Invalid("???");
 			case Lang.InstanceOf instanceOf -> new Lang.Invalid("???");
 			case Lang.JGreaterThan jGreaterThan -> new Lang.Invalid("???");
@@ -160,11 +161,11 @@ public class Transformer {
 	}
 
 	private static Lang.CParameter transformParameter(Lang.JDefinition param) {
-		final CLang.CType transformedType = transformType(param.type());
+		final CNodes.CType transformedType = transformType(param.type());
 
 		// If the transformed type is a FunctionPointer, create
 		// CFunctionPointerDefinition
-		if (transformedType instanceof CLang.CFunctionPointer(CLang.CType returnType, List<CLang.CType> paramTypes))
+		if (transformedType instanceof CNodes.CFunctionPointer(CNodes.CType returnType, List<CNodes.CType> paramTypes))
 			return new Lang.CFunctionPointerDefinition(param.name(), returnType, paramTypes);
 
 		// Otherwise create regular CDefinition
@@ -302,7 +303,7 @@ public class Transformer {
 		return Collections.emptyList();
 	}
 
-	static CLang.CType transformType(Lang.JType type) {
+	static CNodes.CType transformType(Lang.JType type) {
 		return switch (type) {
 			case Lang.Invalid invalid -> invalid;
 			case Lang.JGeneric generic -> transformGeneric(generic);
@@ -314,33 +315,33 @@ public class Transformer {
 		};
 	}
 
-	private static CLang.CType transformIdentifier(Lang.Identifier identifier) {
+	private static CNodes.CType transformIdentifier(Lang.Identifier identifier) {
 		if (identifier.value().equals("String")) return new Lang.Pointer(new Lang.Identifier("char"));
 		return identifier;
 	}
 
 	private static Lang.Pointer transformArray(Lang.Array array) {
-		CLang.CType childType = transformType(array.child());
+		CNodes.CType childType = transformType(array.child());
 		return new Lang.Pointer(childType);
 	}
 
-	private static CLang.CType transformGeneric(Lang.JGeneric generic) {
+	private static CNodes.CType transformGeneric(Lang.JGeneric generic) {
 		// Convert Function<T, R> to function pointer R (*)(T)
 		final List<Lang.JType> listOption = generic.typeArguments().orElse(new ArrayList<Lang.JType>());
 		if (generic.base().endsWith("Function") && listOption.size() == 2) {
-			final CLang.CType paramType = transformType(listOption.get(0).orElse(null));
-			final CLang.CType returnType = transformType(listOption.get(1).orElse(null));
-			return new CLang.CFunctionPointer(returnType, List.of(paramType));
+			final CNodes.CType paramType = transformType(listOption.get(0).orElse(null));
+			final CNodes.CType returnType = transformType(listOption.get(1).orElse(null));
+			return new CNodes.CFunctionPointer(returnType, List.of(paramType));
 		}
 
 		// Transform type arguments to CType list
-		final List<CLang.CType> transformedTypes = listOption.stream().map(Transformer::transformType).toList();
+		final List<CNodes.CType> transformedTypes = listOption.stream().map(Transformer::transformType).toList();
 
 		// Create NonEmptyList from the transformed types
 		// If the list is empty, this is an error case - generics should always have
 		// type arguments
 		return NonEmptyList.fromList(transformedTypes)
-											 .map(nonEmptyTypes -> (CLang.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
+											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(generic.base().last(), nonEmptyTypes))
 											 .orElse(new Lang.Invalid("Empty type arguments for generic " + generic.base().last(),
 																								new None<String>()));
 	}
