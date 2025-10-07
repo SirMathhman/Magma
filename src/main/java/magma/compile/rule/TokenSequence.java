@@ -3,26 +3,26 @@ package magma.compile.rule;
 import magma.list.List;
 import magma.option.Option;
 
-public interface Slice {
+public interface TokenSequence {
 	boolean equalsSlice(String value);
 
 	boolean isEmpty();
 
 	boolean startsWith(String slice);
 
-	Slice substring(int extent);
+	TokenSequence substring(int extent);
 
-	Slice strip();
+	TokenSequence strip();
 
 	boolean endsWith(String slice);
 
 	int length();
 
-	Slice substring(int start, int end);
+	TokenSequence substring(int start, int end);
 
 	Option<Integer> indexOf(String infix);
 
-	List<Slice> split(String regex);
+	List<TokenSequence> split(String regex);
 
 	Option<Character> charAt(int index);
 

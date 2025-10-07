@@ -18,7 +18,7 @@ public class LazyRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(Slice content) {
+	public Result<Node, CompileError> lex(TokenSequence content) {
 		return switch (maybeChild.map(child -> child.lex(content))) {
 			case None<Result<Node, CompileError>> _ ->
 					new Err<Node, CompileError>(new CompileError("Child not set", new InputContext(content)));

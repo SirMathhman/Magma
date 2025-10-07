@@ -12,7 +12,7 @@ public record SuffixRule(Rule rule, String suffix) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(Slice input) {
+	public Result<Node, CompileError> lex(TokenSequence input) {
 		if (!input.endsWith(suffix))
 			return new Err<Node, CompileError>(new CompileError("Suffix '" + suffix + "' not present",
 																													new InputContext(input)));

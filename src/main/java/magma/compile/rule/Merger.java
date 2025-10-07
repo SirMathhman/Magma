@@ -5,5 +5,5 @@ import magma.list.List;
 import magma.option.Option;
 
 public interface Merger {
-	Option<Tuple<Slice, Slice>> merge(List<Slice> segments, String delimiter);
+	Option<Tuple<TokenSequence, TokenSequence>> merge(List<TokenSequence> segments, String delimiter);
 }

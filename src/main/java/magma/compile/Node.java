@@ -1,6 +1,6 @@
 package magma.compile;
 
-import magma.compile.rule.Slice;
+import magma.compile.rule.TokenSequence;
 import magma.list.Joiner;
 import magma.list.NonEmptyList;
 import magma.option.None;
@@ -16,7 +16,7 @@ public final class Node {
 	private static final int MAX_FORMAT_LEVEL = 3;
 	public final Map<String, NonEmptyList<Node>> nodeLists = new HashMap<String, NonEmptyList<Node>>();
 	public final Map<String, Node> nodes = new HashMap<String, Node>();
-	private final Map<String, Slice> slices = new HashMap<String, Slice>();
+	private final Map<String, TokenSequence> slices = new HashMap<String, TokenSequence>();
 	public Option<String> maybeType = Option.empty();
 
 	private static String escape(String value) {
@@ -32,12 +32,12 @@ public final class Node {
 		return format(0);
 	}
 
-	public Node withSlice(String key, Slice value) {
+	public Node withSlice(String key, TokenSequence value) {
 		slices.put(key, value);
 		return this;
 	}
 
-	public Option<Slice> findSlice(String key) {
+	public Option<TokenSequence> findSlice(String key) {
 		return Option.ofNullable(slices.get(key));
 	}
 
@@ -180,7 +180,7 @@ public final class Node {
 		hasFields[0] = true;
 	}
 
-	private void appendSliceEntry(Entry<String, Slice> entry,
+	private void appendSliceEntry(Entry<String, TokenSequence> entry,
 																boolean[] hasFields,
 																StringBuilder builder,
 																String childIndent) {

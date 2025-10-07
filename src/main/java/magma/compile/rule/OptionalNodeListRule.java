@@ -18,7 +18,7 @@ public final class OptionalNodeListRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(Slice content) {
+	public Result<Node, CompileError> lex(TokenSequence content) {
 		lexRule = new OrRule(List.of(ifPresent, ifEmpty));
 		return lexRule.lex(content);
 	}

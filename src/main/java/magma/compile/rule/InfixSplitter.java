@@ -7,13 +7,13 @@ import magma.option.Some;
 
 public record InfixSplitter(String infix, Locator locator) implements Splitter {
 	@Override
-	public Option<Tuple<Slice, Slice>> split(Slice slice) {
-		return switch (locator.locate(slice, infix)) {
-			case None<Integer> _ -> new None<Tuple<Slice, Slice>>();
+	public Option<Tuple<TokenSequence, TokenSequence>> split(TokenSequence tokenSequence) {
+		return switch (locator.locate(tokenSequence, infix)) {
+			case None<Integer> _ -> new None<Tuple<TokenSequence, TokenSequence>>();
 			case Some<Integer>(Integer index) -> {
-				final Slice left = slice.substring(0, index);
-				final Slice right = slice.substring(index + infix.length());
-				yield new Some<Tuple<Slice, Slice>>(new Tuple<Slice, Slice>(left, right));
+				final TokenSequence left = tokenSequence.substring(0, index);
+				final TokenSequence right = tokenSequence.substring(index + infix.length());
+				yield new Some<Tuple<TokenSequence, TokenSequence>>(new Tuple<TokenSequence, TokenSequence>(left, right));
 			}
 		};
 	}

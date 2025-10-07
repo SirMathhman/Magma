@@ -4,7 +4,7 @@ import magma.option.Option;
 
 public record LastLocator() implements Locator {
 	@Override
-	public Option<Integer> locate(Slice input, String infix) {
+	public Option<Integer> locate(TokenSequence input, String infix) {
 		return input.lastIndexOf(infix);
 	}
 }

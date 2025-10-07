@@ -14,12 +14,12 @@ import magma.compile.rule.LastLocator;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.OptionalNodeListRule;
-import magma.compile.rule.RootSlice;
+import magma.compile.rule.RootTokenSequence;
 import magma.compile.rule.Rule;
-import magma.compile.rule.Slice;
 import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
+import magma.compile.rule.TokenSequence;
 import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
@@ -46,7 +46,7 @@ public class Lang {
 	sealed public interface JavaRootSegment permits Invalid, Import, JStructure, Package, Whitespace, BlockComment {}
 
 	sealed public interface CRootSegment permits Invalid, CStructure, CFunction {
-		Option<Slice> after();
+		Option<TokenSequence> after();
 	}
 
 	public sealed interface JStructureSegment
@@ -71,7 +71,7 @@ public class Lang {
 			permits Array, Identifier, Invalid, JGeneric, JQualified, Variadic, Wildcard {}
 
 	sealed public interface JStructure extends JavaRootSegment, JStructureSegment permits Interface, JClass, RecordNode {
-		Slice name();
+		TokenSequence name();
 
 		Option<NonEmptyList<Identifier>> typeParameters();
 
@@ -101,7 +101,7 @@ public class Lang {
 	public sealed interface Identifiable permits Identifier {}
 
 	@Tag("char")
-	public record CharNode(Slice value) implements JExpression, CExpression {}
+	public record CharNode(TokenSequence value) implements JExpression, CExpression {}
 
 	@Tag("and")
 	public record CAnd(CExpression left, CExpression right) implements CExpression {}
@@ -134,19 +134,19 @@ public class Lang {
 	public record CEquals(CExpression left, CExpression right) implements CExpression {}
 
 	@Tag("string")
-	public record JString(Option<Slice> content) implements JExpression {}
+	public record JString(Option<TokenSequence> content) implements JExpression {}
 
 	@Tag("add")
 	public record CAdd(CExpression left, CExpression right) implements CExpression {}
 
 	@Tag("string")
-	public record CString(Slice content) implements CExpression {}
+	public record CString(TokenSequence content) implements CExpression {}
 
 	@Tag("field-access")
-	public record JFieldAccess(JExpression child, Slice name) implements JExpression {}
+	public record JFieldAccess(JExpression child, TokenSequence name) implements JExpression {}
 
 	@Tag("field-access")
-	public record CFieldAccess(CExpression child, Slice name) implements CExpression {}
+	public record CFieldAccess(CExpression child, TokenSequence name) implements CExpression {}
 
 	@Tag("construction")
 	public record JConstruction(JType type, Option<NonEmptyList<JExpression>> arguments)
@@ -239,7 +239,7 @@ public class Lang {
 	public record JGeneric(JQualified base, Option<List<JType>> typeArguments) implements JType {}
 
 	@Tag("template")
-	public record CTemplate(Slice base, NonEmptyList<CNodes.CType> typeArguments) implements CNodes.CType {
+	public record CTemplate(TokenSequence base, NonEmptyList<CNodes.CType> typeArguments) implements CNodes.CType {
 		@Override
 		public String stringify() {
 			return base.value() + "_" + typeArguments.stream().map(CNodes.CType::stringify).collect(new Joiner("_"));
@@ -250,12 +250,12 @@ public class Lang {
 	public record Array(JType child) implements JType {}
 
 	@Tag("definition")
-	public record JDefinition(Slice name, JType type, Option<List<Modifier>> modifiers,
+	public record JDefinition(TokenSequence name, JType type, Option<List<Modifier>> modifiers,
 														Option<List<Identifier>> typeParameters)
 			implements JMethodSegment, InstanceOfTarget, JStructureSegment, CaseTarget {}
 
 	@Tag("modifier")
-	public record Modifier(Slice value) {}
+	public record Modifier(TokenSequence value) {}
 
 	@Tag("method")
 	public record JMethod(JDefinition definition, Option<NonEmptyList<JDefinition>> params,
@@ -263,11 +263,11 @@ public class Lang {
 			implements JStructureSegment {}
 
 	@Tag("invalid")
-	public record Invalid(Slice value, Option<Slice> after)
+	public record Invalid(TokenSequence value, Option<TokenSequence> after)
 			implements JavaRootSegment, JStructureSegment, CRootSegment, JType, CNodes.CType, JMethodSegment,
 			CFunctionSegment, JExpression, CExpression {
-		public Invalid(Slice value) {
-			this(value, new None<Slice>());
+		public Invalid(TokenSequence value) {
+			this(value, new None<TokenSequence>());
 		}
 
 		@Override
@@ -277,55 +277,55 @@ public class Lang {
 	}
 
 	@Tag("class")
-	public record JClass(Option<Slice> modifiers, Slice name, List<JStructureSegment> children,
+	public record JClass(Option<TokenSequence> modifiers, TokenSequence name, List<JStructureSegment> children,
 											 Option<NonEmptyList<Identifier>> typeParameters, Option<List<JType>> interfaces)
 			implements JStructure {}
 
 	@Tag("interface")
-	public record Interface(Option<Slice> modifiers, Slice name, List<JStructureSegment> children,
+	public record Interface(Option<TokenSequence> modifiers, TokenSequence name, List<JStructureSegment> children,
 													Option<NonEmptyList<Identifier>> typeParameters, Option<List<JType>> interfaces,
 													Option<List<JType>> superclasses, Option<List<JType>> variants) implements JStructure {}
 
 	@Tag("record")
-	public record RecordNode(Option<Slice> modifiers, Slice name, List<JStructureSegment> children,
+	public record RecordNode(Option<TokenSequence> modifiers, TokenSequence name, List<JStructureSegment> children,
 													 Option<NonEmptyList<Identifier>> typeParameters, Option<List<JDefinition>> params,
 													 Option<List<JType>> interfaces) implements JStructure {}
 
 	@Tag("struct")
-	public record CStructure(Slice name, List<CDefinition> fields, Option<Slice> after,
+	public record CStructure(TokenSequence name, List<CDefinition> fields, Option<TokenSequence> after,
 													 Option<NonEmptyList<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("whitespace")
 	public record Whitespace() implements JavaRootSegment, JStructureSegment, JMethodSegment, CFunctionSegment {}
 
 	@Tag("placeholder")
-	public record Placeholder(Slice value) implements JMethodSegment, CFunctionSegment {}
+	public record Placeholder(TokenSequence value) implements JMethodSegment, CFunctionSegment {}
 
 	public record JRoot(List<JavaRootSegment> children) {}
 
 	public record CRoot(List<CRootSegment> children) {}
 
 	@Tag("import")
-	public record Import(Slice location) implements JavaRootSegment {}
+	public record Import(TokenSequence location) implements JavaRootSegment {}
 
 	@Tag("package")
-	public record Package(Slice location) implements JavaRootSegment {}
+	public record Package(TokenSequence location) implements JavaRootSegment {}
 
 	@Tag("definition")
-	public record CDefinition(Slice name, CNodes.CType type, Option<List<Identifier>> typeParameters)
+	public record CDefinition(TokenSequence name, CNodes.CType type, Option<List<Identifier>> typeParameters)
 			implements CParameter, CFunctionSegment {}
 
 	@Tag("functionPointerDefinition")
-	public record CFunctionPointerDefinition(Slice name, CNodes.CType returnType, List<CNodes.CType> paramTypes)
+	public record CFunctionPointerDefinition(TokenSequence name, CNodes.CType returnType, List<CNodes.CType> paramTypes)
 			implements CParameter {}
 
 	@Tag("function")
 	public record CFunction(CDefinition definition, Option<NonEmptyList<CParameter>> params,
-													NonEmptyList<CFunctionSegment> body, Option<Slice> after,
+													NonEmptyList<CFunctionSegment> body, Option<TokenSequence> after,
 													Option<NonEmptyList<Identifier>> typeParameters) implements CRootSegment {}
 
 	@Tag("identifier")
-	public record Identifier(Slice value) implements JType, CNodes.CType, JExpression, CExpression, Identifiable {
+	public record Identifier(TokenSequence value) implements JType, CNodes.CType, JExpression, CExpression, Identifiable {
 		@Override
 		public String stringify() {
 			return value.value();
@@ -341,10 +341,10 @@ public class Lang {
 	}
 
 	@Tag("line-comment")
-	public record LineComment(Slice value) implements JStructureSegment, JMethodSegment, CFunctionSegment {}
+	public record LineComment(TokenSequence value) implements JStructureSegment, JMethodSegment, CFunctionSegment {}
 
 	@Tag("block-comment")
-	public record BlockComment(Slice value) implements JStructureSegment, JavaRootSegment, JMethodSegment {}
+	public record BlockComment(TokenSequence value) implements JStructureSegment, JavaRootSegment, JMethodSegment {}
 
 	@Tag("return")
 	public record JReturn(JExpression value) implements JMethodSegment {}
@@ -436,7 +436,7 @@ public class Lang {
 	public record EmptyLambdaParam() implements LambdaParamSet {}
 
 	@Tag("single")
-	public record SingleLambdaParam(Slice param) implements LambdaParamSet {}
+	public record SingleLambdaParam(TokenSequence param) implements LambdaParamSet {}
 
 	@Tag("multiple")
 	public record MultipleLambdaParam(Option<List<SingleLambdaParam>> params) implements LambdaParamSet {}
@@ -448,12 +448,12 @@ public class Lang {
 	public record TypeMethodAccessSource(JType child) implements MethodAccessSource {}
 
 	@Tag("method-access")
-	public record MethodAccess(Slice name, MethodAccessSource source) implements JExpression {}
+	public record MethodAccess(TokenSequence name, MethodAccessSource source) implements JExpression {}
 
 	@Tag("number")
-	public record NumberNode(Slice number) implements JExpression {}
+	public record NumberNode(TokenSequence number) implements JExpression {}
 
-	private record OperatorFolder(Slice operator) implements Folder {
+	private record OperatorFolder(TokenSequence operator) implements Folder {
 		@Override
 		public DivideState fold(DivideState state, char c) {
 			if (c == operator.value().charAt(0)) {
@@ -476,7 +476,7 @@ public class Lang {
 	}
 
 	@Tag("segment")
-	public record QualifiedSegment(Slice value) {}
+	public record QualifiedSegment(TokenSequence value) {}
 
 	@Tag("qualified")
 	public record JQualified(Option<List<QualifiedSegment>> segments) implements JType {
@@ -834,7 +834,7 @@ public class Lang {
 		final Rule left = Node("left", expression);
 		final Rule right = Node("right", expression);
 		final Splitter splitter =
-				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(new RootSlice(infix)))));
+				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(new RootTokenSequence(infix)))));
 		return Tag(type, SplitRule.Split(left, splitter, right));
 	}
 

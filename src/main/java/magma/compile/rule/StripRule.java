@@ -14,15 +14,15 @@ public record StripRule(String leftKey, Rule rule, String rightKey) implements R
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(Slice content) {
+	public Result<Node, CompileError> lex(TokenSequence content) {
 		return rule.lex(content.strip());
 	}
 
 	@Override
 	public Result<String, CompileError> generate(Node node) {
 		return rule.generate(node).mapValue(generated -> {
-			final String leftString = node.findSlice(leftKey).map(Slice::value).orElse("");
-			final String rightString = node.findSlice(rightKey).map(Slice::value).orElse("");
+			final String leftString = node.findSlice(leftKey).map(TokenSequence::value).orElse("");
+			final String rightString = node.findSlice(rightKey).map(TokenSequence::value).orElse("");
 			return leftString + generated + rightString;
 		});
 	}

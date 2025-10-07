@@ -27,7 +27,7 @@ public class FilterRule implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(Slice content) {
+	public Result<Node, CompileError> lex(TokenSequence content) {
 		if (filter.test(content.value())) return rule.lex(content);
 		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new InputContext(content)));
 	}

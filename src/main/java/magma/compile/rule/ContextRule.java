@@ -9,7 +9,7 @@ import magma.result.Result;
 
 public record ContextRule(String whenErr, Rule child) implements Rule {
 	@Override
-	public Result<Node, CompileError> lex(Slice content) {
+	public Result<Node, CompileError> lex(TokenSequence content) {
 		return child.lex(content).mapErr(err -> new CompileError(whenErr, new InputContext(content), List.of(err)));
 	}
 

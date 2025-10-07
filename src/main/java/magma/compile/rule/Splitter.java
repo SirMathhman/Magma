@@ -9,7 +9,7 @@ public interface Splitter {
 	 * Returns None if splitting is not possible.
 	 * Returns Some(Tuple(left, right)) if splitting succeeds.
 	 */
-	Option<Tuple<Slice, Slice>> split(Slice slice);
+	Option<Tuple<TokenSequence, TokenSequence>> split(TokenSequence tokenSequence);
 
 	String createErrorMessage();
 
