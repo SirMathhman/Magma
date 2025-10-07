@@ -648,8 +648,7 @@ public class Lang {
 
 		// Add template declaration only if type parameters exist (non-empty list)
 		final Rule templateParams = Expressions("typeParameters", Prefix("typename ", CommonRules.Identifier()));
-		final Rule templateDecl = NonEmptyList("typeParameters",
-				Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator())));
+		final Rule templateDecl = 	Prefix("template<", Suffix(templateParams, ">" + System.lineSeparator()));
 		final Rule maybeTemplate = new OptionalNodeListRule("typeParameters", templateDecl, Empty);
 
 		return Tag("struct", First(maybeTemplate, "", structComplete));

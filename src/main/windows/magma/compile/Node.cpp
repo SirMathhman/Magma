@@ -110,3 +110,6 @@ void extracted_Node() {
 	builder.append().append().append().append().append().append();
 	/*???*/=true;
 }
+boolean hasNodeList_Node() {
+	return nodeLists.containsKey();
+}

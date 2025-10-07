@@ -217,8 +217,8 @@ Rule CStructure_Lang() {
 	Rule structWithFields=Suffix();
 	Rule structComplete=Suffix();
 	Rule templateParams=Expressions();
-	Rule templateDecl=NonEmptyList();
-	Rule maybeTemplate=Or();
+	Rule templateDecl=Prefix();
+	Rule maybeTemplate=new_???();
 	return Tag();
 }
 Rule JRoot_Lang() {

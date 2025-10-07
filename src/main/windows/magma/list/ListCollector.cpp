@@ -1,4 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\ListCollector.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
+template<typename T>
 struct ListCollector {};
 List<T> initial_ListCollector() {
 	return new_???();

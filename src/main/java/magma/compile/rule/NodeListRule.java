@@ -22,7 +22,7 @@ import java.util.StringJoiner;
  * Generation fails when list is missing (allowing Or to try alternatives).
  * When list is present, iterates through each element, generates it, and joins
  * with the divider.
- * 
+ *
  * @param key     the key for the node list
  * @param rule    the rule to apply to each element
  * @param divider the divider to use between elements
@@ -43,7 +43,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	/**
 	 * Alias for creating a node list rule with an empty delimiter.
 	 * Commonly used with Or to provide fallback when list is missing.
-	 * 
+	 *
 	 * @param key  the key for the node list
 	 * @param rule the rule to apply to each element
 	 * @return a node list rule with empty delimiter
@@ -55,18 +55,17 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	@Override
 	public Result<Node, CompileError> lex(String input) {
 		return divider.divide(input)
-				.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
-				.mapValue(list -> {
-					// Only add to nodeLists if non-empty
-					if (list.isEmpty())
-						return new Node();
-					return NonEmptyList.fromList(list)
-							.map(nonEmptyList -> new Node().withNodeList(key, nonEmptyList))
-							.orElse(new Node()); // Should never happen since we checked isEmpty
-				})
-				.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
-						new StringContext(input),
-						List.of(err)));
+									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
+									.mapValue(list -> {
+										// Only add to nodeLists if non-empty
+										if (list.isEmpty()) return new Node();
+										return NonEmptyList.fromList(list)
+																			 .map(nonEmptyList -> new Node().withNodeList(key, nonEmptyList))
+																			 .orElse(new Node()); // Should never happen since we checked isEmpty
+									})
+									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
+																									new StringContext(input),
+																									List.of(err)));
 	}
 
 	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, String element) {
@@ -74,8 +73,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {
 				case Err<Node, CompileError> v -> new Err<List<Node>, CompileError>(new CompileError("Failed to lex segment",
-						new StringContext(element),
-						List.of(v.error())));
+																																														 new StringContext(element),
+																																														 List.of(v.error())));
 				case Ok<Node, CompileError>(Node node) -> {
 					list.addLast(node);
 					yield new Ok<List<Node>, CompileError>(list);
@@ -88,8 +87,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	public Result<String, CompileError> generate(Node value) {
 		return switch (value.findNodeList(key)) {
 			// List missing - fail to allow Or to try alternatives
-			case None<?> _ -> new Err<String, CompileError>(
-					new CompileError("Node list '" + key + "' not present", new NodeContext(value)));
+			case None<?> _ -> new Err<String, CompileError>(new CompileError("Node list '" + key + "' not present",
+																																			 new NodeContext(value)));
 			// List present and non-empty - iterate and generate each element
 			case Some<NonEmptyList<Node>>(NonEmptyList<Node> list) -> generateList(list);
 		};
@@ -110,9 +109,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 				}
 				case None<?> _ -> {
 					// Should never happen - NonEmptyList guarantees elements exist
-					return new Err<String, CompileError>(
-							new CompileError("Unexpected missing element in NonEmptyList at index " + i,
-									new NodeContext(list.first())));
+					return new Err<String, CompileError>(new CompileError(
+							"Unexpected missing element in NonEmptyList at index " + i, new NodeContext(list.first())));
 				}
 			}
 			i++;

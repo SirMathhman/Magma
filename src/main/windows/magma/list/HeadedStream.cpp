@@ -1,5 +1,7 @@
 // Generated transpiled C++ from 'src\main\java\magma\list\HeadedStream.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
+template<typename T>
 struct HeadedStream {};
+template<typename R>
 struct FlatMapHead {};
 public FlatMapHead_FlatMapHead() {
 	this.mapper=mapper;

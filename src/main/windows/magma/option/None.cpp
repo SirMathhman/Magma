@@ -1,4 +1,5 @@
 // Generated transpiled C++ from 'src\main\java\magma\option\None.java'. This file shouldn't be edited, and rather the compiler implementation should be changed.
+template<typename T>
 struct None {};
 Option<R> map_None() {
 	return new_???();
