@@ -1,14 +1,34 @@
 package magma.compile.rule;
 
 import magma.list.List;
+import magma.option.None;
 import magma.option.Option;
 
 /*
 An empty list of tokens.
  */
 public record EmptyTokenSequence() implements TokenSequence {
+	// ========== Token-based access methods ==========
+
+	@Override
+	public Option<Token> getFirst() {
+		return new None<Token>();
+	}
+
+	@Override
+	public Option<Token> getLast() {
+		return new None<Token>();
+	}
+
+	@Override
+	public Option<Token> getAt(int index) {
+		return new None<Token>();
+	}
+
+	// ========== Legacy methods ==========
+
 	/*
-	Current implementation is a TODO.
+	 * Current implementation is a TODO.
 	 */
 	@Override
 	public boolean equalsSlice(String value) {
@@ -22,6 +42,11 @@ public record EmptyTokenSequence() implements TokenSequence {
 
 	@Override
 	public boolean startsWith(String slice) {
+		return false;
+	}
+
+	@Override
+	public boolean startsWith(Token token) {
 		return false;
 	}
 
@@ -41,6 +66,11 @@ public record EmptyTokenSequence() implements TokenSequence {
 	}
 
 	@Override
+	public boolean endsWith(Token token) {
+		return false;
+	}
+
+	@Override
 	public int length() {
 		return 0;
 	}
@@ -56,6 +86,11 @@ public record EmptyTokenSequence() implements TokenSequence {
 	}
 
 	@Override
+	public Option<Integer> indexOf(Token token) {
+		return new None<Integer>();
+	}
+
+	@Override
 	public List<TokenSequence> split(String regex) {
 		return null;
 	}
@@ -68,6 +103,11 @@ public record EmptyTokenSequence() implements TokenSequence {
 	@Override
 	public Option<Integer> lastIndexOf(String infix) {
 		return null;
+	}
+
+	@Override
+	public Option<Integer> lastIndexOf(Token token) {
+		return new None<Integer>();
 	}
 
 	@Override

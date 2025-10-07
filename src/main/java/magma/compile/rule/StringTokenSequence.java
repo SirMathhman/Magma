@@ -9,6 +9,33 @@ import magma.option.Option;
 import magma.option.Some;
 
 public record StringTokenSequence(String value) implements TokenSequence {
+	// ========== Token-based access methods ==========
+
+	@Override
+	public Option<Token> getFirst() {
+		if (value.isEmpty())
+			return new None<Token>();
+		return new Some<Token>(new StringToken(value));
+	}
+
+	@Override
+	public Option<Token> getLast() {
+		if (value.isEmpty())
+			return new None<Token>();
+		return new Some<Token>(new StringToken(value));
+	}
+
+	@Override
+	public Option<Token> getAt(int index) {
+		// For now, treating the entire string as a single token
+		// In future, this will tokenize properly
+		if (index == 0 && !value.isEmpty())
+			return new Some<Token>(new StringToken(value));
+		return new None<Token>();
+	}
+
+	// ========== Legacy methods ==========
+
 	@Override
 	public boolean isEmpty() {
 		return value.isEmpty();
@@ -17,6 +44,11 @@ public record StringTokenSequence(String value) implements TokenSequence {
 	@Override
 	public boolean startsWith(String slice) {
 		return value.startsWith(slice);
+	}
+
+	@Override
+	public boolean startsWith(Token token) {
+		return value.startsWith(token.display());
 	}
 
 	@Override
@@ -35,6 +67,11 @@ public record StringTokenSequence(String value) implements TokenSequence {
 	}
 
 	@Override
+	public boolean endsWith(Token token) {
+		return value.endsWith(token.display());
+	}
+
+	@Override
 	public int length() {
 		return value.length();
 	}
@@ -47,6 +84,14 @@ public record StringTokenSequence(String value) implements TokenSequence {
 	@Override
 	public Option<Integer> indexOf(String infix) {
 		final int index = value.indexOf(infix);
+		if (index == -1)
+			return new None<Integer>();
+		return new Some<Integer>(index);
+	}
+
+	@Override
+	public Option<Integer> indexOf(Token token) {
+		final int index = value.indexOf(token.display());
 		if (index == -1)
 			return new None<Integer>();
 		return new Some<Integer>(index);
@@ -73,6 +118,14 @@ public record StringTokenSequence(String value) implements TokenSequence {
 	@Override
 	public Option<Integer> lastIndexOf(String infix) {
 		final int index = value.lastIndexOf(infix);
+		if (index == -1)
+			return new None<Integer>();
+		return new Some<Integer>(index);
+	}
+
+	@Override
+	public Option<Integer> lastIndexOf(Token token) {
+		final int index = value.lastIndexOf(token.display());
 		if (index == -1)
 			return new None<Integer>();
 		return new Some<Integer>(index);
