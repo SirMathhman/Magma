@@ -17,7 +17,7 @@ public class EmptyRule implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
-		return new Ok<TokenSequence, CompileError>(new EmptyTokenSequence());
+	public Result<String, CompileError> generate(Node node) {
+		return new Ok<String, CompileError>("");
 	}
 }

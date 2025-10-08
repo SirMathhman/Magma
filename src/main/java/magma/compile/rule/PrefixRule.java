@@ -18,7 +18,7 @@ public record PrefixRule(String prefix, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		return rule.generate(node).mapValue(inner -> prefix + inner);
 	}
 }

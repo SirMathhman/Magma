@@ -29,7 +29,7 @@ public record OrRule(List<Rule> rules) implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		return foldAll(rule1 -> rule1.generate(node), () -> new NodeContext(node));
 	}
 }

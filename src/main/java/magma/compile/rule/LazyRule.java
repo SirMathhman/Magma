@@ -27,7 +27,7 @@ public class LazyRule implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		return switch (maybeChild.map(child -> child.generate(node))) {
 			case None<Result<String, CompileError>> _ -> new Err<String, CompileError>(new CompileError("Child not set", new NodeContext(node)));
 			case Some<Result<String, CompileError>> v -> v.value();

@@ -3,9 +3,6 @@ package magma.compile.rule;
 import magma.list.List;
 import magma.option.Option;
 
-/*
-Should be functionally equivalent to List<Token>.
-*/
 public interface TokenSequence {
 	boolean equalsSlice(String value);
 

@@ -24,7 +24,7 @@ public final class OptionalNodeListRule implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		if (node.hasNodeList(key)) return ifPresent.generate(node);
 		else return ifEmpty.generate(node);
 	}

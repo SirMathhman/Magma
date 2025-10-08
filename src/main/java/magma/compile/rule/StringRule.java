@@ -24,7 +24,7 @@ public record StringRule(String key) implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		Option<TokenSequence> resultOption = node.findSlice(key);
 		return switch (resultOption) {
 			case None<TokenSequence> _ ->

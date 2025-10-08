@@ -84,7 +84,7 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node value) {
+	public Result<String, CompileError> generate(Node value) {
 		return switch (value.findNodeList(key)) {
 			// List missing - fail to allow Or to try alternatives
 			case None<?> _ -> new Err<String, CompileError>(new CompileError("Node list '" + key + "' not present",

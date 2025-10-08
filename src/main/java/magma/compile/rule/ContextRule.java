@@ -14,7 +14,7 @@ public record ContextRule(String whenErr, Rule child) implements Rule {
 	}
 
 	@Override
-	public Result<TokenSequence, CompileError> generate(Node node) {
+	public Result<String, CompileError> generate(Node node) {
 		return child.generate(node).mapErr(err -> new CompileError(whenErr, new NodeContext(node), List.of(err)));
 	}
 }
