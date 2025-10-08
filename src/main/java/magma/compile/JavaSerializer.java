@@ -3,7 +3,6 @@ package magma.compile;
 import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
 import magma.compile.error.CompileError;
-import magma.compile.rule.RootSlice;
 import magma.compile.rule.Slice;
 import magma.list.ArrayList;
 import magma.list.Joiner;
@@ -96,7 +95,7 @@ public class JavaSerializer {
 	}
 
 	private static InputContext createContext(String type) {
-		return new InputContext(new RootSlice(type));
+		return new InputContext(new Slice(type));
 	}
 
 	private static Result<Node, CompileError> serializeField(RecordComponent component, Object value) {
@@ -107,7 +106,7 @@ public class JavaSerializer {
 			return new Err<Node, CompileError>(new CompileError("Component '" + fieldName + "' was absent",
 																													createContext(fieldName)));
 
-		if (fieldType == RootSlice.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value));
+		if (fieldType == Slice.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value));
 		if (Option.class.isAssignableFrom(fieldType)) return serializeOptionField(component, value);
 		if (NonEmptyList.class.isAssignableFrom(fieldType)) return serializeNonEmptyListField(component, value);
 		if (List.class.isAssignableFrom(fieldType)) return serializeListField(component, value);
@@ -134,7 +133,7 @@ public class JavaSerializer {
 				return new Err<Node, CompileError>(error);
 			Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-			if (elementClass == RootSlice.class)
+			if (elementClass == Slice.class)
 				return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value1));
 
 			if (NonEmptyList.class.isAssignableFrom(elementClass))
@@ -506,7 +505,7 @@ public class JavaSerializer {
 		String fieldName = component.getName();
 		Class<?> fieldType = component.getType();
 
-		if (fieldType == RootSlice.class) return deserializeSliceField(fieldName, node, consumedFields);
+		if (fieldType == Slice.class) return deserializeSliceField(fieldName, node, consumedFields);
 
 		if (fieldType == String.class) return deserializeStringField(fieldName, node, consumedFields);
 
@@ -574,7 +573,7 @@ public class JavaSerializer {
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 		String fieldName = component.getName();
 
-		if (elementClass == RootSlice.class) {
+		if (elementClass == Slice.class) {
 			Option<Slice> direct = node.findSlice(fieldName);
 			if (direct instanceof Some<Slice>(Slice value)) {
 				consumedFields.add(fieldName);

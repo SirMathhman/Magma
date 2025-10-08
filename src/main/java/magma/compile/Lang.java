@@ -14,7 +14,6 @@ import magma.compile.rule.LastLocator;
 import magma.compile.rule.LazyRule;
 import magma.compile.rule.NodeRule;
 import magma.compile.rule.OptionalNodeListRule;
-import magma.compile.rule.RootSlice;
 import magma.compile.rule.Rule;
 import magma.compile.rule.Slice;
 import magma.compile.rule.SplitRule;
@@ -834,7 +833,7 @@ public class Lang {
 		final Rule left = Node("left", expression);
 		final Rule right = Node("right", expression);
 		final Splitter splitter =
-				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(new RootSlice(infix)))));
+				DividingSplitter.KeepFirst(new FoldingDivider(new EscapingFolder(new OperatorFolder(new Slice(infix)))));
 		return Tag(type, SplitRule.Split(left, splitter, right));
 	}
 
