@@ -507,6 +507,8 @@ public class JavaSerializer {
 		Class<?> fieldType = component.getType();
 
 		if (fieldType == Slice.class) return deserializeSliceField(fieldName, node, consumedFields);
+		if (fieldType == String.class) return deserializeStringField(fieldName, node, consumedFields);
+
 		if (Option.class.isAssignableFrom(fieldType)) return deserializeOptionField(component, node, consumedFields);
 		if (NonEmptyList.class.isAssignableFrom(fieldType))
 			return deserializeNonEmptyListField(component, node, consumedFields);
@@ -538,6 +540,24 @@ public class JavaSerializer {
 			return new Ok<Object, CompileError>(value);
 		} else return new Err<Object, CompileError>(new CompileError(
 				"Required component '" + fieldName + "' of type 'Slice' not present", new NodeContext(node)));
+	}
+
+	private static Result<Object, CompileError> deserializeStringField(String fieldName,
+																																		 Node node,
+																																		 Set<String> consumedFields) {
+		Option<Slice> direct = node.findSlice(fieldName);
+		if (direct instanceof Some<Slice>(Slice value)) {
+			consumedFields.add(fieldName);
+			return new Ok<Object, CompileError>(value.value());
+		}
+
+		// Try nested search
+		Option<Slice> nested = findSliceInChildren(node, fieldName);
+		if (nested instanceof Some<Slice>(Slice value)) {
+			consumedFields.add(fieldName);
+			return new Ok<Object, CompileError>(value.value());
+		} else return new Err<Object, CompileError>(new CompileError(
+				"Required component '" + fieldName + "' of type 'String' not present", new NodeContext(node)));
 	}
 
 	private static Result<Object, CompileError> deserializeOptionField(RecordComponent component,
@@ -574,6 +594,32 @@ public class JavaSerializer {
 			Option<NonEmptyList<Node>> wrongTypeList = node.findNodeList(fieldName);
 			if (wrongTypeList instanceof Some<NonEmptyList<Node>>) return new Err<Object, CompileError>(new CompileError(
 					"Field '" + fieldName + "' of type 'Option<Slice>' found a list instead of slice in '" +
+					node.maybeType.orElse("unknown") + "'",
+					new NodeContext(node)));
+
+			return new Ok<Object, CompileError>(Option.empty());
+		}
+
+		if (elementClass == String.class) {
+			Option<Slice> direct = node.findSlice(fieldName);
+			if (direct instanceof Some<Slice>(Slice value)) {
+				consumedFields.add(fieldName);
+				return new Ok<Object, CompileError>(new Some<String>(value.value()));
+			}
+			Option<Slice> nested = findSliceInChildren(node, fieldName);
+			if (nested instanceof Some<Slice>(Slice value)) {
+				consumedFields.add(fieldName);
+				return new Ok<Object, CompileError>(new Some<String>(value.value()));
+			}
+
+			// Check if field exists but is wrong type (e.g., list when expecting string)
+			Option<Node> wrongTypeNode = node.findNode(fieldName);
+			if (wrongTypeNode instanceof Some<Node>) return new Err<Object, CompileError>(new CompileError(
+					"Field '" + fieldName + "' of type 'Option<String>' found a node instead of string in '" +
+					node.maybeType.orElse("unknown") + "'", new NodeContext(node)));
+			Option<NonEmptyList<Node>> wrongTypeList = node.findNodeList(fieldName);
+			if (wrongTypeList instanceof Some<NonEmptyList<Node>>) return new Err<Object, CompileError>(new CompileError(
+					"Field '" + fieldName + "' of type 'Option<String>' found a list instead of string in '" +
 					node.maybeType.orElse("unknown") + "'",
 					new NodeContext(node)));
 
