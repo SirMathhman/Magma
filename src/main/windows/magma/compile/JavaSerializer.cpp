@@ -358,6 +358,9 @@ Result<Object, CompileError> deserializeField_JavaSerializer() {
 	if (fieldType==Slice.class)
 	{
 	return deserializeSliceField();}
+	if (fieldType==String.class)
+	{
+	return deserializeStringField();}
 	if (Option.class.isAssignableFrom())
 	{
 	return deserializeOptionField();}
@@ -389,6 +392,20 @@ Result<Object, CompileError> deserializeSliceField_JavaSerializer() {
 	else
 	return new_???();
 }
+Result<Object, CompileError> deserializeStringField_JavaSerializer() {
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	else
+	return new_???();
+}
 Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	Result<Type, CompileError> elementTypeResult=getGenericArgument();
 	if (/*???*/)
@@ -402,6 +419,27 @@ Result<Object, CompileError> deserializeOptionField_JavaSerializer() {
 	Class</*Wildcard[]*/> elementClass=/*???*/.value();
 	String fieldName=component.getName();
 	if (elementClass==Slice.class)
+	{
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	consumedFields.add();
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	return new_???();}
+	/*???*/();
+	if (/*???*/)
+	{
+	return new_???();}
+	return new_???();}
+	if (elementClass==String.class)
 	{
 	/*???*/();
 	if (/*???*/)
