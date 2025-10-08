@@ -10,7 +10,7 @@ Node withSlice_Node() {
 	slices.put();
 	return this;
 }
-Option<TokenSequence> findSlice_Node() {
+Option<Slice> findSlice_Node() {
 	return Option.ofNullable();
 }
 Node merge_Node() {

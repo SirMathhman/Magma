@@ -3,7 +3,7 @@ struct FoldingDivider {};
 public FoldingDivider_FoldingDivider() {
 	this.folder=folder;
 }
-Stream<TokenSequence> divide_FoldingDivider() {
+Stream<Slice> divide_FoldingDivider() {
 	DivideState current=new_???();
 	while (true)
 	{

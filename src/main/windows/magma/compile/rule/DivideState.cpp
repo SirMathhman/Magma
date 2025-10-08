@@ -5,7 +5,7 @@ new StringBuilder_DivideState() {/*???*/
 public DivideState_DivideState() {
 	this.input=input;
 }
-Stream<TokenSequence> stream_DivideState() {
+Stream<Slice> stream_DivideState() {
 	return segments.stream();
 }
 DivideState enter_DivideState() {

@@ -8,10 +8,7 @@ public final class ArrayHead<T> implements Head<T> {
 	private final T[] array;
 	private int index = 0;
 
-	@SafeVarargs
-	public ArrayHead(T... array) {
-		this.array = array;
-	}
+	public ArrayHead(T[] array) {this.array = array;}
 
 	@Override
 	public Option<T> next() {

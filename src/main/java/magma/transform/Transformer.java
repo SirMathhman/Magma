@@ -314,7 +314,7 @@ public class Transformer {
 			case Lang.JGeneric generic -> transformGeneric(generic);
 			case Lang.Array array -> transformArray(array);
 			case Lang.Identifier identifier -> transformIdentifier(identifier);
-			case Lang.JQualified qualified -> new Lang.Identifier(qualified.last());
+			case Lang.JQualified qualified -> new Lang.Identifier(new RootTokenSequence(qualified.last()));
 			case Lang.Variadic variadic -> new Lang.Invalid(new RootTokenSequence(type.toString()));
 			case Lang.Wildcard wildcard -> new Lang.Invalid(new RootTokenSequence(type.toString()));
 		};
@@ -347,7 +347,7 @@ public class Transformer {
 		// If the list is empty, this is an error case - generics should always have
 		// type arguments
 		return NonEmptyList.fromList(transformedTypes)
-											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(generic.base().last(),
+											 .map(nonEmptyTypes -> (CNodes.CType) new Lang.CTemplate(new RootTokenSequence(generic.base().last()),
 																																							 nonEmptyTypes))
 											 .orElse(new Lang.Invalid(new RootTokenSequence(
 													 "Empty type arguments for generic " + generic.base().last()), new None<TokenSequence>()));

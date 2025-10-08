@@ -9,7 +9,7 @@ DividingSplitter KeepFirst_DividingSplitter() {
 DividingSplitter KeepLast_DividingSplitter() {
 	return new_???();
 }
-Option<Tuple<TokenSequence, TokenSequence>> split_DividingSplitter() {
+Option<Tuple<Slice, Slice>> split_DividingSplitter() {
 	var segments=divider.divide().toList();
 	var delimiter=divider.delimiter();
 	return merger.merge();

@@ -30,6 +30,4 @@ public interface TokenSequence {
 
 	@Deprecated
 	String value();
-
-	String display();
 }
