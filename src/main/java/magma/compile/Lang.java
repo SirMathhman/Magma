@@ -20,6 +20,7 @@ import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TokenSequence;
+import magma.list.Joiner;
 import magma.list.List;
 import magma.list.NonEmptyList;
 import magma.option.None;
@@ -239,11 +240,8 @@ public class Lang {
 	@Tag("template")
 	public record CTemplate(TokenSequence base, NonEmptyList<CNodes.CType> typeArguments) implements CNodes.CType {
 		@Override
-		public TokenSequence toTokens() {
-			final Option<TokenSequence> maybeJoined =
-					typeArguments.stream().map(CNodes.CType::toTokens).collect(new TokenSequenceCollector("_"));
-			final TokenSequence tokenSequence = base.appendSlice("_");
-			return maybeJoined.map(tokenSequence::appendSequence).orElse(tokenSequence);
+		public String stringify() {
+			return base.value() + "_" + typeArguments.stream().map(CNodes.CType::stringify).collect(new Joiner("_"));
 		}
 	}
 
@@ -272,8 +270,8 @@ public class Lang {
 		}
 
 		@Override
-		public TokenSequence toTokens() {
-			return new RootTokenSequence("???");
+		public String stringify() {
+			return "???";
 		}
 	}
 
@@ -328,16 +326,16 @@ public class Lang {
 	@Tag("identifier")
 	public record Identifier(TokenSequence value) implements JType, CNodes.CType, JExpression, CExpression, Identifiable {
 		@Override
-		public TokenSequence toTokens() {
-			return value;
+		public String stringify() {
+			return value.value();
 		}
 	}
 
 	@Tag("pointer")
 	public record Pointer(CNodes.CType child) implements CNodes.CType {
 		@Override
-		public TokenSequence toTokens() {
-			return child.toTokens().appendSlice("_ref");
+		public String stringify() {
+			return child.stringify() + "_ref";
 		}
 	}
 

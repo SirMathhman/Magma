@@ -1,19 +1,18 @@
 package magma.compile;
 
-import magma.compile.rule.TokenSequence;
 import magma.list.Joiner;
 import magma.list.List;
 
 public class CNodes {
 	sealed public interface CType permits Lang.CTemplate, CFunctionPointer, Lang.Identifier, Lang.Invalid, Lang.Pointer {
-		TokenSequence toTokens();
+		String stringify();
 	}
 
 	@Tag("functionPointer")
 	public record CFunctionPointer(CType returnType, List<CType> paramTypes) implements CType {
 		@Override
-		public TokenSequence toTokens() {
-			return "fn_" + paramTypes.stream().map(CType::toTokens).collect(new Joiner("_")) + "_" + returnType.toTokens();
+		public String stringify() {
+			return "fn_" + paramTypes.stream().map(CType::stringify).collect(new Joiner("_")) + "_" + returnType.stringify();
 		}
 	}
 

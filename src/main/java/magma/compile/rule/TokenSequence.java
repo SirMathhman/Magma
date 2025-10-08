@@ -32,8 +32,4 @@ public interface TokenSequence {
 	String value();
 
 	String display();
-
-	TokenSequence appendSlice(String delimiter);
-
-	TokenSequence appendSequence(TokenSequence sequence);
 }
