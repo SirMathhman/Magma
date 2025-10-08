@@ -31,7 +31,7 @@ public record DividingSplitter(Divider divider, Merger merger) implements Splitt
 	}
 
 	@Override
-	public TokenSequence merge(TokenSequence left, TokenSequence right) {
-		return left.appendSlice(divider.delimiter()).appendSequence(right);
+	public String merge(String left, String right) {
+		return left + divider.delimiter() + right;
 	}
 }

@@ -14,7 +14,7 @@ public class KeepFirstMerger implements Merger {
 
 		// Split into first segment and the rest
 		final TokenSequence left = segments.getFirst().orElse(null);
-		final TokenSequence right = new StringTokenSequence(segments.subListOrEmpty(1, segments.size())
+		final TokenSequence right = new RootTokenSequence(segments.subListOrEmpty(1, segments.size())
 																															.stream()
 																															.map(TokenSequence::value)
 																															.collect(new Joiner(delimiter)));

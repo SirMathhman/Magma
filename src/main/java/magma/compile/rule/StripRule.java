@@ -23,7 +23,7 @@ public record StripRule(String leftKey, Rule rule, String rightKey) implements R
 		return rule.generate(node).mapValue(generated -> {
 			final String leftString = node.findSlice(leftKey).map(TokenSequence::value).orElse("");
 			final String rightString = node.findSlice(rightKey).map(TokenSequence::value).orElse("");
-			return new StringTokenSequence(leftString + generated.display() + rightString);
+			return leftString + generated + rightString;
 		});
 	}
 }

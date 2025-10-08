@@ -24,7 +24,7 @@ public record InfixSplitter(String infix, Locator locator) implements Splitter {
 	}
 
 	@Override
-	public TokenSequence merge(TokenSequence left, TokenSequence right) {
-		return left.appendSlice(infix).appendSequence(right);
+	public String merge(String left, String right) {
+		return left + infix + right;
 	}
 }

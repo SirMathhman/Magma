@@ -13,5 +13,5 @@ public interface Splitter {
 
 	String createErrorMessage();
 
-	TokenSequence merge(TokenSequence left, TokenSequence right);
+	String merge(String left, String right);
 }

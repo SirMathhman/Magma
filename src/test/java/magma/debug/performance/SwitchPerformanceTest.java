@@ -3,7 +3,6 @@ package magma.debug.performance;
 import magma.compile.Lang;
 import magma.compile.Node;
 import magma.compile.error.CompileError;
-import magma.compile.rule.StringTokenSequence;
 import magma.result.Err;
 import magma.result.Ok;
 import org.junit.jupiter.api.Assertions;
@@ -51,7 +50,7 @@ public class SwitchPerformanceTest {
 				}""";
 
 		Assertions.assertTimeoutPreemptively(Duration.ofSeconds(3), () -> {
-			switch (Lang.JExpression(Lang.JMethodSegment()).lex(new StringTokenSequence(s))) {
+			switch (Lang.JExpression(Lang.JMethodSegment()).lex(s)) {
 				case Err<Node, CompileError> v -> fail(v.error().display());
 				case Ok<Node, CompileError> v -> assertNotNull(v.value());
 			}

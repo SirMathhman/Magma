@@ -20,6 +20,6 @@ public record PlaceholderRule(Rule rule) implements Rule {
 
 	@Override
 	public Result<TokenSequence, CompileError> generate(Node node) {
-		return rule.generate(node).mapValue(ts -> new StringTokenSequence(wrap(ts.display())));
+		return rule.generate(node).mapValue(PlaceholderRule::wrap);
 	}
 }
