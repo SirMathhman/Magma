@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.result.Result;
@@ -10,7 +10,7 @@ import magma.result.Result;
 public record ContextRule(String whenErr, Rule child) implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
-		return child.lex(content).mapErr(err -> new CompileError(whenErr, new TokenSequenceContext(content), List.of(err)));
+		return child.lex(content).mapErr(err -> new CompileError(whenErr, new InputContext(content), List.of(err)));
 	}
 
 	@Override

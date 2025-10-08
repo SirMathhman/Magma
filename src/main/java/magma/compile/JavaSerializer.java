@@ -1,7 +1,7 @@
 package magma.compile;
 
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.compile.rule.RootTokenSequence;
 import magma.compile.rule.TokenSequence;
@@ -95,8 +95,8 @@ public class JavaSerializer {
 																												errors));
 	}
 
-	private static TokenSequenceContext createContext(String type) {
-		return new TokenSequenceContext(new RootTokenSequence(type));
+	private static InputContext createContext(String type) {
+		return new InputContext(new RootTokenSequence(type));
 	}
 
 	private static Result<Node, CompileError> serializeField(RecordComponent component, Object value) {

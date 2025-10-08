@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.option.None;
 import magma.option.Option;
@@ -21,7 +21,7 @@ public class LazyRule implements Rule {
 	public Result<Node, CompileError> lex(TokenSequence content) {
 		return switch (maybeChild.map(child -> child.lex(content))) {
 			case None<Result<Node, CompileError>> _ ->
-					new Err<Node, CompileError>(new CompileError("Child not set", new TokenSequenceContext(content)));
+					new Err<Node, CompileError>(new CompileError("Child not set", new InputContext(content)));
 			case Some<Result<Node, CompileError>> v -> v.value();
 		};
 	}

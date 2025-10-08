@@ -1,7 +1,7 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
-import magma.compile.context.TokenSequenceContext;
+import magma.compile.context.InputContext;
 import magma.compile.error.CompileError;
 import magma.result.Err;
 import magma.result.Result;
@@ -29,7 +29,7 @@ public class FilterRule implements Rule {
 	@Override
 	public Result<Node, CompileError> lex(TokenSequence content) {
 		if (filter.test(content)) return rule.lex(content);
-		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new TokenSequenceContext(content)));
+		return new Err<Node, CompileError>(new CompileError(filter.createErrorMessage(), new InputContext(content)));
 	}
 
 	@Override

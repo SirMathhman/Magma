@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.result.Err;
@@ -18,7 +18,7 @@ public record TagRule(String tag, Rule rule) implements Rule {
 		final Result<Node, CompileError> lex = rule.lex(content);
 		return lex.mapValue(node -> node.retype(tag))
 							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",
-																								new TokenSequenceContext(content),
+																								new InputContext(content),
 																								List.of(error)));
 	}
 

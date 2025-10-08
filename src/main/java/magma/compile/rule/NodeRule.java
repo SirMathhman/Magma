@@ -1,8 +1,8 @@
 package magma.compile.rule;
 
 import magma.compile.Node;
+import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
-import magma.compile.context.TokenSequenceContext;
 import magma.compile.error.CompileError;
 import magma.list.List;
 import magma.option.None;
@@ -20,7 +20,7 @@ public record NodeRule(String key, Rule rule) implements Rule {
 		return rule.lex(content)
 							 .mapValue(node -> new Node().withNode(key, node))
 							 .mapErr(error -> new CompileError("Failed to attach node '" + key + "'",
-																								 new TokenSequenceContext(content),
+																								 new InputContext(content),
 																								 List.of(error)));
 	}
 
