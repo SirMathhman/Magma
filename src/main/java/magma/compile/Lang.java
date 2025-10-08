@@ -20,6 +20,7 @@ import magma.compile.rule.SplitRule;
 import magma.compile.rule.Splitter;
 import magma.compile.rule.StringRule;
 import magma.compile.rule.TokenSequence;
+import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
 import magma.list.NonEmptyList;
@@ -478,13 +479,21 @@ public class Lang {
 	public record QualifiedSegment(TokenSequence value) {}
 
 	@Tag("qualified")
-	public record JQualified(NonEmptyList<QualifiedSegment> segments) implements JType {
-		public TokenSequence last() {
-			return segments.last().value;
+	public record JQualified(Option<List<QualifiedSegment>> segments) implements JType {
+		public String last() {
+			if (segments instanceof None<List<QualifiedSegment>>) return "";
+			return segments.orElse(new ArrayList<QualifiedSegment>()).getLast().map(seg -> seg.value.value()).orElse("");
 		}
 
 		public boolean endsWith(String name) {
-			return last().endsWith(name);
+			return unwrap().getLast().filter(last -> last.equals(name)) instanceof Some<String>;
+		}
+
+		private List<String> unwrap() {
+			if (segments instanceof Some<List<QualifiedSegment>>(List<QualifiedSegment> list))
+				return list.stream().map(segment -> segment.value.value()).toList();
+
+			return new ArrayList<String>();
 		}
 	}
 
