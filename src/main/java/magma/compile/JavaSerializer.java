@@ -107,7 +107,7 @@ public class JavaSerializer {
 			return new Err<Node, CompileError>(new CompileError("Component '" + fieldName + "' was absent",
 																													createContext(fieldName)));
 
-		if (fieldType == Slice.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value));
+		if (fieldType == RootSlice.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value));
 		if (Option.class.isAssignableFrom(fieldType)) return serializeOptionField(component, value);
 		if (NonEmptyList.class.isAssignableFrom(fieldType)) return serializeNonEmptyListField(component, value);
 		if (List.class.isAssignableFrom(fieldType)) return serializeListField(component, value);
@@ -134,7 +134,7 @@ public class JavaSerializer {
 				return new Err<Node, CompileError>(error);
 			Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-			if (elementClass == Slice.class)
+			if (elementClass == RootSlice.class)
 				return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value1));
 
 			if (NonEmptyList.class.isAssignableFrom(elementClass))
@@ -501,16 +501,16 @@ public class JavaSerializer {
 	}
 
 	private static Result<Object, CompileError> deserializeField(RecordComponent component,
-																															 Node node,
-																															 Set<String> consumedFields) {
+																																												 Node node,
+																																												 Set<String> consumedFields) {
 		String fieldName = component.getName();
 		Class<?> fieldType = component.getType();
 
-		if (fieldType == Slice.class) return deserializeSliceField(fieldName, node, consumedFields);
+		if (fieldType == RootSlice.class) return deserializeSliceField(fieldName, node, consumedFields);
+
 		if (fieldType == String.class) return deserializeStringField(fieldName, node, consumedFields);
 
-		if (Option.class.isAssignableFrom(fieldType)) return deserializeOptionField(component, node, consumedFields);
-		if (NonEmptyList.class.isAssignableFrom(fieldType))
+		if (Option.class.isAssignableFrom(fieldType)) return deserializeOptionField(component, node, consumedFields);		if (NonEmptyList.class.isAssignableFrom(fieldType))
 			return deserializeNonEmptyListField(component, node, consumedFields);
 
 		if (List.class.isAssignableFrom(fieldType)) return deserializeListField(component, node, consumedFields);
@@ -574,7 +574,7 @@ public class JavaSerializer {
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 		String fieldName = component.getName();
 
-		if (elementClass == Slice.class) {
+		if (elementClass == RootSlice.class) {
 			Option<Slice> direct = node.findSlice(fieldName);
 			if (direct instanceof Some<Slice>(Slice value)) {
 				consumedFields.add(fieldName);
