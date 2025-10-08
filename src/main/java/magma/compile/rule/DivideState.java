@@ -8,17 +8,17 @@ import magma.option.Option;
 import magma.option.Some;
 
 public class DivideState {
-	public final List<TokenSequence> segments = new ArrayList<TokenSequence>();
-	private final TokenSequence input;
+	public final List<Slice> segments = new ArrayList<Slice>();
+	private final Slice input;
 	private StringBuilder buffer = new StringBuilder();
 	private int depth = 0;
 	private int index;
 
-	public DivideState(TokenSequence input) {
+	public DivideState(Slice input) {
 		this.input = input;
 	}
 
-	Stream<TokenSequence> stream() {
+	Stream<Slice> stream() {
 		return segments.stream();
 	}
 
@@ -28,7 +28,7 @@ public class DivideState {
 	}
 
 	public DivideState advance() {
-		segments.addLast(new RootTokenSequence(buffer.toString()));
+		segments.addLast(new RootSlice(buffer.toString()));
 		this.buffer = new StringBuilder();
 		return this;
 	}

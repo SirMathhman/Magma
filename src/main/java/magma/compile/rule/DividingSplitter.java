@@ -18,8 +18,8 @@ public record DividingSplitter(Divider divider, Merger merger) implements Splitt
 	}
 
 	@Override
-	public Option<Tuple<TokenSequence, TokenSequence>> split(TokenSequence tokenSequence) {
-		final var segments = divider.divide(tokenSequence).toList();
+	public Option<Tuple<Slice, Slice>> split(Slice slice) {
+		final var segments = divider.divide(slice).toList();
 		final var delimiter = divider.delimiter();
 
 		return merger.merge(segments, delimiter);

@@ -11,8 +11,8 @@ public class FoldingDivider implements Divider {
 	public FoldingDivider(Folder folder) {this.folder = folder;}
 
 	@Override
-	public Stream<TokenSequence> divide(TokenSequence tokenSequence) {
-		DivideState current = new DivideState(tokenSequence);
+	public Stream<Slice> divide(Slice slice) {
+		DivideState current = new DivideState(slice);
 		while (true) {
 			final Option<Character> pop = current.pop();
 			if (pop instanceof None<Character>) break;

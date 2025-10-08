@@ -3,5 +3,5 @@ package magma.compile.rule;
 import magma.option.Option;
 
 public interface Locator {
-	Option<Integer> locate(TokenSequence input, String infix);
+	Option<Integer> locate(Slice input, String infix);
 }

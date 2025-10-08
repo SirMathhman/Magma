@@ -11,7 +11,7 @@ public class EmptyRule implements Rule {
 	public static final Rule Empty = new EmptyRule();
 
 	@Override
-	public Result<Node, CompileError> lex(TokenSequence content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		if (content.isEmpty()) return new Ok<Node, CompileError>(new Node());
 		return new Err<Node, CompileError>(new CompileError("Content is not empty", new InputContext(content)));
 	}

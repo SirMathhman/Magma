@@ -53,8 +53,8 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(TokenSequence tokenSequence) {
-		return divider.divide(tokenSequence)
+	public Result<Node, CompileError> lex(Slice slice) {
+		return divider.divide(slice)
 									.reduce(new Ok<List<Node>, CompileError>(new ArrayList<Node>()), this::fold)
 									.mapValue(list -> {
 										// Only add to nodeLists if non-empty
@@ -64,11 +64,11 @@ public record NodeListRule(String key, Rule rule, Divider divider) implements Ru
 																			 .orElse(new Node()); // Should never happen since we checked isEmpty
 									})
 									.mapErr(err -> new CompileError("Failed to lex segments for key '" + key + "'",
-																									new InputContext(tokenSequence),
+																									new InputContext(slice),
 																									List.of(err)));
 	}
 
-	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, TokenSequence element) {
+	private Result<List<Node>, CompileError> fold(Result<List<Node>, CompileError> current, Slice element) {
 		return switch (current) {
 			case Err<List<Node>, CompileError> v -> new Err<List<Node>, CompileError>(v.error());
 			case Ok<List<Node>, CompileError>(List<Node> list) -> switch (rule.lex(element)) {

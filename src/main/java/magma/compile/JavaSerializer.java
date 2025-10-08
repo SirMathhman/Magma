@@ -3,8 +3,8 @@ package magma.compile;
 import magma.compile.context.InputContext;
 import magma.compile.context.NodeContext;
 import magma.compile.error.CompileError;
-import magma.compile.rule.RootTokenSequence;
-import magma.compile.rule.TokenSequence;
+import magma.compile.rule.RootSlice;
+import magma.compile.rule.Slice;
 import magma.list.ArrayList;
 import magma.list.Joiner;
 import magma.list.List;
@@ -96,7 +96,7 @@ public class JavaSerializer {
 	}
 
 	private static InputContext createContext(String type) {
-		return new InputContext(new RootTokenSequence(type));
+		return new InputContext(new RootSlice(type));
 	}
 
 	private static Result<Node, CompileError> serializeField(RecordComponent component, Object value) {
@@ -107,7 +107,7 @@ public class JavaSerializer {
 			return new Err<Node, CompileError>(new CompileError("Component '" + fieldName + "' was absent",
 																													createContext(fieldName)));
 
-		if (fieldType == TokenSequence.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (TokenSequence) value));
+		if (fieldType == Slice.class) return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value));
 		if (Option.class.isAssignableFrom(fieldType)) return serializeOptionField(component, value);
 		if (NonEmptyList.class.isAssignableFrom(fieldType)) return serializeNonEmptyListField(component, value);
 		if (List.class.isAssignableFrom(fieldType)) return serializeListField(component, value);
@@ -134,8 +134,8 @@ public class JavaSerializer {
 				return new Err<Node, CompileError>(error);
 			Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 
-			if (elementClass == TokenSequence.class)
-				return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (TokenSequence) value1));
+			if (elementClass == Slice.class)
+				return new Ok<Node, CompileError>(new Node().withSlice(fieldName, (Slice) value1));
 
 			if (NonEmptyList.class.isAssignableFrom(elementClass))
 				return serializeOptionNonEmptyListField(fieldName, elementType, value1);
@@ -506,7 +506,7 @@ public class JavaSerializer {
 		String fieldName = component.getName();
 		Class<?> fieldType = component.getType();
 
-		if (fieldType == TokenSequence.class) return deserializeSliceField(fieldName, node, consumedFields);
+		if (fieldType == Slice.class) return deserializeSliceField(fieldName, node, consumedFields);
 		if (Option.class.isAssignableFrom(fieldType)) return deserializeOptionField(component, node, consumedFields);
 		if (NonEmptyList.class.isAssignableFrom(fieldType))
 			return deserializeNonEmptyListField(component, node, consumedFields);
@@ -525,15 +525,15 @@ public class JavaSerializer {
 	private static Result<Object, CompileError> deserializeSliceField(String fieldName,
 																																		Node node,
 																																		Set<String> consumedFields) {
-		Option<TokenSequence> direct = node.findSlice(fieldName);
-		if (direct instanceof Some<TokenSequence>(TokenSequence value)) {
+		Option<Slice> direct = node.findSlice(fieldName);
+		if (direct instanceof Some<Slice>(Slice value)) {
 			consumedFields.add(fieldName);
 			return new Ok<Object, CompileError>(value);
 		}
 
 		// Try nested search
-		Option<TokenSequence> nested = findSliceInChildren(node, fieldName);
-		if (nested instanceof Some<TokenSequence>(TokenSequence value)) {
+		Option<Slice> nested = findSliceInChildren(node, fieldName);
+		if (nested instanceof Some<Slice>(Slice value)) {
 			consumedFields.add(fieldName);
 			return new Ok<Object, CompileError>(value);
 		} else return new Err<Object, CompileError>(new CompileError(
@@ -554,14 +554,14 @@ public class JavaSerializer {
 		Class<?> elementClass = ((Ok<Class<?>, CompileError>) elementClassResult).value();
 		String fieldName = component.getName();
 
-		if (elementClass == TokenSequence.class) {
-			Option<TokenSequence> direct = node.findSlice(fieldName);
-			if (direct instanceof Some<TokenSequence>(TokenSequence value)) {
+		if (elementClass == Slice.class) {
+			Option<Slice> direct = node.findSlice(fieldName);
+			if (direct instanceof Some<Slice>(Slice value)) {
 				consumedFields.add(fieldName);
 				return new Ok<Object, CompileError>(direct);
 			}
-			Option<TokenSequence> nested = findSliceInChildren(node, fieldName);
-			if (nested instanceof Some<TokenSequence>(TokenSequence value)) {
+			Option<Slice> nested = findSliceInChildren(node, fieldName);
+			if (nested instanceof Some<Slice>(Slice value)) {
 				consumedFields.add(fieldName);
 				return new Ok<Object, CompileError>(nested);
 			}
@@ -786,38 +786,38 @@ public class JavaSerializer {
 		return Option.of(annotation.value());
 	}
 
-	private static Option<TokenSequence> findSliceInChildren(Node node, String key) {
+	private static Option<Slice> findSliceInChildren(Node node, String key) {
 		{
 			Iterator<Node> iterator = node.nodes.values().iterator();
 			while (iterator.hasNext()) {
 				Node child = iterator.next();
-				Option<TokenSequence> result = child.findSlice(key);
-				if (result instanceof Some<TokenSequence>) return result;
+				Option<Slice> result = child.findSlice(key);
+				if (result instanceof Some<Slice>) return result;
 				result = findSliceInChildren(child, key);
-				if (result instanceof Some<TokenSequence>) return result;
+				if (result instanceof Some<Slice>) return result;
 			}
 		}
 		return findSliceInNodeLists(node, key);
 	}
 
-	private static Option<TokenSequence> findSliceInNodeLists(Node node, String key) {
+	private static Option<Slice> findSliceInNodeLists(Node node, String key) {
 		Iterator<NonEmptyList<Node>> iterator = node.nodeLists.values().iterator();
 		while (iterator.hasNext()) {
 			List<Node> children = iterator.next().toList();
-			Option<TokenSequence> result = searchChildrenList(children, key);
-			if (result instanceof Some<TokenSequence>) return result;
+			Option<Slice> result = searchChildrenList(children, key);
+			if (result instanceof Some<Slice>) return result;
 		}
 		return Option.empty();
 	}
 
-	private static Option<TokenSequence> searchChildrenList(List<Node> children, String key) {
+	private static Option<Slice> searchChildrenList(List<Node> children, String key) {
 		int i = 0;
 		while (i < children.size()) {
 			Node child = children.get(i).orElse(null);
-			Option<TokenSequence> result = child.findSlice(key);
-			if (result instanceof Some<TokenSequence>) return result;
+			Option<Slice> result = child.findSlice(key);
+			if (result instanceof Some<Slice>) return result;
 			result = findSliceInChildren(child, key);
-			if (result instanceof Some<TokenSequence>) return result;
+			if (result instanceof Some<Slice>) return result;
 			i++;
 		}
 		return Option.empty();

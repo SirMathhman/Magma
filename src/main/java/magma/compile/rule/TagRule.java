@@ -14,7 +14,7 @@ public record TagRule(String tag, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(TokenSequence content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		final Result<Node, CompileError> lex = rule.lex(content);
 		return lex.mapValue(node -> node.retype(tag))
 							.mapErr(error -> new CompileError("Failed to attach tag '" + tag + "'",

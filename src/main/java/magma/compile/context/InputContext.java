@@ -1,8 +1,8 @@
 package magma.compile.context;
 
-import magma.compile.rule.TokenSequence;
+import magma.compile.rule.Slice;
 
-public record InputContext(TokenSequence context) implements Context {
+public record InputContext(Slice context) implements Context {
 	@Override
 	public String display(int depth) {
 		return context.value();

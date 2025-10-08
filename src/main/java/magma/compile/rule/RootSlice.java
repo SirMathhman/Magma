@@ -8,7 +8,7 @@ import magma.option.None;
 import magma.option.Option;
 import magma.option.Some;
 
-public record RootTokenSequence(String value) implements TokenSequence {
+public record RootSlice(String value) implements Slice {
 	@Override
 	public boolean isEmpty() {
 		return value.isEmpty();
@@ -20,13 +20,13 @@ public record RootTokenSequence(String value) implements TokenSequence {
 	}
 
 	@Override
-	public TokenSequence substring(int extent) {
-		return new RootTokenSequence(value.substring(extent));
+	public Slice substring(int extent) {
+		return new RootSlice(value.substring(extent));
 	}
 
 	@Override
-	public TokenSequence strip() {
-		return new RootTokenSequence(value.strip());
+	public Slice strip() {
+		return new RootSlice(value.strip());
 	}
 
 	@Override
@@ -40,8 +40,8 @@ public record RootTokenSequence(String value) implements TokenSequence {
 	}
 
 	@Override
-	public TokenSequence substring(int start, int end) {
-		return new RootTokenSequence(value.substring(start, end));
+	public Slice substring(int start, int end) {
+		return new RootSlice(value.substring(start, end));
 	}
 
 	@Override
@@ -52,13 +52,13 @@ public record RootTokenSequence(String value) implements TokenSequence {
 	}
 
 	@Override
-	public List<TokenSequence> split(String regex) {
+	public List<Slice> split(String regex) {
 		return new HeadedStream<String>(new ArrayHead<String>(value.split(regex))).map(this::copy)
-																																							.collect(new ListCollector<TokenSequence>());
+																																							.collect(new ListCollector<Slice>());
 	}
 
-	private TokenSequence copy(String value1) {
-		return new RootTokenSequence(value1);
+	private Slice copy(String value1) {
+		return new RootSlice(value1);
 	}
 
 	@Override

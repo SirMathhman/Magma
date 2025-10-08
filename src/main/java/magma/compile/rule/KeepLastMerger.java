@@ -9,18 +9,18 @@ import magma.option.Some;
 
 public class KeepLastMerger implements Merger {
 	@Override
-	public Option<Tuple<TokenSequence, TokenSequence>> merge(List<TokenSequence> segments, String delimiter) {
-		if (segments.size() < 2) return new None<Tuple<TokenSequence, TokenSequence>>();
+	public Option<Tuple<Slice, Slice>> merge(List<Slice> segments, String delimiter) {
+		if (segments.size() < 2) return new None<Tuple<Slice, Slice>>();
 
 		// Join all but last element
-		final TokenSequence left = new RootTokenSequence(segments.subListOrEmpty(0, segments.size() - 1)
-																														 .stream()
-																														 .map(TokenSequence::value)
-																														 .collect(new Joiner(delimiter)));
+		final Slice left = new RootSlice(segments.subListOrEmpty(0, segments.size() - 1)
+																						 .stream()
+																						 .map(Slice::value)
+																						 .collect(new Joiner(delimiter)));
 
-		final Option<TokenSequence> lastOpt = segments.getLast();
-		if (lastOpt instanceof Some<TokenSequence>(TokenSequence right))
-			return new Some<Tuple<TokenSequence, TokenSequence>>(new Tuple<TokenSequence, TokenSequence>(left, right));
-		return new None<Tuple<TokenSequence, TokenSequence>>();
+		final Option<Slice> lastOpt = segments.getLast();
+		if (lastOpt instanceof Some<Slice>(Slice right))
+			return new Some<Tuple<Slice, Slice>>(new Tuple<Slice, Slice>(left, right));
+		return new None<Tuple<Slice, Slice>>();
 	}
 }

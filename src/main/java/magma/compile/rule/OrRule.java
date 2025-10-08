@@ -18,7 +18,7 @@ public record OrRule(List<Rule> rules) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(TokenSequence content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		return foldAll(rule1 -> rule1.lex(content), () -> new InputContext(content));
 	}
 

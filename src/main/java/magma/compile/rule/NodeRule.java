@@ -16,7 +16,7 @@ public record NodeRule(String key, Rule rule) implements Rule {
 	}
 
 	@Override
-	public Result<Node, CompileError> lex(TokenSequence content) {
+	public Result<Node, CompileError> lex(Slice content) {
 		return rule.lex(content)
 							 .mapValue(node -> new Node().withNode(key, node))
 							 .mapErr(error -> new CompileError("Failed to attach node '" + key + "'",

@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 
 public record DelimitedRule(String delimiter) implements Divider {
 	@Override
-	public Stream<TokenSequence> divide(TokenSequence tokenSequence) {
-		return tokenSequence.split(Pattern.quote(delimiter)).stream();
+	public Stream<Slice> divide(Slice slice) {
+		return slice.split(Pattern.quote(delimiter)).stream();
 	}
 }
