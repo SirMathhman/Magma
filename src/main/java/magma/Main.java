@@ -91,12 +91,36 @@ public class Main {
 		}
 	}
 
-	public record MapStream<S, T>(Head<S> head, Function<S, T> mapper) {
-		public Option<T> next() {
-			return switch (this.head.next()) {
-				case None<S> _ -> new None<T>();
-				case Some<S> v -> new Some<T>(this.mapper.apply(v.value));
-			};
+	public static final class FlatMapHead<T, R> implements Head<R> {
+		private final Head<T> head;
+		private final Function<T, Stream<R>> mapper;
+		private Option<Stream<R>> current = new None<Stream<R>>();
+
+		public FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+		}
+
+		@Override
+		public Option<R> next() {
+			while (true) {
+				if (this.current instanceof None<Stream<R>>) {
+					Option<T> sOpt = this.head.next();
+					if (sOpt instanceof None<T>) return new None<R>();
+					else if (sOpt instanceof Some<T>(T s)) this.current = new Some<Stream<R>>(this.mapper.apply(s));
+				}
+				if (this.current instanceof Some<Stream<R>>(Stream<R> stream)) {
+					Option<R> tOpt = stream.head().next();
+					if (tOpt instanceof Some<R>) return tOpt;
+					else this.current = new None<Stream<R>>();
+				}
+			}
+		}
+	}
+
+	public record Stream<T>(Head<T> head) {
+		public <R> Stream<R> map(Function<T, R> mapper) {
+			return new Stream<R>(() -> this.head.next().map(mapper));
 		}
 
 		public <C> C collect(Collector<T, C> collector) {
@@ -104,52 +128,12 @@ public class Main {
 		}
 
 		public <C> C fold(C initial, BiFunction<C, T, C> folder) {
-			while (true) if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);
+			while (true) if (this.head.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);
 			else return initial;
 		}
 
-		public <R> MapStream<T, R> map(Function<T, R> mapper) {
-			return new MapStream<T, R>(this::next, mapper);
-		}
-
-		public <R> FlatMapStream<T, R> flatMap(Function<T, Stream<R>> mapper) {
-			return new FlatMapStream<T, R>(this::next, mapper);
-		}
-	}
-
-	public static final class FlatMapStream<S, T> {
-		private final Head<S> head;
-		private final Function<S, Stream<T>> mapper;
-		private Option<Stream<T>> current = new None<Stream<T>>();
-
-		public FlatMapStream(Head<S> head, Function<S, Stream<T>> mapper) {
-			this.head = head;
-			this.mapper = mapper;
-		}
-
-		public <R> MapStream<T, R> map(Function<T, R> mapper) {
-			return new MapStream<T, R>(this::next, mapper);
-		}
-
-		private Option<T> next() {
-			while (true) {
-				if (this.current instanceof None<Stream<T>>) {
-					Option<S> sOpt = this.head.next();
-					if (sOpt instanceof None<S>) return new None<T>();
-					else if (sOpt instanceof Some<S>(S s)) this.current = new Some<Stream<T>>(this.mapper.apply(s));
-				}
-				if (this.current instanceof Some<Stream<T>>(Stream<T> stream)) {
-					Option<T> tOpt = stream.head().next();
-					if (tOpt instanceof Some<T>) return tOpt;
-					else this.current = new None<Stream<T>>();
-				}
-			}
-		}
-	}
-
-	public record Stream<T>(Head<T> head) {
-		public <R> MapStream<T, R> map(Function<T, R> mapper) {
-			return new MapStream<T, R>(this.head, mapper);
+		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
+			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
 		}
 	}
 
@@ -511,7 +495,7 @@ public class Main {
 			final String body = input.substring(paramEnd + ")".length()).strip();
 			final int paramStart = withParams.indexOf("(");
 			if (paramStart >= 0) {
-				final String definition = withParams.substring(0, paramStart);
+				final String definitionString = withParams.substring(0, paramStart);
 				final String paramsString = withParams.substring(paramStart + "(".length());
 				final String stripped = body.strip();
 				final List<JDefined> params = divide(paramsString, Main::foldValue).map(Main::parseDefined)
@@ -521,16 +505,21 @@ public class Main {
 				final String compiledParameters = params.stream().map(JDefined::generate).collect(new Joiner()).orElse("");
 
 				if (stripped.equals(";")) {
-					params.stream().map(param -> {
+					final String paramTypesJoined = params.stream().map(param -> {
 						if (param instanceof Definition definition1) return new Some<String>(definition1.type);
 						else return new None<String>();
-					}).flatMap(Options::stream).map(Main::generateStatement);
+					}).flatMap(Options::stream).collect(new Joiner(", ")).orElse("");
 
-					return new Some<String>(parseDefined(definition).generate() + "(" + compiledParameters + ");");
+					final JDefined jDefined = parseDefined(definitionString);
+					final String generate;
+					if (jDefined instanceof Definition definition) generate = definition.type + " (*" + definition.name + ")";
+					else generate = jDefined.generate();
+
+					return new Some<String>(generate + "(" + paramTypesJoined + ");");
 				} else if (stripped.startsWith("{") && stripped.endsWith("}")) {
 					final String substring = stripped.substring(1, stripped.length() - 1);
 					final String s =
-							parseDefined(definition).generate() + "(" + compiledParameters + "){" + wrap(substring) + "}";
+							parseDefined(definitionString).generate() + "(" + compiledParameters + "){" + wrap(substring) + "}";
 					return new Some<String>(s);
 				}
 			}

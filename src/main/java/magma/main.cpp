@@ -14,38 +14,38 @@ struct Option {
 	OptionTag tag;
 	OptionData<T> data;
 };
-T orElse(T other);
-T orElseGet(/*Supplier<T>*/ other);
-/*Option<T>*/ or(/*Supplier<Option<T>>*/ other);
-/*<R>*/ /*Option<R>*/ map(/*Function<T*//*R>*/ mapper);
+T (*orElse)(T);
+T (*orElseGet)(/*Supplier<T>*/);
+/*Option<T>*/ (*or)(/*Supplier<Option<T>>*/);
+/*Option<R>*/ (*map)(/*R>*/);
 /**/
 
 template<typename T>
 struct Head {
 };
-/*Option<T>*/ next(/**/);
+/*Option<T>*/ (*next)();
 /**/
 
 template<typename T>
 struct List {
 };
-/*List<T>*/ clear(/**/);
-/*List<T>*/ add(T element);
-int size(/**/);
-/*Option<T>*/ get(int index);
-/*Stream<T>*/ stream(/**/);
+/*List<T>*/ (*clear)();
+/*List<T>*/ (*add)(T);
+int (*size)();
+/*Option<T>*/ (*get)(int);
+/*Stream<T>*/ (*stream)();
 /**/
 
 template<typename T, C>
 struct Collector {
 };
-C createInitial(/**/);
-C fold(C currentT element);
+C (*createInitial)();
+C (*fold)(C, T);
 /**/
 
 struct JDefined {
 };
-String generate(/**/);
+String (*generate)();
 /**/
 
 /*public record Some<T>(T value) implements Option<T>*/ {
@@ -71,7 +71,7 @@ return this;
 /*@Override
 		public <R> Option<R> map(Function<T, R> mapper)*/ {
 };
-/*return*/ new Some<R>(/*mapper.apply(this.value*/)/*);*/
+/*return*/ new Some<R>(mapper.apply(this.value));
 /**/
 
 /**/
@@ -87,53 +87,55 @@ return other;
 /*@Override
 		public T orElseGet(Supplier<T> other)*/ {
 };
-return other.get(/**/);
+return (*other.get)();
 /**/
 
 /*@Override
 		public Option<T> or(Supplier<Option<T>> other)*/ {
 };
-return other.get(/**/);
+return (*other.get)();
 /**/
 
 /*@Override
 		public <R> Option<R> map(Function<T, R> mapper)*/ {
 };
-/*return*/ new None<R>(/**/);
+new (*None<R>)();
 /**/
 
 /**/
 
-struct MapStream<S, T> {
-	/*Head<S>*/ head;
-	/*Function<S*/;
-	/*T>*/ mapper;
+struct FlatMapHead<T, R> implements Head<R> {
 };
-/*public Option<T> next()*/ {
+/*private final*/ /*Head<T>*/ head;
+/*private final Function<T,*/ /*Stream<R>>*/ mapper;
+new (*None<Stream<R>>)();
+/*public FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper)*/ {
 };
-/*return switch (this.head.next())*/ {
-};
-/*case None<S> _ ->*/ new None<T>(/**/);
-/*case Some<S> v ->*/ new Some<T>(/*this.mapper.apply(v.value*/)/*);*/
+/*this.head*/ /*=*/ head;
+/*this.mapper*/ /*=*/ mapper;
 /**/
 
-/**/;
+/*@Override
+		public Option<R> next()*/ {
+};
+/*while (true)*/ {
+};
+/*if (this.current instanceof None<Stream<R>>)*/ {
+};
+/*=*/ (*this.head.next)();
+/*if (sOpt instanceof None<T>) return*/ new None<R>();
+/*else if (sOpt instanceof Some<T>(T s)) this.current =*/ new Some<Stream<R>>(this.mapper.apply(s));
 /**/
 
-/*public <C> C collect(Collector<T, C> collector)*/ {
+/*if (this.current instanceof Some<Stream<R>>(Stream<R> stream))*/ {
 };
-return this.fold(/*collector.createInitial(*/)/*, collector::fold);*/
+/*Option<R> tOpt*/ /*=*/ stream.head().next();
+/*if (tOpt instanceof Some<R>)*/ return tOpt;
+new (*None<Stream<R>>)();
 /**/
 
-/*public <C> C fold(C initial, BiFunction<C, T, C> folder)*/ {
-};
-/*while*/(/*true*/)/*if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);*/
-/*else*/ return initial;
 /**/
 
-/*public <S> MapStream<T, S> map(Function<T, S> mapper)*/ {
-};
-/*return new*/ /*MapStream<T,*/ S>(/*this::next*//*mapper*/);
 /**/
 
 /**/
@@ -141,9 +143,25 @@ return this.fold(/*collector.createInitial(*/)/*, collector::fold);*/
 struct Stream<T> {
 	/*Head<T>*/ head;
 };
-/*public <R> MapStream<T, R> map(Function<T, R> mapper)*/ {
+/*public <R> Stream<R> map(Function<T, R> mapper)*/ {
 };
-/*return new*/ /*MapStream<T,*/ R>(/*this.head*//*mapper*/);
+/*return new Stream<R>(()*/ /*->*/ this.head.next().map(mapper));
+/**/
+
+/*public <C> C collect(Collector<T, C> collector)*/ {
+};
+/*return*/ /*this.fold(collector.createInitial(),*/ collector::fold);
+/**/
+
+/*public <C> C fold(C initial, BiFunction<C, T, C> folder)*/ {
+};
+/*while (true) if (this.head.next() instanceof Some<T>(T value)) initial =*/ /*folder.apply(initial,*/ value);
+/*else*/ return initial;
+/**/
+
+/*public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper)*/ {
+};
+/*return new Stream<R>(new FlatMapHead<T,*/ /*R>(this.head,*/ mapper));
 /**/
 
 /**/
@@ -162,10 +180,10 @@ struct ArrayHead<T> implements Head<T> {
 /*@Override
 		public Option<T> next()*/ {
 };
-/*if*/(/*this.counter*/ /*>=*/ this.size)/*return new None<T>();*/
+/*if (this.counter >= this.size) return*/ new None<T>();
 /*final T next*/ /*=*/ this.array[this.counter];
 /*this.counter++*/;
-/*return*/ new Some<T>(/*next*/);
+new (*Some<T>)();
 /**/
 
 /**/
@@ -184,7 +202,7 @@ struct ArrayList<T> implements List<T> {
 
 /*public ArrayList(Supplier<T> createDefault)*/ {
 };
-/*this*/(/*alloc(10*/)/*, createDefault);*/
+/*this(alloc(10),*/ createDefault);
 /**/
 
 /*@Override
@@ -197,7 +215,7 @@ return this;
 /*@Override
 		public List<T> add(T element)*/ {
 };
-return this.set(/*this.size*//*element*/);
+return (*this.set)();
 /**/
 
 /*@Override
@@ -209,23 +227,23 @@ return this.size;
 /*@Override
 		public Option<T> get(int index)*/ {
 };
-/*if*/(/*index*/ /*<*/ this.size)/*return new Some<T>(this.array[index]);*/
-/*else return*/ new None<T>(/**/);
+/*if (index < this.size) return*/ new Some<T>(this.array[index]);
+new (*None<T>)();
 /**/
 
 /*@Override
 		public Stream<T> stream()*/ {
 };
-/*return*/ new Stream<T>(new ArrayHead<T>(this.array/*this.size*/)/*);*/
+/*return new Stream<T>(new*/ /*ArrayHead<T>(this.array,*/ this.size));
 /**/
 
 /*private List<T> set(int index, T element)*/ {
 };
-/*Option<T[]> option*/ /*=*/ this.resizeArrayToContainIndex(/*index*/);
-/*if*/(/*option instanceof*/ /*Some<T[]>(T[]*/ value)/*) this.array = value;*/
+/*=*/ (*this.resizeArrayToContainIndex)();
+/*if (option instanceof Some<T[]>(T[] value)) this.array*/ /*=*/ value;
 /*if (index + 1 >= this.size)*/ {
 };
-/*this.padWithDefaults*/(/*this.size*//*index*/ /*+*/ 1);
+/*this.padWithDefaults*/(/*+*/);
 /*this.size = index*/ /*+*/ 1;
 /**/
 
@@ -236,11 +254,11 @@ return this;
 /*private Option<T[]> resizeArrayToContainIndex(int index)*/ {
 };
 /*int newCapacity*/ /*=*/ this.array.length;
-/*if*/(/*index*/ /*<*/ newCapacity)/*return new None<T[]>();*/
-/*while*/(/*newCapacity*/ /*<=*/ index)/*newCapacity *= 2;*/
-/*final T[] newArray*/ /*=*/ alloc(/*newCapacity*/);
-/*System.arraycopy*/(/*this.array*//*0*//*newArray*//*0*//*this.size*/);
-/*return*/ new Some<T[]>(/*newArray*/);
+/*if (index < newCapacity) return*/ new None<T[]>();
+/*while (newCapacity <= index) newCapacity*/ /**=*/ 2;
+/*=*/ (*alloc)();
+/*System.arraycopy*/();
+new (*Some<T[]>)();
 /**/
 
 /*private void padWithDefaults(int start, int end)*/ {
@@ -262,28 +280,28 @@ struct StringBuffer {
 
 /*public StringBuffer()*/ {
 };
-/*this*/(new ArrayList<Character>(()/*-> '\0'));*/
+/*this(new ArrayList<Character>(()*/ /*->*/ '\0'));
 /**/
 
 /*public StringBuffer clear()*/ {
 };
-/*this.chars*/ /*=*/ this.chars.clear(/**/);
+/*=*/ (*this.chars.clear)();
 return this;
 /**/
 
 /*public StringBuffer append(char c)*/ {
 };
-/*this.chars*/ /*=*/ this.chars.add(/*c*/);
+/*=*/ (*this.chars.add)();
 return this;
 /**/
 
 /*public String intoString()*/ {
 };
-/*final char[] array =*/ new char[this.chars.size(/**/)/*];*/
+/*final char[] array =*/ new char[this.chars.size()];
 /*for (int i*/ /*=*/ 0;
-/*i*/ /*<*/ this.chars.size(/**/);
+/*<*/ (*this.chars.size)();
 /*i++) array[i]*/ /*=*/ this.chars.get(i).orElse('\0');
-/*return*/ new String(/*array*/);
+new (*String)();
 /**/
 
 /**/
@@ -295,14 +313,14 @@ struct State {
 /*private*/ int depth;
 /*public State()*/ {
 };
-/*this.buffer =*/ new StringBuffer(/**/);
-/*this.segments =*/ new ArrayList<String>(/*DEFAULT_STRING*/);
+new (*StringBuffer)();
+new (*ArrayList<String>)();
 /*this.depth*/ /*=*/ 0;
 /**/
 
 /*private Stream<String> stream()*/ {
 };
-return this.segments.stream(/**/);
+return (*this.segments.stream)();
 /**/
 
 /*private State enter()*/ {
@@ -324,8 +342,8 @@ return this;
 
 /*private State advance()*/ {
 };
-/*this.segments.add*/(/*this.buffer.intoString(*/)/*);*/
-/*this.buffer*/ /*=*/ this.buffer.clear(/**/);
+/*this.segments.add(this.buffer.intoString())*/;
+/*=*/ (*this.buffer.clear)();
 return this;
 /**/
 
@@ -336,7 +354,7 @@ return this;
 
 /*private State append(char c)*/ {
 };
-/*this.buffer*/ /*=*/ this.buffer.append(/*c*/);
+/*=*/ (*this.buffer.append)();
 return this;
 /**/
 
@@ -352,13 +370,13 @@ struct Tuple<A, B> {
 };
 /*private Joiner()*/ {
 };
-/*this*/(/*""*/);
+/*this*/();
 /**/
 
 /*@Override
 		public Option<String> createInitial()*/ {
 };
-/*return*/ new None<String>(/**/);
+new (*None<String>)();
 /**/
 
 /*@Override
@@ -367,7 +385,7 @@ struct Tuple<A, B> {
 /*return new Some<String>(switch (current)*/ {
 };
 /*case None<String> _*/ /*->*/ element;
-case Some<String>(String buffer)/*-> buffer + this.delimiter + element;*/
+/*case Some<String>(String buffer) -> buffer + this.delimiter*/ /*+*/ element;
 /**/
 
 /*)*/;
@@ -379,7 +397,7 @@ struct Streams {
 };
 /*public static <T> Stream<T> fromInitializedArray(T[] array)*/ {
 };
-/*return*/ new Stream<T>(new ArrayHead<T>(array/*array.length*/)/*);*/
+/*return new Stream<T>(new*/ /*ArrayHead<T>(array,*/ array.length));
 /**/
 
 /**/
@@ -390,14 +408,14 @@ struct Header {
 };
 /*public String generate(String prefix)*/ {
 };
-/*final String*/ templateString =
-					this.maybeTypeParams.map(/*params -> "template<typename " + params + ">"*/ /*+*/ System.lineSeparator()/*).orElse("");*/
+/*final String templateString =
+					this.maybeTypeParams.map(params -> "template<typename " + params + ">"*/ /*+*/ System.lineSeparator()).orElse("");
 /*return templateString + prefix + " "*/ /*+*/ this.name;
 /**/
 
 /*public Option<String> generateTypeParams()*/ {
 };
-return this.maybeTypeParams.map(/*typeParams -> "<" + typeParams*/ /*+*/ ">");
+return (*this.maybeTypeParams.map)(/*+*/);
 /**/
 
 /**/
@@ -407,24 +425,24 @@ return this.maybeTypeParams.map(/*typeParams -> "<" + typeParams*/ /*+*/ ">");
 /*@Override
 		public List<T> createInitial()*/ {
 };
-/*return*/ new ArrayList<T>(/*this.createDefault*/);
+new (*ArrayList<T>)();
 /**/
 
 /*@Override
 		public List<T> fold(List<T> current, T element)*/ {
 };
-return current.add(/*element*/);
+return (*current.add)();
 /**/
 
 /**/
 
-/*private record Definition(Option<String> maybeBeforeType, String newType, String name) implements JDefined*/ {
+/*private record Definition(Option<String> maybeBeforeType, String type, String name) implements JDefined*/ {
 };
 /*@Override
 		public String generate()*/ {
 };
-/*final String beforeTypeString*/ /*=*/ this.maybeBeforeType(/**/)/*.map(Main::wrap).map(value -> value + " ").orElse("");*/
-/*return beforeTypeString*/ /*+*/ this.newType(/**/)/*+ " " + this.name();*/
+/*final String beforeTypeString = this.maybeBeforeType().map(Main::wrap).map(value -> value +*/ /*"*/ ").orElse("");
+/*return beforeTypeString + this.type() + " "*/ /*+*/ this.name();
 /**/
 
 /**/
@@ -440,73 +458,117 @@ struct Placeholder implements JDefined {
 /*@Override
 		public String generate()*/ {
 };
-return wrap(/*this.stripped*/);
+return (*wrap)();
 /**/
 
 /**/
 
-/*public static final Supplier<String>*/ /*DEFAULT_STRING*/ =(/**/)/*-> "";*/
+struct EmptyHead<T> implements Head<T> {
+};
+/*@Override
+		public Option<T> next()*/ {
+};
+new (*None<T>)();
+/**/
+
+/**/
+
+struct Options {
+};
+/*public static <T> Stream<T> stream(Option<T> option)*/ {
+};
+/*return new Stream<T>(switch (option)*/ {
+};
+new (*EmptyHead<T>)();
+new (*SingletonHead<T>)();
+/**/
+
+/*)*/;
+/**/
+
+/**/
+
+struct SingletonHead<T> implements Head<T> {
+};
+/*private final*/ T value;
+/*private boolean retrieved*/ /*=*/ false;
+/*public SingletonHead(T value)*/ {
+};
+/*this.value*/ /*=*/ value;
+/**/
+
+/*@Override
+		public Option<T> next()*/ {
+};
+/*if (this.retrieved) return*/ new None<T>();
+/*this.retrieved*/ /*=*/ true;
+new (*Some<T>)();
+/**/
+
+/**/
+
+/*public static final Supplier<String> DEFAULT_STRING = ()*/ /*->*/ "";
 /*public static <T> T[] alloc(int length)*/ {
 };
-/*//noinspection*/ unchecked
-		return(/*T[]*/)/*new Object[length];*/
+/*//noinspection unchecked
+		return (T[])*/ new Object[length];
 /**/
 
 /*public static void main(String[] args)*/ {
 };
 /*try*/ {
 };
-/*final Path source*/ /*=*/ Paths.get(/*"."*//*"src"*//*"main"*//*"java"*//*"magma"*//*"Main.java"*/);
-/*final String input*/ /*=*/ Files.readString(/*source*/);
-/*Files.writeString*/(/*source.resolveSibling("main.cpp"*/)/*, compile(input));*/
+/*=*/ (*Paths.get)();
+/*=*/ (*Files.readString)();
+/*Files.writeString(source.resolveSibling("main.cpp"),*/ compile(input));
 /**/
 
 /*catch (IOException e)*/ {
 };
-/*throw*/ new RuntimeException(/*e*/);
+new (*RuntimeException)();
 /**/
 
 /**/
 
 /*private static String compile(String input)*/ {
 };
-return compileStatements(/*input*//*Main::compileRootSegment*/);
+return (*compileStatements)();
 /**/
 
 /*private static String compileStatements(String input, Function<String, String> mapper)*/ {
 };
-return compileAll(/*input*//*Main::foldStatement*//*mapper*/);
+return (*compileAll)();
 /**/
 
 /*private static String compileAll(String input,
 																	 BiFunction<State, Character, State> folder,
 																	 Function<String, String> mapper)*/ {
 };
-return divide(/*input*//*folder*/)/*.map(mapper).collect(new Joiner()).orElse("");*/
+/*return divide(input,*/ /*folder).map(mapper).collect(new*/ Joiner()).orElse("");
 /**/
 
 /*private static Stream<String> divide(String input, BiFunction<State, Character, State> folder)*/ {
 };
-/*State current =*/ new State(/**/);
+new (*State)();
 /*for (int i*/ /*=*/ 0;
-/*i*/ /*<*/ input.length(/**/);
+/*<*/ (*input.length)();
 /*i++)*/ {
 };
-/*final char c*/ /*=*/ input.charAt(/*i*/);
-/*current*/ /*=*/ folder.apply(/*current*//*c*/);
+/*=*/ (*input.charAt)();
+/*=*/ (*folder.apply)();
 /**/
 
-return current.advance(/**/)/*.stream();*/
+return current.advance().stream();
 /**/
 
 /*private static State foldStatement(State state, char c)*/ {
 };
-/*final State appended*/ /*=*/ state.append(/*c*/);
+/*=*/ (*state.append)();
 /*if (c*/ /*==*/ ';
-/*'*/ /*&&*/ appended.isLevel(/**/)/*) return appended.advance();*/
+/*' && appended.isLevel())*/ return appended.advance();
 /*if (c == '*/
 
-/*'*/ /*&&*/ appended.isShallow(/**/)/*) return appended.advance().exit();*/
+/*' && appended.isShallow())*/ return appended.advance().exit();
 /*if (c == '*/ {
 };
 /*')*/ return appended.enter();
@@ -517,9 +579,9 @@ return appended;
 /**/
 /*private static String compileRootSegment(String input)*/ {
 };
-/*final String strip*/ /*=*/ input.strip(/**/);
-/*if*/(/*strip.startsWith("package*/ ")/*|| strip.startsWith("import ")) return "";*/
-return compileStructure(/*strip*/)/*.orElseGet(() -> wrap(strip));*/
+/*=*/ (*input.strip)();
+/*if (strip.startsWith("package ") || strip.startsWith("import "))*/ return "";
+/*return compileStructure(strip).orElseGet(()*/ /*->*/ wrap(strip));
 /**/
 /*private static Option<String> compileStructure(String input)*/ {
 };
@@ -527,239 +589,256 @@ return compileStructure(/*strip*/)/*.orElseGet(() -> wrap(strip));*/
 /*")) return new None<String>();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
 		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return new None<String>();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {
 };
-/*".length*/(/**/)/*);*/
-/*final Tuple<String, String> compiledHeader*/ /*=*/ compileStructureHeader(/*header*/);
+/*".length())*/;
+/*=*/ (*compileStructureHeader)();
 /*return new Some<String>(
 				compiledHeader.left + "*/ {
 };
-/*" + compiledHeader.right*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
+/*" + compiledHeader.right + System.lineSeparator() + "*/
 
 /**/;
-/*"*/ /*+*/ System.lineSeparator(/**/)/*+
-				compileStatements(body, Main::compileClassSegment));*/
+/*" + System.lineSeparator()*/ /*+
+				compileStatements(body,*/ Main::compileClassSegment));
 /**/
 /*private static String compileClassSegment(String input)*/ {
 };
-/*final String stripped*/ /*=*/ input.strip(/**/);
-return compileClassSegmentValue(/*stripped*/)/*+ System.lineSeparator();*/
+/*=*/ (*input.strip)();
+/*return compileClassSegmentValue(stripped)*/ /*+*/ System.lineSeparator();
 /**/
 /*private static String compileClassSegmentValue(String input)*/ {
 };
-return compileStructure(/*input*/)/*.or(() -> compileMethod(input))
+/*return compileStructure(input).or(() -> compileMethod(input))
 																	.or(() -> compileField(input))
-																	.orElseGet(() -> wrap(input));*/
+																	.orElseGet(()*/ /*->*/ wrap(input));
 /**/
 /*private static Option<String> compileField(String input)*/ {
 };
-/*final String stripped*/ /*=*/ input.strip(/**/);
+/*=*/ (*input.strip)();
 if (stripped.endsWith(";
 /*"))*/ {
 };
-/*final String slice*/ /*=*/ stripped.substring(/*0*//*stripped.length(*/)/*- ";*/
-/*".length*/(/**/)/*);*/
-/*return*/ new Some<String>(/*parseDefined(slice*/)/*.generate() + ";*/
+/*final String slice = stripped.substring(0, stripped.length()*/ /*-*/ ";
+/*".length())*/;
+/*return new Some<String>(parseDefined(slice).generate()*/ /*+*/ ";
 /*")*/;
 /**/
 
-/*else return*/ new None<String>(/**/);
+new (*None<String>)();
 /**/
 /*private static Option<String> compileMethod(String input)*/ {
 };
-/*final int paramEnd*/ /*=*/ input.indexOf(/*"*/)/*");*/
+/*final int paramEnd*/ /*=*/ input.indexOf(")");
 /*if (paramEnd >= 0)*/ {
 };
-/*final String withParams*/ /*=*/ input.substring(/*0*//*paramEnd*/);
-/*final String body*/ /*=*/ input.substring(/*paramEnd*/ /*+*/ ")/*".length()).strip();*/
-/*final int paramStart*/ /*=*/ withParams.indexOf(/*"("*/);
+/*=*/ (*input.substring)();
+/*final String body = input.substring(paramEnd*/ /*+*/ ")".length()).strip();
+/*=*/ (*withParams.indexOf)();
 /*if (paramStart >= 0)*/ {
 };
-/*final String definition*/ /*=*/ withParams.substring(/*0*//*paramStart*/);
-/*final String params*/ /*=*/ withParams.substring(/*paramStart*/ /*+*/ "(".length()/*);*/
-/*return*/ new Some<String>(/*parseDefined(definition*/)/*.generate() + "(" + compileParameters(params) + ")" + compileMethodBody(body));*/
-/**/
-
-/**/
-
-/*return*/ new None<String>(/**/);
-/**/
-/*private static String compileMethodBody(String body)*/ {
-};
-/*final String stripped*/ /*=*/ body.strip(/**/);
+/*=*/ (*withParams.substring)();
+/*final String paramsString = withParams.substring(paramStart*/ /*+*/ "(".length());
+/*=*/ (*body.strip)();
+/*final List<JDefined> params = divide(paramsString, Main::foldValue).map(Main::parseDefined)
+																																					 .collect(new ListCollector<JDefined>(() -> new*/ /*Placeholder(*/ "")));
+/*final String compiledParameters =*/ /*params.stream().map(JDefined::generate).collect(new*/ Joiner()).orElse("");
 if (stripped.equals(";
-/*"))*/ return ";
-/*"*/;
-/*if (stripped.startsWith("*/ {
+/*"))*/ {
+};
+/*final String paramTypesJoined = params.stream().map(param ->*/ {
+};
+/*if (param instanceof Definition definition1) return*/ new Some<String>(definition1.type);
+new (*None<String>)();
+/**/
+
+/*).flatMap(Options::stream).collect(new*/ /*Joiner(",*/ ")).orElse("");
+/*=*/ (*parseDefined)();
+/*final*/ String generate;
+/*if (jDefined instanceof Definition definition) generate = definition.type + " (*" + definition.name*/ /*+*/ ")";
+/*=*/ (*jDefined.generate)();
+new (*Some<String>)(/*+*/);
+/*")*/;
+/**/
+
+/*else if (stripped.startsWith("*/ {
 };
 /*") && stripped.endsWith("*/
 
 /*"))*/ {
 };
-/*final String substring*/ /*=*/ stripped.substring(/*1*//*stripped.length(*/)/*- 1);*/
-/*return "*/ {
+/*final String substring = stripped.substring(1, stripped.length()*/ /*-*/ 1);
+/*final String s =
+							parseDefined(definitionString).generate() + "(" + compiledParameters + ")*/ {
 };
-/*"*/ /*+*/ wrap(/*substring*/)/*+ "*/
+/*" + wrap(substring) + "*/
 
 /*"*/;
+new (*Some<String>)();
 /**/
 
-return wrap(/*body*/);
+/**/
+
+/**/
+
+new (*None<String>)();
 /**/
 /*private static String compileParameters(String params)*/ {
 };
-return compileAll(/*params*//*Main::foldValue*//*input*/ /*->*/ parseDefined(input)/*.generate());*/
+/*return compileAll(params, Main::foldValue, input*/ /*->*/ parseDefined(input).generate());
 /**/
 /*private static State foldValue(State state, char c)*/ {
 };
-/*if*/(/*c*/ /*==*/ '/*'*/)/*return state.advance();*/
-/*else*/ return state.append(/*c*/);
+/*if (c == ',')*/ return state.advance();
+return (*state.append)();
 /**/
 /*private static JDefined parseDefined(String input)*/ {
 };
-/*final String stripped*/ /*=*/ input.strip(/**/);
-/*final int index*/ /*=*/ stripped.lastIndexOf(/*"*/ ");
+/*=*/ (*input.strip)();
+/*=*/ (*stripped.lastIndexOf)(/*"*/);
 /*if (index >= 0)*/ {
 };
-/*final String beforeName*/ /*=*/ stripped.substring(/*0*//*index*/)/*.strip();*/
-/*final String name*/ /*=*/ stripped.substring(/*index +*/ /*"*/ ".length()/*);*/
-/*final int typeSeparator*/ /*=*/ beforeName.lastIndexOf(/*"*/ ");
+/*final String beforeName =*/ /*stripped.substring(0,*/ index).strip();
+/*final String name = stripped.substring(index +*/ /*"*/ ".length());
+/*=*/ (*beforeName.lastIndexOf)(/*"*/);
 /*if (typeSeparator >= 0)*/ {
 };
-/*final String beforeType*/ /*=*/ beforeName.substring(/*0*//*typeSeparator*/);
-/*final String type*/ /*=*/ beforeName.substring(/*typeSeparator +*/ /*"*/ ".length()/*);*/
-/*final String newType*/ /*=*/ compileType(/*type*/);
-/*return*/ new Definition(new Some<String>(beforeType)/*, newType, name);*/
+/*=*/ (*beforeName.substring)();
+/*final String type = beforeName.substring(typeSeparator +*/ /*"*/ ".length());
+/*=*/ (*compileType)();
+/*return new Definition(new Some<String>(beforeType),*/ /*newType,*/ name);
 /**/
 
-/*else return*/ new Definition(new None<String>()/*, compileType(beforeName), name);*/
+/*else return new Definition(new None<String>(),*/ /*compileType(beforeName),*/ name);
 /**/
 
-/*return*/ new Placeholder(/*stripped*/);
+new (*Placeholder)();
 /**/
 /*private static String compileType(String input)*/ {
 };
-/*final String stripped*/ /*=*/ input.strip(/**/);
-/*if*/(/*stripped.equals("void"*/)/*) return "void";*/
-/*if*/(/*isIdentifier(stripped*/)/*) return stripped;*/
-return wrap(/*stripped*/);
+/*=*/ (*input.strip)();
+/*if (stripped.equals("void"))*/ return "void";
+/*if (isIdentifier(stripped))*/ return stripped;
+return (*wrap)();
 /**/
 /*private static boolean isIdentifier(String input)*/ {
 };
-/*final int length*/ /*=*/ input.length(/**/);
+/*=*/ (*input.length)();
 /*for (int index*/ /*=*/ 0;
 /*index*/ /*<*/ length;
 /*index++)*/ {
 };
-/*final char c*/ /*=*/ input.charAt(/*index*/);
-/*if*/(/*!Character.isLetter(c*/)/*) return false;*/
+/*=*/ (*input.charAt)();
+/*if (!Character.isLetter(c))*/ return false;
 /**/
 
 return true;
 /**/
 /*private static Tuple<String, String> compileStructureHeader(String input)*/ {
 };
-/*final int index*/ /*=*/ input.indexOf(/*"class*/ ");
+/*=*/ (*input.indexOf)(/*"class*/);
 /*if (index >= 0)*/ {
 };
-/*final String name*/ /*=*/ input.substring(/*index +*/ /*"class*/ ".length()/*);*/
-/*return new*/ /*Tuple<String,*/ String>(/*"struct "*/ /*+*/ name/*""*/);
+/*final String name = input.substring(index +*/ /*"class*/ ".length());
+/*Tuple<String,*/ (*String>)(/*+*/);
 /**/
 
 /*if (input.endsWith(")"))*/ {
 };
-/*final String withoutEnd*/ /*=*/ input.substring(/*0*//*input.length(*/)/*- ")".length());*/
-/*final int paramStart*/ /*=*/ withoutEnd.indexOf(/*"("*/);
+/*final String withoutEnd = input.substring(0, input.length()*/ /*-*/ ")".length());
+/*=*/ (*withoutEnd.indexOf)();
 /*if (paramStart >= 0)*/ {
 };
-/*final String beforeParams*/ /*=*/ withoutEnd.substring(/*0*//*paramStart*/);
-/*final String params*/ /*=*/ withoutEnd.substring(/*paramStart*/ /*+*/ "(".length()/*);*/
-/*final int keywordIndex*/ /*=*/ beforeParams.indexOf(/*"record*/ ");
+/*=*/ (*withoutEnd.substring)();
+/*final String params = withoutEnd.substring(paramStart*/ /*+*/ "(".length());
+/*=*/ (*beforeParams.indexOf)(/*"record*/);
 /*if (keywordIndex >= 0)*/ {
 };
-/*final String*/ compiledParams =
-							compileAll(/*params*//*Main::foldValue*//*param*/ /*->*/ generateStatement(parseDefined(param)/*.generate()));*/
-/*final String name*/ /*=*/ beforeParams.substring(/*keywordIndex +*/ /*"record*/ ".length()/*);*/
-/*return new*/ /*Tuple<String,*/ String>(/*"struct "*/ /*+*/ name/*compiledParams*/);
+/*final String compiledParams =
+							compileAll(params, Main::foldValue, param*/ /*->*/ generateStatement(parseDefined(param).generate()));
+/*final String name = beforeParams.substring(keywordIndex +*/ /*"record*/ ".length());
+/*Tuple<String,*/ (*String>)(/*+*/);
 /**/
 
 /**/
 
 /**/
 
-/*final int interfaceIndex*/ /*=*/ input.indexOf(/*"interface*/ ");
+/*=*/ (*input.indexOf)(/*"interface*/);
 /*if (interfaceIndex >= 0)*/ {
 };
-/*final String afterKeyword*/ /*=*/ input.substring(/*interfaceIndex +*/ /*"interface*/ ".length()/*);*/
+/*final String afterKeyword = input.substring(interfaceIndex +*/ /*"interface*/ ".length());
 String before;
-/*final int permitsIndex*/ /*=*/ afterKeyword.indexOf(/*"permits*/ ");
+/*=*/ (*afterKeyword.indexOf)(/*"permits*/);
 /*if (permitsIndex >= 0)*/ {
 };
-/*final String beforePermits*/ /*=*/ afterKeyword.substring(/*0*//*permitsIndex*/);
-/*final String[]*/ variantsArray =
-						afterKeyword.substring(/*permitsIndex +*/ /*"permits*/ ".length()/*).split(Pattern.quote(","));*/
-/*final List<String> variants*/ /*=*/ Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip)
-																						 .collect(new ListCollector<String>(DEFAULT_STRING));*/
-/*final Header header*/ /*=*/ compileNamed(/*beforePermits*/);
+/*=*/ (*afterKeyword.substring)();
+/*final String[] variantsArray =
+						afterKeyword.substring(permitsIndex +*/ /*"permits*/ ".length()).split(Pattern.quote(","));
+/*final List<String> variants = Streams.fromInitializedArray(variantsArray)
+																						 .map(String::strip)
+																						*/ /*.collect(new*/ ListCollector<String>(DEFAULT_STRING));
+/*=*/ (*compileNamed)();
 /*final String enumName = header.name*/ /*+*/ "Tag";
-/*final String*/ enumBody =
-						variants.stream(/**/)/*.map(slice -> generateIndent() + slice).collect(new Joiner(",")).orElse("");*/
+/*final String enumBody =
+						variants.stream().map(slice -> generateIndent() +*/ /*slice).collect(new*/ Joiner(",")).orElse("");
 /*final String generatedEnum =
 						"enum " + enumName + "*/ {
 };
-/*" + enumBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
+/*" + enumBody + System.lineSeparator() + "*/
 
 /**/;
-/*"*/ /*+*/ System.lineSeparator(/**/);
-/*final String typeParamsString*/ /*=*/ header.generateTypeParams(/**/)/*.orElse("");*/
-/*final String unionBody*/ /*=*/ variants.stream(/**/)/*.map(variant -> generateStatement(
+/*+*/ (*System.lineSeparator)();
+/*final String typeParamsString*/ /*=*/ header.generateTypeParams().orElse("");
+/*final String unionBody = variants.stream()
+																				 .map(variant -> generateStatement(
 																						 variant + typeParamsString + " " + variant.toLowerCase(Locale.ROOT)))
-																				 .collect(new Joiner())
-																				 .orElse("");*/
-/*final String unionName*/ /*=*/ header.generate(/*"union"*/)/*+ "Data";*/
+																				 .collect(new*/ /*Joiner())*/ .orElse("");
+/*final String unionName = header.generate("union")*/ /*+*/ "Data";
 /*final String generatedUnion =
 						unionName + "*/ {
 };
-/*" + unionBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
+/*" + unionBody + System.lineSeparator() + "*/
 
 /**/;
-/*"*/ /*+*/ System.lineSeparator(/**/);
-/*before = generatedEnum + generatedUnion*/ /*+*/ header.generate(/*"struct"*/);
-/*return new*/ /*Tuple<String,*/ String>(/*before*//*generateStatement(enumName +*/ /*"*/ tag")/*+ generateStatement(
-																						 header.name + "Data" + header.generateTypeParams().orElse("") + " data"));*/
+/*+*/ (*System.lineSeparator)();
+/*+*/ (*header.generate)();
+/*return new Tuple<String, String>(before,
+																				 generateStatement(enumName + " tag") + generateStatement(
+																						 header.name + "Data" + header.generateTypeParams().orElse("") +*/ /*"*/ data"));
 /**/
 
 /*else*/ {
 };
-/*final Header header*/ /*=*/ compileNamed(/*afterKeyword*/);
-/*before*/ /*=*/ header.generate(/*"struct"*/);
-/*return new*/ /*Tuple<String,*/ String>(/*before*//*""*/);
+/*=*/ (*compileNamed)();
+/*=*/ (*header.generate)();
+/*Tuple<String,*/ (*String>)();
 /**/
 
 /**/
 
-/*return new*/ /*Tuple<String,*/ String>(/*wrap(input*/)/*, "");*/
+/*return new Tuple<String,*/ /*String>(wrap(input),*/ "");
 /**/
 /*private static String generateStatement(String content)*/ {
 };
-return generateIndent(/**/)/*+ content + ";*/
+/*return generateIndent() + content*/ /*+*/ ";
 /*"*/;
 /**/
 /*private static String generateIndent()*/ {
 };
-return System.lineSeparator(/**/)/*+ "\t";*/
+/*return System.lineSeparator()*/ /*+*/ "\t";
 /**/
 /*private static Header compileNamed(String input)*/ {
 };
-/*final String stripped*/ /*=*/ input.strip(/**/);
-/*if*/(/*!stripped.endsWith(">"*/)/*) return new Header(stripped, new None<String>());*/
-/*final String withoutEnd*/ /*=*/ stripped.substring(/*0*//*stripped.length(*/)/*- 1);*/
-/*final int paramStart*/ /*=*/ withoutEnd.indexOf(/*"<"*/);
-/*if*/(/*paramStart*/ /*<*/ 0)/*return new Header(stripped, new None<String>());*/
-/*final String name*/ /*=*/ withoutEnd.substring(/*0*//*paramStart*/);
-/*final String typeParameters*/ /*=*/ withoutEnd.substring(/*paramStart*/ /*+*/ "<".length()/*);*/
-/*return*/ new Header(/*name*/new Some<String>(typeParameters)/*);*/
+/*=*/ (*input.strip)();
+/*if (!stripped.endsWith(">")) return new Header(stripped,*/ new None<String>());
+/*final String withoutEnd = stripped.substring(0, stripped.length()*/ /*-*/ 1);
+/*=*/ (*withoutEnd.indexOf)();
+/*if (paramStart < 0) return new Header(stripped,*/ new None<String>());
+/*=*/ (*withoutEnd.substring)();
+/*final String typeParameters = withoutEnd.substring(paramStart*/ /*+*/ "<".length());
+/*return new Header(name,*/ new Some<String>(typeParameters));
 /**/
 /*private static String wrap(String input)*/ {
 };
-/*return "start"*/ /*+*/ input.replace(/*"start"*//*"start"*/)/*.replace("end", "end") + "end";*/
+/*return "start" + input.replace("start", "start").replace("end", "end")*/ /*+*/ "*/";
 /**/
 /*}*/
