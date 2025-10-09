@@ -31,7 +31,11 @@ public class Main {
 		}
 
 		segments.add(buffer.toString());
-		return segments.stream().map(Main::wrap).collect(Collectors.joining());
+		return segments.stream()
+									 .map(String::strip)
+									 .filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
+									 .map(Main::wrap)
+									 .collect(Collectors.joining());
 	}
 
 	private static String wrap(String input) {
