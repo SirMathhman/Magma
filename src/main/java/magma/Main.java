@@ -83,13 +83,30 @@ public class Main {
 					if (paramStart >= 0) {
 						final String definition = headerWithoutEnd.substring(0, paramStart);
 						final String params = headerWithoutEnd.substring(paramStart + "(".length());
-						return wrap(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
+						return compileDefinition(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
 					}
 				}
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String compileDefinition(String input) {
+		final String stripped = input.strip();
+		final int index = stripped.lastIndexOf(" ");
+		if (index >= 0) {
+			final String beforeName = stripped.substring(0, index).strip();
+			final String name = stripped.substring(index + " ".length());
+			final int typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final String beforeType = beforeName.substring(0, typeSeparator);
+				final String type = beforeName.substring(typeSeparator + " ".length());
+				return wrap(beforeType) + " " + wrap(type) + " " + name;
+			}
+		}
+
+		return wrap(stripped);
 	}
 
 	private static String compileStructureHeader(String input) {

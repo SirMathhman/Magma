@@ -1,5 +1,5 @@
 struct Main {};
-/*public static void main*/(/*String[] args*/){/*
+/*public static*/ /*void*/ main(/*String[] args*/){/*
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -8,10 +8,10 @@ struct Main {};
 			throw new RuntimeException(e);
 		}
 	*/}
-/*private static String compile*/(/*String input*/){/*
+/*private static*/ /*String*/ compile(/*String input*/){/*
 		return compileStatements(input, Main::compileRootSegment);
 	*/}
-/*private static String compileStatements*/(/*String input, Function<String, String> mapper*/){/*
+/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/){/*
 		final ArrayList<String> segments = new ArrayList<String>();
 		final StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -41,7 +41,7 @@ struct Main {};
 /*final String withoutEnd = strip.substring(0, strip.length() - "*/
 /*".length());*//*final int index = withoutEnd.indexOf("*/{};
 /*");*/
-/*if */(/*index >= 0*/){/*
+/*if*/(/*index >= 0*/){/*
 				final String substring = withoutEnd.substring(0, index);
 				final String body = withoutEnd.substring(index + "{".length());
 				return compileStructureHeader(substring) + "{};" + System.lineSeparator() +
@@ -60,7 +60,7 @@ struct Main {};
 /*final String withoutEnd = input.substring(0, input.length() - "*/
 /*".length());*//*final int index = withoutEnd.indexOf("*/{};
 /*");*/
-/*if */(/*index >= 0*/){/*
+/*if*/(/*index >= 0*/){/*
 				final String header = withoutEnd.substring(0, index).strip();
 				final String body = withoutEnd.substring(index + "{".length());
 				if (header.endsWith(")")) {
@@ -69,16 +69,31 @@ struct Main {};
 					if (paramStart >= 0) {
 						final String definition = headerWithoutEnd.substring(0, paramStart);
 						final String params = headerWithoutEnd.substring(paramStart + "(".length());
-						return wrap(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
+						return compileDefinition(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
 					}
 				}
 			}
 		*/}
 /*return wrap(input);*/
 /**/
+/*private static String compileDefinition(String input) */{};
+/*final String stripped = input.strip();*/
+/*final int index = stripped.lastIndexOf(" ");*/
+/*if*/(/*index >= 0*/){/*
+			final String beforeName = stripped.substring(0, index).strip();
+			final String name = stripped.substring(index + " ".length());
+			final int typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final String beforeType = beforeName.substring(0, typeSeparator);
+				final String type = beforeName.substring(typeSeparator + " ".length());
+				return wrap(beforeType) + " " + wrap(type) + " " + name;
+			}
+		*/}
+/*return wrap(stripped);*/
+/**/
 /*private static String compileStructureHeader(String input) */{};
 /*final int index = input.indexOf("class ");*/
-/*if */(/*index >= 0*/){/*
+/*if*/(/*index >= 0*/){/*
 			final String name = input.substring(index + "class ".length());
 			return "struct " + name;
 		*/}
