@@ -447,24 +447,21 @@ public class Main {
 			if (paramStart >= 0) {
 				final String definition = withParams.substring(0, paramStart);
 				final String params = withParams.substring(paramStart + "(".length());
-				return new Some<String>(
-						parseDefined(definition).generate() + "(" + compileParameters(params) + ")" + compileMethodBody(body));
+				final String stripped = body.strip();
+				final String compiledParameters = compileParameters(params);
+
+				if (stripped.equals(";"))
+					return new Some<String>(parseDefined(definition).generate() + "(" + compiledParameters + ");");
+				else if (stripped.startsWith("{") && stripped.endsWith("}")) {
+					final String substring = stripped.substring(1, stripped.length() - 1);
+					final String s =
+							parseDefined(definition).generate() + "(" + compiledParameters + "){" + wrap(substring) + "}";
+					return new Some<String>(s);
+				}
 			}
 		}
 
 		return new None<String>();
-	}
-
-	private static String compileMethodBody(String body) {
-		final String stripped = body.strip();
-		if (stripped.equals(";")) return ";";
-
-		if (stripped.startsWith("{") && stripped.endsWith("}")) {
-			final String substring = stripped.substring(1, stripped.length() - 1);
-			return "{" + wrap(substring) + "}";
-		}
-
-		return wrap(body);
 	}
 
 	private static String compileParameters(String params) {
