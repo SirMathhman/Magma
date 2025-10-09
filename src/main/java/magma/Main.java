@@ -132,10 +132,10 @@ public class Main {
 	}
 
 	private static Optional<? extends String> compileField(String input) {
-		final String slice = input.strip();
-		if (slice.endsWith(";")) {
-			final String substring = slice.substring(0, slice.length() - ";".length());
-			return Optional.of(compileDefinition(slice));
+		final String stripped = input.strip();
+		if (stripped.endsWith(";")) {
+			final String slice = stripped.substring(0, stripped.length() - ";".length());
+			return Optional.of(compileDefinition(slice) + ";");
 		} else return Optional.empty();
 	}
 

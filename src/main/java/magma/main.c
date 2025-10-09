@@ -84,11 +84,11 @@ struct State {};
 /*if (!input.endsWith("*/
 /*")) return Optional.empty();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
 		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String substring = withoutEnd.substring(0, index);*//*final String body = withoutEnd.substring(index + "*/{};
-/*".length());*/
+/*".length())*/;
 /*return Optional.of(compileStructureHeader(substring) + "*/{};
 /**/
 
-/*;*/
+/**/;
 /*" + System.lineSeparator() +
 											*/ /*compileStatements(body,*/ Main::compileClassSegment));
 /**/
@@ -102,12 +102,13 @@ struct State {};
 															 .orElseGet(()*/ /*->*/ wrap(input));
 /**/
 /*private static Optional<? extends String> compileField(String input) */{};
-/*final String slice*/ /*=*/ input.strip();
-/*if*/ (slice.endsWith(";
+/*final String stripped*/ /*=*/ input.strip();
+/*if*/ (stripped.endsWith(";
 /*")) */{};
-/*final String substring = slice.substring(0, slice.length()*/ /*-*/ ";
-/*".length());*/
-/*return*/ Optional.of(compileDefinition(slice));
+/*final String slice = stripped.substring(0, stripped.length()*/ /*-*/ ";
+/*".length())*/;
+/*return Optional.of(compileDefinition(slice)*/ /*+*/ ";
+/*")*/;
 /**/
 
 /*else*/ /*return*/ Optional.empty();
@@ -117,7 +118,7 @@ struct State {};
 /*")) return Optional.empty();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
 
 		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/{};
-/*".length());*/
+/*".length())*/;
 /*if (!header.endsWith(")"))*/ /*return*/ Optional.empty();
 /*final String headerWithoutEnd = header.substring(0, header.length()*/ /*-*/ ")".length());
 /*final int paramStart*/ /*=*/ headerWithoutEnd.indexOf("(");
@@ -126,7 +127,7 @@ struct State {};
 /*final String params = headerWithoutEnd.substring(paramStart*/ /*+*/ "(".length());
 /*return*/ Optional.of(/*compileDefinition(definition) + "("*/ /*+*/ compileAll(params/*Main::foldValue*//*Main::compileDefinition)*/ /*+*/ "){/*" +
 				wrap(body) + "*/}
-/*");*/
+/*")*/;
 /**/
 /*private static State foldValue(State state, char c) */{};
 /*if (c == ',')*/ /*return*/ state.advance();
