@@ -4,14 +4,23 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Main {
+	public sealed interface Option<T> permits Some, None {
+		<R> Option<R> map(Function<T, R> mapper);
+
+		T orElse(T other);
+
+		T orElseGet(Supplier<T> other);
+
+		Option<T> or(Supplier<Option<T>> other);
+	}
+
 	public interface Head<T> {
-		Optional<T> next();
+		Option<T> next();
 	}
 
 	public interface List<T> {
@@ -21,7 +30,7 @@ public class Main {
 
 		int size();
 
-		Optional<T> get(int index);
+		Option<T> get(int index);
 
 		Stream<T> stream();
 	}
@@ -32,6 +41,50 @@ public class Main {
 		C fold(C current, T element);
 	}
 
+	public record Some<T>(T value) implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new Some<R>(mapper.apply(this.value));
+		}
+
+		@Override
+		public T orElse(T other) {
+			return this.value;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return this.value;
+		}
+
+		@Override
+		public Option<T> or(Supplier<Option<T>> other) {
+			return this;
+		}
+	}
+
+	public static final class None<T> implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new None<R>();
+		}
+
+		@Override
+		public T orElse(T other) {
+			return other;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return other.get();
+		}
+
+		@Override
+		public Option<T> or(Supplier<Option<T>> other) {
+			return other.get();
+		}
+	}
+
 	public record MapStream<T>(Head<T> next) {
 		public <C> C collect(Collector<T, C> collector) {
 			return this.fold(collector.createInitial(), collector::fold);
@@ -39,8 +92,8 @@ public class Main {
 
 		public <C> C fold(C initial, BiFunction<C, T, C> folder) {
 			while (true) {
-				final Optional<T> next = this.next.next();
-				if (next.isPresent()) initial = folder.apply(initial, next.get());
+				final Option<T> next = this.next.next();
+				if (next instanceof Some<T>(T value)) initial = folder.apply(initial, value);
 				else return initial;
 			}
 		}
@@ -63,12 +116,12 @@ public class Main {
 		}
 
 		@Override
-		public Optional<T> next() {
-			if (this.counter >= this.size) return Optional.empty();
+		public Option<T> next() {
+			if (this.counter >= this.size) return new None<T>();
 
 			final T next = this.array[this.counter];
 			this.counter++;
-			return Optional.of(next);
+			return new Some<T>(next);
 		}
 	}
 
@@ -104,9 +157,9 @@ public class Main {
 		}
 
 		@Override
-		public Optional<T> get(int index) {
-			if (index < this.size) return Optional.of(this.array[index]);
-			else return Optional.empty();
+		public Option<T> get(int index) {
+			if (index < this.size) return new Some<T>(this.array[index]);
+			else return new None<T>();
 		}
 
 		@Override
@@ -115,7 +168,8 @@ public class Main {
 		}
 
 		private List<T> set(int index, T element) {
-			this.resizeArrayToContainIndex(index).ifPresent(newArray -> this.array = newArray);
+			Option<T[]> option = this.resizeArrayToContainIndex(index);
+			if (option instanceof Some<T[]>(T[] value)) this.array = value;
 			if (index + 1 >= this.size) {
 				this.padWithDefaults(this.size, index + 1);
 				this.size = index + 1;
@@ -125,15 +179,15 @@ public class Main {
 			return this;
 		}
 
-		private Optional<T[]> resizeArrayToContainIndex(int index) {
+		private Option<T[]> resizeArrayToContainIndex(int index) {
 			int newCapacity = this.array.length;
-			if (index < newCapacity) return Optional.empty();
+			if (index < newCapacity) return new None<T[]>();
 
 			while (newCapacity <= index) newCapacity *= 2;
 
 			final T[] newArray = alloc(newCapacity);
 			System.arraycopy(this.array, 0, newArray, 0, this.size);
-			return Optional.of(newArray);
+			return new Some<T[]>(newArray);
 		}
 
 		private void padWithDefaults(int start, int end) {
@@ -214,15 +268,15 @@ public class Main {
 
 	private record Tuple<A, B>(A left, B right) {}
 
-	private static class Joiner implements Collector<String, Optional<String>> {
+	private static class Joiner implements Collector<String, Option<String>> {
 		@Override
-		public Optional<String> createInitial() {
-			return Optional.empty();
+		public Option<String> createInitial() {
+			return new None<String>();
 		}
 
 		@Override
-		public Optional<String> fold(Optional<String> current, String element) {
-			return Optional.of(current.map(s -> s + element).orElse(element));
+		public Option<String> fold(Option<String> current, String element) {
+			return new Some<String>(current.map(s -> s + element).orElse(element));
 		}
 	}
 
@@ -280,17 +334,17 @@ public class Main {
 		return compileStructure(strip).orElseGet(() -> wrap(strip));
 	}
 
-	private static Optional<String> compileStructure(String input) {
-		if (!input.endsWith("}")) return Optional.empty();
+	private static Option<String> compileStructure(String input) {
+		if (!input.endsWith("}")) return new None<String>();
 
 		final String withoutEnd = input.substring(0, input.length() - "}".length());
 		final int index = withoutEnd.indexOf("{");
-		if (index < 0) return Optional.empty();
+		if (index < 0) return new None<String>();
 
 		final String header = withoutEnd.substring(0, index).strip();
 		final String body = withoutEnd.substring(index + "{".length());
 		final Tuple<String, String> compiledHeader = compileStructureHeader(header);
-		return Optional.of(
+		return new Some<String>(
 				compiledHeader.left + " {" + compiledHeader.right + System.lineSeparator() + "};" + System.lineSeparator() +
 				compileStatements(body, Main::compileClassSegment));
 	}
@@ -306,32 +360,32 @@ public class Main {
 																	.orElseGet(() -> wrap(input));
 	}
 
-	private static Optional<? extends String> compileField(String input) {
+	private static Option<String> compileField(String input) {
 		final String stripped = input.strip();
 		if (stripped.endsWith(";")) {
 			final String slice = stripped.substring(0, stripped.length() - ";".length());
-			return Optional.of(compileDefinition(slice) + ";");
-		} else return Optional.empty();
+			return new Some<String>(compileDefinition(slice) + ";");
+		} else return new None<String>();
 	}
 
-	private static Optional<String> compileMethod(String input) {
-		if (!input.endsWith("}")) return Optional.empty();
+	private static Option<String> compileMethod(String input) {
+		if (!input.endsWith("}")) return new None<String>();
 		final String withoutEnd = input.substring(0, input.length() - "}".length());
 
 		final int index = withoutEnd.indexOf("{");
-		if (index < 0) return Optional.empty();
+		if (index < 0) return new None<String>();
 		final String header = withoutEnd.substring(0, index).strip();
 		final String body = withoutEnd.substring(index + "{".length());
 
-		if (!header.endsWith(")")) return Optional.empty();
+		if (!header.endsWith(")")) return new None<String>();
 		final String headerWithoutEnd = header.substring(0, header.length() - ")".length());
 
 		final int paramStart = headerWithoutEnd.indexOf("(");
-		if (paramStart < 0) return Optional.empty();
+		if (paramStart < 0) return new None<String>();
 		final String definition = headerWithoutEnd.substring(0, paramStart);
 		final String params = headerWithoutEnd.substring(paramStart + "(".length());
 
-		return Optional.of(compileDefinition(definition) + "(" + compileParameters(params) + "){" + wrap(body) + "}");
+		return new Some<String>(compileDefinition(definition) + "(" + compileParameters(params) + "){" + wrap(body) + "}");
 	}
 
 	private static String compileParameters(String params) {

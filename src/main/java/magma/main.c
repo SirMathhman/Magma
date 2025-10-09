@@ -1,8 +1,16 @@
 struct Main {
 };
+struct Option<T> permits Some, None {
+};
+/*<R> Option<R> map(Function<T,*/ /*R>*/ mapper);
+/*T*/ /*orElse(T*/ other);
+/*T*/ /*orElseGet(Supplier<T>*/ other);
+/*Option<T>*/ /*or(Supplier<Option<T>>*/ other);
+/**/
+
 struct Head<T> {
 };
-/*Optional<T>*/ next();
+/*Option<T>*/ next();
 /**/
 
 struct List<T> {
@@ -10,7 +18,7 @@ struct List<T> {
 /*List<T>*/ clear();
 /*List<T>*/ /*add(T*/ element);
 /*int*/ size();
-/*Optional<T>*/ /*get(int*/ index);
+/*Option<T>*/ /*get(int*/ index);
 /*Stream<T>*/ stream();
 /**/
 
@@ -18,6 +26,62 @@ struct Collector<T, C> {
 };
 /*C*/ createInitial();
 /*C fold(C current,*/ /*T*/ element);
+/**/
+
+/*public record Some<T>(T value) implements Option<T>*/ {
+};
+/*@Override
+		public <R> Option<R> map(Function<T, R> mapper)*/ {
+};
+/*return*/ /*new*/ Some<R>(mapper.apply(this.value));
+/**/
+
+/*@Override
+		public T orElse(T other)*/ {
+};
+/*return*/ this.value;
+/**/
+
+/*@Override
+		public T orElseGet(Supplier<T> other)*/ {
+};
+/*return*/ this.value;
+/**/
+
+/*@Override
+		public Option<T> or(Supplier<Option<T>> other)*/ {
+};
+/*return*/ this;
+/**/
+
+/**/
+
+struct None<T> implements Option<T> {
+};
+/*@Override
+		public <R> Option<R> map(Function<T, R> mapper)*/ {
+};
+/*return*/ /*new*/ None<R>();
+/**/
+
+/*@Override
+		public T orElse(T other)*/ {
+};
+/*return*/ other;
+/**/
+
+/*@Override
+		public T orElseGet(Supplier<T> other)*/ {
+};
+/*return*/ other.get();
+/**/
+
+/*@Override
+		public Option<T> or(Supplier<Option<T>> other)*/ {
+};
+/*return*/ other.get();
+/**/
+
 /**/
 
 struct MapStream<T> {
@@ -32,8 +96,8 @@ struct MapStream<T> {
 };
 /*while (true)*/ {
 };
-/*final Optional<T> next*/ /*=*/ this.next.next();
-/*if (next.isPresent()) initial =*/ /*folder.apply(initial,*/ next.get());
+/*final Option<T> next*/ /*=*/ this.next.next();
+/*if (next instanceof Some<T>(T value)) initial =*/ /*folder.apply(initial,*/ value);
 /*else*/ /*return*/ initial;
 /**/
 
@@ -63,12 +127,12 @@ struct ArrayHead<T> implements Head<T> {
 /**/
 
 /*@Override
-		public Optional<T> next()*/ {
+		public Option<T> next()*/ {
 };
-/*if (this.counter >= this.size)*/ /*return*/ Optional.empty();
+/*if (this.counter >= this.size) return*/ /*new*/ None<T>();
 /*final T next*/ /*=*/ this.array[this.counter];
 /*this.counter++*/;
-/*return*/ Optional.of(next);
+/*return*/ /*new*/ Some<T>(next);
 /**/
 
 /**/
@@ -110,10 +174,10 @@ struct ArrayList<T> implements List<T> {
 /**/
 
 /*@Override
-		public Optional<T> get(int index)*/ {
+		public Option<T> get(int index)*/ {
 };
-/*if (index < this.size)*/ /*return*/ Optional.of(this.array[index]);
-/*else*/ /*return*/ Optional.empty();
+/*if (index < this.size) return*/ /*new*/ Some<T>(this.array[index]);
+/*else return*/ /*new*/ None<T>();
 /**/
 
 /*@Override
@@ -124,7 +188,8 @@ struct ArrayList<T> implements List<T> {
 
 /*private List<T> set(int index, T element)*/ {
 };
-/*this.resizeArrayToContainIndex(index).ifPresent(newArray -> this.array*/ /*=*/ newArray);
+/*Option<T[]> option*/ /*=*/ this.resizeArrayToContainIndex(index);
+/*if (option instanceof Some<T[]>(T[] value)) this.array*/ /*=*/ value;
 /*if (index + 1 >= this.size)*/ {
 };
 /*this.padWithDefaults(this.size, index*/ /*+*/ 1);
@@ -135,14 +200,14 @@ struct ArrayList<T> implements List<T> {
 /*return*/ this;
 /**/
 
-/*private Optional<T[]> resizeArrayToContainIndex(int index)*/ {
+/*private Option<T[]> resizeArrayToContainIndex(int index)*/ {
 };
 /*int newCapacity*/ /*=*/ this.array.length;
-/*if (index < newCapacity)*/ /*return*/ Optional.empty();
+/*if (index < newCapacity) return*/ /*new*/ None<T[]>();
 /*while (newCapacity <= index) newCapacity*/ /**=*/ 2;
 /*final T[] newArray*/ /*=*/ alloc(newCapacity);
 /*System.arraycopy(this.array, 0, newArray,*/ /*0,*/ this.size);
-/*return*/ Optional.of(newArray);
+/*return*/ /*new*/ Some<T[]>(newArray);
 /**/
 
 /*private void padWithDefaults(int start, int end)*/ {
@@ -250,18 +315,18 @@ struct Tuple<A, B> {
 };
 /**/
 
-struct Joiner implements Collector<String, Optional<String>> {
+struct Joiner implements Collector<String, Option<String>> {
 };
 /*@Override
-		public Optional<String> createInitial()*/ {
+		public Option<String> createInitial()*/ {
 };
-/*return*/ Optional.empty();
+/*return*/ /*new*/ None<String>();
 /**/
 
 /*@Override
-		public Optional<String> fold(Optional<String> current, String element)*/ {
+		public Option<String> fold(Option<String> current, String element)*/ {
 };
-/*return Optional.of(current.map(s -> s*/ /*+*/ element).orElse(element));
+/*return new Some<String>(current.map(s -> s*/ /*+*/ element).orElse(element));
 /**/
 
 /**/
@@ -341,15 +406,15 @@ struct Joiner implements Collector<String, Optional<String>> {
 /*if (strip.startsWith("package ") || strip.startsWith("import "))*/ /*return*/ "";
 /*return compileStructure(strip).orElseGet(()*/ /*->*/ wrap(strip));
 /**/
-/*private static Optional<String> compileStructure(String input)*/ {
+/*private static Option<String> compileStructure(String input)*/ {
 };
 /*if (!input.endsWith("*/
-/*")) return Optional.empty();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
-		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {
+/*")) return new None<String>();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
+		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return new None<String>();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {
 };
 /*".length())*/;
 /*final Tuple<String, String> compiledHeader*/ /*=*/ compileStructureHeader(header);
-/*return Optional.of(
+/*return new Some<String>(
 				compiledHeader.left + "*/ {
 };
 /*" + compiledHeader.right + System.lineSeparator() + "*/
@@ -369,7 +434,7 @@ struct Joiner implements Collector<String, Optional<String>> {
 																	.or(() -> compileField(input))
 																	.orElseGet(()*/ /*->*/ wrap(input));
 /**/
-/*private static Optional<? extends String> compileField(String input)*/ {
+/*private static Option<String> compileField(String input)*/ {
 };
 /*final String stripped*/ /*=*/ input.strip();
 /*if*/ (stripped.endsWith(";
@@ -377,27 +442,27 @@ struct Joiner implements Collector<String, Optional<String>> {
 };
 /*final String slice = stripped.substring(0, stripped.length()*/ /*-*/ ";
 /*".length())*/;
-/*return Optional.of(compileDefinition(slice)*/ /*+*/ ";
+/*return new Some<String>(compileDefinition(slice)*/ /*+*/ ";
 /*")*/;
 /**/
 
-/*else*/ /*return*/ Optional.empty();
+/*else return*/ /*new*/ None<String>();
 /**/
-/*private static Optional<String> compileMethod(String input)*/ {
+/*private static Option<String> compileMethod(String input)*/ {
 };
 /*if (!input.endsWith("*/
-/*")) return Optional.empty();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
+/*")) return new None<String>();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
 
-		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {
+		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return new None<String>();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {
 };
 /*".length())*/;
-/*if (!header.endsWith(")"))*/ /*return*/ Optional.empty();
+/*if (!header.endsWith(")")) return*/ /*new*/ None<String>();
 /*final String headerWithoutEnd = header.substring(0, header.length()*/ /*-*/ ")".length());
 /*final int paramStart*/ /*=*/ headerWithoutEnd.indexOf("(");
-/*if (paramStart < 0)*/ /*return*/ Optional.empty();
+/*if (paramStart < 0) return*/ /*new*/ None<String>();
 /*final String definition =*/ /*headerWithoutEnd.substring(0,*/ paramStart);
 /*final String params = headerWithoutEnd.substring(paramStart*/ /*+*/ "(".length());
-/*return Optional.of(compileDefinition(definition) + "(" + compileParameters(params) + ")*/ {
+/*return new Some<String>(compileDefinition(definition) + "(" + compileParameters(params) + ")*/ {
 };
 /*" + wrap(body) + "*/
 
