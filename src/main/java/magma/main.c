@@ -4,7 +4,7 @@ struct Main {};
 			this(new ArrayList<Character>());
 		}
 
-		public StringBuffer setLength(int length) {
+		public StringBuffer clear() {
 			this.chars.clear();
 			return this;
 		}
@@ -45,7 +45,7 @@ struct State {};
 		*/}
 /*private*/ /*State*/ advance(/**/){/*
 			this.segments.add(this.buffer.intoString());
-			this.buffer = this.buffer.setLength(0);
+			this.buffer = this.buffer.clear();
 			return this;
 		*/}
 /*private*/ /*boolean*/ isLevel(/**/){/*
