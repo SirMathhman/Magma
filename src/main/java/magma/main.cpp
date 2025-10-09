@@ -5,6 +5,11 @@ enum OptionTag {
 	None
 };
 template<typename T>
+union Option {
+	Some<T> some;
+	None<T> none;
+};
+template<typename T>
 struct Option {
 	OptionTag tag;
 };
@@ -285,7 +290,7 @@ struct State {
 /*public State()*/ {
 };
 /*this.buffer =*/ /*new*/ StringBuffer(/**/);
-/*this.segments =*/ /*new*/ ArrayList<String>(/*(*/)/*-> "");*/
+/*this.segments =*/ /*new*/ ArrayList<String>(/*DEFAULT_STRING*/);
 /*this.depth*/ /*=*/ 0;
 /**/
 
@@ -373,18 +378,41 @@ struct Streams {
 
 /**/
 
-struct StructHeader {
+struct Header {
 	/*String*/ name;
 	/*Option<String>*/ maybeTypeParams;
 };
-/*public String generate()*/ {
+/*public String generate(String prefix)*/ {
 };
-/*final String templateString*/ /*=*/ this.maybeTypeParams.map(/*params -> "template<typename " + params + ">"*/ /*+*/ System.lineSeparator()/*).orElse("");*/
-/*return templateString + "struct "*/ /*+*/ this.name;
+/*final String*/ /*templateString*/ =
+					this.maybeTypeParams.map(/*params -> "template<typename " + params + ">"*/ /*+*/ System.lineSeparator()/*).orElse("");*/
+/*return templateString + prefix + " "*/ /*+*/ this.name;
+/**/
+
+/*public Option<String> generateTypeParams()*/ {
+};
+/*return*/ this.maybeTypeParams.map(/*typeParams -> "<" + typeParams*/ /*+*/ ">");
 /**/
 
 /**/
 
+/*private record ListCollector<T>(Supplier<T> createDefault) implements Collector<T, List<T>>*/ {
+};
+/*@Override
+		public List<T> createInitial()*/ {
+};
+/*return*/ /*new*/ ArrayList<>(/*this.createDefault*/);
+/**/
+
+/*@Override
+		public List<T> fold(List<T> current, T element)*/ {
+};
+/*return*/ current.add(/*element*/);
+/**/
+
+/**/
+
+/*public static final Supplier<String>*/ /*DEFAULT_STRING*/ =(/**/)/*-> "";*/
 /*public static <T> T[] alloc(int length)*/ {
 };
 /*//noinspection*/ unchecked
@@ -621,27 +649,38 @@ struct StructHeader {
 /*final String beforePermits*/ /*=*/ afterKeyword.substring(/*0*//*permitsIndex*/);
 /*final String[]*/ /*variantsArray*/ =
 						afterKeyword.substring(/*permitsIndex +*/ /*"permits*/ ".length()/*).split(Pattern.quote(","));*/
-/*final String variants*/ /*=*/ Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip)
-																			 .map(slice -> System.lineSeparator() + "\t" + slice)
-																			 .collect(new Joiner(","))
-																			 .orElse("");*/
-/*final StructHeader afterKeyword1*/ /*=*/ compileNamed(/*beforePermits*/);
-/*final String tagName = afterKeyword1.name*/ /*+*/ "Tag";
+/*final List<String>*/ /*variants*/ =
+						Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip).collect(new ListCollector<>(DEFAULT_STRING));*/
+/*final String*/ /*enumBody*/ =
+						variants.stream(/**/)/*.map(slice -> System.lineSeparator() + "\t" + slice).collect(new Joiner(",")).orElse("");*/
+/*final Header header*/ /*=*/ compileNamed(/*beforePermits*/);
+/*final String tagName = header.name*/ /*+*/ "Tag";
+/*final String typeParamsString*/ /*=*/ header.generateTypeParams(/**/)/*.orElse("");*/
+/*final String unionBody*/ /*=*/ variants.stream(/**/)/*.map(variant -> System.lineSeparator() + "\t" + variant + typeParamsString +
+																												 " " + variant.toLowerCase(Locale.ROOT) + ";*/
+/*")
+																				 .collect(new*/ /*Joiner())*/ .orElse("");
 /*before = "enum " + tagName + "*/ {
 };
-/*" + variants*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
+/*" + enumBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
+
+/**/;
+/*" + System.lineSeparator() +
+								 header.generate("union") + "*/ {
+};
+/*" + unionBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
 
 /**/;
 /*"*/ /*+*/ System.lineSeparator(/**/)/*+
-								 afterKeyword1.generate();*/
+								 header.generate("struct");*/
 /*return new*/ /*Tuple<String,*/ String>(/*before*//*System.lineSeparator(*/)/*+ "\t" + tagName + " tag;*/
 /*")*/;
 /**/
 
 /*else*/ {
 };
-/*final StructHeader afterKeyword1*/ /*=*/ compileNamed(/*afterKeyword*/);
-/*before*/ /*=*/ afterKeyword1.generate(/**/);
+/*final Header header*/ /*=*/ compileNamed(/*afterKeyword*/);
+/*before*/ /*=*/ header.generate(/*"struct"*/);
 /*return new*/ /*Tuple<String,*/ String>(/*before*//*""*/);
 /**/
 
@@ -649,16 +688,16 @@ struct StructHeader {
 
 /*return new*/ /*Tuple<String,*/ String>(/*wrap(input*/)/*, "");*/
 /**/
-/*private static StructHeader compileNamed(String input)*/ {
+/*private static Header compileNamed(String input)*/ {
 };
 /*final String stripped*/ /*=*/ input.strip(/**/);
-/*if*/(/*!stripped.endsWith(">"*/)/*) return new StructHeader(stripped, new None<String>());*/
+/*if*/(/*!stripped.endsWith(">"*/)/*) return new Header(stripped, new None<String>());*/
 /*final String withoutEnd*/ /*=*/ stripped.substring(/*0*//*stripped.length(*/)/*- 1);*/
 /*final int paramStart*/ /*=*/ withoutEnd.indexOf(/*"<"*/);
-/*if*/(/*paramStart*/ /*<*/ 0)/*return new StructHeader(stripped, new None<String>());*/
+/*if*/(/*paramStart*/ /*<*/ 0)/*return new Header(stripped, new None<String>());*/
 /*final String name*/ /*=*/ withoutEnd.substring(/*0*//*paramStart*/);
 /*final String typeParameters*/ /*=*/ withoutEnd.substring(/*paramStart*/ /*+*/ "<".length()/*);*/
-/*return*/ /*new*/ StructHeader(/*name*//*new*/ Some<String>(typeParameters)/*);*/
+/*return*/ /*new*/ Header(/*name*//*new*/ Some<String>(typeParameters)/*);*/
 /**/
 /*private static String wrap(String input)*/ {
 };
