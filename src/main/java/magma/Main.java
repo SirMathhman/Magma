@@ -499,15 +499,17 @@ public class Main {
 																			 .orElse("");
 
 				final StructureHeader afterKeyword1 = compileNamed(beforePermits);
+				final String tagName = afterKeyword1.name + "Tag";
 				before =
-						"enum " + afterKeyword1.name + "Tag {" + variants + System.lineSeparator() + "};" + System.lineSeparator() +
-						"struct " + afterKeyword1.generate();
+						"enum " + tagName + " {" + variants + System.lineSeparator() + "};" + System.lineSeparator() + "struct " +
+						afterKeyword1.generate();
+
+				return new Tuple<String, String>(before, System.lineSeparator() + "\t" + tagName + " tag;");
 			} else {
 				final StructureHeader afterKeyword1 = compileNamed(afterKeyword);
 				before = "struct " + afterKeyword1.generate();
+				return new Tuple<String, String>(before, "");
 			}
-
-			return new Tuple<String, String>(before, "");
 		}
 
 		return new Tuple<String, String>(wrap(input), "");
