@@ -43,6 +43,11 @@ C createInitial(/**/);
 C fold(C currentT element);
 /**/
 
+struct JDefined {
+};
+String generate(/**/);
+/**/
+
 /*public record Some<T>(T value) implements Option<T>*/ {
 };
 /*@Override
@@ -402,13 +407,40 @@ return this.maybeTypeParams.map(/*typeParams -> "<" + typeParams*/ /*+*/ ">");
 /*@Override
 		public List<T> createInitial()*/ {
 };
-/*return*/ new ArrayList<>(/*this.createDefault*/);
+/*return*/ new ArrayList<T>(/*this.createDefault*/);
 /**/
 
 /*@Override
 		public List<T> fold(List<T> current, T element)*/ {
 };
 return current.add(/*element*/);
+/**/
+
+/**/
+
+/*private record Definition(Option<String> maybeBeforeType, String newType, String name) implements JDefined*/ {
+};
+/*@Override
+		public String generate()*/ {
+};
+/*final String beforeTypeString*/ /*=*/ this.maybeBeforeType(/**/)/*.map(Main::wrap).map(value -> value + " ").orElse("");*/
+/*return beforeTypeString*/ /*+*/ this.newType(/**/)/*+ " " + this.name();*/
+/**/
+
+/**/
+
+struct Placeholder implements JDefined {
+};
+/*private final*/ String stripped;
+/*public Placeholder(String stripped)*/ {
+};
+/*this.stripped*/ /*=*/ stripped;
+/**/
+
+/*@Override
+		public String generate()*/ {
+};
+return wrap(/*this.stripped*/);
 /**/
 
 /**/
@@ -525,7 +557,7 @@ if (stripped.endsWith(";
 };
 /*final String slice*/ /*=*/ stripped.substring(/*0*//*stripped.length(*/)/*- ";*/
 /*".length*/(/**/)/*);*/
-/*return*/ new Some<String>(/*compileDefinition(slice*/)/*+ ";*/
+/*return*/ new Some<String>(/*parseDefined(slice*/)/*.generate() + ";*/
 /*")*/;
 /**/
 
@@ -543,7 +575,7 @@ if (stripped.endsWith(";
 };
 /*final String definition*/ /*=*/ withParams.substring(/*0*//*paramStart*/);
 /*final String params*/ /*=*/ withParams.substring(/*paramStart*/ /*+*/ "(".length()/*);*/
-/*return*/ new Some<String>(/*compileDefinition(definition*/)/*+ "(" + compileParameters(params) + ")" + compileMethodBody(body));*/
+/*return*/ new Some<String>(/*parseDefined(definition*/)/*.generate() + "(" + compileParameters(params) + ")" + compileMethodBody(body));*/
 /**/
 
 /**/
@@ -574,14 +606,14 @@ return wrap(/*body*/);
 /**/
 /*private static String compileParameters(String params)*/ {
 };
-return compileAll(/*params*//*Main::foldValue*//*Main::compileDefinition*/);
+return compileAll(/*params*//*Main::foldValue*//*input*/ /*->*/ parseDefined(input)/*.generate());*/
 /**/
 /*private static State foldValue(State state, char c)*/ {
 };
 /*if*/(/*c*/ /*==*/ '/*'*/)/*return state.advance();*/
 /*else*/ return state.append(/*c*/);
 /**/
-/*private static String compileDefinition(String input)*/ {
+/*private static JDefined parseDefined(String input)*/ {
 };
 /*final String stripped*/ /*=*/ input.strip(/**/);
 /*final int index*/ /*=*/ stripped.lastIndexOf(/*"*/ ");
@@ -594,13 +626,14 @@ return compileAll(/*params*//*Main::foldValue*//*Main::compileDefinition*/);
 };
 /*final String beforeType*/ /*=*/ beforeName.substring(/*0*//*typeSeparator*/);
 /*final String type*/ /*=*/ beforeName.substring(/*typeSeparator +*/ /*"*/ ".length()/*);*/
-return wrap(/*beforeType*/)/*+ " " + compileType(type) + " " + name;*/
+/*final String newType*/ /*=*/ compileType(/*type*/);
+/*return*/ new Definition(new Some<String>(beforeType)/*, newType, name);*/
 /**/
 
-/*else*/ return compileType(/*beforeName*/)/*+ " " + name;*/
+/*else return*/ new Definition(new None<String>()/*, compileType(beforeName), name);*/
 /**/
 
-return wrap(/*stripped*/);
+/*return*/ new Placeholder(/*stripped*/);
 /**/
 /*private static String compileType(String input)*/ {
 };
@@ -612,11 +645,11 @@ return wrap(/*stripped*/);
 /*private static boolean isIdentifier(String input)*/ {
 };
 /*final int length*/ /*=*/ input.length(/**/);
-/*for (int index1*/ /*=*/ 0;
-/*index1*/ /*<*/ length;
-/*index1++)*/ {
+/*for (int index*/ /*=*/ 0;
+/*index*/ /*<*/ length;
+/*index++)*/ {
 };
-/*final char c*/ /*=*/ input.charAt(/*index1*/);
+/*final char c*/ /*=*/ input.charAt(/*index*/);
 /*if*/(/*!Character.isLetter(c*/)/*) return false;*/
 /**/
 
@@ -643,7 +676,7 @@ return true;
 /*if (keywordIndex >= 0)*/ {
 };
 /*final String*/ compiledParams =
-							compileAll(/*params*//*Main::foldValue*//*param*/ /*->*/ generateStatement(compileDefinition(param)/*));*/
+							compileAll(/*params*//*Main::foldValue*//*param*/ /*->*/ generateStatement(parseDefined(param)/*.generate()));*/
 /*final String name*/ /*=*/ beforeParams.substring(/*keywordIndex +*/ /*"record*/ ".length()/*);*/
 /*return new*/ /*Tuple<String,*/ String>(/*"struct "*/ /*+*/ name/*compiledParams*/);
 /**/
@@ -663,8 +696,8 @@ String before;
 /*final String beforePermits*/ /*=*/ afterKeyword.substring(/*0*//*permitsIndex*/);
 /*final String[]*/ variantsArray =
 						afterKeyword.substring(/*permitsIndex +*/ /*"permits*/ ".length()/*).split(Pattern.quote(","));*/
-/*final List<String>*/ variants =
-						Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip).collect(new ListCollector<>(DEFAULT_STRING));*/
+/*final List<String> variants*/ /*=*/ Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip)
+																						 .collect(new ListCollector<String>(DEFAULT_STRING));*/
 /*final Header header*/ /*=*/ compileNamed(/*beforePermits*/);
 /*final String enumName = header.name*/ /*+*/ "Tag";
 /*final String*/ enumBody =

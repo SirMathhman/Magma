@@ -43,6 +43,10 @@ public class Main {
 		C fold(C current, T element);
 	}
 
+	public interface JDefined {
+		String generate();
+	}
+
 	public record Some<T>(T value) implements Option<T> {
 		@Override
 		public T orElse(T other) {
@@ -316,12 +320,31 @@ public class Main {
 	private record ListCollector<T>(Supplier<T> createDefault) implements Collector<T, List<T>> {
 		@Override
 		public List<T> createInitial() {
-			return new ArrayList<>(this.createDefault);
+			return new ArrayList<T>(this.createDefault);
 		}
 
 		@Override
 		public List<T> fold(List<T> current, T element) {
 			return current.add(element);
+		}
+	}
+
+	private record Definition(Option<String> maybeBeforeType, String newType, String name) implements JDefined {
+		@Override
+		public String generate() {
+			final String beforeTypeString = this.maybeBeforeType().map(Main::wrap).map(value -> value + " ").orElse("");
+			return beforeTypeString + this.newType() + " " + this.name();
+		}
+	}
+
+	private static class Placeholder implements JDefined {
+		private final String stripped;
+
+		public Placeholder(String stripped) {this.stripped = stripped;}
+
+		@Override
+		public String generate() {
+			return wrap(this.stripped);
 		}
 	}
 
@@ -411,7 +434,7 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.endsWith(";")) {
 			final String slice = stripped.substring(0, stripped.length() - ";".length());
-			return new Some<String>(compileDefinition(slice) + ";");
+			return new Some<String>(parseDefined(slice).generate() + ";");
 		} else return new None<String>();
 	}
 
@@ -425,7 +448,7 @@ public class Main {
 				final String definition = withParams.substring(0, paramStart);
 				final String params = withParams.substring(paramStart + "(".length());
 				return new Some<String>(
-						compileDefinition(definition) + "(" + compileParameters(params) + ")" + compileMethodBody(body));
+						parseDefined(definition).generate() + "(" + compileParameters(params) + ")" + compileMethodBody(body));
 			}
 		}
 
@@ -445,7 +468,7 @@ public class Main {
 	}
 
 	private static String compileParameters(String params) {
-		return compileAll(params, Main::foldValue, Main::compileDefinition);
+		return compileAll(params, Main::foldValue, input -> parseDefined(input).generate());
 	}
 
 	private static State foldValue(State state, char c) {
@@ -453,7 +476,7 @@ public class Main {
 		else return state.append(c);
 	}
 
-	private static String compileDefinition(String input) {
+	private static JDefined parseDefined(String input) {
 		final String stripped = input.strip();
 		final int index = stripped.lastIndexOf(" ");
 		if (index >= 0) {
@@ -463,11 +486,12 @@ public class Main {
 			if (typeSeparator >= 0) {
 				final String beforeType = beforeName.substring(0, typeSeparator);
 				final String type = beforeName.substring(typeSeparator + " ".length());
-				return wrap(beforeType) + " " + compileType(type) + " " + name;
-			} else return compileType(beforeName) + " " + name;
+				final String newType = compileType(type);
+				return new Definition(new Some<String>(beforeType), newType, name);
+			} else return new Definition(new None<String>(), compileType(beforeName), name);
 		}
 
-		return wrap(stripped);
+		return new Placeholder(stripped);
 	}
 
 	private static String compileType(String input) {
@@ -502,7 +526,7 @@ public class Main {
 				final int keywordIndex = beforeParams.indexOf("record ");
 				if (keywordIndex >= 0) {
 					final String compiledParams =
-							compileAll(params, Main::foldValue, param -> generateStatement(compileDefinition(param)));
+							compileAll(params, Main::foldValue, param -> generateStatement(parseDefined(param).generate()));
 
 					final String name = beforeParams.substring(keywordIndex + "record ".length());
 					return new Tuple<String, String>("struct " + name, compiledParams);
@@ -520,8 +544,9 @@ public class Main {
 				final String beforePermits = afterKeyword.substring(0, permitsIndex);
 				final String[] variantsArray =
 						afterKeyword.substring(permitsIndex + "permits ".length()).split(Pattern.quote(","));
-				final List<String> variants =
-						Streams.fromInitializedArray(variantsArray).map(String::strip).collect(new ListCollector<>(DEFAULT_STRING));
+				final List<String> variants = Streams.fromInitializedArray(variantsArray)
+																						 .map(String::strip)
+																						 .collect(new ListCollector<String>(DEFAULT_STRING));
 
 				final Header header = compileNamed(beforePermits);
 				final String enumName = header.name + "Tag";
