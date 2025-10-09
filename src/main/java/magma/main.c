@@ -1,5 +1,5 @@
 struct Main {};
-struct StringBuffer {};
+struct StringBuffer {/*List<Character>*/ chars};
 /*public StringBuffer()*/ {};
 /*this(new*/ ArrayList<Character>());
 /**/
@@ -69,6 +69,9 @@ struct State {};
 
 /**/
 
+struct Tuple<A, B> {/*A*/ left/*B*/ right};
+/**/
+
 /*public static void main(String[] args)*/ {};
 /*try*/ {};
 /*final Path source = Paths.get(".", "src", "main", "java",*/ /*"magma",*/ "Main.java");
@@ -132,8 +135,9 @@ struct State {};
 /*")) return Optional.empty();*//*final String withoutEnd = input.substring(0, input.length() - "}".length());
 		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/ {};
 /*".length())*/;
-/*return Optional.of(compileStructureHeader(header) + "*/ {};
-/**/
+/*final Tuple<String, String> compiledHeader*/ /*=*/ compileStructureHeader(header);
+/*return Optional.of(compiledHeader.left + "*/ {};
+/*" + compiledHeader.right + "*/
 
 /**/;
 /*" + System.lineSeparator() +
@@ -207,11 +211,11 @@ struct State {};
 /*if (stripped.equals("void"))*/ /*return*/ "void";
 /*return*/ wrap(stripped);
 /**/
-/*private static String compileStructureHeader(String input)*/ {};
+/*private static Tuple<String, String> compileStructureHeader(String input)*/ {};
 /*final int index =*/ /*input.indexOf("class*/ ");
 /*if (index >= 0)*/ {};
 /*final String name = input.substring(index +*/ /*"class*/ ".length());
-/*return "struct "*/ /*+*/ name;
+/*return new Tuple<String, String>("struct " +*/ /*name,*/ "");
 /**/
 
 /*if (input.endsWith(")"))*/ {};
@@ -222,17 +226,16 @@ struct State {};
 /*final String params = withoutEnd.substring(paramStart*/ /*+*/ "(".length());
 /*final int keywordIndex =*/ /*beforeParams.indexOf("record*/ ");
 /*if (keywordIndex >= 0)*/ {};
-/*//*/ compileParameters(params);
-/*final String modifiers =*/ /*beforeParams.substring(0,*/ keywordIndex);
+/*final String compiledParams*/ /*=*/ compileParameters(params);
 /*final String name = beforeParams.substring(keywordIndex +*/ /*"record*/ ".length());
-/*return "struct "*/ /*+*/ name;
+/*return new Tuple<String, String>("struct " +*/ /*name,*/ compiledParams);
 /**/
 
 /**/
 
 /**/
 
-/*return*/ wrap(input);
+/*return new Tuple<String,*/ /*String>(wrap(input),*/ "");
 /**/
 /*private static String wrap(String input)*/ {};
 /*return "start" + input.replace("start", "start").replace("end", "end")*/ /*+*/ "*/";
