@@ -1,22 +1,181 @@
 struct Main {
 };
-struct StringBuffer {
-	/*List<Character>*/ chars;
+/*public interface Head<T>*/ {
 };
+/*Optional<T>*/ next();
+/**/
+
+/*public interface List<T>*/ {
+};
+/*List<T>*/ clear();
+/*List<T>*/ /*add(T*/ element);
+/*int*/ size();
+/*Optional<T>*/ /*get(int*/ index);
+/*Stream<T>*/ stream();
+/**/
+
+/*public interface Collector<T, C>*/ {
+};
+/*C*/ createInitial();
+/*C fold(C current,*/ /*T*/ element);
+/**/
+
+struct MapStream<T> {
+	/*Head<T>*/ next;
+};
+/*public <C> C collect(Collector<T, C> collector)*/ {
+};
+/*return*/ /*this.fold(collector.createInitial(),*/ collector::fold);
+/**/
+
+/*public <C> C fold(C initial, BiFunction<C, T, C> folder)*/ {
+};
+/*while (true)*/ {
+};
+/*final Optional<T> next*/ /*=*/ this.next.next();
+/*if (next.isPresent()) initial =*/ /*folder.apply(initial,*/ next.get());
+/*else*/ /*return*/ initial;
+/**/
+
+/**/
+
+/**/
+
+struct Stream<T> {
+	/*Head<T>*/ head;
+};
+/*public <R> MapStream<R> map(Function<T, R> mapper)*/ {
+};
+/*return new MapStream<R>(()*/ /*->*/ this.head.next().map(mapper));
+/**/
+
+/**/
+
+struct ArrayHead<T> implements Head<T> {
+};
+/*private final*/ /*T[]*/ array;
+/*private final*/ /*int*/ size;
+/*private int counter*/ /*=*/ 0;
+/*private ArrayHead(T[] array, int size)*/ {
+};
+/*this.array*/ /*=*/ array;
+/*this.size*/ /*=*/ size;
+/**/
+
+/*@Override
+		public Optional<T> next()*/ {
+};
+/*if (this.counter >= this.size)*/ /*return*/ Optional.empty();
+/*final T next*/ /*=*/ this.array[this.counter];
+/*this.counter++*/;
+/*return*/ Optional.of(next);
+/**/
+
+/**/
+
+struct ArrayList<T> implements List<T> {
+};
+/*private final*/ /*Supplier<T>*/ createDefault;
+/*private*/ /*T[]*/ array;
+/*private*/ /*int*/ size;
+/*public ArrayList(T[] array, Supplier<T> createDefault)*/ {
+};
+/*this.array*/ /*=*/ array;
+/*this.createDefault*/ /*=*/ createDefault;
+/*this.size*/ /*=*/ 0;
+/**/
+
+/*public ArrayList(Supplier<T> createDefault)*/ {
+};
+/*this(alloc(10),*/ createDefault);
+/**/
+
+/*@Override
+		public List<T> clear()*/ {
+};
+/*this.size*/ /*=*/ 0;
+/*return*/ this;
+/**/
+
+/*@Override
+		public List<T> add(T element)*/ {
+};
+/*return*/ /*this.set(this.size,*/ element);
+/**/
+
+/*@Override
+		public int size()*/ {
+};
+/*return*/ this.size;
+/**/
+
+/*@Override
+		public Optional<T> get(int index)*/ {
+};
+/*if (index < this.size)*/ /*return*/ Optional.of(this.array[index]);
+/*else*/ /*return*/ Optional.empty();
+/**/
+
+/*@Override
+		public Stream<T> stream()*/ {
+};
+/*return new Stream<T>(new*/ /*ArrayHead<T>(this.array,*/ this.size));
+/**/
+
+/*private List<T> set(int index, T element)*/ {
+};
+/*this.resizeArrayToContainIndex(index).ifPresent(newArray -> this.array*/ /*=*/ newArray);
+/*if (index + 1 >= this.size)*/ {
+};
+/*this.padWithDefaults(this.size, index*/ /*+*/ 1);
+/*this.size = index*/ /*+*/ 1;
+/**/
+
+/*this.array[index]*/ /*=*/ element;
+/*return*/ this;
+/**/
+
+/*private Optional<T[]> resizeArrayToContainIndex(int index)*/ {
+};
+/*int newCapacity*/ /*=*/ this.array.length;
+/*if (index < newCapacity)*/ /*return*/ Optional.empty();
+/*while (newCapacity <= index) newCapacity*/ /**=*/ 2;
+/*final T[] newArray*/ /*=*/ alloc(newCapacity);
+/*System.arraycopy(this.array, 0, newArray,*/ /*0,*/ this.size);
+/*return*/ Optional.of(newArray);
+/**/
+
+/*private void padWithDefaults(int start, int end)*/ {
+};
+/*for (int i*/ /*=*/ start;
+/*i*/ /*<*/ end;
+/*i++) this.array[i]*/ /*=*/ this.createDefault.get();
+/**/
+
+/**/
+
+struct StringBuffer {
+};
+/*private*/ /*List<Character>*/ chars;
+/*public StringBuffer(List<Character> chars)*/ {
+};
+/*this.chars*/ /*=*/ chars;
+/**/
+
 /*public StringBuffer()*/ {
 };
-/*this(new*/ ArrayList<Character>());
+/*this(new ArrayList<Character>(()*/ /*->*/ '\0'));
 /**/
 
 /*public StringBuffer clear()*/ {
 };
-/*this.chars.clear()*/;
+/*this.chars*/ /*=*/ this.chars.clear();
 /*return*/ this;
 /**/
 
 /*public StringBuffer append(char c)*/ {
 };
-/*this.chars.add(c)*/;
+/*this.chars*/ /*=*/ this.chars.add(c);
 /*return*/ this;
 /**/
 
@@ -25,7 +184,7 @@ struct StringBuffer {
 /*final char[] array =*/ /*new*/ char[this.chars.size()];
 /*for (int i*/ /*=*/ 0;
 /*i*/ /*<*/ this.chars.size();
-/*i++) array[i]*/ /*=*/ this.chars.get(i);
+/*i++) array[i]*/ /*=*/ this.chars.get(i).orElse('\0');
 /*return*/ /*new*/ String(array);
 /**/
 
@@ -39,7 +198,7 @@ struct State {
 /*public State()*/ {
 };
 /*this.buffer =*/ /*new*/ StringBuffer();
-/*this.segments =*/ /*new*/ ArrayList<String>();
+/*this.segments = new ArrayList<String>(()*/ /*->*/ "");
 /*this.depth*/ /*=*/ 0;
 /**/
 
@@ -91,6 +250,28 @@ struct Tuple<A, B> {
 };
 /**/
 
+struct Joiner implements Collector<String, Optional<String>> {
+};
+/*@Override
+		public Optional<String> createInitial()*/ {
+};
+/*return*/ Optional.empty();
+/**/
+
+/*@Override
+		public Optional<String> fold(Optional<String> current, String element)*/ {
+};
+/*return Optional.of(current.map(s -> s*/ /*+*/ element).orElse(element));
+/**/
+
+/**/
+
+/*public static <T> T[] alloc(int length)*/ {
+};
+/*//noinspection unchecked
+		return (T[])*/ /*new*/ Object[length];
+/**/
+
 /*public static void main(String[] args)*/ {
 };
 /*try*/ {
@@ -121,7 +302,7 @@ struct Tuple<A, B> {
 																	 BiFunction<State, Character, State> folder,
 																	 Function<String, String> mapper)*/ {
 };
-/*return*/ /*divide(input,*/ folder).map(mapper).collect(Collectors.joining());
+/*return divide(input,*/ /*folder).map(mapper).collect(new*/ Joiner()).orElse("");
 /**/
 
 /*private static Stream<String> divide(String input, BiFunction<State, Character, State> folder)*/ {

@@ -32,12 +32,12 @@ public class Main {
 		C fold(C current, T element);
 	}
 
-	public record MapHead<T, R>(Head<T> next, Function<T, R> mapper) {
-		public <R> R collect(Collector<T, R> collector) {
+	public record MapStream<T>(Head<T> next) {
+		public <C> C collect(Collector<T, C> collector) {
 			return this.fold(collector.createInitial(), collector::fold);
 		}
 
-		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
+		public <C> C fold(C initial, BiFunction<C, T, C> folder) {
 			while (true) {
 				final Optional<T> next = this.next.next();
 				if (next.isPresent()) initial = folder.apply(initial, next.get());
@@ -47,8 +47,8 @@ public class Main {
 	}
 
 	public record Stream<T>(Head<T> head) {
-		public <R> MapHead<T, R> map(Function<T, R> mapper) {
-			return new MapHead<T, R>(this.head, mapper);
+		public <R> MapStream<R> map(Function<T, R> mapper) {
+			return new MapStream<R>(() -> this.head.next().map(mapper));
 		}
 	}
 
@@ -116,24 +116,23 @@ public class Main {
 
 		private List<T> set(int index, T element) {
 			this.resizeArrayToContainIndex(index).ifPresent(newArray -> this.array = newArray);
+			if (index + 1 >= this.size) {
+				this.padWithDefaults(this.size, index + 1);
+				this.size = index + 1;
+			}
+
 			this.array[index] = element;
 			return this;
 		}
 
 		private Optional<T[]> resizeArrayToContainIndex(int index) {
-			final int oldCapacity = this.array.length;
-			int newCapacity = oldCapacity;
+			int newCapacity = this.array.length;
 			if (index < newCapacity) return Optional.empty();
 
 			while (newCapacity <= index) newCapacity *= 2;
 
 			final T[] newArray = alloc(newCapacity);
 			System.arraycopy(this.array, 0, newArray, 0, this.size);
-			if (index + 1 >= this.size) {
-				this.padWithDefaults(oldCapacity, newCapacity);
-				this.size = index + 1;
-			}
-
 			return Optional.of(newArray);
 		}
 
