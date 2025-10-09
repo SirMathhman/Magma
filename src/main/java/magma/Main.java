@@ -87,10 +87,8 @@ public class Main {
 		}
 
 		public <C> C fold(C initial, BiFunction<C, T, C> folder) {
-			while (true) {
-				if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);
-				else return initial;
-			}
+			while (true) if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);
+			else return initial;
 		}
 
 		public <S> MapStream<T, S> map(Function<T, S> mapper) {
@@ -267,7 +265,9 @@ public class Main {
 
 	private record Tuple<A, B>(A left, B right) {}
 
-	private static class Joiner implements Collector<String, Option<String>> {
+	private record Joiner(String delimiter) implements Collector<String, Option<String>> {
+		private Joiner() {this("");}
+
 		@Override
 		public Option<String> createInitial() {
 			return new None<String>();
@@ -277,7 +277,7 @@ public class Main {
 		public Option<String> fold(Option<String> current, String element) {
 			return new Some<String>(switch (current) {
 				case None<String> _ -> element;
-				case Some<String>(String buffer) -> buffer + element;
+				case Some<String>(String buffer) -> buffer + this.delimiter + element;
 			});
 		}
 	}
@@ -477,10 +477,11 @@ public class Main {
 				final String variants = Streams.fromInitializedArray(variantsArray)
 																			 .map(String::strip)
 																			 .map(slice -> System.lineSeparator() + "\t" + slice)
-																			 .collect(new Joiner())
+																			 .collect(new Joiner(","))
 																			 .orElse("");
 
-				before = "enum " + name + "Variants {" + variants + "};" + System.lineSeparator() + "struct " + name;
+				before = "enum " + name + "Tag {" + variants + System.lineSeparator() + "};" + System.lineSeparator() +
+								 "struct " + name;
 			} else before = "struct " + afterKeyword;
 
 			return new Tuple<String, String>(before, "");

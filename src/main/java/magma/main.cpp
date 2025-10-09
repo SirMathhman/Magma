@@ -1,8 +1,9 @@
 struct Main {
 };
-enum Option<T> Variants {
-	Some
-	None};
+enum Option<T> Tag {
+	Some,
+	None
+};
 struct Option<T>  {
 };
 /*T*/ orElse(/*T*/ other);
@@ -97,12 +98,8 @@ struct MapStream<S, T> {
 
 /*public <C> C fold(C initial, BiFunction<C, T, C> folder)*/ {
 };
-/*while (true)*/ {
-};
-/*if*/(/*this.next(*/)/*instanceof Some<T>(T value)) initial = folder.apply(initial, value);*/
+/*while*/(/*true*/)/*if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);*/
 /*else*/ /*return*/ initial;
-/**/
-
 /**/
 
 /*public <S> MapStream<T, S> map(Function<T, S> mapper)*/ {
@@ -322,8 +319,13 @@ struct Tuple<A, B> {
 };
 /**/
 
-struct Joiner implements Collector<String, Option<String>> {
+/*private record Joiner(String delimiter) implements Collector<String, Option<String>>*/ {
 };
+/*private Joiner()*/ {
+};
+/*this*/(/*""*/);
+/**/
+
 /*@Override
 		public Option<String> createInitial()*/ {
 };
@@ -336,7 +338,7 @@ struct Joiner implements Collector<String, Option<String>> {
 /*return new Some<String>(switch (current)*/ {
 };
 /*case None<String> _*/ /*->*/ element;
-/*case*/ Some<String>(/*String*/ buffer)/*-> buffer + element;*/
+/*case*/ Some<String>(/*String*/ buffer)/*-> buffer + this.delimiter + element;*/
 /**/
 
 /*)*/;
@@ -591,14 +593,15 @@ struct Streams {
 						afterKeyword.substring(/*permitsIndex +*/ /*"permits*/ ".length()/*).split(Pattern.quote(","));*/
 /*final String variants*/ /*=*/ Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip)
 																			 .map(slice -> System.lineSeparator() + "\t" + slice)
-																			 .collect(new Joiner())
+																			 .collect(new Joiner(","))
 																			 .orElse("");*/
-/*before = "enum " + name + "Variants*/ {
+/*before = "enum " + name + "Tag*/ {
 };
-/*" + variants + "*/
+/*" + variants*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
 
 /**/;
-/*"*/ /*+*/ System.lineSeparator(/**/)/*+ "struct " + name;*/
+/*"*/ /*+*/ System.lineSeparator(/**/)/*+
+								 "struct " + name;*/
 /**/
 
 /*else before = "struct "*/ /*+*/ afterKeyword;
