@@ -126,19 +126,19 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final String strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
-		return compileClass(strip).orElseGet(() -> wrap(strip));
+		return compileStructure(strip).orElseGet(() -> wrap(strip));
 	}
 
-	private static Optional<String> compileClass(String input) {
+	private static Optional<String> compileStructure(String input) {
 		if (!input.endsWith("}")) return Optional.empty();
 
 		final String withoutEnd = input.substring(0, input.length() - "}".length());
 		final int index = withoutEnd.indexOf("{");
 		if (index < 0) return Optional.empty();
 
-		final String substring = withoutEnd.substring(0, index);
+		final String header = withoutEnd.substring(0, index).strip();
 		final String body = withoutEnd.substring(index + "{".length());
-		return Optional.of(compileStructureHeader(substring) + "{};" + System.lineSeparator() +
+		return Optional.of(compileStructureHeader(header) + " {};" + System.lineSeparator() +
 											 compileStatements(body, Main::compileClassSegment));
 	}
 
@@ -148,9 +148,9 @@ public class Main {
 	}
 
 	private static String compileClassSegmentValue(String input) {
-		return compileMethod(input).or(() -> compileClass(input))
-															 .or(() -> compileField(input))
-															 .orElseGet(() -> wrap(input));
+		return compileStructure(input).or(() -> compileMethod(input))
+																	.or(() -> compileField(input))
+																	.orElseGet(() -> wrap(input));
 	}
 
 	private static Optional<? extends String> compileField(String input) {
@@ -178,9 +178,11 @@ public class Main {
 		final String definition = headerWithoutEnd.substring(0, paramStart);
 		final String params = headerWithoutEnd.substring(paramStart + "(".length());
 
-		return Optional.of(
-				compileDefinition(definition) + "(" + compileAll(params, Main::foldValue, Main::compileDefinition) + "){" +
-				wrap(body) + "}");
+		return Optional.of(compileDefinition(definition) + "(" + compileParameters(params) + "){" + wrap(body) + "}");
+	}
+
+	private static String compileParameters(String params) {
+		return compileAll(params, Main::foldValue, Main::compileDefinition);
 	}
 
 	private static State foldValue(State state, char c) {
@@ -217,6 +219,22 @@ public class Main {
 		if (index >= 0) {
 			final String name = input.substring(index + "class ".length());
 			return "struct " + name;
+		}
+
+		if (input.endsWith(")")) {
+			final String withoutEnd = input.substring(0, input.length() - ")".length());
+			final int paramStart = withoutEnd.indexOf("(");
+			if (paramStart >= 0) {
+				final String beforeParams = withoutEnd.substring(0, paramStart);
+				final String params = withoutEnd.substring(paramStart + "(".length());
+				final int keywordIndex = beforeParams.indexOf("record ");
+				if (keywordIndex >= 0) {
+					// compileParameters(params);
+					final String modifiers = beforeParams.substring(0, keywordIndex);
+					final String name = beforeParams.substring(keywordIndex + "record ".length());
+					return "struct " + name;
+				}
+			}
 		}
 
 		return wrap(input);
