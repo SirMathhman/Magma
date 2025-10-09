@@ -108,10 +108,16 @@ public class Main {
 			else return initial;
 		}
 
-		public <S> MapStream<T, S> map(Function<T, S> mapper) {
-			return new MapStream<T, S>(this::next, mapper);
+		public <R> MapStream<T, R> map(Function<T, R> mapper) {
+			return new MapStream<T, R>(this::next, mapper);
+		}
+
+		public <R> FlatMapStream<T, R> flatMap(Function<T, Stream<R>> mapper) {
+			return new FlatMapStream<T, R>(this::next, mapper);
 		}
 	}
+
+	public record FlatMapStream<S, T>(Head<S> head, Function<S, Stream<T>> mapper) {}
 
 	public record Stream<T>(Head<T> head) {
 		public <R> MapStream<T, R> map(Function<T, R> mapper) {
@@ -329,11 +335,11 @@ public class Main {
 		}
 	}
 
-	private record Definition(Option<String> maybeBeforeType, String newType, String name) implements JDefined {
+	private record Definition(Option<String> maybeBeforeType, String type, String name) implements JDefined {
 		@Override
 		public String generate() {
 			final String beforeTypeString = this.maybeBeforeType().map(Main::wrap).map(value -> value + " ").orElse("");
-			return beforeTypeString + this.newType() + " " + this.name();
+			return beforeTypeString + this.type() + " " + this.name();
 		}
 	}
 
@@ -345,6 +351,38 @@ public class Main {
 		@Override
 		public String generate() {
 			return wrap(this.stripped);
+		}
+	}
+
+	private static class EmptyHead<T> implements Head<T> {
+		@Override
+		public Option<T> next() {
+			return new None<T>();
+		}
+	}
+
+	private static class Options {
+		public static <T> Stream<T> stream(Option<T> option) {
+			return new Stream<T>(switch (option) {
+				case None<T> _ -> new EmptyHead<T>();
+				case Some<T> v -> new SingletonHead<T>(v.value);
+			});
+		}
+	}
+
+	private static class SingletonHead<T> implements Head<T> {
+		private final T value;
+		private boolean retrieved = false;
+
+		public SingletonHead(T value) {
+			this.value = value;
+		}
+
+		@Override
+		public Option<T> next() {
+			if (this.retrieved) return new None<T>();
+			this.retrieved = true;
+			return new Some<T>(this.value);
 		}
 	}
 
@@ -446,13 +484,22 @@ public class Main {
 			final int paramStart = withParams.indexOf("(");
 			if (paramStart >= 0) {
 				final String definition = withParams.substring(0, paramStart);
-				final String params = withParams.substring(paramStart + "(".length());
+				final String paramsString = withParams.substring(paramStart + "(".length());
 				final String stripped = body.strip();
-				final String compiledParameters = compileParameters(params);
+				final List<JDefined> params = divide(paramsString, Main::foldValue).map(Main::parseDefined)
+																																					 .collect(new ListCollector<JDefined>(() -> new Placeholder(
+																																							 "")));
 
-				if (stripped.equals(";"))
+				final String compiledParameters = params.stream().map(JDefined::generate).collect(new Joiner()).orElse("");
+
+				if (stripped.equals(";")) {
+					params.stream().map(param -> {
+						if (param instanceof Definition definition1) return new Some<String>(definition1.type);
+						else return new None<Object>();
+					}).flatMap(Options::stream);
+
 					return new Some<String>(parseDefined(definition).generate() + "(" + compiledParameters + ");");
-				else if (stripped.startsWith("{") && stripped.endsWith("}")) {
+				} else if (stripped.startsWith("{") && stripped.endsWith("}")) {
 					final String substring = stripped.substring(1, stripped.length() - 1);
 					final String s =
 							parseDefined(definition).generate() + "(" + compiledParameters + "){" + wrap(substring) + "}";
