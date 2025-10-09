@@ -492,10 +492,8 @@ public class Main {
 				final String params = withoutEnd.substring(paramStart + "(".length());
 				final int keywordIndex = beforeParams.indexOf("record ");
 				if (keywordIndex >= 0) {
-					final String compiledParams = compileAll(params,
-																									 Main::foldValue,
-																									 param -> System.lineSeparator() + "\t" + compileDefinition(param) +
-																														";");
+					final String compiledParams =
+							compileAll(params, Main::foldValue, param -> generateStatement(compileDefinition(param)));
 
 					final String name = beforeParams.substring(keywordIndex + "record ".length());
 					return new Tuple<String, String>("struct " + name, compiledParams);
@@ -516,23 +514,29 @@ public class Main {
 				final List<String> variants =
 						Streams.fromInitializedArray(variantsArray).map(String::strip).collect(new ListCollector<>(DEFAULT_STRING));
 
-				final String enumBody =
-						variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(new Joiner(",")).orElse("");
-
 				final Header header = compileNamed(beforePermits);
-				final String tagName = header.name + "Tag";
+				final String enumName = header.name + "Tag";
+
+				final String enumBody =
+						variants.stream().map(slice -> generateIndent() + slice).collect(new Joiner(",")).orElse("");
+				final String generatedEnum =
+						"enum " + enumName + " {" + enumBody + System.lineSeparator() + "};" + System.lineSeparator();
 
 				final String typeParamsString = header.generateTypeParams().orElse("");
 				final String unionBody = variants.stream()
-																				 .map(variant -> System.lineSeparator() + "\t" + variant + typeParamsString +
-																												 " " + variant.toLowerCase(Locale.ROOT) + ";")
+																				 .map(variant -> generateStatement(
+																						 variant + typeParamsString + " " + variant.toLowerCase(Locale.ROOT)))
 																				 .collect(new Joiner())
 																				 .orElse("");
 
-				before = "enum " + tagName + " {" + enumBody + System.lineSeparator() + "};" + System.lineSeparator() +
-								 header.generate("union") + " {" + unionBody + System.lineSeparator() + "};" + System.lineSeparator() +
-								 header.generate("struct");
-				return new Tuple<String, String>(before, System.lineSeparator() + "\t" + tagName + " tag;");
+				final String unionName = header.generate("union") + "Data";
+				final String generatedUnion =
+						unionName + " {" + unionBody + System.lineSeparator() + "};" + System.lineSeparator();
+				before = generatedEnum + generatedUnion + header.generate("struct");
+
+				return new Tuple<String, String>(before,
+																				 generateStatement(enumName + " tag") +
+																				 generateStatement(header.name + "Data" + header.generateTypeParams().orElse("") + " data"));
 			} else {
 				final Header header = compileNamed(afterKeyword);
 				before = header.generate("struct");
@@ -541,6 +545,14 @@ public class Main {
 		}
 
 		return new Tuple<String, String>(wrap(input), "");
+	}
+
+	private static String generateStatement(String content) {
+		return generateIndent() + content + ";";
+	}
+
+	private static String generateIndent() {
+		return System.lineSeparator() + "\t";
 	}
 
 	private static Header compileNamed(String input) {

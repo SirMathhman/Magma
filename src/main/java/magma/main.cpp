@@ -5,13 +5,14 @@ enum OptionTag {
 	None
 };
 template<typename T>
-union Option {
+union OptionData {
 	Some<T> some;
 	None<T> none;
 };
 template<typename T>
 struct Option {
 	OptionTag tag;
+	OptionData<T> data;
 };
 /*T*/ orElse(/*T*/ other);
 /*T*/ orElseGet(/*Supplier<T>*/ other);
@@ -627,9 +628,8 @@ struct Header {
 /*final int keywordIndex*/ /*=*/ beforeParams.indexOf(/*"record*/ ");
 /*if (keywordIndex >= 0)*/ {
 };
-/*final String compiledParams*/ /*=*/ compileAll(/*params*//*Main::foldValue*//*param*/ /*->*/ System.lineSeparator()/*+ "\t" + compileDefinition(param) +
-																														";*/
-/*")*/;
+/*final String*/ /*compiledParams*/ =
+							compileAll(/*params*//*Main::foldValue*//*param*/ /*->*/ generateStatement(compileDefinition(param)/*));*/
 /*final String name*/ /*=*/ beforeParams.substring(/*keywordIndex +*/ /*"record*/ ".length()/*);*/
 /*return new*/ /*Tuple<String,*/ String>(/*"struct "*/ /*+*/ name/*compiledParams*/);
 /**/
@@ -651,30 +651,33 @@ struct Header {
 						afterKeyword.substring(/*permitsIndex +*/ /*"permits*/ ".length()/*).split(Pattern.quote(","));*/
 /*final List<String>*/ /*variants*/ =
 						Streams.fromInitializedArray(/*variantsArray*/)/*.map(String::strip).collect(new ListCollector<>(DEFAULT_STRING));*/
-/*final String*/ /*enumBody*/ =
-						variants.stream(/**/)/*.map(slice -> System.lineSeparator() + "\t" + slice).collect(new Joiner(",")).orElse("");*/
 /*final Header header*/ /*=*/ compileNamed(/*beforePermits*/);
-/*final String tagName = header.name*/ /*+*/ "Tag";
-/*final String typeParamsString*/ /*=*/ header.generateTypeParams(/**/)/*.orElse("");*/
-/*final String unionBody*/ /*=*/ variants.stream(/**/)/*.map(variant -> System.lineSeparator() + "\t" + variant + typeParamsString +
-																												 " " + variant.toLowerCase(Locale.ROOT) + ";*/
-/*")
-																				 .collect(new*/ /*Joiner())*/ .orElse("");
-/*before = "enum " + tagName + "*/ {
+/*final String enumName = header.name*/ /*+*/ "Tag";
+/*final String*/ /*enumBody*/ =
+						variants.stream(/**/)/*.map(slice -> generateIndent() + slice).collect(new Joiner(",")).orElse("");*/
+/*final String generatedEnum =
+						"enum " + enumName + "*/ {
 };
 /*" + enumBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
 
 /**/;
-/*" + System.lineSeparator() +
-								 header.generate("union") + "*/ {
+/*"*/ /*+*/ System.lineSeparator(/**/);
+/*final String typeParamsString*/ /*=*/ header.generateTypeParams(/**/)/*.orElse("");*/
+/*final String unionBody*/ /*=*/ variants.stream(/**/)/*.map(variant -> generateStatement(
+																						 variant + typeParamsString + " " + variant.toLowerCase(Locale.ROOT)))
+																				 .collect(new Joiner())
+																				 .orElse("");*/
+/*final String unionName*/ /*=*/ header.generate(/*"union"*/)/*+ "Data";*/
+/*final String generatedUnion =
+						unionName + "*/ {
 };
 /*" + unionBody*/ /*+*/ System.lineSeparator(/**/)/*+ "*/
 
 /**/;
-/*"*/ /*+*/ System.lineSeparator(/**/)/*+
-								 header.generate("struct");*/
-/*return new*/ /*Tuple<String,*/ String>(/*before*//*System.lineSeparator(*/)/*+ "\t" + tagName + " tag;*/
-/*")*/;
+/*"*/ /*+*/ System.lineSeparator(/**/);
+/*before = generatedEnum + generatedUnion*/ /*+*/ header.generate(/*"struct"*/);
+/*return new*/ /*Tuple<String,*/ String>(/*before*//*generateStatement(enumName +*/ /*"*/ tag")/*+
+																				 generateStatement(header.name + "Data" + header.generateTypeParams().orElse("") + " data"));*/
 /**/
 
 /*else*/ {
@@ -687,6 +690,15 @@ struct Header {
 /**/
 
 /*return new*/ /*Tuple<String,*/ String>(/*wrap(input*/)/*, "");*/
+/**/
+/*private static String generateStatement(String content)*/ {
+};
+/*return*/ generateIndent(/**/)/*+ content + ";*/
+/*"*/;
+/**/
+/*private static String generateIndent()*/ {
+};
+/*return*/ System.lineSeparator(/**/)/*+ "\t";*/
 /**/
 /*private static Header compileNamed(String input)*/ {
 };
