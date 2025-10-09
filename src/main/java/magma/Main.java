@@ -16,6 +16,8 @@ public class Main {
 		T orElseGet(Supplier<T> other);
 
 		Option<T> or(Supplier<Option<T>> other);
+
+		<R> Option<R> map(Function<T, R> mapper);
 	}
 
 	public interface Head<T> {
@@ -55,6 +57,11 @@ public class Main {
 		public Option<T> or(Supplier<Option<T>> other) {
 			return this;
 		}
+
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new Some<R>(mapper.apply(this.value));
+		}
 	}
 
 	public static final class None<T> implements Option<T> {
@@ -71,6 +78,11 @@ public class Main {
 		@Override
 		public Option<T> or(Supplier<Option<T>> other) {
 			return other.get();
+		}
+
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new None<R>();
 		}
 	}
 
@@ -288,6 +300,12 @@ public class Main {
 		}
 	}
 
+	public record StructureHeader(String name, Option<String> maybeTypeParams) {
+		public String generate() {
+			return this.name + this.maybeTypeParams.map(params -> "<" + params + ">").orElse("");
+		}
+	}
+
 	public static <T> T[] alloc(int length) {
 		//noinspection unchecked
 		return (T[]) new Object[length];
@@ -385,12 +403,12 @@ public class Main {
 			if (paramStart >= 0) {
 				final String definition = withParams.substring(0, paramStart);
 				final String params = withParams.substring(paramStart + "(".length());
-				return new Some<>(
+				return new Some<String>(
 						compileDefinition(definition) + "(" + compileParameters(params) + ")" + compileMethodBody(body));
 			}
 		}
 
-		return new None<>();
+		return new None<String>();
 	}
 
 	private static String compileMethodBody(String body) {
@@ -471,7 +489,7 @@ public class Main {
 			String before;
 			final int permitsIndex = afterKeyword.indexOf("permits ");
 			if (permitsIndex >= 0) {
-				final String name = afterKeyword.substring(0, permitsIndex);
+				final String beforePermits = afterKeyword.substring(0, permitsIndex);
 				final String[] variantsArray =
 						afterKeyword.substring(permitsIndex + "permits ".length()).split(Pattern.quote(","));
 				final String variants = Streams.fromInitializedArray(variantsArray)
@@ -480,14 +498,32 @@ public class Main {
 																			 .collect(new Joiner(","))
 																			 .orElse("");
 
-				before = "enum " + name + "Tag {" + variants + System.lineSeparator() + "};" + System.lineSeparator() +
-								 "struct " + name;
-			} else before = "struct " + afterKeyword;
+				final StructureHeader afterKeyword1 = compileNamed(beforePermits);
+				before =
+						"enum " + afterKeyword1.name + "Tag {" + variants + System.lineSeparator() + "};" + System.lineSeparator() +
+						"struct " + afterKeyword1.generate();
+			} else {
+				final StructureHeader afterKeyword1 = compileNamed(afterKeyword);
+				before = "struct " + afterKeyword1.generate();
+			}
 
 			return new Tuple<String, String>(before, "");
 		}
 
 		return new Tuple<String, String>(wrap(input), "");
+	}
+
+	private static StructureHeader compileNamed(String input) {
+		final String stripped = input.strip();
+		if (!stripped.endsWith(">")) return new StructureHeader(stripped, new None<String>());
+
+		final String withoutEnd = stripped.substring(0, stripped.length() - 1);
+		final int paramStart = withoutEnd.indexOf("<");
+		if (paramStart < 0) return new StructureHeader(stripped, new None<String>());
+
+		final String name = withoutEnd.substring(0, paramStart);
+		final String typeParameters = withoutEnd.substring(paramStart + "<".length());
+		return new StructureHeader(name, new Some<String>(typeParameters));
 	}
 
 	private static String wrap(String input) {
