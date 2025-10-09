@@ -473,8 +473,17 @@ public class Main {
 	private static String compileType(String input) {
 		final String stripped = input.strip();
 		if (stripped.equals("void")) return "void";
-
+		if (isIdentifier(stripped)) return stripped;
 		return wrap(stripped);
+	}
+
+	private static boolean isIdentifier(String input) {
+		final int length = input.length();
+		for (int index = 0; index < length; index++) {
+			final char c = input.charAt(index);
+			if (!Character.isLetter(c)) return false;
+		}
+		return true;
 	}
 
 	private static Tuple<String, String> compileStructureHeader(String input) {
@@ -535,8 +544,8 @@ public class Main {
 				before = generatedEnum + generatedUnion + header.generate("struct");
 
 				return new Tuple<String, String>(before,
-																				 generateStatement(enumName + " tag") +
-																				 generateStatement(header.name + "Data" + header.generateTypeParams().orElse("") + " data"));
+																				 generateStatement(enumName + " tag") + generateStatement(
+																						 header.name + "Data" + header.generateTypeParams().orElse("") + " data"));
 			} else {
 				final Header header = compileNamed(afterKeyword);
 				before = header.generate("struct");
