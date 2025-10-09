@@ -66,7 +66,30 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
-		return wrap(input.strip()) + System.lineSeparator();
+		final String stripped = input.strip();
+		return compileClassSegmentValue(stripped) + System.lineSeparator();
+	}
+
+	private static String compileClassSegmentValue(String input) {
+		if (input.endsWith("}")) {
+			final String withoutEnd = input.substring(0, input.length() - "}".length());
+			final int index = withoutEnd.indexOf("{");
+			if (index >= 0) {
+				final String header = withoutEnd.substring(0, index).strip();
+				final String body = withoutEnd.substring(index + "{".length());
+				if (header.endsWith(")")) {
+					final String headerWithoutEnd = header.substring(0, header.length() - ")".length());
+					final int paramStart = headerWithoutEnd.indexOf("(");
+					if (paramStart >= 0) {
+						final String definition = headerWithoutEnd.substring(0, paramStart);
+						final String params = headerWithoutEnd.substring(paramStart + "(".length());
+						return wrap(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
+					}
+				}
+			}
+		}
+
+		return wrap(input);
 	}
 
 	private static String compileStructureHeader(String input) {
