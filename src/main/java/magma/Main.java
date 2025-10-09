@@ -43,6 +43,26 @@ public class Main {
 	}
 
 	private static String compileRootSegment(String input) {
+		if (input.endsWith("}")) {
+			final String withoutEnd = input.substring(0, input.length() - "}".length());
+			final int index = withoutEnd.indexOf("{");
+			if (index >= 0) {
+				final String substring = withoutEnd.substring(0, index);
+				final String substring1 = withoutEnd.substring(index + "{".length());
+				return compileStructureHeader(substring) + "{};" + System.lineSeparator() + wrap(substring1);
+			}
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileStructureHeader(String input) {
+		final int index = input.indexOf("class ");
+		if (index >= 0) {
+			final String name = input.substring(index + "class ".length());
+			return "struct " + name;
+		}
+
 		return wrap(input);
 	}
 
