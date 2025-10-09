@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import java.util.regex.Pattern;
 
 public class Main {
 	public sealed interface Option<T> permits Some, None {
@@ -73,26 +74,33 @@ public class Main {
 		}
 	}
 
-	public record MapStream<T>(Head<T> next) {
+	public record MapStream<S, T>(Head<S> head, Function<S, T> mapper) {
+		public Option<T> next() {
+			return switch (this.head.next()) {
+				case None<S> _ -> new None<T>();
+				case Some<S> v -> new Some<T>(this.mapper.apply(v.value));
+			};
+		}
+
 		public <C> C collect(Collector<T, C> collector) {
 			return this.fold(collector.createInitial(), collector::fold);
 		}
 
 		public <C> C fold(C initial, BiFunction<C, T, C> folder) {
 			while (true) {
-				final Option<T> next = this.next.next();
-				if (next instanceof Some<T>(T value)) initial = folder.apply(initial, value);
+				if (this.next() instanceof Some<T>(T value)) initial = folder.apply(initial, value);
 				else return initial;
 			}
+		}
+
+		public <S> MapStream<T, S> map(Function<T, S> mapper) {
+			return new MapStream<T, S>(this::next, mapper);
 		}
 	}
 
 	public record Stream<T>(Head<T> head) {
-		public <R> MapStream<R> map(Function<T, R> mapper) {
-			return new MapStream<R>(() -> switch (this.head.next()) {
-				case None<T> _ -> new None<R>();
-				case Some<T> v -> new Some<R>(mapper.apply(v.value));
-			});
+		public <R> MapStream<T, R> map(Function<T, R> mapper) {
+			return new MapStream<T, R>(this.head, mapper);
 		}
 	}
 
@@ -274,6 +282,12 @@ public class Main {
 		}
 	}
 
+	private static class Streams {
+		public static <T> Stream<T> fromInitializedArray(T[] array) {
+			return new Stream<T>(new ArrayHead<T>(array, array.length));
+		}
+	}
+
 	public static <T> T[] alloc(int length) {
 		//noinspection unchecked
 		return (T[]) new Object[length];
@@ -452,8 +466,24 @@ public class Main {
 
 		final int interfaceIndex = input.indexOf("interface ");
 		if (interfaceIndex >= 0) {
-			final String name = input.substring(interfaceIndex + "interface ".length());
-			return new Tuple<String, String>("struct " + name, "");
+			final String afterKeyword = input.substring(interfaceIndex + "interface ".length());
+
+			String before;
+			final int permitsIndex = afterKeyword.indexOf("permits ");
+			if (permitsIndex >= 0) {
+				final String name = afterKeyword.substring(0, permitsIndex);
+				final String[] variantsArray =
+						afterKeyword.substring(permitsIndex + "permits ".length()).split(Pattern.quote(","));
+				final String variants = Streams.fromInitializedArray(variantsArray)
+																			 .map(String::strip)
+																			 .map(slice -> System.lineSeparator() + "\t" + slice)
+																			 .collect(new Joiner())
+																			 .orElse("");
+
+				before = "enum " + name + "Variants {" + variants + "};" + System.lineSeparator() + "struct " + name;
+			} else before = "struct " + afterKeyword;
+
+			return new Tuple<String, String>(before, "");
 		}
 
 		return new Tuple<String, String>(wrap(input), "");
