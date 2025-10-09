@@ -363,23 +363,32 @@ public class Main {
 	}
 
 	private static Option<String> compileMethod(String input) {
-		if (!input.endsWith("}")) return new None<String>();
-		final String withoutEnd = input.substring(0, input.length() - "}".length());
+		final int paramEnd = input.indexOf(")");
+		if (paramEnd >= 0) {
+			final String withParams = input.substring(0, paramEnd);
+			final String body = input.substring(paramEnd + ")".length()).strip();
+			final int paramStart = withParams.indexOf("(");
+			if (paramStart >= 0) {
+				final String definition = withParams.substring(0, paramStart);
+				final String params = withParams.substring(paramStart + "(".length());
+				return new Some<>(
+						compileDefinition(definition) + "(" + compileParameters(params) + ")" + compileMethodBody(body));
+			}
+		}
 
-		final int index = withoutEnd.indexOf("{");
-		if (index < 0) return new None<String>();
-		final String header = withoutEnd.substring(0, index).strip();
-		final String body = withoutEnd.substring(index + "{".length());
+		return new None<>();
+	}
 
-		if (!header.endsWith(")")) return new None<String>();
-		final String headerWithoutEnd = header.substring(0, header.length() - ")".length());
+	private static String compileMethodBody(String body) {
+		final String stripped = body.strip();
+		if (stripped.equals(";")) return ";";
 
-		final int paramStart = headerWithoutEnd.indexOf("(");
-		if (paramStart < 0) return new None<String>();
-		final String definition = headerWithoutEnd.substring(0, paramStart);
-		final String params = headerWithoutEnd.substring(paramStart + "(".length());
+		if (stripped.startsWith("{") && stripped.endsWith("}")) {
+			final String substring = stripped.substring(1, stripped.length() - 1);
+			return "{" + wrap(substring) + "}";
+		}
 
-		return new Some<String>(compileDefinition(definition) + "(" + compileParameters(params) + "){" + wrap(body) + "}");
+		return wrap(body);
 	}
 
 	private static String compileParameters(String params) {
