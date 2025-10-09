@@ -1,11 +1,11 @@
 struct Main {
 };
-/*public interface Head<T>*/ {
+struct Head<T> {
 };
 /*Optional<T>*/ next();
 /**/
 
-/*public interface List<T>*/ {
+struct List<T> {
 };
 /*List<T>*/ clear();
 /*List<T>*/ /*add(T*/ element);
@@ -14,7 +14,7 @@ struct Main {
 /*Stream<T>*/ stream();
 /**/
 
-/*public interface Collector<T, C>*/ {
+struct Collector<T, C> {
 };
 /*C*/ createInitial();
 /*C fold(C current,*/ /*T*/ element);
@@ -470,6 +470,13 @@ struct Joiner implements Collector<String, Optional<String>> {
 
 /**/
 
+/**/
+
+/*final int interfaceIndex =*/ /*input.indexOf("interface*/ ");
+/*if (interfaceIndex >= 0)*/ {
+};
+/*final String name = input.substring(interfaceIndex +*/ /*"interface*/ ".length());
+/*return new Tuple<String, String>("struct " +*/ /*name,*/ "");
 /**/
 
 /*return new Tuple<String,*/ /*String>(wrap(input),*/ "");

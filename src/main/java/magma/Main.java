@@ -393,6 +393,12 @@ public class Main {
 			}
 		}
 
+		final int interfaceIndex = input.indexOf("interface ");
+		if (interfaceIndex >= 0) {
+			final String name = input.substring(interfaceIndex + "interface ".length());
+			return new Tuple<String, String>("struct " + name, "");
+		}
+
 		return new Tuple<String, String>(wrap(input), "");
 	}
 
