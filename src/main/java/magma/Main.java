@@ -14,40 +14,46 @@ import java.util.stream.Stream;
 
 public class Main {
 	public static class State {
-		public final StringBuilder buffer = new StringBuilder();
-		private final List<String> segments = new ArrayList<String>();
-		private int depth = 0;
+		private final StringBuilder buffer;
+		private final List<String> segments;
+		private int depth;
+
+		public State() {
+			this.buffer = new StringBuilder();
+			this.segments = new ArrayList<String>();
+			this.depth = 0;
+		}
 
 		private Stream<String> stream() {
-			return segments.stream();
+			return this.segments.stream();
 		}
 
 		private State enter() {
-			this.depth = depth + 1;
+			this.depth = this.depth + 1;
 			return this;
 		}
 
 		private State exit() {
-			this.depth = depth - 1;
+			this.depth = this.depth - 1;
 			return this;
 		}
 
 		private boolean isShallow() {
-			return depth == 1;
+			return this.depth == 1;
 		}
 
 		private State advance() {
-			segments.add(buffer.toString());
-			buffer.setLength(0);
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
 			return this;
 		}
 
 		private boolean isLevel() {
-			return depth == 0;
+			return this.depth == 0;
 		}
 
 		private State append(char c) {
-			buffer.append(c);
+			this.buffer.append(c);
 			return this;
 		}
 	}
@@ -120,7 +126,17 @@ public class Main {
 	}
 
 	private static String compileClassSegmentValue(String input) {
-		return compileMethod(input).or(() -> compileClass(input)).orElseGet(() -> wrap(input));
+		return compileMethod(input).or(() -> compileClass(input))
+															 .or(() -> compileField(input))
+															 .orElseGet(() -> wrap(input));
+	}
+
+	private static Optional<? extends String> compileField(String input) {
+		final String slice = input.strip();
+		if (slice.endsWith(";")) {
+			final String substring = slice.substring(0, slice.length() - ";".length());
+			return Optional.of(compileDefinition(slice));
+		} else return Optional.empty();
 	}
 
 	private static Optional<String> compileMethod(String input) {

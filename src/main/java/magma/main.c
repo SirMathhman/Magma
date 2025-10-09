@@ -1,32 +1,37 @@
 struct Main {};
 struct State {};
-/*public final StringBuilder buffer = new StringBuilder();*/
-/*private final List<String> segments = new ArrayList<String>();*/
-/*private int depth = 0;*/
+/*private final*/ /*StringBuilder*/ buffer;
+/*private final*/ /*List<String>*/ segments;
+/*private*/ /*int*/ depth;
+/*public*/ State(/**/){/*
+			this.buffer = new StringBuilder();
+			this.segments = new ArrayList<String>();
+			this.depth = 0;
+		*/}
 /*private*/ /*Stream<String>*/ stream(/**/){/*
-			return segments.stream();
+			return this.segments.stream();
 		*/}
 /*private*/ /*State*/ enter(/**/){/*
-			this.depth = depth + 1;
+			this.depth = this.depth + 1;
 			return this;
 		*/}
 /*private*/ /*State*/ exit(/**/){/*
-			this.depth = depth - 1;
+			this.depth = this.depth - 1;
 			return this;
 		*/}
 /*private*/ /*boolean*/ isShallow(/**/){/*
-			return depth == 1;
+			return this.depth == 1;
 		*/}
 /*private*/ /*State*/ advance(/**/){/*
-			segments.add(buffer.toString());
-			buffer.setLength(0);
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
 			return this;
 		*/}
 /*private*/ /*boolean*/ isLevel(/**/){/*
-			return depth == 0;
+			return this.depth == 0;
 		*/}
 /*private*/ /*State*/ append(/*char*/ c){/*
-			buffer.append(c);
+			this.buffer.append(c);
 			return this;
 		*/}
 /**/
@@ -62,18 +67,18 @@ struct State {};
 		final State appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '*/}
-/*' && appended.isShallow()) return appended.advance().exit();*/
+/*' && appended.isShallow())*/ /*return*/ appended.advance().exit();
 /*if (c == '*/{};
-/*') return appended.enter();*/
+/*')*/ /*return*/ appended.enter();
 /*if (c == '*/
 
-/*') return appended.exit();*/
-/*return appended;*/
+/*')*/ /*return*/ appended.exit();
+/*return*/ appended;
 /**/
 /*private static String compileRootSegment(String input) */{};
-/*final String strip = input.strip();*/
-/*if (strip.startsWith("package ") || strip.startsWith("import ")) return "";*/
-/*return compileClass(strip).orElseGet(() -> wrap(strip));*/
+/*final String strip*/ /*=*/ input.strip();
+/*if (strip.startsWith("package ") || strip.startsWith("import "))*/ /*return*/ "";
+/*return compileClass(strip).orElseGet(()*/ /*->*/ wrap(strip));
 /**/
 /*private static Optional<String> compileClass(String input) */{};
 /*if (!input.endsWith("*/
@@ -85,14 +90,27 @@ struct State {};
 
 /*;*/
 /*" + System.lineSeparator() +
-											 compileStatements(body, Main::compileClassSegment));*/
+											*/ /*compileStatements(body,*/ Main::compileClassSegment));
 /**/
 /*private static String compileClassSegment(String input) */{};
-/*final String stripped = input.strip();*/
-/*return compileClassSegmentValue(stripped) + System.lineSeparator();*/
+/*final String stripped*/ /*=*/ input.strip();
+/*return compileClassSegmentValue(stripped)*/ /*+*/ System.lineSeparator();
 /**/
 /*private static String compileClassSegmentValue(String input) */{};
-/*return compileMethod(input).or(() -> compileClass(input)).orElseGet(() -> wrap(input));*/
+/*return compileMethod(input).or(() -> compileClass(input))
+															 .or(() -> compileField(input))
+															 .orElseGet(()*/ /*->*/ wrap(input));
+/**/
+/*private static Optional<? extends String> compileField(String input) */{};
+/*final String slice*/ /*=*/ input.strip();
+/*if*/ (slice.endsWith(";
+/*")) */{};
+/*final String substring = slice.substring(0, slice.length()*/ /*-*/ ";
+/*".length());*/
+/*return*/ Optional.of(compileDefinition(slice));
+/**/
+
+/*else*/ /*return*/ Optional.empty();
 /**/
 /*private static Optional<String> compileMethod(String input) */{};
 /*if (!input.endsWith("*/
@@ -100,23 +118,23 @@ struct State {};
 
 		final int index = withoutEnd.indexOf("{");*//*if (index < 0) return Optional.empty();*//*final String header = withoutEnd.substring(0, index).strip();*//*final String body = withoutEnd.substring(index + "*/{};
 /*".length());*/
-/*if (!header.endsWith(")")) return Optional.empty();*/
-/*final String headerWithoutEnd = header.substring(0, header.length() - ")".length());*/
-/*final int paramStart = headerWithoutEnd.indexOf("(");*/
-/*if (paramStart < 0) return Optional.empty();*/
-/*final String definition = headerWithoutEnd.substring(0, paramStart);*/
-/*final String params = headerWithoutEnd.substring(paramStart + "(".length());*/
+/*if (!header.endsWith(")"))*/ /*return*/ Optional.empty();
+/*final String headerWithoutEnd = header.substring(0, header.length()*/ /*-*/ ")".length());
+/*final int paramStart*/ /*=*/ headerWithoutEnd.indexOf("(");
+/*if (paramStart < 0)*/ /*return*/ Optional.empty();
+/*final String definition =*/ /*headerWithoutEnd.substring(0,*/ paramStart);
+/*final String params = headerWithoutEnd.substring(paramStart*/ /*+*/ "(".length());
 /*return*/ Optional.of(/*compileDefinition(definition) + "("*/ /*+*/ compileAll(params/*Main::foldValue*//*Main::compileDefinition)*/ /*+*/ "){/*" +
 				wrap(body) + "*/}
 /*");*/
 /**/
 /*private static State foldValue(State state, char c) */{};
-/*if (c == ',') return state.advance();*/
-/*else return state.append(c);*/
+/*if (c == ',')*/ /*return*/ state.advance();
+/*else*/ /*return*/ state.append(c);
 /**/
 /*private static String compileDefinition(String input) */{};
-/*final String stripped = input.strip();*/
-/*final int index = stripped.lastIndexOf(" ");*/
+/*final String stripped*/ /*=*/ input.strip();
+/*final int index =*/ /*stripped.lastIndexOf("*/ ");
 /*if*/(/*index*/ /*>=*/ 0){/*
 			final String beforeName = stripped.substring(0, index).strip();
 			final String name = stripped.substring(index + " ".length());
@@ -127,22 +145,22 @@ struct State {};
 				return wrap(beforeType) + " " + compileType(type) + " " + name;
 			} else return compileType(beforeName) + " " + name;
 		*/}
-/*return wrap(stripped);*/
+/*return*/ wrap(stripped);
 /**/
 /*private static String compileType(String input) */{};
-/*final String stripped = input.strip();*/
-/*if (stripped.equals("void")) return "void";*/
-/*return wrap(stripped);*/
+/*final String stripped*/ /*=*/ input.strip();
+/*if (stripped.equals("void"))*/ /*return*/ "void";
+/*return*/ wrap(stripped);
 /**/
 /*private static String compileStructureHeader(String input) */{};
-/*final int index = input.indexOf("class ");*/
+/*final int index =*/ /*input.indexOf("class*/ ");
 /*if*/(/*index*/ /*>=*/ 0){/*
 			final String name = input.substring(index + "class ".length());
 			return "struct " + name;
 		*/}
-/*return wrap(input);*/
+/*return*/ wrap(input);
 /**/
 /*private static String wrap(String input) */{};
-/*return "start" + input.replace("start", "start").replace("end", "end") + "end";*/
+/*return "start" + input.replace("start", "start").replace("end", "end")*/ /*+*/ "*/";
 /**/
 /*}*/
