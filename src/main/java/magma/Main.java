@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ import java.util.stream.Stream;
 public class Main {
 	public static class State {
 		public final StringBuilder buffer = new StringBuilder();
-		private final List<String> segments = new ArrayList<>();
+		private final List<String> segments = new ArrayList<String>();
 		private int depth = 0;
 
 		private Stream<String> stream() {
@@ -97,19 +98,20 @@ public class Main {
 	private static String compileRootSegment(String input) {
 		final String strip = input.strip();
 		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+		return compileClass(strip).orElseGet(() -> wrap(strip));
+	}
 
-		if (strip.endsWith("}")) {
-			final String withoutEnd = strip.substring(0, strip.length() - "}".length());
-			final int index = withoutEnd.indexOf("{");
-			if (index >= 0) {
-				final String substring = withoutEnd.substring(0, index);
-				final String body = withoutEnd.substring(index + "{".length());
-				return compileStructureHeader(substring) + "{};" + System.lineSeparator() +
-							 compileStatements(body, Main::compileClassSegment);
-			}
-		}
+	private static Optional<String> compileClass(String input) {
+		if (!input.endsWith("}")) return Optional.empty();
 
-		return wrap(strip);
+		final String withoutEnd = input.substring(0, input.length() - "}".length());
+		final int index = withoutEnd.indexOf("{");
+		if (index < 0) return Optional.empty();
+
+		final String substring = withoutEnd.substring(0, index);
+		final String body = withoutEnd.substring(index + "{".length());
+		return Optional.of(compileStructureHeader(substring) + "{};" + System.lineSeparator() +
+											 compileStatements(body, Main::compileClassSegment));
 	}
 
 	private static String compileClassSegment(String input) {
@@ -118,26 +120,29 @@ public class Main {
 	}
 
 	private static String compileClassSegmentValue(String input) {
-		if (input.endsWith("}")) {
-			final String withoutEnd = input.substring(0, input.length() - "}".length());
-			final int index = withoutEnd.indexOf("{");
-			if (index >= 0) {
-				final String header = withoutEnd.substring(0, index).strip();
-				final String body = withoutEnd.substring(index + "{".length());
-				if (header.endsWith(")")) {
-					final String headerWithoutEnd = header.substring(0, header.length() - ")".length());
-					final int paramStart = headerWithoutEnd.indexOf("(");
-					if (paramStart >= 0) {
-						final String definition = headerWithoutEnd.substring(0, paramStart);
-						final String params = headerWithoutEnd.substring(paramStart + "(".length());
-						return compileDefinition(definition) + "(" + compileAll(params, Main::foldValue, Main::compileDefinition) +
-									 "){" + wrap(body) + "}";
-					}
-				}
-			}
-		}
+		return compileMethod(input).or(() -> compileClass(input)).orElseGet(() -> wrap(input));
+	}
 
-		return wrap(input);
+	private static Optional<String> compileMethod(String input) {
+		if (!input.endsWith("}")) return Optional.empty();
+		final String withoutEnd = input.substring(0, input.length() - "}".length());
+
+		final int index = withoutEnd.indexOf("{");
+		if (index < 0) return Optional.empty();
+		final String header = withoutEnd.substring(0, index).strip();
+		final String body = withoutEnd.substring(index + "{".length());
+
+		if (!header.endsWith(")")) return Optional.empty();
+		final String headerWithoutEnd = header.substring(0, header.length() - ")".length());
+
+		final int paramStart = headerWithoutEnd.indexOf("(");
+		if (paramStart < 0) return Optional.empty();
+		final String definition = headerWithoutEnd.substring(0, paramStart);
+		final String params = headerWithoutEnd.substring(paramStart + "(".length());
+
+		return Optional.of(
+				compileDefinition(definition) + "(" + compileAll(params, Main::foldValue, Main::compileDefinition) + "){" +
+				wrap(body) + "}");
 	}
 
 	private static State foldValue(State state, char c) {
