@@ -141,8 +141,9 @@ public class Main {
 		final String header = withoutEnd.substring(0, index).strip();
 		final String body = withoutEnd.substring(index + "{".length());
 		final Tuple<String, String> compiledHeader = compileStructureHeader(header);
-		return Optional.of(compiledHeader.left + " {" + compiledHeader.right + "};" + System.lineSeparator() +
-											 compileStatements(body, Main::compileClassSegment));
+		return Optional.of(
+				compiledHeader.left + " {" + compiledHeader.right + System.lineSeparator() + "};" + System.lineSeparator() +
+				compileStatements(body, Main::compileClassSegment));
 	}
 
 	private static String compileClassSegment(String input) {
@@ -232,7 +233,11 @@ public class Main {
 				final String params = withoutEnd.substring(paramStart + "(".length());
 				final int keywordIndex = beforeParams.indexOf("record ");
 				if (keywordIndex >= 0) {
-					final String compiledParams = compileParameters(params);
+					final String compiledParams = compileAll(params,
+																									 Main::foldValue,
+																									 param -> System.lineSeparator() + "\t" + compileDefinition(param) +
+																														";");
+
 					final String name = beforeParams.substring(keywordIndex + "record ".length());
 					return new Tuple<String, String>("struct " + name, compiledParams);
 				}
