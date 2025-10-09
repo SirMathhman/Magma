@@ -21,12 +21,16 @@ public class Main {
 	private static String compile(String input) {
 		final ArrayList<String> segments = new ArrayList<String>();
 		final StringBuilder buffer = new StringBuilder();
+		int depth = 0;
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
 			buffer.append(c);
-			if (c == ';') {
+			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
+			} else {
+				if (c == '{') depth++;
+				if (c == '}') depth--;
 			}
 		}
 
@@ -34,8 +38,12 @@ public class Main {
 		return segments.stream()
 									 .map(String::strip)
 									 .filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-									 .map(Main::wrap)
+									 .map(Main::compileRootSegment)
 									 .collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		return wrap(input);
 	}
 
 	private static String wrap(String input) {

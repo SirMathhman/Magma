@@ -1,22 +1,43 @@
 /*public class Main {
 	public static void main(String[] args) {
 		try {
-			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*final String input = Files.readString(source);*//*Files.writeString(source.resolveSibling("main.c"), compile(input));*//*} catch (IOException e) {
-			throw new RuntimeException(e);*//*}
+			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+			final String input = Files.readString(source);
+			Files.writeString(source.resolveSibling("main.c"), compile(input));
+		} catch (IOException e) {
+			throw new RuntimeException(e);
+		}
 	}
 
 	private static String compile(String input) {
-		final ArrayList<String> segments = new ArrayList<String>();*//*final StringBuilder buffer = new StringBuilder();*//*for (int i = 0;*//*i < input.length();*//*i++) {
-			final char c = input.charAt(i);*//*buffer.append(c);*//*if (c == ';*//*') {
-				segments.add(buffer.toString());*//*buffer.setLength(0);*//*}
+		final ArrayList<String> segments = new ArrayList<String>();
+		final StringBuilder buffer = new StringBuilder();
+		int depth = 0;
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			buffer.append(c);
+			if (c == ';' && depth == 0) {
+				segments.add(buffer.toString());
+				buffer.setLength(0);
+			} else {
+				if (c == '{') depth++;
+				if (c == '}') depth--;
+			}
 		}
 
-		segments.add(buffer.toString());*//*return segments.stream()
+		segments.add(buffer.toString());
+		return segments.stream()
 									 .map(String::strip)
 									 .filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-									 .map(Main::wrap)
-									 .collect(Collectors.joining());*//*}
+									 .map(Main::compileRootSegment)
+									 .collect(Collectors.joining());
+	}
+
+	private static String compileRootSegment(String input) {
+		return wrap(input);
+	}
 
 	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*}
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";
+	}
 }*/
