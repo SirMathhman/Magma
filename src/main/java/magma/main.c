@@ -1,10 +1,31 @@
 struct Main {};
+/*public*/ /*record*/ StringBuffer(/*List<Character>*/ chars){/*
+		public StringBuffer() {
+			this(new ArrayList<Character>());
+		}
+
+		public StringBuffer setLength(int length) {
+			this.chars.clear();
+			return this;
+		}
+
+		public StringBuffer append(char c) {
+			this.chars.add(c);
+			return this;
+		}
+
+		public String intoString() {
+			final char[] array = new char[this.chars.size()];
+			for (int i = 0; i < this.chars.size(); i++) array[i] = this.chars.get(i);
+			return new String(array);
+		}
+	*/}
 struct State {};
-/*private final*/ /*StringBuilder*/ buffer;
 /*private final*/ /*List<String>*/ segments;
+/*private*/ /*StringBuffer*/ buffer;
 /*private*/ /*int*/ depth;
 /*public*/ State(/**/){/*
-			this.buffer = new StringBuilder();
+			this.buffer = new StringBuffer();
 			this.segments = new ArrayList<String>();
 			this.depth = 0;
 		*/}
@@ -23,15 +44,15 @@ struct State {};
 			return this.depth == 1;
 		*/}
 /*private*/ /*State*/ advance(/**/){/*
-			this.segments.add(this.buffer.toString());
-			this.buffer.setLength(0);
+			this.segments.add(this.buffer.intoString());
+			this.buffer = this.buffer.setLength(0);
 			return this;
 		*/}
 /*private*/ /*boolean*/ isLevel(/**/){/*
 			return this.depth == 0;
 		*/}
 /*private*/ /*State*/ append(/*char*/ c){/*
-			this.buffer.append(c);
+			this.buffer = this.buffer.append(c);
 			return this;
 		*/}
 /**/
