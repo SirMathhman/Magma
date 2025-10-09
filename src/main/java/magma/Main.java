@@ -300,9 +300,10 @@ public class Main {
 		}
 	}
 
-	public record StructureHeader(String name, Option<String> maybeTypeParams) {
+	public record StructHeader(String name, Option<String> maybeTypeParams) {
 		public String generate() {
-			return this.name + this.maybeTypeParams.map(params -> "<" + params + ">").orElse("");
+			final String templateString = this.maybeTypeParams.map(params -> "template<typename " + params + ">" + System.lineSeparator()).orElse("");
+			return templateString + "struct " + this.name;
 		}
 	}
 
@@ -498,16 +499,14 @@ public class Main {
 																			 .collect(new Joiner(","))
 																			 .orElse("");
 
-				final StructureHeader afterKeyword1 = compileNamed(beforePermits);
+				final StructHeader afterKeyword1 = compileNamed(beforePermits);
 				final String tagName = afterKeyword1.name + "Tag";
-				before =
-						"enum " + tagName + " {" + variants + System.lineSeparator() + "};" + System.lineSeparator() + "struct " +
-						afterKeyword1.generate();
-
+				before = "enum " + tagName + " {" + variants + System.lineSeparator() + "};" + System.lineSeparator() +
+								 afterKeyword1.generate();
 				return new Tuple<String, String>(before, System.lineSeparator() + "\t" + tagName + " tag;");
 			} else {
-				final StructureHeader afterKeyword1 = compileNamed(afterKeyword);
-				before = "struct " + afterKeyword1.generate();
+				final StructHeader afterKeyword1 = compileNamed(afterKeyword);
+				before = afterKeyword1.generate();
 				return new Tuple<String, String>(before, "");
 			}
 		}
@@ -515,17 +514,17 @@ public class Main {
 		return new Tuple<String, String>(wrap(input), "");
 	}
 
-	private static StructureHeader compileNamed(String input) {
+	private static StructHeader compileNamed(String input) {
 		final String stripped = input.strip();
-		if (!stripped.endsWith(">")) return new StructureHeader(stripped, new None<String>());
+		if (!stripped.endsWith(">")) return new StructHeader(stripped, new None<String>());
 
 		final String withoutEnd = stripped.substring(0, stripped.length() - 1);
 		final int paramStart = withoutEnd.indexOf("<");
-		if (paramStart < 0) return new StructureHeader(stripped, new None<String>());
+		if (paramStart < 0) return new StructHeader(stripped, new None<String>());
 
 		final String name = withoutEnd.substring(0, paramStart);
 		final String typeParameters = withoutEnd.substring(paramStart + "<".length());
-		return new StructureHeader(name, new Some<String>(typeParameters));
+		return new StructHeader(name, new Some<String>(typeParameters));
 	}
 
 	private static String wrap(String input) {
