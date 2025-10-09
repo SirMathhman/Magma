@@ -504,22 +504,13 @@ public class Main {
 
 				final String compiledParameters = params.stream().map(JDefined::generate).collect(new Joiner()).orElse("");
 
+				final String generate = parseDefined(definitionString).generate();
 				if (stripped.equals(";")) {
-					final String paramTypesJoined = params.stream().map(param -> {
-						if (param instanceof Definition definition1) return new Some<String>(definition1.type);
-						else return new None<String>();
-					}).flatMap(Options::stream).collect(new Joiner(", ")).orElse("");
-
-					final JDefined jDefined = parseDefined(definitionString);
-					final String generate;
-					if (jDefined instanceof Definition definition) generate = definition.type + " (*" + definition.name + ")";
-					else generate = jDefined.generate();
-
-					return new Some<String>(generate + "(" + paramTypesJoined + ");");
+					final String s = generate + "(" + compiledParameters + "){" + wrap("???") + "}";
+					return new Some<String>(s);
 				} else if (stripped.startsWith("{") && stripped.endsWith("}")) {
 					final String substring = stripped.substring(1, stripped.length() - 1);
-					final String s =
-							parseDefined(definitionString).generate() + "(" + compiledParameters + "){" + wrap(substring) + "}";
+					final String s = generate + "(" + compiledParameters + "){" + wrap(substring) + "}";
 					return new Some<String>(s);
 				}
 			}
