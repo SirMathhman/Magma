@@ -10,8 +10,6 @@ import java.util.function.Supplier;
 
 public class Main {
 	public sealed interface Option<T> permits Some, None {
-		<R> Option<R> map(Function<T, R> mapper);
-
 		T orElse(T other);
 
 		T orElseGet(Supplier<T> other);
@@ -43,11 +41,6 @@ public class Main {
 
 	public record Some<T>(T value) implements Option<T> {
 		@Override
-		public <R> Option<R> map(Function<T, R> mapper) {
-			return new Some<R>(mapper.apply(this.value));
-		}
-
-		@Override
 		public T orElse(T other) {
 			return this.value;
 		}
@@ -64,11 +57,6 @@ public class Main {
 	}
 
 	public static final class None<T> implements Option<T> {
-		@Override
-		public <R> Option<R> map(Function<T, R> mapper) {
-			return new None<R>();
-		}
-
 		@Override
 		public T orElse(T other) {
 			return other;
@@ -101,7 +89,10 @@ public class Main {
 
 	public record Stream<T>(Head<T> head) {
 		public <R> MapStream<R> map(Function<T, R> mapper) {
-			return new MapStream<R>(() -> this.head.next().map(mapper));
+			return new MapStream<R>(() -> switch (this.head.next()) {
+				case None<T> _ -> new None<R>();
+				case Some<T> v -> new Some<R>(mapper.apply(v.value));
+			});
 		}
 	}
 
@@ -276,7 +267,10 @@ public class Main {
 
 		@Override
 		public Option<String> fold(Option<String> current, String element) {
-			return new Some<String>(current.map(s -> s + element).orElse(element));
+			return new Some<String>(switch (current) {
+				case None<String> _ -> element;
+				case Some<String>(String buffer) -> buffer + element;
+			});
 		}
 	}
 

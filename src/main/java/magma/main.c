@@ -2,7 +2,6 @@ struct Main {
 };
 struct Option<T> permits Some, None {
 };
-/*<R> Option<R> map(Function<T,*/ /*R>*/ mapper);
 /*T*/ /*orElse(T*/ other);
 /*T*/ /*orElseGet(Supplier<T>*/ other);
 /*Option<T>*/ /*or(Supplier<Option<T>>*/ other);
@@ -31,12 +30,6 @@ struct Collector<T, C> {
 /*public record Some<T>(T value) implements Option<T>*/ {
 };
 /*@Override
-		public <R> Option<R> map(Function<T, R> mapper)*/ {
-};
-/*return*/ /*new*/ Some<R>(mapper.apply(this.value));
-/**/
-
-/*@Override
 		public T orElse(T other)*/ {
 };
 /*return*/ this.value;
@@ -58,12 +51,6 @@ struct Collector<T, C> {
 
 struct None<T> implements Option<T> {
 };
-/*@Override
-		public <R> Option<R> map(Function<T, R> mapper)*/ {
-};
-/*return*/ /*new*/ None<R>();
-/**/
-
 /*@Override
 		public T orElse(T other)*/ {
 };
@@ -110,7 +97,13 @@ struct Stream<T> {
 };
 /*public <R> MapStream<R> map(Function<T, R> mapper)*/ {
 };
-/*return new MapStream<R>(()*/ /*->*/ this.head.next().map(mapper));
+/*return new MapStream<R>(() -> switch (this.head.next())*/ {
+};
+/*case None<T> _ ->*/ /*new*/ None<R>();
+/*case Some<T> v ->*/ /*new*/ Some<R>(mapper.apply(v.value));
+/**/
+
+/*)*/;
 /**/
 
 /**/
@@ -326,7 +319,13 @@ struct Joiner implements Collector<String, Option<String>> {
 /*@Override
 		public Option<String> fold(Option<String> current, String element)*/ {
 };
-/*return new Some<String>(current.map(s -> s*/ /*+*/ element).orElse(element));
+/*return new Some<String>(switch (current)*/ {
+};
+/*case None<String> _*/ /*->*/ element;
+/*case Some<String>(String buffer) -> buffer*/ /*+*/ element;
+/**/
+
+/*)*/;
 /**/
 
 /**/
