@@ -117,7 +117,35 @@ public class Main {
 		}
 	}
 
-	public record FlatMapStream<S, T>(Head<S> head, Function<S, Stream<T>> mapper) {}
+	public static final class FlatMapStream<S, T> {
+		private final Head<S> head;
+		private final Function<S, Stream<T>> mapper;
+		private Option<Stream<T>> current = new None<Stream<T>>();
+
+		public FlatMapStream(Head<S> head, Function<S, Stream<T>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+		}
+
+		public <R> MapStream<T, R> map(Function<T, R> mapper) {
+			return new MapStream<T, R>(this::next, mapper);
+		}
+
+		private Option<T> next() {
+			while (true) {
+				if (this.current instanceof None<Stream<T>>) {
+					Option<S> sOpt = this.head.next();
+					if (sOpt instanceof None<S>) return new None<T>();
+					else if (sOpt instanceof Some<S>(S s)) this.current = new Some<Stream<T>>(this.mapper.apply(s));
+				}
+				if (this.current instanceof Some<Stream<T>>(Stream<T> stream)) {
+					Option<T> tOpt = stream.head().next();
+					if (tOpt instanceof Some<T>) return tOpt;
+					else this.current = new None<Stream<T>>();
+				}
+			}
+		}
+	}
 
 	public record Stream<T>(Head<T> head) {
 		public <R> MapStream<T, R> map(Function<T, R> mapper) {
@@ -495,8 +523,8 @@ public class Main {
 				if (stripped.equals(";")) {
 					params.stream().map(param -> {
 						if (param instanceof Definition definition1) return new Some<String>(definition1.type);
-						else return new None<Object>();
-					}).flatMap(Options::stream);
+						else return new None<String>();
+					}).flatMap(Options::stream).map(Main::generateStatement);
 
 					return new Some<String>(parseDefined(definition).generate() + "(" + compiledParameters + ");");
 				} else if (stripped.startsWith("{") && stripped.endsWith("}")) {
