@@ -1,5 +1,43 @@
 struct Main {};
-/*public static*/ void main(/*String[] args*/){/*
+/*public static class State {
+		public final StringBuilder buffer = new StringBuilder();
+		private final List<String> segments = new ArrayList<>();
+		private int depth = 0;
+
+		private Stream<String> stream() {
+			return segments.stream();
+		}
+
+		private State enter() {
+			this.depth = depth + 1;
+			return this;
+		}
+
+		private State exit() {
+			this.depth = depth - 1;
+			return this;
+		}
+
+		private boolean isShallow() {
+			return depth == 1;
+		}
+
+		private State advance() {
+			segments.add(buffer.toString());
+			buffer.setLength(0);
+			return this;
+		}
+
+		private boolean isLevel() {
+			return depth == 0;
+		}
+
+		private State append(char c) {
+			buffer.append(c);
+			return this;
+		}
+	}*/
+/*public static*/ void main(/*String[]*/ args){/*
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -8,30 +46,33 @@ struct Main {};
 			throw new RuntimeException(e);
 		}
 	*/}
-/*private static*/ /*String*/ compile(/*String input*/){/*
+/*private static*/ /*String*/ compile(/*String*/ input){/*
 		return compileStatements(input, Main::compileRootSegment);
 	*/}
-/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/){/*
-		final ArrayList<String> segments = new ArrayList<String>();
-		final StringBuilder buffer = new StringBuilder();
-		int depth = 0;
+/*private static*/ /*String*/ compileStatements(/*String*/ input/*Function<String*//*String>*/ mapper){/*
+		return compileAll(input, Main::foldStatement, mapper);
+	*/}
+/*private static*/ /*String*/ compileAll(/*String*/ input/*BiFunction<State*//*Character*//*State>*/ folder/*Function<String*//*String>*/ mapper){/*
+		return divide(input, folder).map(mapper).collect(Collectors.joining());
+	*/}
+/*private static*/ /*Stream<String>*/ divide(/*String*/ input/*BiFunction<State*//*Character*//*State>*/ folder){/*
+		State current = new State();
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-			} else if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer.setLength(0);
-				depth--;
-			} else {
-				if (c == '{') depth++;
-				if (c == '}') depth--;
-			}
-		*/}
-/*segments.add(buffer.toString());*/
-/*return segments.stream().map(mapper).collect(Collectors.joining());*/
+			current = folder.apply(current, c);
+		}
+
+		return current.advance().stream();
+	*/}
+/*private static*/ /*State*/ foldStatement(/*State*/ state/*char*/ c){/*
+		final State appended = state.append(c);
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '*/}
+/*' && appended.isShallow()) return appended.advance().exit();*/
+/*if (c == '{') return appended.enter();
+		if (c == '}*/
+/*') return appended.exit();*/
+/*return appended;*/
 /**/
 /*private static String compileRootSegment(String input) */{};
 /*final String strip = input.strip();*/
@@ -41,7 +82,7 @@ struct Main {};
 /*final String withoutEnd = strip.substring(0, strip.length() - "*/
 /*".length());*//*final int index = withoutEnd.indexOf("*/{};
 /*");*/
-/*if*/(/*index >= 0*/){/*
+/*if*/(/*index*/ /*>=*/ 0){/*
 				final String substring = withoutEnd.substring(0, index);
 				final String body = withoutEnd.substring(index + "{".length());
 				return compileStructureHeader(substring) + "{};" + System.lineSeparator() +
@@ -60,7 +101,7 @@ struct Main {};
 /*final String withoutEnd = input.substring(0, input.length() - "*/
 /*".length());*//*final int index = withoutEnd.indexOf("*/{};
 /*");*/
-/*if*/(/*index >= 0*/){/*
+/*if*/(/*index*/ /*>=*/ 0){/*
 				final String header = withoutEnd.substring(0, index).strip();
 				final String body = withoutEnd.substring(index + "{".length());
 				if (header.endsWith(")")) {
@@ -69,17 +110,22 @@ struct Main {};
 					if (paramStart >= 0) {
 						final String definition = headerWithoutEnd.substring(0, paramStart);
 						final String params = headerWithoutEnd.substring(paramStart + "(".length());
-						return compileDefinition(definition) + "(" + wrap(params) + "){" + wrap(body) + "}";
+						return compileDefinition(definition) + "(" + compileAll(params, Main::foldValue, Main::compileDefinition) +
+									 "){" + wrap(body) + "}";
 					}
 				}
 			}
 		*/}
 /*return wrap(input);*/
 /**/
+/*private static State foldValue(State state, char c) */{};
+/*if (c == ',') return state.advance();*/
+/*else return state.append(c);*/
+/**/
 /*private static String compileDefinition(String input) */{};
 /*final String stripped = input.strip();*/
 /*final int index = stripped.lastIndexOf(" ");*/
-/*if*/(/*index >= 0*/){/*
+/*if*/(/*index*/ /*>=*/ 0){/*
 			final String beforeName = stripped.substring(0, index).strip();
 			final String name = stripped.substring(index + " ".length());
 			final int typeSeparator = beforeName.lastIndexOf(" ");
@@ -87,6 +133,8 @@ struct Main {};
 				final String beforeType = beforeName.substring(0, typeSeparator);
 				final String type = beforeName.substring(typeSeparator + " ".length());
 				return wrap(beforeType) + " " + compileType(type) + " " + name;
+			} else {
+				return compileType(beforeName) + " " + name;
 			}
 		*/}
 /*return wrap(stripped);*/
@@ -98,7 +146,7 @@ struct Main {};
 /**/
 /*private static String compileStructureHeader(String input) */{};
 /*final int index = input.indexOf("class ");*/
-/*if*/(/*index >= 0*/){/*
+/*if*/(/*index*/ /*>=*/ 0){/*
 			final String name = input.substring(index + "class ".length());
 			return "struct " + name;
 		*/}
