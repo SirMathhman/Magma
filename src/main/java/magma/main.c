@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ /*void*/ main(/*String[] args*/){/*
+/*public static*/ void main(/*String[] args*/){/*
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -86,9 +86,14 @@ struct Main {};
 			if (typeSeparator >= 0) {
 				final String beforeType = beforeName.substring(0, typeSeparator);
 				final String type = beforeName.substring(typeSeparator + " ".length());
-				return wrap(beforeType) + " " + wrap(type) + " " + name;
+				return wrap(beforeType) + " " + compileType(type) + " " + name;
 			}
 		*/}
+/*return wrap(stripped);*/
+/**/
+/*private static String compileType(String input) */{};
+/*final String stripped = input.strip();*/
+/*if (stripped.equals("void")) return "void";*/
 /*return wrap(stripped);*/
 /**/
 /*private static String compileStructureHeader(String input) */{};
