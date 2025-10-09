@@ -283,7 +283,7 @@ public class Main {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
-			Files.writeString(source.resolveSibling("main.c"), compile(input));
+			Files.writeString(source.resolveSibling("main.cpp"), compile(input));
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
