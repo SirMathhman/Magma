@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -19,6 +20,10 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		return compileStatements(input, Main::compileRootSegment);
+	}
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
 		final ArrayList<String> segments = new ArrayList<String>();
 		final StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -28,6 +33,10 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer.setLength(0);
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer.setLength(0);
+				depth--;
 			} else {
 				if (c == '{') depth++;
 				if (c == '}') depth--;
@@ -35,25 +44,29 @@ public class Main {
 		}
 
 		segments.add(buffer.toString());
-		return segments.stream()
-									 .map(String::strip)
-									 .filter(segment -> !segment.startsWith("package ") && !segment.startsWith("import "))
-									 .map(Main::compileRootSegment)
-									 .collect(Collectors.joining());
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
-		if (input.endsWith("}")) {
-			final String withoutEnd = input.substring(0, input.length() - "}".length());
+		final String strip = input.strip();
+		if (strip.startsWith("package ") || strip.startsWith("import ")) return "";
+
+		if (strip.endsWith("}")) {
+			final String withoutEnd = strip.substring(0, strip.length() - "}".length());
 			final int index = withoutEnd.indexOf("{");
 			if (index >= 0) {
 				final String substring = withoutEnd.substring(0, index);
-				final String substring1 = withoutEnd.substring(index + "{".length());
-				return compileStructureHeader(substring) + "{};" + System.lineSeparator() + wrap(substring1);
+				final String body = withoutEnd.substring(index + "{".length());
+				return compileStructureHeader(substring) + "{};" + System.lineSeparator() +
+							 compileStatements(body, Main::compileClassSegment);
 			}
 		}
 
-		return wrap(input);
+		return wrap(strip);
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input.strip()) + System.lineSeparator();
 	}
 
 	private static String compileStructureHeader(String input) {
