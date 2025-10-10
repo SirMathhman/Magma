@@ -603,21 +603,16 @@ public class Main {
 				final Header header = compileNamed(beforePermits);
 				final String enumName = header.name + "Tag";
 
-				final String enumBody =
-						variants.stream().map(slice -> generateIndent() + slice).collect(new Joiner(",")).orElse("");
-				final String generatedEnum =
-						"enum " + enumName + " {" + enumBody + System.lineSeparator() + "};" + System.lineSeparator();
+				final String generatedEnum = generateEnum(enumName, variants);
 
 				final String typeParamsString = header.generateTypeParams().orElse("");
 				final String unionBody = variants.stream()
 																				 .map(variant -> generateStatement(
-																						 variant + typeParamsString + " " + variant.toLowerCase(Locale.ROOT)))
+																					variant + typeParamsString + " " + variant.toLowerCase(Locale.ROOT)))
 																				 .collect(new Joiner())
 																				 .orElse("");
 
-				final String unionName = header.generate("union") + "Data";
-				final String generatedUnion =
-						unionName + " {" + unionBody + System.lineSeparator() + "};" + System.lineSeparator();
+				final String generatedUnion = generateUnion(header.maybeTypeParams, header.name + "Data", unionBody);
 				before = generatedEnum + generatedUnion + header.generate("struct");
 
 				return new Tuple<String, String>(before,
@@ -631,6 +626,21 @@ public class Main {
 		}
 
 		return new Tuple<String, String>(wrap(input), "");
+	}
+
+	private static String generateUnion(Option<String> maybeTypeParams, String name, String body) {
+		final String templateString =
+				maybeTypeParams.map(params -> "template<typename " + params + ">" + System.lineSeparator()).orElse("");
+
+		final String unionName = templateString + "union" + " " + name;
+		return unionName + " {" + body + System.lineSeparator() + "};" + System.lineSeparator();
+	}
+
+	private static String generateEnum(String name, List<String> variants) {
+		final String enumBody =
+				variants.stream().map(slice -> generateIndent() + slice).collect(new Joiner(",")).orElse("");
+
+		return "enum " + name + " {" + enumBody + System.lineSeparator() + "};" + System.lineSeparator();
 	}
 
 	private static String generateStatement(String content) {
