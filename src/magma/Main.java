@@ -9,7 +9,7 @@ public class Main {
 	public static void main(String[] args) {
 		try {
 			final Path diagram = Paths.get(".", "diagram.puml");
-			final String content = "@startuml" + System.lineSeparator() + "@enduml";
+			final String content = "@startuml" + System.lineSeparator() + "class Main" + System.lineSeparator() + "@enduml";
 			Files.writeString(diagram, content);
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
