@@ -428,10 +428,21 @@ public class Main {
 
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
-			final int i = slice.lastIndexOf("(");
-			if (i >= 0) {
-				final String caller = slice.substring(0, i);
-				final String arguments = slice.substring(i + 1);
+
+			int index = -1;
+			int depth = 0;
+			for (int i = 0; i < slice.length(); i++) {
+				final char c = slice.charAt(i);
+				if (c == '(') {
+					depth++;
+					if (depth == 1) index = i;
+				}
+				if (c == ')') depth--;
+			}
+
+			if (index >= 0) {
+				final String caller = slice.substring(0, index);
+				final String arguments = slice.substring(index + 1);
 				return compileExpression(caller) + "(" + compileValues(arguments, Main::compileExpression) + ")";
 			}
 		}
