@@ -417,7 +417,14 @@ public class Main {
 
 	private static String compileExpression(String input) {
 		final String stripped = input.strip();
-		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return stripped;
+		if (isString(stripped)) return stripped;
+
+		final int i1 = stripped.indexOf("+");
+		if (i1 >= 0) {
+			final String left = stripped.substring(0, i1);
+			final String right = stripped.substring(i1 + "+".length());
+			return compileExpression(left) + " + " + compileExpression(right);
+		}
 
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
@@ -440,6 +447,15 @@ public class Main {
 		if (isNumber(stripped)) return stripped;
 
 		return wrap(stripped);
+	}
+
+	private static boolean isString(String stripped) {
+		if (stripped.length() <= 2) return false;
+
+		final boolean hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
+		if (!hasDoubleQuotes) return false;
+
+		return !stripped.substring(1, stripped.length() - 1).contains("\"");
 	}
 
 	private static boolean isNumber(String input) {
