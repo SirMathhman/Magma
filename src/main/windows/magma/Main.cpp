@@ -214,6 +214,7 @@ auto __lambda4__() {
 }
 Tuple<char*, ParseState> compileRootSegment_Main(char* input, ParseState state){
 	char* stripped = input.strip();
+	if (stripped.isEmpty()) return new_Tuple<>("", state);
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) return new_Tuple<char*, ParseState>("", state);
 	return compileStructure(stripped, "class", state).orElseGet(__lambda4__);
 }
@@ -810,7 +811,7 @@ char* wrap_Main(char* input){
 	char* replaced = input.replace("/*", "start").replace("*/", "end");
 	return "/*" + replaced + "*/";
 }
-/**/int main(){
+int main(){
 	main_Main();
 	return 0;
 }

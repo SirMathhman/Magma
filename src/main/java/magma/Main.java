@@ -286,6 +286,7 @@ public class Main {
 
 	private static Tuple<String, ParseState> compileRootSegment(String input, ParseState state) {
 		final String stripped = input.strip();
+		if (stripped.isEmpty()) return new Tuple<>("", state);
 		if (stripped.startsWith("package ") || stripped.startsWith("import "))
 			return new Tuple<String, ParseState>("", state);
 
