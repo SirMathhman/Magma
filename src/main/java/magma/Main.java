@@ -462,13 +462,6 @@ public class Main {
 		final String stripped = input.strip();
 		if (isString(stripped)) return stripped;
 
-		final int i1 = stripped.indexOf("+");
-		if (i1 >= 0) {
-			final String left = stripped.substring(0, i1);
-			final String right = stripped.substring(i1 + "+".length());
-			return compileExpression(left) + " + " + compileExpression(right);
-		}
-
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 
@@ -497,6 +490,13 @@ public class Main {
 			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 		}
 
+		final int i1 = stripped.indexOf("+");
+		if (i1 >= 0) {
+			final String left = stripped.substring(0, i1);
+			final String right = stripped.substring(i1 + "+".length());
+			return compileExpression(left) + " + " + compileExpression(right);
+		}
+
 		if (isIdentifier(stripped)) return stripped;
 		if (isNumber(stripped)) return stripped;
 
@@ -504,7 +504,7 @@ public class Main {
 	}
 
 	private static boolean isString(String stripped) {
-		if (stripped.length() <= 2) return false;
+		if (stripped.length() < 2) return false;
 
 		final boolean hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
 		if (!hasDoubleQuotes) return false;
