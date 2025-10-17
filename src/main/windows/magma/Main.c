@@ -1,6 +1,6 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-/*public class Main {
-	public static void main(String[] args) {
+struct Main {};
+/*public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -42,6 +42,20 @@
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
+		final int i = stripped.indexOf("class ");
+		if (i >= 0) {
+			final String afterKeyword = stripped.substring(i + "class ".length());
+			final int contentStart = afterKeyword.indexOf("{");
+			if (contentStart >= 0) {
+				final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (afterContent.endsWith("}")) {
+					final String content = afterContent.substring(0, afterContent.length() - "}".length());
+					return "struct " + beforeContent + " {};" + System.lineSeparator() + wrap(content);
+				}
+			}
+		}
+
 		return wrap(stripped);
 	}
 
@@ -49,7 +63,7 @@
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
 	}
-}*/int main(){
+*/int main(){
 	main_Main();
 	return 0;
 }

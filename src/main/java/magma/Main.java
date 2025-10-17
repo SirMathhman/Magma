@@ -50,6 +50,20 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
+		final int i = stripped.indexOf("class ");
+		if (i >= 0) {
+			final String afterKeyword = stripped.substring(i + "class ".length());
+			final int contentStart = afterKeyword.indexOf("{");
+			if (contentStart >= 0) {
+				final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (afterContent.endsWith("}")) {
+					final String content = afterContent.substring(0, afterContent.length() - "}".length());
+					return "struct " + beforeContent + " {};" + System.lineSeparator() + wrap(content);
+				}
+			}
+		}
+
 		return wrap(stripped);
 	}
 
