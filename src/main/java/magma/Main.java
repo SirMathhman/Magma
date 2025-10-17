@@ -15,6 +15,7 @@ import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
@@ -699,17 +700,11 @@ public class Main {
 	}
 
 	private static boolean isNumber(String input) {
-		for (int i = 0; i < input.length(); i++) {
-			final char c = input.charAt(i);
-			if (!Character.isDigit(c)) return false;
-		}
-
-		return true;
+		return IntStream.range(0, input.length()).allMatch(i -> Character.isDigit(input.charAt(i)));
 	}
 
 	private static boolean isIdentifier(String input) {
-		for (int i = 0; i < input.length(); i++) if (!Character.isLetter(input.charAt(i))) return false;
-		return true;
+		return IntStream.range(0, input.length()).allMatch(i -> Character.isLetter(input.charAt(i)));
 	}
 
 	private static Optional<JMethodHeader> compileConstructor(String beforeParams) {
