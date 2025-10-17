@@ -208,11 +208,26 @@ public class Main {
 			if (typeSeparator >= 0) {
 				final String beforeType = beforeName.substring(0, typeSeparator);
 				final String type = beforeName.substring(typeSeparator + " ".length());
-				return wrap(beforeType) + " " + wrap(type) + " " + name;
+				return wrap(beforeType) + " " + compileType(type) + " " + name;
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String compileType(String input) {
+		final String stripped = input.strip();
+		if (stripped.endsWith(">")) {
+			final String withoutEnd = stripped.substring(0, stripped.length() - 1);
+			final int argumentStart = withoutEnd.indexOf("<");
+			if (argumentStart >= 0) {
+				final String base = withoutEnd.substring(0, argumentStart);
+				final String arguments = withoutEnd.substring(argumentStart + "<".length());
+				return base + "<" + compileType(arguments) + ">";
+			}
+		}
+
+		return wrap(stripped);
 	}
 
 	private static String wrap(String input) {
