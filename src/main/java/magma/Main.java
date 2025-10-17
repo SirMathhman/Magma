@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -25,6 +26,12 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		final String joined = compileStatements(input, Main::compileRootSegment);
+		return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
+					 "\treturn 0;" + System.lineSeparator() + "}";
+	}
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
 		final ArrayList<String> segments = new ArrayList<String>();
 		StringBuilder buffer = new StringBuilder();
 		int depth = 0;
@@ -34,16 +41,20 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
-			} else {
-				if (c == '{') depth++;
-				if (c == '}') depth--;
+				continue;
 			}
+			if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
+				continue;
+			}
+			if (c == '{') depth++;
+			if (c == '}') depth--;
 		}
 		segments.add(buffer.toString());
 
-		final String joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
-		return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
-					 "\treturn 0;" + System.lineSeparator() + "}";
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
@@ -59,12 +70,17 @@ public class Main {
 				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 				if (afterContent.endsWith("}")) {
 					final String content = afterContent.substring(0, afterContent.length() - "}".length());
-					return "struct " + beforeContent + " {};" + System.lineSeparator() + wrap(content);
+					return "struct " + beforeContent + " {};" + System.lineSeparator() +
+								 compileStatements(content, Main::compileClassSegment);
 				}
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input.strip()) + System.lineSeparator();
 	}
 
 	private static String wrap(String input) {
