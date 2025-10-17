@@ -189,7 +189,30 @@ public class Main {
 	}
 
 	private static String compileClassSegmentValue(String input) {
-		return compileClass(input).orElseGet(() -> wrap(input));
+		return compileClass(input).or(() -> compileField(input)).orElseGet(() -> wrap(input));
+	}
+
+	private static Optional<String> compileField(String input) {
+		if (input.endsWith(";")) {
+			final String substring = input.substring(0, input.length() - ";".length()).strip();
+			return Optional.of(compileDefinition(substring) + ";");
+		} else return Optional.empty();
+	}
+
+	private static String compileDefinition(String input) {
+		final int index = input.lastIndexOf(" ");
+		if (index >= 0) {
+			final String beforeName = input.substring(0, index).strip();
+			final String name = input.substring(index + " ".length()).strip();
+			final int typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final String beforeType = beforeName.substring(0, typeSeparator);
+				final String type = beforeName.substring(typeSeparator + " ".length());
+				return wrap(beforeType) + " " + wrap(type) + " " + name;
+			}
+		}
+
+		return wrap(input);
 	}
 
 	private static String wrap(String input) {

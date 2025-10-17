@@ -1,11 +1,11 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 struct Main {};
 struct State {};
-/*private final ArrayList<String> segments;*/
-/*private final String input;*/
-/*private StringBuilder buffer;*/
-/*private int depth;*/
-/*private int index;*/
+/*private final*/ /*ArrayList<String>*/ segments;
+/*private final*/ /*String*/ input;
+/*private*/ /*StringBuilder*/ buffer;
+/*private*/ /*int*/ depth;
+/*private*/ /*int*/ index;
 /*public State(String input) {
 			this.input = input;
 			this.buffer = new StringBuilder();
@@ -148,14 +148,35 @@ struct ");
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
 		return Optional.of("struct " + beforeContent + " {};" + System.lineSeparator() +
-											 compileStatements(content, Main::compileClassSegment));*/
+											*/ /*compileStatements(content,*/ Main::compileClassSegment));
 
 /*private static String compileClassSegment(String input) {
 		final String stripped = input.strip();
 		return compileClassSegmentValue(stripped) + System.lineSeparator();
 	}*/
 /*private static String compileClassSegmentValue(String input) {
-		return compileClass(input).orElseGet(() -> wrap(input));
+		return compileClass(input).or(() -> compileField(input)).orElseGet(() -> wrap(input));
+	}*/
+/*private static Optional<String> compileField(String input) {
+		if (input.endsWith(";")) {
+			final String substring = input.substring(0, input.length() - ";".length()).strip();
+			return Optional.of(compileDefinition(substring) + ";");
+		} else return Optional.empty();
+	}*/
+/*private static String compileDefinition(String input) {
+		final int index = input.lastIndexOf(" ");
+		if (index >= 0) {
+			final String beforeName = input.substring(0, index).strip();
+			final String name = input.substring(index + " ".length()).strip();
+			final int typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final String beforeType = beforeName.substring(0, typeSeparator);
+				final String type = beforeName.substring(typeSeparator + " ".length());
+				return wrap(beforeType) + " " + wrap(type) + " " + name;
+			}
+		}
+
+		return wrap(input);
 	}*/
 /*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
