@@ -1,6 +1,5 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
-/*public static void main(String[] args) {
+struct Main {/*public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -21,21 +20,27 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 					 "\treturn 0;" + System.lineSeparator() + "}";
 	}*/
 /*private static String compileStatements(String input, Function<String, String> mapper) {
-		return divide(input).map(mapper).collect(Collectors.joining());
+		return compileAll(input, Main::foldStatement, mapper);
 	}*/
-/*private static Stream<String> divide(String input) {
+/*private static String compileAll(String input,
+																	 BiFunction<State, Character, State> folder,
+																	 Function<String, String> mapper) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining());
+	}*/
+/*private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
 		State current = new State(input);
 		while (true) {
 			final Optional<Tuple<State, Character>> maybeNext = current.pop();
 			if (maybeNext.isEmpty()) break;
 			final Tuple<State, Character> tuple = maybeNext.get();
-			current = foldEscaped(tuple.left, tuple.right);
+			current = foldEscaped(tuple.left, tuple.right, folder);
 		}
 
 		return current.advance().stream();
 	}*/
-/*private static State foldEscaped(State state, char next) {
-		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next)).orElseGet(() -> fold(state, next));
+/*private static State foldEscaped(State state, char next, BiFunction<State, Character, State> folder) {
+		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next))
+																				.orElseGet(() -> folder.apply(state, next));
 	}*/
 /*private static Optional<State> foldSingleQuotes(State state, char next) {
 		if (next != '\'') return Optional.empty();
@@ -65,7 +70,7 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 
 		return Optional.of(appended);
 	}*/
-/*private static State fold(State state, char c) {
+/*private static State foldStatement(State state, char c) {
 		final State appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) return appended.advance().exit();
@@ -77,24 +82,36 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		return compileClass(stripped).map(Tuple::right).orElseGet(() -> wrap(stripped));
+		return compileStructure(stripped, "class").map(Tuple::right).orElseGet(() -> wrap(stripped));
 	}*/
-/*private static Optional<Tuple<String, String>> compileClass(String stripped) {
-		final int i = stripped.indexOf("class ");
+/*private static Optional<Tuple<String, String>> compileStructure(String input, String type) {
+		final int i = input.indexOf(type + " ");
 		if (i < 0) return Optional.empty();
-		final String afterKeyword = stripped.substring(i + "class ".length());
+
+		final String afterKeyword = input.substring(i + (type + " ").length());
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) return Optional.empty();
-		final String name = afterKeyword.substring(0, contentStart).strip();
-		if (!isIdentifier(name)) return Optional.empty();
+		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+		// if (!isIdentifier(beforeContent)) return Optional.empty();
+		String name = beforeContent;
+		String recordFields = "";
+		if (beforeContent.endsWith(")")) {
+			final String slice = beforeContent.substring(0, beforeContent.length() - 1);
+			final int beforeParams = slice.indexOf("(");
+			if (beforeParams >= 0) {
+				name = slice.substring(0, beforeParams);
+
+				recordFields = compileAll(slice.substring(beforeParams + 1), Main::foldValue, Main::compileParameter);
+			}
+		}
 
 		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 
 		if (!afterContent.endsWith("}")) return Optional.empty();
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		final List<String> segments = divide(content).toList();
+		final List<String> segments = divide(content, Main::foldStatement).toList();
 
 		StringBuilder inner = new StringBuilder();
 		final StringBuilder outer = new StringBuilder();
@@ -106,8 +123,19 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 		}
 
 		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + inner + "};" + System.lineSeparator() +
-																								 outer));
+																								 "struct " + name + " {" + recordFields + inner + "};" +
+																								 System.lineSeparator() + outer));
+	}*/
+/*private static String compileParameter(String input1) {
+		if (input1.isEmpty()) return "";
+		return generateField(input1);
+	}*/
+/*private static String generateField(String input) {
+		return System.lineSeparator() + "\t" + compileDefinition(input) + ";";
+	}*/
+/*private static State foldValue(State state, char next) {
+		if (next == ',' && state.isLevel()) return state.advance();
+		else return state.append(next);
 	}*/
 /*private static boolean isIdentifier(String input) {
 		for (int i = 0; i < input.length(); i++) {
@@ -122,14 +150,15 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 		return compileClassSegmentValue(stripped);
 	}*/
 /*private static Tuple<String, String> compileClassSegmentValue(String input) {
-		return compileClass(input).or(() -> compileField(input))
-															.orElseGet(() -> new Tuple<String, String>(wrap(input) + System.lineSeparator(), ""));
+		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
+																					 .or(() -> compileField(input))
+																					 .orElseGet(() -> new Tuple<String, String>(
+																							 wrap(input) + System.lineSeparator(), ""));
 	}*/
 /*private static Optional<Tuple<String, String>> compileField(String input) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			return Optional.of(new Tuple<String, String>(System.lineSeparator() + "\t" + compileDefinition(substring) + ";",
-																									 ""));
+			return Optional.of(new Tuple<String, String>(generateField(substring), ""));
 		} else return Optional.empty();
 	}*/
 /*private static String compileDefinition(String input) {
@@ -220,6 +249,10 @@ struct State {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}*/
 /**/
+};
+struct Tuple<A, B> {
+	/*A left*/;
+	/* B right*/;/**/
 };
 /**/int main(){
 	main_Main();
