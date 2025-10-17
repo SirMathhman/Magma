@@ -310,7 +310,46 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) return "";
 
-		return System.lineSeparator() + "\t" + wrap(stripped);
+		return System.lineSeparator() + "\t" + compileMethodSegmentValue(stripped);
+	}
+
+	private static String compileMethodSegmentValue(String input) {
+		if (input.endsWith(";")) {
+			final String slice = input.substring(0, input.length() - 1);
+			return compileMethodStatementValue(slice) + ";";
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileMethodStatementValue(String input) {
+		final int i = input.indexOf("=");
+		if (i >= 0) {
+			final String destination = input.substring(0, i);
+			final String source = input.substring(i + 1);
+			return compileExpression(destination) + " = " + compileExpression(source);
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileExpression(String input) {
+		final String stripped = input.strip();
+		final int i = stripped.indexOf(".");
+		if (i >= 0) {
+			final String substring = stripped.substring(0, i);
+			final String name = stripped.substring(i + 1);
+			return compileExpression(substring) + "." + name;
+		}
+
+		if (isIdentifier(stripped)) return stripped;
+
+		return wrap(stripped);
+	}
+
+	private static boolean isIdentifier(String input) {
+		for (int i = 0; i < input.length(); i++) if (!Character.isLetter(input.charAt(i))) return false;
+		return true;
 	}
 
 	private static Optional<String> compileConstructor(String beforeParams) {
