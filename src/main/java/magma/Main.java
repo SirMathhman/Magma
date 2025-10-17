@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -18,24 +19,39 @@ public class Main {
 	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
 		String generate();
 
-		@Override
-		default Definable toDefinable() {
+	}
+
+	private sealed interface JMethodHeader permits JConstructor, Definable {}
+
+	private record ParseState(List<String> functions, List<String> structs) {
+		public ParseState() {
+			this(new ArrayList<String>(), new ArrayList<String>());
+		}
+
+		public ParseState addFunction(String func) {
+			this.functions.add(func);
 			return this;
+		}
+
+		public ParseState addStruct(String struct) {
+			this.structs.add(struct);
+			return this;
+		}
+
+		@Override
+		public String toString() {
+			throw new UnsupportedOperationException();
 		}
 	}
 
-	private sealed interface JMethodHeader permits JConstructor, Definable {
-		Definable toDefinable();
-	}
-
-	private static class State {
+	private static class DivideState {
 		private final ArrayList<String> segments;
 		private final String input;
 		private StringBuilder buffer;
 		private int depth;
 		private int index;
 
-		public State(String input) {
+		public DivideState(String input) {
 			this.input = input;
 			this.buffer = new StringBuilder();
 			this.depth = 0;
@@ -47,12 +63,12 @@ public class Main {
 			return this.segments.stream();
 		}
 
-		private State enter() {
+		private DivideState enter() {
 			this.depth = this.depth + 1;
 			return this;
 		}
 
-		private State exit() {
+		private DivideState exit() {
 			this.depth = this.depth - 1;
 			return this;
 		}
@@ -65,29 +81,29 @@ public class Main {
 			return this.depth == 0;
 		}
 
-		private State append(char c) {
+		private DivideState append(char c) {
 			this.buffer.append(c);
 			return this;
 		}
 
-		private State advance() {
+		private DivideState advance() {
 			this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
 
-		public Optional<Tuple<State, Character>> pop() {
+		public Optional<Tuple<DivideState, Character>> pop() {
 			if (this.index >= this.input.length()) return Optional.empty();
 			final char next = this.input.charAt(this.index);
 			this.index++;
-			return Optional.of(new Tuple<State, Character>(this, next));
+			return Optional.of(new Tuple<DivideState, Character>(this, next));
 		}
 
-		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
-			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
+		public Optional<Tuple<DivideState, Character>> popAndAppendToTuple() {
+			return this.pop().map(tuple -> new Tuple<DivideState, Character>(tuple.left.append(tuple.right), tuple.right));
 		}
 
-		public Optional<State> popAndAppendToOption() {
+		public Optional<DivideState> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
 	}
@@ -113,12 +129,7 @@ public class Main {
 		}
 	}
 
-	private record JConstructor(String name) implements JMethodHeader {
-		@Override
-		public Definable toDefinable() {
-			return new Definition(this.name, "new_" + this.name);
-		}
-	}
+	private record JConstructor(String name) implements JMethodHeader {}
 
 	public static void main(String[] args) {
 		try {
@@ -137,59 +148,67 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		final String joined = compileStatements(input, Main::compileRootSegment);
-		return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
-					 "\treturn 0;" + System.lineSeparator() + "}";
-	}
+		StringJoiner joiner = new StringJoiner("");
+		ParseState state = new ParseState();
+		for (String input1 : divide(input, Main::foldStatement).toList()) {
+			Tuple<String, ParseState> s = compileRootSegment(input1, state);
+			joiner.add(s.left);
+			state = s.right;
+		}
 
-	private static String compileStatements(String input, Function<String, String> mapper) {
-		return compileAll(input, Main::foldStatement, mapper, "");
+		final String joined = joiner.toString();
+		final String joinedStructs = String.join("", state.structs);
+		final String joinedFunctions = String.join("", state.functions);
+
+		return joinedStructs + joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
+					 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	}
 
 	private static String compileAll(String input,
-																	 BiFunction<State, Character, State> folder,
-																	 Function<String, String> mapper,
-																	 String delimiter) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));
+																	 BiFunction<DivideState, Character, DivideState> folder,
+																	 Function<String, String> mapper) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining(", "));
 	}
 
-	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
-		State current = new State(input);
+	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
+		DivideState current = new DivideState(input);
 		while (true) {
-			final Optional<Tuple<State, Character>> maybeNext = current.pop();
+			final Optional<Tuple<DivideState, Character>> maybeNext = current.pop();
 			if (maybeNext.isEmpty()) break;
-			final Tuple<State, Character> tuple = maybeNext.get();
+			final Tuple<DivideState, Character> tuple = maybeNext.get();
 			current = foldEscaped(tuple.left, tuple.right, folder);
 		}
 
 		return current.advance().stream();
 	}
 
-	private static State foldEscaped(State state, char next, BiFunction<State, Character, State> folder) {
+	private static DivideState foldEscaped(DivideState state,
+																				 char next,
+																				 BiFunction<DivideState, Character, DivideState> folder) {
 		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next))
 																				.orElseGet(() -> folder.apply(state, next));
 	}
 
-	private static Optional<State> foldSingleQuotes(State state, char next) {
+	private static Optional<DivideState> foldSingleQuotes(DivideState state, char next) {
 		if (next != '\'') return Optional.empty();
 
-		final State appended = state.append(next);
-		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);
+		final DivideState appended = state.append(next);
+		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(DivideState::popAndAppendToOption);
 	}
 
-	private static Optional<State> foldEscaped(Tuple<State, Character> tuple) {
+	private static Optional<DivideState> foldEscaped(Tuple<DivideState, Character> tuple) {
 		if (tuple.right == '\\') return tuple.left.popAndAppendToOption();
 		else return Optional.of(tuple.left);
 	}
 
-	private static Optional<State> foldDoubleQuotes(State state, char next) {
+	private static Optional<DivideState> foldDoubleQuotes(DivideState state, char next) {
 		if (next != '\"') return Optional.empty();
 
-		State appended = state.append(next);
+		DivideState appended = state.append(next);
 		while (true) {
-			final Optional<Tuple<State, Character>> maybeNext = appended.popAndAppendToTuple();
+			final Optional<Tuple<DivideState, Character>> maybeNext = appended.popAndAppendToTuple();
 			if (maybeNext.isPresent()) {
-				final Tuple<State, Character> tuple = maybeNext.get();
+				final Tuple<DivideState, Character> tuple = maybeNext.get();
 				appended = tuple.left;
 
 				final char c = tuple.right;
@@ -201,8 +220,8 @@ public class Main {
 		return Optional.of(appended);
 	}
 
-	private static State foldStatement(State state, char c) {
-		final State appended = state.append(c);
+	private static DivideState foldStatement(DivideState state, char c) {
+		final DivideState appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) return appended.advance().exit();
 		if (c == '{') return appended.enter();
@@ -210,14 +229,16 @@ public class Main {
 		return appended;
 	}
 
-	private static String compileRootSegment(String input) {
+	private static Tuple<String, ParseState> compileRootSegment(String input, ParseState state) {
 		final String stripped = input.strip();
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+		if (stripped.startsWith("package ") || stripped.startsWith("import "))
+			return new Tuple<String, ParseState>("", state);
 
-		return compileStructure(stripped, "class").map(Tuple::right).orElseGet(() -> wrap(stripped));
+		return compileStructure(stripped, "class", state).orElseGet(() -> new Tuple<String, ParseState>(wrap(stripped),
+																																																		state));
 	}
 
-	private static Optional<Tuple<String, String>> compileStructure(String input, String type) {
+	private static Optional<Tuple<String, ParseState>> compileStructure(String input, String type, ParseState state) {
 		final int i = input.indexOf(type + " ");
 		if (i < 0) return Optional.empty();
 
@@ -259,12 +280,12 @@ public class Main {
 		final List<String> segments = divide(content, Main::foldStatement).toList();
 
 		StringBuilder inner = new StringBuilder();
-		final StringBuilder outer = new StringBuilder();
+		ParseState outer = state;
 
 		for (String segment : segments) {
-			Tuple<String, String> compiled = compileClassSegment(segment, name);
+			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer);
 			inner.append(compiled.left);
-			outer.append(compiled.right);
+			outer = compiled.right;
 		}
 
 		String beforeStruct;
@@ -277,13 +298,14 @@ public class Main {
 			beforeStruct = "template " + templateValues;
 		}
 
-		return Optional.of(new Tuple<String, String>("",
-																								 beforeStruct + "struct " + name + " {" + recordFields + inner +
-																								 System.lineSeparator() + "};" + System.lineSeparator() + outer));
+		final String generated =
+				beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
+				System.lineSeparator();
+		return Optional.of(new Tuple<String, ParseState>("", outer.addStruct(generated)));
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileAll(input, Main::foldValue, mapper, ", ");
+		return compileAll(input, Main::foldValue, mapper);
 	}
 
 	private static String compileParameter(String input1) {
@@ -292,11 +314,11 @@ public class Main {
 	}
 
 	private static Optional<String> generateField(String input) {
-		return compileDefinition(input).map(Definable::generate).map(content -> generateStatement(content, 1));
+		return compileDefinition(input).map(Definable::generate).map(Main::generateStatement);
 	}
 
-	private static String generateStatement(String content, int depth) {
-		return generateSegment(content + ";", depth);
+	private static String generateStatement(String content) {
+		return generateSegment(content + ";", 1);
 	}
 
 	private static String generateSegment(String content, int depth) {
@@ -307,31 +329,31 @@ public class Main {
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
-	private static State foldValue(State state, char next) {
+	private static DivideState foldValue(DivideState state, char next) {
 		if (next == ',' && state.isLevel()) return state.advance();
 		else return state.append(next);
 	}
 
-	private static Tuple<String, String> compileClassSegment(String input, String name) {
+	private static Tuple<String, ParseState> compileClassSegment(String input, String name, ParseState state) {
 		final String stripped = input.strip();
-		if (stripped.isEmpty()) return new Tuple<String, String>("", "");
-		return compileClassSegmentValue(stripped, name);
+		if (stripped.isEmpty()) return new Tuple<String, ParseState>("", state);
+		return compileClassSegmentValue(stripped, name, state);
 	}
 
-	private static Tuple<String, String> compileClassSegmentValue(String input, String name) {
-		if (input.isEmpty()) return new Tuple<>("", "");
+	private static Tuple<String, ParseState> compileClassSegmentValue(String input, String name, ParseState state) {
+		if (input.isEmpty()) return new Tuple<String, ParseState>("", state);
 
-		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
-																					 .or(() -> compileStructure(input, "interface"))
-																					 .or(() -> compileField(input))
-																					 .or(() -> compileMethod(input, name))
-																					 .orElseGet(() -> {
-																						 final String generated = generateSegment(wrap(input), 1);
-																						 return new Tuple<String, String>(generated, "");
-																					 });
+		return compileStructure(input, "class", state).or(() -> compileStructure(input, "record", state))
+																									.or(() -> compileStructure(input, "interface", state))
+																									.or(() -> compileField(input, state))
+																									.or(() -> compileMethod(input, name, state))
+																									.orElseGet(() -> {
+																										final String generated = generateSegment(wrap(input), 1);
+																										return new Tuple<String, ParseState>(generated, state);
+																									});
 	}
 
-	private static Optional<Tuple<String, String>> compileMethod(String input, String name) {
+	private static Optional<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
 		final int paramStart = input.indexOf("(");
 		if (paramStart < 0) return Optional.empty();
 
@@ -349,13 +371,22 @@ public class Main {
 		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 
 		final String outputBodyWithBraces;
+		ParseState current = state;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
-			final String compiledBody = compileStatements(inputBody, input1 -> compileMethodSegment(input1, 1));
+
+			StringJoiner joiner = new StringJoiner("");
+			for (String s : divide(inputBody, Main::foldStatement).toList()) {
+				Tuple<String, ParseState> string = compileMethodSegment(s, 1, current);
+				joiner.add(string.left);
+				current = string.right;
+			}
+
+			final String compiledBody = joiner.toString();
 
 			String outputBody;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
-				outputBody = generateStatement(name + " this", 1) + compiledBody + generateStatement("return this", 1);
+				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
 			else outputBody = compiledBody;
 
 			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
@@ -363,7 +394,7 @@ public class Main {
 		else return Optional.empty();
 
 		final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
-		return Optional.of(new Tuple<String, String>("", generated));
+		return Optional.of(new Tuple<String, ParseState>("", current.addFunction(generated)));
 	}
 
 	private static Definable transformMethodHeader(JMethodHeader methodHeader, String name) {
@@ -386,19 +417,29 @@ public class Main {
 		return compileValues(input, slice -> compileDefinition(slice).map(Definable::generate).orElse(""));
 	}
 
-	private static String compileMethodSegment(String input, int depth) {
+	private static Tuple<String, ParseState> compileMethodSegment(String input, int depth, ParseState state) {
 		final String stripped = input.strip();
-		if (stripped.isEmpty()) return "";
+		if (stripped.isEmpty()) return new Tuple<String, ParseState>("", state);
 
-		return generateSegment(compileMethodSegmentValue(stripped, depth), depth);
+		final Tuple<String, ParseState> tuple = compileMethodSegmentValue(stripped, depth, state);
+		return new Tuple<String, ParseState>(generateSegment(tuple.left, depth), tuple.right);
 	}
 
-	private static String compileMethodSegmentValue(String input, int depth) {
+	private static Tuple<String, ParseState> compileMethodSegmentValue(String input, int depth, ParseState state) {
 		final String stripped = input.strip();
 		if (stripped.startsWith("{") && stripped.endsWith("}")) {
 			final String substring = stripped.substring(1, stripped.length() - 1);
-			final String compiled = compileStatements(substring, input1 -> compileMethodSegment(input1, depth + 1));
-			return "{" + compiled + generateIndent(depth) + "}";
+
+			StringJoiner joiner = new StringJoiner("");
+			ParseState current = state;
+			for (String s : divide(substring, Main::foldStatement).toList()) {
+				Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
+				joiner.add(string.left);
+				current = string.right;
+			}
+
+			final String compiled = joiner.toString();
+			return new Tuple<String, ParseState>("{" + compiled + generateIndent(depth) + "}", current);
 		}
 
 		if (stripped.startsWith("if")) {
@@ -409,19 +450,20 @@ public class Main {
 				final String body = withoutPrefix.substring(conditionEnd + 1);
 				if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
-					final String condition = compileExpression(expression);
-					final String compiledBody = compileMethodSegmentValue(body, depth);
-					return "if (" + condition + ") " + compiledBody;
+					final Tuple<String, ParseState> condition = compileExpression(expression, state);
+					final Tuple<String, ParseState> compiledBody = compileMethodSegmentValue(body, depth, condition.right);
+					return new Tuple<String, ParseState>("if (" + condition.left + ") " + compiledBody.left, compiledBody.right);
 				}
 			}
 		}
 
 		if (stripped.endsWith(";")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
-			return compileMethodStatementValue(slice) + ";";
+			final Tuple<String, ParseState> result = compileMethodStatementValue(slice, state);
+			return new Tuple<String, ParseState>(result.left + ";", result.right);
 		}
 
-		return wrap(stripped);
+		return new Tuple<String, ParseState>(wrap(stripped), state);
 	}
 
 	private static int findConditionEnd(String withoutPrefix) {
@@ -441,26 +483,35 @@ public class Main {
 		return conditionEnd;
 	}
 
-	private static String compileMethodStatementValue(String input) {
-		if (input.startsWith("return ")) return "return " + compileExpression(input.substring("return ".length()));
+	private static Tuple<String, ParseState> compileMethodStatementValue(String input, ParseState state) {
+		if (input.startsWith("return ")) {
+			final String substring = input.substring("return ".length());
+			final Tuple<String, ParseState> result = compileExpression(substring, state);
+			return new Tuple<String, ParseState>("return " + result.left, result.right);
+		}
 
 		final int i = input.indexOf("=");
 		if (i >= 0) {
 			final String destinationString = input.substring(0, i);
 			final String source = input.substring(i + 1);
-			final String destination = compileDefinition(destinationString).map(Definition::generate)
-																																		 .orElseGet(() -> compileExpression(
-																																				 destinationString));
+			final Tuple<String, ParseState> destinationResult = compileDefinition(destinationString).map(Definition::generate)
+																																															.map(generated -> new Tuple<String, ParseState>(
+																																																	generated,
+																																																	state))
+																																															.orElseGet(() -> compileExpression(
+																																																	destinationString,
+																																																	state));
 
-			return destination + " = " + compileExpression(source);
+			final Tuple<String, ParseState> sourceResult = compileExpression(source, destinationResult.right);
+			return new Tuple<String, ParseState>(destinationResult.left + " = " + sourceResult.left, sourceResult.right);
 		}
 
-		return wrap(input);
+		return new Tuple<String, ParseState>(wrap(input), state);
 	}
 
-	private static String compileExpression(String input) {
+	private static Tuple<String, ParseState> compileExpression(String input, ParseState state) {
 		final String stripped = input.strip();
-		if (isString(stripped)) return stripped;
+		if (isString(stripped)) return new Tuple<String, ParseState>(stripped, state);
 
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
@@ -479,7 +530,19 @@ public class Main {
 			if (index >= 0) {
 				final String caller = slice.substring(0, index);
 				final String arguments = slice.substring(index + 1);
-				return compileExpression(caller) + "(" + compileValues(arguments, Main::compileExpression) + ")";
+
+				final Tuple<String, ParseState> callerResult = compileExpression(caller, state);
+
+				StringJoiner joiner = new StringJoiner(", ");
+				ParseState current = callerResult.right;
+				for (String s : divide(arguments, Main::foldValue).toList()) {
+					Tuple<String, ParseState> result = compileExpression(s, current);
+					joiner.add(result.left);
+					current = result.right;
+				}
+
+				final String collect = joiner.toString();
+				return new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current);
 			}
 		}
 
@@ -487,42 +550,50 @@ public class Main {
 		if (i >= 0) {
 			final String substring = stripped.substring(0, i);
 			final String name = stripped.substring(i + 1).strip();
-			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
+			if (isIdentifier(name)) {
+				final Tuple<String, ParseState> result = compileExpression(substring, state);
+				return new Tuple<String, ParseState>(result.left + "." + name, result.right);
+			}
 		}
 
 		final int i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
 			final String name = stripped.substring(0, i1).strip();
 			final String substring1 = stripped.substring(i1 + 2);
-			final String s = generateStatement("return " + compileExpression(substring1), 1);
-			return "auto ?(auto " + name + ") {" + s + generateIndent(0) + "}";
+			final Tuple<String, ParseState> result = compileExpression(substring1, state);
+			final String s = generateStatement("return " + result.left);
+			final String s1 = "auto ?(auto " + name + ") {" + s + generateIndent(0) + "}";
+			return new Tuple<String, ParseState>("", result.right.addFunction(s1));
 		}
 
-		return compileOperator(stripped, "+").or(() -> compileOperator(stripped, "-"))
-																				 .or(() -> compileOperator(stripped, ">="))
-																				 .or(() -> compileOperator(stripped, "<"))
-																				 .or(() -> compileIdentifier(stripped))
-																				 .or(() -> compileNumber(stripped))
-																				 .orElseGet(() -> wrap(stripped));
+		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
+																								.or(() -> compileOperator(stripped, ">=", state))
+																								.or(() -> compileOperator(stripped, "<", state))
+																								.or(() -> compileIdentifier(stripped, state))
+																								.or(() -> compileNumber(stripped, state))
+																								.orElseGet(() -> new Tuple<String, ParseState>(wrap(stripped), state));
 	}
 
-	private static Optional<String> compileIdentifier(String stripped) {
-		if (isIdentifier(stripped)) return Optional.of(stripped);
+	private static Optional<Tuple<String, ParseState>> compileIdentifier(String stripped, ParseState state) {
+		if (isIdentifier(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 		return Optional.empty();
 	}
 
-	private static Optional<String> compileNumber(String stripped) {
-		if (isNumber(stripped)) return Optional.of(stripped);
+	private static Optional<Tuple<String, ParseState>> compileNumber(String stripped, ParseState state) {
+		if (isNumber(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 		return Optional.empty();
 	}
 
-	private static Optional<String> compileOperator(String input, String operator) {
+	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
 		final int index = input.indexOf(operator);
 		if (index < 0) return Optional.empty();
 
 		final String left = input.substring(0, index);
 		final String right = input.substring(index + operator.length());
-		return Optional.of(compileExpression(left) + " " + operator + " " + compileExpression(right));
+		final Tuple<String, ParseState> leftResult = compileExpression(left, state);
+		final Tuple<String, ParseState> rightResult = compileExpression(right, leftResult.right);
+		return Optional.of(new Tuple<String, ParseState>(leftResult.left + " " + operator + " " + rightResult.left,
+																										 rightResult.right));
 	}
 
 	private static boolean isString(String stripped) {
@@ -556,11 +627,11 @@ public class Main {
 		return Optional.of(new JConstructor(name));
 	}
 
-	private static Optional<Tuple<String, String>> compileField(String input) {
+	private static Optional<Tuple<String, ParseState>> compileField(String input, ParseState state) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
 			final Optional<String> s = generateField(substring);
-			if (s.isPresent()) return Optional.of(new Tuple<String, String>(s.get(), ""));
+			if (s.isPresent()) return Optional.of(new Tuple<String, ParseState>(s.get(), state));
 		}
 
 		return Optional.empty();
