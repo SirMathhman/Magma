@@ -398,6 +398,8 @@ public class Main {
 	}
 
 	private static String compileMethodStatementValue(String input) {
+		if (input.startsWith("return ")) return "return " + compileExpression(input.substring("return ".length()));
+
 		final int i = input.indexOf("=");
 		if (i >= 0) {
 			final String destination = input.substring(0, i);
@@ -413,8 +415,8 @@ public class Main {
 		final int i = stripped.indexOf(".");
 		if (i >= 0) {
 			final String substring = stripped.substring(0, i);
-			final String name = stripped.substring(i + 1);
-			return compileExpression(substring) + "." + name;
+			final String name = stripped.substring(i + 1).strip();
+			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 		}
 
 		if (isIdentifier(stripped)) return stripped;
