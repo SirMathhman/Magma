@@ -460,6 +460,12 @@ public class Main {
 			}
 		}
 
+		if (stripped.startsWith("else")) {
+			final String substring = stripped.substring("else".length());
+			final Tuple<String, ParseState> result = compileMethodSegmentValue(substring, depth, state);
+			return new Tuple<>("else " + result.left, result.right);
+		}
+
 		if (stripped.endsWith(";")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 			final Tuple<String, ParseState> result = compileMethodStatementValue(slice, state);
