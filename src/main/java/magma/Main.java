@@ -286,15 +286,19 @@ public class Main {
 
 	private static String compileParameter(String input1) {
 		if (input1.isEmpty()) return "";
-		return generateField(input1);
+		return generateField(input1).orElseGet(() -> wrap(input1));
 	}
 
-	private static String generateField(String input) {
-		return generateStatement(compileDefinition(input).map(Definable::generate).orElseGet(() -> wrap(input)));
+	private static Optional<String> generateField(String input) {
+		return compileDefinition(input).map(Definable::generate).map(Main::generateStatement);
 	}
 
 	private static String generateStatement(String content) {
-		return System.lineSeparator() + "\t" + content + ";";
+		return generateSegment(content + ";");
+	}
+
+	private static String generateSegment(String s) {
+		return System.lineSeparator() + "\t" + s;
 	}
 
 	private static State foldValue(State state, char next) {
@@ -309,12 +313,16 @@ public class Main {
 	}
 
 	private static Tuple<String, String> compileClassSegmentValue(String input, String name) {
+		if (input.isEmpty()) return new Tuple<>("", "");
+
 		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileStructure(input, "interface"))
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input, name))
-																					 .orElseGet(() -> new Tuple<String, String>(
-																							 wrap(input) + System.lineSeparator(), ""));
+																					 .orElseGet(() -> {
+																						 final String generated = generateSegment(wrap(input));
+																						 return new Tuple<String, String>(generated, "");
+																					 });
 	}
 
 	private static Optional<Tuple<String, String>> compileMethod(String input, String name) {
@@ -365,7 +373,7 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) return "";
 
-		return System.lineSeparator() + "\t" + compileMethodSegmentValue(stripped);
+		return generateSegment(compileMethodSegmentValue(stripped));
 	}
 
 	private static String compileMethodSegmentValue(String input) {
@@ -428,16 +436,21 @@ public class Main {
 	private static Optional<Tuple<String, String>> compileField(String input) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			return Optional.of(new Tuple<String, String>(generateField(substring), ""));
-		} else return Optional.empty();
+			final Optional<String> s = generateField(substring);
+			if (s.isPresent()) return Optional.of(new Tuple<String, String>(s.get(), ""));
+		}
+
+		return Optional.empty();
 	}
 
 	private static Optional<Definable> compileDefinition(String input) {
 		final int index = input.lastIndexOf(" ");
-		if (index < 0) return Optional.of(new Placeholder(input));
+		if (index < 0) return Optional.empty();
 
 		final String beforeName = input.substring(0, index).strip();
 		final String name = input.substring(index + " ".length()).strip();
+		if (!isIdentifier(name)) return Optional.empty();
+
 		final int typeSeparator = beforeName.lastIndexOf(" ");
 		if (typeSeparator < 0) return compileType(beforeName).map(type -> new Definition(type, name));
 
