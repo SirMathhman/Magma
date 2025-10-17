@@ -593,8 +593,11 @@ public class Main {
 			final String substring = stripped.substring(0, i);
 			final String name = stripped.substring(i + 1).strip();
 			if (isIdentifier(name)) {
-				final Tuple<String, ParseState> result = compileExpression(substring, state);
-				return Optional.of(new Tuple<String, ParseState>(result.left + "." + name, result.right));
+				final Optional<Tuple<String, ParseState>> maybeResult = tryCompileExpression(substring, state);
+				if (maybeResult.isPresent()) {
+					final Tuple<String, ParseState> result = maybeResult.get();
+					return Optional.of(new Tuple<String, ParseState>(result.left + "." + name, result.right));
+				}
 			}
 		}
 
