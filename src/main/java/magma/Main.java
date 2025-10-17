@@ -391,11 +391,24 @@ public class Main {
 
 	private static String compileMethodSegmentValue(String input) {
 		if (input.startsWith("if")) {
-			final String substring = input.substring(2);
-			final int i = substring.indexOf(")");
-			if (i >= 0) {
-				final String substring1 = substring.substring(0, i).strip();
-				final String body = substring.substring(i + 1);
+			final String withoutPrefix = input.substring(2);
+			int conditionEnd = -1;
+			int depth = 0;
+			for (int i = 0; i < withoutPrefix.length(); i++) {
+				final char c = withoutPrefix.charAt(i);
+				if (c == ')') {
+					depth--;
+					if (depth == 0) {
+						conditionEnd = i;
+						break;
+					}
+				}
+				if (c == '(') depth++;
+			}
+
+			if (conditionEnd >= 0) {
+				final String substring1 = withoutPrefix.substring(0, conditionEnd).strip();
+				final String body = withoutPrefix;
 				if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
 					final String condition = compileExpression(expression);
