@@ -306,9 +306,9 @@ auto __lambda9__() {
 	return compileMethod(input, name, state);
 }
 auto __lambda10__() {
-		char* generated = generateSegment(wrap(input), 1);
-		return new_Tuple<char*, ParseState>(generated, state);
-	}
+	char* generated = generateSegment(wrap(input), 1);
+	return new_Tuple<char*, ParseState>(generated, state);
+}
 Tuple<char*, ParseState> compileClassSegmentValue_Main(char* input, char* name, ParseState state){
 	if (input.isEmpty()) return new_Tuple<char*, ParseState>("", state);
 	return compileStructure(input, "class", state).or(__lambda6__).or(__lambda7__).or(__lambda8__).or(__lambda9__).orElseGet(__lambda10__);
@@ -555,7 +555,7 @@ Optional<Tuple<char*, ParseState>> compileLambda_Main(ParseState state, char* st
 	return Optional.of(new_Tuple<char*, ParseState>(generatedName, bodyResult.right.addFunction(/*s1*/)));
 }
 Tuple<char*, ParseState> compileLambdaBody_Main(ParseState state, char* body){
-	Optional<Tuple<char*, ParseState>> maybeBlock = compileBlock(state, body, 1);
+	Optional<Tuple<char*, ParseState>> maybeBlock = compileBlock(state, body, 0);
 	if (maybeBlock.isPresent()) return maybeBlock.get();
 	Tuple<char*, ParseState> result = compileExpression(body, state);
 	char* s = generateStatement("return " + result.left);
@@ -641,12 +641,12 @@ Optional<Definition> compileDefinition_Main(char* input){
 	return compileType(typeString).map(__lambda24__);
 }
 auto __lambda25__(auto state, auto c) {
-		if (/*c == ' ' && state*/.isLevel()) return state.advance();
-		DivideState appended = state.append(c);
-		if (/*c == '<'*/) return appended.enter();
-		if (/*c == '>'*/) return appended.exit();
-		return appended;
-	}
+	if (/*c == ' ' && state*/.isLevel()) return state.advance();
+	DivideState appended = state.append(c);
+	if (/*c == '<'*/) return appended.enter();
+	if (/*c == '>'*/) return appended.exit();
+	return appended;
+}
 Stream<char*> findTypeSeparator_Main(char* beforeName){
 	return divide(beforeName, __lambda25__);
 }

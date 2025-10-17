@@ -625,7 +625,7 @@ public class Main {
 	}
 
 	private static Tuple<String, ParseState> compileLambdaBody(ParseState state, String body) {
-		final Optional<Tuple<String, ParseState>> maybeBlock = compileBlock(state, body, 1);
+		final Optional<Tuple<String, ParseState>> maybeBlock = compileBlock(state, body, 0);
 		if (maybeBlock.isPresent()) return maybeBlock.get();
 
 		final Tuple<String, ParseState> result = compileExpression(body, state);
