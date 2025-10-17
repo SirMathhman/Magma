@@ -705,13 +705,10 @@ public class Main {
 	private static boolean areAllDoubleQuotesEscaped(String input) {
 		return IntStream.range(0, input.length()).allMatch(i -> {
 			final char c = input.charAt(i);
-			if (c == '\"') {
-				if (i == 0) return false;
-				char previous = input.charAt(i - 1);
-				return previous == '\\';
-			}
-
-			return true;
+			if (c != '\"') return true;
+			if (i == 0) return false;
+			char previous = input.charAt(i - 1);
+			return previous == '\\';
 		});
 	}
 

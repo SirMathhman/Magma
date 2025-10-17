@@ -621,12 +621,10 @@ boolean isString_Main(char* stripped){
 }
 auto __lambda28__(auto i) {
 	char c = input.charAt(i);
-	if (c == '\"') {
-		if (i == 0) return false;
-		char previous = input.charAt(i - 1);
-		return previous == '\\';
-	}
-	return true;
+	if (c != '\"') return true;
+	if (i == 0) return false;
+	char previous = input.charAt(i - 1);
+	return previous == '\\';
 }
 boolean areAllDoubleQuotesEscaped_Main(char* input){
 	return IntStream.range(0, input.length()).allMatch(__lambda28__);
