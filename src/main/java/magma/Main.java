@@ -28,6 +28,8 @@ public class Main {
 
 	sealed interface Result<T, X> permits Err, Ok {}
 
+	@interface Actual {}
+
 	private static final class ParseState {
 		private final List<String> functions;
 		private final List<String> structs;
@@ -161,6 +163,7 @@ public class Main {
 		return writeString(target, output);
 	}
 
+	@Actual
 	private static Optional<IOException> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
@@ -170,6 +173,7 @@ public class Main {
 		}
 	}
 
+	@Actual
 	private static Optional<IOException> createDirectories(Path targetParent) {
 		try {
 			Files.createDirectories(targetParent);
@@ -179,6 +183,7 @@ public class Main {
 		}
 	}
 
+	@Actual
 	private static Result<String, IOException> readString(Path source) {
 		try {
 			return new Ok<String, IOException>(Files.readString(source));

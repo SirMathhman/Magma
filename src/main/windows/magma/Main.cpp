@@ -5,6 +5,8 @@ struct JMethodHeader permits JConstructor, Definable {
 };
 struct Result<T, X> permits Err, Ok {
 };
+struct Actual {
+};
 struct ParseState {
 	List<char*> functions;
 	List<char*> structs;
