@@ -299,10 +299,10 @@ public class Main {
 		String beforeStruct;
 		if (typeArguments.isEmpty()) beforeStruct = "";
 		else {
-			final String templateValues =
-					typeArguments.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">")) +
-					System.lineSeparator();
+			final String collect =
+					typeArguments.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">"));
 
+			final String templateValues = collect + System.lineSeparator();
 			beforeStruct = "template " + templateValues;
 		}
 
@@ -849,6 +849,11 @@ public class Main {
 						compileValues(argumentsString, slice -> compileType(slice).orElseGet(() -> wrap(slice)));
 				return Optional.of(base + "<" + arguments + ">");
 			}
+		}
+
+		if (stripped.endsWith("[]")) {
+			final String slice = stripped.substring(0, stripped.length() - 2);
+			return compileType(slice).map(result -> result + "*");
 		}
 
 		if (stripped.equals("String")) return Optional.of("char*");
