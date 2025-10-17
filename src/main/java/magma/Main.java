@@ -528,7 +528,8 @@ public class Main {
 			return new Tuple<String, ParseState>(destinationResult.left + " = " + sourceResult.left, sourceResult.right);
 		}
 
-		return new Tuple<String, ParseState>(wrap(input), state);
+		return compileDefinition(input).map(value -> new Tuple<String, ParseState>(value.generate(), state))
+																	 .orElseGet(() -> new Tuple<String, ParseState>(wrap(input), state));
 	}
 
 	private static Tuple<String, ParseState> compileExpression(String input, ParseState state) {
