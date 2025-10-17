@@ -465,7 +465,7 @@ public class Main {
 		if (stripped.startsWith("else")) {
 			final String substring = stripped.substring("else".length());
 			final Tuple<String, ParseState> result = compileMethodSegmentValue(substring, depth, state);
-			return new Tuple<>("else " + result.left, result.right);
+			return new Tuple<String, ParseState>("else " + result.left, result.right);
 		}
 
 		if (stripped.endsWith(";")) {
@@ -557,33 +557,26 @@ public class Main {
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 
-			int index = -1;
-			int depth = 0;
-			for (int i = 0; i < slice.length(); i++) {
-				final char c = slice.charAt(i);
-				if (c == '(') {
-					depth++;
-					if (depth == 1) index = i;
+			final List<String> segments = findArgStart(slice).toList();
+			if (segments.size() >= 2) {
+				final String callerWithExt = String.join("", segments.subList(0, segments.size() - 1));
+				if (callerWithExt.endsWith("(")) {
+					final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
+					final String arguments = segments.getLast();
+
+					final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
+
+					StringJoiner joiner = new StringJoiner(", ");
+					ParseState current = callerResult.right;
+					for (String s : divide(arguments, Main::foldValue).toList()) {
+						Tuple<String, ParseState> result = compileExpression(s, current);
+						joiner.add(result.left);
+						current = result.right;
+					}
+
+					final String collect = joiner.toString();
+					return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current));
 				}
-				if (c == ')') depth--;
-			}
-
-			if (index >= 0) {
-				final String caller = slice.substring(0, index).strip();
-				final String arguments = slice.substring(index + 1);
-
-				final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
-
-				StringJoiner joiner = new StringJoiner(", ");
-				ParseState current = callerResult.right;
-				for (String s : divide(arguments, Main::foldValue).toList()) {
-					Tuple<String, ParseState> result = compileExpression(s, current);
-					joiner.add(result.left);
-					current = result.right;
-				}
-
-				final String collect = joiner.toString();
-				return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current));
 			}
 		}
 
@@ -619,6 +612,19 @@ public class Main {
 																								.or(() -> compileOperator(stripped, "||", state))
 																								.or(() -> compileIdentifier(stripped, state))
 																								.or(() -> compileNumber(stripped, state));
+	}
+
+	private static Stream<String> findArgStart(String input) {
+		return divide(input, (state, c) -> {
+			final DivideState appended = state.append(c);
+			if (c == '(') {
+				final DivideState entered = appended.enter();
+				if (entered.isShallow()) return entered.advance();
+				else return entered;
+			}
+			if (c == ')') return appended.exit();
+			return appended;
+		});
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileLambda(ParseState state, String stripped) {
