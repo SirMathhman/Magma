@@ -296,11 +296,24 @@ public class Main {
 				compileDefinition(beforeParams).or(() -> compileConstructor(beforeParams)).orElseGet(() -> wrap(beforeParams));
 
 		final String inputParams = withParams.substring(0, paramEnd);
-		final String body = withParams.substring(paramEnd + 1);
-		final String outputParams = compileDefinition(inputParams).orElse("");
+		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final String generated = definition + "(" + outputParams + ")" + wrap(body) + System.lineSeparator();
+		if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) return Optional.empty();
+
+		final String body = withBraces.substring(1, withBraces.length() - 1);
+
+		final String outputParams = compileDefinition(inputParams).orElse("");
+		final String generated =
+				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) + "}" +
+				System.lineSeparator();
 		return Optional.of(new Tuple<String, String>("", generated));
+	}
+
+	private static String compileMethodSegment(String input) {
+		final String stripped = input.strip();
+		if (stripped.isEmpty()) return "";
+
+		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
 	private static Optional<String> compileConstructor(String beforeParams) {
