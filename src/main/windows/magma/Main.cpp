@@ -54,7 +54,7 @@ State new_State(char* input){
 	return this;
 }
 /*public Optional<Tuple<State,*/ /*Character>>*/ pop_State(){
-	if (/*this.index >= this*/.input.length()) return Optional.empty();
+	if (this.index >= this.input.length()) return Optional.empty();
 	/*final*/ /*char*/ next = this.input.charAt(this.index);
 	/*this.index++*/;
 	return Optional.of(/*new Tuple<State*/, /*Character>(this*/, /*next)*/);
@@ -194,7 +194,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	if (beforeMaybeParams.endsWith(">")) {
 		/*final*/ char* withoutEnd = beforeMaybeParams.substring(0, /*beforeMaybeParams.length() - 1*/);
 		/*final int i1*/ = withoutEnd.indexOf("<");
-		if (/*i1 >= 0*/) {
+		if (/*i1*/ >= 0) {
 			name = withoutEnd.substring(0, /*i1*/);
 			/*final*/ char* arguments = withoutEnd.substring(/*i1*/ + "<".length());
 			typeArguments = divide(arguments, /*Main::foldValue*/).map(/*String::strip*/).toList();
@@ -319,7 +319,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	if (stripped.startsWith("if")) {
 		/*final*/ char* withoutPrefix = stripped.substring(2);
 		/*final*/ int conditionEnd = findConditionEnd(withoutPrefix);
-		if (/*conditionEnd >= 0*/) {
+		if (conditionEnd >= 0) {
 			/*final String substring1*/ = withoutPrefix.substring(0, conditionEnd).strip();
 			/*final*/ char* body = withoutPrefix.substring(conditionEnd + 1);
 			/*if (substring1.startsWith("(")) {
@@ -357,7 +357,7 @@ struct JConstructor(String name) implements JMethodHeader {
 /*private static*/ char* compileMethodStatementValue_Main(char* input){
 	if (input.startsWith("return ")) return "return " + compileExpression(input.substring("return ".length()));
 	/*final*/ int i = input.indexOf("=");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		/*final*/ char* destinationString = input.substring(0, i);
 		/*final*/ char* source = input.substring(i + 1);
 		/*final*/ char* destination = compileDefinition(destinationString).map(/*Definition::generate*/).orElseGet(/*() -> compileExpression*/(destinationString));
@@ -389,20 +389,27 @@ struct JConstructor(String name) implements JMethodHeader {
 			}
 		}*/
 	/*final*/ int i = stripped.lastIndexOf(".");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		/*final*/ char* substring = stripped.substring(0, i);
 		/*final*/ char* name = stripped.substring(i + 1).strip();
 		if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 	}
-	/*final int i1*/ = stripped.indexOf("+");
-	if (/*i1 >= 0*/) {
-		/*final*/ char* left = stripped.substring(0, /*i1*/);
-		/*final*/ char* right = stripped.substring(/*i1*/ + "+".length());
-		return compileExpression(left) + /*"*/ + /*"*/ + compileExpression(right);
-	}
-	if (isIdentifier(stripped)) return stripped;
-	if (isNumber(stripped)) return stripped;
-	return wrap(stripped);
+	return compileOperator(stripped, "+").or(/*() -> compileOperator(stripped*/, /*"*/ >= /*")*/).or(/*() -> compileIdentifier*/(stripped)).or(/*() -> compileNumber*/(stripped)).orElseGet(/*() -> wrap*/(stripped));
+}
+/*private static*/ Optional<char*> compileIdentifier_Main(char* stripped){
+	if (isIdentifier(stripped)) return Optional.of(stripped);
+	return Optional.empty();
+}
+/*private static*/ Optional<char*> compileNumber_Main(char* stripped){
+	if (isNumber(stripped)) return Optional.of(stripped);
+	return Optional.empty();
+}
+/*private static*/ Optional<char*> compileOperator_Main(char* input, char* operator){
+	/*final*/ int index = input.indexOf(operator);
+	if (/*index < 0*/) return Optional.empty();
+	/*final*/ char* left = input.substring(0, index);
+	/*final*/ char* right = input.substring(index + operator.length());
+	return Optional.of(compileExpression(left) + " " + operator + " " + compileExpression(right));
 }
 /*private static*/ /*boolean*/ isString_Main(char* stripped){
 	if (/*stripped.length() < 2*/) return false;
@@ -458,7 +465,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	if (stripped.endsWith(">")) {
 		/*final*/ char* withoutEnd = stripped.substring(0, /*stripped.length() - 1*/);
 		/*final*/ int argumentStart = withoutEnd.indexOf("<");
-		if (/*argumentStart >= 0*/) {
+		if (argumentStart >= 0) {
 			/*final*/ char* base = withoutEnd.substring(0, argumentStart);
 			/*final*/ char* arguments = withoutEnd.substring(argumentStart + "<".length());
 			return Optional.of(base + "<" + compileType(arguments).orElse("") + ">");

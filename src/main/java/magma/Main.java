@@ -490,17 +490,29 @@ public class Main {
 			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 		}
 
-		final int i1 = stripped.indexOf("+");
-		if (i1 >= 0) {
-			final String left = stripped.substring(0, i1);
-			final String right = stripped.substring(i1 + "+".length());
-			return compileExpression(left) + " + " + compileExpression(right);
-		}
+		return compileOperator(stripped, "+").or(() -> compileOperator(stripped, ">="))
+																				 .or(() -> compileIdentifier(stripped))
+																				 .or(() -> compileNumber(stripped))
+																				 .orElseGet(() -> wrap(stripped));
+	}
 
-		if (isIdentifier(stripped)) return stripped;
-		if (isNumber(stripped)) return stripped;
+	private static Optional<String> compileIdentifier(String stripped) {
+		if (isIdentifier(stripped)) return Optional.of(stripped);
+		return Optional.empty();
+	}
 
-		return wrap(stripped);
+	private static Optional<String> compileNumber(String stripped) {
+		if (isNumber(stripped)) return Optional.of(stripped);
+		return Optional.empty();
+	}
+
+	private static Optional<String> compileOperator(String input, String operator) {
+		final int index = input.indexOf(operator);
+		if (index < 0) return Optional.empty();
+
+		final String left = input.substring(0, index);
+		final String right = input.substring(index + operator.length());
+		return Optional.of(compileExpression(left) + " " + operator + " " + compileExpression(right));
 	}
 
 	private static boolean isString(String stripped) {
