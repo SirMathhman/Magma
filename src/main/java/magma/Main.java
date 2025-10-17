@@ -193,8 +193,8 @@ public class Main {
 	private static DivideState foldEscaped(DivideState state,
 																				 char next,
 																				 BiFunction<DivideState, Character, DivideState> folder) {
-		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next))
-																				.orElseGet(() -> folder.apply(state, next));
+		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next)).orElseGet(() -> folder.apply(state,
+																																																							next));
 	}
 
 	private static Optional<DivideState> foldSingleQuotes(DivideState state, char next) {
@@ -359,14 +359,15 @@ public class Main {
 	private static Tuple<String, ParseState> compileClassSegmentValue(String input, String name, ParseState state) {
 		if (input.isEmpty()) return new Tuple<String, ParseState>("", state);
 
-		return compileStructure(input, "class", state).or(() -> compileStructure(input, "record", state))
-																									.or(() -> compileStructure(input, "interface", state))
-																									.or(() -> compileField(input, state))
-																									.or(() -> compileMethod(input, name, state))
-																									.orElseGet(() -> {
-																										final String generated = generateSegment(wrap(input), 1);
-																										return new Tuple<String, ParseState>(generated, state);
-																									});
+		return compileStructure(input, "class", state).or(() -> compileStructure(input,
+																																						 "record",
+																																						 state)).or(() -> compileStructure(input,
+																																																							 "interface",
+																																																							 state)).or(
+				() -> compileField(input, state)).or(() -> compileMethod(input, name, state)).orElseGet(() -> {
+			final String generated = generateSegment(wrap(input), 1);
+			return new Tuple<String, ParseState>(generated, state);
+		});
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
@@ -422,9 +423,8 @@ public class Main {
 	}
 
 	private static JMethodHeader compileMethodHeader(String beforeParams) {
-		return compileDefinition(beforeParams).<JMethodHeader>map(definable -> definable)
-																					.or(() -> compileConstructor(beforeParams))
-																					.orElseGet(() -> new Placeholder(beforeParams));
+		return compileDefinition(beforeParams).<JMethodHeader>map(definable -> definable).or(() -> compileConstructor(
+				beforeParams)).orElseGet(() -> new Placeholder(beforeParams));
 	}
 
 	private static String compileParameters(String input) {
@@ -516,20 +516,19 @@ public class Main {
 		if (i >= 0) {
 			final String destinationString = input.substring(0, i);
 			final String source = input.substring(i + 1);
-			final Tuple<String, ParseState> destinationResult = compileDefinition(destinationString).map(Definition::generate)
-																																															.map(generated -> new Tuple<String, ParseState>(
-																																																	generated,
-																																																	state))
-																																															.orElseGet(() -> compileExpression(
-																																																	destinationString,
-																																																	state));
+			final Tuple<String, ParseState> destinationResult =
+					compileDefinition(destinationString).map(Definition::generate).map(generated -> new Tuple<String, ParseState>(
+							generated,
+							state)).orElseGet(() -> compileExpression(destinationString, state));
 
 			final Tuple<String, ParseState> sourceResult = compileExpression(source, destinationResult.right);
 			return new Tuple<String, ParseState>(destinationResult.left + " = " + sourceResult.left, sourceResult.right);
 		}
 
-		return compileDefinition(input).map(value -> new Tuple<String, ParseState>(value.generate(), state))
-																	 .orElseGet(() -> new Tuple<String, ParseState>(wrap(input), state));
+		return compileDefinition(input).map(value -> new Tuple<String, ParseState>(value.generate(),
+																																							 state)).orElseGet(() -> new Tuple<String, ParseState>(
+				wrap(input),
+				state));
 	}
 
 	private static Tuple<String, ParseState> compileExpression(String input, ParseState state) {
@@ -566,17 +565,12 @@ public class Main {
 					final String arguments = segments.getLast();
 
 					final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
-
-					StringJoiner joiner = new StringJoiner(", ");
-					ParseState current = callerResult.right;
-					for (String s : divide(arguments, Main::foldValue).toList()) {
-						Tuple<String, ParseState> result = compileExpression(s, current);
-						joiner.add(result.left);
-						current = result.right;
-					}
-
-					final String collect = joiner.toString();
-					return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current));
+					final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
+																																Main::foldValue).toList().stream().reduce(new Tuple<StringJoiner, ParseState>(
+							new StringJoiner(", "),
+							callerResult.right), (tuple, s) -> mergeExpression(tuple.left, tuple.right, s), (_, next) -> next);
+					final String collect = reduce.left.toString();
+					return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", reduce.right));
 				}
 			}
 		}
@@ -604,15 +598,30 @@ public class Main {
 			}
 		}
 
-		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
-																								.or(() -> compileOperator(stripped, ">=", state))
-																								.or(() -> compileOperator(stripped, "<", state))
-																								.or(() -> compileOperator(stripped, "!=", state))
-																								.or(() -> compileOperator(stripped, "==", state))
-																								.or(() -> compileOperator(stripped, "&&", state))
-																								.or(() -> compileOperator(stripped, "||", state))
-																								.or(() -> compileIdentifier(stripped, state))
-																								.or(() -> compileNumber(stripped, state));
+		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped,
+																																					"-",
+																																					state)).or(() -> compileOperator(stripped,
+																																																					 ">=",
+																																																					 state)).or(() -> compileOperator(
+				stripped,
+				"<",
+				state)).or(() -> compileOperator(stripped, "!=", state)).or(() -> compileOperator(stripped,
+																																													"==",
+																																													state)).or(() -> compileOperator(
+				stripped,
+				"&&",
+				state)).or(() -> compileOperator(stripped, "||", state)).or(() -> compileIdentifier(stripped,
+																																														state)).or(() -> compileNumber(
+				stripped,
+				state));
+	}
+
+	private static Tuple<StringJoiner, ParseState> mergeExpression(StringJoiner joiner,
+																																 ParseState state,
+																																 String segment) {
+		Tuple<String, ParseState> result = compileExpression(segment, state);
+		final StringJoiner add = joiner.add(result.left);
+		return new Tuple<StringJoiner, ParseState>(add, result.right);
 	}
 
 	private static Stream<String> findArgStart(String input) {
@@ -638,11 +647,9 @@ public class Main {
 		if (isIdentifier(beforeArrow)) outputParams = "auto " + beforeArrow;
 		else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 			final String withoutParentheses = beforeArrow.substring(1, beforeArrow.length() - 1);
-			outputParams = Arrays.stream(withoutParentheses.split(Pattern.quote(",")))
-													 .map(String::strip)
-													 .filter(slice -> !slice.isEmpty())
-													 .map(slice -> "auto " + slice)
-													 .collect(Collectors.joining(", "));
+			outputParams =
+					Arrays.stream(withoutParentheses.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).map(
+							slice -> "auto " + slice).collect(Collectors.joining(", "));
 
 		} else return Optional.empty();
 
