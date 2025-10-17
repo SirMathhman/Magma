@@ -221,7 +221,7 @@ public class Main {
 		final StringBuilder outer = new StringBuilder();
 
 		for (String segment : segments) {
-			Tuple<String, String> compiled = compileClassSegment(segment);
+			Tuple<String, String> compiled = compileClassSegment(segment, name);
 			inner.append(compiled.left);
 			outer.append(compiled.right);
 		}
@@ -251,7 +251,11 @@ public class Main {
 	}
 
 	private static String generateField(String input) {
-		return System.lineSeparator() + "\t" + compileDefinition(input).orElseGet(() -> wrap(input)) + ";";
+		return generateStatement(compileDefinition(input).orElseGet(() -> wrap(input)));
+	}
+
+	private static String generateStatement(String content) {
+		return System.lineSeparator() + "\t" + content + ";";
 	}
 
 	private static State foldValue(State state, char next) {
@@ -259,30 +263,21 @@ public class Main {
 		else return state.append(next);
 	}
 
-	private static boolean isIdentifier(String input) {
-		for (int i = 0; i < input.length(); i++) {
-			final char c = input.charAt(i);
-			if (!Character.isLetter(c)) return false;
-		}
-
-		return true;
-	}
-
-	private static Tuple<String, String> compileClassSegment(String input) {
+	private static Tuple<String, String> compileClassSegment(String input, String name) {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) return new Tuple<String, String>("", "");
-		return compileClassSegmentValue(stripped);
+		return compileClassSegmentValue(stripped, name);
 	}
 
-	private static Tuple<String, String> compileClassSegmentValue(String input) {
+	private static Tuple<String, String> compileClassSegmentValue(String input, String name) {
 		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileField(input))
-																					 .or(() -> compileMethod(input))
+																					 .or(() -> compileMethod(input, name))
 																					 .orElseGet(() -> new Tuple<String, String>(
 																							 wrap(input) + System.lineSeparator(), ""));
 	}
 
-	private static Optional<Tuple<String, String>> compileMethod(String input) {
+	private static Optional<Tuple<String, String>> compileMethod(String input, String name) {
 		final int paramStart = input.indexOf("(");
 		if (paramStart < 0) return Optional.empty();
 
@@ -300,12 +295,14 @@ public class Main {
 
 		if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) return Optional.empty();
 
-		final String body = withBraces.substring(1, withBraces.length() - 1);
+		final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 
 		final String outputParams = compileDefinition(inputParams).orElse("");
+		final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
+		final String outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+
 		final String generated =
-				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) +
-				System.lineSeparator() + "}" + System.lineSeparator();
+				definition + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" + System.lineSeparator();
 		return Optional.of(new Tuple<String, String>("", generated));
 	}
 
