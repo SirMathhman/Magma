@@ -27,12 +27,16 @@ public class Main {
 	private static String compile(String input) {
 		final ArrayList<String> segments = new ArrayList<String>();
 		StringBuilder buffer = new StringBuilder();
+		int depth = 0;
 		for (int index = 0; index < input.length(); index++) {
 			final char c = input.charAt(index);
 			buffer.append(c);
-			if (c == ';') {
+			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else {
+				if (c == '{') depth++;
+				if (c == '}') depth--;
 			}
 		}
 		segments.add(buffer.toString());
