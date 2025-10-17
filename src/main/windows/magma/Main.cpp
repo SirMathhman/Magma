@@ -1,59 +1,5 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-struct Main {};
-struct State {};
-/*private final*/ ArrayList<char*> segments;
-/*private final*/ char* input;
-/*private*/ /*StringBuilder*/ buffer;
-/*private*/ int depth;
-/*private*/ int index;
-/*public State(String input) {
-			this.input = input;
-			this.buffer = new StringBuilder();
-			this.depth = 0;
-			this.segments = new ArrayList<String>();
-			this.index = 0;
-		}*/
-/*private Stream<String> stream() {
-			return this.segments.stream();
-		}*/
-/*private State enter() {
-			this.depth = this.depth + 1;
-			return this;
-		}*/
-/*private State exit() {
-			this.depth = this.depth - 1;
-			return this;
-		}*/
-/*private boolean isShallow() {
-			return this.depth == 1;
-		}*/
-/*private boolean isLevel() {
-			return this.depth == 0;
-		}*/
-/*private State append(char c) {
-			this.buffer.append(c);
-			return this;
-		}*/
-/*private State advance() {
-			this.segments.add(this.buffer.toString());
-			this.buffer = new StringBuilder();
-			return this;
-		}*/
-/*public Optional<Tuple<State, Character>> pop() {
-			if (this.index >= this.input.length()) return Optional.empty();
-			final char next = this.input.charAt(this.index);
-			this.index++;
-			return Optional.of(new Tuple<State, Character>(this, next));
-		}*/
-/*public Optional<Tuple<State, Character>> popAndAppendToTuple() {
-			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
-		}*/
-/*public Optional<State> popAndAppendToOption() {
-			return this.popAndAppendToTuple().map(tuple -> tuple.left);
-		}*/
-/**/
-
-/*public record Tuple<A, B>(A left, B right) {}*/
+struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 /*public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -131,36 +77,20 @@ struct State {};
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		return compileClass(stripped).orElseGet(() -> wrap(stripped));
+		return compileClass(stripped).map(Tuple::right).orElseGet(() -> wrap(stripped));
 	}*/
-struct ");
-		if (i < 0) return Optional.empty();
-		final String afterKeyword = stripped.substring(i + "class ".length());
-		final int contentStart = afterKeyword.indexOf(" {};
-/*");
-
-		if (contentStart < 0) return Optional.empty();
-		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
-		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
-
-		if (!afterContent.endsWith("}*/
-/*")) return Optional.empty();
-		final String content = afterContent.substring(0, afterContent.length() - "}".length());
-
-		return Optional.of("struct " + beforeContent + " {};" + System.lineSeparator() +
-											*/ /*compileStatements(content,*/ Main::compileClassSegment));
-
-/*private static String compileClassSegment(String input) {
+/*private static Tuple<String, String> compileClassSegment(String input) {
 		final String stripped = input.strip();
-		return compileClassSegmentValue(stripped) + System.lineSeparator();
+		return compileClassSegmentValue(stripped);
 	}*/
-/*private static String compileClassSegmentValue(String input) {
-		return compileClass(input).or(() -> compileField(input)).orElseGet(() -> wrap(input));
+/*private static Tuple<String, String> compileClassSegmentValue(String input) {
+		return compileClass(input).or(() -> compileField(input))
+															.orElseGet(() -> new Tuple<String, String>(wrap(input) + System.lineSeparator(), ""));
 	}*/
-/*private static Optional<String> compileField(String input) {
+/*private static Optional<Tuple<String, String>> compileField(String input) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			return Optional.of(compileDefinition(substring) + ";");
+			return Optional.of(new Tuple<String, String>(System.lineSeparator() + "\t" + compileDefinition(substring) + ";", ""));
 		} else return Optional.empty();
 	}*/
 /*private static String compileDefinition(String input) {
@@ -192,7 +122,6 @@ struct ");
 
 		if (stripped.equals("String")) return "char*";
 		if (stripped.equals("int")) return "int";
-
 		return wrap(stripped);
 	}*/
 /*private static String wrap(String input) {
@@ -200,6 +129,87 @@ struct ");
 		return "start" + replaced + "end";
 	}*/
 /**/
+};
+struct State {
+	/*private final*/ ArrayList<char*> segments;
+	/*private final*/ char* input;
+	/*private*/ /*StringBuilder*/ buffer;
+	/*private*/ int depth;
+	/*private*/ int index;/*public State(String input) {
+			this.input = input;
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new ArrayList<String>();
+			this.index = 0;
+		}*/
+/*private Stream<String> stream() {
+			return this.segments.stream();
+		}*/
+/*private State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}*/
+/*private State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}*/
+/*private boolean isShallow() {
+			return this.depth == 1;
+		}*/
+/*private boolean isLevel() {
+			return this.depth == 0;
+		}*/
+/*private State append(char c) {
+			this.buffer.append(c);
+			return this;
+		}*/
+/*private State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer = new StringBuilder();
+			return this;
+		}*/
+/*public Optional<Tuple<State, Character>> pop() {
+			if (this.index >= this.input.length()) return Optional.empty();
+			final char next = this.input.charAt(this.index);
+			this.index++;
+			return Optional.of(new Tuple<State, Character>(this, next));
+		}*/
+/*public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
+		}*/
+/*public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(tuple -> tuple.left);
+		}*/
+/**/
+};
+struct ");
+		if (i < 0) return Optional.empty();
+		final String afterKeyword = stripped.substring(i + "class ".length());
+		final int contentStart = afterKeyword.indexOf(" {/*");
+
+		if (contentStart < 0) return Optional.empty();
+		final String name = afterKeyword.substring(0, contentStart).strip();
+		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+
+		if (!afterContent.endsWith("}*/
+
+	/*")) return Optional.empty();
+		final String content = afterContent.substring(0, afterContent.length() - "}".length());
+
+		final List<String> segments = divide(content).toList();
+
+		StringBuilder inner = new StringBuilder();
+		final StringBuilder outer = new StringBuilder();
+
+		for (String segment : segments) {
+			Tuple<String, String> compiled = compileClassSegment(segment);
+			inner.append(compiled.left);
+			outer.append(compiled.right);
+		}
+
+		return Optional.of(new Tuple<String, String>("",
+																								 "struct " + name + " {" + inner + "};" +
+																								 System.lineSeparator()*/ /*+*/ outer));};
 /**/int main(){
 	main_Main();
 	return 0;

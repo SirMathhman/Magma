@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -163,39 +164,53 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		return compileClass(stripped).orElseGet(() -> wrap(stripped));
+		return compileClass(stripped).map(Tuple::right).orElseGet(() -> wrap(stripped));
 	}
 
-	private static Optional<String> compileClass(String stripped) {
+	private static Optional<Tuple<String, String>> compileClass(String stripped) {
 		final int i = stripped.indexOf("class ");
 		if (i < 0) return Optional.empty();
 		final String afterKeyword = stripped.substring(i + "class ".length());
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) return Optional.empty();
-		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+		final String name = afterKeyword.substring(0, contentStart).strip();
 		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 
 		if (!afterContent.endsWith("}")) return Optional.empty();
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		return Optional.of("struct " + beforeContent + " {};" + System.lineSeparator() +
-											 compileStatements(content, Main::compileClassSegment));
+		final List<String> segments = divide(content).toList();
+
+		StringBuilder inner = new StringBuilder();
+		final StringBuilder outer = new StringBuilder();
+
+		for (String segment : segments) {
+			Tuple<String, String> compiled = compileClassSegment(segment);
+			inner.append(compiled.left);
+			outer.append(compiled.right);
+		}
+
+		return Optional.of(new Tuple<String, String>("",
+																								 "struct " + name + " {" + inner + "};" + System.lineSeparator() +
+																								 outer));
 	}
 
-	private static String compileClassSegment(String input) {
+	private static Tuple<String, String> compileClassSegment(String input) {
 		final String stripped = input.strip();
-		return compileClassSegmentValue(stripped) + System.lineSeparator();
+		return compileClassSegmentValue(stripped);
 	}
 
-	private static String compileClassSegmentValue(String input) {
-		return compileClass(input).or(() -> compileField(input)).orElseGet(() -> wrap(input));
+	private static Tuple<String, String> compileClassSegmentValue(String input) {
+		return compileClass(input).or(() -> compileField(input))
+															.orElseGet(() -> new Tuple<String, String>(wrap(input) + System.lineSeparator(), ""));
 	}
 
-	private static Optional<String> compileField(String input) {
+	private static Optional<Tuple<String, String>> compileField(String input) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			return Optional.of(compileDefinition(substring) + ";");
+			return Optional.of(new Tuple<String, String>(System.lineSeparator() + "\t" + compileDefinition(substring) + ";",
+																									 ""));
 		} else return Optional.empty();
 	}
 
@@ -229,7 +244,6 @@ public class Main {
 
 		if (stripped.equals("String")) return "char*";
 		if (stripped.equals("int")) return "int";
-
 		return wrap(stripped);
 	}
 
