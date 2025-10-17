@@ -662,17 +662,7 @@ public class Main {
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
-		final List<String> segments = divide(input, (state1, next) -> {
-			if (next == operator.charAt(0)) {
-				final Optional<Character> peeked = state1.peek();
-				if (operator.length() >= 2 && peeked.isPresent() && peeked.get() == operator.charAt(1))
-					return state1.pop().map(Tuple::left).orElse(state1).advance();
-
-				return state1.advance();
-			}
-
-			return state1.append(next);
-		}).toList();
+		final List<String> segments = divide(input, (state1, next) -> foldOperator(operator, state1, next)).toList();
 
 		if (segments.size() < 2) return Optional.empty();
 
@@ -690,6 +680,16 @@ public class Main {
 
 		final String generated = leftResult.left + " " + operator + " " + rightResult.left;
 		return Optional.of(new Tuple<String, ParseState>(generated, rightResult.right));
+	}
+
+	private static DivideState foldOperator(String operator, DivideState state1, Character next) {
+		if (next != operator.charAt(0)) return state1.append(next);
+
+		final Optional<Character> peeked = state1.peek();
+		if (operator.length() >= 2 && peeked.isPresent() && peeked.get() == operator.charAt(1))
+			return state1.pop().map(inner -> inner.left).orElse(state1).advance();
+
+		return state1.advance();
 	}
 
 	private static boolean isString(String stripped) {
