@@ -2,72 +2,60 @@
 struct Main {};
 /*private static class State {
 		private final ArrayList<String> segments;
+		private final String input;
 		private StringBuilder buffer;
 		private int depth;
+		private int index;
 
-		public State() {
+		public State(String input) {
+			this.input = input;
 			this.buffer = new StringBuilder();
 			this.depth = 0;
-			this.segments = new ArrayList<>();
+			this.segments = new ArrayList<String>();
+			this.index = 0;
 		}
 
 		private Stream<String> stream() {
-			return this.segments().stream();
+			return this.segments.stream();
 		}
 
 		private State enter() {
-			this.setDepth(this.getDepth() + 1);
+			this.depth = this.depth + 1;
 			return this;
 		}
 
 		private State exit() {
-			this.setDepth(this.getDepth() - 1);
+			this.depth = this.depth - 1;
 			return this;
 		}
 
 		private boolean isShallow() {
-			return this.getDepth() == 1;
+			return this.depth == 1;
 		}
 
 		private boolean isLevel() {
-			return this.getDepth() == 0;
+			return this.depth == 0;
 		}
 
 		private State append(char c) {
-			this.getBuffer().append(c);
+			this.buffer.append(c);
 			return this;
 		}
 
 		private State advance() {
-			this.segments().add(this.getBuffer().toString());
-			this.setBuffer(new StringBuilder());
+			this.segments.add(this.buffer.toString());
+			this.buffer = new StringBuilder();
 			return this;
 		}
 
-		public StringBuilder getBuffer() {
-			return this.buffer;
-		}
-
-		public void setBuffer(StringBuilder buffer) {
-			this.buffer = buffer;
-		}
-
-		public int getDepth() {
-			return this.depth;
-		}
-
-		public void setDepth(int depth) {
-			this.depth = depth;
-		}
-
-		public ArrayList<String> getSegments() {
-			return this.segments;
-		}
-
-		public ArrayList<String> segments() {
-			return this.segments;
+		public Optional<Tuple<State, Character>> pop() {
+			if (this.index >= this.input.length()) return Optional.empty();
+			final char next = this.input.charAt(this.index);
+			this.index++;
+			return Optional.of(new Tuple<State, Character>(this, next));
 		}
 	}*/
+/*public record Tuple<A, B>(A left, B right) {}*/
 /*public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -92,10 +80,12 @@ struct Main {};
 		return divide(input).map(mapper).collect(Collectors.joining());
 	}*/
 /*private static Stream<String> divide(String input) {
-		State current = new State();
-		for (int index = 0; index < input.length(); index++) {
-			final char c = input.charAt(index);
-			current = fold(current, c);
+		State current = new State(input);
+		while (true) {
+			final Optional<Tuple<State, Character>> maybeNext = current.pop();
+			if (maybeNext.isEmpty()) break;
+			final Tuple<State, Character> tuple = maybeNext.get();
+			current = fold(tuple.left, tuple.right);
 		}
 
 		return current.advance().stream();
