@@ -220,15 +220,17 @@ public class Main {
 	}
 
 	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
-		DivideState current = new DivideState(input);
-		while (true) {
-			final Optional<Tuple<DivideState, Character>> maybeNext = current.pop();
-			if (maybeNext.isEmpty()) break;
-			final Tuple<DivideState, Character> tuple = maybeNext.get();
-			current = foldEscaped(tuple.left, tuple.right, folder);
-		}
+		Tuple<DivideState, Boolean> current = new Tuple<DivideState, Boolean>(new DivideState(input), true);
+		while (current.right) current = foldCycle(current.left, folder);
+		return current.left.advance().stream();
+	}
 
-		return current.advance().stream();
+	private static Tuple<DivideState, Boolean> foldCycle(DivideState state,
+																											 BiFunction<DivideState, Character, DivideState> folder) {
+		final Optional<Tuple<DivideState, Character>> maybeNext = state.pop();
+		if (maybeNext.isEmpty()) return new Tuple<DivideState, Boolean>(state, false);
+		final Tuple<DivideState, Character> tuple = maybeNext.get();
+		return new Tuple<DivideState, Boolean>(foldEscaped(tuple.left, tuple.right, folder), true);
 	}
 
 	private static DivideState foldEscaped(DivideState state,
@@ -253,20 +255,23 @@ public class Main {
 	private static Optional<DivideState> foldDoubleQuotes(DivideState state, char next) {
 		if (next != '\"') return Optional.empty();
 
-		DivideState appended = state.append(next);
-		while (true) {
-			final Optional<Tuple<DivideState, Character>> maybeNext = appended.popAndAppendToTuple();
-			if (maybeNext.isPresent()) {
-				final Tuple<DivideState, Character> tuple = maybeNext.get();
-				appended = tuple.left;
+		Tuple<DivideState, Boolean> current = new Tuple<DivideState, Boolean>(state.append(next), true);
+		while (current.right) current = foldUntilDoubleQuotes(current.left);
+		return Optional.of(current.left);
+	}
 
-				final char c = tuple.right;
-				if (c == '\\') appended = appended.popAndAppendToOption().orElse(appended);
-				if (c == '\"') break;
-			} else break;
-		}
+	private static Tuple<DivideState, Boolean> foldUntilDoubleQuotes(DivideState state) {
+		final Optional<Tuple<DivideState, Character>> maybeNext = state.popAndAppendToTuple();
+		if (maybeNext.isEmpty()) return new Tuple<DivideState, Boolean>(state, false);
 
-		return Optional.of(appended);
+		final Tuple<DivideState, Character> tuple = maybeNext.get();
+		final DivideState nextState = tuple.left;
+		final char nextChar = tuple.right;
+
+		if (nextChar == '\\')
+			return new Tuple<DivideState, Boolean>(nextState.popAndAppendToOption().orElse(nextState), true);
+		if (nextChar == '\"') return new Tuple<DivideState, Boolean>(nextState, false);
+		return new Tuple<DivideState, Boolean>(nextState, false);
 	}
 
 	private static DivideState foldStatement(DivideState state, char c) {
