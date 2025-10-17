@@ -292,15 +292,19 @@ public class Main {
 	}
 
 	private static Optional<String> generateField(String input) {
-		return compileDefinition(input).map(Definable::generate).map(Main::generateStatement);
+		return compileDefinition(input).map(Definable::generate).map(content -> generateStatement(content, 1));
 	}
 
-	private static String generateStatement(String content) {
-		return generateSegment(content + ";");
+	private static String generateStatement(String content, int depth) {
+		return generateSegment(content + ";", depth);
 	}
 
-	private static String generateSegment(String s) {
-		return System.lineSeparator() + "\t" + s;
+	private static String generateSegment(String content, int depth) {
+		return generateIndent(depth) + content;
+	}
+
+	private static String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private static State foldValue(State state, char next) {
@@ -322,7 +326,7 @@ public class Main {
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input, name))
 																					 .orElseGet(() -> {
-																						 final String generated = generateSegment(wrap(input));
+																						 final String generated = generateSegment(wrap(input), 1);
 																						 return new Tuple<String, String>(generated, "");
 																					 });
 	}
@@ -347,11 +351,11 @@ public class Main {
 		final String outputBodyWithBraces;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
-			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
+			final String compiledBody = compileStatements(inputBody, input1 -> compileMethodSegment(input1, 1));
 
 			String outputBody;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
-				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+				outputBody = generateStatement(name + " this", 1) + compiledBody + generateStatement("return this", 1);
 			else outputBody = compiledBody;
 
 			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
@@ -382,38 +386,31 @@ public class Main {
 		return compileValues(input, slice -> compileDefinition(slice).map(Definable::generate).orElse(""));
 	}
 
-	private static String compileMethodSegment(String input) {
+	private static String compileMethodSegment(String input, int depth) {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) return "";
 
-		return generateSegment(compileMethodSegmentValue(stripped));
+		return generateSegment(compileMethodSegmentValue(stripped, depth), depth);
 	}
 
-	private static String compileMethodSegmentValue(String input) {
+	private static String compileMethodSegmentValue(String input, int depth) {
 		final String stripped = input.strip();
+		if (stripped.startsWith("{") && stripped.endsWith("}")) {
+			final String substring = stripped.substring(1, stripped.length() - 1);
+			final String compiled = compileStatements(substring, input1 -> compileMethodSegment(input1, depth + 1));
+			return "{" + compiled + generateIndent(depth) + "}";
+		}
+
 		if (stripped.startsWith("if")) {
 			final String withoutPrefix = stripped.substring(2);
-			int conditionEnd = -1;
-			int depth = 0;
-			for (int i = 0; i < withoutPrefix.length(); i++) {
-				final char c = withoutPrefix.charAt(i);
-				if (c == ')') {
-					depth--;
-					if (depth == 0) {
-						conditionEnd = i;
-						break;
-					}
-				}
-				if (c == '(') depth++;
-			}
-
+			final int conditionEnd = findConditionEnd(withoutPrefix);
 			if (conditionEnd >= 0) {
 				final String substring1 = withoutPrefix.substring(0, conditionEnd).strip();
 				final String body = withoutPrefix.substring(conditionEnd + 1);
 				if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
 					final String condition = compileExpression(expression);
-					final String compiledBody = compileMethodSegmentValue(body);
+					final String compiledBody = compileMethodSegmentValue(body, depth);
 					return "if (" + condition + ") " + compiledBody;
 				}
 			}
@@ -425,6 +422,23 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private static int findConditionEnd(String withoutPrefix) {
+		int conditionEnd = -1;
+		int depth0 = 0;
+		for (int i = 0; i < withoutPrefix.length(); i++) {
+			final char c = withoutPrefix.charAt(i);
+			if (c == ')') {
+				depth0--;
+				if (depth0 == 0) {
+					conditionEnd = i;
+					break;
+				}
+			}
+			if (c == '(') depth0++;
+		}
+		return conditionEnd;
 	}
 
 	private static String compileMethodStatementValue(String input) {

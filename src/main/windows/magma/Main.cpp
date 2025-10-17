@@ -191,15 +191,15 @@ struct JConstructor(String name) implements JMethodHeader {
 		}*/
 	char* name = beforeMaybeParams;
 	List<char*> typeArguments = Collections.emptyList();
-	if (beforeMaybeParams.endsWith(">")) /*{
-			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
-			final int i1 = withoutEnd.indexOf("<");
-			if (i1 >= 0) {
-				name = withoutEnd.substring(0, i1);
-				final String arguments = withoutEnd.substring(i1 + "<".length());
-				typeArguments = divide(arguments, Main::foldValue).map(String::strip).toList();
-			}
-		}*/
+	if (beforeMaybeParams.endsWith(">")) {
+		/*final*/ char* withoutEnd = beforeMaybeParams.substring(0, /*beforeMaybeParams.length() - 1*/);
+		/*final int i1*/ = withoutEnd.indexOf("<");
+		if (/*i1 >= 0*/) {
+			name = withoutEnd.substring(0, /*i1*/);
+			/*final*/ char* arguments = /*withoutEnd.substring(i1*/ + "<".length(/*)*/);
+			typeArguments = divide(arguments, /*Main::foldValue*/).map(/*String::strip*/).toList();
+		}
+	}
 	/*final*/ char* afterContent = /*afterKeyword.substring(contentStart*/ + "{".length(/*)).strip(*/);
 	if (/*!afterContent*/.endsWith("}")) return Optional.empty();
 	/*final*/ char* content = afterContent.substring(0, /*afterContent.length() - "}"*/.length());
@@ -231,13 +231,16 @@ struct JConstructor(String name) implements JMethodHeader {
 	return generateField(/*input1*/).orElseGet(/*() -> wrap*/(/*input1*/));
 }
 /*private static*/ Optional<char*> generateField_Main(char* input){
-	return compileDefinition(input).map(/*Definable::generate*/).map(/*Main::generateStatement*/);
+	return compileDefinition(input).map(/*Definable::generate*/).map(/*content -> generateStatement(content*/, /*1)*/);
 }
-/*private static*/ char* generateStatement_Main(char* content){
-	return /*generateSegment(content*/ + /*";")*/;
+/*private static*/ char* generateStatement_Main(char* content, int depth){
+	return /*generateSegment(content*/ + /*";", depth)*/;
 }
-/*private static*/ char* generateSegment_Main(char* s){
-	return System.lineSeparator() + "\t" + s;
+/*private static*/ char* generateSegment_Main(char* content, int depth){
+	return generateIndent(depth) + content;
+}
+/*private static*/ char* generateIndent_Main(int depth){
+	return System.lineSeparator() + "\t".repeat(depth);
 }
 /*private static*/ /*State*/ foldValue_Main(/*State*/ state, /*char*/ next){
 	if (/*next == ',' && state*/.isLevel()) return state.advance();
@@ -255,7 +258,7 @@ struct JConstructor(String name) implements JMethodHeader {
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input, name))
 																					 .orElseGet(() -> {
-																						 final String generated = generateSegment(wrap(input));
+																						 final String generated = generateSegment(wrap(input), 1);
 																						 return new Tuple<String, String>(generated, "");
 																					 }*/
 	/*)*/;
@@ -273,17 +276,14 @@ struct JConstructor(String name) implements JMethodHeader {
 	/*final*/ char* outputParams = compileParameters(inputParams);
 	/*final*/ char* outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 	/*final String outputBodyWithBraces*/;
-	if (/*withBraces.startsWith("{") && withBraces*/.endsWith("}")) /*{
-			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
-			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
-
-			String outputBody;
-			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
-				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
-			else outputBody = compiledBody;
-
-			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
-		}*/
+	if (/*withBraces.startsWith("{") && withBraces*/.endsWith("}")) {
+		/*final*/ char* inputBody = withBraces.substring(1, /*withBraces.length() - 1*/);
+		/*final*/ char* compiledBody = compileStatements(inputBody, /*input1 -> compileMethodSegment(input1*/, /*1)*/);
+		/*String outputBody*/;
+		if (/*Objects.requireNonNull(methodHeader) instanceof JConstructor*/) outputBody = /*generateStatement(name*/ + /*" this", 1)*/ + compiledBody + generateStatement("return this", 1);
+		/*else*/ outputBody = compiledBody;
+		outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
+	}
 	/*else if*/ /*(withBraces.equals(";"))*/ outputBodyWithBraces = ";";
 	/*else return Optional.empty()*/;
 	/*final*/ char* generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
@@ -305,69 +305,76 @@ struct JConstructor(String name) implements JMethodHeader {
 	if (input.isEmpty()) return /*""*/;
 	return compileValues(input, /*slice -> compileDefinition*/(slice).map(/*Definable::generate*/).orElse(/*""*/));
 }
-/*private static*/ char* compileMethodSegment_Main(char* input){
+/*private static*/ char* compileMethodSegment_Main(char* input, int depth){
 	/*final*/ char* stripped = input.strip();
 	if (stripped.isEmpty()) return /*""*/;
-	return generateSegment(compileMethodSegmentValue(stripped));
+	return generateSegment(/*compileMethodSegmentValue(stripped*/, /*depth)*/, depth);
 }
-/*private static*/ char* compileMethodSegmentValue_Main(char* input){
+/*private static*/ char* compileMethodSegmentValue_Main(char* input, int depth){
 	/*final*/ char* stripped = input.strip();
-	if (stripped.startsWith("if")) /*{
-			final String withoutPrefix = stripped.substring(2);
-			int conditionEnd = -1;
-			int depth = 0;
-			for (int i = 0; i < withoutPrefix.length(); i++) {
-				final char c = withoutPrefix.charAt(i);
-				if (c == ')') {
-					depth--;
-					if (depth == 0) {
-						conditionEnd = i;
-						break;
-					}
-				}
-				if (c == '(') depth++;
-			}
-
-			if (conditionEnd >= 0) {
-				final String substring1 = withoutPrefix.substring(0, conditionEnd).strip();
-				final String body = withoutPrefix.substring(conditionEnd + 1);
-				if (substring1.startsWith("(")) {
+	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
+		/*final*/ char* substring = stripped.substring(1, /*stripped.length() - 1*/);
+		/*final*/ char* compiled = /*compileStatements(substring, input1 -> compileMethodSegment(input1, depth*/ + /*1))*/;
+		return "{" + compiled + generateIndent(depth) + "}";
+	}
+	if (stripped.startsWith("if")) {
+		/*final*/ char* withoutPrefix = stripped.substring(2);
+		/*final*/ int conditionEnd = findConditionEnd(withoutPrefix);
+		if (/*conditionEnd >= 0*/) {
+			/*final String substring1*/ = withoutPrefix.substring(0, conditionEnd).strip();
+			/*final*/ char* body = /*withoutPrefix.substring(conditionEnd*/ + /*1)*/;
+			/*if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
 					final String condition = compileExpression(expression);
-					final String compiledBody = compileMethodSegmentValue(body);
+					final String compiledBody = compileMethodSegmentValue(body, depth);
 					return "if (" + condition + ") " + compiledBody;
+				}*/
+		}
+	}
+	if (stripped.endsWith(";")) {
+		/*final*/ char* slice = stripped.substring(0, /*stripped.length() - 1*/);
+		return compileMethodStatementValue(slice) + ";";
+	}
+	return wrap(stripped);
+}
+/*private static*/ int findConditionEnd_Main(char* withoutPrefix){
+	int conditionEnd = /*-1*/;
+	/*int depth0*/ = 0;
+	/*for*/ /*(int*/ i = 0;
+	/*i < withoutPrefix.length()*/;
+	/*i++) {
+			final char c = withoutPrefix.charAt(i);
+			if (c == ')') {
+				depth0--;
+				if (depth0 == 0) {
+					conditionEnd = i;
+					break;
 				}
 			}
+			if (c == '(') depth0++;
 		}*/
-	if (stripped.endsWith(";")) /*{
-			final String slice = stripped.substring(0, stripped.length() - 1);
-			return compileMethodStatementValue(slice) + ";";
-		}*/
-	return wrap(stripped);
+	return conditionEnd;
 }
 /*private static*/ char* compileMethodStatementValue_Main(char* input){
 	if (input.startsWith("return ")) return "return " + compileExpression(input.substring("return ".length()));
 	/*final*/ int i = input.indexOf("=");
-	if (/*i >= 0*/) /*{
-			final String destinationString = input.substring(0, i);
-			final String source = input.substring(i + 1);
-			final String destination = compileDefinition(destinationString).map(Definition::generate)
-																																		 .orElseGet(() -> compileExpression(
-																																				 destinationString));
-
-			return destination + " = " + compileExpression(source);
-		}*/
+	if (/*i >= 0*/) {
+		/*final*/ char* destinationString = input.substring(0, i);
+		/*final*/ char* source = /*input.substring(i*/ + /*1)*/;
+		/*final*/ char* destination = compileDefinition(destinationString).map(/*Definition::generate*/).orElseGet(/*() -> compileExpression*/(destinationString));
+		return destination + " = " + compileExpression(source);
+	}
 	return wrap(input);
 }
 /*private static*/ char* compileExpression_Main(char* input){
 	/*final*/ char* stripped = input.strip();
 	if (isString(stripped)) return stripped;
 	/*final int i1*/ = /*stripped.indexOf("*/ + /*")*/;
-	if (/*i1 >= 0*/) /*{
-			final String left = stripped.substring(0, i1);
-			final String right = stripped.substring(i1 + "+".length());
-			return compileExpression(left) + " + " + compileExpression(right);
-		}*/
+	if (/*i1 >= 0*/) {
+		/*final*/ char* left = stripped.substring(0, /*i1*/);
+		/*final*/ char* right = /*stripped.substring(i1*/ + /*"*/ + /*"*/.length(/*)*/);
+		return compileExpression(left) + /*"*/ + /*"*/ + compileExpression(right);
+	}
 	if (/*stripped.endsWith(")"*/) /*) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 
@@ -389,11 +396,11 @@ struct JConstructor(String name) implements JMethodHeader {
 			}
 		}*/
 	/*final*/ int i = stripped.lastIndexOf(".");
-	if (/*i >= 0*/) /*{
-			final String substring = stripped.substring(0, i);
-			final String name = stripped.substring(i + 1).strip();
-			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
-		}*/
+	if (/*i >= 0*/) {
+		/*final*/ char* substring = stripped.substring(0, i);
+		/*final*/ char* name = /*stripped.substring(i*/ + /*1).strip()*/;
+		if (isIdentifier(name)) return compileExpression(substring) + "." + name;
+	}
 	if (isIdentifier(stripped)) return stripped;
 	if (isNumber(stripped)) return stripped;
 	return wrap(stripped);
@@ -426,11 +433,11 @@ struct JConstructor(String name) implements JMethodHeader {
 	return Optional.of(/*new JConstructor*/(name));
 }
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileField_Main(char* input){
-	if (input.endsWith(";")) /*{
-			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			final Optional<String> s = generateField(substring);
-			if (s.isPresent()) return Optional.of(new Tuple<String, String>(s.get(), ""));
-		}*/
+	if (input.endsWith(";")) {
+		/*final*/ char* substring = input.substring(0, /*input.length() - ";"*/.length()).strip();
+		/*final*/ Optional<char*> s = generateField(substring);
+		if (s.isPresent()) return Optional.of(/*new Tuple<String*/, /*String>*/(/*s.get(*/), /*"")*/);
+	}
 	return Optional.empty();
 }
 /*private static*/ Optional</*Definition*/> compileDefinition_Main(char* input){
@@ -449,15 +456,15 @@ struct JConstructor(String name) implements JMethodHeader {
 /*private static*/ Optional<char*> compileType_Main(char* input){
 	/*final*/ char* stripped = input.strip();
 	if (stripped.equals("public")) return Optional.empty();
-	if (stripped.endsWith(">")) /*{
-			final String withoutEnd = stripped.substring(0, stripped.length() - 1);
-			final int argumentStart = withoutEnd.indexOf("<");
-			if (argumentStart >= 0) {
-				final String base = withoutEnd.substring(0, argumentStart);
-				final String arguments = withoutEnd.substring(argumentStart + "<".length());
-				return Optional.of(base + "<" + compileType(arguments).orElse("") + ">");
-			}
-		}*/
+	if (stripped.endsWith(">")) {
+		/*final*/ char* withoutEnd = stripped.substring(0, /*stripped.length() - 1*/);
+		/*final*/ int argumentStart = withoutEnd.indexOf("<");
+		if (/*argumentStart >= 0*/) {
+			/*final*/ char* base = withoutEnd.substring(0, argumentStart);
+			/*final*/ char* arguments = /*withoutEnd.substring(argumentStart*/ + "<".length(/*)*/);
+			return /*Optional.of(base*/ + "<" + compileType(arguments).orElse(/*""*/) + /*">")*/;
+		}
+	}
 	if (stripped.equals("String")) return Optional.of("char*");
 	if (stripped.equals("int")) return Optional.of("int");
 	return Optional.of(wrap(stripped));
