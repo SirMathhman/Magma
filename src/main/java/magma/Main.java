@@ -390,8 +390,9 @@ public class Main {
 	}
 
 	private static String compileMethodSegmentValue(String input) {
-		if (input.startsWith("if")) {
-			final String withoutPrefix = input.substring(2);
+		final String stripped = input.strip();
+		if (stripped.startsWith("if")) {
+			final String withoutPrefix = stripped.substring(2);
 			int conditionEnd = -1;
 			int depth = 0;
 			for (int i = 0; i < withoutPrefix.length(); i++) {
@@ -408,7 +409,7 @@ public class Main {
 
 			if (conditionEnd >= 0) {
 				final String substring1 = withoutPrefix.substring(0, conditionEnd).strip();
-				final String body = withoutPrefix;
+				final String body = withoutPrefix.substring(conditionEnd + 1);
 				if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
 					final String condition = compileExpression(expression);
@@ -418,12 +419,12 @@ public class Main {
 			}
 		}
 
-		if (input.endsWith(";")) {
-			final String slice = input.substring(0, input.length() - 1);
+		if (stripped.endsWith(";")) {
+			final String slice = stripped.substring(0, stripped.length() - 1);
 			return compileMethodStatementValue(slice) + ";";
 		}
 
-		return wrap(input);
+		return wrap(stripped);
 	}
 
 	private static String compileMethodStatementValue(String input) {
