@@ -412,6 +412,16 @@ public class Main {
 
 	private static String compileExpression(String input) {
 		final String stripped = input.strip();
+		if (stripped.endsWith(")")) {
+			final String slice = stripped.substring(0, stripped.length() - 1);
+			final int i = slice.indexOf("(");
+			if (i >= 0) {
+				final String caller = slice.substring(0, i);
+				final String arguments = slice.substring(i + 1);
+				return compileExpression(caller) + "(" + compileValues(arguments, Main::compileExpression) + ")";
+			}
+		}
+
 		final int i = stripped.indexOf(".");
 		if (i >= 0) {
 			final String substring = stripped.substring(0, i);
