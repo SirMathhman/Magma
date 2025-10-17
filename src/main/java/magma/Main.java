@@ -213,8 +213,8 @@ public class Main {
 		}
 
 		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
-																								 System.lineSeparator() + outer));
+																								 "struct " + name + " {" + recordFields + inner +
+																								 System.lineSeparator() + "};" + System.lineSeparator() + outer));
 	}
 
 	private static String compileParameter(String input1) {
@@ -266,11 +266,11 @@ public class Main {
 			final String beforeName = input.substring(0, index).strip();
 			final String name = input.substring(index + " ".length()).strip();
 			final int typeSeparator = beforeName.lastIndexOf(" ");
-			if (typeSeparator >= 0) {
-				final String beforeType = beforeName.substring(0, typeSeparator);
-				final String type = beforeName.substring(typeSeparator + " ".length());
-				return wrap(beforeType) + " " + compileType(type) + " " + name;
-			}
+			if (typeSeparator < 0) return compileType(beforeName) + " " + name;
+
+			final String beforeType = beforeName.substring(0, typeSeparator);
+			final String type = beforeName.substring(typeSeparator + " ".length());
+			return wrap(beforeType) + " " + compileType(type) + " " + name;
 		}
 
 		return wrap(input);
