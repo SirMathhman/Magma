@@ -128,7 +128,7 @@ public class Main {
 
 	public record Tuple<A, B>(A left, B right) {}
 
-	private record Definition(String type, String name) implements Definable {
+	private record Definition(List<String> annotations, String type, String name) implements Definable {
 		@Override
 		public String generate() {
 			return this.type + " " + this.name;
@@ -437,7 +437,8 @@ public class Main {
 
 		final String outputBodyWithBraces;
 		ParseState current = state;
-		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) outputBodyWithBraces = ";";
+		else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 
 			StringJoiner joiner = new StringJoiner("");
@@ -459,17 +460,22 @@ public class Main {
 			else outputBody = compiledBody;
 
 			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
-		} else if (withBraces.equals(";")) outputBodyWithBraces = ";";
-		else return Optional.empty();
+		} else return Optional.empty();
 
 		final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
 		return Optional.of(new Tuple<String, ParseState>("", current.addFunction(generated)));
 	}
 
+	private static boolean isPlatformDependentMethod(JMethodHeader methodHeader) {
+		return methodHeader instanceof Definition definition && definition.annotations.contains("Actual");
+	}
+
 	private static Definable transformMethodHeader(JMethodHeader methodHeader, String name) {
 		return switch (methodHeader) {
-			case JConstructor constructor -> new Definition(constructor.name, "new_" + constructor.name);
-			case Definition definition -> new Definition(definition.type, definition.name + "_" + name);
+			case JConstructor constructor ->
+					new Definition(Collections.emptyList(), constructor.name, "new_" + constructor.name);
+			case Definition definition ->
+					new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
 			case Placeholder placeholder -> placeholder;
 		};
 	}
@@ -868,22 +874,33 @@ public class Main {
 		final String name = stripped.substring(index + " ".length()).strip();
 		if (!isIdentifier(name)) return Optional.empty();
 
-		final List<String> typeSeparator = findTypeSeparator(beforeName).toList();
-		if (typeSeparator.isEmpty()) return compileType(beforeName).map(type -> new Definition(type, name));
+		final List<String> segments = divide(beforeName, Main::foldTypeSeparator).toList();
+		if (segments.size() < 2)
+			return compileType(beforeName).map(type -> new Definition(Collections.emptyList(), type, name));
 
-		final String typeString = typeSeparator.getLast();
-		return compileType(typeString).map(type -> new Definition(type, name));
+		final String withoutLast = String.join(" ", segments.subList(0, segments.size() - 1));
+		final List<String> annotations = findAnnotations(withoutLast);
+
+		final String typeString = segments.getLast();
+		return compileType(typeString).map(type -> new Definition(annotations, type, name));
 	}
 
-	private static Stream<String> findTypeSeparator(String beforeName) {
-		return divide(beforeName, (state, c) -> {
-			if (c == ' ' && state.isLevel()) return state.advance();
+	private static List<String> findAnnotations(String withoutLast) {
+		final int i = withoutLast.lastIndexOf("\n");
+		if (i < 0) return Collections.emptyList();
 
-			final DivideState appended = state.append(c);
-			if (c == '<') return appended.enter();
-			if (c == '>') return appended.exit();
-			return appended;
-		});
+		final String[] slices = withoutLast.substring(0, i).strip().split(Pattern.quote("\n"));
+		return Arrays.stream(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(
+				1)).toList();
+	}
+
+	private static DivideState foldTypeSeparator(DivideState state, Character c) {
+		if (c == ' ' && state.isLevel()) return state.advance();
+
+		final DivideState appended = state.append(c);
+		if (c == '<') return appended.enter();
+		if (c == '>') return appended.exit();
+		return appended;
 	}
 
 	private static Optional<String> compileType(String input) {

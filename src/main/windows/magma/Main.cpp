@@ -24,7 +24,7 @@ struct Tuple {
 	A left;, 
 	B right;
 };
-struct Definition(String type, String name) implements Definable {
+struct Definition(List<String> annotations, String type, String name) implements Definable {
 };
 struct Placeholder(String input) implements Definable {
 };
@@ -115,7 +115,7 @@ Optional<Character> peek_DivideState(){
 	if (this.index < this.input.length()) return Optional.of(this.input.charAt(this.index));
 	else return Optional.empty();
 }
-char* generate_Definition(String type, String name) implements Definable(){
+char* generate_Definition(List<String> annotations, String type, String name) implements Definable(){
 	return this.type + " " + this.name;
 }
 char* generate_Placeholder(String input) implements Definable(){
@@ -133,32 +133,9 @@ Optional<IOException> run_Main(){
 	char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
 	return writeString(target, output);
 }
-Optional<IOException> writeString_Main(Path target, char* output){
-	/*try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		}*/
-	/*catch (IOException e) {
-			return Optional.of(e);
-		}*/
-}
-Optional<IOException> createDirectories_Main(Path targetParent){
-	/*try {
-			Files.createDirectories(targetParent);
-			return Optional.empty();
-		}*/
-	/*catch (IOException e) {
-			return Optional.of(e);
-		}*/
-}
-Result<char*, IOException> readString_Main(Path source){
-	/*try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*/
-	/*catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*/
-}
+Optional<IOException> writeString_Main(Path target, char* output);
+Optional<IOException> createDirectories_Main(Path targetParent);
+Result<char*, IOException> readString_Main(Path source);
 char* compile_Main(char* input){
 	StringJoiner joiner = new_StringJoiner("");
 	ParseState state = new_ParseState();
@@ -368,7 +345,8 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 	char* outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 	char* outputBodyWithBraces;
 	ParseState current = state;
-	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+	if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) outputBodyWithBraces = ";";
+	else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* inputBody = withBraces.substring(1, withBraces.length() - 1);
 		StringJoiner joiner = new_StringJoiner("");
 		List < String >= list == divide(inputBody, foldStatement_Main).toList();
@@ -386,15 +364,19 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 		else outputBody = compiledBody;
 		outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
 	}
-	else if (withBraces.equals(";")) outputBodyWithBraces = ";";
 	else return Optional.empty();
 	char* generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
 	return Optional.of(new_Tuple<char*, ParseState>("", current.addFunction(generated)));
 }
+boolean isPlatformDependentMethod_Main(JMethodHeader methodHeader){
+	return /*methodHeader instanceof Definition definition && definition.annotations.contains("Actual")*/;
+}
 Definable transformMethodHeader_Main(JMethodHeader methodHeader, char* name){
 	/*return switch (methodHeader) {
-			case JConstructor constructor -> new Definition(constructor.name, "new_" + constructor.name);
-			case Definition definition -> new Definition(definition.type, definition.name + "_" + name);
+			case JConstructor constructor ->
+					new Definition(Collections.emptyList(), constructor.name, "new_" + constructor.name);
+			case Definition definition ->
+					new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
 			case Placeholder placeholder -> placeholder;
 		}*/
 	/**/;
@@ -755,10 +737,10 @@ Optional<Tuple<char*, ParseState>> compileField_Main(char* input, ParseState sta
 	return Optional.empty();
 }
 auto __lambda40__(auto type) {
-	return new_Definition(type, name);
+	return new_Definition(Collections.emptyList(), type, name);
 }
 auto __lambda41__(auto type) {
-	return new_Definition(type, name);
+	return new_Definition(annotations, type, name);
 }
 Optional<Definition> compileDefinition_Main(char* input){
 	char* stripped = input.strip();
@@ -767,28 +749,39 @@ Optional<Definition> compileDefinition_Main(char* input){
 	char* beforeName = stripped.substring(0, index).strip();
 	char* name = stripped.substring(index + " ".length()).strip();
 	if (!isIdentifier(name)) return Optional.empty();
-	List<char*> typeSeparator = findTypeSeparator(beforeName).toList();
-	if (typeSeparator.isEmpty()) return compileType(beforeName).map(__lambda40__);
-	char* typeString = typeSeparator.getLast();
+	List<char*> segments = divide(beforeName, foldTypeSeparator_Main).toList();
+	if (segments.size() < 2) return compileType(beforeName).map(__lambda40__);
+	char* withoutLast = String.join(" ", segments.subList(0, segments.size() - 1));
+	List<char*> annotations = findAnnotations(withoutLast);
+	char* typeString = segments.getLast();
 	return compileType(typeString).map(__lambda41__);
 }
-auto __lambda42__(auto state, auto c) {
+auto __lambda42__(auto slice) {
+	return slice.startsWith("@");
+}
+auto __lambda43__(auto slice) {
+	return slice.substring(1);
+}
+List<char*> findAnnotations_Main(char* withoutLast){
+	int i = withoutLast.lastIndexOf("\n");
+	if (i < 0) return Collections.emptyList();
+	char** slices = withoutLast.substring(0, i).strip().split(Pattern.quote("\n"));
+	return Arrays.stream(slices).map(strip_char*).filter(__lambda42__).map(__lambda43__).toList();
+}
+DivideState foldTypeSeparator_Main(DivideState state, Character c){
 	if (c == ' ' && state.isLevel()) return state.advance();
 	DivideState appended = state.append(c);
 	if (c == '<') return appended.enter();
 	if (c == '>') return appended.exit();
 	return appended;
 }
-Stream<char*> findTypeSeparator_Main(char* beforeName){
-	return divide(beforeName, __lambda42__);
-}
-auto __lambda43__() {
+auto __lambda44__() {
 	return wrap(slice);
 }
-auto __lambda44__(auto slice) {
-	return compileType(slice).orElseGet(__lambda43__);
+auto __lambda45__(auto slice) {
+	return compileType(slice).orElseGet(__lambda44__);
 }
-auto __lambda45__(auto result) {
+auto __lambda46__(auto result) {
 	return result + "*";
 }
 Optional<char*> compileType_Main(char* input){
@@ -800,13 +793,13 @@ Optional<char*> compileType_Main(char* input){
 		if (argumentStart >= 0) {
 			char* base = withoutEnd.substring(0, argumentStart);
 			char* argumentsString = withoutEnd.substring(argumentStart + "<".length());
-			char* arguments = compileValues(argumentsString, __lambda44__);
+			char* arguments = compileValues(argumentsString, __lambda45__);
 			return Optional.of(base + "<" + arguments + ">");
 		}
 	}
 	if (stripped.endsWith("[]")) {
 		char* slice = stripped.substring(0, stripped.length() - 2);
-		return compileType(slice).map(__lambda45__);
+		return compileType(slice).map(__lambda46__);
 	}
 	if (stripped.equals("String")) return Optional.of("char*");
 	if (stripped.equals("int")) return Optional.of("int");
