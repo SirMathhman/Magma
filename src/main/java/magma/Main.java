@@ -65,6 +65,14 @@ public class Main {
 			this.index++;
 			return Optional.of(new Tuple<State, Character>(this, next));
 		}
+
+		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(tuple -> tuple.left);
+		}
 	}
 
 	public record Tuple<A, B>(A left, B right) {}
@@ -101,10 +109,33 @@ public class Main {
 			final Optional<Tuple<State, Character>> maybeNext = current.pop();
 			if (maybeNext.isEmpty()) break;
 			final Tuple<State, Character> tuple = maybeNext.get();
-			current = fold(tuple.left, tuple.right);
+			current = foldEscaped(tuple.left, tuple.right);
 		}
 
 		return current.advance().stream();
+	}
+
+	private static State foldEscaped(State state, char next) {
+		return foldDoubleQuotes(state, next).orElseGet(() -> fold(state, next));
+	}
+
+	private static Optional<State> foldDoubleQuotes(State state, char next) {
+		if (next != '\"') return Optional.empty();
+
+		State appended = state.append(next);
+		while (true) {
+			final Optional<Tuple<State, Character>> maybeNext = appended.popAndAppendToTuple();
+			if (maybeNext.isPresent()) {
+				final Tuple<State, Character> tuple = maybeNext.get();
+				appended = tuple.left;
+
+				final char c = tuple.right;
+				if (c == '\\') appended = appended.popAndAppendToOption().orElse(appended);
+				if (c == '\"') break;
+			} else break;
+		}
+
+		return Optional.of(appended);
 	}
 
 	private static State fold(State state, char c) {

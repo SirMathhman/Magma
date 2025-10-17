@@ -54,6 +54,14 @@ struct Main {};
 			this.index++;
 			return Optional.of(new Tuple<State, Character>(this, next));
 		}
+
+		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(tuple -> tuple.left);
+		}
 	}*/
 /*public record Tuple<A, B>(A left, B right) {}*/
 /*public static void main(String[] args) {
@@ -85,25 +93,50 @@ struct Main {};
 			final Optional<Tuple<State, Character>> maybeNext = current.pop();
 			if (maybeNext.isEmpty()) break;
 			final Tuple<State, Character> tuple = maybeNext.get();
-			current = fold(tuple.left, tuple.right);
+			current = foldEscaped(tuple.left, tuple.right);
 		}
 
 		return current.advance().stream();
 	}*/
-/*private static State fold(State state, char c) {
+/*private static State foldEscaped(State state, char next) {
+		return foldDoubleQuotes(state, next).orElseGet(() -> fold(state, next));
+	}*/
+/*private static Optional<State> foldDoubleQuotes(State state, char next) {
+		if (next != '\"') return Optional.empty();
+
+		State appended = state.append(next);
+		while (true) {
+			final Optional<Tuple<State, Character>> maybeNext = appended.popAndAppendToTuple();
+			if (maybeNext.isPresent()) {
+				final Tuple<State, Character> tuple = maybeNext.get();
+				appended = tuple.left;
+
+				final char c = tuple.right;
+				if (c == '\\') appended = appended.popAndAppendToOption().orElse(appended);
+				if (c == '\"') break;
+			} else break;
+		}
+
+		return Optional.of(appended);
+	}
+
+	private static State fold(State state, char c) {
 		final State appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
-		if (c == '}*/
-/*' && appended.isShallow()) return appended.advance().exit();*/
-/*if (c == '{') return appended.enter();
-		if (c == '}*/
-/*') return appended.exit();*/
-/*return appended;*/
-/**/
-struct ");
-		if (i >= 0) {};
-/*final String afterKeyword = stripped.substring(i + "class ".length());*/
-/*final int contentStart = afterKeyword.indexOf("{");
+		if (c == '}' && appended.isShallow()) return appended.advance().exit();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
+		return appended;
+	}
+
+	private static String compileRootSegment(String input) {
+		final String stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		final int i = stripped.indexOf("class ");
+		if (i >= 0) {
+			final String afterKeyword = stripped.substring(i + "class ".length());
+			final int contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final String beforeContent = afterKeyword.substring(0, contentStart).strip();
 				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
@@ -112,16 +145,21 @@ struct ");
 					return "struct " + beforeContent + " {};" + System.lineSeparator() +
 								 compileStatements(content, Main::compileClassSegment);
 				}
-			}*/
-/*}
+			}
+		}
 
-		return wrap(stripped);*/
-/*private static String compileClassSegment(String input) {
+		return wrap(stripped);
+	}
+
+	private static String compileClassSegment(String input) {
 		return wrap(input.strip()) + System.lineSeparator();
-	}*//*private static String wrap(String input) {
+	}
+
+	private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
-	}*//*}*/int main(){
+	}*/
+int main(){
 	main_Main();
 	return 0;
 }
