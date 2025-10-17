@@ -175,6 +175,8 @@ public class Main {
 
 		if (contentStart < 0) return Optional.empty();
 		final String name = afterKeyword.substring(0, contentStart).strip();
+		if (!isIdentifier(name)) return Optional.empty();
+
 		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 
 		if (!afterContent.endsWith("}")) return Optional.empty();
@@ -194,6 +196,15 @@ public class Main {
 		return Optional.of(new Tuple<String, String>("",
 																								 "struct " + name + " {" + inner + "};" + System.lineSeparator() +
 																								 outer));
+	}
+
+	private static boolean isIdentifier(String input) {
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			if (!Character.isLetter(c)) return false;
+		}
+
+		return true;
 	}
 
 	private static Tuple<String, String> compileClassSegment(String input) {

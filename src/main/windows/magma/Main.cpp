@@ -79,6 +79,44 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 
 		return compileClass(stripped).map(Tuple::right).orElseGet(() -> wrap(stripped));
 	}*/
+/*private static Optional<Tuple<String, String>> compileClass(String stripped) {
+		final int i = stripped.indexOf("class ");
+		if (i < 0) return Optional.empty();
+		final String afterKeyword = stripped.substring(i + "class ".length());
+		final int contentStart = afterKeyword.indexOf("{");
+
+		if (contentStart < 0) return Optional.empty();
+		final String name = afterKeyword.substring(0, contentStart).strip();
+		if (!isIdentifier(name)) return Optional.empty();
+
+		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+
+		if (!afterContent.endsWith("}")) return Optional.empty();
+		final String content = afterContent.substring(0, afterContent.length() - "}".length());
+
+		final List<String> segments = divide(content).toList();
+
+		StringBuilder inner = new StringBuilder();
+		final StringBuilder outer = new StringBuilder();
+
+		for (String segment : segments) {
+			Tuple<String, String> compiled = compileClassSegment(segment);
+			inner.append(compiled.left);
+			outer.append(compiled.right);
+		}
+
+		return Optional.of(new Tuple<String, String>("",
+																								 "struct " + name + " {" + inner + "};" + System.lineSeparator() +
+																								 outer));
+	}*/
+/*private static boolean isIdentifier(String input) {
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			if (!Character.isLetter(c)) return false;
+		}
+
+		return true;
+	}*/
 /*private static Tuple<String, String> compileClassSegment(String input) {
 		final String stripped = input.strip();
 		return compileClassSegmentValue(stripped);
@@ -90,7 +128,8 @@ struct Main {/*public record Tuple<A, B>(A left, B right) {}*/
 /*private static Optional<Tuple<String, String>> compileField(String input) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			return Optional.of(new Tuple<String, String>(System.lineSeparator() + "\t" + compileDefinition(substring) + ";", ""));
+			return Optional.of(new Tuple<String, String>(System.lineSeparator() + "\t" + compileDefinition(substring) + ";",
+																									 ""));
 		} else return Optional.empty();
 	}*/
 /*private static String compileDefinition(String input) {
@@ -182,34 +221,6 @@ struct State {
 		}*/
 /**/
 };
-struct ");
-		if (i < 0) return Optional.empty();
-		final String afterKeyword = stripped.substring(i + "class ".length());
-		final int contentStart = afterKeyword.indexOf(" {/*");
-
-		if (contentStart < 0) return Optional.empty();
-		final String name = afterKeyword.substring(0, contentStart).strip();
-		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
-
-		if (!afterContent.endsWith("}*/
-
-	/*")) return Optional.empty();
-		final String content = afterContent.substring(0, afterContent.length() - "}".length());
-
-		final List<String> segments = divide(content).toList();
-
-		StringBuilder inner = new StringBuilder();
-		final StringBuilder outer = new StringBuilder();
-
-		for (String segment : segments) {
-			Tuple<String, String> compiled = compileClassSegment(segment);
-			inner.append(compiled.left);
-			outer.append(compiled.right);
-		}
-
-		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + inner + "};" +
-																								 System.lineSeparator()*/ /*+*/ outer));};
 /**/int main(){
 	main_Main();
 	return 0;
