@@ -490,6 +490,14 @@ public class Main {
 			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 		}
 
+		final int i1 = stripped.indexOf("->");
+		if (i1 >= 0) {
+			final String name = stripped.substring(0, i1).strip();
+			final String substring1 = stripped.substring(i1 + 2);
+			final String s = generateStatement("return " + compileExpression(substring1), 1);
+			return "auto ?(auto " + name + ") {" + s + generateIndent(0) + "}";
+		}
+
 		return compileOperator(stripped, "+").or(() -> compileOperator(stripped, "-"))
 																				 .or(() -> compileOperator(stripped, ">="))
 																				 .or(() -> compileOperator(stripped, "<"))
