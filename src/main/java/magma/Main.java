@@ -591,6 +591,19 @@ public class Main {
 			}
 		}
 
+		final int separator = stripped.lastIndexOf("::");
+		if (separator >= 0) {
+			final String substring = stripped.substring(0, separator);
+			final String name = stripped.substring(separator + 2).strip();
+			if (isIdentifier(name)) {
+				final Optional<String> maybeResult = compileType(substring);
+				if (maybeResult.isPresent()) {
+					final String result = maybeResult.get();
+					return Optional.of(new Tuple<String, ParseState>(name + "_" + result, state));
+				}
+			}
+		}
+
 		final int i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final String substring = stripped.substring(0, i);
