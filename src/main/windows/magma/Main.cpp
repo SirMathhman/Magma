@@ -44,7 +44,7 @@ ParseState addStruct_ParseState(char* struct){
 	return this;
 }
 char* generateAnonymousFunctionName_ParseState(){
-	/*this.counter++*/;
+	this.counter++;
 	return "__lambda" + this.counter + "__";
 }
 DivideState new_DivideState(char* input){
@@ -85,7 +85,7 @@ DivideState advance_DivideState(){
 Optional<Tuple<DivideState, Character>> pop_DivideState(){
 	if (this.index >= this.input.length()) return Optional.empty();
 	char next = this.input.charAt(this.index);
-	/*this.index++*/;
+	this.index++;
 	return Optional.of(new_Tuple<DivideState, Character>(this, next));
 }
 auto __lambda0__(auto tuple) {
@@ -424,7 +424,7 @@ Optional<Tuple<char*, ParseState>> compileBlock_Main(ParseState state, char* inp
 		Tuple<char*, ParseState> string = compileMethodSegment(s, depth + 1, current);
 		joiner.add(string.left);
 		current = string.right;
-		/*i++*/;
+		i++;
 	}
 	char* compiled = joiner.toString();
 	return Optional.of(new_Tuple<char*, ParseState>("{" + compiled + generateIndent(depth) + "}", current));
@@ -455,6 +455,14 @@ Tuple<char*, ParseState> compileMethodStatementValue_Main(char* input, ParseStat
 		char* substring = input.substring("return ".length());
 		Tuple<char*, ParseState> result = compileExpression(substring, state);
 		return new_Tuple<char*, ParseState>("return " + result.left, result.right);
+	}
+	if (input.endsWith("++")) {
+		char* slice = input.substring(0, input.length() - 2);
+		Optional<Tuple<char*, ParseState>> temp = tryCompileExpression(slice, state);
+		if (temp.isPresent()) {
+			Tuple<char*, ParseState> result = temp.get();
+			return new_Tuple<char*, ParseState>(result.left + "++", result.right);
+		}
 	}
 	Optional<Tuple<char*, ParseState>> invokableResult = compileInvokable(state, input);
 	if (invokableResult.isPresent()) return invokableResult.get();

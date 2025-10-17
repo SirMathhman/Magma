@@ -527,6 +527,15 @@ public class Main {
 			return new Tuple<String, ParseState>("return " + result.left, result.right);
 		}
 
+		if (input.endsWith("++")) {
+			final String slice = input.substring(0, input.length() - 2);
+			final Optional<Tuple<String, ParseState>> temp = tryCompileExpression(slice, state);
+			if (temp.isPresent()) {
+				final Tuple<String, ParseState> result = temp.get();
+				return new Tuple<String, ParseState>(result.left + "++", result.right);
+			}
+		}
+
 		final Optional<Tuple<String, ParseState>> invokableResult = compileInvokable(state, input);
 		if (invokableResult.isPresent()) return invokableResult.get();
 
