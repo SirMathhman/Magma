@@ -33,11 +33,12 @@ public class Main {
 	private static final class ParseState {
 		private final List<String> functions;
 		private final List<String> structs;
-		private int counter = -1;
+		private int counter;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
 			this.structs = new ArrayList<String>();
+			this.counter = -1;
 		}
 
 		public ParseState addFunction(String func) {

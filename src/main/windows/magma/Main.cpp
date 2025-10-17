@@ -10,7 +10,7 @@ struct Actual {
 struct ParseState {
 	List<char*> functions;
 	List<char*> structs;
-	/*private int counter = -1;*/
+	int counter;
 };
 struct DivideState {
 	ArrayList<char*> segments;
@@ -43,6 +43,7 @@ ParseState new_ParseState(){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
 	this.structs = new_ArrayList<char*>();
+	this.counter =  - 1;
 	return this;
 }
 ParseState addFunction_ParseState(char* func){
