@@ -271,7 +271,7 @@ public class Main {
 		if (nextChar == '\\')
 			return new Tuple<DivideState, Boolean>(nextState.popAndAppendToOption().orElse(nextState), true);
 		if (nextChar == '\"') return new Tuple<DivideState, Boolean>(nextState, false);
-		return new Tuple<DivideState, Boolean>(nextState, false);
+		return new Tuple<DivideState, Boolean>(nextState, true);
 	}
 
 	private static DivideState foldStatement(DivideState state, char c) {
