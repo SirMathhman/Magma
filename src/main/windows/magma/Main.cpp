@@ -13,35 +13,46 @@ State new_State(char* input){
 	/*this.buffer = new StringBuilder();*/
 	/*this.depth = 0;*/
 	/*this.segments = new ArrayList<String>();*/
-	/*this.index = 0;*/}
+	/*this.index = 0;*/
+}
 /*private*/ Stream<char*> stream(/**/){
-	/*return this.segments.stream();*/}
+	/*return this.segments.stream();*/
+}
 /*private*/ /*State*/ enter(/**/){
 	/*this.depth = this.depth + 1;*/
-	/*return this;*/}
+	/*return this;*/
+}
 /*private*/ /*State*/ exit(/**/){
 	/*this.depth = this.depth - 1;*/
-	/*return this;*/}
+	/*return this;*/
+}
 /*private*/ /*boolean*/ isShallow(/**/){
-	/*return this.depth == 1;*/}
+	/*return this.depth == 1;*/
+}
 /*private*/ /*boolean*/ isLevel(/**/){
-	/*return this.depth == 0;*/}
+	/*return this.depth == 0;*/
+}
 /*private*/ /*State*/ append(/*char*/ c){
 	/*this.buffer.append(c);*/
-	/*return this;*/}
+	/*return this;*/
+}
 /*private*/ /*State*/ advance(/**/){
 	/*this.segments.add(this.buffer.toString());*/
 	/*this.buffer = new StringBuilder();*/
-	/*return this;*/}
+	/*return this;*/
+}
 /*public Optional<Tuple<State,*/ /*Character>>*/ pop(/**/){
 	/*if (this.index >= this.input.length()) return Optional.empty();*/
 	/*final char next = this.input.charAt(this.index);*/
 	/*this.index++;*/
-	/*return Optional.of(new Tuple<State, Character>(this, next));*/}
+	/*return Optional.of(new Tuple<State, Character>(this, next));*/
+}
 /*public Optional<Tuple<State,*/ /*Character>>*/ popAndAppendToTuple(/**/){
-	/*return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));*/}
+	/*return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));*/
+}
 /*public*/ Optional</*State*/> popAndAppendToOption(/**/){
-	/*return this.popAndAppendToTuple().map(tuple -> tuple.left);*/}
+	/*return this.popAndAppendToTuple().map(tuple -> tuple.left);*/
+}
 template <typeparam A, typeparam B>
 struct Tuple {
 	/*A*/ left;
@@ -61,17 +72,21 @@ struct Tuple {
 	/*catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}*/}
+		}*/
+}
 /*private static*/ char* compile(char* input){
 	/*final String joined = compileStatements(input, Main::compileRootSegment);*/
 	/*return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
-					 "\treturn 0;" + System.lineSeparator() + "}";*/}
+					 "\treturn 0;" + System.lineSeparator() + "}";*/
+}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper){
-	/*return compileAll(input, Main::foldStatement, mapper);*/}
+	/*return compileAll(input, Main::foldStatement, mapper);*/
+}
 /*private static*/ char* compileAll(/*String input,
 																	 BiFunction<State, Character, State> folder,
 																	 Function<String,*/ /*String>*/ mapper){
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining());*/}
+	/*return divide(input, folder).map(mapper).collect(Collectors.joining());*/
+}
 /*private static*/ Stream<char*> divide(/*String input, BiFunction<State, Character,*/ /*State>*/ folder){
 	/*State current = new State(input);*/
 	/*while (true) {
@@ -80,17 +95,21 @@ struct Tuple {
 			final Tuple<State, Character> tuple = maybeNext.get();
 			current = foldEscaped(tuple.left, tuple.right, folder);
 		}*/
-	/*return current.advance().stream();*/}
+	/*return current.advance().stream();*/
+}
 /*private static*/ /*State*/ foldEscaped(/*State state, char next, BiFunction<State, Character,*/ /*State>*/ folder){
 	/*return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next))
-																				.orElseGet(() -> folder.apply(state, next));*/}
+																				.orElseGet(() -> folder.apply(state, next));*/
+}
 /*private static*/ Optional</*State*/> foldSingleQuotes(/*State state,*/ /*char*/ next){
 	/*if (next != '\'') return Optional.empty();*/
 	/*final State appended = state.append(next);*/
-	/*return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);*/}
+	/*return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);*/
+}
 /*private static*/ Optional</*State*/> foldEscaped(/*Tuple<State,*/ /*Character>*/ tuple){
 	/*if (tuple.right == '\\') return tuple.left.popAndAppendToOption();*/
-	/*else return Optional.of(tuple.left);*/}
+	/*else return Optional.of(tuple.left);*/
+}
 /*private static*/ Optional</*State*/> foldDoubleQuotes(/*State state,*/ /*char*/ next){
 	/*if (next != '\"') return Optional.empty();*/
 	/*State appended = state.append(next);*/
@@ -105,18 +124,21 @@ struct Tuple {
 				if (c == '\"') break;
 			} else break;
 		}*/
-	/*return Optional.of(appended);*/}
+	/*return Optional.of(appended);*/
+}
 /*private static*/ /*State*/ foldStatement(/*State state,*/ /*char*/ c){
 	/*final State appended = state.append(c);*/
 	/*if (c == ';' && appended.isLevel()) return appended.advance();*/
 	/*if (c == '}' && appended.isShallow()) return appended.advance().exit();*/
 	/*if (c == '{') return appended.enter();*/
 	/*if (c == '}') return appended.exit();*/
-	/*return appended;*/}
+	/*return appended;*/
+}
 /*private static*/ char* compileRootSegment(char* input){
 	/*final String stripped = input.strip();*/
 	/*if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";*/
-	/*return compileStructure(stripped, "class").map(Tuple::right).orElseGet(() -> wrap(stripped));*/}
+	/*return compileStructure(stripped, "class").map(Tuple::right).orElseGet(() -> wrap(stripped));*/
+}
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileStructure(/*String input,*/ char* type){
 	/*final int i = input.indexOf(type + " ");*/
 	/*if (i < 0) return Optional.empty();*/
@@ -169,17 +191,22 @@ struct Tuple {
 		}*/
 	/*return Optional.of(new Tuple<String, String>("",
 																								 beforeStruct + "struct " + name + " {" + recordFields + inner +
-																								 System.lineSeparator() + "};" + System.lineSeparator() + outer));*/}
+																								 System.lineSeparator() + "};" + System.lineSeparator() + outer));*/
+}
 /*private static*/ char* compileValues(/*String input, Function<String,*/ /*String>*/ mapper){
-	/*return compileAll(input, Main::foldValue, mapper);*/}
+	/*return compileAll(input, Main::foldValue, mapper);*/
+}
 /*private static*/ char* compileParameter(char* input1){
 	/*if (input1.isEmpty()) return "";*/
-	/*return generateField(input1);*/}
+	/*return generateField(input1);*/
+}
 /*private static*/ char* generateField(char* input){
-	/*return System.lineSeparator() + "\t" + compileDefinition(input).orElseGet(() -> wrap(input)) + ";";*/}
+	/*return System.lineSeparator() + "\t" + compileDefinition(input).orElseGet(() -> wrap(input)) + ";";*/
+}
 /*private static*/ /*State*/ foldValue(/*State state,*/ /*char*/ next){
 	/*if (next == ',' && state.isLevel()) return state.advance();*/
-	/*else return state.append(next);*/}
+	/*else return state.append(next);*/
+}
 /*private static*/ /*boolean*/ isIdentifier(char* input){
 	/*for (int i = 0;*/
 	/*i < input.length();*/
@@ -187,17 +214,20 @@ struct Tuple {
 			final char c = input.charAt(i);
 			if (!Character.isLetter(c)) return false;
 		}*/
-	/*return true;*/}
+	/*return true;*/
+}
 /*private static Tuple<String,*/ /*String>*/ compileClassSegment(char* input){
 	/*final String stripped = input.strip();*/
 	/*if (stripped.isEmpty()) return new Tuple<String, String>("", "");*/
-	/*return compileClassSegmentValue(stripped);*/}
+	/*return compileClassSegmentValue(stripped);*/
+}
 /*private static Tuple<String,*/ /*String>*/ compileClassSegmentValue(char* input){
 	/*return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input))
 																					 .orElseGet(() -> new Tuple<String, String>(
-																							 wrap(input) + System.lineSeparator(), ""));*/}
+																							 wrap(input) + System.lineSeparator(), ""));*/
+}
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileMethod(char* input){
 	/*final int paramStart = input.indexOf("(");*/
 	/*if (paramStart < 0) return Optional.empty();*/
@@ -213,24 +243,28 @@ struct Tuple {
 	/*final String body = withBraces.substring(1, withBraces.length() - 1);*/
 	/*final String outputParams = compileDefinition(inputParams).orElse("");*/
 	/*final String generated =
-				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) + "}" +
+				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 				System.lineSeparator();*/
-	/*return Optional.of(new Tuple<String, String>("", generated));*/}
+	/*return Optional.of(new Tuple<String, String>("", generated));*/
+}
 /*private static*/ char* compileMethodSegment(char* input){
 	/*final String stripped = input.strip();*/
 	/*if (stripped.isEmpty()) return "";*/
-	/*return System.lineSeparator() + "\t" + wrap(stripped);*/}
+	/*return System.lineSeparator() + "\t" + wrap(stripped);*/
+}
 /*private static*/ Optional<char*> compileConstructor(char* beforeParams){
 	/*final int separator = beforeParams.lastIndexOf(" ");*/
 	/*if (separator < 0) return Optional.empty();*/
 	/*final String name = beforeParams.substring(separator + " ".length());*/
-	/*return Optional.of(name + " new_" + name);*/}
+	/*return Optional.of(name + " new_" + name);*/
+}
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileField(char* input){
 	/*if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
 			return Optional.of(new Tuple<String, String>(generateField(substring), ""));
 		}*/
-	/*else return Optional.empty();*/}
+	/*else return Optional.empty();*/
+}
 /*private static*/ Optional<char*> compileDefinition(char* input){
 	/*final int index = input.lastIndexOf(" ");*/
 	/*if (index < 0) return Optional.of(wrap(input));*/
@@ -240,7 +274,8 @@ struct Tuple {
 	/*if (typeSeparator < 0) return compileType(beforeName).map(type -> type + " " + name);*/
 	/*final String beforeType = beforeName.substring(0, typeSeparator);*/
 	/*final String typeString = beforeName.substring(typeSeparator + " ".length());*/
-	/*return compileType(typeString).map(type -> wrap(beforeType) + " " + type + " " + name);*/}
+	/*return compileType(typeString).map(type -> wrap(beforeType) + " " + type + " " + name);*/
+}
 /*private static*/ Optional<char*> compileType(char* input){
 	/*final String stripped = input.strip();*/
 	/*if (stripped.equals("public")) return Optional.empty();*/
@@ -255,10 +290,12 @@ struct Tuple {
 		}*/
 	/*if (stripped.equals("String")) return Optional.of("char*");*/
 	/*if (stripped.equals("int")) return Optional.of("int");*/
-	/*return Optional.of(wrap(stripped));*/}
+	/*return Optional.of(wrap(stripped));*/
+}
 /*private static*/ char* wrap(char* input){
 	/*final String replaced = input.replace("start", "start").replace("end", "end");*/
-	/*return "start" + replaced + "end";*/}
+	/*return "start" + replaced + "end";*/
+}
 /**/int main(){
 	main_Main();
 	return 0;

@@ -304,8 +304,8 @@ public class Main {
 
 		final String outputParams = compileDefinition(inputParams).orElse("");
 		final String generated =
-				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) + "}" +
-				System.lineSeparator();
+				definition + "(" + outputParams + "){" + compileStatements(body, Main::compileMethodSegment) +
+				System.lineSeparator() + "}" + System.lineSeparator();
 		return Optional.of(new Tuple<String, String>("", generated));
 	}
 
