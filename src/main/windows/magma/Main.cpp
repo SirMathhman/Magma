@@ -3,6 +3,8 @@ struct Definable extends JMethodHeader permits Definition, Placeholder {
 };
 struct JMethodHeader permits JConstructor, Definable {
 };
+struct Result<T, X> permits Err, Ok {
+};
 struct ParseState {
 	List<char*> functions;
 	List<char*> structs;
@@ -25,6 +27,12 @@ struct Definition(String type, String name) implements Definable {
 struct Placeholder(String input) implements Definable {
 };
 struct JConstructor(String name) implements JMethodHeader {
+};
+template <typeparam T, typeparam X>(T value) implements Result<T, typeparam X>
+struct Ok {
+};
+template <typeparam T, typeparam X>(X error) implements Result<T, typeparam X>
+struct Err {
 };
 struct Main {
 };
@@ -111,19 +119,41 @@ char* generate_Placeholder(String input) implements Definable(){
 	return wrap(this.input);
 }
 void main_Main(char** args){
+	run().ifPresent(printStackTrace_Throwable);
+}
+Optional<IOException> run_Main(){
+	Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+	Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
+	if (!(/*readString(source) instanceof Ok<String, IOException>(String input)*/)) return Optional.empty();
+	Path targetParent = target.getParent();
+	if (!Files.exists(targetParent)) return createDirectories(targetParent);
+	char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+	return writeString(target, output);
+}
+Optional<IOException> writeString_Main(Path target, char* output){
 	/*try {
-			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-			final String input = Files.readString(source);
-
-			final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
-			final Path targetParent = target.getParent();
-
-			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-			Files.writeString(target, "// File generated from '" + source + "'. This is not source code!\n" + compile(input));
+			Files.writeString(target, output);
+			return Optional.empty();
 		}*/
 	/*catch (IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}*/
+}
+Optional<IOException> createDirectories_Main(Path targetParent){
+	/*try {
+			Files.createDirectories(targetParent);
+			return Optional.empty();
+		}*/
+	/*catch (IOException e) {
+			return Optional.of(e);
+		}*/
+}
+Result<char*, IOException> readString_Main(Path source){
+	/*try {
+			return new Ok<String, IOException>(Files.readString(source));
+		}*/
+	/*catch (IOException e) {
+			return new Err<String, IOException>(e);
 		}*/
 }
 char* compile_Main(char* input){

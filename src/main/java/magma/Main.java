@@ -26,6 +26,8 @@ public class Main {
 
 	private sealed interface JMethodHeader permits JConstructor, Definable {}
 
+	sealed interface Result<T, X> permits Err, Ok {}
+
 	private static final class ParseState {
 		private final List<String> functions;
 		private final List<String> structs;
@@ -139,19 +141,49 @@ public class Main {
 
 	private record JConstructor(String name) implements JMethodHeader {}
 
+	record Ok<T, X>(T value) implements Result<T, X> {}
+
+	record Err<T, X>(X error) implements Result<T, X> {}
+
 	public static void main(String[] args) {
+		run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> run() {
+		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
+
+		if (!(readString(source) instanceof Ok<String, IOException>(String input))) return Optional.empty();
+		final Path targetParent = target.getParent();
+
+		if (!Files.exists(targetParent)) return createDirectories(targetParent);
+		final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+		return writeString(target, output);
+	}
+
+	private static Optional<IOException> writeString(Path target, String output) {
 		try {
-			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-			final String input = Files.readString(source);
-
-			final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
-			final Path targetParent = target.getParent();
-
-			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-			Files.writeString(target, "// File generated from '" + source + "'. This is not source code!\n" + compile(input));
+			Files.writeString(target, output);
+			return Optional.empty();
 		} catch (IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}
+	}
+
+	private static Optional<IOException> createDirectories(Path targetParent) {
+		try {
+			Files.createDirectories(targetParent);
+			return Optional.empty();
+		} catch (IOException e) {
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(Path source) {
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<String, IOException>(e);
 		}
 	}
 
