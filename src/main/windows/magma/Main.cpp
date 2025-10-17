@@ -1,16 +1,16 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 struct Main {
 };
-struct Definable extends MethodHeader permits Definition, Placeholder {
+struct Definable extends JMethodHeader permits Definition, Placeholder {
 };
-char* generate();
+char* generate_Definable extends JMethodHeader permits Definition, Placeholder();
 /*@Override
-		default*/ /*Definable*/ toDefinable(){
+		default*/ /*Definable*/ toDefinable_Definable extends JMethodHeader permits Definition, Placeholder(){
 	/*return this*/;
 }
-struct MethodHeader permits Constructor, Definable {
+struct JMethodHeader permits JConstructor, Definable {
 };
-/*Definable*/ toDefinable();
+/*Definable*/ toDefinable_JMethodHeader permits JConstructor, Definable();
 struct State {
 	/*private final*/ ArrayList<char*> segments;
 	/*private final*/ char* input;
@@ -27,42 +27,42 @@ State new_State(char* input){
 	this.index = 0;
 	return this;
 }
-/*private*/ Stream<char*> stream(){
+/*private*/ Stream<char*> stream_State(){
 	/*return this.segments.stream()*/;
 }
-/*private*/ /*State*/ enter(){
+/*private*/ /*State*/ enter_State(){
 	this.depth = this.depth + 1;
 	/*return this*/;
 }
-/*private*/ /*State*/ exit(){
+/*private*/ /*State*/ exit_State(){
 	this.depth = this.depth - 1;
 	/*return this*/;
 }
-/*private*/ /*boolean*/ isShallow(){
+/*private*/ /*boolean*/ isShallow_State(){
 	/*return this*/.depth = /*= 1*/;
 }
-/*private*/ /*boolean*/ isLevel(){
+/*private*/ /*boolean*/ isLevel_State(){
 	/*return this*/.depth = /*= 0*/;
 }
-/*private*/ /*State*/ append(/*char*/ c){
+/*private*/ /*State*/ append_State(/*char*/ c){
 	/*this.buffer.append(c)*/;
 	/*return this*/;
 }
-/*private*/ /*State*/ advance(){
+/*private*/ /*State*/ advance_State(){
 	/*this.segments.add(this.buffer.toString())*/;
 	this.buffer = /*new StringBuilder()*/;
 	/*return this*/;
 }
-/*public Optional<Tuple<State,*/ /*Character>>*/ pop(){
+/*public Optional<Tuple<State,*/ /*Character>>*/ pop_State(){
 	/*if (this*/.index > = this.input.length()) return Optional.empty();
 	/*final char next*/ = this.input.charAt(this.index);
 	/*this.index++*/;
 	/*return Optional.of(new Tuple<State, Character>(this, next))*/;
 }
-/*public Optional<Tuple<State,*/ /*Character>>*/ popAndAppendToTuple(){
+/*public Optional<Tuple<State,*/ /*Character>>*/ popAndAppendToTuple_State(){
 	/*return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right))*/;
 }
-/*public*/ Optional</*State*/> popAndAppendToOption(){
+/*public*/ Optional</*State*/> popAndAppendToOption_State(){
 	/*return this.popAndAppendToTuple().map(tuple -> tuple.left)*/;
 }
 template <typeparam A, typeparam B>
@@ -70,30 +70,31 @@ struct Tuple {
 	/*A*/ left;
 	/*B*/ right;
 };
-struct Definition(Optional<String> beforeType, String type, String name) implements Definable {
+struct Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable {
 };
 Definition new_Definition(char* typechar* name){
-	Definition(Optional<String> beforeType, String type, String name) implements Definable this;
+	Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable this;
 	/*this(Optional.empty(), type, name)*/;
 	return this;
 }
 /*@Override
-		public*/ char* generate(){
-	/*return this.beforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " + this.name()*/;
+		public*/ char* generate_Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable(){
+	/*return this.maybeBeforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " +
+						 this.name()*/;
 }
 struct Placeholder(String input) implements Definable {
 };
 /*@Override
-		public*/ char* generate(){
+		public*/ char* generate_Placeholder(String input) implements Definable(){
 	/*return wrap(this.input)*/;
 }
-struct Constructor(String name) implements MethodHeader {
+struct JConstructor(String name) implements JMethodHeader {
 };
 /*@Override
-		public*/ /*Definable*/ toDefinable(){
+		public*/ /*Definable*/ toDefinable_JConstructor(String name) implements JMethodHeader(){
 	/*return new Definition(this.name, "new_" + this.name)*/;
 }
-/*public static*/ /*void*/ main(/*String[]*/ args){
+/*public static*/ /*void*/ main_Main(/*String[]*/ args){
 	/*try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
@@ -109,18 +110,18 @@ struct Constructor(String name) implements MethodHeader {
 			e.printStackTrace();
 		}*/
 }
-/*private static*/ char* compile(char* input){
+/*private static*/ char* compile_Main(char* input){
 	/*final String joined*/ = /*compileStatements(input, Main::compileRootSegment)*/;
 	/*return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
 					 "\treturn 0;" + System.lineSeparator() + "}"*/;
 }
-/*private static*/ char* compileStatements(char* input/*String>*/ mapper){
+/*private static*/ char* compileStatements_Main(char* input/*String>*/ mapper){
 	/*return compileAll(input, Main::foldStatement, mapper)*/;
 }
-/*private static*/ char* compileAll(char* input/**/ Character/*State>*/ folder/*String>*/ mapper){
+/*private static*/ char* compileAll_Main(char* input/**/ Character/*State>*/ folder/*String>*/ mapper){
 	/*return divide(input, folder).map(mapper).collect(Collectors.joining())*/;
 }
-/*private static*/ Stream<char*> divide(char* input/**/ Character/*State>*/ folder){
+/*private static*/ Stream<char*> divide_Main(char* input/**/ Character/*State>*/ folder){
 	/*State current*/ = /*new State(input)*/;
 	/*while (true) {
 			final Optional<Tuple<State, Character>> maybeNext = current.pop();
@@ -130,20 +131,20 @@ struct Constructor(String name) implements MethodHeader {
 		}*/
 	/*return current.advance().stream()*/;
 }
-/*private static*/ /*State*/ foldEscaped(/*State*/ state/*char*/ next/**/ Character/*State>*/ folder){
+/*private static*/ /*State*/ foldEscaped_Main(/*State*/ state/*char*/ next/**/ Character/*State>*/ folder){
 	/*return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next))
 																				.orElseGet(() -> folder.apply(state, next))*/;
 }
-/*private static*/ Optional</*State*/> foldSingleQuotes(/*State*/ state/*char*/ next){
+/*private static*/ Optional</*State*/> foldSingleQuotes_Main(/*State*/ state/*char*/ next){
 	/*if (next !*/ = /*'\'') return Optional*/.empty();
 	/*final State appended*/ = state.append(next);
 	/*return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption)*/;
 }
-/*private static*/ Optional</*State*/> foldEscaped(/*Character>*/ tuple){
+/*private static*/ Optional</*State*/> foldEscaped_Main(/*Character>*/ tuple){
 	/*if (tuple*/.right = /*= '\\') return tuple*/.left.popAndAppendToOption();
 	/*else return Optional.of(tuple.left)*/;
 }
-/*private static*/ Optional</*State*/> foldDoubleQuotes(/*State*/ state/*char*/ next){
+/*private static*/ Optional</*State*/> foldDoubleQuotes_Main(/*State*/ state/*char*/ next){
 	/*if (next !*/ = /*'\"') return Optional*/.empty();
 	/*State appended*/ = state.append(next);
 	/*while (true) {
@@ -159,7 +160,7 @@ struct Constructor(String name) implements MethodHeader {
 		}*/
 	/*return Optional.of(appended)*/;
 }
-/*private static*/ /*State*/ foldStatement(/*State*/ state/*char*/ c){
+/*private static*/ /*State*/ foldStatement_Main(/*State*/ state/*char*/ c){
 	/*final State appended*/ = state.append(c);
 	/*if (c*/ = /*= ';' && appended*/.isLevel()) return appended.advance();
 	/*if (c*/ = /*= '}' && appended*/.isShallow()) return appended.advance().exit();
@@ -167,12 +168,12 @@ struct Constructor(String name) implements MethodHeader {
 	/*if (c*/ = /*= '}') return appended*/.exit();
 	/*return appended*/;
 }
-/*private static*/ char* compileRootSegment(char* input){
+/*private static*/ char* compileRootSegment_Main(char* input){
 	/*final String stripped*/ = input.strip();
 	/*if (stripped.startsWith("package ") || stripped.startsWith("import ")) return ""*/;
 	/*return compileStructure(stripped, "class").map(Tuple::right).orElseGet(() -> wrap(stripped))*/;
 }
-/*private static Optional<Tuple<String,*/ /*String>>*/ compileStructure(char* inputchar* type){
+/*private static Optional<Tuple<String,*/ /*String>>*/ compileStructure_Main(char* inputchar* type){
 	/*final int i*/ = input.indexOf(type + " ");
 	/*if (i < 0) return Optional.empty()*/;
 	/*final String afterKeyword*/ = input.substring(i + (type + " ").length());
@@ -226,32 +227,32 @@ struct Constructor(String name) implements MethodHeader {
 																								 beforeStruct + "struct " + name + " {" + recordFields + inner +
 																								 System.lineSeparator() + "};" + System.lineSeparator() + outer))*/;
 }
-/*private static*/ char* compileValues(char* input/*String>*/ mapper){
+/*private static*/ char* compileValues_Main(char* input/*String>*/ mapper){
 	/*return compileAll(input, Main::foldValue, mapper)*/;
 }
-/*private static*/ char* compileParameter(){
+/*private static*/ char* compileParameter_Main(){
 	/*if (input1.isEmpty()) return ""*/;
 	/*return generateField(input1).orElseGet(() -> wrap(input1))*/;
 }
-/*private static*/ Optional<char*> generateField(char* input){
+/*private static*/ Optional<char*> generateField_Main(char* input){
 	/*return compileDefinition(input).map(Definable::generate).map(Main::generateStatement)*/;
 }
-/*private static*/ char* generateStatement(char* content){
+/*private static*/ char* generateStatement_Main(char* content){
 	/*return generateSegment(content + ";")*/;
 }
-/*private static*/ char* generateSegment(char* s){
+/*private static*/ char* generateSegment_Main(char* s){
 	/*return System.lineSeparator() + "\t" + s*/;
 }
-/*private static*/ /*State*/ foldValue(/*State*/ state/*char*/ next){
+/*private static*/ /*State*/ foldValue_Main(/*State*/ state/*char*/ next){
 	/*if (next*/ = /*= ',' && state*/.isLevel()) return state.advance();
 	/*else return state.append(next)*/;
 }
-/*private static Tuple<String,*/ /*String>*/ compileClassSegment(char* inputchar* name){
+/*private static Tuple<String,*/ /*String>*/ compileClassSegment_Main(char* inputchar* name){
 	/*final String stripped*/ = input.strip();
 	/*if (stripped.isEmpty()) return new Tuple<String, String>("", "")*/;
 	/*return compileClassSegmentValue(stripped, name)*/;
 }
-/*private static Tuple<String,*/ /*String>*/ compileClassSegmentValue(char* inputchar* name){
+/*private static Tuple<String,*/ /*String>*/ compileClassSegmentValue_Main(char* inputchar* name){
 	/*if (input.isEmpty()) return new Tuple<>("", "")*/;
 	/*return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileStructure(input, "interface"))
@@ -263,59 +264,68 @@ struct Constructor(String name) implements MethodHeader {
 																					 }*/
 	/*)*/;
 }
-/*private static Optional<Tuple<String,*/ /*String>>*/ compileMethod(char* inputchar* name){
+/*private static Optional<Tuple<String,*/ /*String>>*/ compileMethod_Main(char* inputchar* name){
 	/*final int paramStart*/ = input.indexOf("(");
 	/*if (paramStart < 0) return Optional.empty()*/;
 	/*final String beforeParams*/ = input.substring(0, paramStart).strip();
 	/*final String withParams*/ = input.substring(paramStart + 1);
 	/*final int paramEnd*/ = withParams.indexOf(")");
 	/*if (paramEnd < 0) return Optional.empty()*/;
-	/*final MethodHeader methodHeader*/ = /*compileMethodHeader(beforeParams)*/;
+	/*final JMethodHeader methodHeader*/ = /*compileMethodHeader(beforeParams)*/;
 	/*final String inputParams*/ = withParams.substring(0, paramEnd);
 	/*final String withBraces*/ = withParams.substring(paramEnd + 1).strip();
 	/*final String outputParams*/ = /*compileParameters(inputParams)*/;
-	/*final String outputMethodHeader*/ = methodHeader.toDefinable().generate() + "(" + outputParams + ")";
+	/*final String outputMethodHeader*/ = /*transformDefinable(methodHeader, name)*/.generate() + "(" + outputParams + ")";
 	/*final String outputBodyWithBraces*/;
 	/*if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
 
 			String outputBody;
-			if (Objects.requireNonNull(methodHeader) instanceof Constructor)
+			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
 				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
 			else outputBody = compiledBody;
 
 			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
 		}*/
-	/*else if (withBraces.equals(";")) {
-			outputBodyWithBraces = ";";
-		}*/
+	/*else if (withBraces*/.equals(";")) outputBodyWithBraces = /*";"*/;
 	/*else return Optional.empty()*/;
 	/*final String generated*/ = /*outputMethodHeader + outputBodyWithBraces + System*/.lineSeparator();
 	/*return Optional.of(new Tuple<String, String>("", generated))*/;
 }
-/*private static*/ /*MethodHeader*/ compileMethodHeader(char* beforeParams){
-	/*return compileDefinition(beforeParams).<MethodHeader>map(definable -> definable)
+/*private static*/ /*Definable*/ transformDefinable_Main(/*JMethodHeader*/ methodHeaderchar* name){
+	/*return switch (methodHeader) {
+			case JConstructor constructor -> new Definition(constructor.name, "new_" + constructor.name);
+			case Definable definable -> switch (definable) {
+				case Definition definition ->
+						new Definition(definition.maybeBeforeType, definition.type, definition.name + "_" + name);
+				case Placeholder placeholder -> placeholder;
+			};
+		}*/
+	/**/;
+}
+/*private static*/ /*JMethodHeader*/ compileMethodHeader_Main(char* beforeParams){
+	/*return compileDefinition(beforeParams).<JMethodHeader>map(definable -> definable)
 																					.or(() -> compileConstructor(beforeParams))
 																					.orElseGet(() -> new Placeholder(beforeParams))*/;
 }
-/*private static*/ char* compileParameters(char* input){
+/*private static*/ char* compileParameters_Main(char* input){
 	/*if (input.isEmpty()) return ""*/;
 	/*return compileValues(input, slice -> compileDefinition(slice).map(Definable::generate).orElse(""))*/;
 }
-/*private static*/ char* compileMethodSegment(char* input){
+/*private static*/ char* compileMethodSegment_Main(char* input){
 	/*final String stripped*/ = input.strip();
 	/*if (stripped.isEmpty()) return ""*/;
 	/*return generateSegment(compileMethodSegmentValue(stripped))*/;
 }
-/*private static*/ char* compileMethodSegmentValue(char* input){
+/*private static*/ char* compileMethodSegmentValue_Main(char* input){
 	/*if (input.endsWith(";")) {
 			final String slice = input.substring(0, input.length() - 1);
 			return compileMethodStatementValue(slice) + ";";
 		}*/
 	/*return wrap(input)*/;
 }
-/*private static*/ char* compileMethodStatementValue(char* input){
+/*private static*/ char* compileMethodStatementValue_Main(char* input){
 	/*final int i*/ = input.indexOf("=");
 	/*if (i >= 0) {
 			final String destination = input.substring(0, i);
@@ -324,7 +334,7 @@ struct Constructor(String name) implements MethodHeader {
 		}*/
 	/*return wrap(input)*/;
 }
-/*private static*/ char* compileExpression(char* input){
+/*private static*/ char* compileExpression_Main(char* input){
 	/*final String stripped*/ = input.strip();
 	/*final int i*/ = stripped.indexOf(".");
 	/*if (i >= 0) {
@@ -336,7 +346,7 @@ struct Constructor(String name) implements MethodHeader {
 	/*if (isNumber(stripped)) return stripped*/;
 	/*return wrap(stripped)*/;
 }
-/*private static*/ /*boolean*/ isNumber(char* input){
+/*private static*/ /*boolean*/ isNumber_Main(char* input){
 	/*for (int i*/ = 0;
 	/*i < input.length()*/;
 	/*i++) {
@@ -345,19 +355,19 @@ struct Constructor(String name) implements MethodHeader {
 		}*/
 	/*return true*/;
 }
-/*private static*/ /*boolean*/ isIdentifier(char* input){
+/*private static*/ /*boolean*/ isIdentifier_Main(char* input){
 	/*for (int i*/ = 0;
 	/*i < input.length()*/;
 	/*i++) if (!Character.isLetter(input.charAt(i))) return false*/;
 	/*return true*/;
 }
-/*private static*/ Optional</*MethodHeader*/> compileConstructor(char* beforeParams){
+/*private static*/ Optional</*JMethodHeader*/> compileConstructor_Main(char* beforeParams){
 	/*final int separator*/ = beforeParams.lastIndexOf(" ");
 	/*if (separator < 0) return Optional.empty()*/;
 	/*final String name*/ = beforeParams.substring(separator + " ".length());
-	/*return Optional.of(new Constructor(name))*/;
+	/*return Optional.of(new JConstructor(name))*/;
 }
-/*private static Optional<Tuple<String,*/ /*String>>*/ compileField(char* input){
+/*private static Optional<Tuple<String,*/ /*String>>*/ compileField_Main(char* input){
 	/*if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
 			final Optional<String> s = generateField(substring);
@@ -365,7 +375,7 @@ struct Constructor(String name) implements MethodHeader {
 		}*/
 	/*return Optional.empty()*/;
 }
-/*private static*/ Optional</*Definable*/> compileDefinition(char* input){
+/*private static*/ Optional</*Definable*/> compileDefinition_Main(char* input){
 	/*final int index*/ = input.lastIndexOf(" ");
 	/*if (index < 0) return Optional.empty()*/;
 	/*final String beforeName*/ = input.substring(0, index).strip();
@@ -377,7 +387,7 @@ struct Constructor(String name) implements MethodHeader {
 	/*final String typeString*/ = beforeName.substring(typeSeparator + " ".length());
 	/*return compileType(typeString).map(type -> new Definition(Optional.of(beforeType), type, name))*/;
 }
-/*private static*/ Optional<char*> compileType(char* input){
+/*private static*/ Optional<char*> compileType_Main(char* input){
 	/*final String stripped*/ = input.strip();
 	/*if (stripped.equals("public")) return Optional.empty()*/;
 	/*if (stripped.endsWith(">")) {
@@ -393,7 +403,7 @@ struct Constructor(String name) implements MethodHeader {
 	/*if (stripped.equals("int")) return Optional.of("int")*/;
 	/*return Optional.of(wrap(stripped))*/;
 }
-/*private static*/ char* wrap(char* input){
+/*private static*/ char* wrap_Main(char* input){
 	/*final String replaced*/ = input.replace("/*", "start").replace("*/", "end");
 	/*return "start" + replaced + "end"*/;
 }

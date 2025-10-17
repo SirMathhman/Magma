@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-	private sealed interface Definable extends MethodHeader permits Definition, Placeholder {
+	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
 		String generate();
 
 		@Override
@@ -24,7 +24,7 @@ public class Main {
 		}
 	}
 
-	private sealed interface MethodHeader permits Constructor, Definable {
+	private sealed interface JMethodHeader permits JConstructor, Definable {
 		Definable toDefinable();
 	}
 
@@ -94,14 +94,15 @@ public class Main {
 
 	public record Tuple<A, B>(A left, B right) {}
 
-	private record Definition(Optional<String> beforeType, String type, String name) implements Definable {
+	private record Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable {
 		public Definition(String type, String name) {
 			this(Optional.empty(), type, name);
 		}
 
 		@Override
 		public String generate() {
-			return this.beforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " + this.name();
+			return this.maybeBeforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " +
+						 this.name();
 		}
 	}
 
@@ -112,7 +113,7 @@ public class Main {
 		}
 	}
 
-	private record Constructor(String name) implements MethodHeader {
+	private record JConstructor(String name) implements JMethodHeader {
 		@Override
 		public Definable toDefinable() {
 			return new Definition(this.name, "new_" + this.name);
@@ -335,12 +336,12 @@ public class Main {
 		final int paramEnd = withParams.indexOf(")");
 		if (paramEnd < 0) return Optional.empty();
 
-		final MethodHeader methodHeader = compileMethodHeader(beforeParams);
+		final JMethodHeader methodHeader = compileMethodHeader(beforeParams);
 		final String inputParams = withParams.substring(0, paramEnd);
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final String outputParams = compileParameters(inputParams);
-		final String outputMethodHeader = methodHeader.toDefinable().generate() + "(" + outputParams + ")";
+		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 
 		final String outputBodyWithBraces;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -348,7 +349,7 @@ public class Main {
 			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
 
 			String outputBody;
-			if (Objects.requireNonNull(methodHeader) instanceof Constructor)
+			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
 				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
 			else outputBody = compiledBody;
 
@@ -360,8 +361,17 @@ public class Main {
 		return Optional.of(new Tuple<String, String>("", generated));
 	}
 
-	private static MethodHeader compileMethodHeader(String beforeParams) {
-		return compileDefinition(beforeParams).<MethodHeader>map(definable -> definable)
+	private static Definable transformMethodHeader(JMethodHeader methodHeader, String name) {
+		return switch (methodHeader) {
+			case JConstructor constructor -> new Definition(constructor.name, "new_" + constructor.name);
+			case Definition definition ->
+					new Definition(definition.maybeBeforeType, definition.type, definition.name + "_" + name);
+			case Placeholder placeholder -> placeholder;
+		};
+	}
+
+	private static JMethodHeader compileMethodHeader(String beforeParams) {
+		return compileDefinition(beforeParams).<JMethodHeader>map(definable -> definable)
 																					.or(() -> compileConstructor(beforeParams))
 																					.orElseGet(() -> new Placeholder(beforeParams));
 	}
@@ -427,12 +437,12 @@ public class Main {
 		return true;
 	}
 
-	private static Optional<MethodHeader> compileConstructor(String beforeParams) {
+	private static Optional<JMethodHeader> compileConstructor(String beforeParams) {
 		final int separator = beforeParams.lastIndexOf(" ");
 		if (separator < 0) return Optional.empty();
 
 		final String name = beforeParams.substring(separator + " ".length());
-		return Optional.of(new Constructor(name));
+		return Optional.of(new JConstructor(name));
 	}
 
 	private static Optional<Tuple<String, String>> compileField(String input) {
