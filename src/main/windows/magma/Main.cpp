@@ -59,7 +59,7 @@ struct State {};
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final String input = Files.readString(source);
 
-			final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.c");
+			final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 			final Path targetParent = target.getParent();
 
 			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
