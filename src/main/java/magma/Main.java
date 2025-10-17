@@ -277,8 +277,21 @@ public class Main {
 	private static Tuple<String, String> compileClassSegmentValue(String input) {
 		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileField(input))
+																					 .or(() -> compileMethod(input))
 																					 .orElseGet(() -> new Tuple<String, String>(
 																							 wrap(input) + System.lineSeparator(), ""));
+	}
+
+	private static Optional<Tuple<String, String>> compileMethod(String input) {
+		final int i = input.indexOf("(");
+		if (i >= 0) {
+			final String substring = input.substring(0, i);
+			final String substring1 = input.substring(i + 1);
+			final String generated = wrap(substring) + "(" + wrap(substring1) + System.lineSeparator();
+			return Optional.of(new Tuple<>("", generated));
+		}
+
+		return Optional.empty();
 	}
 
 	private static Optional<Tuple<String, String>> compileField(String input) {
