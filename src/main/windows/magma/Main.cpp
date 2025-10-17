@@ -2,15 +2,15 @@
 struct Main {
 };
 struct Definable extends MethodHeader permits Definition, Placeholder {
-	/*String generate();*/
 };
+char* generate();
 /*@Override
 		default*/ /*Definable*/ toDefinable(){
 	/*return this*/;
 }
 struct MethodHeader permits Constructor, Definable {
-	/*Definable toDefinable();*/
 };
+/*Definable*/ toDefinable();
 struct State {
 	/*private final*/ ArrayList<char*> segments;
 	/*private final*/ char* input;
@@ -273,16 +273,25 @@ struct Constructor(String name) implements MethodHeader {
 	/*final MethodHeader methodHeader*/ = /*compileMethodHeader(beforeParams)*/;
 	/*final String inputParams*/ = withParams.substring(0, paramEnd);
 	/*final String withBraces*/ = withParams.substring(paramEnd + 1).strip();
-	/*if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) return Optional.empty()*/;
-	/*final String inputBody*/ = withBraces.substring(1, withBraces.length() - 1);
 	/*final String outputParams*/ = /*compileParameters(inputParams)*/;
-	/*final String compiledBody*/ = /*compileStatements(inputBody, Main::compileMethodSegment)*/;
-	/*String outputBody*/;
-	/*if (Objects*/.requireNonNull(methodHeader) instanceof Constructor)
-			outputBody = /*generateStatement(name + " this") + compiledBody + generateStatement("return this")*/;
-	/*else outputBody*/ = compiledBody;
-	/*final String generated*/ = methodHeader.toDefinable().generate() + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" +
-				System.lineSeparator();
+	/*final String outputMethodHeader*/ = methodHeader.toDefinable().generate() + "(" + outputParams + ")";
+	/*final String outputBodyWithBraces*/;
+	/*if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
+			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
+
+			String outputBody;
+			if (Objects.requireNonNull(methodHeader) instanceof Constructor)
+				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+			else outputBody = compiledBody;
+
+			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
+		}*/
+	/*else if (withBraces.equals(";")) {
+			outputBodyWithBraces = ";";
+		}*/
+	/*else return Optional.empty()*/;
+	/*final String generated*/ = /*outputMethodHeader + outputBodyWithBraces + System*/.lineSeparator();
 	/*return Optional.of(new Tuple<String, String>("", generated))*/;
 }
 /*private static*/ /*MethodHeader*/ compileMethodHeader(char* beforeParams){

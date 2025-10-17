@@ -339,22 +339,24 @@ public class Main {
 		final String inputParams = withParams.substring(0, paramEnd);
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
-		if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) return Optional.empty();
-
-		final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 		final String outputParams = compileParameters(inputParams);
+		final String outputMethodHeader = methodHeader.toDefinable().generate() + "(" + outputParams + ")";
 
-		final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
+		final String outputBodyWithBraces;
+		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
+			final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
 
-		String outputBody;
-		if (Objects.requireNonNull(methodHeader) instanceof Constructor)
-			outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
-		else outputBody = compiledBody;
+			String outputBody;
+			if (Objects.requireNonNull(methodHeader) instanceof Constructor)
+				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+			else outputBody = compiledBody;
 
-		final String generated =
-				methodHeader.toDefinable().generate() + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" +
-				System.lineSeparator();
+			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
+		} else if (withBraces.equals(";")) outputBodyWithBraces = ";";
+		else return Optional.empty();
 
+		final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
 		return Optional.of(new Tuple<String, String>("", generated));
 	}
 
