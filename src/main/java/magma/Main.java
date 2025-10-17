@@ -343,8 +343,18 @@ public class Main {
 		}
 
 		if (isIdentifier(stripped)) return stripped;
+		if (isNumber(stripped)) return stripped;
 
 		return wrap(stripped);
+	}
+
+	private static boolean isNumber(String input) {
+		for (int i = 0; i < input.length(); i++) {
+			final char c = input.charAt(i);
+			if (!Character.isDigit(c)) return false;
+		}
+
+		return true;
 	}
 
 	private static boolean isIdentifier(String input) {

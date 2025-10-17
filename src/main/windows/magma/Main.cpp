@@ -12,9 +12,9 @@ State new_State(char* input){
 	State this;
 	this.input = input;
 	this.buffer = /*new StringBuilder()*/;
-	this.depth = /*0*/;
+	this.depth = 0;
 	this.segments = /*new ArrayList<String>()*/;
-	this.index = /*0*/;
+	this.index = 0;
 	return this;
 }
 /*private*/ Stream<char*> stream(/**/){
@@ -339,12 +339,24 @@ struct Tuple {
 			return compileExpression(substring) + "." + name;
 		}*/
 	/*if (isIdentifier(stripped)) return stripped*/;
+	/*if (isNumber(stripped)) return stripped*/;
 	/*return wrap(stripped)*/;
+	return this;
+}
+/*private static*/ /*boolean*/ isNumber(char* input){
+	Main this;
+	/*for (int i*/ = 0;
+	/*i < input.length()*/;
+	/*i++) {
+			final char c = input.charAt(i);
+			if (!Character.isDigit(c)) return false;
+		}*/
+	/*return true*/;
 	return this;
 }
 /*private static*/ /*boolean*/ isIdentifier(char* input){
 	Main this;
-	/*for (int i*/ = /*0*/;
+	/*for (int i*/ = 0;
 	/*i < input.length()*/;
 	/*i++) if (!Character.isLetter(input.charAt(i))) return false*/;
 	/*return true*/;
