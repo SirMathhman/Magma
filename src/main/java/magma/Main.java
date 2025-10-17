@@ -535,7 +535,7 @@ public class Main {
 	private static Optional<Tuple<String, ParseState>> tryCompileExpression(String input, ParseState state) {
 		final String stripped = input.strip();
 		if (stripped.startsWith("'") && stripped.endsWith("'") && stripped.length() <= 4)
-			return Optional.of(new Tuple<>(stripped, state));
+			return Optional.of(new Tuple<String, ParseState>(stripped, state));
 
 		if (isString(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 
@@ -636,7 +636,7 @@ public class Main {
 		final Tuple<String, ParseState> result = compileExpression(body, state);
 		final String s = generateStatement("return " + result.left);
 		final String s2 = "{" + s + generateIndent(0) + "}";
-		return new Tuple<>(s2, result.right);
+		return new Tuple<String, ParseState>(s2, result.right);
 	}
 
 	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {
@@ -659,11 +659,23 @@ public class Main {
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
-		final int index = input.indexOf(operator);
-		if (index < 0) return Optional.empty();
+		final List<String> segments = divide(input, (state1, next) -> {
+			if (next == operator.charAt(0)) {
+				final Optional<Character> peeked = state1.peek();
+				if (operator.length() >= 2 && peeked.isPresent() && peeked.get() == operator.charAt(1))
+					return state1.pop().map(Tuple::left).orElse(state1).advance();
 
-		final String left = input.substring(0, index);
-		final String right = input.substring(index + operator.length());
+				return state1.advance();
+			}
+
+			return state1.append(next);
+		}).toList();
+
+		if (segments.size() < 2) return Optional.empty();
+
+		final String left = segments.getFirst();
+		final String right = String.join(operator, segments.subList(1, segments.size()));
+
 		final Optional<Tuple<String, ParseState>> maybeLeftResult = tryCompileExpression(left, state);
 
 		if (maybeLeftResult.isEmpty()) return Optional.empty();
