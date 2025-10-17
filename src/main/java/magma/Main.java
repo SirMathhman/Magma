@@ -228,6 +228,7 @@ public class Main {
 		}
 
 		if (stripped.equals("String")) return "char*";
+		if (stripped.equals("int")) return "int";
 
 		return wrap(stripped);
 	}

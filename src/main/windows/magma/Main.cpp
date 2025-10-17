@@ -4,8 +4,8 @@ struct State {};
 /*private final*/ ArrayList<char*> segments;
 /*private final*/ char* input;
 /*private*/ /*StringBuilder*/ buffer;
-/*private*/ /*int*/ depth;
-/*private*/ /*int*/ index;
+/*private*/ int depth;
+/*private*/ int index;
 /*public State(String input) {
 			this.input = input;
 			this.buffer = new StringBuilder();
@@ -191,6 +191,7 @@ struct ");
 		}
 
 		if (stripped.equals("String")) return "char*";
+		if (stripped.equals("int")) return "int";
 
 		return wrap(stripped);
 	}*/
