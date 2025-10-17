@@ -111,6 +111,11 @@ public class Main {
 		public Optional<DivideState> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
+
+		public Optional<Character> peek() {
+			if (this.index < this.input.length()) return Optional.of(this.input.charAt(this.index));
+			else return Optional.empty();
+		}
 	}
 
 	public record Tuple<A, B>(A left, B right) {}
@@ -332,8 +337,13 @@ public class Main {
 	private static DivideState foldValue(DivideState state, char next) {
 		if (next == ',' && state.isLevel()) return state.advance();
 		final DivideState appended = state.append(next);
-		if (next == '(') return appended.enter();
-		if (next == ')') return appended.exit();
+		if (next == '-') {
+			final Optional<Character> peeked = appended.peek();
+			if (peeked.isPresent() && peeked.get().equals('>')) return appended.popAndAppendToOption().orElse(appended);
+		}
+
+		if (next == '(' || next == '<') return appended.enter();
+		if (next == ')' || next == '>') return appended.exit();
 		return appended;
 	}
 
@@ -597,7 +607,7 @@ public class Main {
 	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {
 		if (caller.startsWith("new ")) {
 			final Optional<String> newType = compileType(caller.substring("new ".length()));
-			if (newType.isPresent()) return new Tuple<>("new_" + newType.get(), state);
+			if (newType.isPresent()) return new Tuple<String, ParseState>("new_" + newType.get(), state);
 		}
 
 		return compileExpression(caller, state);
@@ -698,8 +708,11 @@ public class Main {
 			final int argumentStart = withoutEnd.indexOf("<");
 			if (argumentStart >= 0) {
 				final String base = withoutEnd.substring(0, argumentStart);
-				final String arguments = withoutEnd.substring(argumentStart + "<".length());
-				return Optional.of(base + "<" + compileType(arguments).orElse("") + ">");
+				final String argumentsString = withoutEnd.substring(argumentStart + "<".length());
+
+				final String arguments =
+						compileValues(argumentsString, slice -> compileType(slice).orElseGet(() -> wrap(slice)));
+				return Optional.of(base + "<" + arguments + ">");
 			}
 		}
 
