@@ -1,16 +1,15 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-struct Main {/*private sealed interface Definable extends MethodHeader {
-		String generate();
-
-		@Override
-		default Definable toDefinable() {
-			return this;
-		}
-	}*/
-/*private interface MethodHeader {
-		Definable toDefinable();
-	}*/
-
+struct Main {
+};
+struct Definable extends MethodHeader permits Definition, Placeholder {
+	char* generate();
+};
+/*@Override
+		default*/ /*Definable*/ toDefinable(){
+	/*return this*/;
+}
+struct MethodHeader permits Constructor, Definable {
+	/*Definable*/ toDefinable();
 };
 struct State {
 	/*private final*/ ArrayList<char*> segments;
@@ -251,6 +250,7 @@ struct Constructor(String name) implements MethodHeader {
 }
 /*private static Tuple<String,*/ /*String>*/ compileClassSegmentValue(char* inputchar* name){
 	/*return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
+																					 .or(() -> compileStructure(input, "interface"))
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input, name))
 																					 .orElseGet(() -> new Tuple<String, String>(

@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
-	private sealed interface Definable extends MethodHeader {
+	private sealed interface Definable extends MethodHeader permits Definition, Placeholder {
 		String generate();
 
 		@Override
@@ -24,7 +24,7 @@ public class Main {
 		}
 	}
 
-	private interface MethodHeader {
+	private sealed interface MethodHeader permits Constructor, Definable {
 		Definable toDefinable();
 	}
 
@@ -310,6 +310,7 @@ public class Main {
 
 	private static Tuple<String, String> compileClassSegmentValue(String input, String name) {
 		return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
+																					 .or(() -> compileStructure(input, "interface"))
 																					 .or(() -> compileField(input))
 																					 .or(() -> compileMethod(input, name))
 																					 .orElseGet(() -> new Tuple<String, String>(
