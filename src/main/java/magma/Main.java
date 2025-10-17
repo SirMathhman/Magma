@@ -696,7 +696,21 @@ public class Main {
 		final boolean hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
 		if (!hasDoubleQuotes) return false;
 
-		return !stripped.substring(1, stripped.length() - 1).contains("\"");
+		final String content = stripped.substring(1, stripped.length() - 1);
+		return areAllDoubleQuotesEscaped(content);
+	}
+
+	private static boolean areAllDoubleQuotesEscaped(String input) {
+		return IntStream.range(0, input.length()).allMatch(i -> {
+			final char c = input.charAt(i);
+			if (c == '\"') {
+				if (i == 0) return false;
+				char previous = input.charAt(i - 1);
+				return previous == '\\';
+			}
+
+			return true;
+		});
 	}
 
 	private static boolean isNumber(String input) {

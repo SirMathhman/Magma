@@ -608,21 +608,34 @@ Optional<Tuple<char*, ParseState>> compileOperator_Main(char* input, char* opera
 }
 boolean isString_Main(char* stripped){
 	if (stripped.length() < 2) return false;
-	boolean hasDoubleQuotes = stripped.startsWith(/*"\""*/) && stripped.endsWith(/*"\""*/);
+	boolean hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
 	if (!hasDoubleQuotes) return false;
-	return !stripped.substring(1, stripped.length() - 1).contains(/*"\""*/);
+	char* content = stripped.substring(1, stripped.length() - 1);
+	return areAllDoubleQuotesEscaped(content);
 }
 auto __lambda26__(auto i) {
-	return Character.isDigit(input.charAt(i));
+	char c = input.charAt(i);
+	if (c == '\"') {
+		if (i == 0) return false;
+		char previous = input.charAt(i - 1);
+		return previous == '\\';
+	}
+	return true;
 }
-boolean isNumber_Main(char* input){
+boolean areAllDoubleQuotesEscaped_Main(char* input){
 	return IntStream.range(0, input.length()).allMatch(__lambda26__);
 }
 auto __lambda27__(auto i) {
+	return Character.isDigit(input.charAt(i));
+}
+boolean isNumber_Main(char* input){
+	return IntStream.range(0, input.length()).allMatch(__lambda27__);
+}
+auto __lambda28__(auto i) {
 	return Character.isLetter(input.charAt(i));
 }
 boolean isIdentifier_Main(char* input){
-	return IntStream.range(0, input.length()).allMatch(__lambda27__);
+	return IntStream.range(0, input.length()).allMatch(__lambda28__);
 }
 Optional<JMethodHeader> compileConstructor_Main(char* beforeParams){
 	int separator = beforeParams.lastIndexOf(" ");
@@ -638,10 +651,10 @@ Optional<Tuple<char*, ParseState>> compileField_Main(char* input, ParseState sta
 	}
 	return Optional.empty();
 }
-auto __lambda28__(auto type) {
+auto __lambda29__(auto type) {
 	return new_Definition(type, name);
 }
-auto __lambda29__(auto type) {
+auto __lambda30__(auto type) {
 	return new_Definition(type, name);
 }
 Optional<Definition> compileDefinition_Main(char* input){
@@ -652,11 +665,11 @@ Optional<Definition> compileDefinition_Main(char* input){
 	char* name = stripped.substring(index + " ".length()).strip();
 	if (!isIdentifier(name)) return Optional.empty();
 	List<char*> typeSeparator = findTypeSeparator(beforeName).toList();
-	if (typeSeparator.isEmpty()) return compileType(beforeName).map(__lambda28__);
+	if (typeSeparator.isEmpty()) return compileType(beforeName).map(__lambda29__);
 	char* typeString = typeSeparator.getLast();
-	return compileType(typeString).map(__lambda29__);
+	return compileType(typeString).map(__lambda30__);
 }
-auto __lambda30__(auto state, auto c) {
+auto __lambda31__(auto state, auto c) {
 	if (c == ' ' && state.isLevel()) return state.advance();
 	DivideState appended = state.append(c);
 	if (c == '<') return appended.enter();
@@ -664,13 +677,13 @@ auto __lambda30__(auto state, auto c) {
 	return appended;
 }
 Stream<char*> findTypeSeparator_Main(char* beforeName){
-	return divide(beforeName, __lambda30__);
+	return divide(beforeName, __lambda31__);
 }
-auto __lambda31__() {
+auto __lambda32__() {
 	return wrap(slice);
 }
-auto __lambda32__(auto slice) {
-	return compileType(slice).orElseGet(__lambda31__);
+auto __lambda33__(auto slice) {
+	return compileType(slice).orElseGet(__lambda32__);
 }
 Optional<char*> compileType_Main(char* input){
 	char* stripped = input.strip();
@@ -681,7 +694,7 @@ Optional<char*> compileType_Main(char* input){
 		if (argumentStart >= 0) {
 			char* base = withoutEnd.substring(0, argumentStart);
 			char* argumentsString = withoutEnd.substring(argumentStart + "<".length());
-			char* arguments = compileValues(argumentsString, __lambda32__);
+			char* arguments = compileValues(argumentsString, __lambda33__);
 			return Optional.of(base + "<" + arguments + ">");
 		}
 	}
