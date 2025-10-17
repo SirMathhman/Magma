@@ -696,6 +696,8 @@ public class Main {
 
 		if (stripped.equals("String")) return Optional.of("char*");
 		if (stripped.equals("int")) return Optional.of("int");
+
+		if (isIdentifier(stripped)) return Optional.of(stripped);
 		return Optional.of(wrap(stripped));
 	}
 
