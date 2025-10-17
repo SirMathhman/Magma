@@ -296,14 +296,19 @@ public class Main {
 		if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) return Optional.empty();
 
 		final String inputBody = withBraces.substring(1, withBraces.length() - 1);
+		final String outputParams = compileParameters(inputParams);
 
-		final String outputParams = compileDefinition(inputParams).orElse("");
 		final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
 		final String outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
 
 		final String generated =
 				definition + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" + System.lineSeparator();
 		return Optional.of(new Tuple<String, String>("", generated));
+	}
+
+	private static String compileParameters(String input) {
+		if (input.isEmpty()) return "";
+		return compileValues(input, slice -> compileDefinition(slice).orElse(""));
 	}
 
 	private static String compileMethodSegment(String input) {
