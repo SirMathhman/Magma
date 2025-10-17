@@ -37,9 +37,16 @@ public class Main {
 		}
 		segments.add(buffer.toString());
 
-		final String joined = segments.stream().map(Main::wrap).collect(Collectors.joining());
+		final String joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
 		return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
 					 "\treturn 0;" + System.lineSeparator() + "}";
+	}
+
+	private static String compileRootSegment(String input) {
+		final String stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
+
+		return wrap(stripped);
 	}
 
 	private static String wrap(String input) {
