@@ -359,7 +359,10 @@ public class Main {
 
 	private static DivideState foldValue(DivideState state, char next) {
 		if (next == ',' && state.isLevel()) return state.advance();
-		else return state.append(next);
+		final DivideState appended = state.append(next);
+		if (next == '(') return appended.enter();
+		if (next == ')') return appended.exit();
+		return appended;
 	}
 
 	private static Tuple<String, ParseState> compileClassSegment(String input, String name, ParseState state) {
