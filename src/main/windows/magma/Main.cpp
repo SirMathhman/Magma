@@ -101,7 +101,6 @@ struct Main {/*public static void main(String[] args) {
 			final int beforeParams = slice.indexOf("(");
 			if (beforeParams >= 0) {
 				name = slice.substring(0, beforeParams);
-
 				recordFields = compileAll(slice.substring(beforeParams + 1), Main::foldValue, Main::compileParameter);
 			}
 		}
@@ -123,7 +122,7 @@ struct Main {/*public static void main(String[] args) {
 		}
 
 		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + recordFields + inner + "};" +
+																								 "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
 																								 System.lineSeparator() + outer));
 	}*/
 /*private static String compileParameter(String input1) {
@@ -147,6 +146,7 @@ struct Main {/*public static void main(String[] args) {
 	}*/
 /*private static Tuple<String, String> compileClassSegment(String input) {
 		final String stripped = input.strip();
+		if (stripped.isEmpty()) return new Tuple<String, String>("", "");
 		return compileClassSegmentValue(stripped);
 	}*/
 /*private static Tuple<String, String> compileClassSegmentValue(String input) {
@@ -196,7 +196,7 @@ struct Main {/*public static void main(String[] args) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
 	}*/
-/**/
+
 };
 struct State {
 	/*private final*/ ArrayList<char*> segments;
@@ -248,11 +248,11 @@ struct State {
 /*public Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}*/
-/**/
+
 };
 struct Tuple<A, B> {
 	/*A left*/;
-	/* B right*/;/**/
+	/* B right*/;
 };
 /**/int main(){
 	main_Main();

@@ -213,7 +213,7 @@ public class Main {
 		}
 
 		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + recordFields + inner + "};" +
+																								 "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
 																								 System.lineSeparator() + outer));
 	}
 
@@ -242,6 +242,7 @@ public class Main {
 
 	private static Tuple<String, String> compileClassSegment(String input) {
 		final String stripped = input.strip();
+		if (stripped.isEmpty()) return new Tuple<String, String>("", "");
 		return compileClassSegmentValue(stripped);
 	}
 
