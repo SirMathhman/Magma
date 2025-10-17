@@ -28,7 +28,7 @@ State new_State(char* input){
 	return this;
 }
 /*private*/ Stream<char*> stream_State(){
-	return /*this.segments.stream*/();
+	return this.segments.stream();
 }
 /*private*/ /*State*/ enter_State(){
 	this.depth = /*this.depth + 1*/;
@@ -54,16 +54,16 @@ State new_State(char* input){
 	return this;
 }
 /*public Optional<Tuple<State,*/ /*Character>>*/ pop_State(){
-	/*if (this.index >*/ = /*this.input.length*/(/*)) return Optional.empty(*/);
-	/*final char next*/ = /*this.input.charAt*/(this.index);
+	/*if (this.index >*/ = this.input.length(/*)) return Optional.empty(*/);
+	/*final char next*/ = this.input.charAt(this.index);
 	/*this.index++*/;
 	return Optional.of(/*new Tuple<State*//*Character>(this*//*next)*/);
 }
 /*public Optional<Tuple<State,*/ /*Character>>*/ popAndAppendToTuple_State(){
-	return this.pop(/*).map(tuple -> new Tuple<State*//*Character>*/(/*tuple.left.append(tuple.right*/)/*tuple.right)*/);
+	return this.pop(/*).map(tuple -> new Tuple<State*//*Character>*/(/*tuple.left.append(tuple*/.right)/*tuple.right)*/);
 }
 /*public*/ Optional</*State*/> popAndAppendToOption_State(){
-	return this.popAndAppendToTuple(/*).map(tuple -> tuple.left*/);
+	return this.popAndAppendToTuple(/*).map(tuple -> tuple*/.left);
 }
 template <typeparam A, typeparam B>
 struct Tuple {
@@ -79,7 +79,7 @@ Definition new_Definition(char* typechar* name){
 }
 /*@Override
 		public*/ char* generate_Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable(){
-	return /*this.maybeBeforeType.map*/(/*Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " +
+	return this.maybeBeforeType.map(/*Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " +
 						 this.name(*/);
 }
 struct Placeholder(String input) implements Definable {
@@ -141,7 +141,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	return appended.popAndAppendToTuple(/*).flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption*/);
 }
 /*private static*/ Optional</*State*/> foldEscaped_Main(/*Character>*/ tuple){
-	/*if (tuple*/.right = /*= '\\') return tuple.left.popAndAppendToOption*/();
+	/*if (tuple*/.right = /*= '\\') return tuple*/.left.popAndAppendToOption();
 	/*else return Optional.of(tuple.left)*/;
 }
 /*private static*/ Optional</*State*/> foldDoubleQuotes_Main(/*State*/ state/*char*/ next){
@@ -343,7 +343,7 @@ struct JConstructor(String name) implements JMethodHeader {
 				return compileExpression(caller) + "(" + compileValues(arguments, Main::compileExpression) + ")";
 			}
 		}*/
-	/*final int i*/ = stripped.indexOf(/*"."*/);
+	/*final int i*/ = stripped.lastIndexOf(/*"."*/);
 	/*if (i >= 0) {
 			final String substring = stripped.substring(0, i);
 			final String name = stripped.substring(i + 1).strip();

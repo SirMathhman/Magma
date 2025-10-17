@@ -422,7 +422,7 @@ public class Main {
 			}
 		}
 
-		final int i = stripped.indexOf(".");
+		final int i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final String substring = stripped.substring(0, i);
 			final String name = stripped.substring(i + 1).strip();
