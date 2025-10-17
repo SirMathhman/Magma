@@ -4,8 +4,9 @@ struct Definable extends JMethodHeader permits Definition, Placeholder {
 struct JMethodHeader permits JConstructor, Definable {
 };
 struct ParseState {
-	List<char*> functions;, 
-	List<char*> structs;
+	/*private final*/ List<char*> functions;
+	/*private final*/ List<char*> structs;
+	/*private int counter = -1;*/
 };
 struct DivideState {
 	/*private final*/ ArrayList<char*> segments;
@@ -30,7 +31,8 @@ struct Main {
 char* generate_Definable extends JMethodHeader permits Definition, Placeholder();
 ParseState new_ParseState(){
 	ParseState this;
-	/*this(new ArrayList<String>(), new ArrayList<String>())*/;
+	this.functions = /*new ArrayList*/ < /*String>*/();
+	this.structs = /*new ArrayList*/ < /*String>*/();
 	return this;
 }
 /*public*/ /*ParseState*/ addFunction_ParseState(char* func){
@@ -41,9 +43,30 @@ ParseState new_ParseState(){
 	/*this.structs.add(struct)*/;
 	return this;
 }
+/*public*/ char* generateAnonymousFunctionName_ParseState(){
+	/*this.counter++*/;
+	return "__lambda" + this.counter + "__";
+}
+/*public*/ List<char*> functions_ParseState(){
+	return this.functions;
+}
+/*public*/ List<char*> structs_ParseState(){
+	return this.structs;
+}
+/*@Override
+		public*/ /*boolean*/ equals_ParseState(/*Object*/ obj){
+	if (/*obj == this*/) return true;
+	if (/*obj == null || obj.getClass() != this*/.getClass()) return false;
+	/*ParseState*/ that = /*(ParseState) obj*/;
+	return /*Objects.equals(this.functions, that.functions) && Objects*/.equals(this.structs, that.structs);
+}
+/*@Override
+		public*/ int hashCode_ParseState(){
+	return Objects.hash(this.functions, this.structs);
+}
 /*@Override
 		public*/ char* toString_ParseState(){
-	/*throw new UnsupportedOperationException()*/;
+	return "ParseState[" + "functions=" + this.functions + ", " + "structs=" + this.structs + /*']'*/;
 }
 DivideState new_DivideState(char* input){
 	DivideState this;
@@ -86,26 +109,29 @@ DivideState new_DivideState(char* input){
 	/*this.index++*/;
 	return Optional.of(/*new Tuple*/ < DivideState, /*Character>(this*/, /*next)*/);
 }
-auto ?(auto tuple) {
+auto __lambda0__(auto tuple) {
 	return /*new Tuple*/ < DivideState;
-}/*public Optional<Tuple<DivideState,*/ /*Character>>*/ popAndAppendToTuple_DivideState(){
-	return this.pop().map(, /*Character>*/(/*tuple.left.append(tuple*/.right), /*tuple.right)*/);
 }
-auto ?(auto tuple) {
+/*public Optional<Tuple<DivideState,*/ /*Character>>*/ popAndAppendToTuple_DivideState(){
+	return this.pop().map(__lambda0__, /*Character>*/(/*tuple.left.append(tuple*/.right), /*tuple.right)*/);
+}
+auto __lambda1__(auto tuple) {
 	return tuple;
-}/*public*/ Optional</*DivideState*/> popAndAppendToOption_DivideState(){
-	return this.popAndAppendToTuple().map(.left);
+}
+/*public*/ Optional</*DivideState*/> popAndAppendToOption_DivideState(){
+	return this.popAndAppendToTuple().map(__lambda1__.left);
 }
 Definition new_Definition(char* type, char* name){
 	Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable this;
 	/*this(Optional.empty(), type, name)*/;
 	return this;
 }
-auto ?(auto this.maybeBeforeType.map(Main::wrap).map(value) {
+auto __lambda2__(auto this.maybeBeforeType.map(Main::wrap).map(value) {
 	return value + /*" ").orElse("")*/ + this.type() + " " + this;
-}/*@Override
+}
+/*@Override
 		public*/ char* generate_Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable(){
-	return .name();
+	return __lambda2__.name();
 }
 /*@Override
 		public*/ char* generate_Placeholder(String input) implements Definable(){
@@ -153,12 +179,14 @@ auto ?(auto this.maybeBeforeType.map(Main::wrap).map(value) {
 		}*/
 	return current.advance().stream();
 }
-auto ?(auto ()) {
+auto __lambda3__(auto ()) {
 	return /*foldDoubleQuotes(state*/;
-}auto ?(auto ()) {
+}
+auto __lambda4__(auto ()) {
 	return /*folder.apply(state*/;
-}/*private static*/ /*DivideState*/ foldEscaped_Main(/*DivideState*/ state, /*char*/ next, , , /*DivideState>*/ folder){
-	return foldSingleQuotes(state, next).or(, /*next)*/).orElseGet(, /*next)*/);
+}
+/*private static*/ /*DivideState*/ foldEscaped_Main(/*DivideState*/ state, /*char*/ next, , , /*DivideState>*/ folder){
+	return foldSingleQuotes(state, next).or(__lambda3__, /*next)*/).orElseGet(__lambda4__, /*next)*/);
 }
 /*private static*/ Optional</*DivideState*/> foldSingleQuotes_Main(/*DivideState*/ state, /*char*/ next){
 	if (/*next != '\''*/) return Optional.empty();
@@ -193,12 +221,13 @@ auto ?(auto ()) {
 	if (/*c == '}'*/) return appended.exit();
 	return appended;
 }
-auto ?(auto ()) {
+auto __lambda5__(auto ()) {
 	return /*new Tuple*/ < String;
-}/*private static Tuple<String,*/ /*ParseState>*/ compileRootSegment_Main(char* input, /*ParseState*/ state){
+}
+/*private static Tuple<String,*/ /*ParseState>*/ compileRootSegment_Main(char* input, /*ParseState*/ state){
 	/*final*/ char* stripped = input.strip();
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) return /*new Tuple*/ < /*String, ParseState>*/("", state);
-	return compileStructure(stripped, "class", state).orElseGet(, /*ParseState>*/(/*wrap(stripped*/), /*state)*/);
+	return compileStructure(stripped, "class", state).orElseGet(__lambda5__, /*ParseState>*/(/*wrap(stripped*/), /*state)*/);
 }
 /*private static Optional<Tuple<String,*/ /*ParseState>>*/ compileStructure_Main(char* input, char* type, /*ParseState*/ state){
 	/*final*/ int i = input.indexOf(type + " ");
@@ -256,11 +285,12 @@ auto ?(auto ()) {
 /*private static*/ char* compileValues_Main(char* input, , /*String>*/ mapper){
 	return compileAll(input, /*Main::foldValue*/, mapper);
 }
-auto ?(auto ()) {
+auto __lambda6__(auto ()) {
 	return wrap;
-}/*private static*/ char* compileParameter_Main(){
+}
+/*private static*/ char* compileParameter_Main(){
 	if (/*input1*/.isEmpty()) return "";
-	return generateField(/*input1*/).orElseGet((/*input1*/));
+	return generateField(/*input1*/).orElseGet(__lambda6__(/*input1*/));
 }
 /*private static*/ Optional<char*> generateField_Main(char* input){
 	return compileDefinition(input).map(/*Definable::generate*/).map(/*Main::generateStatement*/);
@@ -337,20 +367,24 @@ auto ?(auto ()) {
 		}*/
 	/**/;
 }
-auto ?(auto definable) {
+auto __lambda7__(auto definable) {
 	return definable;
-}auto ?(auto ()) {
-	return compileConstructor;
-}auto ?(auto ()) {
-	return /*new Placeholder*/;
-}/*private static*/ /*JMethodHeader*/ compileMethodHeader_Main(char* beforeParams){
-	return compileDefinition(beforeParams). < /*JMethodHeader>map*/().or((beforeParams)).orElseGet((beforeParams));
 }
-auto ?(auto slice) {
+auto __lambda8__(auto ()) {
+	return compileConstructor;
+}
+auto __lambda9__(auto ()) {
+	return /*new Placeholder*/;
+}
+/*private static*/ /*JMethodHeader*/ compileMethodHeader_Main(char* beforeParams){
+	return compileDefinition(beforeParams). < /*JMethodHeader>map*/(__lambda7__).or(__lambda8__(beforeParams)).orElseGet(__lambda9__(beforeParams));
+}
+auto __lambda10__(auto slice) {
 	return compileDefinition;
-}/*private static*/ char* compileParameters_Main(char* input){
+}
+/*private static*/ char* compileParameters_Main(char* input){
 	if (input.isEmpty()) return "";
-	return compileValues(input, (slice).map(/*Definable::generate*/).orElse(""));
+	return compileValues(input, __lambda10__(slice).map(/*Definable::generate*/).orElse(""));
 }
 /*private static Tuple<String,*/ /*ParseState>*/ compileMethodSegment_Main(char* input, int depth, /*ParseState*/ state){
 	/*final*/ char* stripped = input.strip();
@@ -411,12 +445,14 @@ auto ?(auto slice) {
 		}*/
 	return conditionEnd;
 }
-auto ?(auto generated) {
+auto __lambda11__(auto generated) {
 	return /*new Tuple*/ < String;
-}auto ?(auto ()) {
+}
+auto __lambda12__(auto ()) {
 	return /*compileExpression(
 																																																	destinationString*/;
-}/*private static Tuple<String,*/ /*ParseState>*/ compileMethodStatementValue_Main(char* input, /*ParseState*/ state){
+}
+/*private static Tuple<String,*/ /*ParseState>*/ compileMethodStatementValue_Main(char* input, /*ParseState*/ state){
 	if (input.startsWith("return ")) {
 		/*final*/ char* substring = input.substring("return ".length());
 		/*final Tuple<String,*/ /*ParseState>*/ result = compileExpression(substring, state);
@@ -426,26 +462,32 @@ auto ?(auto generated) {
 	if (i >= 0) {
 		/*final*/ char* destinationString = input.substring(0, i);
 		/*final*/ char* source = input.substring(i + 1);
-		/*final Tuple<String,*/ /*ParseState>*/ destinationResult = compileDefinition(destinationString).map(/*Definition::generate*/).map(, /*ParseState>(
-																																																	generated*/, /*state)*/).orElseGet(, /*state)*/);
+		/*final Tuple<String,*/ /*ParseState>*/ destinationResult = compileDefinition(destinationString).map(/*Definition::generate*/).map(__lambda11__, /*ParseState>(
+																																																	generated*/, /*state)*/).orElseGet(__lambda12__, /*state)*/);
 		/*final Tuple<String,*/ /*ParseState>*/ sourceResult = compileExpression(source, destinationResult.right);
 		return /*new Tuple*/ < /*String, ParseState>*/(destinationResult.left + " = " + sourceResult.left, sourceResult.right);
 	}
 	return /*new Tuple*/ < /*String, ParseState>*/(wrap(input), state);
 }
-auto ?(auto ()) {
+auto __lambda13__(auto ()) {
 	return /*compileOperator(stripped*/;
-}auto ?(auto ()) {
+}
+auto __lambda14__(auto ()) {
 	return /*compileOperator(stripped*/;
-}auto ?(auto ()) {
+}
+auto __lambda15__(auto ()) {
 	return /*compileOperator(stripped*/;
-}auto ?(auto ()) {
+}
+auto __lambda16__(auto ()) {
 	return /*compileIdentifier(stripped*/;
-}auto ?(auto ()) {
+}
+auto __lambda17__(auto ()) {
 	return /*compileNumber(stripped*/;
-}auto ?(auto ()) {
+}
+auto __lambda18__(auto ()) {
 	return /*new Tuple*/ < String;
-}/*private static Tuple<String,*/ /*ParseState>*/ compileExpression_Main(char* input, /*ParseState*/ state){
+}
+/*private static Tuple<String,*/ /*ParseState>*/ compileExpression_Main(char* input, /*ParseState*/ state){
 	/*final*/ char* stripped = input.strip();
 	if (isString(stripped)) return /*new Tuple*/ < /*String, ParseState>*/(stripped, state);
 	if (/*stripped.endsWith(")"*/) /*) {
@@ -495,10 +537,12 @@ auto ?(auto ()) {
 		/*final String substring1*/ = stripped.substring(/*i1*/ + 2);
 		/*final Tuple<String,*/ /*ParseState>*/ result = compileExpression(/*substring1*/, state);
 		/*final*/ char* s = generateStatement("return " + result.left);
-		/*final String s1*/ = "auto ?(auto " + name + ") {" + s + generateIndent(0) + "}";
-		return /*new Tuple*/ < /*String, ParseState>*/("", result.right.addFunction(/*s1*/));
+		/*final*/ /*ParseState*/ right = result.right;
+		/*final*/ char* generatedName = right.generateAnonymousFunctionName();
+		/*final String s1*/ = "auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
+		return /*new Tuple*/ < /*String, ParseState>*/(generatedName, right.addFunction(/*s1*/));
 	}
-	return compileOperator(stripped, "+", state).or(, "-", /*state)*/).or(, ">=", /*state)*/).or(, "<", /*state)*/).or(, /*state)*/).or(, /*state)*/).orElseGet(, /*ParseState>*/(/*wrap(stripped*/), /*state)*/);
+	return compileOperator(stripped, "+", state).or(__lambda13__, "-", /*state)*/).or(__lambda14__, ">=", /*state)*/).or(__lambda15__, "<", /*state)*/).or(__lambda16__, /*state)*/).or(__lambda17__, /*state)*/).orElseGet(__lambda18__, /*ParseState>*/(/*wrap(stripped*/), /*state)*/);
 }
 /*private static Optional<Tuple<String,*/ /*ParseState>>*/ compileIdentifier_Main(char* stripped, /*ParseState*/ state){
 	if (isIdentifier(stripped)) return Optional.of(/*new Tuple*/ < String, /*ParseState>(stripped*/, /*state)*/);
@@ -552,11 +596,13 @@ auto ?(auto ()) {
 	}
 	return Optional.empty();
 }
-auto ?(auto type) {
+auto __lambda19__(auto type) {
 	return /*new Definition(type*/;
-}auto ?(auto type) {
+}
+auto __lambda20__(auto type) {
 	return /*new Definition*/;
-}/*private static*/ Optional</*Definition*/> compileDefinition_Main(char* input){
+}
+/*private static*/ Optional</*Definition*/> compileDefinition_Main(char* input){
 	/*final*/ char* stripped = input.strip();
 	/*final*/ int index = stripped.lastIndexOf(" ");
 	if (index < 0) return Optional.empty();
@@ -564,10 +610,10 @@ auto ?(auto type) {
 	/*final*/ char* name = stripped.substring(index + " ".length()).strip();
 	if (/*!isIdentifier*/(name)) return Optional.empty();
 	/*final*/ int typeSeparator = beforeName.lastIndexOf(" ");
-	if (typeSeparator < 0) return compileType(beforeName).map(, /*name)*/);
+	if (typeSeparator < 0) return compileType(beforeName).map(__lambda19__, /*name)*/);
 	/*final*/ char* beforeType = beforeName.substring(0, typeSeparator);
 	/*final*/ char* typeString = beforeName.substring(typeSeparator + " ".length());
-	return compileType(typeString).map((/*Optional.of(beforeType*/), type, /*name)*/);
+	return compileType(typeString).map(__lambda20__(/*Optional.of(beforeType*/), type, /*name)*/);
 }
 /*private static*/ Optional<char*> compileType_Main(char* input){
 	/*final*/ char* stripped = input.strip();

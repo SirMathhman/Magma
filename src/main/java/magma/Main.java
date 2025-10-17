@@ -23,9 +23,14 @@ public class Main {
 
 	private sealed interface JMethodHeader permits JConstructor, Definable {}
 
-	private record ParseState(List<String> functions, List<String> structs) {
+	private static final class ParseState {
+		private final List<String> functions;
+		private final List<String> structs;
+		private int counter = -1;
+
 		public ParseState() {
-			this(new ArrayList<String>(), new ArrayList<String>());
+			this.functions = new ArrayList<String>();
+			this.structs = new ArrayList<String>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -38,10 +43,33 @@ public class Main {
 			return this;
 		}
 
+		public String generateAnonymousFunctionName() {
+			this.counter++;
+			return "__lambda" + this.counter + "__";
+		}
+
+		public List<String> functions() {return this.functions;}
+
+		public List<String> structs() {return this.structs;}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) return true;
+			if (obj == null || obj.getClass() != this.getClass()) return false;
+			ParseState that = (ParseState) obj;
+			return Objects.equals(this.functions, that.functions) && Objects.equals(this.structs, that.structs);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.functions, this.structs);
+		}
+
 		@Override
 		public String toString() {
-			throw new UnsupportedOperationException();
+			return "ParseState[" + "functions=" + this.functions + ", " + "structs=" + this.structs + ']';
 		}
+
 	}
 
 	private static class DivideState {
@@ -562,8 +590,12 @@ public class Main {
 			final String substring1 = stripped.substring(i1 + 2);
 			final Tuple<String, ParseState> result = compileExpression(substring1, state);
 			final String s = generateStatement("return " + result.left);
-			final String s1 = "auto ?(auto " + name + ") {" + s + generateIndent(0) + "}";
-			return new Tuple<String, ParseState>("", result.right.addFunction(s1));
+
+			final ParseState right = result.right;
+			final String generatedName = right.generateAnonymousFunctionName();
+			final String s1 =
+					"auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
+			return new Tuple<String, ParseState>(generatedName, right.addFunction(s1));
 		}
 
 		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
