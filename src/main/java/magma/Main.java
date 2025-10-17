@@ -541,6 +541,22 @@ public class Main {
 		final String stripped = input.strip();
 		if (isString(stripped)) return new Tuple<String, ParseState>(stripped, state);
 
+		final int i1 = stripped.indexOf("->");
+		if (i1 >= 0) {
+			final String name = stripped.substring(0, i1).strip();
+			if (isIdentifier(name)) {
+				final String substring1 = stripped.substring(i1 + 2);
+				final Tuple<String, ParseState> result = compileExpression(substring1, state);
+				final String s = generateStatement("return " + result.left);
+
+				final ParseState right = result.right;
+				final String generatedName = right.generateAnonymousFunctionName();
+				final String s1 =
+						"auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
+				return new Tuple<String, ParseState>(generatedName, right.addFunction(s1));
+			}
+		}
+
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 
@@ -582,20 +598,6 @@ public class Main {
 				final Tuple<String, ParseState> result = compileExpression(substring, state);
 				return new Tuple<String, ParseState>(result.left + "." + name, result.right);
 			}
-		}
-
-		final int i1 = stripped.indexOf("->");
-		if (i1 >= 0) {
-			final String name = stripped.substring(0, i1).strip();
-			final String substring1 = stripped.substring(i1 + 2);
-			final Tuple<String, ParseState> result = compileExpression(substring1, state);
-			final String s = generateStatement("return " + result.left);
-
-			final ParseState right = result.right;
-			final String generatedName = right.generateAnonymousFunctionName();
-			final String s1 =
-					"auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
-			return new Tuple<String, ParseState>(generatedName, right.addFunction(s1));
 		}
 
 		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
