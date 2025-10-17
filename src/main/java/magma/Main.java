@@ -402,9 +402,13 @@ public class Main {
 
 		final int i = input.indexOf("=");
 		if (i >= 0) {
-			final String destination = input.substring(0, i);
+			final String destinationString = input.substring(0, i);
 			final String source = input.substring(i + 1);
-			return compileExpression(destination) + " = " + compileExpression(source);
+			final String destination = compileDefinition(destinationString).map(Definition::generate)
+																																		 .orElseGet(() -> compileExpression(
+																																				 destinationString));
+
+			return destination + " = " + compileExpression(source);
 		}
 
 		return wrap(input);
@@ -467,12 +471,13 @@ public class Main {
 		return Optional.empty();
 	}
 
-	private static Optional<Definable> compileDefinition(String input) {
-		final int index = input.lastIndexOf(" ");
+	private static Optional<Definition> compileDefinition(String input) {
+		final String stripped = input.strip();
+		final int index = stripped.lastIndexOf(" ");
 		if (index < 0) return Optional.empty();
 
-		final String beforeName = input.substring(0, index).strip();
-		final String name = input.substring(index + " ".length()).strip();
+		final String beforeName = stripped.substring(0, index).strip();
+		final String name = stripped.substring(index + " ".length()).strip();
 		if (!isIdentifier(name)) return Optional.empty();
 
 		final int typeSeparator = beforeName.lastIndexOf(" ");
