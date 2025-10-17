@@ -15,13 +15,16 @@ public class Main {
 			final Path targetParent = target.getParent();
 
 			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-			Files.writeString(target,
-												wrap(input) + "int main(){" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() +
-												"}");
+			Files.writeString(target, compile(input));
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String compile(String input) {
+		return wrap(input) + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
+					 "\treturn 0;" + System.lineSeparator() + "}";
 	}
 
 	private static String wrap(String input) {
@@ -30,5 +33,6 @@ public class Main {
 	}
 }
 */int main(){
+	main_Main();
 	return 0;
 }
