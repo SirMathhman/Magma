@@ -628,7 +628,10 @@ public class Main {
 		final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
 		final String arguments = segments.getLast();
 
-		final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
+		final Optional<Tuple<String, ParseState>> maybeCallerResult = compileCaller(state, caller);
+		if (maybeCallerResult.isEmpty()) return Optional.empty();
+
+		final Tuple<String, ParseState> callerResult = maybeCallerResult.get();
 		final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
 																													Main::foldValue).toList().stream().reduce(new Tuple<StringJoiner, ParseState>(
 				new StringJoiner(", "),
@@ -692,13 +695,13 @@ public class Main {
 		return new Tuple<String, ParseState>(s2, result.right);
 	}
 
-	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {
+	private static Optional<Tuple<String, ParseState>> compileCaller(ParseState state, String caller) {
 		if (caller.startsWith("new ")) {
 			final Optional<String> newType = compileType(caller.substring("new ".length()));
-			if (newType.isPresent()) return new Tuple<String, ParseState>("new_" + newType.get(), state);
+			if (newType.isPresent()) return Optional.of(new Tuple<String, ParseState>("new_" + newType.get(), state));
 		}
 
-		return compileExpression(caller, state);
+		return tryCompileExpression(caller, state);
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileIdentifier(String stripped, ParseState state) {
