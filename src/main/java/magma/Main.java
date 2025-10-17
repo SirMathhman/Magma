@@ -47,29 +47,6 @@ public class Main {
 			this.counter++;
 			return "__lambda" + this.counter + "__";
 		}
-
-		public List<String> functions() {return this.functions;}
-
-		public List<String> structs() {return this.structs;}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this) return true;
-			if (obj == null || obj.getClass() != this.getClass()) return false;
-			ParseState that = (ParseState) obj;
-			return Objects.equals(this.functions, that.functions) && Objects.equals(this.structs, that.structs);
-		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(this.functions, this.structs);
-		}
-
-		@Override
-		public String toString() {
-			return "ParseState[" + "functions=" + this.functions + ", " + "structs=" + this.structs + ']';
-		}
-
 	}
 
 	private static class DivideState {
@@ -542,6 +519,15 @@ public class Main {
 		final String stripped = input.strip();
 		if (isString(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 
+		if (stripped.startsWith("!")) {
+			final String slice = stripped.substring(1);
+			final Optional<Tuple<String, ParseState>> maybeResult = tryCompileExpression(slice, state);
+			if (maybeResult.isPresent()) {
+				final Tuple<String, ParseState> result = maybeResult.get();
+				return Optional.of(new Tuple<String, ParseState>("!" + result.left, result.right));
+			}
+		}
+
 		final int i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
 			final String name = stripped.substring(0, i1).strip();
@@ -690,7 +676,6 @@ public class Main {
 		final int typeSeparator = beforeName.lastIndexOf(" ");
 		if (typeSeparator < 0) return compileType(beforeName).map(type -> new Definition(type, name));
 
-		final String beforeType = beforeName.substring(0, typeSeparator);
 		final String typeString = beforeName.substring(typeSeparator + " ".length());
 		return compileType(typeString).map(type -> new Definition(type, name));
 	}

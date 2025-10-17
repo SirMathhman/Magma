@@ -47,24 +47,6 @@ char* generateAnonymousFunctionName_ParseState(){
 	/*this.counter++*/;
 	return "__lambda" + this.counter + "__";
 }
-List<char*> functions_ParseState(){
-	return this.functions;
-}
-List<char*> structs_ParseState(){
-	return this.structs;
-}
-/*boolean*/ equals_ParseState(/*Object*/ obj){
-	if (/*obj == this*/) return true;
-	if (/*obj == null || obj.getClass() != this*/.getClass()) return false;
-	/*ParseState*/ that = /* (ParseState) obj*/;
-	return /*Objects.equals(this.functions, that.functions) && Objects*/.equals(this.structs, that.structs);
-}
-int hashCode_ParseState(){
-	return Objects.hash(this.functions, this.structs);
-}
-char* toString_ParseState(){
-	return /*"ParseState[" + "functions=" + this.functions + ", " + "structs=" + this.structs + ']'*/;
-}
 DivideState new_DivideState(char* input){
 	DivideState this;
 	this.input = input;
@@ -238,7 +220,7 @@ Optional</*DivideState*/> foldDoubleQuotes_Main(/*DivideState*/ state, /*char*/ 
 		}
 	}
 	char* afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
-	if (/*!afterContent*/.endsWith("}")) return Optional.empty();
+	if (!afterContent.endsWith("}")) return Optional.empty();
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
 	List<char*> segments = divide(content, /* Main::foldStatement*/).toList();
 	/*StringBuilder*/ inner = /*new StringBuilder*/();
@@ -441,6 +423,14 @@ auto __lambda4__(auto generated) {
 /*ParseState>>*/ tryCompileExpression_Main(char* input, /*ParseState*/ state){
 	char* stripped = input.strip();
 	if (isString(stripped)) return Optional.of(/*new Tuple<String*/, /*ParseState>*/(stripped, state));
+	if (stripped.startsWith("!")) {
+		char* slice = stripped.substring(1);
+		/*ParseState>>*/ maybeResult = tryCompileExpression(slice, state);
+		if (maybeResult.isPresent()) {
+			/*ParseState>*/ result = maybeResult.get();
+			return Optional.of(/*new Tuple<String*/, /*ParseState>*/("!" + result.left, result.right));
+		}
+	}
 	/*final int i1 */ = stripped.indexOf("->");
 	if (/*i1 >= 0*/) {
 		char* name = stripped.substring(0, /* i1*/).strip();
@@ -522,8 +512,8 @@ auto __lambda4__(auto generated) {
 /*boolean*/ isString_Main(char* stripped){
 	if (stripped.length() < 2) return false;
 	/*boolean*/ hasDoubleQuotes = /*stripped.startsWith("\"") && stripped*/.endsWith(/*"\""*/);
-	if (/*!hasDoubleQuotes*/) return false;
-	return /*!stripped*/.substring(1, stripped.length() - 1).contains(/*"\""*/);
+	if (!hasDoubleQuotes) return false;
+	return !stripped.substring(1, stripped.length() - 1).contains(/*"\""*/);
 }
 /*boolean*/ isNumber_Main(char* input){
 	/*(int*/ i = 0;
@@ -566,10 +556,9 @@ Optional</*Definition*/> compileDefinition_Main(char* input){
 	if (index < 0) return Optional.empty();
 	char* beforeName = stripped.substring(0, index).strip();
 	char* name = stripped.substring(index + " ".length()).strip();
-	if (/*!isIdentifier*/(name)) return Optional.empty();
+	if (!isIdentifier(name)) return Optional.empty();
 	int typeSeparator = beforeName.lastIndexOf(" ");
 	if (typeSeparator < 0) return compileType(beforeName).map(__lambda5__);
-	char* beforeType = beforeName.substring(0, typeSeparator);
 	char* typeString = beforeName.substring(typeSeparator + " ".length());
 	return compileType(typeString).map(__lambda6__);
 }
