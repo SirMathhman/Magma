@@ -598,8 +598,10 @@ public class Main {
 		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
 																								.or(() -> compileOperator(stripped, ">=", state))
 																								.or(() -> compileOperator(stripped, "<", state))
+																								.or(() -> compileOperator(stripped, "!=", state))
 																								.or(() -> compileOperator(stripped, "==", state))
 																								.or(() -> compileOperator(stripped, "&&", state))
+																								.or(() -> compileOperator(stripped, "||", state))
 																								.or(() -> compileIdentifier(stripped, state))
 																								.or(() -> compileNumber(stripped, state));
 	}
@@ -720,7 +722,8 @@ public class Main {
 	private static boolean isIdentifier(String input) {
 		return IntStream.range(0, input.length()).allMatch(i -> {
 			final char next = input.charAt(i);
-			return Character.isLetter(next) || (i != 0 && Character.isDigit(next));
+			final boolean isValidDigit = i != 0 && Character.isDigit(next);
+			return Character.isLetter(next) || isValidDigit;
 		});
 	}
 
