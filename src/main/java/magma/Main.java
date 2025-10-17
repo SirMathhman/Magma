@@ -195,10 +195,14 @@ public class Main {
 	private static String compile(String input) {
 		StringJoiner joiner = new StringJoiner("");
 		ParseState state = new ParseState();
-		for (String input1 : divide(input, Main::foldStatement).toList()) {
+		List<String> list = divide(input, Main::foldStatement).toList();
+		int i = 0;
+		while (i < list.size()) {
+			String input1 = list.get(i);
 			Tuple<String, ParseState> s = compileRootSegment(input1, state);
 			joiner.add(s.left);
 			state = s.right;
+			i++;
 		}
 
 		final String joined = joiner.toString();
@@ -326,11 +330,13 @@ public class Main {
 
 		StringBuilder inner = new StringBuilder();
 		ParseState outer = state;
-
-		for (String segment : segments) {
+		int j = 0;
+		while (j < segments.size()) {
+			String segment = segments.get(j);
 			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer);
 			inner.append(compiled.left);
 			outer = compiled.right;
+			j++;
 		}
 
 		String beforeStruct;
@@ -430,10 +436,14 @@ public class Main {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 
 			StringJoiner joiner = new StringJoiner("");
-			for (String s : divide(inputBody, Main::foldStatement).toList()) {
+			List<String> list = divide(inputBody, Main::foldStatement).toList();
+			int i = 0;
+			while (i < list.size()) {
+				String s = list.get(i);
 				Tuple<String, ParseState> string = compileMethodSegment(s, 1, current);
 				joiner.add(string.left);
 				current = string.right;
+				i++;
 			}
 
 			final String compiledBody = joiner.toString();

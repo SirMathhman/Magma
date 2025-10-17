@@ -161,11 +161,15 @@ Result<char*, IOException> readString_Main(Path source){
 char* compile_Main(char* input){
 	StringJoiner joiner = new_StringJoiner("");
 	ParseState state = new_ParseState();
-	/*for (String input1 : divide(input, Main::foldStatement).toList()) {
-			Tuple<String, ParseState> s = compileRootSegment(input1, state);
-			joiner.add(s.left);
-			state = s.right;
-		}*/
+	List < String >= list == divide(input, foldStatement_Main).toList();
+	int i = 0;
+	while (i < list.size()) {
+		char* input1 = list.get(i);
+		Tuple<char*, ParseState> s = compileRootSegment(input1, state);
+		joiner.add(s.left);
+		state = s.right;
+		i++;
+	}
 	char* joined = joiner.toString();
 	char* joinedStructs = String.join("", state.structs);
 	char* joinedFunctions = String.join("", state.functions);
@@ -273,11 +277,14 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	List<char*> segments = divide(content, foldStatement_Main).toList();
 	StringBuilder inner = new_StringBuilder();
 	ParseState outer = state;
-	/*for (String segment : segments) {
-			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer);
-			inner.append(compiled.left);
-			outer = compiled.right;
-		}*/
+	int j = 0;
+	while (j < segments.size()) {
+		char* segment = segments.get(j);
+		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer);
+		inner.append(compiled.left);
+		outer = compiled.right;
+		j++;
+	}
 	char* beforeStruct;
 	if (typeArguments.isEmpty()) beforeStruct = "";
 	else {
@@ -363,11 +370,15 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* inputBody = withBraces.substring(1, withBraces.length() - 1);
 		StringJoiner joiner = new_StringJoiner("");
-		/*for (String s : divide(inputBody, Main::foldStatement).toList()) {
-				Tuple<String, ParseState> string = compileMethodSegment(s, 1, current);
-				joiner.add(string.left);
-				current = string.right;
-			}*/
+		List < String >= list == divide(inputBody, foldStatement_Main).toList();
+		int i = 0;
+		while (i < list.size()) {
+			char* s = list.get(i);
+			Tuple<char*, ParseState> string = compileMethodSegment(s, 1, current);
+			joiner.add(string.left);
+			current = string.right;
+			i++;
+		}
 		char* compiledBody = joiner.toString();
 		char* outputBody;
 		if (/*Objects.requireNonNull(methodHeader) instanceof JConstructor*/) outputBody = /* generateStatement(name + " this") + compiledBody + generateStatement("return this")*/;
