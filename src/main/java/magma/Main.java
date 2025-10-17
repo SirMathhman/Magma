@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -185,14 +186,27 @@ public class Main {
 		if (contentStart < 0) return Optional.empty();
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
 		// if (!isIdentifier(beforeContent)) return Optional.empty();
-		String name = beforeContent;
+		String beforeMaybeParams = beforeContent;
 		String recordFields = "";
 		if (beforeContent.endsWith(")")) {
 			final String slice = beforeContent.substring(0, beforeContent.length() - 1);
 			final int beforeParams = slice.indexOf("(");
 			if (beforeParams >= 0) {
-				name = slice.substring(0, beforeParams);
-				recordFields = compileAll(slice.substring(beforeParams + 1), Main::foldValue, Main::compileParameter);
+				beforeMaybeParams = slice.substring(0, beforeParams).strip();
+				final String substring = slice.substring(beforeParams + 1);
+				recordFields = compileValues(substring, Main::compileParameter);
+			}
+		}
+
+		String name = beforeMaybeParams;
+		List<String> typeArguments = Collections.emptyList();
+		if (beforeMaybeParams.endsWith(">")) {
+			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
+			final int i1 = withoutEnd.indexOf("<");
+			if (i1 >= 0) {
+				name = withoutEnd.substring(0, i1);
+				final String arguments = withoutEnd.substring(i1 + "<".length());
+				typeArguments = divide(arguments, Main::foldValue).map(String::strip).toList();
 			}
 		}
 
@@ -212,9 +226,23 @@ public class Main {
 			outer.append(compiled.right);
 		}
 
+		String beforeStruct;
+		if (typeArguments.isEmpty()) beforeStruct = "";
+		else {
+			final String templateValues =
+					typeArguments.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">")) +
+					System.lineSeparator();
+
+			beforeStruct = "template " + templateValues;
+		}
+
 		return Optional.of(new Tuple<String, String>("",
-																								 "struct " + name + " {" + recordFields + inner +
+																								 beforeStruct + "struct " + name + " {" + recordFields + inner +
 																								 System.lineSeparator() + "};" + System.lineSeparator() + outer));
+	}
+
+	private static String compileValues(String input, Function<String, String> mapper) {
+		return compileAll(input, Main::foldValue, mapper);
 	}
 
 	private static String compileParameter(String input1) {
