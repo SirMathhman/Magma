@@ -138,15 +138,10 @@ public class Main {
 
 	public record Tuple<A, B>(A left, B right) {}
 
-	private record Definition(Optional<String> maybeBeforeType, String type, String name) implements Definable {
-		public Definition(String type, String name) {
-			this(Optional.empty(), type, name);
-		}
-
+	private record Definition(String type, String name) implements Definable {
 		@Override
 		public String generate() {
-			return this.maybeBeforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " +
-						 this.name();
+			return this.type + " " + this.name;
 		}
 	}
 
@@ -431,8 +426,7 @@ public class Main {
 	private static Definable transformMethodHeader(JMethodHeader methodHeader, String name) {
 		return switch (methodHeader) {
 			case JConstructor constructor -> new Definition(constructor.name, "new_" + constructor.name);
-			case Definition definition ->
-					new Definition(definition.maybeBeforeType, definition.type, definition.name + "_" + name);
+			case Definition definition -> new Definition(definition.type, definition.name + "_" + name);
 			case Placeholder placeholder -> placeholder;
 		};
 	}
@@ -698,7 +692,7 @@ public class Main {
 
 		final String beforeType = beforeName.substring(0, typeSeparator);
 		final String typeString = beforeName.substring(typeSeparator + " ".length());
-		return compileType(typeString).map(type -> new Definition(Optional.of(beforeType), type, name));
+		return compileType(typeString).map(type -> new Definition(type, name));
 	}
 
 	private static Optional<String> compileType(String input) {
