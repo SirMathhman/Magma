@@ -441,20 +441,8 @@ public class Main {
 
 	private static Tuple<String, ParseState> compileMethodSegmentValue(String input, int depth, ParseState state) {
 		final String stripped = input.strip();
-		if (stripped.startsWith("{") && stripped.endsWith("}")) {
-			final String substring = stripped.substring(1, stripped.length() - 1);
-
-			StringJoiner joiner = new StringJoiner("");
-			ParseState current = state;
-			for (String s : divide(substring, Main::foldStatement).toList()) {
-				Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
-				joiner.add(string.left);
-				current = string.right;
-			}
-
-			final String compiled = joiner.toString();
-			return new Tuple<String, ParseState>("{" + compiled + generateIndent(depth) + "}", current);
-		}
+		final Optional<Tuple<String, ParseState>> compiled = compileBlock(state, stripped, depth);
+		if (compiled.isPresent()) return compiled.get();
 
 		if (stripped.startsWith("if")) {
 			final String withoutPrefix = stripped.substring(2);
@@ -478,6 +466,23 @@ public class Main {
 		}
 
 		return new Tuple<String, ParseState>(wrap(stripped), state);
+	}
+
+	private static Optional<Tuple<String, ParseState>> compileBlock(ParseState state, String input, int depth) {
+		if (!input.startsWith("{") || !input.endsWith("}")) return Optional.empty();
+		final String substring = input.substring(1, input.length() - 1);
+
+		StringJoiner joiner = new StringJoiner("");
+		ParseState current = state;
+		for (String s : divide(substring, Main::foldStatement).toList()) {
+			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
+			joiner.add(string.left);
+			current = string.right;
+		}
+
+		final String compiled = joiner.toString();
+		return Optional.of(new Tuple<String, ParseState>("{" + compiled + generateIndent(depth) + "}", current));
+
 	}
 
 	private static int findConditionEnd(String withoutPrefix) {
@@ -611,16 +616,22 @@ public class Main {
 
 		} else return Optional.empty();
 
-		final String substring1 = stripped.substring(i1 + 2);
-		final Tuple<String, ParseState> result = compileExpression(substring1, state);
+		final String body = stripped.substring(i1 + 2).strip();
+		final Tuple<String, ParseState> bodyResult = compileLambdaBody(state, body);
+
+		final String generatedName = bodyResult.right.generateAnonymousFunctionName();
+		final String s1 = "auto " + generatedName + "(" + outputParams + ") " + bodyResult.left + System.lineSeparator();
+		return Optional.of(new Tuple<String, ParseState>(generatedName, bodyResult.right.addFunction(s1)));
+	}
+
+	private static Tuple<String, ParseState> compileLambdaBody(ParseState state, String body) {
+		final Optional<Tuple<String, ParseState>> maybeBlock = compileBlock(state, body, 1);
+		if (maybeBlock.isPresent()) return maybeBlock.get();
+
+		final Tuple<String, ParseState> result = compileExpression(body, state);
 		final String s = generateStatement("return " + result.left);
-
-		final ParseState right = result.right;
-		final String generatedName = right.generateAnonymousFunctionName();
-
-		final String s1 =
-				"auto " + generatedName + "(" + outputParams + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
-		return Optional.of(new Tuple<String, ParseState>(generatedName, right.addFunction(s1)));
+		final String s2 = "{" + s + generateIndent(0) + "}";
+		return new Tuple<>(s2, result.right);
 	}
 
 	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {

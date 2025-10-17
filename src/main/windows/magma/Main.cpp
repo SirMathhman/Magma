@@ -306,11 +306,9 @@ auto __lambda9__() {
 	return compileMethod(input, name, state);
 }
 auto __lambda10__() {
-	return /* {
-																										final String generated = generateSegment(wrap(input), 1);
-																										return new Tuple<String, ParseState>(generated, state);
-																									}*/;
-}
+		char* generated = generateSegment(wrap(input), 1);
+		return new_Tuple<char*, ParseState>(generated, state);
+	}
 Tuple<char*, ParseState> compileClassSegmentValue_Main(char* input, char* name, ParseState state){
 	if (input.isEmpty()) return new_Tuple<char*, ParseState>("", state);
 	return compileStructure(input, "class", state).or(__lambda6__).or(__lambda7__).or(__lambda8__).or(__lambda9__).orElseGet(__lambda10__);
@@ -383,18 +381,8 @@ Tuple<char*, ParseState> compileMethodSegment_Main(char* input, int depth, Parse
 }
 Tuple<char*, ParseState> compileMethodSegmentValue_Main(char* input, int depth, ParseState state){
 	char* stripped = input.strip();
-	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
-		char* substring = stripped.substring(1, stripped.length() - 1);
-		StringJoiner joiner = new_StringJoiner("");
-		ParseState current = state;
-		/*for (String s : divide(substring, Main::foldStatement).toList()) {
-				Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
-				joiner.add(string.left);
-				current = string.right;
-			}*/
-		char* compiled = joiner.toString();
-		return new_Tuple<char*, ParseState>("{" + compiled + generateIndent(depth) + "}", current);
-	}
+	Optional<Tuple<char*, ParseState>> compiled = compileBlock(state, stripped, depth);
+	if (compiled.isPresent()) return compiled.get();
 	if (stripped.startsWith("if")) {
 		char* withoutPrefix = stripped.substring(2);
 		int conditionEnd = findConditionEnd(withoutPrefix);
@@ -415,6 +403,19 @@ Tuple<char*, ParseState> compileMethodSegmentValue_Main(char* input, int depth, 
 		return new_Tuple<char*, ParseState>(result.left + ";", result.right);
 	}
 	return new_Tuple<char*, ParseState>(wrap(stripped), state);
+}
+Optional<Tuple<char*, ParseState>> compileBlock_Main(ParseState state, char* input, int depth){
+	if (!/*input.startsWith("{") || !input*/.endsWith("}")) return Optional.empty();
+	char* substring = input.substring(1, input.length() - 1);
+	StringJoiner joiner = new_StringJoiner("");
+	ParseState current = state;
+	/*for (String s : divide(substring, Main::foldStatement).toList()) {
+			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
+			joiner.add(string.left);
+			current = string.right;
+		}*/
+	char* compiled = joiner.toString();
+	return Optional.of(new_Tuple<char*, ParseState>("{" + compiled + generateIndent(depth) + "}", current));
 }
 int findConditionEnd_Main(char* withoutPrefix){
 	int conditionEnd =  - 1;
@@ -547,13 +548,19 @@ Optional<Tuple<char*, ParseState>> compileLambda_Main(ParseState state, char* st
 
 		}*/
 	/*else return Optional.empty()*/;
-	/*final String substring1 */ = stripped.substring(/*i1 + 2*/);
-	Tuple<char*, ParseState> result = compileExpression(/*substring1*/, state);
+	char* body = stripped.substring(/*i1 + 2*/).strip();
+	Tuple<char*, ParseState> bodyResult = compileLambdaBody(state, body);
+	char* generatedName = bodyResult.right.generateAnonymousFunctionName();
+	/*final String s1 */ = "auto " + generatedName + "(" + outputParams + ") " + bodyResult.left + System.lineSeparator();
+	return Optional.of(new_Tuple<char*, ParseState>(generatedName, bodyResult.right.addFunction(/*s1*/)));
+}
+Tuple<char*, ParseState> compileLambdaBody_Main(ParseState state, char* body){
+	Optional<Tuple<char*, ParseState>> maybeBlock = compileBlock(state, body, 1);
+	if (maybeBlock.isPresent()) return maybeBlock.get();
+	Tuple<char*, ParseState> result = compileExpression(body, state);
 	char* s = generateStatement("return " + result.left);
-	ParseState right = result.right;
-	char* generatedName = right.generateAnonymousFunctionName();
-	/*final String s1 */ = "auto " + generatedName + "(" + outputParams + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
-	return Optional.of(new_Tuple<char*, ParseState>(generatedName, right.addFunction(/*s1*/)));
+	/*final String s2 */ = "{" + s + generateIndent(0) + "}";
+	return new_Tuple<>(/*s2*/, result.right);
 }
 Tuple<char*, ParseState> compileCaller_Main(ParseState state, char* caller){
 	if (caller.startsWith("new ")) {
@@ -634,15 +641,12 @@ Optional<Definition> compileDefinition_Main(char* input){
 	return compileType(typeString).map(__lambda24__);
 }
 auto __lambda25__(auto state, auto c) {
-	return /* {
-			if (c == ' ' && state.isLevel()) return state.advance();
-
-			final DivideState appended = state.append(c);
-			if (c == '<') return appended.enter();
-			if (c == '>') return appended.exit();
-			return appended;
-		}*/;
-}
+		if (/*c == ' ' && state*/.isLevel()) return state.advance();
+		DivideState appended = state.append(c);
+		if (/*c == '<'*/) return appended.enter();
+		if (/*c == '>'*/) return appended.exit();
+		return appended;
+	}
 Stream<char*> findTypeSeparator_Main(char* beforeName){
 	return divide(beforeName, __lambda25__);
 }
