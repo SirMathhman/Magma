@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Function;
@@ -14,6 +15,19 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+	private sealed interface Definable extends MethodHeader {
+		String generate();
+
+		@Override
+		default Definable toDefinable() {
+			return this;
+		}
+	}
+
+	private interface MethodHeader {
+		Definable toDefinable();
+	}
+
 	private static class State {
 		private final ArrayList<String> segments;
 		private final String input;
@@ -79,6 +93,31 @@ public class Main {
 	}
 
 	public record Tuple<A, B>(A left, B right) {}
+
+	private record Definition(Optional<String> beforeType, String type, String name) implements Definable {
+		public Definition(String type, String name) {
+			this(Optional.empty(), type, name);
+		}
+
+		@Override
+		public String generate() {
+			return this.beforeType.map(Main::wrap).map(value -> value + " ").orElse("") + this.type() + " " + this.name();
+		}
+	}
+
+	private record Placeholder(String input) implements Definable {
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+	}
+
+	private record Constructor(String name) implements MethodHeader {
+		@Override
+		public Definable toDefinable() {
+			return new Definition(this.name, "new_" + this.name);
+		}
+	}
 
 	public static void main(String[] args) {
 		try {
@@ -251,7 +290,7 @@ public class Main {
 	}
 
 	private static String generateField(String input) {
-		return generateStatement(compileDefinition(input).orElseGet(() -> wrap(input)));
+		return generateStatement(compileDefinition(input).map(Definable::generate).orElseGet(() -> wrap(input)));
 	}
 
 	private static String generateStatement(String content) {
@@ -287,9 +326,7 @@ public class Main {
 		final int paramEnd = withParams.indexOf(")");
 		if (paramEnd < 0) return Optional.empty();
 
-		final String definition =
-				compileDefinition(beforeParams).or(() -> compileConstructor(beforeParams)).orElseGet(() -> wrap(beforeParams));
-
+		final MethodHeader methodHeader = compileMethodHeader(beforeParams);
 		final String inputParams = withParams.substring(0, paramEnd);
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
@@ -299,16 +336,28 @@ public class Main {
 		final String outputParams = compileParameters(inputParams);
 
 		final String compiledBody = compileStatements(inputBody, Main::compileMethodSegment);
-		final String outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+
+		String outputBody;
+		if (Objects.requireNonNull(methodHeader) instanceof Constructor)
+			outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+		else outputBody = compiledBody;
 
 		final String generated =
-				definition + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" + System.lineSeparator();
+				methodHeader.toDefinable().generate() + "(" + outputParams + "){" + outputBody + System.lineSeparator() + "}" +
+				System.lineSeparator();
+
 		return Optional.of(new Tuple<String, String>("", generated));
+	}
+
+	private static MethodHeader compileMethodHeader(String beforeParams) {
+		return compileDefinition(beforeParams).<MethodHeader>map(definable -> definable)
+																					.or(() -> compileConstructor(beforeParams))
+																					.orElseGet(() -> new Placeholder(beforeParams));
 	}
 
 	private static String compileParameters(String input) {
 		if (input.isEmpty()) return "";
-		return compileValues(input, slice -> compileDefinition(slice).orElse(""));
+		return compileValues(input, slice -> compileDefinition(slice).map(Definable::generate).orElse(""));
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -367,12 +416,12 @@ public class Main {
 		return true;
 	}
 
-	private static Optional<String> compileConstructor(String beforeParams) {
+	private static Optional<MethodHeader> compileConstructor(String beforeParams) {
 		final int separator = beforeParams.lastIndexOf(" ");
 		if (separator < 0) return Optional.empty();
 
 		final String name = beforeParams.substring(separator + " ".length());
-		return Optional.of(name + " new_" + name);
+		return Optional.of(new Constructor(name));
 	}
 
 	private static Optional<Tuple<String, String>> compileField(String input) {
@@ -382,18 +431,18 @@ public class Main {
 		} else return Optional.empty();
 	}
 
-	private static Optional<String> compileDefinition(String input) {
+	private static Optional<Definable> compileDefinition(String input) {
 		final int index = input.lastIndexOf(" ");
-		if (index < 0) return Optional.of(wrap(input));
+		if (index < 0) return Optional.of(new Placeholder(input));
 
 		final String beforeName = input.substring(0, index).strip();
 		final String name = input.substring(index + " ".length()).strip();
 		final int typeSeparator = beforeName.lastIndexOf(" ");
-		if (typeSeparator < 0) return compileType(beforeName).map(type -> type + " " + name);
+		if (typeSeparator < 0) return compileType(beforeName).map(type -> new Definition(type, name));
 
 		final String beforeType = beforeName.substring(0, typeSeparator);
 		final String typeString = beforeName.substring(typeSeparator + " ".length());
-		return compileType(typeString).map(type -> wrap(beforeType) + " " + type + " " + name);
+		return compileType(typeString).map(type -> new Definition(Optional.of(beforeType), type, name));
 	}
 
 	private static Optional<String> compileType(String input) {
