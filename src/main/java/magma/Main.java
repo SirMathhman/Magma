@@ -447,10 +447,12 @@ public class Main {
 
 		if (stripped.startsWith("if")) {
 			final String withoutPrefix = stripped.substring(2);
-			final int conditionEnd = findConditionEnd(withoutPrefix);
-			if (conditionEnd >= 0) {
-				final String substring1 = withoutPrefix.substring(0, conditionEnd).strip();
-				final String body = withoutPrefix.substring(conditionEnd + 1);
+			final List<String> conditionEnd = divide(withoutPrefix, Main::foldConditionEnd).toList();
+			if (conditionEnd.size() >= 2) {
+				final String withConditionEnd = conditionEnd.getFirst();
+				final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
+				final String body = String.join("", conditionEnd.subList(1, conditionEnd.size()));
+
 				if (substring1.startsWith("(")) {
 					final String expression = substring1.substring(1);
 					final Tuple<String, ParseState> condition = compileExpression(expression, state);
@@ -492,21 +494,15 @@ public class Main {
 
 	}
 
-	private static int findConditionEnd(String withoutPrefix) {
-		int conditionEnd = -1;
-		int depth0 = 0;
-		for (int i = 0; i < withoutPrefix.length(); i++) {
-			final char c = withoutPrefix.charAt(i);
-			if (c == ')') {
-				depth0--;
-				if (depth0 == 0) {
-					conditionEnd = i;
-					break;
-				}
-			}
-			if (c == '(') depth0++;
+	private static DivideState foldConditionEnd(DivideState state, char c) {
+		final DivideState appended = state.append(c);
+		if (c == ')') {
+			final DivideState exited = appended.exit();
+			if (exited.isLevel()) return exited.advance();
 		}
-		return conditionEnd;
+
+		if (c == '(') return appended.enter();
+		return appended;
 	}
 
 	private static Tuple<String, ParseState> compileMethodStatementValue(String input, ParseState state) {
