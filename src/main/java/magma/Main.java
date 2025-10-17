@@ -711,11 +711,25 @@ public class Main {
 		final String name = stripped.substring(index + " ".length()).strip();
 		if (!isIdentifier(name)) return Optional.empty();
 
-		final int typeSeparator = beforeName.lastIndexOf(" ");
+		final int typeSeparator = findTypeSeparator(beforeName);
 		if (typeSeparator < 0) return compileType(beforeName).map(type -> new Definition(type, name));
 
 		final String typeString = beforeName.substring(typeSeparator + " ".length());
 		return compileType(typeString).map(type -> new Definition(type, name));
+	}
+
+	private static int findTypeSeparator(String beforeName) {
+		int typeSeparator = -1;
+		int depth = 0;
+		for (int i = 0; i < beforeName.length(); i++) {
+			final char c = beforeName.charAt(i);
+			if (c == ' ' && depth == 0) typeSeparator = i;
+
+			if (c == '<') depth++;
+			if (c == '>') depth--;
+		}
+
+		return typeSeparator;
 	}
 
 	private static Optional<String> compileType(String input) {
