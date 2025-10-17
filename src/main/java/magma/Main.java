@@ -390,6 +390,21 @@ public class Main {
 	}
 
 	private static String compileMethodSegmentValue(String input) {
+		if (input.startsWith("if")) {
+			final String substring = input.substring(2);
+			final int i = substring.indexOf(")");
+			if (i >= 0) {
+				final String substring1 = substring.substring(0, i).strip();
+				final String body = substring.substring(i + 1);
+				if (substring1.startsWith("(")) {
+					final String expression = substring1.substring(1);
+					final String condition = compileExpression(expression);
+					final String compiledBody = compileMethodSegmentValue(body);
+					return "if (" + condition + ") " + compiledBody;
+				}
+			}
+		}
+
 		if (input.endsWith(";")) {
 			final String slice = input.substring(0, input.length() - 1);
 			return compileMethodStatementValue(slice) + ";";
