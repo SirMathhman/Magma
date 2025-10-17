@@ -296,7 +296,6 @@ public class Main {
 
 		if (contentStart < 0) return Optional.empty();
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
-		// if (!isIdentifier(beforeContent)) return Optional.empty();
 		String beforeMaybeParams = beforeContent;
 		String recordFields = "";
 		if (beforeContent.endsWith(")")) {

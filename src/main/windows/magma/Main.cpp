@@ -248,7 +248,6 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) return Optional.empty();
 	char* beforeContent = afterKeyword.substring(0, contentStart).strip();
-	/*// if (!isIdentifier(beforeContent)) return Optional.empty()*/;
 	char* beforeMaybeParams = beforeContent;
 	char* recordFields = "";
 	if (beforeContent.endsWith(")")) {
