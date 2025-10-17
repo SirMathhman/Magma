@@ -251,7 +251,7 @@ public class Main {
 	}
 
 	private static String generateField(String input) {
-		return System.lineSeparator() + "\t" + compileDefinition(input) + ";";
+		return System.lineSeparator() + "\t" + compileDefinition(input).orElseGet(() -> wrap(input)) + ";";
 	}
 
 	private static State foldValue(State state, char next) {
@@ -285,13 +285,25 @@ public class Main {
 	private static Optional<Tuple<String, String>> compileMethod(String input) {
 		final int i = input.indexOf("(");
 		if (i >= 0) {
-			final String substring = input.substring(0, i);
+			final String beforeParams = input.substring(0, i).strip();
+			final String definition = compileDefinition(beforeParams).or(() -> compileConstructor(beforeParams))
+																															 .orElseGet(() -> wrap(beforeParams));
+
 			final String substring1 = input.substring(i + 1);
-			final String generated = wrap(substring) + "(" + wrap(substring1) + System.lineSeparator();
-			return Optional.of(new Tuple<>("", generated));
+			final String generated = definition + "(" + wrap(substring1) + System.lineSeparator();
+
+			return Optional.of(new Tuple<String, String>("", generated));
 		}
 
 		return Optional.empty();
+	}
+
+	private static Optional<String> compileConstructor(String beforeParams) {
+		final int separator = beforeParams.lastIndexOf(" ");
+		if (separator < 0) return Optional.empty();
+
+		final String name = beforeParams.substring(separator + " ".length());
+		return Optional.of(name + " new_" + name);
 	}
 
 	private static Optional<Tuple<String, String>> compileField(String input) {
@@ -301,37 +313,37 @@ public class Main {
 		} else return Optional.empty();
 	}
 
-	private static String compileDefinition(String input) {
+	private static Optional<String> compileDefinition(String input) {
 		final int index = input.lastIndexOf(" ");
-		if (index >= 0) {
-			final String beforeName = input.substring(0, index).strip();
-			final String name = input.substring(index + " ".length()).strip();
-			final int typeSeparator = beforeName.lastIndexOf(" ");
-			if (typeSeparator < 0) return compileType(beforeName) + " " + name;
+		if (index < 0) return Optional.of(wrap(input));
 
-			final String beforeType = beforeName.substring(0, typeSeparator);
-			final String type = beforeName.substring(typeSeparator + " ".length());
-			return wrap(beforeType) + " " + compileType(type) + " " + name;
-		}
+		final String beforeName = input.substring(0, index).strip();
+		final String name = input.substring(index + " ".length()).strip();
+		final int typeSeparator = beforeName.lastIndexOf(" ");
+		if (typeSeparator < 0) return compileType(beforeName).map(type -> type + " " + name);
 
-		return wrap(input);
+		final String beforeType = beforeName.substring(0, typeSeparator);
+		final String typeString = beforeName.substring(typeSeparator + " ".length());
+		return compileType(typeString).map(type -> wrap(beforeType) + " " + type + " " + name);
 	}
 
-	private static String compileType(String input) {
+	private static Optional<String> compileType(String input) {
 		final String stripped = input.strip();
+		if (stripped.equals("public")) return Optional.empty();
+
 		if (stripped.endsWith(">")) {
 			final String withoutEnd = stripped.substring(0, stripped.length() - 1);
 			final int argumentStart = withoutEnd.indexOf("<");
 			if (argumentStart >= 0) {
 				final String base = withoutEnd.substring(0, argumentStart);
 				final String arguments = withoutEnd.substring(argumentStart + "<".length());
-				return base + "<" + compileType(arguments) + ">";
+				return Optional.of(base + "<" + compileType(arguments).orElse("") + ">");
 			}
 		}
 
-		if (stripped.equals("String")) return "char*";
-		if (stripped.equals("int")) return "int";
-		return wrap(stripped);
+		if (stripped.equals("String")) return Optional.of("char*");
+		if (stripped.equals("int")) return Optional.of("int");
+		return Optional.of(wrap(stripped));
 	}
 
 	private static String wrap(String input) {
