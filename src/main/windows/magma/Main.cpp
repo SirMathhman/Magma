@@ -1,8 +1,8 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 struct Main {};
 struct State {};
-/*private final*/ ArrayList</*String*/> segments;
-/*private final*/ /*String*/ input;
+/*private final*/ ArrayList<char*> segments;
+/*private final*/ char* input;
 /*private*/ /*StringBuilder*/ buffer;
 /*private*/ /*int*/ depth;
 /*private*/ /*int*/ index;
@@ -189,6 +189,8 @@ struct ");
 				return base + "<" + compileType(arguments) + ">";
 			}
 		}
+
+		if (stripped.equals("String")) return "char*";
 
 		return wrap(stripped);
 	}*/

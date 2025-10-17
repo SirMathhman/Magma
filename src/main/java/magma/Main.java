@@ -227,6 +227,8 @@ public class Main {
 			}
 		}
 
+		if (stripped.equals("String")) return "char*";
+
 		return wrap(stripped);
 	}
 
