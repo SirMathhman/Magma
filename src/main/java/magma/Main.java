@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class Main {
 	public static void main(String[] args) {
@@ -23,7 +25,20 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return wrap(input) + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
+		final ArrayList<String> segments = new ArrayList<String>();
+		StringBuilder buffer = new StringBuilder();
+		for (int index = 0; index < input.length(); index++) {
+			final char c = input.charAt(index);
+			buffer.append(c);
+			if (c == ';') {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			}
+		}
+		segments.add(buffer.toString());
+
+		final String joined = segments.stream().map(Main::wrap).collect(Collectors.joining());
+		return joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() +
 					 "\treturn 0;" + System.lineSeparator() + "}";
 	}
 
