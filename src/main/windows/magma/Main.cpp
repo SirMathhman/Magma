@@ -23,7 +23,7 @@ State new_State(char* input){
 	this.input = input;
 	this.buffer = /*new StringBuilder*/();
 	this.depth = 0;
-	this.segments = /*new ArrayList<String>*/();
+	this.segments = /*new ArrayList*/ < /*String>*/();
 	this.index = 0;
 	return this;
 }
@@ -57,10 +57,10 @@ State new_State(char* input){
 	if (this.index >= this.input.length()) return Optional.empty();
 	/*final*/ /*char*/ next = this.input.charAt(this.index);
 	/*this.index++*/;
-	return Optional.of(/*new Tuple<State*/, /*Character>(this*/, /*next)*/);
+	return Optional.of(/*new Tuple*/ < State, /*Character>(this*/, /*next)*/);
 }
 /*public Optional<Tuple<State,*/ /*Character>>*/ popAndAppendToTuple_State(){
-	return this.pop().map(tuple - /*> new Tuple<State*/, /*Character>*/(/*tuple.left.append(tuple*/.right), /*tuple.right)*/);
+	return this.pop().map(tuple - /*> new Tuple*/ < State, /*Character>*/(/*tuple.left.append(tuple*/.right), /*tuple.right)*/);
 }
 /*public*/ Optional</*State*/> popAndAppendToOption_State(){
 	return this.popAndAppendToTuple().map(tuple - /*> tuple*/.left);
@@ -172,10 +172,10 @@ struct JConstructor(String name) implements JMethodHeader {
 }
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileStructure_Main(char* input, char* type){
 	/*final*/ int i = input.indexOf(type + " ");
-	if (/*i < 0*/) return Optional.empty();
+	if (i < 0) return Optional.empty();
 	/*final*/ char* afterKeyword = input.substring(i + (type + " ").length());
 	/*final*/ int contentStart = afterKeyword.indexOf("{");
-	if (/*contentStart < 0*/) return Optional.empty();
+	if (contentStart < 0) return Optional.empty();
 	/*final*/ char* beforeContent = afterKeyword.substring(0, contentStart).strip();
 	/*// if (!isIdentifier(beforeContent)) return Optional.empty()*/;
 	char* beforeMaybeParams = beforeContent;
@@ -220,7 +220,7 @@ struct JConstructor(String name) implements JMethodHeader {
 
 			beforeStruct = "template " + templateValues;
 		}*/
-	return Optional.of(/*new Tuple<String*/, /*String>(""*/, beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator(/*)*/ + outer));
+	return Optional.of(/*new Tuple*/ < String, /*String>(""*/, beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator(/*)*/ + outer));
 }
 /*private static*/ char* compileValues_Main(char* input, , /*String>*/ mapper){
 	return compileAll(input, /*Main::foldValue*/, mapper, ", ");
@@ -247,11 +247,11 @@ struct JConstructor(String name) implements JMethodHeader {
 }
 /*private static Tuple<String,*/ /*String>*/ compileClassSegment_Main(char* input, char* name){
 	/*final*/ char* stripped = input.strip();
-	if (stripped.isEmpty()) return /*new Tuple<String, String>*/("", "");
+	if (stripped.isEmpty()) return /*new Tuple*/ < /*String, String>*/("", "");
 	return compileClassSegmentValue(stripped, name);
 }
 /*private static Tuple<String,*/ /*String>*/ compileClassSegmentValue_Main(char* input, char* name){
-	if (input.isEmpty()) return /*new Tuple<>*/("", "");
+	if (input.isEmpty()) return /*new Tuple*/ < /*>*/("", "");
 	/*return compileStructure(input, "class").or(() -> compileStructure(input, "record"))
 																					 .or(() -> compileStructure(input, "interface"))
 																					 .or(() -> compileField(input))
@@ -264,11 +264,11 @@ struct JConstructor(String name) implements JMethodHeader {
 }
 /*private static Optional<Tuple<String,*/ /*String>>*/ compileMethod_Main(char* input, char* name){
 	/*final*/ int paramStart = input.indexOf("(");
-	if (/*paramStart < 0*/) return Optional.empty();
+	if (paramStart < 0) return Optional.empty();
 	/*final*/ char* beforeParams = input.substring(0, paramStart).strip();
 	/*final*/ char* withParams = input.substring(paramStart + 1);
 	/*final*/ int paramEnd = withParams.indexOf(")");
-	if (/*paramEnd < 0*/) return Optional.empty();
+	if (paramEnd < 0) return Optional.empty();
 	/*final*/ /*JMethodHeader*/ methodHeader = compileMethodHeader(beforeParams);
 	/*final*/ char* inputParams = withParams.substring(0, paramEnd);
 	/*final*/ char* withBraces = withParams.substring(paramEnd + 1).strip();
@@ -286,7 +286,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	/*else if*/ /*(withBraces.equals(";"))*/ outputBodyWithBraces = ";";
 	/*else return Optional.empty()*/;
 	/*final*/ char* generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
-	return Optional.of(/*new Tuple<String*/, /*String>(""*/, /*generated)*/);
+	return Optional.of(/*new Tuple*/ < String, /*String>(""*/, /*generated)*/);
 }
 /*private static*/ /*Definable*/ transformMethodHeader_Main(/*JMethodHeader*/ methodHeader, char* name){
 	/*return switch (methodHeader) {
@@ -298,7 +298,7 @@ struct JConstructor(String name) implements JMethodHeader {
 	/**/;
 }
 /*private static*/ /*JMethodHeader*/ compileMethodHeader_Main(char* beforeParams){
-	return /*compileDefinition(beforeParams).<JMethodHeader>map*/(definable - /*> definable*/).or(() - /*> compileConstructor*/(beforeParams)).orElseGet(() - /*> new Placeholder*/(beforeParams));
+	return compileDefinition(beforeParams). < /*JMethodHeader>map*/(definable - /*> definable*/).or(() - /*> compileConstructor*/(beforeParams)).orElseGet(() - /*> new Placeholder*/(beforeParams));
 }
 /*private static*/ char* compileParameters_Main(char* input){
 	if (input.isEmpty()) return "";
@@ -394,7 +394,7 @@ struct JConstructor(String name) implements JMethodHeader {
 		/*final*/ char* name = stripped.substring(i + 1).strip();
 		if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 	}
-	return compileOperator(stripped, "+").or(() - /*> compileOperator(stripped*/, /*"*/ - /*")*/).or(() - /*> compileOperator(stripped*/, /*"*/ >= /*")*/).or(() - /*> compileIdentifier*/(stripped)).or(() - /*> compileNumber*/(stripped)).orElseGet(() - /*> wrap*/(stripped));
+	return compileOperator(stripped, "+").or(() - /*> compileOperator(stripped*/, /*"*/ - /*")*/).or(() - /*> compileOperator(stripped*/, /*"*/ >= /*")*/).or(() - /*> compileOperator(stripped*/, /*"*/ < /*")*/).or(() - /*> compileIdentifier*/(stripped)).or(() - /*> compileNumber*/(stripped)).orElseGet(() - /*> wrap*/(stripped));
 }
 /*private static*/ Optional<char*> compileIdentifier_Main(char* stripped){
 	if (isIdentifier(stripped)) return Optional.of(stripped);
@@ -406,13 +406,13 @@ struct JConstructor(String name) implements JMethodHeader {
 }
 /*private static*/ Optional<char*> compileOperator_Main(char* input, char* operator){
 	/*final*/ int index = input.indexOf(operator);
-	if (/*index < 0*/) return Optional.empty();
+	if (index < 0) return Optional.empty();
 	/*final*/ char* left = input.substring(0, index);
 	/*final*/ char* right = input.substring(index + operator.length());
 	return Optional.of(compileExpression(left) + " " + operator + " " + compileExpression(right));
 }
 /*private static*/ /*boolean*/ isString_Main(char* stripped){
-	if (/*stripped.length() < 2*/) return false;
+	if (stripped.length() < 2) return false;
 	/*final*/ /*boolean*/ hasDoubleQuotes = /*stripped.startsWith("\"") && stripped*/.endsWith(/*"\""*/);
 	if (/*!hasDoubleQuotes*/) return false;
 	return /*!stripped*/.substring(1, stripped.length() - 1).contains(/*"\""*/);
@@ -434,7 +434,7 @@ struct JConstructor(String name) implements JMethodHeader {
 }
 /*private static*/ Optional</*JMethodHeader*/> compileConstructor_Main(char* beforeParams){
 	/*final*/ int separator = beforeParams.lastIndexOf(" ");
-	if (/*separator < 0*/) return Optional.empty();
+	if (separator < 0) return Optional.empty();
 	/*final*/ char* name = beforeParams.substring(separator + " ".length());
 	return Optional.of(/*new JConstructor*/(name));
 }
@@ -442,19 +442,19 @@ struct JConstructor(String name) implements JMethodHeader {
 	if (input.endsWith(";")) {
 		/*final*/ char* substring = input.substring(0, input.length() - ";".length()).strip();
 		/*final*/ Optional<char*> s = generateField(substring);
-		if (s.isPresent()) return Optional.of(/*new Tuple<String*/, /*String>*/(/*s.get(*/), /*"")*/);
+		if (s.isPresent()) return Optional.of(/*new Tuple*/ < String, /*String>*/(/*s.get(*/), /*"")*/);
 	}
 	return Optional.empty();
 }
 /*private static*/ Optional</*Definition*/> compileDefinition_Main(char* input){
 	/*final*/ char* stripped = input.strip();
 	/*final*/ int index = stripped.lastIndexOf(" ");
-	if (/*index < 0*/) return Optional.empty();
+	if (index < 0) return Optional.empty();
 	/*final*/ char* beforeName = stripped.substring(0, index).strip();
 	/*final*/ char* name = stripped.substring(index + " ".length()).strip();
 	if (/*!isIdentifier*/(name)) return Optional.empty();
 	/*final*/ int typeSeparator = beforeName.lastIndexOf(" ");
-	if (/*typeSeparator < 0*/) return compileType(beforeName).map(type - /*> new Definition(type*/, /*name)*/);
+	if (typeSeparator < 0) return compileType(beforeName).map(type - /*> new Definition(type*/, /*name)*/);
 	/*final*/ char* beforeType = beforeName.substring(0, typeSeparator);
 	/*final*/ char* typeString = beforeName.substring(typeSeparator + " ".length());
 	return compileType(typeString).map(type - /*> new Definition*/(/*Optional.of(beforeType*/), type, /*name)*/);

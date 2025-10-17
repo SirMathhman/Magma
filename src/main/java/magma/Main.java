@@ -490,7 +490,9 @@ public class Main {
 			if (isIdentifier(name)) return compileExpression(substring) + "." + name;
 		}
 
-		return compileOperator(stripped, "+").or(() -> compileOperator(stripped, "-")).or(() -> compileOperator(stripped, ">="))
+		return compileOperator(stripped, "+").or(() -> compileOperator(stripped, "-"))
+																				 .or(() -> compileOperator(stripped, ">="))
+																				 .or(() -> compileOperator(stripped, "<"))
 																				 .or(() -> compileIdentifier(stripped))
 																				 .or(() -> compileNumber(stripped))
 																				 .orElseGet(() -> wrap(stripped));
