@@ -204,7 +204,13 @@ Tuple<DivideState, Boolean> foldUntilDoubleQuotes_Main(DivideState state){
 DivideState foldStatement_Main(DivideState state, char c){
 	DivideState appended = state.append(c);
 	if (c == ';' && appended.isLevel()) return appended.advance();
-	if (c == '}' && appended.isShallow()) return appended.advance().exit();
+	if (c == '}' && appended.isShallow()) {
+		Optional<Character> peeked = appended.peek();
+		DivideState withPeeked;
+		if (peeked.isPresent() && peeked.get() == ';') withPeeked == appended.popAndAppendToOption().orElse(appended);
+		else withPeeked = appended;
+		return withPeeked.advance().exit();
+	}
 	if (c == '{' || c == '(') return appended.enter();
 	if (c == '}' || c == ')') return appended.exit();
 	return appended;
@@ -373,14 +379,13 @@ boolean isPlatformDependentMethod_Main(JMethodHeader methodHeader){
 	return /*methodHeader instanceof Definition definition && definition.annotations.contains("Actual")*/;
 }
 Definable transformMethodHeader_Main(JMethodHeader methodHeader, char* name){
-	/*return switch (methodHeader) {
+	return /*switch (methodHeader) {
 			case JConstructor constructor ->
 					new Definition(Collections.emptyList(), constructor.name, "new_" + constructor.name);
 			case Definition definition ->
 					new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
 			case Placeholder placeholder -> placeholder;
-		}*/
-	/**/;
+		}*/;
 }
 auto __lambda12__(auto definable) {
 	return definable;

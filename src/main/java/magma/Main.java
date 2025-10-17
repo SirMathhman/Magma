@@ -278,7 +278,13 @@ public class Main {
 	private static DivideState foldStatement(DivideState state, char c) {
 		final DivideState appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
-		if (c == '}' && appended.isShallow()) return appended.advance().exit();
+		if (c == '}' && appended.isShallow()) {
+			final Optional<Character> peeked = appended.peek();
+			final DivideState withPeeked;
+			if (peeked.isPresent() && peeked.get() == ';') withPeeked = appended.popAndAppendToOption().orElse(appended);
+			else withPeeked = appended;
+			return withPeeked.advance().exit();
+		}
 		if (c == '{' || c == '(') return appended.enter();
 		if (c == '}' || c == ')') return appended.exit();
 		return appended;
