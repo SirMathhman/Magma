@@ -7,8 +7,78 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
+	private static class State {
+		private final ArrayList<String> segments;
+		private StringBuilder buffer;
+		private int depth;
+
+		public State() {
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new ArrayList<String>();
+		}
+
+		private Stream<String> stream() {
+			return this.segments().stream();
+		}
+
+		private State enter() {
+			this.setDepth(this.getDepth() + 1);
+			return this;
+		}
+
+		private State exit() {
+			this.setDepth(this.getDepth() - 1);
+			return this;
+		}
+
+		private boolean isShallow() {
+			return this.getDepth() == 1;
+		}
+
+		private boolean isLevel() {
+			return this.getDepth() == 0;
+		}
+
+		private State append(char c) {
+			this.getBuffer().append(c);
+			return this;
+		}
+
+		private State advance() {
+			this.segments().add(this.getBuffer().toString());
+			this.setBuffer(new StringBuilder());
+			return this;
+		}
+
+		public StringBuilder getBuffer() {
+			return this.buffer;
+		}
+
+		public void setBuffer(StringBuilder buffer) {
+			this.buffer = buffer;
+		}
+
+		public int getDepth() {
+			return this.depth;
+		}
+
+		public void setDepth(int depth) {
+			this.depth = depth;
+		}
+
+		public ArrayList<String> getSegments() {
+			return this.segments;
+		}
+
+		public ArrayList<String> segments() {
+			return this.segments;
+		}
+	}
+
 	public static void main(String[] args) {
 		try {
 			final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
@@ -32,29 +102,26 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		final ArrayList<String> segments = new ArrayList<String>();
-		StringBuilder buffer = new StringBuilder();
-		int depth = 0;
+		return divide(input).map(mapper).collect(Collectors.joining());
+	}
+
+	private static Stream<String> divide(String input) {
+		State current = new State();
 		for (int index = 0; index < input.length(); index++) {
 			final char c = input.charAt(index);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				continue;
-			}
-			if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-				continue;
-			}
-			if (c == '{') depth++;
-			if (c == '}') depth--;
+			current = fold(current, c);
 		}
-		segments.add(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return current.advance().stream();
+	}
+
+	private static State fold(State state, char c) {
+		final State appended = state.append(c);
+		if (c == ';' && appended.isLevel()) return appended.advance();
+		if (c == '}' && appended.isShallow()) return appended.advance().exit();
+		if (c == '{') return appended.enter();
+		if (c == '}') return appended.exit();
+		return appended;
 	}
 
 	private static String compileRootSegment(String input) {
