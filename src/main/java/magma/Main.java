@@ -143,13 +143,14 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		return compileAll(input, Main::foldStatement, mapper);
+		return compileAll(input, Main::foldStatement, mapper, "");
 	}
 
 	private static String compileAll(String input,
 																	 BiFunction<State, Character, State> folder,
-																	 Function<String, String> mapper) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining());
+																	 Function<String, String> mapper,
+																	 String delimiter) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));
 	}
 
 	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -282,7 +283,7 @@ public class Main {
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileAll(input, Main::foldValue, mapper);
+		return compileAll(input, Main::foldValue, mapper, ", ");
 	}
 
 	private static String compileParameter(String input1) {
@@ -416,9 +417,11 @@ public class Main {
 
 	private static String compileExpression(String input) {
 		final String stripped = input.strip();
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return stripped;
+
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
-			final int i = slice.indexOf("(");
+			final int i = slice.lastIndexOf("(");
 			if (i >= 0) {
 				final String caller = slice.substring(0, i);
 				final String arguments = slice.substring(i + 1);
