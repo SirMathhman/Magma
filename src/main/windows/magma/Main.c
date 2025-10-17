@@ -1,68 +1,58 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 struct Main {};
-/*private static class State {
-		private final ArrayList<String> segments;
-		private final String input;
-		private StringBuilder buffer;
-		private int depth;
-		private int index;
-
-		public State(String input) {
+struct State {};
+/*private final ArrayList<String> segments;*/
+/*private final String input;*/
+/*private StringBuilder buffer;*/
+/*private int depth;*/
+/*private int index;*/
+/*public State(String input) {
 			this.input = input;
 			this.buffer = new StringBuilder();
 			this.depth = 0;
 			this.segments = new ArrayList<String>();
 			this.index = 0;
-		}
-
-		private Stream<String> stream() {
+		}*/
+/*private Stream<String> stream() {
 			return this.segments.stream();
-		}
-
-		private State enter() {
+		}*/
+/*private State enter() {
 			this.depth = this.depth + 1;
 			return this;
-		}
-
-		private State exit() {
+		}*/
+/*private State exit() {
 			this.depth = this.depth - 1;
 			return this;
-		}
-
-		private boolean isShallow() {
+		}*/
+/*private boolean isShallow() {
 			return this.depth == 1;
-		}
-
-		private boolean isLevel() {
+		}*/
+/*private boolean isLevel() {
 			return this.depth == 0;
-		}
-
-		private State append(char c) {
+		}*/
+/*private State append(char c) {
 			this.buffer.append(c);
 			return this;
-		}
-
-		private State advance() {
+		}*/
+/*private State advance() {
 			this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
-		}
-
-		public Optional<Tuple<State, Character>> pop() {
+		}*/
+/*public Optional<Tuple<State, Character>> pop() {
 			if (this.index >= this.input.length()) return Optional.empty();
 			final char next = this.input.charAt(this.index);
 			this.index++;
 			return Optional.of(new Tuple<State, Character>(this, next));
-		}
-
-		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+		}*/
+/*public Optional<Tuple<State, Character>> popAndAppendToTuple() {
 			return this.pop().map(tuple -> new Tuple<State, Character>(tuple.left.append(tuple.right), tuple.right));
-		}
-
-		public Optional<State> popAndAppendToOption() {
+		}*/
+/*public Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
-		}
-	}*/
+		}*/
+/**/
+
 /*public record Tuple<A, B>(A left, B right) {}*/
 /*public static void main(String[] args) {
 		try {
@@ -103,7 +93,7 @@ struct Main {};
 	}*/
 /*private static Optional<State> foldSingleQuotes(State state, char next) {
 		if (next != '\'') return Optional.empty();
-		
+
 		final State appended = state.append(next);
 		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);
 	}*/
@@ -141,25 +131,31 @@ struct Main {};
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		final int i = stripped.indexOf("class ");
-		if (i >= 0) {
-			final String afterKeyword = stripped.substring(i + "class ".length());
-			final int contentStart = afterKeyword.indexOf("{");
-			if (contentStart >= 0) {
-				final String beforeContent = afterKeyword.substring(0, contentStart).strip();
-				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (afterContent.endsWith("}")) {
-					final String content = afterContent.substring(0, afterContent.length() - "}".length());
-					return "struct " + beforeContent + " {};" + System.lineSeparator() +
-								 compileStatements(content, Main::compileClassSegment);
-				}
-			}
-		}
-
-		return wrap(stripped);
+		return compileClass(stripped).orElseGet(() -> wrap(stripped));
 	}*/
+struct ");
+		if (i < 0) return Optional.empty();
+		final String afterKeyword = stripped.substring(i + "class ".length());
+		final int contentStart = afterKeyword.indexOf(" {};
+/*");
+
+		if (contentStart < 0) return Optional.empty();
+		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+
+		if (!afterContent.endsWith("}*/
+/*")) return Optional.empty();
+		final String content = afterContent.substring(0, afterContent.length() - "}".length());
+
+		return Optional.of("struct " + beforeContent + " {};" + System.lineSeparator() +
+											 compileStatements(content, Main::compileClassSegment));*/
+
 /*private static String compileClassSegment(String input) {
-		return wrap(input.strip()) + System.lineSeparator();
+		final String stripped = input.strip();
+		return compileClassSegmentValue(stripped) + System.lineSeparator();
+	}*/
+/*private static String compileClassSegmentValue(String input) {
+		return compileClass(input).orElseGet(() -> wrap(input));
 	}*/
 /*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");

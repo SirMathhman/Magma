@@ -163,26 +163,33 @@ public class Main {
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
-		final int i = stripped.indexOf("class ");
-		if (i >= 0) {
-			final String afterKeyword = stripped.substring(i + "class ".length());
-			final int contentStart = afterKeyword.indexOf("{");
-			if (contentStart >= 0) {
-				final String beforeContent = afterKeyword.substring(0, contentStart).strip();
-				final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (afterContent.endsWith("}")) {
-					final String content = afterContent.substring(0, afterContent.length() - "}".length());
-					return "struct " + beforeContent + " {};" + System.lineSeparator() +
-								 compileStatements(content, Main::compileClassSegment);
-				}
-			}
-		}
+		return compileClass(stripped).orElseGet(() -> wrap(stripped));
+	}
 
-		return wrap(stripped);
+	private static Optional<String> compileClass(String stripped) {
+		final int i = stripped.indexOf("class ");
+		if (i < 0) return Optional.empty();
+		final String afterKeyword = stripped.substring(i + "class ".length());
+		final int contentStart = afterKeyword.indexOf("{");
+
+		if (contentStart < 0) return Optional.empty();
+		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
+		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+
+		if (!afterContent.endsWith("}")) return Optional.empty();
+		final String content = afterContent.substring(0, afterContent.length() - "}".length());
+
+		return Optional.of("struct " + beforeContent + " {};" + System.lineSeparator() +
+											 compileStatements(content, Main::compileClassSegment));
 	}
 
 	private static String compileClassSegment(String input) {
-		return wrap(input.strip()) + System.lineSeparator();
+		final String stripped = input.strip();
+		return compileClassSegmentValue(stripped) + System.lineSeparator();
+	}
+
+	private static String compileClassSegmentValue(String input) {
+		return compileClass(input).orElseGet(() -> wrap(input));
 	}
 
 	private static String wrap(String input) {
