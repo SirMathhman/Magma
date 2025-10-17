@@ -527,6 +527,9 @@ public class Main {
 			return new Tuple<String, ParseState>("return " + result.left, result.right);
 		}
 
+		final Optional<Tuple<String, ParseState>> invokableResult = compileInvokable(state, input);
+		if (invokableResult.isPresent()) return invokableResult.get();
+
 		final int i = input.indexOf("=");
 		if (i >= 0) {
 			final String destinationString = input.substring(0, i);
@@ -569,26 +572,8 @@ public class Main {
 		final Optional<Tuple<String, ParseState>> lambdaResult = compileLambda(state, stripped);
 		if (lambdaResult.isPresent()) return lambdaResult;
 
-		if (stripped.endsWith(")")) {
-			final String slice = stripped.substring(0, stripped.length() - 1);
-
-			final List<String> segments = findArgStart(slice).toList();
-			if (segments.size() >= 2) {
-				final String callerWithExt = String.join("", segments.subList(0, segments.size() - 1));
-				if (callerWithExt.endsWith("(")) {
-					final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
-					final String arguments = segments.getLast();
-
-					final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
-					final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
-																																Main::foldValue).toList().stream().reduce(new Tuple<StringJoiner, ParseState>(
-							new StringJoiner(", "),
-							callerResult.right), (tuple, s) -> mergeExpression(tuple.left, tuple.right, s), (_, next) -> next);
-					final String collect = reduce.left.toString();
-					return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", reduce.right));
-				}
-			}
-		}
+		final Optional<Tuple<String, ParseState>> left = compileInvokable(state, stripped);
+		if (left.isPresent()) return left;
 
 		final int separator = stripped.lastIndexOf("::");
 		if (separator >= 0) {
@@ -629,6 +614,27 @@ public class Main {
 																																														state)).or(() -> compileNumber(
 				stripped,
 				state));
+	}
+
+	private static Optional<Tuple<String, ParseState>> compileInvokable(ParseState state, String stripped) {
+		if (!stripped.endsWith(")")) return Optional.empty();
+		final String slice = stripped.substring(0, stripped.length() - 1);
+
+		final List<String> segments = findArgStart(slice).toList();
+		if (segments.size() < 2) return Optional.empty();
+		final String callerWithExt = String.join("", segments.subList(0, segments.size() - 1));
+
+		if (!callerWithExt.endsWith("(")) return Optional.empty();
+		final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
+		final String arguments = segments.getLast();
+
+		final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
+		final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
+																													Main::foldValue).toList().stream().reduce(new Tuple<StringJoiner, ParseState>(
+				new StringJoiner(", "),
+				callerResult.right), (tuple, s) -> mergeExpression(tuple.left, tuple.right, s), (_, next) -> next);
+		final String collect = reduce.left.toString();
+		return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", reduce.right));
 	}
 
 	private static Tuple<StringJoiner, ParseState> mergeExpression(StringJoiner joiner,
