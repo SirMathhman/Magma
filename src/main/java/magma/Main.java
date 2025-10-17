@@ -538,8 +538,12 @@ public class Main {
 	}
 
 	private static Tuple<String, ParseState> compileExpression(String input, ParseState state) {
+		return tryCompileExpression(input, state).orElseGet(() -> new Tuple<String, ParseState>(wrap(input), state));
+	}
+
+	private static Optional<Tuple<String, ParseState>> tryCompileExpression(String input, ParseState state) {
 		final String stripped = input.strip();
-		if (isString(stripped)) return new Tuple<String, ParseState>(stripped, state);
+		if (isString(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 
 		final int i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
@@ -553,7 +557,7 @@ public class Main {
 				final String generatedName = right.generateAnonymousFunctionName();
 				final String s1 =
 						"auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
-				return new Tuple<String, ParseState>(generatedName, right.addFunction(s1));
+				return Optional.of(new Tuple<String, ParseState>(generatedName, right.addFunction(s1)));
 			}
 		}
 
@@ -586,7 +590,7 @@ public class Main {
 				}
 
 				final String collect = joiner.toString();
-				return new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current);
+				return Optional.of(new Tuple<String, ParseState>(callerResult.left + "(" + collect + ")", current));
 			}
 		}
 
@@ -596,7 +600,7 @@ public class Main {
 			final String name = stripped.substring(i + 1).strip();
 			if (isIdentifier(name)) {
 				final Tuple<String, ParseState> result = compileExpression(substring, state);
-				return new Tuple<String, ParseState>(result.left + "." + name, result.right);
+				return Optional.of(new Tuple<String, ParseState>(result.left + "." + name, result.right));
 			}
 		}
 
@@ -604,8 +608,7 @@ public class Main {
 																								.or(() -> compileOperator(stripped, ">=", state))
 																								.or(() -> compileOperator(stripped, "<", state))
 																								.or(() -> compileIdentifier(stripped, state))
-																								.or(() -> compileNumber(stripped, state))
-																								.orElseGet(() -> new Tuple<String, ParseState>(wrap(stripped), state));
+																								.or(() -> compileNumber(stripped, state));
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileIdentifier(String stripped, ParseState state) {
@@ -624,10 +627,17 @@ public class Main {
 
 		final String left = input.substring(0, index);
 		final String right = input.substring(index + operator.length());
-		final Tuple<String, ParseState> leftResult = compileExpression(left, state);
-		final Tuple<String, ParseState> rightResult = compileExpression(right, leftResult.right);
-		return Optional.of(new Tuple<String, ParseState>(leftResult.left + " " + operator + " " + rightResult.left,
-																										 rightResult.right));
+		final Optional<Tuple<String, ParseState>> maybeLeftResult = tryCompileExpression(left, state);
+
+		if (maybeLeftResult.isEmpty()) return Optional.empty();
+		final Tuple<String, ParseState> leftResult = maybeLeftResult.get();
+
+		final Optional<Tuple<String, ParseState>> maybeRightResult = tryCompileExpression(right, leftResult.right);
+		if (maybeRightResult.isEmpty()) return Optional.empty();
+		final Tuple<String, ParseState> rightResult = maybeRightResult.get();
+
+		final String generated = leftResult.left + " " + operator + " " + rightResult.left;
+		return Optional.of(new Tuple<String, ParseState>(generated, rightResult.right));
 	}
 
 	private static boolean isString(String stripped) {
