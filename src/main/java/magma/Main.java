@@ -534,6 +534,9 @@ public class Main {
 
 	private static Optional<Tuple<String, ParseState>> tryCompileExpression(String input, ParseState state) {
 		final String stripped = input.strip();
+		if (stripped.startsWith("'") && stripped.endsWith("'") && stripped.length() <= 4)
+			return Optional.of(new Tuple<>(stripped, state));
+
 		if (isString(stripped)) return Optional.of(new Tuple<String, ParseState>(stripped, state));
 
 		if (stripped.startsWith("!")) {
@@ -594,6 +597,8 @@ public class Main {
 		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped, "-", state))
 																								.or(() -> compileOperator(stripped, ">=", state))
 																								.or(() -> compileOperator(stripped, "<", state))
+																								.or(() -> compileOperator(stripped, "==", state))
+																								.or(() -> compileOperator(stripped, "&&", state))
 																								.or(() -> compileIdentifier(stripped, state))
 																								.or(() -> compileNumber(stripped, state));
 	}
