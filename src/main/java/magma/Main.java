@@ -718,7 +718,10 @@ public class Main {
 	}
 
 	private static boolean isIdentifier(String input) {
-		return IntStream.range(0, input.length()).allMatch(i -> Character.isLetter(input.charAt(i)));
+		return IntStream.range(0, input.length()).allMatch(i -> {
+			final char next = input.charAt(i);
+			return Character.isLetter(next) || (i != 0 && Character.isDigit(next));
+		});
 	}
 
 	private static Optional<JMethodHeader> compileConstructor(String beforeParams) {
