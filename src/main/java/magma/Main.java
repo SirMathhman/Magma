@@ -283,19 +283,24 @@ public class Main {
 	}
 
 	private static Optional<Tuple<String, String>> compileMethod(String input) {
-		final int i = input.indexOf("(");
-		if (i >= 0) {
-			final String beforeParams = input.substring(0, i).strip();
-			final String definition = compileDefinition(beforeParams).or(() -> compileConstructor(beforeParams))
-																															 .orElseGet(() -> wrap(beforeParams));
+		final int paramStart = input.indexOf("(");
+		if (paramStart < 0) return Optional.empty();
 
-			final String substring1 = input.substring(i + 1);
-			final String generated = definition + "(" + wrap(substring1) + System.lineSeparator();
+		final String beforeParams = input.substring(0, paramStart).strip();
+		final String withParams = input.substring(paramStart + 1);
 
-			return Optional.of(new Tuple<String, String>("", generated));
-		}
+		final int paramEnd = withParams.indexOf(")");
+		if (paramEnd < 0) return Optional.empty();
 
-		return Optional.empty();
+		final String definition =
+				compileDefinition(beforeParams).or(() -> compileConstructor(beforeParams)).orElseGet(() -> wrap(beforeParams));
+
+		final String inputParams = withParams.substring(0, paramEnd);
+		final String body = withParams.substring(paramEnd + 1);
+		final String outputParams = compileDefinition(inputParams).orElse("");
+
+		final String generated = definition + "(" + outputParams + ")" + wrap(body) + System.lineSeparator();
+		return Optional.of(new Tuple<String, String>("", generated));
 	}
 
 	private static Optional<String> compileConstructor(String beforeParams) {
