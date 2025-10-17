@@ -116,7 +116,19 @@ public class Main {
 	}
 
 	private static State foldEscaped(State state, char next) {
-		return foldDoubleQuotes(state, next).orElseGet(() -> fold(state, next));
+		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next)).orElseGet(() -> fold(state, next));
+	}
+
+	private static Optional<State> foldSingleQuotes(State state, char next) {
+		if (next != '\'') return Optional.empty();
+
+		final State appended = state.append(next);
+		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);
+	}
+
+	private static Optional<State> foldEscaped(Tuple<State, Character> tuple) {
+		if (tuple.right == '\\') return tuple.left.popAndAppendToOption();
+		else return Optional.of(tuple.left);
 	}
 
 	private static Optional<State> foldDoubleQuotes(State state, char next) {

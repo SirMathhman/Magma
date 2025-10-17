@@ -99,7 +99,17 @@ struct Main {};
 		return current.advance().stream();
 	}*/
 /*private static State foldEscaped(State state, char next) {
-		return foldDoubleQuotes(state, next).orElseGet(() -> fold(state, next));
+		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next)).orElseGet(() -> fold(state, next));
+	}*/
+/*private static Optional<State> foldSingleQuotes(State state, char next) {
+		if (next != '\'') return Optional.empty();
+		
+		final State appended = state.append(next);
+		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(State::popAndAppendToOption);
+	}*/
+/*private static Optional<State> foldEscaped(Tuple<State, Character> tuple) {
+		if (tuple.right == '\\') return tuple.left.popAndAppendToOption();
+		else return Optional.of(tuple.left);
 	}*/
 /*private static Optional<State> foldDoubleQuotes(State state, char next) {
 		if (next != '\"') return Optional.empty();
@@ -118,18 +128,16 @@ struct Main {};
 		}
 
 		return Optional.of(appended);
-	}
-
-	private static State fold(State state, char c) {
+	}*/
+/*private static State fold(State state, char c) {
 		final State appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) return appended.advance().exit();
 		if (c == '{') return appended.enter();
 		if (c == '}') return appended.exit();
 		return appended;
-	}
-
-	private static String compileRootSegment(String input) {
+	}*/
+/*private static String compileRootSegment(String input) {
 		final String stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
@@ -149,17 +157,16 @@ struct Main {};
 		}
 
 		return wrap(stripped);
-	}
-
-	private static String compileClassSegment(String input) {
+	}*/
+/*private static String compileClassSegment(String input) {
 		return wrap(input.strip()) + System.lineSeparator();
-	}
-
-	private static String wrap(String input) {
+	}*/
+/*private static String wrap(String input) {
 		final String replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
 	}*/
-int main(){
+/**/
+/**/int main(){
 	main_Main();
 	return 0;
 }
