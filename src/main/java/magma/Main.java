@@ -559,10 +559,10 @@ public class Main {
 			}
 
 			if (index >= 0) {
-				final String caller = slice.substring(0, index);
+				final String caller = slice.substring(0, index).strip();
 				final String arguments = slice.substring(index + 1);
 
-				final Tuple<String, ParseState> callerResult = compileExpression(caller, state);
+				final Tuple<String, ParseState> callerResult = compileCaller(state, caller);
 
 				StringJoiner joiner = new StringJoiner(", ");
 				ParseState current = callerResult.right;
@@ -592,6 +592,15 @@ public class Main {
 																								.or(() -> compileOperator(stripped, "<", state))
 																								.or(() -> compileIdentifier(stripped, state))
 																								.or(() -> compileNumber(stripped, state));
+	}
+
+	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {
+		if (caller.startsWith("new ")) {
+			final Optional<String> newType = compileType(caller.substring("new ".length()));
+			if (newType.isPresent()) return new Tuple<>("new_" + newType.get(), state);
+		}
+
+		return compileExpression(caller, state);
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileIdentifier(String stripped, ParseState state) {
