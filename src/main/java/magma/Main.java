@@ -445,22 +445,11 @@ public class Main {
 		final Optional<Tuple<String, ParseState>> compiled = compileBlock(state, stripped, depth);
 		if (compiled.isPresent()) return compiled.get();
 
-		if (stripped.startsWith("if")) {
-			final String withoutPrefix = stripped.substring(2);
-			final List<String> conditionEnd = divide(withoutPrefix, Main::foldConditionEnd).toList();
-			if (conditionEnd.size() >= 2) {
-				final String withConditionEnd = conditionEnd.getFirst();
-				final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
-				final String body = String.join("", conditionEnd.subList(1, conditionEnd.size()));
+		final Optional<Tuple<String, ParseState>> maybeIf = compileConditional("if", depth, state, stripped);
+		if (maybeIf.isPresent()) return maybeIf.get();
 
-				if (substring1.startsWith("(")) {
-					final String expression = substring1.substring(1);
-					final Tuple<String, ParseState> condition = compileExpression(expression, state);
-					final Tuple<String, ParseState> compiledBody = compileMethodSegmentValue(body, depth, condition.right);
-					return new Tuple<String, ParseState>("if (" + condition.left + ") " + compiledBody.left, compiledBody.right);
-				}
-			}
-		}
+		final Optional<Tuple<String, ParseState>> maybeWhile = compileConditional("while", depth, state, stripped);
+		if (maybeWhile.isPresent()) return maybeWhile.get();
 
 		if (stripped.startsWith("else")) {
 			final String substring = stripped.substring("else".length());
@@ -477,16 +466,42 @@ public class Main {
 		return new Tuple<String, ParseState>(wrap(stripped), state);
 	}
 
+	private static Optional<Tuple<String, ParseState>> compileConditional(String type,
+																																				int depth,
+																																				ParseState state,
+																																				String stripped) {
+		if (!stripped.startsWith(type)) return Optional.empty();
+		final String withoutPrefix = stripped.substring(type.length());
+
+		final List<String> conditionEnd = divide(withoutPrefix, Main::foldConditionEnd).toList();
+		if (conditionEnd.size() < 2) return Optional.empty();
+		final String withConditionEnd = conditionEnd.getFirst();
+		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
+		final String body = String.join("", conditionEnd.subList(1, conditionEnd.size()));
+
+		if (!substring1.startsWith("(")) return Optional.empty();
+		final String expression = substring1.substring(1);
+
+		final Tuple<String, ParseState> condition = compileExpression(expression, state);
+		final Tuple<String, ParseState> compiledBody = compileMethodSegmentValue(body, depth, condition.right);
+		return Optional.of(new Tuple<String, ParseState>(type + " (" + condition.left + ") " + compiledBody.left,
+																										 compiledBody.right));
+	}
+
 	private static Optional<Tuple<String, ParseState>> compileBlock(ParseState state, String input, int depth) {
 		if (!input.startsWith("{") || !input.endsWith("}")) return Optional.empty();
 		final String substring = input.substring(1, input.length() - 1);
 
 		StringJoiner joiner = new StringJoiner("");
 		ParseState current = state;
-		for (String s : divide(substring, Main::foldStatement).toList()) {
+		List<String> list = divide(substring, Main::foldStatement).toList();
+		int i = 0;
+		while (i < list.size()) {
+			String s = list.get(i);
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current);
 			joiner.add(string.left);
 			current = string.right;
+			i++;
 		}
 
 		final String compiled = joiner.toString();
