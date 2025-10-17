@@ -17,7 +17,7 @@ public class Main {
 			final Path targetParent = target.getParent();
 
 			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-			Files.writeString(target, compile(input));
+			Files.writeString(target, "// File generated from '" + source + "'\n" + compile(input));
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();

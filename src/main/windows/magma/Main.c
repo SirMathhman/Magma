@@ -1,3 +1,4 @@
+// File generated from '.\src\main\java\magma\Main.java'
 /*public class Main {
 	public static void main(String[] args) {
 		try {
@@ -8,7 +9,7 @@
 			final Path targetParent = target.getParent();
 
 			if (!Files.exists(targetParent)) Files.createDirectories(targetParent);
-			Files.writeString(target, compile(input));
+			Files.writeString(target, "// File generated from '" + source + "'\n" + compile(input));
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
