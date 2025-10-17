@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -12,6 +13,7 @@ import java.util.Optional;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -538,21 +540,8 @@ public class Main {
 			}
 		}
 
-		final int i1 = stripped.indexOf("->");
-		if (i1 >= 0) {
-			final String name = stripped.substring(0, i1).strip();
-			if (isIdentifier(name)) {
-				final String substring1 = stripped.substring(i1 + 2);
-				final Tuple<String, ParseState> result = compileExpression(substring1, state);
-				final String s = generateStatement("return " + result.left);
-
-				final ParseState right = result.right;
-				final String generatedName = right.generateAnonymousFunctionName();
-				final String s1 =
-						"auto " + generatedName + "(auto " + name + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
-				return Optional.of(new Tuple<String, ParseState>(generatedName, right.addFunction(s1)));
-			}
-		}
+		final Optional<Tuple<String, ParseState>> lambdaResult = compileLambda(state, stripped);
+		if (lambdaResult.isPresent()) return lambdaResult;
 
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
@@ -602,6 +591,36 @@ public class Main {
 																								.or(() -> compileOperator(stripped, "<", state))
 																								.or(() -> compileIdentifier(stripped, state))
 																								.or(() -> compileNumber(stripped, state));
+	}
+
+	private static Optional<Tuple<String, ParseState>> compileLambda(ParseState state, String stripped) {
+		final int i1 = stripped.indexOf("->");
+		if (i1 < 0) return Optional.empty();
+
+		final String beforeArrow = stripped.substring(0, i1).strip();
+
+		final String outputParams;
+		if (isIdentifier(beforeArrow)) outputParams = "auto " + beforeArrow;
+		else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
+			final String withoutParentheses = beforeArrow.substring(1, beforeArrow.length() - 1);
+			outputParams = Arrays.stream(withoutParentheses.split(Pattern.quote(",")))
+													 .map(String::strip)
+													 .filter(slice -> !slice.isEmpty())
+													 .map(slice -> "auto " + slice)
+													 .collect(Collectors.joining(", "));
+
+		} else return Optional.empty();
+
+		final String substring1 = stripped.substring(i1 + 2);
+		final Tuple<String, ParseState> result = compileExpression(substring1, state);
+		final String s = generateStatement("return " + result.left);
+
+		final ParseState right = result.right;
+		final String generatedName = right.generateAnonymousFunctionName();
+
+		final String s1 =
+				"auto " + generatedName + "(" + outputParams + ") {" + s + generateIndent(0) + "}" + System.lineSeparator();
+		return Optional.of(new Tuple<String, ParseState>(generatedName, right.addFunction(s1)));
 	}
 
 	private static Tuple<String, ParseState> compileCaller(ParseState state, String caller) {
