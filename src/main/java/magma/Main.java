@@ -231,8 +231,8 @@ public class Main {
 		final DivideState appended = state.append(c);
 		if (c == ';' && appended.isLevel()) return appended.advance();
 		if (c == '}' && appended.isShallow()) return appended.advance().exit();
-		if (c == '{') return appended.enter();
-		if (c == '}') return appended.exit();
+		if (c == '{' || c == '(') return appended.enter();
+		if (c == '}' || c == ')') return appended.exit();
 		return appended;
 	}
 
@@ -711,25 +711,22 @@ public class Main {
 		final String name = stripped.substring(index + " ".length()).strip();
 		if (!isIdentifier(name)) return Optional.empty();
 
-		final int typeSeparator = findTypeSeparator(beforeName);
-		if (typeSeparator < 0) return compileType(beforeName).map(type -> new Definition(type, name));
+		final List<String> typeSeparator = findTypeSeparator(beforeName).toList();
+		if (typeSeparator.isEmpty()) return compileType(beforeName).map(type -> new Definition(type, name));
 
-		final String typeString = beforeName.substring(typeSeparator + " ".length());
+		final String typeString = typeSeparator.getLast();
 		return compileType(typeString).map(type -> new Definition(type, name));
 	}
 
-	private static int findTypeSeparator(String beforeName) {
-		int typeSeparator = -1;
-		int depth = 0;
-		for (int i = 0; i < beforeName.length(); i++) {
-			final char c = beforeName.charAt(i);
-			if (c == ' ' && depth == 0) typeSeparator = i;
+	private static Stream<String> findTypeSeparator(String beforeName) {
+		return divide(beforeName, (state, c) -> {
+			if (c == ' ' && state.isLevel()) return state.advance();
 
-			if (c == '<') depth++;
-			if (c == '>') depth--;
-		}
-
-		return typeSeparator;
+			final DivideState appended = state.append(c);
+			if (c == '<') return appended.enter();
+			if (c == '>') return appended.exit();
+			return appended;
+		});
 	}
 
 	private static Optional<String> compileType(String input) {
