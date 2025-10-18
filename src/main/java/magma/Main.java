@@ -213,12 +213,6 @@ public class Main {
 					 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	}
 
-	private static String compileAll(String input,
-																	 BiFunction<DivideState, Character, DivideState> folder,
-																	 Function<String, String> mapper) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining(", "));
-	}
-
 	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
 		Tuple<DivideState, Boolean> current = new Tuple<DivideState, Boolean>(new DivideState(input), true);
 		while (current.right) current = foldCycle(current.left, folder);
@@ -321,17 +315,21 @@ public class Main {
 
 		String maybeWithExtends = withoutPermits.strip();
 		final int extendsIndex = maybeWithExtends.indexOf("extends");
-		if (extendsIndex >= 0) maybeWithExtends = maybeWithExtends.substring(0, extendsIndex);
+		if (extendsIndex >= 0) maybeWithExtends = maybeWithExtends.substring(0, extendsIndex).strip();
 
-		String beforeMaybeParams = maybeWithExtends.strip();
+		String maybeWithImplements = maybeWithExtends.strip();
+		final int implementsIndex = maybeWithImplements.indexOf("implements");
+		if (implementsIndex >= 0) maybeWithImplements = maybeWithImplements.substring(0, implementsIndex).strip();
+
+		String beforeMaybeParams = maybeWithImplements.strip();
 		String recordFields = "";
-		if (withoutPermits.endsWith(")")) {
-			final String slice = withoutPermits.substring(0, withoutPermits.length() - 1);
+		if (maybeWithImplements.endsWith(")")) {
+			final String slice = maybeWithImplements.substring(0, maybeWithImplements.length() - 1);
 			final int beforeParams = slice.indexOf("(");
 			if (beforeParams >= 0) {
 				beforeMaybeParams = slice.substring(0, beforeParams).strip();
 				final String substring = slice.substring(beforeParams + 1);
-				recordFields = compileValues(substring, Main::compileParameter);
+				recordFields = compileValues(substring, Main::compileParameter, "");
 			}
 		}
 
@@ -404,7 +402,13 @@ public class Main {
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileAll(input, Main::foldValue, mapper);
+		return compileValues(input,
+												 mapper,
+												 ", ");
+	}
+
+	private static String compileValues(String input, Function<String, String> mapper, String delimiter) {
+		return divide(input, Main::foldValue).map(mapper).collect(Collectors.joining(delimiter));
 	}
 
 	private static String compileParameter(String input1) {

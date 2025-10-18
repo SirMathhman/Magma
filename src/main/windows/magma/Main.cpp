@@ -53,20 +53,27 @@ struct DivideState {
 };
 template <typeparam A, typeparam B>
 struct Tuple {
-	A left;, 
+	A left;
 	B right;
 };
-struct Definition(List<String> annotations, String type, String name) implements Definable {
+struct Definition {
+	List<char*> annotations;
+	char* type;
+	char* name;
 };
-struct Placeholder(String input) implements Definable {
+struct Placeholder {
+	char* input;
 };
-struct JConstructor(String name) implements JMethodHeader {
+struct JConstructor {
+	char* name;
 };
-template <typeparam T, typeparam X>(T value) implements Result<T, typeparam X>
+template <typeparam T, typeparam X>
 struct Ok {
+	T value;
 };
-template <typeparam T, typeparam X>(X error) implements Result<T, typeparam X>
+template <typeparam T, typeparam X>
 struct Err {
+	X error;
 };
 struct Main {
 };
@@ -147,10 +154,10 @@ Optional<Character> peek_DivideState(){
 	if (this.index < this.input.length()) return Optional.of(this.input.charAt(this.index));
 	else return Optional.empty();
 }
-char* generate_Definition(List<String> annotations, String type, String name) implements Definable(){
+char* generate_Definition(){
 	return this.type + " " + this.name;
 }
-char* generate_Placeholder(String input) implements Definable(){
+char* generate_Placeholder(){
 	return wrap(this.input);
 }
 void main_Main(char** args){
@@ -184,9 +191,6 @@ char* compile_Main(char* input){
 	char* joinedStructs = String.join("", state.structs);
 	char* joinedFunctions = String.join("", state.functions);
 	return joinedStructs + joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
-}
-char* compileAll_Main(char* input, BiFunction<DivideState, Character, DivideState> folder, Function<char*, char*> mapper){
-	return divide(input, folder).map(mapper).collect(Collectors.joining(", "));
 }
 Stream<char*> divide_Main(char* input, BiFunction<DivideState, Character, DivideState> folder){
 	Tuple<DivideState, Boolean> current = new_Tuple<DivideState, Boolean>(new_DivideState(input), true);
@@ -285,16 +289,19 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	}
 	char* maybeWithExtends = withoutPermits.strip();
 	int extendsIndex = maybeWithExtends.indexOf("extends");
-	if (extendsIndex >= 0) maybeWithExtends == maybeWithExtends.substring(0, extendsIndex);
-	char* beforeMaybeParams = maybeWithExtends.strip();
+	if (extendsIndex >= 0) maybeWithExtends == maybeWithExtends.substring(0, extendsIndex).strip();
+	char* maybeWithImplements = maybeWithExtends.strip();
+	int implementsIndex = maybeWithImplements.indexOf("implements");
+	if (implementsIndex >= 0) maybeWithImplements == maybeWithImplements.substring(0, implementsIndex).strip();
+	char* beforeMaybeParams = maybeWithImplements.strip();
 	char* recordFields = "";
-	if (withoutPermits.endsWith(")")) {
-		char* slice = withoutPermits.substring(0, withoutPermits.length() - 1);
+	if (maybeWithImplements.endsWith(")")) {
+		char* slice = maybeWithImplements.substring(0, maybeWithImplements.length() - 1);
 		int beforeParams = slice.indexOf("(");
 		if (beforeParams >= 0) {
 			beforeMaybeParams == slice.substring(0, beforeParams).strip();
 			char* substring = slice.substring(beforeParams + 1);
-			recordFields == compileValues(substring, compileParameter_Main);
+			recordFields == compileValues(substring, compileParameter_Main, "");
 		}
 	}
 	char* name = beforeMaybeParams.strip();
@@ -344,7 +351,10 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	return Optional.of(new_Tuple<char*, ParseState>("", outer.addStruct(generated)));
 }
 char* compileValues_Main(char* input, Function<char*, char*> mapper){
-	return compileAll(input, foldValue_Main, mapper);
+	return compileValues(input, mapper, ", ");
+}
+char* compileValues_Main(char* input, Function<char*, char*> mapper, char* delimiter){
+	return divide(input, foldValue_Main).map(mapper).collect(Collectors.joining(delimiter));
 }
 auto __lambda9__() {
 	return wrap(input1);
