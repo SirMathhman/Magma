@@ -9,11 +9,12 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -32,6 +33,40 @@ public class Main {
 
 	private sealed interface CExpression permits CIdentifier, Content {
 		String generate();
+	}
+
+	private sealed interface Optional<T> permits Some, None {
+		static <T> Optional<T> empty() {
+			return new None<>();
+		}
+
+		static <T> Optional<T> of(T value) {
+			return new Some<>(value);
+		}
+
+		void ifPresent(Consumer<T> consumer);
+
+		<R> Optional<R> map(Function<T, R> mapper);
+
+		default boolean isEmpty() {
+			return !(this instanceof Some<T>);
+		}
+
+		default T get() {
+			return this instanceof Some<T>(T value) ? value : null;
+		}
+
+		Optional<T> or(Supplier<Optional<T>> other);
+
+		T orElseGet(Supplier<T> other);
+
+		<R> Optional<R> flatMap(Function<T, Optional<R>> mapper);
+
+		T orElse(T other);
+
+		default boolean isPresent() {
+			return this instanceof Some<T>;
+		}
 	}
 
 	private static final class ParseState {
@@ -195,6 +230,69 @@ public class Main {
 		@Override
 		public String generate() {
 			return this.value;
+		}
+	}
+
+	record Some<T>(T value) implements Main.Optional<T> {
+		@Override
+		public void ifPresent(Consumer<T> consumer) {
+			consumer.accept(this.value);
+		}
+
+		@Override
+		public <R> Optional<R> map(Function<T, R> mapper) {
+			return new Some<>(mapper.apply(this.value));
+		}
+
+		@Override
+		public Optional<T> or(Supplier<Optional<T>> other) {
+			return this;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return this.value;
+		}
+
+		@Override
+		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+			return mapper.apply(this.value);
+		}
+
+		@Override
+		public T orElse(T other) {
+			return this.value;
+		}
+	}
+
+	record None<T>() implements Main.Optional<T> {
+		@Override
+		public void ifPresent(Consumer<T> consumer) {
+		}
+
+		@Override
+		public <R> Optional<R> map(Function<T, R> mapper) {
+			return new None<>();
+		}
+
+		@Override
+		public Optional<T> or(Supplier<Optional<T>> other) {
+			return other.get();
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return other.get();
+		}
+
+		@Override
+		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+			return new None<>();
+		}
+
+		@Override
+		public T orElse(T other) {
+			return other;
 		}
 	}
 
