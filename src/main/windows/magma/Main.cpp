@@ -8,8 +8,8 @@ union DefinableData {
 	Placeholder placeholder;
 };
 struct Definable {
-	DefinableTag _tag;
-	DefinableData _data;
+	DefinableTag tag;
+	DefinableData data;
 };
 enum JMethodHeaderTag {
 	JConstructor,
@@ -20,8 +20,8 @@ union JMethodHeaderData {
 	Definable definable;
 };
 struct JMethodHeader {
-	JMethodHeaderTag _tag;
-	JMethodHeaderData _data;
+	JMethodHeaderTag tag;
+	JMethodHeaderData data;
 };
 enum ResultTag {
 	Err,
@@ -34,8 +34,8 @@ union ResultData {
 };
 template <typeparam T, typeparam X>
 struct Result {
-	ResultTag _tag;
-	ResultData<T, X> _data;
+	ResultTag tag;
+	ResultData<T, X> data;
 };
 struct Actual {
 };
@@ -166,11 +166,14 @@ void main_Main(char** args){
 Optional<IOException> run_Main(){
 	Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
-	if (!(/*readString(source) instanceof Ok<String, IOException>(String input)*/)) return Optional.empty();
-	Path targetParent = target.getParent();
-	if (!Files.exists(targetParent)) return createDirectories(targetParent);
-	char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
-	return writeString(target, output);
+	Result<char*, IOException> readResult = readString(source);
+	if (/*readResult instanceof Ok<String, IOException>(String input)*/) {
+		Path targetParent = target.getParent();
+		if (!Files.exists(targetParent)) return createDirectories(targetParent);
+		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+		return writeString(target, output);
+	}
+	return Optional.empty();
 }
 Optional<IOException> writeString_Main(Path target, char* output);
 Optional<IOException> createDirectories_Main(Path targetParent);
@@ -344,8 +347,8 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		else joinedTypeParameters = "<" + String.join(", ", typeParameters) + ">";
 		char* unionFields = variants.stream().map(__lambda8__).map(generateStatement_Main).collect(Collectors.joining());
 		generatedSubStructs == "enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
-		recordFields +  == generateStatement(name + "Tag _tag");
-		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " _data");
+		recordFields +  == generateStatement(name + "Tag tag");
+		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data");
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
 	return Optional.of(new_Tuple<char*, ParseState>("", outer.addStruct(generated)));

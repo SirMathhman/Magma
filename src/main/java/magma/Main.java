@@ -155,12 +155,16 @@ public class Main {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 
-		if (!(readString(source) instanceof Ok<String, IOException>(String input))) return Optional.empty();
-		final Path targetParent = target.getParent();
+		final Result<String, IOException> readResult = readString(source);
+		if (readResult instanceof Ok<String, IOException>(String input)) {
+			final Path targetParent = target.getParent();
 
-		if (!Files.exists(targetParent)) return createDirectories(targetParent);
-		final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
-		return writeString(target, output);
+			if (!Files.exists(targetParent)) return createDirectories(targetParent);
+			final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+			return writeString(target, output);
+		}
+
+		return Optional.empty();
 	}
 
 	@Actual
@@ -391,8 +395,8 @@ public class Main {
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			recordFields += generateStatement(name + "Tag _tag");
-			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " _data");
+			recordFields += generateStatement(name + "Tag tag");
+			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data");
 		}
 
 		final String generated =
@@ -402,9 +406,7 @@ public class Main {
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileValues(input,
-												 mapper,
-												 ", ");
+		return compileValues(input, mapper, ", ");
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper, String delimiter) {
