@@ -319,7 +319,11 @@ public class Main {
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
-		String beforeMaybeParams = withoutPermits.strip();
+		String maybeWithExtends = withoutPermits.strip();
+		final int extendsIndex = maybeWithExtends.indexOf("extends");
+		if (extendsIndex >= 0) maybeWithExtends = maybeWithExtends.substring(0, extendsIndex);
+
+		String beforeMaybeParams = maybeWithExtends.strip();
 		String recordFields = "";
 		if (withoutPermits.endsWith(")")) {
 			final String slice = withoutPermits.substring(0, withoutPermits.length() - 1);

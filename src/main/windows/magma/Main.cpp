@@ -1,15 +1,15 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-enum Definable extends JMethodHeaderTag {
+enum DefinableTag {
 	Definition,
 	Placeholder
 };
-union Definable extends JMethodHeaderData {
+union DefinableData {
 	Definition definition;
 	Placeholder placeholder;
 };
-struct Definable extends JMethodHeader {
-	Definable extends JMethodHeaderTag _tag;
-	Definable extends JMethodHeaderData _data;
+struct Definable {
+	DefinableTag _tag;
+	DefinableData _data;
 };
 enum JMethodHeaderTag {
 	JConstructor,
@@ -70,7 +70,7 @@ struct Err {
 };
 struct Main {
 };
-char* generate_Definable extends JMethodHeader();
+char* generate_Definable();
 ParseState new_ParseState(){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -283,7 +283,10 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		variants == divide(slice, foldValue_Main).map(strip_char*).filter(__lambda5__).toList();
 		withoutPermits == beforeContent.substring(0, permitsIndex);
 	}
-	char* beforeMaybeParams = withoutPermits.strip();
+	char* maybeWithExtends = withoutPermits.strip();
+	int extendsIndex = maybeWithExtends.indexOf("extends");
+	if (extendsIndex >= 0) maybeWithExtends == maybeWithExtends.substring(0, extendsIndex);
+	char* beforeMaybeParams = maybeWithExtends.strip();
 	char* recordFields = "";
 	if (withoutPermits.endsWith(")")) {
 		char* slice = withoutPermits.substring(0, withoutPermits.length() - 1);
