@@ -21,7 +21,6 @@ import java.util.stream.Stream;
 public class Main {
 	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
 		String generate();
-
 	}
 
 	private sealed interface JMethodHeader permits JConstructor, Definable {}
@@ -308,11 +307,22 @@ public class Main {
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) return Optional.empty();
+
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
-		String beforeMaybeParams = beforeContent;
+		String withoutPermits = beforeContent;
+		List<String> variants = Collections.emptyList();
+
+		final int permitsIndex = beforeContent.indexOf("permits");
+		if (permitsIndex >= 0) {
+			final String slice = beforeContent.substring(permitsIndex + "permits".length());
+			variants = divide(slice, Main::foldValue).map(String::strip).filter(segment -> !segment.isEmpty()).toList();
+			withoutPermits = beforeContent.substring(0, permitsIndex);
+		}
+
+		String beforeMaybeParams = withoutPermits;
 		String recordFields = "";
-		if (beforeContent.endsWith(")")) {
-			final String slice = beforeContent.substring(0, beforeContent.length() - 1);
+		if (withoutPermits.endsWith(")")) {
+			final String slice = withoutPermits.substring(0, withoutPermits.length() - 1);
 			final int beforeParams = slice.indexOf("(");
 			if (beforeParams >= 0) {
 				beforeMaybeParams = slice.substring(0, beforeParams).strip();
@@ -321,13 +331,13 @@ public class Main {
 			}
 		}
 
-		String name = beforeMaybeParams;
+		String name = beforeMaybeParams.strip();
 		List<String> typeArguments = Collections.emptyList();
 		if (beforeMaybeParams.endsWith(">")) {
 			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
 			final int i1 = withoutEnd.indexOf("<");
 			if (i1 >= 0) {
-				name = withoutEnd.substring(0, i1);
+				name = withoutEnd.substring(0, i1).strip();
 				final String arguments = withoutEnd.substring(i1 + "<".length());
 				typeArguments = divide(arguments, Main::foldValue).map(String::strip).toList();
 			}
@@ -361,8 +371,16 @@ public class Main {
 			beforeStruct = "template " + templateValues;
 		}
 
+		String enumString = "";
+		if (!variants.isEmpty()) {
+			final String joinedVariants =
+					variants.stream().map(slice -> generateIndent(1) + slice).collect(Collectors.joining(","));
+
+			enumString = "enum " + name + "Tag {" + joinedVariants + System.lineSeparator() + "};" + System.lineSeparator();
+		}
+
 		final String generated =
-				beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
+				enumString + beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
 				System.lineSeparator();
 		return Optional.of(new Tuple<String, ParseState>("", outer.addStruct(generated)));
 	}
