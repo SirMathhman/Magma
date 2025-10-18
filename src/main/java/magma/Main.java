@@ -32,12 +32,14 @@ public class Main {
 	private static final class ParseState {
 		private final List<String> functions;
 		private final List<String> structs;
+		private final ArrayList<String> statements;
 		private int counter;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
 			this.structs = new ArrayList<String>();
 			this.counter = -1;
+			this.statements = new ArrayList<>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -53,6 +55,17 @@ public class Main {
 		public String generateAnonymousFunctionName() {
 			this.counter++;
 			return "__lambda" + this.counter + "__";
+		}
+
+		public ParseState addStatement(String statement) {
+			this.statements.add(statement);
+			return this;
+		}
+
+		public ArrayList<String> popStatements() {
+			final ArrayList<String> copy = new ArrayList<String>(this.statements);
+			this.statements.clear();
+			return copy;
 		}
 	}
 
@@ -387,16 +400,17 @@ public class Main {
 			else joinedTypeParameters = "<" + String.join(", ", typeParameters) + ">";
 
 			final String unionFields = variants.stream().map(slice -> slice + joinedTypeParameters + " " +
-																																slice.toLowerCase()).map(Main::generateStatement).collect(
-					Collectors.joining());
+																																slice.toLowerCase()).map(content1 -> generateStatement(
+					content1,
+					1)).collect(Collectors.joining());
 
 			generatedSubStructs =
 					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			recordFields += generateStatement(name + "Tag tag");
-			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data");
+			recordFields += generateStatement(name + "Tag tag", 1);
+			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 		}
 
 		final String generated =
@@ -419,11 +433,11 @@ public class Main {
 	}
 
 	private static Optional<String> generateField(String input) {
-		return compileDefinition(input).map(Definable::generate).map(Main::generateStatement);
+		return compileDefinition(input).map(Definable::generate).map(content -> generateStatement(content, 1));
 	}
 
-	private static String generateStatement(String content) {
-		return generateSegment(content + ";", 1);
+	private static String generateStatement(String content, int depth) {
+		return generateSegment(content + ";", depth);
 	}
 
 	private static String generateSegment(String content, int depth) {
@@ -505,7 +519,7 @@ public class Main {
 
 			String outputBody;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor)
-				outputBody = generateStatement(name + " this") + compiledBody + generateStatement("return this");
+				outputBody = generateStatement(name + " this", 1) + compiledBody + generateStatement("return this", 1);
 			else outputBody = compiledBody;
 
 			outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
@@ -611,7 +625,8 @@ public class Main {
 			i++;
 		}
 
-		final String compiled = joiner.toString();
+		final ArrayList<String> removed = current.popStatements();
+		final String compiled = String.join("", removed) + joiner;
 		return Optional.of(new Tuple<String, ParseState>("{" + compiled + generateIndent(depth) + "}", current));
 
 	}
@@ -697,9 +712,33 @@ public class Main {
 				final Tuple<String, ParseState> result = maybeResult.get();
 
 				final int typeArgumentsStart = afterOperator.indexOf("<");
-				if (typeArgumentsStart >= 0) afterOperator = afterOperator.substring(0, typeArgumentsStart);
+				String variantName;
+				if (typeArgumentsStart >= 0) variantName = afterOperator.substring(0, typeArgumentsStart);
+				else variantName = afterOperator;
 
-				return Optional.of(new Tuple<>(result.left + ".tag == " + afterOperator, result.right));
+				String parameters = "";
+				if (afterOperator.endsWith(")")) {
+					final String slice = afterOperator.substring(0, afterOperator.length() - 1);
+					final int paramStart = slice.indexOf("(");
+					if (paramStart >= 0) {
+						final String paramString = slice.substring(paramStart + 1);
+						String result1 = "";
+						if (!paramString.isEmpty())
+							result1 = compileValues(paramString, slice1 -> compileDefinition(slice1).map(definition -> {
+								final String generated = definition.generate();
+								return generated + " = _cast." + definition.name;
+							}).map(destructMember -> generateStatement(destructMember, 2)).orElse(""));
+
+						parameters = result1;
+						afterOperator = afterOperator.substring(0, paramStart);
+					}
+				}
+
+				final String left = result.left;
+				final String content = afterOperator + " _cast = " + left + ".data." + variantName.toLowerCase();
+				final String statement = generateStatement(content, 2) + parameters;
+				final ParseState parseState = result.right.addStatement(statement);
+				return Optional.of(new Tuple<>(left + ".tag == " + variantName, parseState));
 			}
 		}
 
@@ -824,7 +863,7 @@ public class Main {
 		if (maybeBlock.isPresent()) return maybeBlock.get();
 
 		final Tuple<String, ParseState> result = compileExpression(body, state);
-		final String s = generateStatement("return " + result.left);
+		final String s = generateStatement("return " + result.left, 1);
 		final String s2 = "{" + s + generateIndent(0) + "}";
 		return new Tuple<String, ParseState>(s2, result.right);
 	}
