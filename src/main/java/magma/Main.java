@@ -332,14 +332,14 @@ public class Main {
 		}
 
 		String name = beforeMaybeParams.strip();
-		List<String> typeArguments = Collections.emptyList();
+		List<String> typeParameters = Collections.emptyList();
 		if (beforeMaybeParams.endsWith(">")) {
 			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
 			final int i1 = withoutEnd.indexOf("<");
 			if (i1 >= 0) {
 				name = withoutEnd.substring(0, i1).strip();
 				final String arguments = withoutEnd.substring(i1 + "<".length());
-				typeArguments = divide(arguments, Main::foldValue).map(String::strip).toList();
+				typeParameters = divide(arguments, Main::foldValue).map(String::strip).toList();
 			}
 		}
 
@@ -361,28 +361,40 @@ public class Main {
 			j++;
 		}
 
-		String beforeStruct;
-		if (typeArguments.isEmpty()) beforeStruct = "";
+		String templateString;
+		if (typeParameters.isEmpty()) templateString = "";
 		else {
 			final String collect =
-					typeArguments.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">"));
+					typeParameters.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">"));
 
 			final String templateValues = collect + System.lineSeparator();
-			beforeStruct = "template " + templateValues;
+			templateString = "template " + templateValues;
 		}
 
-		String enumString = "";
+		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String joinedVariants =
+			final String enumFields =
 					variants.stream().map(slice -> generateIndent(1) + slice).collect(Collectors.joining(","));
 
-			enumString = "enum " + name + "Tag {" + joinedVariants + System.lineSeparator() + "};" + System.lineSeparator();
+			final String joinedTypeParameters;
+			if (typeParameters.isEmpty()) joinedTypeParameters = "";
+			else joinedTypeParameters = "<" + String.join(", ", typeParameters) + ">";
+
+			final String unionFields = variants.stream().map(slice -> slice + joinedTypeParameters + " " +
+																																slice.toLowerCase()).map(Main::generateStatement).collect(
+					Collectors.joining());
+
+			generatedSubStructs =
+					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
+					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
+					System.lineSeparator();
+
 			recordFields += generateStatement(name + "Tag _tag");
 		}
 
 		final String generated =
-				enumString + beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" +
-				System.lineSeparator();
+				generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() +
+				"};" + System.lineSeparator();
 		return Optional.of(new Tuple<String, ParseState>("", outer.addStruct(generated)));
 	}
 
