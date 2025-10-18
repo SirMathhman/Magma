@@ -4,18 +4,22 @@ enum Definable extends JMethodHeaderTag {
 	Placeholder
 };
 struct Definable extends JMethodHeader {
+	Definable extends JMethodHeaderTag _tag;
 };
 enum JMethodHeaderTag {
 	JConstructor,
 	Definable
 };
 struct JMethodHeader {
+	JMethodHeaderTag _tag;
 };
-enum Result<T, X>Tag {
+enum ResultTag {
 	Err,
 	Ok
 };
-struct Result<T, X> {
+template <typeparam T, typeparam X>
+struct Result {
+	ResultTag _tag;
 };
 struct Actual {
 };
@@ -260,7 +264,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		variants == divide(slice, foldValue_Main).map(strip_char*).filter(__lambda5__).toList();
 		withoutPermits == beforeContent.substring(0, permitsIndex);
 	}
-	char* beforeMaybeParams = withoutPermits;
+	char* beforeMaybeParams = withoutPermits.strip();
 	char* recordFields = "";
 	if (withoutPermits.endsWith(")")) {
 		char* slice = withoutPermits.substring(0, withoutPermits.length() - 1);
@@ -307,6 +311,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	if (!variants.isEmpty()) {
 		char* joinedVariants = variants.stream().map(__lambda7__).collect(Collectors.joining(","));
 		enumString == "enum " + name + "Tag {" + joinedVariants + System.lineSeparator() + "};" + System.lineSeparator();
+		recordFields +  == generateStatement(name + "Tag _tag");
 	}
 	char* generated = enumString + beforeStruct + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
 	return Optional.of(new_Tuple<char*, ParseState>("", outer.addStruct(generated)));

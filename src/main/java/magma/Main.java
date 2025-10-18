@@ -319,7 +319,7 @@ public class Main {
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
-		String beforeMaybeParams = withoutPermits;
+		String beforeMaybeParams = withoutPermits.strip();
 		String recordFields = "";
 		if (withoutPermits.endsWith(")")) {
 			final String slice = withoutPermits.substring(0, withoutPermits.length() - 1);
@@ -377,6 +377,7 @@ public class Main {
 					variants.stream().map(slice -> generateIndent(1) + slice).collect(Collectors.joining(","));
 
 			enumString = "enum " + name + "Tag {" + joinedVariants + System.lineSeparator() + "};" + System.lineSeparator();
+			recordFields += generateStatement(name + "Tag _tag");
 		}
 
 		final String generated =
