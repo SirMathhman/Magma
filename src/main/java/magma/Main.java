@@ -719,13 +719,15 @@ public class Main {
 	}
 
 	private static Definable transformMethodHeader(JMethodHeader methodHeader, String name) {
-		return switch (methodHeader) {
-			case JConstructor constructor ->
-					new Definition(Collections.emptyList(), constructor.name, "new_" + constructor.name);
-			case Definition definition ->
-					new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
-			case Placeholder placeholder -> placeholder;
-		};
+		if (Objects.requireNonNull(methodHeader) instanceof JConstructor(String name1)) {
+			return new Definition(Collections.emptyList(), name1, "new_" + name1);
+		} else if (methodHeader instanceof Definition definition) {
+			return new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
+		} else if (methodHeader instanceof Placeholder placeholder) {
+			return placeholder;
+		} else {
+			return new Placeholder("?");
+		}
 	}
 
 	private static JMethodHeader compileMethodHeader(String beforeParams) {

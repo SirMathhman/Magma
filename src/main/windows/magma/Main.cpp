@@ -662,13 +662,23 @@ boolean isPlatformDependentMethod_Main(JMethodHeader methodHeader){
 	return methodHeader.tag == Definition definition && definition.annotations.contains("Actual");
 }
 Definable transformMethodHeader_Main(JMethodHeader methodHeader, char* name){
-	return /*switch (methodHeader) {
-			case JConstructor constructor ->
-					new Definition(Collections.emptyList(), constructor.name, "new_" + constructor.name);
-			case Definition definition ->
-					new Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
-			case Placeholder placeholder -> placeholder;
-		}*/;
+	??? _temp = Objects.requireNonNull(methodHeader);
+	if (_temp.tag == JConstructor(String name1)) {
+		JConstructor _cast = _temp.data.jconstructor(string name1);
+		char* name1 = _cast.name1;
+		return new_Definition(Collections.emptyList(), name1, "new_" + name1);
+	}
+	else if (methodHeader.tag == Definition definition) {
+		Definition definition _cast = methodHeader.data.definition definition;
+		return new_Definition(Collections.emptyList(), definition.type, definition.name + "_" + name);
+	}
+	else if (methodHeader.tag == Placeholder placeholder) {
+		Placeholder placeholder _cast = methodHeader.data.placeholder placeholder;
+		return placeholder;
+	}
+	else {
+		return new_Placeholder("?");
+	}
 }
 auto __lambda17__(auto definable) {
 	return definable;
