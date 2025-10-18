@@ -390,6 +390,7 @@ public class Main {
 					System.lineSeparator();
 
 			recordFields += generateStatement(name + "Tag _tag");
+			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " _data");
 		}
 
 		final String generated =

@@ -9,6 +9,7 @@ union Definable extends JMethodHeaderData {
 };
 struct Definable extends JMethodHeader {
 	Definable extends JMethodHeaderTag _tag;
+	Definable extends JMethodHeaderData _data;
 };
 enum JMethodHeaderTag {
 	JConstructor,
@@ -20,6 +21,7 @@ union JMethodHeaderData {
 };
 struct JMethodHeader {
 	JMethodHeaderTag _tag;
+	JMethodHeaderData _data;
 };
 enum ResultTag {
 	Err,
@@ -33,6 +35,7 @@ union ResultData {
 template <typeparam T, typeparam X>
 struct Result {
 	ResultTag _tag;
+	ResultData<T, X> _data;
 };
 struct Actual {
 };
@@ -332,6 +335,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		char* unionFields = variants.stream().map(__lambda8__).map(generateStatement_Main).collect(Collectors.joining());
 		generatedSubStructs == "enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 		recordFields +  == generateStatement(name + "Tag _tag");
+		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " _data");
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
 	return Optional.of(new_Tuple<char*, ParseState>("", outer.addStruct(generated)));
