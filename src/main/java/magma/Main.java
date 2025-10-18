@@ -289,7 +289,7 @@ public class Main {
 
 	private static Tuple<String, ParseState> compileRootSegment(String input, ParseState state) {
 		final String stripped = input.strip();
-		if (stripped.isEmpty()) return new Tuple<>("", state);
+		if (stripped.isEmpty()) return new Tuple<String, ParseState>("", state);
 		if (stripped.startsWith("package ") || stripped.startsWith("import "))
 			return new Tuple<String, ParseState>("", state);
 
@@ -687,6 +687,21 @@ public class Main {
 
 		final Optional<Tuple<String, ParseState>> lambdaResult = compileLambda(state, stripped);
 		if (lambdaResult.isPresent()) return lambdaResult;
+
+		final int i1 = stripped.indexOf("instanceof");
+		if (i1 >= 0) {
+			final String substring = stripped.substring(0, i1).strip();
+			String afterOperator = stripped.substring(i1 + "instanceof".length()).strip();
+			final Optional<Tuple<String, ParseState>> maybeResult = tryCompileExpression(substring, state);
+			if (maybeResult.isPresent()) {
+				final Tuple<String, ParseState> result = maybeResult.get();
+
+				final int typeArgumentsStart = afterOperator.indexOf("<");
+				if (typeArgumentsStart >= 0) afterOperator = afterOperator.substring(0, typeArgumentsStart);
+
+				return Optional.of(new Tuple<>(result.left + ".tag == " + afterOperator, result.right));
+			}
+		}
 
 		final Optional<Tuple<String, ParseState>> left = compileInvokable(state, stripped);
 		if (left.isPresent()) return left;

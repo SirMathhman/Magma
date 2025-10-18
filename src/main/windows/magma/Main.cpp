@@ -167,7 +167,7 @@ Optional<IOException> run_Main(){
 	Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 	Result<char*, IOException> readResult = readString(source);
-	if (/*readResult instanceof Ok<String, IOException>(String input)*/) {
+	if (readResult.tag == Ok) {
 		Path targetParent = target.getParent();
 		if (!Files.exists(targetParent)) return createDirectories(targetParent);
 		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
@@ -259,7 +259,7 @@ auto __lambda4__() {
 }
 Tuple<char*, ParseState> compileRootSegment_Main(char* input, ParseState state){
 	char* stripped = input.strip();
-	if (stripped.isEmpty()) return new_Tuple<>("", state);
+	if (stripped.isEmpty()) return new_Tuple<char*, ParseState>("", state);
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) return new_Tuple<char*, ParseState>("", state);
 	return compileStructure(stripped, "class", state).orElseGet(__lambda4__);
 }
@@ -443,7 +443,7 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 		}
 		char* compiledBody = joiner.toString();
 		char* outputBody;
-		if (/*Objects.requireNonNull(methodHeader) instanceof JConstructor*/) outputBody = /* generateStatement(name + " this") + compiledBody + generateStatement("return this")*/;
+		if (Objects.requireNonNull(methodHeader).tag == JConstructor) outputBody = /* generateStatement(name + " this") + compiledBody + generateStatement("return this")*/;
 		else outputBody = compiledBody;
 		outputBodyWithBraces = "{" + outputBody + System.lineSeparator() + "}";
 	}
@@ -452,7 +452,7 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 	return Optional.of(new_Tuple<char*, ParseState>("", current.addFunction(generated)));
 }
 boolean isPlatformDependentMethod_Main(JMethodHeader methodHeader){
-	return /*methodHeader instanceof Definition definition && definition.annotations.contains("Actual")*/;
+	return methodHeader.tag == Definition definition && definition.annotations.contains("Actual");
 }
 Definable transformMethodHeader_Main(JMethodHeader methodHeader, char* name){
 	return /*switch (methodHeader) {
@@ -633,6 +633,18 @@ Optional<Tuple<char*, ParseState>> tryCompileExpression_Main(char* input, ParseS
 	}
 	Optional<Tuple<char*, ParseState>> lambdaResult = compileLambda(state, stripped);
 	if (lambdaResult.isPresent()) return lambdaResult;
+	int i1 = stripped.indexOf("instanceof");
+	if (i1 >= 0) {
+		char* substring = stripped.substring(0, i1).strip();
+		char* afterOperator = stripped.substring(i1 + "instanceof".length()).strip();
+		Optional<Tuple<char*, ParseState>> maybeResult = tryCompileExpression(substring, state);
+		if (maybeResult.isPresent()) {
+			Tuple<char*, ParseState> result = maybeResult.get();
+			int typeArgumentsStart = afterOperator.indexOf("<");
+			if (typeArgumentsStart >= 0) afterOperator == afterOperator.substring(0, typeArgumentsStart);
+			return Optional.of(new_Tuple<>(result.left + ".tag == " + afterOperator, result.right));
+		}
+	}
 	Optional<Tuple<char*, ParseState>> left = compileInvokable(state, stripped);
 	if (left.isPresent()) return left;
 	int separator = stripped.lastIndexOf("::");
