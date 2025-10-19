@@ -12,7 +12,6 @@ import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
@@ -43,8 +42,6 @@ public class Main {
 		static <T> Optional<T> of(T value) {
 			return new Some<T>(value);
 		}
-
-		void ifPresent(Consumer<T> consumer);
 
 		<R> Optional<R> map(Function<T, R> mapper);
 
@@ -227,11 +224,6 @@ public class Main {
 
 	private record Some<T>(T value) implements Main.Optional<T> {
 		@Override
-		public void ifPresent(Consumer<T> consumer) {
-			consumer.accept(this.value);
-		}
-
-		@Override
 		public <R> Optional<R> map(Function<T, R> mapper) {
 			return new Some<R>(mapper.apply(this.value));
 		}
@@ -259,10 +251,6 @@ public class Main {
 
 	private record None<T>() implements Main.Optional<T> {
 		@Override
-		public void ifPresent(Consumer<T> consumer) {
-		}
-
-		@Override
 		public <R> Optional<R> map(Function<T, R> mapper) {
 			return new None<R>();
 		}
@@ -289,7 +277,10 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		run().ifPresent(Throwable::printStackTrace);
+		if (run() instanceof Some<IOException>(IOException value)) {
+			//noinspection CallToPrintStackTrace
+			value.printStackTrace();
+		}
 	}
 
 	private static Optional<IOException> run() {

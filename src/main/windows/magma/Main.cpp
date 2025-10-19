@@ -126,7 +126,6 @@ Optional<T> empty_Optional(){
 Optional<T> of_Optional(T value){
 	return new_Some<T>(value);
 }
-void ifPresent_Optional(Consumer<T> consumer);
 Optional<R> map_Optional(Function<T, R> mapper);
 Optional<T> or_Optional(Supplier<Optional<T>> other);
 T orElseGet_Optional(Supplier<T> other);
@@ -248,9 +247,6 @@ char* generate_Content(){
 char* generate_CIdentifier(){
 	return this.value;
 }
-void ifPresent_Some(Consumer<T> consumer){
-	consumer.accept(this.value);
-}
 Optional<R> map_Some(Function<T, R> mapper){
 	return new_Some<R>(mapper.apply(this.value));
 }
@@ -265,8 +261,6 @@ Optional<R> flatMap_Some(Function<T, Optional<R>> mapper){
 }
 T orElse_Some(T other){
 	return this.value;
-}
-void ifPresent_None(Consumer<T> consumer){
 }
 Optional<R> map_None(Function<T, R> mapper){
 	return new_None<R>();
@@ -284,7 +278,13 @@ T orElse_None(T other){
 	return other;
 }
 void main_Main(char** args){
-	run().ifPresent(printStackTrace_Throwable);
+	Optional < IOException >= ioExceptionOptional == run();
+	if (ioExceptionOptional.tag == Some) {
+		Some<IOException> _cast = ioExceptionOptional.data.some;
+		IOException value = _cast.value;
+		/*//noinspection CallToPrintStackTrace
+			value.printStackTrace()*/;
+	}
 }
 Optional<IOException> run_Main(){
 	Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
