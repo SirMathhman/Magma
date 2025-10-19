@@ -112,56 +112,53 @@ public class Main {
 
 	private static final class Array<T> implements Closeable {
 		private final T[] elements;
+		private int length;
 
-		private Array(T[] elements) {this.elements = elements;}
+		private Array(T[] elements) {
+			this.elements = elements;
+			this.length = 0;
+		}
+
+		private boolean contains(T element) {
+			for (int i = 0; i < this.length(); i++) {
+				if (Objects.equals(Array.this.elements[i], element)) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 		@Override
 		public void close() {
 			MemUtils.free(this.elements);
 		}
 
-		public int length() {
+		public int capacity() {
 			return this.elements.length;
 		}
 
-		public void set(int index, T element) {
-			if (index < this.elements.length) {
-				this.elements[index] = element;
+		public int length() {
+			return this.length;
+		}
+
+		public void setNext(T element) {
+			if (this.length < this.elements.length) {
+				this.elements[this.length] = element;
+				this.length++;
 			}
 		}
 
 		public Optional<T> get(int index) {
-			if (index < this.elements.length) {
+			if (index < this.length) {
 				return new Some<T>(this.elements[index]);
 			} else {
 				return new None<T>();
 			}
 		}
 
-		public T[] elements() {return this.elements;}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (obj == this) {
-				return true;
-			}
-			if (obj == null || obj.getClass() != this.getClass()) {
-				return false;
-			}
-			Array that = (Array) obj;
-			return Objects.equals(this.elements, that.elements);
+		public void setFirst(T element) {
+			this.elements[0] = element;
 		}
-
-		@Override
-		public int hashCode() {
-			return Objects.hash(this.elements);
-		}
-
-		@Override
-		public String toString() {
-			return "Array[" + "elements=" + this.elements + ']';
-		}
-
 	}
 
 	private static class MemUtils {
@@ -187,50 +184,47 @@ public class Main {
 
 	private static final class ArrayList<T> implements List<T> {
 		private Array<T> elements;
-		private int size;
 
-		private ArrayList(Array<T> elements, int size) {
+		private ArrayList(Array<T> elements) {
 			this.elements = elements;
-			this.size = size;
 		}
 
 		public ArrayList() {
-			this(MemUtils.alloc(10), 0);
+			this(MemUtils.alloc(10));
 		}
 
 		private void ensureCapacity(int minCapacity) {
-			if (minCapacity <= this.elements.length()) {
+			if (minCapacity <= this.elements.capacity()) {
 				return;
 			}
 
-			int newCapacity = this.elements.length() * 2;
+			int newCapacity = this.elements.capacity() * 2;
 			if (newCapacity < minCapacity) {
 				newCapacity = minCapacity;
 			}
 
 			Array<T> newElements = MemUtils.alloc(newCapacity);
-			MemUtils.memCopy(this.elements, 0, newElements, 0, this.size);
+			MemUtils.memCopy(this.elements, 0, newElements, 0, this.elements.length());
+			newElements.length = this.elements.length();
 			this.elements = newElements;
 		}
 
 		@Override
 		public List<T> add(T element) {
-			this.ensureCapacity(this.size + 1);
-			this.elements.set(this.size, element);
-			this.size++;
+			this.ensureCapacity(this.elements.length() + 1);
+			this.elements.setNext(element);
 			return this;
 		}
 
 		@Override
 		public List<T> clear() {
 			this.elements = MemUtils.alloc(10);
-			this.size = 0;
 			return this;
 		}
 
 		@Override
 		public int size() {
-			return this.size;
+			return this.elements.length();
 		}
 
 		@Override
@@ -240,7 +234,7 @@ public class Main {
 
 		@Override
 		public Optional<T> get(int index) {
-			if (index < 0 || index >= this.size) {
+			if (index < 0 || index >= this.elements.length()) {
 				return Optional.empty();
 			}
 
@@ -254,11 +248,11 @@ public class Main {
 
 		@Override
 		public List<T> addFirst(T element) {
-			this.ensureCapacity(this.size + 1);
+			this.ensureCapacity(this.elements.length() + 1);
 			// Shift all elements one position to the right
-			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.size);
-			this.elements.set(0, element);
-			this.size++;
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.elements.length());
+			this.elements.setFirst(element);
+			this.elements.length++;
 			return this;
 		}
 
@@ -269,12 +263,7 @@ public class Main {
 
 		@Override
 		public boolean contains(T element) {
-			for (int i = 0; i < this.size; i++) {
-				if (Objects.equals(this.elements.elements[i], element)) {
-					return true;
-				}
-			}
-			return false;
+			return this.elements.contains(element);
 		}
 
 		@Override
@@ -284,59 +273,60 @@ public class Main {
 
 		@Override
 		public Optional<List<T>> subList(int start, int end) {
-			if (start < 0 || end > this.size || start > end) {
+			if (start < 0 || end > this.elements.length() || start > end) {
 				return Optional.empty();
 			}
 			int subSize = end - start;
 			Array<T> newElements = MemUtils.alloc(Math.max(10, subSize));
 			MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
-			return Optional.of(new ArrayList<T>(newElements, subSize));
+			newElements.length = subSize;
+			return Optional.of(new ArrayList<T>(newElements));
 		}
 
 		@Override
 		public List<T> addAll(List<T> elements) {
 			int elementsSize = elements.size();
-			this.ensureCapacity(this.size + elementsSize);
+			this.ensureCapacity(this.elements.length() + elementsSize);
 
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements.set(this.size + i, elements.get(i).orElse(null));
+				this.elements.setNext(elements.get(i).orElse(null));
 			}
 
-			this.size += elementsSize;
 			return this;
 		}
 
 		@Override
 		public Optional<List<T>> addAllAt(int index, List<T> elements) {
-			if (index < 0 || index > this.size) {
+			if (index < 0 || index > this.elements.length()) {
 				return Optional.empty();
 			}
 
 			int elementsSize = elements.size();
-			this.ensureCapacity(this.size + elementsSize);
+			this.ensureCapacity(this.elements.length() + elementsSize);
 
 			// Shift elements to the right to make room
-			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.size - index);
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.elements.length() - index);
 
-			// Copy inserted elements
+			// Copy inserted elements - need to use set with supplier since we're inserting in middle
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements.set(index + i, elements.get(i).orElse(null));
+				this.elements.elements[index + i] = elements.get(i).orElse(null);
 			}
 
-			this.size += elementsSize;
+			this.elements.length += elementsSize;
 			return Optional.of(this);
 		}
 
 		@Override
 		public Optional<T> getLast() {
-			return this.get(this.size - 1);
+			return this.get(this.elements.length() - 1);
 		}
 
 		@Override
 		public List<T> copy() {
 			final ArrayList<T> list = new ArrayList<T>();
-			if (this.size >= 0) {
-				MemUtils.memCopy(this.elements, 0, list.elements, 0, this.size);
+			if (this.elements.length() >= 0) {
+				MemUtils.memCopy(this.elements, 0, list.elements, 0, this.elements.length());
+				list.elements.length = this.elements.length();
 			}
 			return list;
 		}

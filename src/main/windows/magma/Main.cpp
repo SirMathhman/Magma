@@ -53,6 +53,7 @@ struct Stream {
 template <typeparam T>
 struct Array {
 	T* elements;
+	int length;
 };
 struct MemUtils {
 	/*@SuppressWarnings("unchecked")
@@ -63,7 +64,6 @@ struct MemUtils {
 template <typeparam T>
 struct ArrayList {
 	Array<T> elements;
-	int size;
 };
 struct ParseState {
 	Stack<List<char*>> beforeStatements;
@@ -152,6 +152,8 @@ auto __lambda1__() {
 		Optional < T >= nextValue == sourceHead.next();
 		if (nextValue.tag == Some) {
 			if (predicate.test(value)) {
+		Some<T> _cast = nextValue.data.some;
+		T value = _cast.value;
 				return Optional.of(value);
 			}
 			/*// Continue to next element*/
@@ -172,6 +174,8 @@ C reduce_Stream(C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
 	Optional < T >= current == this.head.next();
 	while (current.tag == Some) {
+		Some<T> _cast = current.data.some;
+		T value = _cast.value;
 		accumulator == folder.apply(accumulator, value);
 		current == this.head.next();
 	}
@@ -179,88 +183,83 @@ C reduce_Stream(C initial, BiFunction<C, T, C> folder){
 }
 private Array_Array(T* elements){
 	this.elements = elements;
+	this.length = 0;
+}
+boolean contains_Array(T element){
+	/*for (int i = 0; i < this.length(); i++) {
+				if (Objects.equals(Array.this.elements[i], element)) {
+					return true;
+				}
+			}*/
+	return false;
 }
 void close_Array(){
 	MemUtils.free(this.elements);
 }
-int length_Array(){
+int capacity_Array(){
 	return this.elements.length;
 }
-void set_Array(int index, T element){
-	if (index < this.elements.length) {
-		/*this.elements[index] */ = element;
+int length_Array(){
+	return this.length;
+}
+void setNext_Array(T element){
+	if (this.length < this.elements.length) {
+		/*this.elements[this.length] */ = element;
+		this.length++;
 	}
 }
 Optional<T> get_Array(int index){
-	if (index < this.elements.length) {
+	if (index < this.length) {
 		return new_Some<T>(/*this.elements[index]*/);
 	}
 	else {
 		return new_None<T>();
 	}
 }
-T* elements_Array(){
-	return this.elements;
-}
-boolean equals_Array(Object obj){
-	if (obj == this) {
-		return true;
-	}
-	if (obj == null || obj.getClass() != this.getClass()) {
-		return false;
-	}
-	Array that = /* (Array) obj*/;
-	return Objects.equals(this.elements, that.elements);
-}
-int hashCode_Array(){
-	return Objects.hash(this.elements);
-}
-char* toString_Array(){
-	return "Array[" + "elements=" + this.elements + ']';
+void setFirst_Array(T element){
+	/*this.elements[0] */ = element;
 }
 T* malloc_MemUtils(int length);
 void free_MemUtils(T* elements);
 void memCopy_MemUtils(Array<T> src, int srcPos, Array<T> dest, int destPos, int length);
-private ArrayList_ArrayList(Array<T> elements, int size){
+private ArrayList_ArrayList(Array<T> elements){
 	this.elements = elements;
-	this.size = size;
 }
 ArrayList new_ArrayList(){
 	ArrayList this;
-	this(MemUtils.alloc(10), 0);
+	this(MemUtils.alloc(10));
 	return this;
 }
 void ensureCapacity_ArrayList(int minCapacity){
-	if (minCapacity <  == this.elements.length()) {
+	if (minCapacity <  == this.elements.capacity()) {
 		/*return*/;
 	}
-	int newCapacity = /* this.elements.length() * 2*/;
+	int newCapacity = /* this.elements.capacity() * 2*/;
 	if (newCapacity < minCapacity) {
 		newCapacity = minCapacity;
 	}
 	Array < T >= newElements == MemUtils.alloc(newCapacity);
-	MemUtils.memCopy(this.elements, 0, newElements, 0, this.size);
+	MemUtils.memCopy(this.elements, 0, newElements, 0, this.elements.length());
+	newElements.length == this.elements.length();
 	this.elements = newElements;
 }
 List<T> add_ArrayList(T element){
-	this.ensureCapacity(this.size + 1);
-	this.elements.set(this.size, element);
-	this.size++;
+	this.ensureCapacity(this.elements.length() + 1);
+	this.elements.setNext(element);
 	return this;
 }
 List<T> clear_ArrayList(){
 	this.elements == MemUtils.alloc(10);
-	this.size = 0;
 	return this;
 }
 int size_ArrayList(){
-	return this.size;
+	return this.elements.length();
 }
 Stream<T> stream_ArrayList(){
 	return new_Stream<T>(new_ListHead<T>(this));
 }
 Optional<T> get_ArrayList(int index){
-	if (index < 0 || index >= this.size) {
+	if (index < 0 || index >= this.elements.length()) {
 		return Optional.empty();
 	}
 	return this.elements.get(index);
@@ -269,67 +268,63 @@ boolean isEmpty_ArrayList(){
 	return this.size() == 0;
 }
 List<T> addFirst_ArrayList(T element){
-	this.ensureCapacity(this.size + 1);
+	this.ensureCapacity(this.elements.length() + 1);
 	/*// Shift all elements one position to the right
-			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.size)*/;
-	this.elements.set(0, element);
-	this.size++;
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.elements.length())*/;
+	this.elements.setFirst(element);
+	this.elements.length++;
 	return this;
 }
 List<T> addLast_ArrayList(T element){
 	return this.add(element);
 }
 boolean contains_ArrayList(T element){
-	/*for (int i = 0; i < this.size; i++) {
-				if (Objects.equals(this.elements.elements[i], element)) {
-					return true;
-				}
-			}*/
-	return false;
+	return this.elements.contains(element);
 }
 Optional<T> getFirst_ArrayList(){
 	return this.get(0);
 }
 Optional<List<T>> subList_ArrayList(int start, int end){
-	if (start < 0 || end >= this.size || start >= end) {
+	if (start < 0 || end >= this.elements.length() || start >= end) {
 		return Optional.empty();
 	}
 	int subSize = end - start;
 	Array < T >= newElements == MemUtils.alloc(Math.max(10, subSize));
 	MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
-	return Optional.of(new_ArrayList<T>(newElements, subSize));
+	newElements.length = subSize;
+	return Optional.of(new_ArrayList<T>(newElements));
 }
 List<T> addAll_ArrayList(List<T> elements){
 	int elementsSize = elements.size();
-	this.ensureCapacity(this.size + elementsSize);
+	this.ensureCapacity(this.elements.length() + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
-				this.elements.set(this.size + i, elements.get(i).orElse(null));
+				this.elements.setNext(elements.get(i).orElse(null));
 			}*/
-	this.size +  = elementsSize;
 	return this;
 }
 Optional<List<T>> addAllAt_ArrayList(int index, List<T> elements){
-	if (index < 0 || index >= this.size) {
+	if (index < 0 || index >= this.elements.length()) {
 		return Optional.empty();
 	}
 	int elementsSize = elements.size();
-	this.ensureCapacity(this.size + elementsSize);
+	this.ensureCapacity(this.elements.length() + elementsSize);
 	/*// Shift elements to the right to make room
-			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.size - index)*/;
-	/*// Copy inserted elements
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.elements.length() - index)*/;
+	/*// Copy inserted elements - need to use set with supplier since we're inserting in middle
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements.set(index + i, elements.get(i).orElse(null));
+				this.elements.elements[index + i] = elements.get(i).orElse(null);
 			}*/
-	this.size +  = elementsSize;
+	this.elements.length +  = elementsSize;
 	return Optional.of(this);
 }
 Optional<T> getLast_ArrayList(){
-	return this.get(this.size - 1);
+	return this.get(this.elements.length() - 1);
 }
 List<T> copy_ArrayList(){
 	ArrayList<T> list = new_ArrayList<T>();
-	if (this.size >= 0) {
-		MemUtils.memCopy(this.elements, 0, list.elements, 0, this.size);
+	if (this.elements.length() >= 0) {
+		MemUtils.memCopy(this.elements, 0, list.elements, 0, this.elements.length());
+		list.elements.length == this.elements.length();
 	}
 	return list;
 }
@@ -514,6 +509,8 @@ Optional<T> next_ArrayHead(){
 void main_Main(char** args){
 	??? _temp = run();
 	if (_temp.tag == Some) {
+		Some<IOError> _cast = _temp.data.some;
+		IOError value = _cast.value;
 		System.out.println(value.display());
 	}
 }
@@ -524,6 +521,8 @@ Optional<IOError> run_Main(){
 	if (_temp.tag == Ok) {
 		Path targetParent = target.getParent();
 		if (!targetParent.exists()) {
+		Ok<String, IOError> _cast = _temp.data.ok;
+		char* input = _cast.input;
 			return targetParent.createDirectories();
 		}
 		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
@@ -558,6 +557,8 @@ Stream<char*> divide_Main(char* input, BiFunction<DivideState, Character, Divide
 Tuple<DivideState, Boolean> foldCycle_Main(DivideState state, BiFunction<DivideState, Character, DivideState> folder){
 	Optional<Tuple<DivideState, Character>> maybeNext = state.pop();
 	if (maybeNext.tag == Some) {
+		Some<Tuple<DivideState, Character>> _cast = maybeNext.data.some;
+		Tuple<DivideState, Character> value = _cast.value;
 		return new_Tuple<DivideState, Boolean>(foldEscaped(value.left, value.right, folder), true);
 	}
 	return new_Tuple<DivideState, Boolean>(state, false);
@@ -599,6 +600,8 @@ Optional<DivideState> foldDoubleQuotes_Main(DivideState state, char next){
 Tuple<DivideState, Boolean> foldUntilDoubleQuotes_Main(DivideState state){
 	Optional<Tuple<DivideState, Character>> maybeNext = state.popAndAppendToTuple();
 	if (!(maybeNext.tag == Some)) {
+		Some<Tuple<DivideState, Character>> _cast = maybeNext.data.some;
+		Tuple<DivideState, Character> value = _cast.value;
 		return new_Tuple<DivideState, Boolean>(state, false);
 	}
 	DivideState nextState = value.left;
@@ -620,6 +623,7 @@ DivideState foldStatement_Main(DivideState state, char c){
 		Optional<Character> peeked = appended.peek();
 		DivideState withPeeked;
 		if (peeked.tag == Some) {
+		Some<Character>(Character value) && value == ';' _cast = peeked.data.some;
 			withPeeked == appended.popAndAppendToOption().orElse(appended);
 		}
 		else {
@@ -794,6 +798,8 @@ DivideState foldValue_Main(DivideState state, char next){
 		Optional<Character> peeked = appended.peek();
 		if (peeked.tag == Some) {
 			if (value.equals('>')) {
+		Some<Character> _cast = peeked.data.some;
+		Character value = _cast.value;
 				return appended.popAndAppendToOption().orElse(appended);
 			}
 		}
@@ -861,6 +867,7 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 		List<char*> statements = compiledBody.left;
 	??? _temp = Objects.requireNonNull(methodHeader);
 		if (_temp.tag == JConstructor) {
+		JConstructor _cast = _temp.data.jconstructor;
 			statements == statements.addFirst(generateStatement(name + " this", 1)).addLast(generateStatement("return this", 1));
 		}
 		char* joined = statements.stream().collect(new_Joiner(""));
@@ -873,17 +880,22 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 	return Optional.of(new_Tuple<char*, ParseState>("", state.addFunction(generated)));
 }
 boolean isPlatformDependentMethod_Main(JMethodHeader methodHeader){
+		Definition definition && definition.annotations.contains _cast = methodHeader.data.definition definition && definition.annotations.contains("actual");
 	return methodHeader.tag == Definition definition && definition.annotations.contains("Actual");
 }
 Definable transformMethodHeader_Main(JMethodHeader methodHeader, char* name){
 	??? _temp = Objects.requireNonNull(methodHeader);
 	if (_temp.tag == JConstructor(String name1)) {
+		JConstructor _cast = _temp.data.jconstructor(string name1);
+		char* name1 = _cast.name1;
 		return new_Definition(new_ArrayList<char*>(), name1, "new_" + name1);
 	}
 	else if (methodHeader.tag == Definition definition) {
+		Definition definition _cast = methodHeader.data.definition definition;
 		return new_Definition(new_ArrayList<char*>(), definition.type, definition.name + "_" + name);
 	}
 	else if (methodHeader.tag == Placeholder placeholder) {
+		Placeholder placeholder _cast = methodHeader.data.placeholder placeholder;
 		return placeholder;
 	}
 	else {
@@ -923,14 +935,20 @@ Tuple<char*, ParseState> compileMethodSegmentValue_Main(char* input, int depth, 
 	char* stripped = input.strip();
 	Optional<Tuple<char*, ParseState>> compiled = compileBlock(state, stripped, depth);
 	if (compiled.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = compiled.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return value;
 	}
 	Optional<Tuple<char*, ParseState>> maybeIf = compileConditional("if", depth, state, stripped);
 	if (maybeIf.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = maybeIf.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return value;
 	}
 	Optional<Tuple<char*, ParseState>> maybeWhile = compileConditional("while", depth, state, stripped);
 	if (maybeWhile.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = maybeWhile.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return value;
 	}
 	if (stripped.startsWith("else")) {
@@ -1027,11 +1045,15 @@ Tuple<char*, ParseState> compileMethodStatementValue_Main(char* input, ParseStat
 		char* slice = input.substring(0, input.length() - 2);
 		Optional<Tuple<char*, ParseState>> temp = tryCompileExpression(slice, state).map(__lambda22__);
 		if (temp.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = temp.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 			return new_Tuple<char*, ParseState>(value.left + "++", value.right);
 		}
 	}
 	Optional<Tuple<char*, ParseState>> invokableResult = compileInvokable(state, input);
 	if (invokableResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = invokableResult.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return value;
 	}
 	int i = input.indexOf("=");
@@ -1063,34 +1085,42 @@ Optional<Tuple<CExpression, ParseState>> tryCompileExpression_Main(char* input, 
 	char* stripped = input.strip();
 	Optional<Tuple<char*, ParseState>> charResult = compileChar(stripped, state);
 	if (charResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = charResult.data.some;
 		return charResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> stringResult = compileString(stripped, state);
 	if (stringResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = stringResult.data.some;
 		return stringResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> notResult = compileNot(state, stripped);
 	if (notResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = notResult.data.some;
 		return notResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> lambdaResult = compileLambda(state, stripped);
 	if (lambdaResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = lambdaResult.data.some;
 		return lambdaResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> instanceOfResult = compileInstanceOf(state, stripped);
 	if (instanceOfResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = instanceOfResult.data.some;
 		return instanceOfResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> left = compileInvokable(state, stripped);
 	if (left.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = left.data.some;
 		return left.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> methodReferenceResult = compileMethodReference(state, stripped);
 	if (methodReferenceResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = methodReferenceResult.data.some;
 		return methodReferenceResult.map(wrapInContent_Main);
 	}
 	Optional<Tuple<char*, ParseState>> fieldAccessResult = compileFieldAccess(state, stripped);
 	if (fieldAccessResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = fieldAccessResult.data.some;
 		return fieldAccessResult.map(wrapInContent_Main);
 	}
 	return getOr(state, stripped).map(wrapInContent_Main).or(__lambda29__).or(__lambda30__);
@@ -1143,6 +1173,8 @@ Optional<Tuple<char*, ParseState>> compileFieldAccess_Main(ParseState state, cha
 	}
 	Optional<Tuple<char*, ParseState>> maybeResult = tryCompileExpression(substring, state).map(__lambda38__);
 	if (!(maybeResult.tag == Some)) {
+		Some<Tuple<String, ParseState>> _cast = maybeResult.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return Optional.empty();
 	}
 	return Optional.of(new_Tuple<char*, ParseState>(value.left + "." + name, value.right));
@@ -1155,6 +1187,8 @@ Optional<Tuple<char*, ParseState>> compileMethodReference_Main(ParseState state,
 		if (isIdentifier(name)) {
 			Optional<char*> maybeResult = compileType(substring);
 			if (maybeResult.tag == Some) {
+		Some<String> _cast = maybeResult.data.some;
+		char* value = _cast.value;
 				return Optional.of(new_Tuple<char*, ParseState>(name + "_" + value, state));
 			}
 		}
@@ -1180,6 +1214,8 @@ Optional<Tuple<char*, ParseState>> compileInstanceOf_Main(ParseState state, char
 	char* afterOperator = stripped.substring(instanceOfIndex + "instanceof".length()).strip();
 	Optional<Tuple<CExpression, ParseState>> maybeResult = tryCompileExpression(beforeOperator, state);
 	if (!(maybeResult.tag == Some)) {
+		Some<Tuple<CExpression, ParseState>> _cast = maybeResult.data.some;
+		Tuple<CExpression, ParseState> value = _cast.value;
 		return Optional.empty();
 	}
 	int typeArgumentsStart = afterOperator.indexOf("<");
@@ -1208,6 +1244,7 @@ Optional<Tuple<char*, ParseState>> compileInstanceOf_Main(ParseState state, char
 	ParseState maybeWithBeforeStatement = value.right;
 	char* targetAlias;
 	if (!(target.tag == CIdentifier)) {
+		CIdentifier _cast = target.data.cidentifier;
 		char* alias = generateStatement("??? _temp = " + target.generate(), 1);
 		maybeWithBeforeStatement.addBeforeStatement(alias);
 		targetAlias = "_temp";
@@ -1237,6 +1274,8 @@ Optional<Tuple<char*, ParseState>> compileNot_Main(ParseState state, char* strip
 		char* slice = stripped.substring(1);
 		Optional<Tuple<char*, ParseState>> maybeResult = tryCompileExpression(slice, state).map(__lambda42__);
 		if (maybeResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = maybeResult.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 			return Optional.of(new_Tuple<char*, ParseState>("!" + value.left, value.right));
 		}
 	}
@@ -1262,6 +1301,8 @@ Optional<Tuple<char*, ParseState>> compileInvokable_Main(ParseState state, char*
 	char* arguments = segments.getLast().orElse(null);
 	Optional<Tuple<char*, ParseState>> maybeCallerResult = compileCaller(state, caller);
 	if (!(maybeCallerResult.tag == Some)) {
+		Some<Tuple<String, ParseState>> _cast = maybeCallerResult.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return Optional.empty();
 	}
 	Tuple<StringJoiner, ParseState> reduce = divide(arguments, foldValue_Main).collect(new_ListCollector<char*>()).stream().reduce(new_Tuple<StringJoiner, ParseState>(new_StringJoiner(", "), value.right), __lambda43__);
@@ -1325,6 +1366,8 @@ Optional<Tuple<char*, ParseState>> compileLambda_Main(ParseState state, char* st
 Tuple<char*, ParseState> compileLambdaBody_Main(ParseState state, char* body){
 	Optional<Tuple<char*, ParseState>> maybeBlock = compileBlock(state, body, 0);
 	if (maybeBlock.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = maybeBlock.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return value;
 	}
 	Tuple<char*, ParseState> result = compileExpression(body, state);
@@ -1339,6 +1382,8 @@ Optional<Tuple<char*, ParseState>> compileCaller_Main(ParseState state, char* ca
 	if (caller.startsWith("new ")) {
 		Optional<char*> newType = compileType(caller.substring("new ".length()));
 		if (newType.tag == Some) {
+		Some<String> _cast = newType.data.some;
+		char* value = _cast.value;
 			return Optional.of(new_Tuple<char*, ParseState>("new_" + value, state));
 		}
 	}
@@ -1374,10 +1419,14 @@ Optional<Tuple<char*, ParseState>> compileOperator_Main(char* input, char* opera
 	char* right = segments.subList(1, segments.size()).orElse(new_ArrayList<char*>()).stream().collect(new_Joiner(operator));
 	Optional<Tuple<char*, ParseState>> maybeLeftResult = tryCompileExpression(left, state).map(__lambda49__);
 	if (!(maybeLeftResult.tag == Some)) {
+		Some<Tuple<String, ParseState>> _cast = maybeLeftResult.data.some;
+		Tuple<char*, ParseState> value = _cast.value;
 		return Optional.empty();
 	}
 	Optional<Tuple<char*, ParseState>> maybeRightResult = tryCompileExpression(right, value.right).map(__lambda50__);
 	if (maybeRightResult.tag == Some) {
+		Some<Tuple<String, ParseState>> _cast = maybeRightResult.data.some;
+		Tuple<char*, ParseState> rightResult = _cast.rightResult;
 		char* generated = value.left + " " + operator + " " + rightResult.left;
 		return Optional.of(new_Tuple<char*, ParseState>(generated, rightResult.right));
 	}
@@ -1394,6 +1443,8 @@ DivideState foldOperator_Main(char* operator, DivideState state1, Character next
 	??? _temp = operator.length() >= 2 && peeked;
 	if (_temp.tag == Some) {
 		if (value == operator.charAt(1)) {
+		Some<Character> _cast = _temp.data.some;
+		Character value = _cast.value;
 			return state1.pop().map(__lambda51__).orElse(state1).advance();
 		}
 	}
@@ -1451,6 +1502,8 @@ Optional<Tuple<char*, ParseState>> compileField_Main(char* input, ParseState sta
 		char* substring = input.substring(0, input.length() - ";".length()).strip();
 		Optional<char*> s = generateField(substring);
 		if (s.tag == Some) {
+		Some<String> _cast = s.data.some;
+		char* value = _cast.value;
 			return Optional.of(new_Tuple<char*, ParseState>(value, state));
 		}
 	}
