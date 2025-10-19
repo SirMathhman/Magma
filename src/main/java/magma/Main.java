@@ -47,6 +47,8 @@ public class Main {
 		List<T> addAllAt(int index, List<T> elements);
 
 		Optional<T> getLast();
+
+		List<T> copy();
 	}
 
 	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
@@ -87,26 +89,33 @@ public class Main {
 		}
 	}
 
-	private static final class ArrayList<T> implements List<T> {
-		private final T[] elements;
-		private final int size;
 
-		private ArrayList(T[] elements) {
+	private static class MemUtils {
+		@SuppressWarnings("unchecked")
+		private static <T> T[] alloc(int length) {
+			return (T[]) new Object[length];
+		}
+	}
+
+	private static final class ArrayList<T> implements List<T> {
+		private T[] elements;
+		private int size;
+
+		private ArrayList(T[] elements, int size) {
 			this.elements = elements;
-			this.size = 0;
+			this.size = size;
 		}
 
 		public ArrayList() {
-			this(alloc(10));
+			this(alloc(10), 0);
 		}
 
-		public ArrayList(List<T> others) {
+		private ArrayList(List<T> others) {
 			// TODO: turn this into a factory function
-
-			this(alloc(others.size()));
+			this(alloc(Math.max(10, others.size())), 0);
 
 			for (int index = 0; index < others.size(); index++) {
-				this.set(index, others.get(index).orElse(null));
+				this.add(others.get(index).orElse(null));
 			}
 		}
 
@@ -115,33 +124,52 @@ public class Main {
 			return (T[]) new Object[length];
 		}
 
-		private List<T> set(int index, T element) {
-			throw new UnsupportedOperationException();
+		private void ensureCapacity(int minCapacity) {
+			if (minCapacity <= this.elements.length) {
+				return;
+			}
+
+			int newCapacity = this.elements.length * 2;
+			if (newCapacity < minCapacity) {
+				newCapacity = minCapacity;
+			}
+
+			T[] newElements = alloc(newCapacity);
+			System.arraycopy(this.elements, 0, newElements, 0, this.size);
+			this.elements = newElements;
 		}
 
 		@Override
 		public List<T> add(T element) {
-			throw new UnsupportedOperationException("TODO");
+			this.ensureCapacity(this.size + 1);
+			this.elements[this.size] = element;
+			this.size++;
+			return this;
 		}
 
 		@Override
 		public List<T> clear() {
-			throw new UnsupportedOperationException();
+			this.elements = alloc(10);
+			this.size = 0;
+			return this;
 		}
 
 		@Override
 		public int size() {
-			throw new UnsupportedOperationException();
+			return this.size;
 		}
 
 		@Override
 		public Stream<T> stream() {
-			throw new UnsupportedOperationException();
+			return new Stream<T>(new ListHead<T>(this));
 		}
 
 		@Override
 		public Optional<T> get(int index) {
-			throw new UnsupportedOperationException("TODO: implement");
+			if (index < 0 || index >= this.size) {
+				return Optional.empty();
+			}
+			return Optional.of(this.elements[index]);
 		}
 
 		@Override
@@ -151,42 +179,91 @@ public class Main {
 
 		@Override
 		public List<T> addFirst(T element) {
-			throw new UnsupportedOperationException();
+			this.ensureCapacity(this.size + 1);
+			// Shift all elements one position to the right
+			System.arraycopy(this.elements, 0, this.elements, 1, this.size);
+			this.elements[0] = element;
+			this.size++;
+			return this;
 		}
 
 		@Override
 		public List<T> addLast(T element) {
-			throw new UnsupportedOperationException();
+			return this.add(element);
 		}
 
 		@Override
 		public boolean contains(T element) {
-			throw new UnsupportedOperationException();
+			for (int i = 0; i < this.size; i++) {
+				if (Objects.equals(this.elements[i], element)) {
+					return true;
+				}
+			}
+			return false;
 		}
 
 		@Override
 		public Optional<T> getFirst() {
-			throw new UnsupportedOperationException("TODO: implement");
+			return this.get(0);
 		}
 
 		@Override
 		public Optional<List<T>> subList(int start, int end) {
-			throw new UnsupportedOperationException("TODO: implement");
+			if (start < 0 || end > this.size || start > end) {
+				return Optional.empty();
+			}
+			int subSize = end - start;
+			T[] newElements = alloc(Math.max(10, subSize));
+			System.arraycopy(this.elements, start, newElements, 0, subSize);
+			return Optional.of(new ArrayList<T>(newElements, subSize));
 		}
 
 		@Override
 		public List<T> addAll(List<T> elements) {
-			throw new UnsupportedOperationException();
+			int elementsSize = elements.size();
+			this.ensureCapacity(this.size + elementsSize);
+
+			for (int i = 0; i < elementsSize; i++) {
+				this.elements[this.size + i] = elements.get(i).orElse(null);
+			}
+
+			this.size += elementsSize;
+			return this;
 		}
 
 		@Override
 		public List<T> addAllAt(int index, List<T> elements) {
-			throw new UnsupportedOperationException();
+			if (index < 0 || index > this.size) {
+				throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + this.size);
+			}
+
+			int elementsSize = elements.size();
+			this.ensureCapacity(this.size + elementsSize);
+
+			// Shift elements to the right to make room
+			System.arraycopy(this.elements, index, this.elements, index + elementsSize, this.size - index);
+
+			// Copy inserted elements
+			for (int i = 0; i < elementsSize; i++) {
+				this.elements[index + i] = elements.get(i).orElse(null);
+			}
+
+			this.size += elementsSize;
+			return this;
 		}
 
 		@Override
 		public Optional<T> getLast() {
-			throw new UnsupportedOperationException("TODO: implement");
+			return this.get(this.size - 1);
+		}
+
+		@Override
+		public List<T> copy() {
+			final ArrayList<T> list = new ArrayList<T>();
+			if (this.size >= 0) {
+				System.arraycopy(this.elements, 0, list.elements, 0, this.size);
+			}
+			return list;
 		}
 	}
 
@@ -228,8 +305,8 @@ public class Main {
 			return this;
 		}
 
-		public ArrayList<String> popAfterStatements() {
-			final ArrayList<String> copy = new ArrayList<String>(this.afterStatements);
+		public List<String> popAfterStatements() {
+			final List<String> copy = this.afterStatements.copy();
 			this.afterStatements = this.afterStatements.clear();
 			return copy;
 		}
@@ -379,6 +456,25 @@ public class Main {
 	private static class Streams {
 		public static <T> Stream<T> from(T[] elements) {
 			throw new UnsupportedOperationException();
+		}
+	}
+
+	private static class ListHead<T> implements Head<T> {
+		private final List<T> self;
+		private int index;
+
+		public ListHead(List<T> self) {
+			this.self = self;
+			this.index = 0;
+		}
+
+		@Override
+		public Optional<T> next() {
+			if (this.index < this.self.size()) {
+				return this.self.get(this.index++);
+			}
+
+			return Optional.empty();
 		}
 	}
 
@@ -866,7 +962,7 @@ public class Main {
 		}
 		final String withConditionEnd = conditionEnd.getFirst().orElse(null);
 		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
-		final String body = Strings.join("", conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<>()));
+		final String body = Strings.join("", conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<String>()));
 
 		if (!substring1.startsWith("(")) {
 			return Optional.empty();
@@ -906,7 +1002,7 @@ public class Main {
 			i++;
 		}
 
-		final ArrayList<String> removed = current.popAfterStatements();
+		final List<String> removed = current.popAfterStatements();
 		compiled = compiled.addAllAt(0, removed);
 
 		return new Tuple<List<String>, ParseState>(compiled, current);
@@ -1183,7 +1279,8 @@ public class Main {
 			return Optional.empty();
 		}
 
-		final String callerWithExt = Strings.join("", segments.subList(0, segments.size() - 1).orElse(new ArrayList<>()));
+		final String callerWithExt =
+				Strings.join("", segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()));
 		if (!callerWithExt.endsWith("(")) {
 			return Optional.empty();
 		}
@@ -1307,7 +1404,7 @@ public class Main {
 		}
 
 		final String left = segments.getFirst().orElse(null);
-		final String right = Strings.join(operator, segments.subList(1, segments.size()).orElse(new ArrayList<>()));
+		final String right = Strings.join(operator, segments.subList(1, segments.size()).orElse(new ArrayList<String>()));
 
 		final Optional<Tuple<String, ParseState>> maybeLeftResult =
 				tryCompileExpression(left, state).map(tuple1 -> new Tuple<String, ParseState>(tuple1.left.generate(),
@@ -1425,7 +1522,8 @@ public class Main {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
-		final String withoutLast = Strings.join(" ", segments.subList(0, segments.size() - 1).orElse(new ArrayList<>()));
+		final String withoutLast =
+				Strings.join(" ", segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()));
 		final List<String> annotations = findAnnotations(withoutLast);
 
 		final String typeString = segments.getLast().orElse(null);
