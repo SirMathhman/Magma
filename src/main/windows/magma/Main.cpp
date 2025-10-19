@@ -51,13 +51,19 @@ struct Stream {
 	Head<T> head;
 };
 template <typeparam T>
-struct ArrayList {
+struct Array {
 	T* elements;
-	int size;
+};
+struct MemUtils {
 	/*@SuppressWarnings("unchecked")
-		private static <T> T[] alloc(int length) {
-			return (T[]) new Object[length];
+		private static <T> Array<T> alloc(int length) {
+			return new Array<T>(malloc(length));
 		}*/
+};
+template <typeparam T>
+struct ArrayList {
+	Array<T> elements;
+	int size;
 };
 struct ParseState {
 	Stack<List<char*>> beforeStatements;
@@ -171,35 +177,79 @@ C reduce_Stream(C initial, BiFunction<C, T, C> folder){
 	}
 	return accumulator;
 }
-private ArrayList_ArrayList(T* elements, int size){
+private Array_Array(T* elements){
+	this.elements = elements;
+}
+void close_Array(){
+	MemUtils.free(this.elements);
+}
+int length_Array(){
+	return this.elements.length;
+}
+void set_Array(int index, T element){
+	if (index < this.elements.length) {
+		/*this.elements[index] */ = element;
+	}
+}
+Optional<T> get_Array(int index){
+	if (index < this.elements.length) {
+		return new_Some<T>(/*this.elements[index]*/);
+	}
+	else {
+		return new_None<T>();
+	}
+}
+T* elements_Array(){
+	return this.elements;
+}
+boolean equals_Array(Object obj){
+	if (obj == this) {
+		return true;
+	}
+	if (obj == null || obj.getClass() != this.getClass()) {
+		return false;
+	}
+	Array that = /* (Array) obj*/;
+	return Objects.equals(this.elements, that.elements);
+}
+int hashCode_Array(){
+	return Objects.hash(this.elements);
+}
+char* toString_Array(){
+	return "Array[" + "elements=" + this.elements + ']';
+}
+T* malloc_MemUtils(int length);
+void free_MemUtils(T* elements);
+void memCopy_MemUtils(Array<T> src, int srcPos, Array<T> dest, int destPos, int length);
+private ArrayList_ArrayList(Array<T> elements, int size){
 	this.elements = elements;
 	this.size = size;
 }
 ArrayList new_ArrayList(){
 	ArrayList this;
-	this(alloc(10), 0);
+	this(MemUtils.alloc(10), 0);
 	return this;
 }
 void ensureCapacity_ArrayList(int minCapacity){
-	if (minCapacity <  == this.elements.length) {
+	if (minCapacity <  == this.elements.length()) {
 		/*return*/;
 	}
-	int newCapacity = /* this.elements.length * 2*/;
+	int newCapacity = /* this.elements.length() * 2*/;
 	if (newCapacity < minCapacity) {
 		newCapacity = minCapacity;
 	}
-	T* newElements = alloc(newCapacity);
-	System.arraycopy(this.elements, 0, newElements, 0, this.size);
+	Array < T >= newElements == MemUtils.alloc(newCapacity);
+	MemUtils.memCopy(this.elements, 0, newElements, 0, this.size);
 	this.elements = newElements;
 }
 List<T> add_ArrayList(T element){
 	this.ensureCapacity(this.size + 1);
-	/*this.elements[this.size] */ = element;
+	this.elements.set(this.size, element);
 	this.size++;
 	return this;
 }
 List<T> clear_ArrayList(){
-	this.elements == alloc(10);
+	this.elements == MemUtils.alloc(10);
 	this.size = 0;
 	return this;
 }
@@ -213,7 +263,7 @@ Optional<T> get_ArrayList(int index){
 	if (index < 0 || index >= this.size) {
 		return Optional.empty();
 	}
-	return Optional.of(/*this.elements[index]*/);
+	return this.elements.get(index);
 }
 boolean isEmpty_ArrayList(){
 	return this.size() == 0;
@@ -221,8 +271,8 @@ boolean isEmpty_ArrayList(){
 List<T> addFirst_ArrayList(T element){
 	this.ensureCapacity(this.size + 1);
 	/*// Shift all elements one position to the right
-			System.arraycopy(this.elements, 0, this.elements, 1, this.size)*/;
-	/*this.elements[0] */ = element;
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.size)*/;
+	this.elements.set(0, element);
 	this.size++;
 	return this;
 }
@@ -231,7 +281,7 @@ List<T> addLast_ArrayList(T element){
 }
 boolean contains_ArrayList(T element){
 	/*for (int i = 0; i < this.size; i++) {
-				if (Objects.equals(this.elements[i], element)) {
+				if (Objects.equals(this.elements.elements[i], element)) {
 					return true;
 				}
 			}*/
@@ -245,15 +295,15 @@ Optional<List<T>> subList_ArrayList(int start, int end){
 		return Optional.empty();
 	}
 	int subSize = end - start;
-	T* newElements = alloc(Math.max(10, subSize));
-	System.arraycopy(this.elements, start, newElements, 0, subSize);
+	Array < T >= newElements == MemUtils.alloc(Math.max(10, subSize));
+	MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 	return Optional.of(new_ArrayList<T>(newElements, subSize));
 }
 List<T> addAll_ArrayList(List<T> elements){
 	int elementsSize = elements.size();
 	this.ensureCapacity(this.size + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
-				this.elements[this.size + i] = elements.get(i).orElse(null);
+				this.elements.set(this.size + i, elements.get(i).orElse(null));
 			}*/
 	this.size +  = elementsSize;
 	return this;
@@ -265,10 +315,10 @@ Optional<List<T>> addAllAt_ArrayList(int index, List<T> elements){
 	int elementsSize = elements.size();
 	this.ensureCapacity(this.size + elementsSize);
 	/*// Shift elements to the right to make room
-			System.arraycopy(this.elements, index, this.elements, index + elementsSize, this.size - index)*/;
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.size - index)*/;
 	/*// Copy inserted elements
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements[index + i] = elements.get(i).orElse(null);
+				this.elements.set(index + i, elements.get(i).orElse(null));
 			}*/
 	this.size +  = elementsSize;
 	return Optional.of(this);
@@ -279,7 +329,7 @@ Optional<T> getLast_ArrayList(){
 List<T> copy_ArrayList(){
 	ArrayList<T> list = new_ArrayList<T>();
 	if (this.size >= 0) {
-		System.arraycopy(this.elements, 0, list.elements, 0, this.size);
+		MemUtils.memCopy(this.elements, 0, list.elements, 0, this.size);
 	}
 	return list;
 }

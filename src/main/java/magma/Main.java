@@ -8,6 +8,7 @@ import magma.Lib.Optional;
 import magma.Lib.Path;
 import magma.Lib.Some;
 
+import java.io.Closeable;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -109,18 +110,86 @@ public class Main {
 		}
 	}
 
+	private static final class Array<T> implements Closeable {
+		private final T[] elements;
+
+		private Array(T[] elements) {this.elements = elements;}
+
+		@Override
+		public void close() {
+			MemUtils.free(this.elements);
+		}
+
+		public int length() {
+			return this.elements.length;
+		}
+
+		public void set(int index, T element) {
+			if (index < this.elements.length) {
+				this.elements[index] = element;
+			}
+		}
+
+		public Optional<T> get(int index) {
+			if (index < this.elements.length) {
+				return new Some<T>(this.elements[index]);
+			} else {
+				return new None<T>();
+			}
+		}
+
+		public T[] elements() {return this.elements;}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (obj == this) {
+				return true;
+			}
+			if (obj == null || obj.getClass() != this.getClass()) {
+				return false;
+			}
+			Array that = (Array) obj;
+			return Objects.equals(this.elements, that.elements);
+		}
+
+		@Override
+		public int hashCode() {
+			return Objects.hash(this.elements);
+		}
+
+		@Override
+		public String toString() {
+			return "Array[" + "elements=" + this.elements + ']';
+		}
+
+	}
+
 	private static class MemUtils {
 		@SuppressWarnings("unchecked")
-		private static <T> T[] alloc(int length) {
+		private static <T> Array<T> alloc(int length) {
+			return new Array<T>(malloc(length));
+		}
+
+		@Actual
+		private static <T> T[] malloc(int length) {
 			return (T[]) new Object[length];
+		}
+
+		@Actual
+		public static <T> void free(T[] elements) {
+		}
+
+		@Actual
+		public static <T> void memCopy(Array<T> src, int srcPos, Array<T> dest, int destPos, int length) {
+			System.arraycopy(src.elements, srcPos, dest.elements, destPos, length);
 		}
 	}
 
 	private static final class ArrayList<T> implements List<T> {
-		private T[] elements;
+		private Array<T> elements;
 		private int size;
 
-		private ArrayList(T[] elements, int size) {
+		private ArrayList(Array<T> elements, int size) {
 			this.elements = elements;
 			this.size = size;
 		}
@@ -130,24 +199,24 @@ public class Main {
 		}
 
 		private void ensureCapacity(int minCapacity) {
-			if (minCapacity <= this.elements.length) {
+			if (minCapacity <= this.elements.length()) {
 				return;
 			}
 
-			int newCapacity = this.elements.length * 2;
+			int newCapacity = this.elements.length() * 2;
 			if (newCapacity < minCapacity) {
 				newCapacity = minCapacity;
 			}
 
-			T[] newElements = MemUtils.alloc(newCapacity);
-			System.arraycopy(this.elements, 0, newElements, 0, this.size);
+			Array<T> newElements = MemUtils.alloc(newCapacity);
+			MemUtils.memCopy(this.elements, 0, newElements, 0, this.size);
 			this.elements = newElements;
 		}
 
 		@Override
 		public List<T> add(T element) {
 			this.ensureCapacity(this.size + 1);
-			this.elements[this.size] = element;
+			this.elements.set(this.size, element);
 			this.size++;
 			return this;
 		}
@@ -174,7 +243,8 @@ public class Main {
 			if (index < 0 || index >= this.size) {
 				return Optional.empty();
 			}
-			return Optional.of(this.elements[index]);
+
+			return this.elements.get(index);
 		}
 
 		@Override
@@ -186,8 +256,8 @@ public class Main {
 		public List<T> addFirst(T element) {
 			this.ensureCapacity(this.size + 1);
 			// Shift all elements one position to the right
-			System.arraycopy(this.elements, 0, this.elements, 1, this.size);
-			this.elements[0] = element;
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.size);
+			this.elements.set(0, element);
 			this.size++;
 			return this;
 		}
@@ -200,7 +270,7 @@ public class Main {
 		@Override
 		public boolean contains(T element) {
 			for (int i = 0; i < this.size; i++) {
-				if (Objects.equals(this.elements[i], element)) {
+				if (Objects.equals(this.elements.elements[i], element)) {
 					return true;
 				}
 			}
@@ -218,8 +288,8 @@ public class Main {
 				return Optional.empty();
 			}
 			int subSize = end - start;
-			T[] newElements = MemUtils.alloc(Math.max(10, subSize));
-			System.arraycopy(this.elements, start, newElements, 0, subSize);
+			Array<T> newElements = MemUtils.alloc(Math.max(10, subSize));
+			MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 			return Optional.of(new ArrayList<T>(newElements, subSize));
 		}
 
@@ -229,7 +299,7 @@ public class Main {
 			this.ensureCapacity(this.size + elementsSize);
 
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements[this.size + i] = elements.get(i).orElse(null);
+				this.elements.set(this.size + i, elements.get(i).orElse(null));
 			}
 
 			this.size += elementsSize;
@@ -246,11 +316,11 @@ public class Main {
 			this.ensureCapacity(this.size + elementsSize);
 
 			// Shift elements to the right to make room
-			System.arraycopy(this.elements, index, this.elements, index + elementsSize, this.size - index);
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.size - index);
 
 			// Copy inserted elements
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements[index + i] = elements.get(i).orElse(null);
+				this.elements.set(index + i, elements.get(i).orElse(null));
 			}
 
 			this.size += elementsSize;
@@ -266,7 +336,7 @@ public class Main {
 		public List<T> copy() {
 			final ArrayList<T> list = new ArrayList<T>();
 			if (this.size >= 0) {
-				System.arraycopy(this.elements, 0, list.elements, 0, this.size);
+				MemUtils.memCopy(this.elements, 0, list.elements, 0, this.size);
 			}
 			return list;
 		}
