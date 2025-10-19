@@ -900,7 +900,7 @@ public class Main {
 			outputBodyWithBraces = ";";
 		} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
-			final Tuple<List<String>, ParseState> compiledBody = compileMethodStatements(state, inputBody, 0);
+			final Tuple<List<String>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
 
 			List<String> statements = compiledBody.left;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
@@ -1022,15 +1022,13 @@ public class Main {
 		if (!input.startsWith("{") || !input.endsWith("}")) {
 			return Optional.empty();
 		}
-		final Tuple<List<String>, ParseState> result = compileMethodStatements(state, input, depth);
+		final Tuple<List<String>, ParseState> result =
+				compileMethodStatements(state, depth, input.substring(1, input.length() - 1));
 		final String generated = "{" + result.left().stream().collect(new Joiner("")) + generateIndent(depth) + "}";
 		return Optional.of(new Tuple<String, ParseState>(generated, result.right()));
-
 	}
 
-	private static Tuple<List<String>, ParseState> compileMethodStatements(ParseState state, String input, int depth) {
-		final String content = input.substring(1, input.length() - 1);
-
+	private static Tuple<List<String>, ParseState> compileMethodStatements(ParseState state, int depth, String content) {
 		List<String> compiled = new ArrayList<String>();
 		ParseState current = state;
 		List<String> list = divide(content, Main::foldStatement).collect(new ListCollector<String>());
