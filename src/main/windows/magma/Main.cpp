@@ -194,9 +194,6 @@ boolean contains_Array(T element){
 			}*/
 	return false;
 }
-void close_Array(){
-	MemUtils.free(this.ref);
-}
 void setNext_Array(T element){
 	if (this.length < this.ref.length) {
 		/*this.ref[this.length] */ = element;

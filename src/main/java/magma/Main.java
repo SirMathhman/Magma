@@ -8,7 +8,6 @@ import magma.Lib.Optional;
 import magma.Lib.Path;
 import magma.Lib.Some;
 
-import java.io.Closeable;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -110,7 +109,7 @@ public class Main {
 		}
 	}
 
-	private static final class Array<T> implements Closeable {
+	private static final class Array<T> {
 		private final T[] ref;
 		private final int capacity;
 		private int length;
@@ -132,11 +131,6 @@ public class Main {
 				}
 			}
 			return false;
-		}
-
-		@Override
-		public void close() {
-			MemUtils.free(this.ref);
 		}
 
 		public void setNext(T element) {
