@@ -208,8 +208,8 @@ Optional<IOError> run_Main(){
 	if (_temp.tag == Ok) {
 		Path targetParent = target.getParent();
 		if (!targetParent.exists()) {
-		Ok<String, IOError> _cast = _temp.data.ok;
-		char* input = _cast.input;
+            Ok<String, IOError> _cast = _temp.data.ok;
+            char* input = _cast.input;
 			return targetParent.createDirectories();
 		}
 		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
