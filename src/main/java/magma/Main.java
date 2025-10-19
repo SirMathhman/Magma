@@ -44,7 +44,7 @@ public class Main {
 
 		List<T> addAll(List<T> elements);
 
-		List<T> addAllAt(int index, List<T> elements);
+		Optional<List<T>> addAllAt(int index, List<T> elements);
 
 		Optional<T> getLast();
 
@@ -88,7 +88,6 @@ public class Main {
 			throw new UnsupportedOperationException();
 		}
 	}
-
 
 	private static class MemUtils {
 		@SuppressWarnings("unchecked")
@@ -232,9 +231,9 @@ public class Main {
 		}
 
 		@Override
-		public List<T> addAllAt(int index, List<T> elements) {
+		public Optional<List<T>> addAllAt(int index, List<T> elements) {
 			if (index < 0 || index > this.size) {
-				throw new IndexOutOfBoundsException("Index: " + index + ", Size: " + this.size);
+				return Optional.empty();
 			}
 
 			int elementsSize = elements.size();
@@ -249,7 +248,7 @@ public class Main {
 			}
 
 			this.size += elementsSize;
-			return this;
+			return Optional.of(this);
 		}
 
 		@Override
@@ -1003,7 +1002,7 @@ public class Main {
 		}
 
 		final List<String> removed = current.popAfterStatements();
-		compiled = compiled.addAllAt(0, removed);
+		compiled = compiled.addAllAt(0, removed).orElse(new ArrayList<>());
 
 		return new Tuple<List<String>, ParseState>(compiled, current);
 	}
