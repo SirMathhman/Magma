@@ -4,7 +4,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Lib {
-	sealed interface Result<T, X> permits Err, Ok {}
+	public sealed interface Result<T, X> permits Err, Ok {}
 
 	sealed public interface Optional<T> permits Some, None {
 		static <T> Optional<T> empty() {
@@ -28,6 +28,18 @@ public class Lib {
 
 	public interface IOError {
 		String display();
+	}
+
+	public interface Path {
+		boolean exists();
+
+		Result<String, IOError> readString();
+
+		Optional<IOError> createDirectories();
+
+		Optional<IOError> writeString(String output);
+
+		Path getParent();
 	}
 
 	record Ok<T, X>(T value) implements Result<T, X> {}

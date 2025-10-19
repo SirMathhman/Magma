@@ -1,13 +1,12 @@
 package magma;
 
+import magma.JavaImpl.Paths;
 import magma.Lib.IOError;
 import magma.Lib.Ok;
 import magma.Lib.Optional;
+import magma.Lib.Path;
 import magma.Lib.Some;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -210,15 +209,15 @@ public class Main {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 
-		if (JavaImpl.readString(source) instanceof Ok<String, IOError>(String input)) {
+		if (source.readString() instanceof Ok<String, IOError>(String input)) {
 			final Path targetParent = target.getParent();
 
-			if (!Files.exists(targetParent)) {
-				return JavaImpl.createDirectories(targetParent);
+			if (!targetParent.exists()) {
+				return targetParent.createDirectories();
 			}
 
 			final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
-			return JavaImpl.writeString(target, output);
+			return target.writeString(output);
 		}
 
 		return Optional.empty();
