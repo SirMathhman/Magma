@@ -87,7 +87,15 @@ public class Main {
 		}
 	}
 
-	private record ArrayList<T>(T[] elements) implements List<T> {
+	private static final class ArrayList<T> implements List<T> {
+		private final T[] elements;
+		private final int size;
+
+		private ArrayList(T[] elements) {
+			this.elements = elements;
+			this.size = 0;
+		}
+
 		public ArrayList() {
 			this(alloc(10));
 		}
