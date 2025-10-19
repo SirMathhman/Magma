@@ -63,7 +63,11 @@ public class Main {
 		String generate();
 	}
 
-	private record Stream<T>() {
+	private interface Head<T> {
+		Optional<T> next();
+	}
+
+	private record Stream<T>(Head<T> head) {
 		List<T> toList() {
 			throw new UnsupportedOperationException();
 		}
