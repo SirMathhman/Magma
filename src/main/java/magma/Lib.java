@@ -73,7 +73,7 @@ public class Lib {
 		}
 	}
 
-	private record None<T>() implements Optional<T> {
+	public record None<T>() implements Optional<T> {
 		@Override
 		public <R> Optional<R> map(Function<T, R> mapper) {
 			return new None<R>();

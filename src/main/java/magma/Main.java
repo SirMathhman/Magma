@@ -2,6 +2,7 @@ package magma;
 
 import magma.JavaImpl.Paths;
 import magma.Lib.IOError;
+import magma.Lib.None;
 import magma.Lib.Ok;
 import magma.Lib.Optional;
 import magma.Lib.Path;
@@ -17,7 +18,11 @@ import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
 public class Main {
-	private interface Collector<T, C> {}
+	private interface Collector<T, C> {
+		C createInitial();
+
+		C fold(C current, T element);
+	}
 
 	private interface List<T> {
 		List<T> add(T element);
@@ -68,31 +73,39 @@ public class Main {
 	}
 
 	private record Stream<T>(Head<T> head) {
-		List<T> toList() {
-			throw new UnsupportedOperationException();
-		}
-
 		<R> Stream<R> map(Function<T, R> mapper) {
-			throw new UnsupportedOperationException();
+			return new Stream<R>(() -> this.head.next().map(mapper));
 		}
 
 		public Stream<T> filter(Predicate<T> predicate) {
-			throw new UnsupportedOperationException();
+			final Head<T> sourceHead = this.head;
+			return new Stream<T>(() -> {
+				while (true) {
+					Optional<T> nextValue = sourceHead.next();
+					if (nextValue instanceof Some<T>(T value)) {
+						if (predicate.test(value)) {
+							return Optional.of(value);
+						}
+						// Continue to next element
+					} else {
+						return Optional.empty();
+					}
+				}
+			});
 		}
 
 		public <C> C collect(Collector<T, C> collector) {
-			throw new UnsupportedOperationException();
+			return this.reduce(collector.createInitial(), collector::fold);
 		}
 
 		public <C> C reduce(C initial, BiFunction<C, T, C> folder) {
-			throw new UnsupportedOperationException();
-		}
-	}
-
-	private static class MemUtils {
-		@SuppressWarnings("unchecked")
-		private static <T> T[] alloc(int length) {
-			return (T[]) new Object[length];
+			C accumulator = initial;
+			Optional<T> current = this.head.next();
+			while (current instanceof Some<T>(T value)) {
+				accumulator = folder.apply(accumulator, value);
+				current = this.head.next();
+			}
+			return accumulator;
 		}
 	}
 
@@ -107,15 +120,6 @@ public class Main {
 
 		public ArrayList() {
 			this(alloc(10), 0);
-		}
-
-		private ArrayList(List<T> others) {
-			// TODO: turn this into a factory function
-			this(alloc(Math.max(10, others.size())), 0);
-
-			for (int index = 0; index < others.size(); index++) {
-				this.add(others.get(index).orElse(null));
-			}
 		}
 
 		@SuppressWarnings("unchecked")
@@ -266,7 +270,7 @@ public class Main {
 		}
 	}
 
-	private static final class ParseState {
+	private static class ParseState {
 		private final Stack<List<String>> beforeStatements;
 		private List<String> structs;
 		private List<String> afterStatements;
@@ -432,29 +436,9 @@ public class Main {
 		}
 	}
 
-	private static class Strings {
-		public static String join(String delimiter, List<String> list) {
-			throw new UnsupportedOperationException();
-		}
-	}
-
-	private static class Collectors {
-		public static Collector<String, String> joining(String delimiter, String start, String end) {
-			throw new UnsupportedOperationException();
-		}
-
-		public static Collector<String, String> joining(String delimiter) {
-			return joining(delimiter, "", "");
-		}
-
-		public static Collector<String, String> joining() {
-			return joining("");
-		}
-	}
-
 	private static class Streams {
 		public static <T> Stream<T> from(T[] elements) {
-			throw new UnsupportedOperationException();
+			return new Stream<T>(new ArrayHead<T>(elements));
 		}
 	}
 
@@ -474,6 +458,64 @@ public class Main {
 			}
 
 			return Optional.empty();
+		}
+	}
+
+	private static class ListCollector<T> implements Collector<T, List<T>> {
+		public ListCollector() {}
+
+		@Override
+		public List<T> createInitial() {
+			return new ArrayList<T>();
+		}
+
+		@Override
+		public List<T> fold(List<T> current, T element) {
+			return current.add(element);
+		}
+	}
+
+	private static class Joiner implements Collector<String, String> {
+		private final String delimiter;
+
+		public Joiner(String delimiter) {this.delimiter = delimiter;}
+
+		public Joiner() {
+			this("");
+		}
+
+		@Override
+		public String createInitial() {
+			return "";
+		}
+
+		@Override
+		public String fold(String current, String element) {
+			if (current.isEmpty()) {
+				return element;
+			}
+			return current + this.delimiter + element;
+		}
+	}
+
+	private static class ArrayHead<T> implements Head<T> {
+		private final T[] elements;
+		private int counter;
+
+		public ArrayHead(T[] elements) {
+			this.elements = elements;
+			this.counter = 0;
+		}
+
+		@Override
+		public Optional<T> next() {
+			if (this.counter < this.elements.length) {
+				final T element = this.elements[this.counter];
+				this.counter++;
+				return new Some<T>(element);
+			} else {
+				return new None<T>();
+			}
 		}
 	}
 
@@ -504,7 +546,7 @@ public class Main {
 	private static String compile(String input) {
 		StringJoiner joiner = new StringJoiner("");
 		ParseState state = new ParseState();
-		List<String> list = divide(input, Main::foldStatement).toList();
+		List<String> list = divide(input, Main::foldStatement).collect(new ListCollector<String>());
 		int i = 0;
 		while (i < list.size()) {
 			String input1 = list.get(i).orElse(null);
@@ -515,8 +557,8 @@ public class Main {
 		}
 
 		final String joined = joiner.toString();
-		final String joinedStructs = Strings.join("", state.structs);
-		final String joinedFunctions = Strings.join("", state.functions);
+		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
+		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
 
 		return joinedStructs + joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
 					 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
@@ -651,7 +693,8 @@ public class Main {
 		final int permitsIndex = beforeContent.indexOf("permits");
 		if (permitsIndex >= 0) {
 			final String slice = beforeContent.substring(permitsIndex + "permits".length());
-			variants = divide(slice, Main::foldValue).map(String::strip).filter(segment -> !segment.isEmpty()).toList();
+			variants = divide(slice,
+												Main::foldValue).map(String::strip).filter(segment -> !segment.isEmpty()).collect(new ListCollector<String>());
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
@@ -687,7 +730,7 @@ public class Main {
 			if (i1 >= 0) {
 				name = withoutEnd.substring(0, i1).strip();
 				final String arguments = withoutEnd.substring(i1 + "<".length());
-				typeParameters = divide(arguments, Main::foldValue).map(String::strip).toList();
+				typeParameters = divide(arguments, Main::foldValue).map(String::strip).collect(new ListCollector<String>());
 			}
 		}
 
@@ -698,7 +741,7 @@ public class Main {
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		final List<String> segments = divide(content, Main::foldStatement).toList();
+		final List<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 
 		StringBuilder inner = new StringBuilder();
 		ParseState outer = state;
@@ -716,7 +759,7 @@ public class Main {
 			templateString = "";
 		} else {
 			final String collect =
-					typeParameters.stream().map(slice -> "typeparam " + slice).collect(Collectors.joining(", ", "<", ">"));
+					"<" + typeParameters.stream().map(slice -> "typeparam " + slice).collect(new Joiner(", ")) + ">";
 
 			final String templateValues = collect + System.lineSeparator();
 			templateString = "template " + templateValues;
@@ -724,20 +767,19 @@ public class Main {
 
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String enumFields =
-					variants.stream().map(slice -> generateIndent(1) + slice).collect(Collectors.joining(","));
+			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
 
 			final String joinedTypeParameters;
 			if (typeParameters.isEmpty()) {
 				joinedTypeParameters = "";
 			} else {
-				joinedTypeParameters = "<" + Strings.join(", ", typeParameters) + ">";
+				joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
 			}
 
 			final String unionFields = variants.stream().map(slice -> slice + joinedTypeParameters + " " +
 																																slice.toLowerCase()).map(content1 -> generateStatement(
 					content1,
-					1)).collect(Collectors.joining());
+					1)).collect(new Joiner());
 
 			generatedSubStructs =
 					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
@@ -759,7 +801,7 @@ public class Main {
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper, String delimiter) {
-		return divide(input, Main::foldValue).map(mapper).collect(Collectors.joining(delimiter));
+		return divide(input, Main::foldValue).map(mapper).collect(new Joiner(delimiter));
 	}
 
 	private static String compileParameter(String input1) {
@@ -866,7 +908,7 @@ public class Main {
 						statements.addFirst(generateStatement(name + " this", 1)).addLast(generateStatement("return this", 1));
 			}
 
-			final String joined = Strings.join("", statements);
+			final String joined = statements.stream().collect(new Joiner(""));
 			outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
 		} else {
 			return Optional.empty();
@@ -955,13 +997,15 @@ public class Main {
 		}
 		final String withoutPrefix = stripped.substring(type.length());
 
-		final List<String> conditionEnd = divide(withoutPrefix, Main::foldConditionEnd).toList();
+		final List<String> conditionEnd =
+				divide(withoutPrefix, Main::foldConditionEnd).collect(new ListCollector<String>());
 		if (conditionEnd.size() < 2) {
 			return Optional.empty();
 		}
 		final String withConditionEnd = conditionEnd.getFirst().orElse(null);
 		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
-		final String body = Strings.join("", conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<String>()));
+		final String body =
+				conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 
 		if (!substring1.startsWith("(")) {
 			return Optional.empty();
@@ -979,7 +1023,7 @@ public class Main {
 			return Optional.empty();
 		}
 		final Tuple<List<String>, ParseState> result = compileMethodStatements(state, input, depth);
-		final String generated = "{" + Strings.join("", result.left()) + generateIndent(depth) + "}";
+		final String generated = "{" + result.left().stream().collect(new Joiner("")) + generateIndent(depth) + "}";
 		return Optional.of(new Tuple<String, ParseState>(generated, result.right()));
 
 	}
@@ -989,7 +1033,7 @@ public class Main {
 
 		List<String> compiled = new ArrayList<String>();
 		ParseState current = state;
-		List<String> list = divide(content, Main::foldStatement).toList();
+		List<String> list = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 		int i = 0;
 		while (i < list.size()) {
 			String s = list.get(i).orElse(null);
@@ -1002,7 +1046,7 @@ public class Main {
 		}
 
 		final List<String> removed = current.popAfterStatements();
-		compiled = compiled.addAllAt(0, removed).orElse(new ArrayList<>());
+		compiled = compiled.addAllAt(0, removed).orElse(new ArrayList<String>());
 
 		return new Tuple<List<String>, ParseState>(compiled, current);
 	}
@@ -1273,13 +1317,13 @@ public class Main {
 		}
 		final String slice = stripped.substring(0, stripped.length() - 1);
 
-		final List<String> segments = findArgStart(slice).toList();
+		final List<String> segments = findArgStart(slice).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return Optional.empty();
 		}
 
 		final String callerWithExt =
-				Strings.join("", segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()));
+				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 		if (!callerWithExt.endsWith("(")) {
 			return Optional.empty();
 		}
@@ -1294,9 +1338,9 @@ public class Main {
 		}
 
 		final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
-																													Main::foldValue).toList().stream().reduce(new Tuple<StringJoiner, ParseState>(
-				new StringJoiner(", "),
-				value.right), (tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
+																													Main::foldValue).collect(new ListCollector<String>()).stream().reduce(
+				new Tuple<StringJoiner, ParseState>(new StringJoiner(", "), value.right),
+				(tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
 		final String collect = reduce.left.toString();
 		return Optional.of(new Tuple<String, ParseState>(value.left + "(" + collect + ")", reduce.right));
 	}
@@ -1343,7 +1387,7 @@ public class Main {
 			final String[] array = withoutParentheses.split(Pattern.quote(","));
 			outputParams = Streams.from(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
 																																																					 slice).collect(
-					Collectors.joining(", "));
+					new Joiner(", "));
 
 		} else {
 			return Optional.empty();
@@ -1396,14 +1440,16 @@ public class Main {
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
-		final List<String> segments = divide(input, (state1, next) -> foldOperator(operator, state1, next)).toList();
+		final List<String> segments =
+				divide(input, (state1, next) -> foldOperator(operator, state1, next)).collect(new ListCollector<String>());
 
 		if (segments.size() < 2) {
 			return Optional.empty();
 		}
 
 		final String left = segments.getFirst().orElse(null);
-		final String right = Strings.join(operator, segments.subList(1, segments.size()).orElse(new ArrayList<String>()));
+		final String right =
+				segments.subList(1, segments.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(operator));
 
 		final Optional<Tuple<String, ParseState>> maybeLeftResult =
 				tryCompileExpression(left, state).map(tuple1 -> new Tuple<String, ParseState>(tuple1.left.generate(),
@@ -1516,13 +1562,13 @@ public class Main {
 			return Optional.empty();
 		}
 
-		final List<String> segments = divide(beforeName, Main::foldTypeSeparator).toList();
+		final List<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
 		final String withoutLast =
-				Strings.join(" ", segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()));
+				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(" "));
 		final List<String> annotations = findAnnotations(withoutLast);
 
 		final String typeString = segments.getLast().orElse(null);
@@ -1536,7 +1582,8 @@ public class Main {
 		}
 
 		final String[] slices = withoutLast.substring(0, i).strip().split(Pattern.quote("\n"));
-		return Streams.from(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(1)).toList();
+		return Streams.from(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(1)).collect(
+				new ListCollector<String>());
 	}
 
 	private static DivideState foldTypeSeparator(DivideState state, Character c) {
