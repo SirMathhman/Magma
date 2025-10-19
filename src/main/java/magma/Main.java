@@ -93,6 +93,8 @@ public class Main {
 		}
 
 		public ArrayList(List<T> others) {
+			// TODO: turn this into a factory function
+
 			this(alloc(others.size()));
 
 			for (int index = 0; index < others.size(); index++) {
