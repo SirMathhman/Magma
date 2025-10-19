@@ -109,6 +109,13 @@ public class Main {
 		}
 	}
 
+	private static class MemUtils {
+		@SuppressWarnings("unchecked")
+		private static <T> T[] alloc(int length) {
+			return (T[]) new Object[length];
+		}
+	}
+
 	private static final class ArrayList<T> implements List<T> {
 		private T[] elements;
 		private int size;
@@ -119,12 +126,7 @@ public class Main {
 		}
 
 		public ArrayList() {
-			this(alloc(10), 0);
-		}
-
-		@SuppressWarnings("unchecked")
-		private static <T> T[] alloc(int length) {
-			return (T[]) new Object[length];
+			this(MemUtils.alloc(10), 0);
 		}
 
 		private void ensureCapacity(int minCapacity) {
@@ -137,7 +139,7 @@ public class Main {
 				newCapacity = minCapacity;
 			}
 
-			T[] newElements = alloc(newCapacity);
+			T[] newElements = MemUtils.alloc(newCapacity);
 			System.arraycopy(this.elements, 0, newElements, 0, this.size);
 			this.elements = newElements;
 		}
@@ -152,7 +154,7 @@ public class Main {
 
 		@Override
 		public List<T> clear() {
-			this.elements = alloc(10);
+			this.elements = MemUtils.alloc(10);
 			this.size = 0;
 			return this;
 		}
@@ -216,7 +218,7 @@ public class Main {
 				return Optional.empty();
 			}
 			int subSize = end - start;
-			T[] newElements = alloc(Math.max(10, subSize));
+			T[] newElements = MemUtils.alloc(Math.max(10, subSize));
 			System.arraycopy(this.elements, start, newElements, 0, subSize);
 			return Optional.of(new ArrayList<T>(newElements, subSize));
 		}
