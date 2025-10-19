@@ -92,6 +92,7 @@ public class Main {
 
 		public ArrayList(List<T> others) {
 			this(alloc(others.size()));
+
 			for (int index = 0; index < others.size(); index++) {
 				this.set(index, others.getOrNull(index));
 			}
@@ -173,10 +174,10 @@ public class Main {
 	}
 
 	private static final class ParseState {
-		private final List<String> functions;
-		private final List<String> structs;
 		private final Stack<List<String>> beforeStatements;
-		private final ArrayList<String> afterStatements;
+		private List<String> structs;
+		private List<String> afterStatements;
+		private List<String> functions;
 		private int counter;
 
 		public ParseState() {
@@ -191,12 +192,12 @@ public class Main {
 		}
 
 		public ParseState addFunction(String func) {
-			this.functions.add(func);
+			this.functions = this.functions.add(func);
 			return this;
 		}
 
 		public ParseState addStruct(String struct) {
-			this.structs.add(struct);
+			this.structs = this.structs.add(struct);
 			return this;
 		}
 
@@ -206,18 +207,20 @@ public class Main {
 		}
 
 		public ParseState addAfterStatement(String statement) {
-			this.afterStatements.add(statement);
+			this.afterStatements = this.afterStatements.add(statement);
 			return this;
 		}
 
 		public ArrayList<String> popAfterStatements() {
 			final ArrayList<String> copy = new ArrayList<String>(this.afterStatements);
-			this.afterStatements.clear();
+			this.afterStatements = this.afterStatements.clear();
 			return copy;
 		}
 
 		public void addBeforeStatement(String beforeStatement) {
-			this.beforeStatements.peek().add(beforeStatement);
+			final List<String> peek = this.beforeStatements.pop();
+			final List<String> added = peek.add(beforeStatement);
+			this.beforeStatements.push(added);
 		}
 
 		public List<String> popBeforeStatements() {
@@ -231,8 +234,8 @@ public class Main {
 	}
 
 	private static class DivideState {
-		private final ArrayList<String> segments;
 		private final String input;
+		private List<String> segments;
 		private StringBuilder buffer;
 		private int depth;
 		private int index;
@@ -273,7 +276,7 @@ public class Main {
 		}
 
 		private DivideState advance() {
-			this.segments.add(this.buffer.toString());
+			this.segments = this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
@@ -745,10 +748,10 @@ public class Main {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 			final Tuple<List<String>, ParseState> compiledBody = compileMethodStatements(state, inputBody, 0);
 
-			final List<String> statements = compiledBody.left;
+			List<String> statements = compiledBody.left;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
-				statements.addFirst(generateStatement(name + " this", 1));
-				statements.addLast(generateStatement("return this", 1));
+				statements =
+						statements.addFirst(generateStatement(name + " this", 1)).addLast(generateStatement("return this", 1));
 			}
 
 			final String joined = Strings.join("", statements);
@@ -880,15 +883,14 @@ public class Main {
 			String s = list.getOrNull(i);
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
-			compiled.addAll(string.right.popBeforeStatements());
-			compiled.add(string.left);
+			compiled = compiled.addAll(string.right.popBeforeStatements()).add(string.left);
 
 			current = string.right;
 			i++;
 		}
 
 		final ArrayList<String> removed = current.popAfterStatements();
-		compiled.addAllAt(0, removed);
+		compiled = compiled.addAllAt(0, removed);
 
 		return new Tuple<List<String>, ParseState>(compiled, current);
 	}
