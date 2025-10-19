@@ -28,9 +28,7 @@ public class Main {
 
 		Stream<T> stream();
 
-		default T getOrNull(int index) {
-			throw new UnsupportedOperationException();
-		}
+		Optional<T> get(int index);
 
 		boolean isEmpty();
 
@@ -40,15 +38,15 @@ public class Main {
 
 		boolean contains(T element);
 
-		T getFirst();
+		Optional<T> getFirst();
 
-		List<T> subList(int start, int end);
+		Optional<List<T>> subList(int start, int end);
 
 		List<T> addAll(List<T> elements);
 
 		List<T> addAllAt(int index, List<T> elements);
 
-		T getLast();
+		Optional<T> getLast();
 	}
 
 	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
@@ -98,7 +96,7 @@ public class Main {
 			this(alloc(others.size()));
 
 			for (int index = 0; index < others.size(); index++) {
-				this.set(index, others.getOrNull(index));
+				this.set(index, others.get(index).orElse(null));
 			}
 		}
 
@@ -132,6 +130,11 @@ public class Main {
 		}
 
 		@Override
+		public Optional<T> get(int index) {
+			throw new UnsupportedOperationException("TODO: implement");
+		}
+
+		@Override
 		public boolean isEmpty() {
 			return this.size() == 0;
 		}
@@ -152,13 +155,13 @@ public class Main {
 		}
 
 		@Override
-		public T getFirst() {
-			throw new UnsupportedOperationException();
+		public Optional<T> getFirst() {
+			throw new UnsupportedOperationException("TODO: implement");
 		}
 
 		@Override
-		public List<T> subList(int start, int end) {
-			throw new UnsupportedOperationException();
+		public Optional<List<T>> subList(int start, int end) {
+			throw new UnsupportedOperationException("TODO: implement");
 		}
 
 		@Override
@@ -172,8 +175,8 @@ public class Main {
 		}
 
 		@Override
-		public T getLast() {
-			throw new UnsupportedOperationException();
+		public Optional<T> getLast() {
+			throw new UnsupportedOperationException("TODO: implement");
 		}
 	}
 
@@ -399,7 +402,7 @@ public class Main {
 		List<String> list = divide(input, Main::foldStatement).toList();
 		int i = 0;
 		while (i < list.size()) {
-			String input1 = list.getOrNull(i);
+			String input1 = list.get(i).orElse(null);
 			Tuple<String, ParseState> s = compileRootSegment(input1, state);
 			joiner.add(s.left);
 			state = s.right;
@@ -596,7 +599,7 @@ public class Main {
 		ParseState outer = state;
 		int j = 0;
 		while (j < segments.size()) {
-			String segment = segments.getOrNull(j);
+			String segment = segments.get(j).orElse(null);
 			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer);
 			inner.append(compiled.left);
 			outer = compiled.right;
@@ -851,9 +854,9 @@ public class Main {
 		if (conditionEnd.size() < 2) {
 			return Optional.empty();
 		}
-		final String withConditionEnd = conditionEnd.getFirst();
+		final String withConditionEnd = conditionEnd.getFirst().orElse(null);
 		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
-		final String body = Strings.join("", conditionEnd.subList(1, conditionEnd.size()));
+		final String body = Strings.join("", conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<>()));
 
 		if (!substring1.startsWith("(")) {
 			return Optional.empty();
@@ -884,7 +887,7 @@ public class Main {
 		List<String> list = divide(content, Main::foldStatement).toList();
 		int i = 0;
 		while (i < list.size()) {
-			String s = list.getOrNull(i);
+			String s = list.get(i).orElse(null);
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
 			compiled = compiled.addAll(string.right.popBeforeStatements()).add(string.left);
@@ -1169,13 +1172,13 @@ public class Main {
 		if (segments.size() < 2) {
 			return Optional.empty();
 		}
-		final String callerWithExt = Strings.join("", segments.subList(0, segments.size() - 1));
 
+		final String callerWithExt = Strings.join("", segments.subList(0, segments.size() - 1).orElse(new ArrayList<>()));
 		if (!callerWithExt.endsWith("(")) {
 			return Optional.empty();
 		}
 		final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
-		final String arguments = segments.getLast();
+		final String arguments = segments.getLast().orElse(null);
 
 		final Optional<Tuple<String, ParseState>> maybeCallerResult = compileCaller(state, caller);
 		if (!(maybeCallerResult instanceof Some<Tuple<String, ParseState>>(
@@ -1293,8 +1296,8 @@ public class Main {
 			return Optional.empty();
 		}
 
-		final String left = segments.getFirst();
-		final String right = Strings.join(operator, segments.subList(1, segments.size()));
+		final String left = segments.getFirst().orElse(null);
+		final String right = Strings.join(operator, segments.subList(1, segments.size()).orElse(new ArrayList<>()));
 
 		final Optional<Tuple<String, ParseState>> maybeLeftResult =
 				tryCompileExpression(left, state).map(tuple1 -> new Tuple<String, ParseState>(tuple1.left.generate(),
@@ -1412,10 +1415,10 @@ public class Main {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
-		final String withoutLast = Strings.join(" ", segments.subList(0, segments.size() - 1));
+		final String withoutLast = Strings.join(" ", segments.subList(0, segments.size() - 1).orElse(new ArrayList<>()));
 		final List<String> annotations = findAnnotations(withoutLast);
 
-		final String typeString = segments.getLast();
+		final String typeString = segments.getLast().orElse(null);
 		return compileType(typeString).map(type -> new Definition(annotations, type, name));
 	}
 
