@@ -111,17 +111,23 @@ public class Main {
 	}
 
 	private static final class Array<T> implements Closeable {
-		private final T[] elements;
+		private final T[] ref;
+		private final int capacity;
 		private int length;
 
-		private Array(T[] elements) {
-			this.elements = elements;
+		private Array(T[] ref, int capacity) {
+			this.ref = ref;
+			this.capacity = capacity;
 			this.length = 0;
 		}
 
+		private static <T> Array<T> alloc(int length) {
+			return new Array<T>(MemUtils.malloc(length), length);
+		}
+
 		private boolean contains(T element) {
-			for (int i = 0; i < this.length(); i++) {
-				if (Objects.equals(Array.this.elements[i], element)) {
+			for (int i = 0; i < this.length; i++) {
+				if (Objects.equals(Array.this.ref[i], element)) {
 					return true;
 				}
 			}
@@ -130,43 +136,30 @@ public class Main {
 
 		@Override
 		public void close() {
-			MemUtils.free(this.elements);
-		}
-
-		public int capacity() {
-			return this.elements.length;
-		}
-
-		public int length() {
-			return this.length;
+			MemUtils.free(this.ref);
 		}
 
 		public void setNext(T element) {
-			if (this.length < this.elements.length) {
-				this.elements[this.length] = element;
+			if (this.length < this.ref.length) {
+				this.ref[this.length] = element;
 				this.length++;
 			}
 		}
 
 		public Optional<T> get(int index) {
 			if (index < this.length) {
-				return new Some<T>(this.elements[index]);
+				return new Some<T>(this.ref[index]);
 			} else {
 				return new None<T>();
 			}
 		}
 
 		public void setFirst(T element) {
-			this.elements[0] = element;
+			this.ref[0] = element;
 		}
 	}
 
 	private static class MemUtils {
-		@SuppressWarnings("unchecked")
-		private static <T> Array<T> alloc(int length) {
-			return new Array<T>(malloc(length));
-		}
-
 		@Actual
 		private static <T> T[] malloc(int length) {
 			return (T[]) new Object[length];
@@ -178,7 +171,7 @@ public class Main {
 
 		@Actual
 		public static <T> void memCopy(Array<T> src, int srcPos, Array<T> dest, int destPos, int length) {
-			System.arraycopy(src.elements, srcPos, dest.elements, destPos, length);
+			System.arraycopy(src.ref, srcPos, dest.ref, destPos, length);
 		}
 	}
 
@@ -190,41 +183,41 @@ public class Main {
 		}
 
 		public ArrayList() {
-			this(MemUtils.alloc(10));
+			this(Array.alloc(10));
 		}
 
 		private void ensureCapacity(int minCapacity) {
-			if (minCapacity <= this.elements.capacity()) {
+			if (minCapacity <= this.elements.capacity) {
 				return;
 			}
 
-			int newCapacity = this.elements.capacity() * 2;
+			int newCapacity = this.elements.capacity * 2;
 			if (newCapacity < minCapacity) {
 				newCapacity = minCapacity;
 			}
 
-			Array<T> newElements = MemUtils.alloc(newCapacity);
-			MemUtils.memCopy(this.elements, 0, newElements, 0, this.elements.length());
-			newElements.length = this.elements.length();
+			Array<T> newElements = Array.alloc(newCapacity);
+			MemUtils.memCopy(this.elements, 0, newElements, 0, (this.elements).length);
+			newElements.length = (this.elements).length;
 			this.elements = newElements;
 		}
 
 		@Override
 		public List<T> add(T element) {
-			this.ensureCapacity(this.elements.length() + 1);
+			this.ensureCapacity((this.elements).length + 1);
 			this.elements.setNext(element);
 			return this;
 		}
 
 		@Override
 		public List<T> clear() {
-			this.elements = MemUtils.alloc(10);
+			this.elements = Array.alloc(10);
 			return this;
 		}
 
 		@Override
 		public int size() {
-			return this.elements.length();
+			return (this.elements).length;
 		}
 
 		@Override
@@ -234,7 +227,7 @@ public class Main {
 
 		@Override
 		public Optional<T> get(int index) {
-			if (index < 0 || index >= this.elements.length()) {
+			if (index < 0 || index >= (this.elements).length) {
 				return Optional.empty();
 			}
 
@@ -248,9 +241,9 @@ public class Main {
 
 		@Override
 		public List<T> addFirst(T element) {
-			this.ensureCapacity(this.elements.length() + 1);
+			this.ensureCapacity((this.elements).length + 1);
 			// Shift all elements one position to the right
-			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.elements.length());
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, (this.elements).length);
 			this.elements.setFirst(element);
 			this.elements.length++;
 			return this;
@@ -273,11 +266,11 @@ public class Main {
 
 		@Override
 		public Optional<List<T>> subList(int start, int end) {
-			if (start < 0 || end > this.elements.length() || start > end) {
+			if (start < 0 || end > (this.elements).length || start > end) {
 				return Optional.empty();
 			}
 			int subSize = end - start;
-			Array<T> newElements = MemUtils.alloc(Math.max(10, subSize));
+			Array<T> newElements = Array.alloc(Math.max(10, subSize));
 			MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 			newElements.length = subSize;
 			return Optional.of(new ArrayList<T>(newElements));
@@ -286,7 +279,7 @@ public class Main {
 		@Override
 		public List<T> addAll(List<T> elements) {
 			int elementsSize = elements.size();
-			this.ensureCapacity(this.elements.length() + elementsSize);
+			this.ensureCapacity((this.elements).length + elementsSize);
 
 			for (int i = 0; i < elementsSize; i++) {
 				this.elements.setNext(elements.get(i).orElse(null));
@@ -297,19 +290,19 @@ public class Main {
 
 		@Override
 		public Optional<List<T>> addAllAt(int index, List<T> elements) {
-			if (index < 0 || index > this.elements.length()) {
+			if (index < 0 || index > (this.elements).length) {
 				return Optional.empty();
 			}
 
 			int elementsSize = elements.size();
-			this.ensureCapacity(this.elements.length() + elementsSize);
+			this.ensureCapacity((this.elements).length + elementsSize);
 
 			// Shift elements to the right to make room
-			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.elements.length() - index);
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, (this.elements).length - index);
 
 			// Copy inserted elements - need to use set with supplier since we're inserting in middle
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements.elements[index + i] = elements.get(i).orElse(null);
+				this.elements.ref[index + i] = elements.get(i).orElse(null);
 			}
 
 			this.elements.length += elementsSize;
@@ -318,15 +311,15 @@ public class Main {
 
 		@Override
 		public Optional<T> getLast() {
-			return this.get(this.elements.length() - 1);
+			return this.get((this.elements).length - 1);
 		}
 
 		@Override
 		public List<T> copy() {
 			final ArrayList<T> list = new ArrayList<T>();
-			if (this.elements.length() >= 0) {
-				MemUtils.memCopy(this.elements, 0, list.elements, 0, this.elements.length());
-				list.elements.length = this.elements.length();
+			if ((this.elements).length >= 0) {
+				MemUtils.memCopy(this.elements, 0, list.elements, 0, (this.elements).length);
+				list.elements.length = (this.elements).length;
 			}
 			return list;
 		}

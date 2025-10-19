@@ -52,14 +52,11 @@ struct Stream {
 };
 template <typeparam T>
 struct Array {
-	T* elements;
+	T* ref;
+	int capacity;
 	int length;
 };
 struct MemUtils {
-	/*@SuppressWarnings("unchecked")
-		private static <T> Array<T> alloc(int length) {
-			return new Array<T>(malloc(length));
-		}*/
 };
 template <typeparam T>
 struct ArrayList {
@@ -181,43 +178,41 @@ C reduce_Stream(C initial, BiFunction<C, T, C> folder){
 	}
 	return accumulator;
 }
-private Array_Array(T* elements){
-	this.elements = elements;
+private Array_Array(T* ref, int capacity){
+	this.ref = ref;
+	this.capacity = capacity;
 	this.length = 0;
 }
+Array<T> alloc_Array(int length){
+	return new_Array<T>(MemUtils.malloc(length), length);
+}
 boolean contains_Array(T element){
-	/*for (int i = 0; i < this.length(); i++) {
-				if (Objects.equals(Array.this.elements[i], element)) {
+	/*for (int i = 0; i < this.length; i++) {
+				if (Objects.equals(Array.this.ref[i], element)) {
 					return true;
 				}
 			}*/
 	return false;
 }
 void close_Array(){
-	MemUtils.free(this.elements);
-}
-int capacity_Array(){
-	return this.elements.length;
-}
-int length_Array(){
-	return this.length;
+	MemUtils.free(this.ref);
 }
 void setNext_Array(T element){
-	if (this.length < this.elements.length) {
-		/*this.elements[this.length] */ = element;
+	if (this.length < this.ref.length) {
+		/*this.ref[this.length] */ = element;
 		this.length++;
 	}
 }
 Optional<T> get_Array(int index){
 	if (index < this.length) {
-		return new_Some<T>(/*this.elements[index]*/);
+		return new_Some<T>(/*this.ref[index]*/);
 	}
 	else {
 		return new_None<T>();
 	}
 }
 void setFirst_Array(T element){
-	/*this.elements[0] */ = element;
+	/*this.ref[0] */ = element;
 }
 T* malloc_MemUtils(int length);
 void free_MemUtils(T* elements);
@@ -227,39 +222,39 @@ private ArrayList_ArrayList(Array<T> elements){
 }
 ArrayList new_ArrayList(){
 	ArrayList this;
-	this(MemUtils.alloc(10));
+	this(Array.alloc(10));
 	return this;
 }
 void ensureCapacity_ArrayList(int minCapacity){
-	if (minCapacity <  == this.elements.capacity()) {
+	if (minCapacity <  == this.elements.capacity) {
 		/*return*/;
 	}
-	int newCapacity = /* this.elements.capacity() * 2*/;
+	int newCapacity = /* this.elements.capacity * 2*/;
 	if (newCapacity < minCapacity) {
 		newCapacity = minCapacity;
 	}
-	Array < T >= newElements == MemUtils.alloc(newCapacity);
-	MemUtils.memCopy(this.elements, 0, newElements, 0, this.elements.length());
-	newElements.length == this.elements.length();
+	Array < T >= newElements == Array.alloc(newCapacity);
+	MemUtils.memCopy(this.elements, 0, newElements, 0, (this.elements).length);
+	newElements.length = (this.elements).length;
 	this.elements = newElements;
 }
 List<T> add_ArrayList(T element){
-	this.ensureCapacity(this.elements.length() + 1);
+	this.ensureCapacity((this.elements).length + 1);
 	this.elements.setNext(element);
 	return this;
 }
 List<T> clear_ArrayList(){
-	this.elements == MemUtils.alloc(10);
+	this.elements == Array.alloc(10);
 	return this;
 }
 int size_ArrayList(){
-	return this.elements.length();
+	return (this.elements).length;
 }
 Stream<T> stream_ArrayList(){
 	return new_Stream<T>(new_ListHead<T>(this));
 }
 Optional<T> get_ArrayList(int index){
-	if (index < 0 || index >= this.elements.length()) {
+	if (index < 0 || index >= (this.elements).length) {
 		return Optional.empty();
 	}
 	return this.elements.get(index);
@@ -268,9 +263,9 @@ boolean isEmpty_ArrayList(){
 	return this.size() == 0;
 }
 List<T> addFirst_ArrayList(T element){
-	this.ensureCapacity(this.elements.length() + 1);
+	this.ensureCapacity((this.elements).length + 1);
 	/*// Shift all elements one position to the right
-			MemUtils.memCopy(this.elements, 0, this.elements, 1, this.elements.length())*/;
+			MemUtils.memCopy(this.elements, 0, this.elements, 1, (this.elements).length)*/;
 	this.elements.setFirst(element);
 	this.elements.length++;
 	return this;
@@ -285,46 +280,46 @@ Optional<T> getFirst_ArrayList(){
 	return this.get(0);
 }
 Optional<List<T>> subList_ArrayList(int start, int end){
-	if (start < 0 || end >= this.elements.length() || start >= end) {
+	if (start < 0 || end >= (this.elements).length || start >= end) {
 		return Optional.empty();
 	}
 	int subSize = end - start;
-	Array < T >= newElements == MemUtils.alloc(Math.max(10, subSize));
+	Array < T >= newElements == Array.alloc(Math.max(10, subSize));
 	MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 	newElements.length = subSize;
 	return Optional.of(new_ArrayList<T>(newElements));
 }
 List<T> addAll_ArrayList(List<T> elements){
 	int elementsSize = elements.size();
-	this.ensureCapacity(this.elements.length() + elementsSize);
+	this.ensureCapacity((this.elements).length + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
 				this.elements.setNext(elements.get(i).orElse(null));
 			}*/
 	return this;
 }
 Optional<List<T>> addAllAt_ArrayList(int index, List<T> elements){
-	if (index < 0 || index >= this.elements.length()) {
+	if (index < 0 || index >= (this.elements).length) {
 		return Optional.empty();
 	}
 	int elementsSize = elements.size();
-	this.ensureCapacity(this.elements.length() + elementsSize);
+	this.ensureCapacity((this.elements).length + elementsSize);
 	/*// Shift elements to the right to make room
-			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, this.elements.length() - index)*/;
+			MemUtils.memCopy(this.elements, index, this.elements, index + elementsSize, (this.elements).length - index)*/;
 	/*// Copy inserted elements - need to use set with supplier since we're inserting in middle
 			for (int i = 0; i < elementsSize; i++) {
-				this.elements.elements[index + i] = elements.get(i).orElse(null);
+				this.elements.ref[index + i] = elements.get(i).orElse(null);
 			}*/
 	this.elements.length +  = elementsSize;
 	return Optional.of(this);
 }
 Optional<T> getLast_ArrayList(){
-	return this.get(this.elements.length() - 1);
+	return this.get((this.elements).length - 1);
 }
 List<T> copy_ArrayList(){
 	ArrayList<T> list = new_ArrayList<T>();
-	if (this.elements.length() >= 0) {
-		MemUtils.memCopy(this.elements, 0, list.elements, 0, this.elements.length());
-		list.elements.length == this.elements.length();
+	if ((this.elements).length >= 0) {
+		MemUtils.memCopy(this.elements, 0, list.elements, 0, (this.elements).length);
+		list.elements.length = (this.elements).length;
 	}
 	return list;
 }
