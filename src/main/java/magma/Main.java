@@ -1,6 +1,10 @@
 package magma;
 
-import java.io.IOException;
+import magma.Lib.IOError;
+import magma.Lib.Ok;
+import magma.Lib.Optional;
+import magma.Lib.Some;
+
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -13,7 +17,6 @@ import java.util.Stack;
 import java.util.StringJoiner;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -26,32 +29,10 @@ public class Main {
 
 	private sealed interface JMethodHeader permits JConstructor, Definable {}
 
-	sealed interface Result<T, X> permits Err, Ok {}
-
 	@interface Actual {}
 
 	private sealed interface CExpression permits CIdentifier, Content {
 		String generate();
-	}
-
-	private sealed interface Optional<T> permits Some, None {
-		static <T> Optional<T> empty() {
-			return new None<T>();
-		}
-
-		static <T> Optional<T> of(T value) {
-			return new Some<T>(value);
-		}
-
-		<R> Optional<R> map(Function<T, R> mapper);
-
-		Optional<T> or(Supplier<Optional<T>> other);
-
-		T orElseGet(Supplier<T> other);
-
-		<R> Optional<R> flatMap(Function<T, Optional<R>> mapper);
-
-		T orElse(T other);
 	}
 
 	private static final class ParseState {
@@ -204,10 +185,6 @@ public class Main {
 
 	private record JConstructor(String name) implements JMethodHeader {}
 
-	record Ok<T, X>(T value) implements Result<T, X> {}
-
-	record Err<T, X>(X error) implements Result<T, X> {}
-
 	private record Content(String value) implements CExpression {
 		@Override
 		public String generate() {
@@ -222,112 +199,29 @@ public class Main {
 		}
 	}
 
-	private record Some<T>(T value) implements Main.Optional<T> {
-		@Override
-		public <R> Optional<R> map(Function<T, R> mapper) {
-			return new Some<R>(mapper.apply(this.value));
-		}
-
-		@Override
-		public Optional<T> or(Supplier<Optional<T>> other) {
-			return this;
-		}
-
-		@Override
-		public T orElseGet(Supplier<T> other) {
-			return this.value;
-		}
-
-		@Override
-		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
-			return mapper.apply(this.value);
-		}
-
-		@Override
-		public T orElse(T other) {
-			return this.value;
-		}
-	}
-
-	private record None<T>() implements Main.Optional<T> {
-		@Override
-		public <R> Optional<R> map(Function<T, R> mapper) {
-			return new None<R>();
-		}
-
-		@Override
-		public Optional<T> or(Supplier<Optional<T>> other) {
-			return other.get();
-		}
-
-		@Override
-		public T orElseGet(Supplier<T> other) {
-			return other.get();
-		}
-
-		@Override
-		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
-			return new None<R>();
-		}
-
-		@Override
-		public T orElse(T other) {
-			return other;
-		}
-	}
-
 	public static void main(String[] args) {
-		if (run() instanceof Some<IOException>(IOException value)) {
+		if (run() instanceof Some<IOError>(IOError value)) {
 			//noinspection CallToPrintStackTrace
-			value.printStackTrace();
+			System.out.println(value.display());
 		}
 	}
 
-	private static Optional<IOException> run() {
+	private static Optional<IOError> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 
-		if (readString(source) instanceof Ok<String, IOException>(String input)) {
+		if (JavaImpl.readString(source) instanceof Ok<String, IOError>(String input)) {
 			final Path targetParent = target.getParent();
 
 			if (!Files.exists(targetParent)) {
-				return createDirectories(targetParent);
+				return JavaImpl.createDirectories(targetParent);
 			}
 
 			final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
-			return writeString(target, output);
+			return JavaImpl.writeString(target, output);
 		}
 
 		return Optional.empty();
-	}
-
-	@Actual
-	private static Optional<IOException> writeString(Path target, String output) {
-		try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		} catch (IOException e) {
-			return Optional.of(e);
-		}
-	}
-
-	@Actual
-	private static Optional<IOException> createDirectories(Path targetParent) {
-		try {
-			Files.createDirectories(targetParent);
-			return Optional.empty();
-		} catch (IOException e) {
-			return Optional.of(e);
-		}
-	}
-
-	@Actual
-	private static Result<String, IOException> readString(Path source) {
-		try {
-			return new Ok<String, IOException>(Files.readString(source));
-		} catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}
 	}
 
 	private static String compile(String input) {
