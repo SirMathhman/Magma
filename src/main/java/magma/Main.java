@@ -200,7 +200,6 @@ public class Main {
 
 	public static void main(String[] args) {
 		if (run() instanceof Some<IOError>(IOError value)) {
-			//noinspection CallToPrintStackTrace
 			System.out.println(value.display());
 		}
 	}

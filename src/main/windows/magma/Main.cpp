@@ -1,6 +1,4 @@
-// File generated from '.\src\main\java\magma\Main.java'. This is not source code!
-struct IOError {
-};
+// File generated from 'JavaPath[path=.\src\main\java\magma\Main.java]'. This is not source code!
 enum DefinableTag {
 	Definition,
 	Placeholder
@@ -25,20 +23,6 @@ struct JMethodHeader {
 	JMethodHeaderTag tag;
 	JMethodHeaderData data;
 };
-enum ResultTag {
-	Err,
-	Ok
-};
-template <typeparam T, typeparam X>
-union ResultData {
-	Err<T, X> err;
-	Ok<T, X> ok;
-};
-template <typeparam T, typeparam X>
-struct Result {
-	ResultTag tag;
-	ResultData<T, X> data;
-};
 struct Actual {
 };
 enum CExpressionTag {
@@ -52,20 +36,6 @@ union CExpressionData {
 struct CExpression {
 	CExpressionTag tag;
 	CExpressionData data;
-};
-enum OptionalTag {
-	Some,
-	None
-};
-template <typeparam T>
-union OptionalData {
-	Some<T> some;
-	None<T> none;
-};
-template <typeparam T>
-struct Optional {
-	OptionalTag tag;
-	OptionalData<T> data;
 };
 struct ParseState {
 	List<char*> functions;
@@ -97,46 +67,16 @@ struct Placeholder {
 struct JConstructor {
 	char* name;
 };
-template <typeparam T, typeparam X>
-struct Ok {
-	T value;
-};
-template <typeparam T, typeparam X>
-struct Err {
-	X error;
-};
 struct Content {
 	char* value;
 };
 struct CIdentifier {
 	char* value;
 };
-template <typeparam T>
-struct Some {
-	T value;
-};
-template <typeparam T>
-struct None {
-};
-struct JIOError {
-	IOException e;
-};
 struct Main {
 };
-char* display_IOError();
 char* generate_Definable();
 char* generate_CExpression();
-Optional<T> empty_Optional(){
-	return new_None<T>();
-}
-Optional<T> of_Optional(T value){
-	return new_Some<T>(value);
-}
-Optional<R> map_Optional(Function<T, R> mapper);
-Optional<T> or_Optional(Supplier<Optional<T>> other);
-T orElseGet_Optional(Supplier<T> other);
-Optional<R> flatMap_Optional(Function<T, Optional<R>> mapper);
-T orElse_Optional(T other);
 ParseState new_ParseState(){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -253,69 +193,30 @@ char* generate_Content(){
 char* generate_CIdentifier(){
 	return this.value;
 }
-Optional<R> map_Some(Function<T, R> mapper){
-	return new_Some<R>(mapper.apply(this.value));
-}
-Optional<T> or_Some(Supplier<Optional<T>> other){
-	return this;
-}
-T orElseGet_Some(Supplier<T> other){
-	return this.value;
-}
-Optional<R> flatMap_Some(Function<T, Optional<R>> mapper){
-	return mapper.apply(this.value);
-}
-T orElse_Some(T other){
-	return this.value;
-}
-Optional<R> map_None(Function<T, R> mapper){
-	return new_None<R>();
-}
-Optional<T> or_None(Supplier<Optional<T>> other){
-	return other.get();
-}
-T orElseGet_None(Supplier<T> other){
-	return other.get();
-}
-Optional<R> flatMap_None(Function<T, Optional<R>> mapper){
-	return new_None<R>();
-}
-T orElse_None(T other){
-	return other;
-}
-char* display_JIOError(){
-	StringWriter writer = new_StringWriter();
-	this.e.printStackTrace(new_PrintWriter(writer));
-	return writer.toString();
-}
 void main_Main(char** args){
 	??? _temp = run();
 	if (_temp.tag == Some) {
 		Some<IOError> _cast = _temp.data.some;
 		IOError value = _cast.value;
-		/*//noinspection CallToPrintStackTrace
-			value.display()*/;
+		System.out.println(value.display());
 	}
 }
 Optional<IOError> run_Main(){
 	Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
-	??? _temp = readString(source);
+	??? _temp = source.readString();
 	if (_temp.tag == Ok) {
 		Path targetParent = target.getParent();
-		if (!Files.exists(targetParent)) {
+		if (!targetParent.exists()) {
 		Ok<String, IOError> _cast = _temp.data.ok;
 		char* input = _cast.input;
-			return createDirectories(targetParent);
+			return targetParent.createDirectories();
 		}
 		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
-		return writeString(target, output);
+		return target.writeString(output);
 	}
 	return Optional.empty();
 }
-Optional<IOError> writeString_Main(Path target, char* output);
-Optional<IOError> createDirectories_Main(Path targetParent);
-Result<char*, IOError> readString_Main(Path source);
 char* compile_Main(char* input){
 	StringJoiner joiner = new_StringJoiner("");
 	ParseState state = new_ParseState();
