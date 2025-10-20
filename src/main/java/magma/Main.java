@@ -235,7 +235,7 @@ public class Main {
 
 						final Path path = targetDirectory.resolveByString("build.bat");
 						final String joined =
-								list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice +
+								list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice + "^" +
 																																																System.lineSeparator() +
 																																																"\t").collect(new Joiner(
 										" "));
