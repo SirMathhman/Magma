@@ -141,49 +141,76 @@ Option<IOError> run_Main(){
 	Result<ArrayList<Path>, IOError> walked = sourceDirectory.walk();
 	return /*switch (walked) {
 			case Err<ArrayList<Path>, IOError> v -> new Some<IOError>(v.error());
-			case Ok<ArrayList<Path>, IOError> v -> runWithSources(v.value(), sourceDirectory, targetDirectory);
+			case Ok<ArrayList<Path>, IOError> v -> {
+				final Result<ArrayList<ArrayList<Path>>, IOError> result =
+						runWithSources(v.value(), sourceDirectory, targetDirectory);
+				yield switch (result) {
+					case Err<ArrayList<ArrayList<Path>>, IOError> v1 -> new Some<>(v1.error());
+					case Ok<ArrayList<ArrayList<Path>>, IOError> v1 -> {
+						final ArrayList<Path> list = v1.value().stream().flatMap(ArrayList::stream).collect(new ListCollector<>());
+
+						final Path path = targetDirectory.resolveByString("build.bat");
+						final String joined =
+								list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice +
+																																																System.lineSeparator() +
+																																																"\t").collect(new Joiner(
+										" "));
+						yield path.writeString("clang " + joined + " -o magmac.exe");
+					}
+				};
+			}
 		}*/;
+}
+Result<ArrayList<ArrayList<Path>>, IOError> runWithSources_Main(ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory){
+	return compileSources(sources, sourceDirectory, targetDirectory);
 }
 auto __lambda2__(auto path) {
 	return path.asString().endsWith(".java");
 }
 auto __lambda3__(auto source) {
-	return runWithSource(source, sourceDirectory, targetDirectory);
+	return compileSource(source, sourceDirectory, targetDirectory);
 }
-Option<IOError> runWithSources_Main(ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory){
-	return sources.stream().filter(__lambda2__).map(__lambda3__).flatMap(fromOption_Streams).next();
+Result<ArrayList<ArrayList<Path>>, IOError> compileSources_Main(ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory){
+	return sources.stream().filter(__lambda2__).map(__lambda3__).collect(new_ResultCollector<>(new_ListCollector<>()));
+}
+Result<ArrayList<Path>, IOError> compileSource_Main(Path source, Path sourceDirectory, Path targetDirectory){
+	Path relativeParent = sourceDirectory.relativize(source.getParent());
+	Path targetParent = targetDirectory.resolveByPath(relativeParent);
+	ArrayList<char*> namespace = relativeParent.stream().collect(new_ListCollector<char*>());
+	return /*switch (source.readString()) {
+			case Ok<String, IOError>(String input) -> compileInput(source, input, targetParent, namespace);
+			case Err<String, IOError>(IOError error) -> new Err<ArrayList<Path>, IOError>(error);
+		}*/;
 }
 auto __lambda4__() {
 	return target.writeString(targetOutput);
 }
-Option<IOError> runWithSource_Main(Path source, Path sourceDirectory, Path targetDirectory){
-	Path relativeParent = sourceDirectory.relativize(source.getParent());
-	Path targetParent = targetDirectory.resolveByPath(relativeParent);
-	ArrayList<char*> namespace = relativeParent.stream().collect(new_ListCollector<char*>());
-	??? _temp = source.readString();
-	if (_temp.tag == Ok) {
-		if (!targetParent.exists()) {
-			Option<IOError> result = targetParent.createDirectories();
-			if (result.tag == Some) {
-		Ok<String, IOError> _cast = _temp.data.ok;
-		char* input = _cast.input;
+Result<ArrayList<Path>, IOError> compileInput_Main(Path source, char* input, Path targetParent, ArrayList<char*> namespace){
+	if (!targetParent.exists()) {
+		Option<IOError> result = targetParent.createDirectories();
+		if (result.tag == Some) {
 		Some<IOError> _cast = result.data.some;
-				return result;
-			}
+		IOError error = _cast.error;
+			return new_Err<>(error);
 		}
-		char* fileName = source.getFileName().asString();
-		int separator = fileName.lastIndexOf(".");
-		char* name = fileName.substring(0, separator);
-		Tuple<char*, char*> compiled = compile(input, new_Location(namespace, name));
-		char* prefix = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
-		char* defined = name.toUpperCase() + "_H";
-		char* headerOutput = "#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left + "#endif";
-		char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
-		Path header = targetParent.resolveByString(name + ".h");
-		Path target = targetParent.resolveByString(name + ".cpp");
-		return header.writeString(headerOutput).or(__lambda4__);
 	}
-	return new_None<IOError>();
+	char* fileName = source.getFileName().asString();
+	int separator = fileName.lastIndexOf(".");
+	char* name = fileName.substring(0, separator);
+	Tuple<char*, char*> compiled = compile(input, new_Location(namespace, name));
+	char* prefix = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
+	char* defined = name.toUpperCase() + "_H";
+	char* headerOutput = "#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left + "#endif";
+	char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
+	Path header = targetParent.resolveByString(name + ".h");
+	Path target = targetParent.resolveByString(name + ".cpp");
+	Option<IOError> maybeError = header.writeString(headerOutput).or(__lambda4__);
+	if (maybeError.tag == Some) {
+		Some<IOError> _cast = maybeError.data.some;
+		IOError error = _cast.error;
+		return new_Err<>(error);
+	}
+	return new_Ok<>(new_/*ArrayList<Path>().addLast*/(target));
 }
 Tuple<char*, char*> compile_Main(char* input, Location location){
 	StringJoiner joiner = new_StringJoiner("");

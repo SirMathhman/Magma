@@ -3,6 +3,7 @@ package magma;
 import magma.Collections.ArrayList;
 import magma.Collectors.Joiner;
 import magma.Collectors.ListCollector;
+import magma.Collectors.ResultCollector;
 import magma.IO.IOError;
 import magma.IO.Path;
 import magma.JavaImpl.Paths;
@@ -224,52 +225,89 @@ public class Main {
 		final Result<ArrayList<Path>, IOError> walked = sourceDirectory.walk();
 		return switch (walked) {
 			case Err<ArrayList<Path>, IOError> v -> new Some<IOError>(v.error());
-			case Ok<ArrayList<Path>, IOError> v -> runWithSources(v.value(), sourceDirectory, targetDirectory);
+			case Ok<ArrayList<Path>, IOError> v -> {
+				final Result<ArrayList<ArrayList<Path>>, IOError> result =
+						runWithSources(v.value(), sourceDirectory, targetDirectory);
+				yield switch (result) {
+					case Err<ArrayList<ArrayList<Path>>, IOError> v1 -> new Some<>(v1.error());
+					case Ok<ArrayList<ArrayList<Path>>, IOError> v1 -> {
+						final ArrayList<Path> list = v1.value().stream().flatMap(ArrayList::stream).collect(new ListCollector<>());
+
+						final Path path = targetDirectory.resolveByString("build.bat");
+						final String joined =
+								list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice +
+																																																System.lineSeparator() +
+																																																"\t").collect(new Joiner(
+										" "));
+						yield path.writeString("clang " + joined + " -o magmac.exe");
+					}
+				};
+			}
 		};
 	}
 
-	private static Option<IOError> runWithSources(ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory) {
-		return sources.stream().filter(path -> path.asString().endsWith(".java")).map(source -> runWithSource(source,
-																																																					sourceDirectory,
-																																																					targetDirectory)).flatMap(
-				Streams::fromOption).next();
+	private static Result<ArrayList<ArrayList<Path>>, IOError> runWithSources(ArrayList<Path> sources,
+																																						Path sourceDirectory,
+																																						Path targetDirectory) {
+		return compileSources(sources, sourceDirectory, targetDirectory);
 	}
 
-	private static Option<IOError> runWithSource(Path source, Path sourceDirectory, Path targetDirectory) {
+	private static Result<ArrayList<ArrayList<Path>>, IOError> compileSources(ArrayList<Path> sources,
+																																						Path sourceDirectory,
+																																						Path targetDirectory) {
+		return sources.stream().filter(path -> path.asString().endsWith(".java")).map(source -> compileSource(source,
+																																																					sourceDirectory,
+																																																					targetDirectory)).collect(
+				new ResultCollector<>(new ListCollector<>()));
+	}
+
+	private static Result<ArrayList<Path>, IOError> compileSource(Path source,
+																																Path sourceDirectory,
+																																Path targetDirectory) {
 		final Path relativeParent = sourceDirectory.relativize(source.getParent());
 		final Path targetParent = targetDirectory.resolveByPath(relativeParent);
 
 		final ArrayList<String> namespace = relativeParent.stream().collect(new ListCollector<String>());
 
-		if (source.readString() instanceof Ok<String, IOError>(String input)) {
-			if (!targetParent.exists()) {
-				final Option<IOError> result = targetParent.createDirectories();
-				if (result instanceof Some<IOError>) {
-					return result;
-				}
+		return switch (source.readString()) {
+			case Ok<String, IOError>(String input) -> compileInput(source, input, targetParent, namespace);
+			case Err<String, IOError>(IOError error) -> new Err<ArrayList<Path>, IOError>(error);
+		};
+	}
+
+	private static Result<ArrayList<Path>, IOError> compileInput(Path source,
+																															 String input,
+																															 Path targetParent,
+																															 ArrayList<String> namespace) {
+		if (!targetParent.exists()) {
+			final Option<IOError> result = targetParent.createDirectories();
+			if (result instanceof Some<IOError>(IOError error)) {
+				return new Err<>(error);
 			}
-
-			final String fileName = source.getFileName().asString();
-			final int separator = fileName.lastIndexOf(".");
-			final String name = fileName.substring(0, separator);
-
-			final Tuple<String, String> compiled = compile(input, new Location(namespace, name));
-			final String prefix =
-					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
-
-			final String defined = name.toUpperCase() + "_H";
-			final String headerOutput =
-					"#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() +
-					compiled.left + "#endif";
-
-			final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
-
-			final Path header = targetParent.resolveByString(name + ".h");
-			final Path target = targetParent.resolveByString(name + ".cpp");
-			return header.writeString(headerOutput).or(() -> target.writeString(targetOutput));
 		}
 
-		return new None<IOError>();
+		final String fileName = source.getFileName().asString();
+		final int separator = fileName.lastIndexOf(".");
+		final String name = fileName.substring(0, separator);
+
+		final Tuple<String, String> compiled = compile(input, new Location(namespace, name));
+		final String prefix = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
+
+		final String defined = name.toUpperCase() + "_H";
+		final String headerOutput =
+				"#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left +
+				"#endif";
+
+		final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
+
+		final Path header = targetParent.resolveByString(name + ".h");
+		final Path target = targetParent.resolveByString(name + ".cpp");
+		final Option<IOError> maybeError = header.writeString(headerOutput).or(() -> target.writeString(targetOutput));
+		if (maybeError instanceof Some<IOError>(IOError error)) {
+			return new Err<>(error);
+		}
+
+		return new Ok<>(new ArrayList<Path>().addLast(target));
 	}
 
 	private static Tuple<String, String> compile(String input, Location location) {

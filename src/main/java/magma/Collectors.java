@@ -59,4 +59,22 @@ public class Collectors {
 			return current || this.predicate.test(element);
 		}
 	}
+
+	public static record ResultCollector<T, X, C>(Collector<T, C> collector) implements Collector<Results.Result<T, X>, Results.Result<C, X>> {
+		@Override
+		public Results.Result<C, X> createInitial() {
+			return new Results.Ok<C, X>(this.collector.createInitial());
+		}
+
+		@Override
+		public Results.Result<C, X> fold(Results.Result<C, X> current, Results.Result<T, X> element) {
+			return switch (current) {
+				case Results.Err<C, X> v -> new Results.Err<C, X>(v.error());
+				case Results.Ok<C, X> v -> switch (element) {
+					case Results.Err<T, X> v1 -> new Results.Err<C, X>(v1.error());
+					case Results.Ok<T, X> v1 -> new Results.Ok<C, X>(this.collector.fold(v.value(), v1.value()));
+				};
+			};
+		}
+	}
 }

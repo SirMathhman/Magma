@@ -15,6 +15,10 @@ template <typeparam T>
 struct AnyMatch {
 	Predicate<T> predicate;
 };
+template <typeparam T, typeparam X, typeparam C>
+struct ResultCollector {
+	Collector<T, C> collector;
+};
 struct Collectors {
 };
 #endif
