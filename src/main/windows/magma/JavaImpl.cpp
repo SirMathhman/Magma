@@ -1,15 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\JavaImpl.java]'. This is not source code!
 #include "Main.h"
-struct JIOError {
-	IOException e;
-};
-struct JavaPath {
-	/*java.nio.file.Path*/ path;
-};
-struct Paths {
-};
-struct JavaImpl {
-};
 char* display_JIOError(){
 	StringWriter writer = new_StringWriter();
 	this.e.printStackTrace(new_PrintWriter(writer));

@@ -1,11 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Streams.java]'. This is not source code!
 #include "Main.h"
-template <typeparam T>
-struct Stream {
-	Heads.Head<T> head;
-};
-struct Streams {
-};
 auto __lambda0__() {
 	return this.head.next().map(mapper);
 }

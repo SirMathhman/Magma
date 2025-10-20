@@ -1,20 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Collectors.java]'. This is not source code!
 #include "Main.h"
-template <typeparam T, typeparam C>
-struct Collector {
-};
-template <typeparam T>
-struct ListCollector {
-};
-struct Joiner {
-	char* delimiter;
-};
-template <typeparam T>
-struct AnyMatch {
-	Predicate<T> predicate;
-};
-struct Collectors {
-};
 C createInitial_Collector();
 C fold_Collector(C current, T element);
 ListCollector new_ListCollector(){

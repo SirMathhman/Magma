@@ -1,11 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\IO.java]'. This is not source code!
 #include "Main.h"
-struct IOError {
-};
-struct Path {
-};
-struct IO {
-};
 char* display_IOError();
 boolean exists_Path();
 Result<char*, IOError> readString_Path();

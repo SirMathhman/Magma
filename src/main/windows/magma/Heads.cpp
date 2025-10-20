@@ -1,39 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Heads.java]'. This is not source code!
 #include "Main.h"
-template <typeparam T>
-struct Head {
-};
-template <typeparam T>
-struct ListHead {
-	ArrayList<T> self;
-	int index;
-};
-template <typeparam T>
-struct ArrayHead {
-	T* elements;
-	int length;
-	int counter;
-};
-template <typeparam T>
-struct SingletonHead {
-	T value;
-	boolean retrieved;
-};
-template <typeparam T, typeparam R>
-struct FlatMapHead {
-	Head<T> sourceHead;
-	Function<T, Stream<R>> mapper;
-	Option<Stream<R>> currentStream;
-};
-struct RangeHead {
-	int length;
-	int index;
-};
-template <typeparam T>
-struct EmptyHead {
-};
-struct Heads {
-};
 Option<T> next_Head();
 ListHead new_ListHead(ArrayList<T> self){
 	ListHead this;

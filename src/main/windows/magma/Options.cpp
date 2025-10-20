@@ -1,28 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Options.java]'. This is not source code!
 #include "Main.h"
-enum OptionTag {
-	Some,
-	None
-};
-template <typeparam T>
-union OptionData {
-	Some<T> some;
-	None<T> none;
-};
-template <typeparam T>
-struct Option {
-	OptionTag tag;
-	OptionData<T> data;
-};
-template <typeparam T>
-struct Some {
-	T value;
-};
-template <typeparam T>
-struct None {
-};
-struct Options {
-};
 Option<R> map_Option(Function<T, R> mapper);
 Option<T> or_Option(Supplier<Option<T>> other);
 T orElseGet_Option(Supplier<T> other);

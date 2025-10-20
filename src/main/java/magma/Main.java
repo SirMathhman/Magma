@@ -236,21 +236,25 @@ public class Main {
 				}
 			}
 
-			final String output =
-					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator() +
-					"#include \"Main.h\"" + System.lineSeparator() + compile(input);
+			final Tuple<String, String> compiled = compile(input);
+			final String prefix =
+					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
+			final String headerOutput = compiled.left;
+			final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 
 			final String fileName = source.getFileName().asString();
 			final int separator = fileName.lastIndexOf(".");
 			final String name = fileName.substring(0, separator);
+
+			final Path header = targetParent.resolveByString(name + ".h");
 			final Path target = targetParent.resolveByString(name + ".cpp");
-			return target.writeString(output);
+			return header.writeString(headerOutput).or(() -> target.writeString(targetOutput));
 		}
 
 		return new None<IOError>();
 	}
 
-	private static String compile(String input) {
+	private static Tuple<String, String> compile(String input) {
 		StringJoiner joiner = new StringJoiner("");
 		ParseState state = new ParseState();
 		ArrayList<String> list = divide(input, Main::foldStatement).collect(new ListCollector<String>());
@@ -267,8 +271,9 @@ public class Main {
 		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
 		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
 
-		return joinedStructs + joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
-					 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
+		final String generated = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
+														 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
+		return new Tuple<>(joinedStructs, generated);
 	}
 
 	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {

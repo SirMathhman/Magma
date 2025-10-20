@@ -1,17 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Collections.java]'. This is not source code!
 #include "Main.h"
-template <typeparam T>
-struct Array {
-	T* ref;
-	int capacity;
-	int length;
-};
-template <typeparam T>
-struct ArrayList {
-	Array<T> elements;
-};
-struct Collections {
-};
 private Array_Array(T* ref, int capacity){
 	this.ref = ref;
 	this.capacity = capacity;
