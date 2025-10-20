@@ -1,3 +1,5 @@
+#ifndef COLLECTORS_H
+#define COLLECTORS_H
 template <typeparam T, typeparam C>
 struct Collector {
 };
@@ -13,3 +15,4 @@ struct AnyMatch {
 };
 struct Collectors {
 };
+#endif

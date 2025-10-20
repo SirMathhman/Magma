@@ -1,3 +1,5 @@
+#ifndef MAIN_H
+#define MAIN_H
 enum DefinableTag {
 	Definition,
 	Placeholder
@@ -72,3 +74,4 @@ struct CIdentifier {
 };
 struct Main {
 };
+#endif

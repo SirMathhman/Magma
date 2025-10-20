@@ -239,12 +239,16 @@ public class Main {
 			final Tuple<String, String> compiled = compile(input);
 			final String prefix =
 					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
-			final String headerOutput = compiled.left;
-			final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 
 			final String fileName = source.getFileName().asString();
 			final int separator = fileName.lastIndexOf(".");
 			final String name = fileName.substring(0, separator);
+
+			final String defined = name.toUpperCase() + "_H";
+			final String headerOutput =
+					"#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() +
+					compiled.left + "#endif";
+			final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 
 			final Path header = targetParent.resolveByString(name + ".h");
 			final Path target = targetParent.resolveByString(name + ".cpp");

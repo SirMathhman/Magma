@@ -1,3 +1,5 @@
+#ifndef HEADS_H
+#define HEADS_H
 template <typeparam T>
 struct Head {
 };
@@ -32,3 +34,4 @@ struct EmptyHead {
 };
 struct Heads {
 };
+#endif

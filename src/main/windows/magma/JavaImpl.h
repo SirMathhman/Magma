@@ -1,3 +1,5 @@
+#ifndef JAVAIMPL_H
+#define JAVAIMPL_H
 struct JIOError {
 	IOException e;
 };
@@ -8,3 +10,4 @@ struct Paths {
 };
 struct JavaImpl {
 };
+#endif

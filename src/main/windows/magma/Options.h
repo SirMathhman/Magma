@@ -1,3 +1,5 @@
+#ifndef OPTIONS_H
+#define OPTIONS_H
 enum OptionTag {
 	Some,
 	None
@@ -21,3 +23,4 @@ struct None {
 };
 struct Options {
 };
+#endif

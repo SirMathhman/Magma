@@ -165,11 +165,12 @@ Option<IOError> runWithSource_Main(Path source, Path sourceDirectory, Path targe
 		}
 		Tuple<char*, char*> compiled = compile(input);
 		char* prefix = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
-		char* headerOutput = compiled.left;
-		char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 		char* fileName = source.getFileName().asString();
 		int separator = fileName.lastIndexOf(".");
 		char* name = fileName.substring(0, separator);
+		char* defined = name.toUpperCase() + "_H";
+		char* headerOutput = "#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left + "#endif";
+		char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 		Path header = targetParent.resolveByString(name + ".h");
 		Path target = targetParent.resolveByString(name + ".cpp");
 		return header.writeString(headerOutput).or(__lambda4__);

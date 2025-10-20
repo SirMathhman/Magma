@@ -1,3 +1,5 @@
+#ifndef RESULTS_H
+#define RESULTS_H
 enum ResultTag {
 	Err,
 	Ok
@@ -22,3 +24,4 @@ struct Err {
 };
 struct Results {
 };
+#endif

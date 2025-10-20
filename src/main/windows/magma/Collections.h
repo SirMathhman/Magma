@@ -1,3 +1,5 @@
+#ifndef COLLECTIONS_H
+#define COLLECTIONS_H
 template <typeparam T>
 struct Array {
 	T* ref;
@@ -10,3 +12,4 @@ struct ArrayList {
 };
 struct Collections {
 };
+#endif
