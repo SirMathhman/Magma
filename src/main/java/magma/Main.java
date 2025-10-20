@@ -24,38 +24,6 @@ public class Main {
 		C fold(C current, T element);
 	}
 
-	private interface List<T> {
-		List<T> add(T element);
-
-		List<T> clear();
-
-		int size();
-
-		Stream<T> stream();
-
-		Optional<T> get(int index);
-
-		boolean isEmpty();
-
-		List<T> addFirst(T element);
-
-		List<T> addLast(T element);
-
-		boolean contains(T element);
-
-		Optional<T> getFirst();
-
-		Optional<List<T>> subList(int start, int end);
-
-		List<T> addAll(List<T> elements);
-
-		Optional<List<T>> addAllAt(int index, List<T> elements);
-
-		Optional<T> getLast();
-
-		List<T> copy();
-	}
-
 	private sealed interface Definable extends JMethodHeader permits Definition, Placeholder {
 		String generate();
 	}
@@ -169,7 +137,7 @@ public class Main {
 		}
 	}
 
-	private static final class ArrayList<T> implements List<T> {
+	private static final class ArrayList<T> {
 		private Array<T> elements;
 
 		private ArrayList(Array<T> elements) {
@@ -196,30 +164,25 @@ public class Main {
 			this.elements = newElements;
 		}
 
-		@Override
-		public List<T> add(T element) {
+		public ArrayList<T> add(T element) {
 			this.ensureCapacity((this.elements).length + 1);
 			this.elements.setNext(element);
 			return this;
 		}
 
-		@Override
-		public List<T> clear() {
+		public ArrayList<T> clear() {
 			this.elements = Array.alloc(10);
 			return this;
 		}
 
-		@Override
 		public int size() {
 			return (this.elements).length;
 		}
 
-		@Override
 		public Stream<T> stream() {
 			return new Stream<T>(new ListHead<T>(this));
 		}
 
-		@Override
 		public Optional<T> get(int index) {
 			if (index < 0 || index >= (this.elements).length) {
 				return Optional.empty();
@@ -228,13 +191,11 @@ public class Main {
 			return this.elements.get(index);
 		}
 
-		@Override
 		public boolean isEmpty() {
 			return this.size() == 0;
 		}
 
-		@Override
-		public List<T> addFirst(T element) {
+		public ArrayList<T> addFirst(T element) {
 			this.ensureCapacity((this.elements).length + 1);
 			// Shift all elements one position to the right
 			MemUtils.memCopy(this.elements, 0, this.elements, 1, (this.elements).length);
@@ -243,23 +204,19 @@ public class Main {
 			return this;
 		}
 
-		@Override
-		public List<T> addLast(T element) {
+		public ArrayList<T> addLast(T element) {
 			return this.add(element);
 		}
 
-		@Override
 		public boolean contains(T element) {
 			return this.elements.contains(element);
 		}
 
-		@Override
 		public Optional<T> getFirst() {
 			return this.get(0);
 		}
 
-		@Override
-		public Optional<List<T>> subList(int start, int end) {
+		public Optional<ArrayList<T>> subList(int start, int end) {
 			if (start < 0 || end > (this.elements).length || start > end) {
 				return Optional.empty();
 			}
@@ -270,8 +227,7 @@ public class Main {
 			return Optional.of(new ArrayList<T>(newElements));
 		}
 
-		@Override
-		public List<T> addAll(List<T> elements) {
+		public ArrayList<T> addAll(ArrayList<T> elements) {
 			int elementsSize = elements.size();
 			this.ensureCapacity((this.elements).length + elementsSize);
 
@@ -282,8 +238,7 @@ public class Main {
 			return this;
 		}
 
-		@Override
-		public Optional<List<T>> addAllAt(int index, List<T> elements) {
+		public Optional<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
 			if (index < 0 || index > (this.elements).length) {
 				return Optional.empty();
 			}
@@ -303,13 +258,11 @@ public class Main {
 			return Optional.of(this);
 		}
 
-		@Override
 		public Optional<T> getLast() {
 			return this.get((this.elements).length - 1);
 		}
 
-		@Override
-		public List<T> copy() {
+		public ArrayList<T> copy() {
 			final ArrayList<T> list = new ArrayList<T>();
 			if ((this.elements).length >= 0) {
 				MemUtils.memCopy(this.elements, 0, list.elements, 0, (this.elements).length);
@@ -320,17 +273,17 @@ public class Main {
 	}
 
 	private static class ParseState {
-		private final Stack<List<String>> beforeStatements;
-		private List<String> structs;
-		private List<String> afterStatements;
-		private List<String> functions;
+		private final Stack<ArrayList<String>> beforeStatements;
+		private ArrayList<String> structs;
+		private ArrayList<String> afterStatements;
+		private ArrayList<String> functions;
 		private int counter;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
 			this.structs = new ArrayList<String>();
 
-			this.beforeStatements = new Stack<List<String>>();
+			this.beforeStatements = new Stack<ArrayList<String>>();
 			this.beforeStatements.add(new ArrayList<String>());
 
 			this.afterStatements = new ArrayList<String>();
@@ -357,19 +310,19 @@ public class Main {
 			return this;
 		}
 
-		public List<String> popAfterStatements() {
-			final List<String> copy = this.afterStatements.copy();
+		public ArrayList<String> popAfterStatements() {
+			final ArrayList<String> copy = this.afterStatements.copy();
 			this.afterStatements = this.afterStatements.clear();
 			return copy;
 		}
 
 		public void addBeforeStatement(String beforeStatement) {
-			final List<String> peek = this.beforeStatements.pop();
-			final List<String> added = peek.add(beforeStatement);
+			final ArrayList<String> peek = this.beforeStatements.pop();
+			final ArrayList<String> added = peek.add(beforeStatement);
 			this.beforeStatements.push(added);
 		}
 
-		public List<String> popBeforeStatements() {
+		public ArrayList<String> popBeforeStatements() {
 			return this.beforeStatements.pop();
 		}
 
@@ -381,7 +334,7 @@ public class Main {
 
 	private static class DivideState {
 		private final String input;
-		private List<String> segments;
+		private ArrayList<String> segments;
 		private StringBuilder buffer;
 		private int depth;
 		private int index;
@@ -455,7 +408,7 @@ public class Main {
 
 	public record Tuple<A, B>(A left, B right) {}
 
-	private record Definition(List<String> annotations, String type, String name) implements Definable {
+	private record Definition(ArrayList<String> annotations, String type, String name) implements Definable {
 		@Override
 		public String generate() {
 			return this.type + " " + this.name;
@@ -492,10 +445,10 @@ public class Main {
 	}
 
 	private static class ListHead<T> implements Head<T> {
-		private final List<T> self;
+		private final ArrayList<T> self;
 		private int index;
 
-		public ListHead(List<T> self) {
+		public ListHead(ArrayList<T> self) {
 			this.self = self;
 			this.index = 0;
 		}
@@ -510,16 +463,16 @@ public class Main {
 		}
 	}
 
-	private static class ListCollector<T> implements Collector<T, List<T>> {
+	private static class ListCollector<T> implements Collector<T, ArrayList<T>> {
 		public ListCollector() {}
 
 		@Override
-		public List<T> createInitial() {
+		public ArrayList<T> createInitial() {
 			return new ArrayList<T>();
 		}
 
 		@Override
-		public List<T> fold(List<T> current, T element) {
+		public ArrayList<T> fold(ArrayList<T> current, T element) {
 			return current.add(element);
 		}
 	}
@@ -595,7 +548,7 @@ public class Main {
 	private static String compile(String input) {
 		StringJoiner joiner = new StringJoiner("");
 		ParseState state = new ParseState();
-		List<String> list = divide(input, Main::foldStatement).collect(new ListCollector<String>());
+		ArrayList<String> list = divide(input, Main::foldStatement).collect(new ListCollector<String>());
 		int i = 0;
 		while (i < list.size()) {
 			String input1 = list.get(i).orElse(null);
@@ -737,7 +690,7 @@ public class Main {
 
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
 		String withoutPermits = beforeContent;
-		List<String> variants = new ArrayList<String>();
+		ArrayList<String> variants = new ArrayList<String>();
 
 		final int permitsIndex = beforeContent.indexOf("permits");
 		if (permitsIndex >= 0) {
@@ -772,7 +725,7 @@ public class Main {
 		}
 
 		String name = beforeMaybeParams.strip();
-		List<String> typeParameters = new ArrayList<String>();
+		ArrayList<String> typeParameters = new ArrayList<String>();
 		if (beforeMaybeParams.endsWith(">")) {
 			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
 			final int i1 = withoutEnd.indexOf("<");
@@ -790,7 +743,7 @@ public class Main {
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		final List<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
+		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 
 		StringBuilder inner = new StringBuilder();
 		ParseState outer = state;
@@ -949,9 +902,9 @@ public class Main {
 			outputBodyWithBraces = ";";
 		} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
-			final Tuple<List<String>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
+			final Tuple<ArrayList<String>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
 
-			List<String> statements = compiledBody.left;
+			ArrayList<String> statements = compiledBody.left;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
 				statements =
 						statements.addFirst(generateStatement(name + " this", 1)).addLast(generateStatement("return this", 1));
@@ -1046,7 +999,7 @@ public class Main {
 		}
 		final String withoutPrefix = stripped.substring(type.length());
 
-		final List<String> conditionEnd =
+		final ArrayList<String> conditionEnd =
 				divide(withoutPrefix, Main::foldConditionEnd).collect(new ListCollector<String>());
 		if (conditionEnd.size() < 2) {
 			return Optional.empty();
@@ -1071,16 +1024,18 @@ public class Main {
 		if (!input.startsWith("{") || !input.endsWith("}")) {
 			return Optional.empty();
 		}
-		final Tuple<List<String>, ParseState> result =
+		final Tuple<ArrayList<String>, ParseState> result =
 				compileMethodStatements(state, depth, input.substring(1, input.length() - 1));
 		final String generated = "{" + result.left().stream().collect(new Joiner("")) + generateIndent(depth) + "}";
 		return Optional.of(new Tuple<String, ParseState>(generated, result.right()));
 	}
 
-	private static Tuple<List<String>, ParseState> compileMethodStatements(ParseState state, int depth, String content) {
-		List<String> compiled = new ArrayList<String>();
+	private static Tuple<ArrayList<String>, ParseState> compileMethodStatements(ParseState state,
+																																							int depth,
+																																							String content) {
+		ArrayList<String> compiled = new ArrayList<String>();
 		ParseState current = state;
-		List<String> list = divide(content, Main::foldStatement).collect(new ListCollector<String>());
+		ArrayList<String> list = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 		int i = 0;
 		while (i < list.size()) {
 			String s = list.get(i).orElse(null);
@@ -1092,10 +1047,10 @@ public class Main {
 			i++;
 		}
 
-		final List<String> removed = current.popAfterStatements();
+		final ArrayList<String> removed = current.popAfterStatements();
 		compiled = compiled.addAllAt(0, removed).orElse(new ArrayList<String>());
 
-		return new Tuple<List<String>, ParseState>(compiled, current);
+		return new Tuple<ArrayList<String>, ParseState>(compiled, current);
 	}
 
 	private static DivideState foldConditionEnd(DivideState state, char c) {
@@ -1364,7 +1319,7 @@ public class Main {
 		}
 		final String slice = stripped.substring(0, stripped.length() - 1);
 
-		final List<String> segments = findArgStart(slice).collect(new ListCollector<String>());
+		final ArrayList<String> segments = findArgStart(slice).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return Optional.empty();
 		}
@@ -1487,7 +1442,7 @@ public class Main {
 	}
 
 	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
-		final List<String> segments =
+		final ArrayList<String> segments =
 				divide(input, (state1, next) -> foldOperator(operator, state1, next)).collect(new ListCollector<String>());
 
 		if (segments.size() < 2) {
@@ -1609,20 +1564,20 @@ public class Main {
 			return Optional.empty();
 		}
 
-		final List<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
+		final ArrayList<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
 		final String withoutLast =
 				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(" "));
-		final List<String> annotations = findAnnotations(withoutLast);
+		final ArrayList<String> annotations = findAnnotations(withoutLast);
 
 		final String typeString = segments.getLast().orElse(null);
 		return compileType(typeString).map(type -> new Definition(annotations, type, name));
 	}
 
-	private static List<String> findAnnotations(String withoutLast) {
+	private static ArrayList<String> findAnnotations(String withoutLast) {
 		final int i = withoutLast.lastIndexOf("\n");
 		if (i < 0) {
 			return new ArrayList<String>();

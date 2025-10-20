@@ -2,9 +2,6 @@
 template <typeparam T, typeparam C>
 struct Collector {
 };
-template <typeparam T>
-struct List {
-};
 enum DefinableTag {
 	Definition,
 	Placeholder
@@ -63,15 +60,15 @@ struct ArrayList {
 	Array<T> elements;
 };
 struct ParseState {
-	Stack<List<char*>> beforeStatements;
-	List<char*> structs;
-	List<char*> afterStatements;
-	List<char*> functions;
+	Stack<ArrayList<char*>> beforeStatements;
+	ArrayList<char*> structs;
+	ArrayList<char*> afterStatements;
+	ArrayList<char*> functions;
 	int counter;
 };
 struct DivideState {
 	char* input;
-	List<char*> segments;
+	ArrayList<char*> segments;
 	StringBuilder buffer;
 	int depth;
 	int index;
@@ -82,7 +79,7 @@ struct Tuple {
 	B right;
 };
 struct Definition {
-	List<char*> annotations;
+	ArrayList<char*> annotations;
 	char* type;
 	char* name;
 };
@@ -102,7 +99,7 @@ struct Streams {
 };
 template <typeparam T>
 struct ListHead {
-	List<T> self;
+	ArrayList<T> self;
 	int index;
 };
 template <typeparam T>
@@ -120,21 +117,6 @@ struct Main {
 };
 C createInitial_Collector();
 C fold_Collector(C current, T element);
-List<T> add_List(T element);
-List<T> clear_List();
-int size_List();
-Stream<T> stream_List();
-Optional<T> get_List(int index);
-boolean isEmpty_List();
-List<T> addFirst_List(T element);
-List<T> addLast_List(T element);
-boolean contains_List(T element);
-Optional<T> getFirst_List();
-Optional<List<T>> subList_List(int start, int end);
-List<T> addAll_List(List<T> elements);
-Optional<List<T>> addAllAt_List(int index, List<T> elements);
-Optional<T> getLast_List();
-List<T> copy_List();
 char* generate_Definable();
 char* generate_CExpression();
 Optional<T> next_Head();
@@ -235,12 +217,12 @@ void ensureCapacity_ArrayList(int minCapacity){
 	newElements.length = (this.elements).length;
 	this.elements = newElements;
 }
-List<T> add_ArrayList(T element){
+ArrayList<T> add_ArrayList(T element){
 	this.ensureCapacity((this.elements).length + 1);
 	this.elements.setNext(element);
 	return this;
 }
-List<T> clear_ArrayList(){
+ArrayList<T> clear_ArrayList(){
 	this.elements == Array.alloc(10);
 	return this;
 }
@@ -259,7 +241,7 @@ Optional<T> get_ArrayList(int index){
 boolean isEmpty_ArrayList(){
 	return this.size() == 0;
 }
-List<T> addFirst_ArrayList(T element){
+ArrayList<T> addFirst_ArrayList(T element){
 	this.ensureCapacity((this.elements).length + 1);
 	/*// Shift all elements one position to the right
 			MemUtils.memCopy(this.elements, 0, this.elements, 1, (this.elements).length)*/;
@@ -267,7 +249,7 @@ List<T> addFirst_ArrayList(T element){
 	this.elements.length++;
 	return this;
 }
-List<T> addLast_ArrayList(T element){
+ArrayList<T> addLast_ArrayList(T element){
 	return this.add(element);
 }
 boolean contains_ArrayList(T element){
@@ -276,7 +258,7 @@ boolean contains_ArrayList(T element){
 Optional<T> getFirst_ArrayList(){
 	return this.get(0);
 }
-Optional<List<T>> subList_ArrayList(int start, int end){
+Optional<ArrayList<T>> subList_ArrayList(int start, int end){
 	if (start < 0 || end >= (this.elements).length || start >= end) {
 		return Optional.empty();
 	}
@@ -286,7 +268,7 @@ Optional<List<T>> subList_ArrayList(int start, int end){
 	newElements.length = subSize;
 	return Optional.of(new_ArrayList<T>(newElements));
 }
-List<T> addAll_ArrayList(List<T> elements){
+ArrayList<T> addAll_ArrayList(ArrayList<T> elements){
 	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
@@ -294,7 +276,7 @@ List<T> addAll_ArrayList(List<T> elements){
 			}*/
 	return this;
 }
-Optional<List<T>> addAllAt_ArrayList(int index, List<T> elements){
+Optional<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
 	if (index < 0 || index >= (this.elements).length) {
 		return Optional.empty();
 	}
@@ -312,7 +294,7 @@ Optional<List<T>> addAllAt_ArrayList(int index, List<T> elements){
 Optional<T> getLast_ArrayList(){
 	return this.get((this.elements).length - 1);
 }
-List<T> copy_ArrayList(){
+ArrayList<T> copy_ArrayList(){
 	ArrayList<T> list = new_ArrayList<T>();
 	if ((this.elements).length >= 0) {
 		MemUtils.memCopy(this.elements, 0, list.elements, 0, (this.elements).length);
@@ -324,7 +306,7 @@ ParseState new_ParseState(){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
 	this.structs = new_ArrayList<char*>();
-	this.beforeStatements = new_Stack<List<char*>>();
+	this.beforeStatements = new_Stack<ArrayList<char*>>();
 	this.beforeStatements.add(new_ArrayList<char*>());
 	this.afterStatements = new_ArrayList<char*>();
 	this.counter =  - 1;
@@ -346,17 +328,17 @@ ParseState addAfterStatement_ParseState(char* statement){
 	this.afterStatements == this.afterStatements.add(statement);
 	return this;
 }
-List<char*> popAfterStatements_ParseState(){
-	List<char*> copy = this.afterStatements.copy();
+ArrayList<char*> popAfterStatements_ParseState(){
+	ArrayList<char*> copy = this.afterStatements.copy();
 	this.afterStatements == this.afterStatements.clear();
 	return copy;
 }
 void addBeforeStatement_ParseState(char* beforeStatement){
-	List<char*> peek = this.beforeStatements.pop();
-	List<char*> added = peek.add(beforeStatement);
+	ArrayList<char*> peek = this.beforeStatements.pop();
+	ArrayList<char*> added = peek.add(beforeStatement);
 	this.beforeStatements.push(added);
 }
-List<char*> popBeforeStatements_ParseState(){
+ArrayList<char*> popBeforeStatements_ParseState(){
 	return this.beforeStatements.pop();
 }
 ParseState pushBeforeStatements_ParseState(){
@@ -441,7 +423,7 @@ char* generate_CIdentifier(){
 Stream<T> from_Streams(T* elements){
 	return new_Stream<T>(new_ArrayHead<T>(elements));
 }
-ListHead new_ListHead(List<T> self){
+ListHead new_ListHead(ArrayList<T> self){
 	ListHead this;
 	this.self = self;
 	this.index = 0;
@@ -457,10 +439,10 @@ ListCollector new_ListCollector(){
 	ListCollector this;
 	return this;
 }
-List<T> createInitial_ListCollector(){
+ArrayList<T> createInitial_ListCollector(){
 	return new_ArrayList<T>();
 }
-List<T> fold_ListCollector(List<T> current, T element){
+ArrayList<T> fold_ListCollector(ArrayList<T> current, T element){
 	return current.add(element);
 }
 Joiner new_Joiner(char* delimiter){
@@ -525,7 +507,7 @@ Optional<IOError> run_Main(){
 char* compile_Main(char* input){
 	StringJoiner joiner = new_StringJoiner("");
 	ParseState state = new_ParseState();
-	List < String >= list == divide(input, foldStatement_Main).collect(new_ListCollector<char*>());
+	ArrayList < String >= list == divide(input, foldStatement_Main).collect(new_ListCollector<char*>());
 	int i = 0;
 	while (i < list.size()) {
 		char* input1 = list.get(i).orElse(null);
@@ -668,7 +650,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 	}
 	char* beforeContent = afterKeyword.substring(0, contentStart).strip();
 	char* withoutPermits = beforeContent;
-	List<char*> variants = new_ArrayList<char*>();
+	ArrayList<char*> variants = new_ArrayList<char*>();
 	int permitsIndex = beforeContent.indexOf("permits");
 	if (permitsIndex >= 0) {
 		char* slice = beforeContent.substring(permitsIndex + "permits".length());
@@ -697,7 +679,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		}
 	}
 	char* name = beforeMaybeParams.strip();
-	List<char*> typeParameters = new_ArrayList<char*>();
+	ArrayList<char*> typeParameters = new_ArrayList<char*>();
 	if (beforeMaybeParams.endsWith(">")) {
 		char* withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
 		int i1 = withoutEnd.indexOf("<");
@@ -712,7 +694,7 @@ Optional<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type
 		return Optional.empty();
 	}
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
-	List<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
+	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	StringBuilder inner = new_StringBuilder();
 	ParseState outer = state;
 	int j = 0;
@@ -855,8 +837,8 @@ Optional<Tuple<char*, ParseState>> compileMethod_Main(char* input, char* name, P
 	}
 	else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* inputBody = withBraces.substring(1, withBraces.length() - 1);
-		Tuple<List<char*>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
-		List<char*> statements = compiledBody.left;
+		Tuple<ArrayList<char*>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
+		ArrayList<char*> statements = compiledBody.left;
 	??? _temp = Objects.requireNonNull(methodHeader);
 		if (_temp.tag == JConstructor) {
 		JConstructor _cast = _temp.data.jconstructor;
@@ -960,7 +942,7 @@ Optional<Tuple<char*, ParseState>> compileConditional_Main(char* type, int depth
 		return Optional.empty();
 	}
 	char* withoutPrefix = stripped.substring(type.length());
-	List<char*> conditionEnd = divide(withoutPrefix, foldConditionEnd_Main).collect(new_ListCollector<char*>());
+	ArrayList<char*> conditionEnd = divide(withoutPrefix, foldConditionEnd_Main).collect(new_ListCollector<char*>());
 	if (conditionEnd.size() < 2) {
 		return Optional.empty();
 	}
@@ -979,14 +961,14 @@ Optional<Tuple<char*, ParseState>> compileBlock_Main(ParseState state, char* inp
 	if (!input.startsWith("{") ||  != input.endsWith("}")) {
 		return Optional.empty();
 	}
-	Tuple<List<char*>, ParseState> result = compileMethodStatements(state, depth, input.substring(1, input.length() - 1));
+	Tuple<ArrayList<char*>, ParseState> result = compileMethodStatements(state, depth, input.substring(1, input.length() - 1));
 	char* generated = "{" + result.left().stream().collect(new_Joiner("")) + generateIndent(depth) + "}";
 	return Optional.of(new_Tuple<char*, ParseState>(generated, result.right()));
 }
-Tuple<List<char*>, ParseState> compileMethodStatements_Main(ParseState state, int depth, char* content){
-	List<char*> compiled = new_ArrayList<char*>();
+Tuple<ArrayList<char*>, ParseState> compileMethodStatements_Main(ParseState state, int depth, char* content){
+	ArrayList<char*> compiled = new_ArrayList<char*>();
 	ParseState current = state;
-	List < String >= list == divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
+	ArrayList < String >= list == divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	int i = 0;
 	while (i < list.size()) {
 		char* s = list.get(i).orElse(null);
@@ -995,9 +977,9 @@ Tuple<List<char*>, ParseState> compileMethodStatements_Main(ParseState state, in
 		current = string.right;
 		i++;
 	}
-	List<char*> removed = current.popAfterStatements();
+	ArrayList<char*> removed = current.popAfterStatements();
 	compiled == compiled.addAllAt(0, removed).orElse(new_ArrayList<char*>());
-	return new_Tuple<List<char*>, ParseState>(compiled, current);
+	return new_Tuple<ArrayList<char*>, ParseState>(compiled, current);
 }
 DivideState foldConditionEnd_Main(DivideState state, char c){
 	DivideState appended = state.append(c);
@@ -1281,7 +1263,7 @@ Optional<Tuple<char*, ParseState>> compileInvokable_Main(ParseState state, char*
 		return Optional.empty();
 	}
 	char* slice = stripped.substring(0, stripped.length() - 1);
-	List<char*> segments = findArgStart(slice).collect(new_ListCollector<char*>());
+	ArrayList<char*> segments = findArgStart(slice).collect(new_ListCollector<char*>());
 	if (segments.size() < 2) {
 		return Optional.empty();
 	}
@@ -1403,7 +1385,7 @@ auto __lambda50__(auto tuple) {
 	return new_Tuple<char*, ParseState>(tuple.left.generate(), tuple.right);
 }
 Optional<Tuple<char*, ParseState>> compileOperator_Main(char* input, char* operator, ParseState state){
-	List<char*> segments = divide(input, __lambda48__).collect(new_ListCollector<char*>());
+	ArrayList<char*> segments = divide(input, __lambda48__).collect(new_ListCollector<char*>());
 	if (segments.size() < 2) {
 		return Optional.empty();
 	}
@@ -1518,12 +1500,12 @@ Optional<Definition> compileDefinition_Main(char* input){
 	if (!isIdentifier(name)) {
 		return Optional.empty();
 	}
-	List<char*> segments = divide(beforeName, foldTypeSeparator_Main).collect(new_ListCollector<char*>());
+	ArrayList<char*> segments = divide(beforeName, foldTypeSeparator_Main).collect(new_ListCollector<char*>());
 	if (segments.size() < 2) {
 		return compileType(beforeName).map(__lambda55__);
 	}
 	char* withoutLast = segments.subList(0, segments.size() - 1).orElse(new_ArrayList<char*>()).stream().collect(new_Joiner(" "));
-	List<char*> annotations = findAnnotations(withoutLast);
+	ArrayList<char*> annotations = findAnnotations(withoutLast);
 	char* typeString = segments.getLast().orElse(null);
 	return compileType(typeString).map(__lambda56__);
 }
@@ -1533,7 +1515,7 @@ auto __lambda57__(auto slice) {
 auto __lambda58__(auto slice) {
 	return slice.substring(1);
 }
-List<char*> findAnnotations_Main(char* withoutLast){
+ArrayList<char*> findAnnotations_Main(char* withoutLast){
 	int i = withoutLast.lastIndexOf("\n");
 	if (i < 0) {
 		return new_ArrayList<char*>();
