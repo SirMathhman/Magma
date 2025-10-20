@@ -449,10 +449,16 @@ public class Main {
 
 			final String joined = Streams.fromLength(location.namespace.size()).map(_ -> "..").collect(new Joiner("/"));
 			final ArrayList<String> segments = divisions.subList(0, divisions.size() - 1).orElse(new ArrayList<>());
-			final String folded = segments.stream().foldWithInitial(joined, (string, string2) -> string + "/" + string2);
+			final ParseState newState;
+			if (segments.equalsTo(ArrayList.from("java", "util", "function"))) {
+				newState = state;
+			} else {
+				final String folded = segments.stream().foldWithInitial(joined, (string, string2) -> string + "/" + string2);
 
-			return new Tuple<String, ParseState>("",
-																					 state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator()));
+				newState = state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator());
+			}
+
+			return new Tuple<String, ParseState>("", newState);
 		}
 
 		return compileStructure(stripped, "class", state).orElseGet(() -> new Tuple<String, ParseState>(wrap(stripped),

@@ -3,7 +3,6 @@
 #include "../magma/Collections.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
-#include "../java/util/function.h"
 template <typeparam T>
 struct Head {
 };

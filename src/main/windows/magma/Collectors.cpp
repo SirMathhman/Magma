@@ -37,17 +37,23 @@ Boolean createInitial_AnyMatch(){
 Boolean fold_AnyMatch(Boolean current, T element){
 	return current || this.predicate.test(element);
 }
-Results.Result<C, X> createInitial_ResultCollector(){
-	return new_Results.Ok<C, X>(this.collector.createInitial());
+Result<C, X> createInitial_ResultCollector(){
+	return new_Ok<C, X>(this.collector.createInitial());
 }
-Results.Result<C, X> fold_ResultCollector(Results.Result<C, X> current, Results.Result<T, X> element){
+Result<C, X> fold_ResultCollector(Result<C, X> current, Result<T, X> element){
 	return /*switch (current) {
-				case Results.Err<C, X> v -> new Results.Err<C, X>(v.error());
-				case Results.Ok<C, X> v -> switch (element) {
-					case Results.Err<T, X> v1 -> new Results.Err<C, X>(v1.error());
-					case Results.Ok<T, X> v1 -> new Results.Ok<C, X>(this.collector.fold(v.value(), v1.value()));
+				case Err<C, X> v -> new Err<C, X>(v.error());
+				case Ok<C, X> v -> switch (element) {
+					case Err<T, X> v1 -> new Err<C, X>(v1.error());
+					case Ok<T, X> v1 -> new Ok<C, X>(this.collector.fold(v.value(), v1.value()));
 				};
 			}*/;
+}
+Boolean createInitial_AllMatch(){
+	return true;
+}
+Boolean fold_AllMatch(Boolean current, T element){
+	return current && this.predicate.test(element);
 }
 int main(){
 	main_Main();

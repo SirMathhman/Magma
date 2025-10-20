@@ -46,6 +46,9 @@ ArrayList new_ArrayList(){
 	this(Array.alloc(10));
 	return this;
 }
+ArrayList<T> from_ArrayList(/*T...*/ elements){
+	return Streams.fromRef(elements).collect(new_ListCollector<T>());
+}
 void ensureCapacity_ArrayList(int minCapacity){
 	if (minCapacity <  == this.elements.capacity) {
 		/*return*/;
@@ -140,6 +143,15 @@ ArrayList<T> copy_ArrayList(){
 		list.elements.length = (this.elements).length;
 	}
 	return list;
+}
+auto __lambda1__(auto ttTuple) {
+	return ttTuple.left().equals(ttTuple.right());
+}
+boolean equalsTo_ArrayList(ArrayList<T> other){
+	if (this.size() == other.size()) {
+		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda1__));
+	}
+	return false;
 }
 int main(){
 	main_Main();

@@ -1,6 +1,9 @@
 package magma;
 
 import magma.Collections.ArrayList;
+import magma.Results.Err;
+import magma.Results.Ok;
+import magma.Results.Result;
 
 import java.util.function.Predicate;
 
@@ -60,21 +63,34 @@ public class Collectors {
 		}
 	}
 
-	public static record ResultCollector<T, X, C>(Collector<T, C> collector) implements Collector<Results.Result<T, X>, Results.Result<C, X>> {
+	public record ResultCollector<T, X, C>(Collector<T, C> collector)
+			implements Collector<Result<T, X>, Result<C, X>> {
 		@Override
-		public Results.Result<C, X> createInitial() {
-			return new Results.Ok<C, X>(this.collector.createInitial());
+		public Result<C, X> createInitial() {
+			return new Ok<C, X>(this.collector.createInitial());
 		}
 
 		@Override
-		public Results.Result<C, X> fold(Results.Result<C, X> current, Results.Result<T, X> element) {
+		public Result<C, X> fold(Result<C, X> current, Result<T, X> element) {
 			return switch (current) {
-				case Results.Err<C, X> v -> new Results.Err<C, X>(v.error());
-				case Results.Ok<C, X> v -> switch (element) {
-					case Results.Err<T, X> v1 -> new Results.Err<C, X>(v1.error());
-					case Results.Ok<T, X> v1 -> new Results.Ok<C, X>(this.collector.fold(v.value(), v1.value()));
+				case Err<C, X> v -> new Err<C, X>(v.error());
+				case Ok<C, X> v -> switch (element) {
+					case Err<T, X> v1 -> new Err<C, X>(v1.error());
+					case Ok<T, X> v1 -> new Ok<C, X>(this.collector.fold(v.value(), v1.value()));
 				};
 			};
+		}
+	}
+
+	public record AllMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+		@Override
+		public Boolean createInitial() {
+			return true;
+		}
+
+		@Override
+		public Boolean fold(Boolean current, T element) {
+			return current && this.predicate.test(element);
 		}
 	}
 }

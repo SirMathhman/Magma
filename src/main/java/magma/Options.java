@@ -1,5 +1,7 @@
 package magma;
 
+import magma.Main.Tuple;
+
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -14,6 +16,8 @@ public class Options {
 		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
 		T orElse(T other);
+
+		<R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier);
 	}
 
 	record Some<T>(T value) implements Option<T> {
@@ -41,6 +45,11 @@ public class Options {
 		public T orElse(T other) {
 			return this.value;
 		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier) {
+			return supplier.get().map(rValue -> new Tuple<T, R>(this.value, rValue));
+		}
 	}
 
 	public record None<T>() implements Option<T> {
@@ -67,6 +76,11 @@ public class Options {
 		@Override
 		public T orElse(T other) {
 			return other;
+		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> supplier) {
+			return new None<Tuple<T, R>>();
 		}
 	}
 }

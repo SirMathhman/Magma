@@ -8,32 +8,32 @@ Stream<R> map_Stream(Function<T, R> mapper){
 }
 auto __lambda1__() {
 	while (true) {
-		Options.Option < T >= nextValue == sourceHead.next();
-		if (nextValue.tag == Options.Some) {
+		Option < T >= nextValue == sourceHead.next();
+		if (nextValue.tag == Some) {
 			if (predicate.test(value)) {
-		Options.Some<T> _cast = nextValue.data.options.some;
+		Some<T> _cast = nextValue.data.some;
 		T value = _cast.value;
-				return new_Options.Some<T>(value);
+				return new_Some<T>(value);
 			}
 			/*// Continue to next element*/
 		}
 		else {
-			return new_Options.None<T>();
+			return new_None<T>();
 		}
 	}
 }
 Stream<T> filter_Stream(Predicate<T> predicate){
-	Heads.Head<T> sourceHead = this.head;
+	Head<T> sourceHead = this.head;
 	return new_Stream<T>(__lambda1__);
 }
-C collect_Stream(Collectors.Collector<T, C> collector){
+C collect_Stream(Collector<T, C> collector){
 	return this.foldWithInitial(collector.createInitial(), fold_collector);
 }
 C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
-	Options.Option < T >= current == this.head.next();
-	while (current.tag == Options.Some) {
-		Options.Some<T> _cast = current.data.options.some;
+	Option < T >= current == this.head.next();
+	while (current.tag == Some) {
+		Some<T> _cast = current.data.some;
 		T value = _cast.value;
 		accumulator == folder.apply(accumulator, value);
 		current == this.head.next();
@@ -41,35 +41,35 @@ C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	return accumulator;
 }
 Stream<R> flatMap_Stream(Function<T, Stream<R>> mapper){
-	return new_Stream<R>(new_Heads.FlatMapHead<T, R>(this.head, mapper));
+	return new_Stream<R>(new_FlatMapHead<T, R>(this.head, mapper));
 }
 auto __lambda2__(auto inner) {
 	return folder.apply(inner, element);
 }
 auto __lambda3__(auto current, auto element) {
-	if (current.tag == Options.None) {
-		Options.None<T> _cast = current.data.options.none;
-		return new_Options.Some<T>(element);
+	if (current.tag == None) {
+		None<T> _cast = current.data.none;
+		return new_Some<T>(element);
 	}
 	return current.map(__lambda2__);
 }
-Options.Option<T> fold_Stream(BiFunction<T, T, T> folder){
-	return this. < Options.Option < T >= foldWithInitial(new_Options.None<T>(), __lambda3__);
+Option<T> fold_Stream(BiFunction<T, T, T> folder){
+	return this. < Option < T >= foldWithInitial(new_None<T>(), __lambda3__);
 }
-Options.Option<T> next_Stream(){
+Option<T> next_Stream(){
 	return this.head.next();
 }
-Stream<T> fromRef_Streams(T* elements){
-	return new_Stream<T>(new_Heads.ArrayHead<T>(elements, elements.length));
+auto __lambda4__() {
+	return this.head.next().and(next_stream);
 }
-Stream<T> fromOption_Streams(Options.Option<T> option){
-	return new_Stream<T>(/*switch (option) {
-			case Options.None<T> _ -> new Heads.EmptyHead<T>();
-			case Options.Some<T> v -> new Heads.SingletonHead<T>(v.value());
-		}*/);
+Stream<Tuple<T, R>> zip_Stream(Stream<R> stream){
+	return new_Stream<>(__lambda4__);
+}
+Stream<T> fromRef_Streams(T* elements){
+	return new_Stream<T>(new_ArrayHead<T>(elements, elements.length));
 }
 Stream<Integer> fromLength_Streams(int length){
-	return new_Stream<Integer>(Heads.RangeHead.createRangeStream(length));
+	return new_Stream<Integer>(RangeHead.createRangeStream(length));
 }
 int main(){
 	main_Main();

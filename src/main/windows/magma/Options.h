@@ -1,6 +1,6 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
-#include "../java/util/function.h"
+#include "../magma/Main.h"
 enum OptionTag {
 	Some,
 	None

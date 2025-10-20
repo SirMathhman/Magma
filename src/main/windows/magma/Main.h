@@ -8,7 +8,6 @@
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
 #include "../java/util.h"
-#include "../java/util/function.h"
 #include "../java/util/regex.h"
 #include "../java/util/stream.h"
 enum DefinableTag {

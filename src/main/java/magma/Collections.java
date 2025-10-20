@@ -1,8 +1,11 @@
 package magma;
 
+import magma.Collectors.AllMatch;
 import magma.Collectors.AnyMatch;
+import magma.Collectors.ListCollector;
 import magma.Heads.ArrayHead;
 import magma.Heads.ListHead;
+import magma.Main.Tuple;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
@@ -68,6 +71,10 @@ public class Collections {
 
 		public ArrayList() {
 			this(Array.alloc(10));
+		}
+
+		public static <T> ArrayList<T> from(T... elements) {
+			return Streams.fromRef(elements).collect(new ListCollector<T>());
 		}
 
 		private void ensureCapacity(int minCapacity) {
@@ -187,6 +194,15 @@ public class Collections {
 				list.elements.length = (this.elements).length;
 			}
 			return list;
+		}
+
+		public boolean equalsTo(ArrayList<T> other) {
+			if (this.size() == other.size()) {
+				return this.stream().zip(other.stream()).collect(new AllMatch<Tuple<T, T>>(ttTuple -> ttTuple.left().equals(
+						ttTuple.right())));
+			}
+
+			return false;
 		}
 	}
 }

@@ -344,8 +344,15 @@ Tuple<char*, ParseState> compileRootSegment_Main(char* input, ParseState state, 
 		ArrayList<char*> divisions = Streams.fromRef(divisionArray).collect(new_ListCollector<char*>());
 		char* joined = Streams.fromLength(location.namespace.size()).map(/*_ -> ".."*/).collect(new_Joiner("/"));
 		ArrayList<char*> segments = divisions.subList(0, divisions.size() - 1).orElse(new_ArrayList<>());
-		char* folded = segments.stream().foldWithInitial(joined, __lambda7__);
-		return new_Tuple<char*, ParseState>("", state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator()));
+		ParseState newState;
+		if (segments.equalsTo(ArrayList.from("java", "util", "function"))) {
+			newState = state;
+		}
+		else {
+			char* folded = segments.stream().foldWithInitial(joined, __lambda7__);
+			newState == state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator());
+		}
+		return new_Tuple<char*, ParseState>("", newState);
 	}
 	return compileStructure(stripped, "class", state).orElseGet(__lambda8__);
 }

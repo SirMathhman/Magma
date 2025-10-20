@@ -2,6 +2,7 @@
 #define COLLECTIONS_H
 #include "../magma/Collectors.h"
 #include "../magma/Heads.h"
+#include "../magma/Main.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
 #include "../java/util.h"

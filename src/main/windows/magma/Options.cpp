@@ -5,6 +5,7 @@ Option<T> or_Option(Supplier<Option<T>> other);
 T orElseGet_Option(Supplier<T> other);
 Option<R> flatMap_Option(Function<T, Option<R>> mapper);
 T orElse_Option(T other);
+Option<Tuple<T, R>> and_Option(Supplier<Option<R>> supplier);
 Option<R> map_Some(Function<T, R> mapper){
 	return new_Some<R>(mapper.apply(this.value));
 }
@@ -20,6 +21,12 @@ Option<R> flatMap_Some(Function<T, Option<R>> mapper){
 T orElse_Some(T other){
 	return this.value;
 }
+auto __lambda0__(auto rValue) {
+	return new_Tuple<T, R>(this.value, rValue);
+}
+Option<Tuple<T, R>> and_Some(Supplier<Option<R>> supplier){
+	return supplier.get().map(__lambda0__);
+}
 Option<R> map_None(Function<T, R> mapper){
 	return new_None<R>();
 }
@@ -34,6 +41,9 @@ Option<R> flatMap_None(Function<T, Option<R>> mapper){
 }
 T orElse_None(T other){
 	return other;
+}
+Option<Tuple<T, R>> and_None(Supplier<Option<R>> supplier){
+	return new_None<Tuple<T, R>>();
 }
 int main(){
 	main_Main();
