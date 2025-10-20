@@ -3,7 +3,7 @@ package magma;
 import magma.Lib.Err;
 import magma.Lib.IOError;
 import magma.Lib.Ok;
-import magma.Lib.Optional;
+import magma.Lib.Option;
 import magma.Lib.Path;
 import magma.Lib.Result;
 import magma.Main.Actual;
@@ -34,22 +34,22 @@ public class JavaImpl {
 		}
 
 		@Override
-		public Optional<IOError> createDirectories() {
+		public Option<IOError> createDirectories() {
 			try {
 				Files.createDirectories(this.path);
-				return Optional.empty();
+				return new Lib.None<IOError>();
 			} catch (IOException e) {
-				return Optional.of(new JIOError(e));
+				return new Lib.Some<IOError>(new JIOError(e));
 			}
 		}
 
 		@Override
-		public Optional<IOError> writeString(String output) {
+		public Option<IOError> writeString(String output) {
 			try {
 				Files.writeString(this.path, output);
-				return Optional.empty();
+				return new Lib.None<IOError>();
 			} catch (IOException e) {
-				return Optional.of(new JIOError(e));
+				return new Lib.Some<IOError>(new JIOError(e));
 			}
 		}
 

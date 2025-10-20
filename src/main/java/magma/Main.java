@@ -4,7 +4,7 @@ import magma.JavaImpl.Paths;
 import magma.Lib.IOError;
 import magma.Lib.None;
 import magma.Lib.Ok;
-import magma.Lib.Optional;
+import magma.Lib.Option;
 import magma.Lib.Path;
 import magma.Lib.Some;
 
@@ -37,7 +37,7 @@ public class Main {
 	}
 
 	private interface Head<T> {
-		Optional<T> next();
+		Option<T> next();
 	}
 
 	private record Stream<T>(Head<T> head) {
@@ -49,14 +49,14 @@ public class Main {
 			final Head<T> sourceHead = this.head;
 			return new Stream<T>(() -> {
 				while (true) {
-					Optional<T> nextValue = sourceHead.next();
+					Option<T> nextValue = sourceHead.next();
 					if (nextValue instanceof Some<T>(T value)) {
 						if (predicate.test(value)) {
-							return Optional.of(value);
+							return new Some<T>(value);
 						}
 						// Continue to next element
 					} else {
-						return Optional.empty();
+						return new None<T>();
 					}
 				}
 			});
@@ -68,7 +68,7 @@ public class Main {
 
 		public <C> C reduce(C initial, BiFunction<C, T, C> folder) {
 			C accumulator = initial;
-			Optional<T> current = this.head.next();
+			Option<T> current = this.head.next();
 			while (current instanceof Some<T>(T value)) {
 				accumulator = folder.apply(accumulator, value);
 				current = this.head.next();
@@ -109,7 +109,7 @@ public class Main {
 			}
 		}
 
-		public Optional<T> get(int index) {
+		public Option<T> get(int index) {
 			if (index < this.length) {
 				return new Some<T>(this.ref[index]);
 			} else {
@@ -180,9 +180,9 @@ public class Main {
 			return new Stream<T>(new ListHead<T>(this));
 		}
 
-		public Optional<T> get(int index) {
+		public Option<T> get(int index) {
 			if (index < 0 || index >= (this.elements).length) {
-				return Optional.empty();
+				return new None<T>();
 			}
 
 			return this.elements.get(index);
@@ -209,19 +209,19 @@ public class Main {
 			return this.elements.contains(element);
 		}
 
-		public Optional<T> getFirst() {
+		public Option<T> getFirst() {
 			return this.get(0);
 		}
 
-		public Optional<ArrayList<T>> subList(int start, int end) {
+		public Option<ArrayList<T>> subList(int start, int end) {
 			if (start < 0 || end > (this.elements).length || start > end) {
-				return Optional.empty();
+				return new None<ArrayList<T>>();
 			}
 			int subSize = end - start;
 			Array<T> newElements = Array.alloc(Math.max(10, subSize));
 			MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 			newElements.length = subSize;
-			return Optional.of(new ArrayList<T>(newElements));
+			return new Some<ArrayList<T>>(new ArrayList<T>(newElements));
 		}
 
 		public ArrayList<T> addAll(ArrayList<T> elements) {
@@ -235,9 +235,9 @@ public class Main {
 			return this;
 		}
 
-		public Optional<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
+		public Option<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
 			if (index < 0 || index > (this.elements).length) {
-				return Optional.empty();
+				return new None<ArrayList<T>>();
 			}
 
 			int elementsSize = elements.size();
@@ -252,10 +252,10 @@ public class Main {
 			}
 
 			this.elements.length += elementsSize;
-			return Optional.of(this);
+			return new Some<ArrayList<T>>(this);
 		}
 
-		public Optional<T> getLast() {
+		public Option<T> getLast() {
 			return this.get((this.elements).length - 1);
 		}
 
@@ -377,28 +377,28 @@ public class Main {
 			return this;
 		}
 
-		public Optional<Tuple<DivideState, Character>> pop() {
+		public Option<Tuple<DivideState, Character>> pop() {
 			if (this.index >= this.input.length()) {
-				return Optional.empty();
+				return new None<Tuple<DivideState, Character>>();
 			}
 			final char next = this.input.charAt(this.index);
 			this.index++;
-			return Optional.of(new Tuple<DivideState, Character>(this, next));
+			return new Some<Tuple<DivideState, Character>>(new Tuple<DivideState, Character>(this, next));
 		}
 
-		public Optional<Tuple<DivideState, Character>> popAndAppendToTuple() {
+		public Option<Tuple<DivideState, Character>> popAndAppendToTuple() {
 			return this.pop().map(tuple -> new Tuple<DivideState, Character>(tuple.left.append(tuple.right), tuple.right));
 		}
 
-		public Optional<DivideState> popAndAppendToOption() {
+		public Option<DivideState> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
 
-		public Optional<Character> peek() {
+		public Option<Character> peek() {
 			if (this.index < this.input.length()) {
-				return Optional.of(this.input.charAt(this.index));
+				return new Some<Character>(this.input.charAt(this.index));
 			} else {
-				return Optional.empty();
+				return new None<Character>();
 			}
 		}
 	}
@@ -451,12 +451,12 @@ public class Main {
 		}
 
 		@Override
-		public Optional<T> next() {
+		public Option<T> next() {
 			if (this.index < this.self.size()) {
 				return this.self.get(this.index++);
 			}
 
-			return Optional.empty();
+			return new None<T>();
 		}
 	}
 
@@ -509,7 +509,7 @@ public class Main {
 		}
 
 		@Override
-		public Optional<T> next() {
+		public Option<T> next() {
 			if (this.counter < this.length) {
 				final T element = this.elements[this.counter];
 				this.counter++;
@@ -538,7 +538,7 @@ public class Main {
 		}
 	}
 
-	private static Optional<IOError> run() {
+	private static Option<IOError> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final Path target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 
@@ -553,7 +553,7 @@ public class Main {
 			return target.writeString(output);
 		}
 
-		return Optional.empty();
+		return new None<IOError>();
 	}
 
 	private static String compile(String input) {
@@ -587,7 +587,7 @@ public class Main {
 
 	private static Tuple<DivideState, Boolean> foldCycle(DivideState state,
 																											 BiFunction<DivideState, Character, DivideState> folder) {
-		final Optional<Tuple<DivideState, Character>> maybeNext = state.pop();
+		final Option<Tuple<DivideState, Character>> maybeNext = state.pop();
 		if (maybeNext instanceof Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> value)) {
 			return new Tuple<DivideState, Boolean>(foldEscaped(value.left, value.right, folder), true);
 		}
@@ -602,37 +602,37 @@ public class Main {
 																																																							next));
 	}
 
-	private static Optional<DivideState> foldSingleQuotes(DivideState state, char next) {
+	private static Option<DivideState> foldSingleQuotes(DivideState state, char next) {
 		if (next != '\'') {
-			return Optional.empty();
+			return new None<DivideState>();
 		}
 
 		final DivideState appended = state.append(next);
 		return appended.popAndAppendToTuple().flatMap(Main::foldEscaped).flatMap(DivideState::popAndAppendToOption);
 	}
 
-	private static Optional<DivideState> foldEscaped(Tuple<DivideState, Character> tuple) {
+	private static Option<DivideState> foldEscaped(Tuple<DivideState, Character> tuple) {
 		if (tuple.right == '\\') {
 			return tuple.left.popAndAppendToOption();
 		} else {
-			return Optional.of(tuple.left);
+			return new Some<DivideState>(tuple.left);
 		}
 	}
 
-	private static Optional<DivideState> foldDoubleQuotes(DivideState state, char next) {
+	private static Option<DivideState> foldDoubleQuotes(DivideState state, char next) {
 		if (next != '\"') {
-			return Optional.empty();
+			return new None<DivideState>();
 		}
 
 		Tuple<DivideState, Boolean> current = new Tuple<DivideState, Boolean>(state.append(next), true);
 		while (current.right) {
 			current = foldUntilDoubleQuotes(current.left);
 		}
-		return Optional.of(current.left);
+		return new Some<DivideState>(current.left);
 	}
 
 	private static Tuple<DivideState, Boolean> foldUntilDoubleQuotes(DivideState state) {
-		final Optional<Tuple<DivideState, Character>> maybeNext = state.popAndAppendToTuple();
+		final Option<Tuple<DivideState, Character>> maybeNext = state.popAndAppendToTuple();
 		if (!(maybeNext instanceof Some<Tuple<DivideState, Character>>(Tuple<DivideState, Character> value))) {
 			return new Tuple<DivideState, Boolean>(state, false);
 		}
@@ -655,7 +655,7 @@ public class Main {
 			return appended.advance();
 		}
 		if (c == '}' && appended.isShallow()) {
-			final Optional<Character> peeked = appended.peek();
+			final Option<Character> peeked = appended.peek();
 			final DivideState withPeeked;
 			if (peeked instanceof Some<Character>(Character value) && value == ';') {
 				withPeeked = appended.popAndAppendToOption().orElse(appended);
@@ -686,17 +686,17 @@ public class Main {
 																																																		state));
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileStructure(String input, String type, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileStructure(String input, String type, ParseState state) {
 		final int i = input.indexOf(type + " ");
 		if (i < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String afterKeyword = input.substring(i + (type + " ").length());
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
@@ -750,7 +750,7 @@ public class Main {
 		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 
 		if (!afterContent.endsWith("}")) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
@@ -806,7 +806,7 @@ public class Main {
 		final String generated =
 				generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() +
 				"};" + System.lineSeparator();
-		return Optional.of(new Tuple<String, ParseState>("", outer.addStruct(generated)));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", outer.addStruct(generated)));
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
@@ -824,7 +824,7 @@ public class Main {
 		return generateField(input1).orElseGet(() -> wrap(input1));
 	}
 
-	private static Optional<String> generateField(String input) {
+	private static Option<String> generateField(String input) {
 		return compileDefinition(input).map(Definable::generate).map(content -> generateStatement(content, 1));
 	}
 
@@ -846,7 +846,7 @@ public class Main {
 		}
 		final DivideState appended = state.append(next);
 		if (next == '-') {
-			final Optional<Character> peeked = appended.peek();
+			final Option<Character> peeked = appended.peek();
 			if (peeked instanceof Some<Character>(Character value)) {
 				if (value.equals('>')) {
 					return appended.popAndAppendToOption().orElse(appended);
@@ -887,10 +887,10 @@ public class Main {
 		});
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
 		final int paramStart = input.indexOf("(");
 		if (paramStart < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String beforeParams = input.substring(0, paramStart).strip();
@@ -898,7 +898,7 @@ public class Main {
 
 		final int paramEnd = withParams.indexOf(")");
 		if (paramEnd < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final JMethodHeader methodHeader = compileMethodHeader(beforeParams);
@@ -924,11 +924,11 @@ public class Main {
 			final String joined = statements.stream().collect(new Joiner(""));
 			outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
 		} else {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
-		return Optional.of(new Tuple<String, ParseState>("", state.addFunction(generated)));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", state.addFunction(generated)));
 	}
 
 	private static boolean isPlatformDependentMethod(JMethodHeader methodHeader) {
@@ -971,17 +971,17 @@ public class Main {
 
 	private static Tuple<String, ParseState> compileMethodSegmentValue(String input, int depth, ParseState state) {
 		final String stripped = input.strip();
-		final Optional<Tuple<String, ParseState>> compiled = compileBlock(state, stripped, depth);
+		final Option<Tuple<String, ParseState>> compiled = compileBlock(state, stripped, depth);
 		if (compiled instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
 			return value;
 		}
 
-		final Optional<Tuple<String, ParseState>> maybeIf = compileConditional("if", depth, state, stripped);
+		final Option<Tuple<String, ParseState>> maybeIf = compileConditional("if", depth, state, stripped);
 		if (maybeIf instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
 			return value;
 		}
 
-		final Optional<Tuple<String, ParseState>> maybeWhile = compileConditional("while", depth, state, stripped);
+		final Option<Tuple<String, ParseState>> maybeWhile = compileConditional("while", depth, state, stripped);
 		if (maybeWhile instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
 			return value;
 		}
@@ -1001,19 +1001,19 @@ public class Main {
 		return new Tuple<String, ParseState>(wrap(stripped), state);
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileConditional(String type,
-																																				int depth,
-																																				ParseState state,
-																																				String stripped) {
+	private static Option<Tuple<String, ParseState>> compileConditional(String type,
+																																			int depth,
+																																			ParseState state,
+																																			String stripped) {
 		if (!stripped.startsWith(type)) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String withoutPrefix = stripped.substring(type.length());
 
 		final ArrayList<String> conditionEnd =
 				divide(withoutPrefix, Main::foldConditionEnd).collect(new ListCollector<String>());
 		if (conditionEnd.size() < 2) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String withConditionEnd = conditionEnd.getFirst().orElse(null);
 		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
@@ -1021,24 +1021,24 @@ public class Main {
 				conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 
 		if (!substring1.startsWith("(")) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String expression = substring1.substring(1);
 
 		final Tuple<String, ParseState> condition = compileExpression(expression, state);
 		final Tuple<String, ParseState> compiledBody = compileMethodSegmentValue(body, depth, condition.right);
-		return Optional.of(new Tuple<String, ParseState>(type + " (" + condition.left + ") " + compiledBody.left,
-																										 compiledBody.right));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(type + " (" + condition.left + ") " + compiledBody.left,
+																																						 compiledBody.right));
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileBlock(ParseState state, String input, int depth) {
+	private static Option<Tuple<String, ParseState>> compileBlock(ParseState state, String input, int depth) {
 		if (!input.startsWith("{") || !input.endsWith("}")) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final Tuple<ArrayList<String>, ParseState> result =
 				compileMethodStatements(state, depth, input.substring(1, input.length() - 1));
 		final String generated = "{" + result.left().stream().collect(new Joiner("")) + generateIndent(depth) + "}";
-		return Optional.of(new Tuple<String, ParseState>(generated, result.right()));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(generated, result.right()));
 	}
 
 	private static Tuple<ArrayList<String>, ParseState> compileMethodStatements(ParseState state,
@@ -1087,7 +1087,7 @@ public class Main {
 
 		if (input.endsWith("++")) {
 			final String slice = input.substring(0, input.length() - 2);
-			final Optional<Tuple<String, ParseState>> temp =
+			final Option<Tuple<String, ParseState>> temp =
 					tryCompileExpression(slice, state).map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(),
 																																												tuple.right));
 			if (temp instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
@@ -1095,7 +1095,7 @@ public class Main {
 			}
 		}
 
-		final Optional<Tuple<String, ParseState>> invokableResult = compileInvokable(state, input);
+		final Option<Tuple<String, ParseState>> invokableResult = compileInvokable(state, input);
 		if (invokableResult instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
 			return value;
 		}
@@ -1126,44 +1126,44 @@ public class Main {
 				state));
 	}
 
-	private static Optional<Tuple<CExpression, ParseState>> tryCompileExpression(String input, ParseState state) {
+	private static Option<Tuple<CExpression, ParseState>> tryCompileExpression(String input, ParseState state) {
 		final String stripped = input.strip();
-		final Optional<Tuple<String, ParseState>> charResult = compileChar(stripped, state);
+		final Option<Tuple<String, ParseState>> charResult = compileChar(stripped, state);
 		if (charResult instanceof Some<Tuple<String, ParseState>>) {
 			return charResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> stringResult = compileString(stripped, state);
+		final Option<Tuple<String, ParseState>> stringResult = compileString(stripped, state);
 		if (stringResult instanceof Some<Tuple<String, ParseState>>) {
 			return stringResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> notResult = compileNot(state, stripped);
+		final Option<Tuple<String, ParseState>> notResult = compileNot(state, stripped);
 		if (notResult instanceof Some<Tuple<String, ParseState>>) {
 			return notResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> lambdaResult = compileLambda(state, stripped);
+		final Option<Tuple<String, ParseState>> lambdaResult = compileLambda(state, stripped);
 		if (lambdaResult instanceof Some<Tuple<String, ParseState>>) {
 			return lambdaResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> instanceOfResult = compileInstanceOf(state, stripped);
+		final Option<Tuple<String, ParseState>> instanceOfResult = compileInstanceOf(state, stripped);
 		if (instanceOfResult instanceof Some<Tuple<String, ParseState>>) {
 			return instanceOfResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> left = compileInvokable(state, stripped);
+		final Option<Tuple<String, ParseState>> left = compileInvokable(state, stripped);
 		if (left instanceof Some<Tuple<String, ParseState>>) {
 			return left.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> methodReferenceResult = compileMethodReference(state, stripped);
+		final Option<Tuple<String, ParseState>> methodReferenceResult = compileMethodReference(state, stripped);
 		if (methodReferenceResult instanceof Some<Tuple<String, ParseState>>) {
 			return methodReferenceResult.map(Main::wrapInContent);
 		}
 
-		final Optional<Tuple<String, ParseState>> fieldAccessResult = compileFieldAccess(state, stripped);
+		final Option<Tuple<String, ParseState>> fieldAccessResult = compileFieldAccess(state, stripped);
 		if (fieldAccessResult instanceof Some<Tuple<String, ParseState>>) {
 			return fieldAccessResult.map(Main::wrapInContent);
 		}
@@ -1174,7 +1174,7 @@ public class Main {
 				state).map(Main::wrapInContent));
 	}
 
-	private static Optional<Tuple<String, ParseState>> getOr(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> getOr(ParseState state, String stripped) {
 		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped,
 																																					"-",
 																																					state)).or(() -> compileOperator(stripped,
@@ -1194,63 +1194,63 @@ public class Main {
 		return new Tuple<CExpression, ParseState>(new Content(tuple.left), tuple.right);
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileString(String stripped, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileString(String stripped, ParseState state) {
 		if (isString(stripped)) {
-			return Optional.of(new Tuple<String, ParseState>(stripped, state));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped, state));
 		}
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileFieldAccess(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileFieldAccess(ParseState state, String stripped) {
 		final int separator = stripped.lastIndexOf(".");
 		if (separator < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String substring = stripped.substring(0, separator);
 		final String name = stripped.substring(separator + 1).strip();
 
 		if (!isIdentifier(name)) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
-		final Optional<Tuple<String, ParseState>> maybeResult =
+		final Option<Tuple<String, ParseState>> maybeResult =
 				tryCompileExpression(substring, state).map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(),
 																																													tuple.right));
 		if (!(maybeResult instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value))) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
-		return Optional.of(new Tuple<String, ParseState>(value.left + "." + name, value.right));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value.left + "." + name, value.right));
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileMethodReference(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileMethodReference(ParseState state, String stripped) {
 		final int separator = stripped.lastIndexOf("::");
 		if (separator >= 0) {
 			final String substring = stripped.substring(0, separator);
 			final String name = stripped.substring(separator + 2).strip();
 			if (isIdentifier(name)) {
-				final Optional<String> maybeResult = compileType(substring);
+				final Option<String> maybeResult = compileType(substring);
 				if (maybeResult instanceof Some<String>(String value)) {
-					return Optional.of(new Tuple<String, ParseState>(name + "_" + value, state));
+					return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(name + "_" + value, state));
 				}
 			}
 		}
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileInstanceOf(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileInstanceOf(ParseState state, String stripped) {
 		final int instanceOfIndex = stripped.indexOf("instanceof");
 		if (instanceOfIndex < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String beforeOperator = stripped.substring(0, instanceOfIndex).strip();
 		String afterOperator = stripped.substring(instanceOfIndex + "instanceof".length()).strip();
 
-		final Optional<Tuple<CExpression, ParseState>> maybeResult = tryCompileExpression(beforeOperator, state);
+		final Option<Tuple<CExpression, ParseState>> maybeResult = tryCompileExpression(beforeOperator, state);
 
 		if (!(maybeResult instanceof Some<Tuple<CExpression, ParseState>>(
 				Tuple<CExpression, ParseState> value
 		))) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final int typeArgumentsStart = afterOperator.indexOf("<");
@@ -1296,57 +1296,57 @@ public class Main {
 		final String content = afterOperator + " _cast = " + targetAlias + ".data." + variantName.toLowerCase();
 		final String statement = generateStatement(content, 2) + parameters;
 		final ParseState parseState = maybeWithBeforeStatement.addAfterStatement(statement);
-		return Optional.of(new Tuple<String, ParseState>(targetAlias + ".tag == " + variantName, parseState));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(targetAlias + ".tag == " + variantName, parseState));
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileChar(String stripped, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileChar(String stripped, ParseState state) {
 		if (isABoolean(stripped)) {
-			return Optional.of(new Tuple<String, ParseState>(stripped, state));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped, state));
 		}
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
 	private static boolean isABoolean(String stripped) {
 		return stripped.startsWith("'") && stripped.endsWith("'") && stripped.length() <= 4;
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileNot(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileNot(ParseState state, String stripped) {
 		if (stripped.startsWith("!")) {
 			final String slice = stripped.substring(1);
-			final Optional<Tuple<String, ParseState>> maybeResult =
+			final Option<Tuple<String, ParseState>> maybeResult =
 					tryCompileExpression(slice, state).map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(),
 																																												tuple.right));
 			if (maybeResult instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
-				return Optional.of(new Tuple<String, ParseState>("!" + value.left, value.right));
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("!" + value.left, value.right));
 			}
 		}
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileInvokable(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileInvokable(ParseState state, String stripped) {
 		if (!stripped.endsWith(")")) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String slice = stripped.substring(0, stripped.length() - 1);
 
 		final ArrayList<String> segments = findArgStart(slice).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String callerWithExt =
 				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 		if (!callerWithExt.endsWith("(")) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 		final String caller = callerWithExt.substring(0, callerWithExt.length() - 1);
 		final String arguments = segments.getLast().orElse(null);
 
-		final Optional<Tuple<String, ParseState>> maybeCallerResult = compileCaller(state, caller);
+		final Option<Tuple<String, ParseState>> maybeCallerResult = compileCaller(state, caller);
 		if (!(maybeCallerResult instanceof Some<Tuple<String, ParseState>>(
 				Tuple<String, ParseState> value
 		))) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
@@ -1354,7 +1354,7 @@ public class Main {
 				new Tuple<StringJoiner, ParseState>(new StringJoiner(", "), value.right),
 				(tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
 		final String collect = reduce.left.toString();
-		return Optional.of(new Tuple<String, ParseState>(value.left + "(" + collect + ")", reduce.right));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value.left + "(" + collect + ")", reduce.right));
 	}
 
 	private static Tuple<StringJoiner, ParseState> mergeExpression(StringJoiner joiner,
@@ -1383,10 +1383,10 @@ public class Main {
 		});
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileLambda(ParseState state, String stripped) {
+	private static Option<Tuple<String, ParseState>> compileLambda(ParseState state, String stripped) {
 		final int i1 = stripped.indexOf("->");
 		if (i1 < 0) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String beforeArrow = stripped.substring(0, i1).strip();
@@ -1402,7 +1402,7 @@ public class Main {
 					new Joiner(", "));
 
 		} else {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String body = stripped.substring(i1 + 2).strip();
@@ -1410,11 +1410,11 @@ public class Main {
 
 		final String generatedName = bodyResult.right.generateAnonymousFunctionName();
 		final String s1 = "auto " + generatedName + "(" + outputParams + ") " + bodyResult.left + System.lineSeparator();
-		return Optional.of(new Tuple<String, ParseState>(generatedName, bodyResult.right.addFunction(s1)));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(generatedName, bodyResult.right.addFunction(s1)));
 	}
 
 	private static Tuple<String, ParseState> compileLambdaBody(ParseState state, String body) {
-		final Optional<Tuple<String, ParseState>> maybeBlock = compileBlock(state, body, 0);
+		final Option<Tuple<String, ParseState>> maybeBlock = compileBlock(state, body, 0);
 		if (maybeBlock instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value)) {
 			return value;
 		}
@@ -1425,11 +1425,11 @@ public class Main {
 		return new Tuple<String, ParseState>(s2, result.right);
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileCaller(ParseState state, String caller) {
+	private static Option<Tuple<String, ParseState>> compileCaller(ParseState state, String caller) {
 		if (caller.startsWith("new ")) {
-			final Optional<String> newType = compileType(caller.substring("new ".length()));
+			final Option<String> newType = compileType(caller.substring("new ".length()));
 			if (newType instanceof Some<String>(String value)) {
-				return Optional.of(new Tuple<String, ParseState>("new_" + value, state));
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("new_" + value, state));
 			}
 		}
 
@@ -1437,51 +1437,51 @@ public class Main {
 																																													tuple.right));
 	}
 
-	private static Optional<Tuple<CExpression, ParseState>> compileIdentifier(String input, ParseState state) {
+	private static Option<Tuple<CExpression, ParseState>> compileIdentifier(String input, ParseState state) {
 		if (isIdentifier(input)) {
-			return Optional.of(new Tuple<CExpression, ParseState>(new CIdentifier(input), state));
+			return new Some<Tuple<CExpression, ParseState>>(new Tuple<CExpression, ParseState>(new CIdentifier(input), state));
 		}
-		return Optional.empty();
+		return new None<Tuple<CExpression, ParseState>>();
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileNumber(String stripped, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileNumber(String stripped, ParseState state) {
 		if (isNumber(stripped)) {
-			return Optional.of(new Tuple<String, ParseState>(stripped, state));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped, state));
 		}
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileOperator(String input, String operator, ParseState state) {
 		final ArrayList<String> segments =
 				divide(input, (state1, next) -> foldOperator(operator, state1, next)).collect(new ListCollector<String>());
 
 		if (segments.size() < 2) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
 		final String left = segments.getFirst().orElse(null);
 		final String right =
 				segments.subList(1, segments.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(operator));
 
-		final Optional<Tuple<String, ParseState>> maybeLeftResult =
+		final Option<Tuple<String, ParseState>> maybeLeftResult =
 				tryCompileExpression(left, state).map(tuple1 -> new Tuple<String, ParseState>(tuple1.left.generate(),
 																																											tuple1.right));
 
 		if (!(maybeLeftResult instanceof Some<Tuple<String, ParseState>>(Tuple<String, ParseState> value))) {
-			return Optional.empty();
+			return new None<Tuple<String, ParseState>>();
 		}
 
-		final Optional<Tuple<String, ParseState>> maybeRightResult =
+		final Option<Tuple<String, ParseState>> maybeRightResult =
 				tryCompileExpression(right, value.right).map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(),
 																																														tuple.right));
 		if (maybeRightResult instanceof Some<Tuple<String, ParseState>>(
 				Tuple<String, ParseState> rightResult
 		)) {
 			final String generated = value.left + " " + operator + " " + rightResult.left;
-			return Optional.of(new Tuple<String, ParseState>(generated, rightResult.right));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(generated, rightResult.right));
 		}
 
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
 	private static DivideState foldOperator(String operator, DivideState state1, Character next) {
@@ -1489,7 +1489,7 @@ public class Main {
 			return state1.append(next);
 		}
 
-		final Optional<Character> peeked = state1.peek();
+		final Option<Character> peeked = state1.peek();
 		if (operator.length() >= 2 && peeked instanceof Some<Character>(Character value)) {
 			if (value == operator.charAt(1)) {
 				return state1.pop().map(inner -> inner.left).orElse(state1).advance();
@@ -1539,39 +1539,39 @@ public class Main {
 		});
 	}
 
-	private static Optional<JMethodHeader> compileConstructor(String beforeParams) {
+	private static Option<JMethodHeader> compileConstructor(String beforeParams) {
 		final int separator = beforeParams.lastIndexOf(" ");
 		if (separator < 0) {
-			return Optional.empty();
+			return new None<JMethodHeader>();
 		}
 
 		final String name = beforeParams.substring(separator + " ".length());
-		return Optional.of(new JConstructor(name));
+		return new Some<JMethodHeader>(new JConstructor(name));
 	}
 
-	private static Optional<Tuple<String, ParseState>> compileField(String input, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileField(String input, ParseState state) {
 		if (input.endsWith(";")) {
 			final String substring = input.substring(0, input.length() - ";".length()).strip();
-			final Optional<String> s = generateField(substring);
+			final Option<String> s = generateField(substring);
 			if (s instanceof Some<String>(String value)) {
-				return Optional.of(new Tuple<String, ParseState>(value, state));
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value, state));
 			}
 		}
 
-		return Optional.empty();
+		return new None<Tuple<String, ParseState>>();
 	}
 
-	private static Optional<Definition> compileDefinition(String input) {
+	private static Option<Definition> compileDefinition(String input) {
 		final String stripped = input.strip();
 		final int index = stripped.lastIndexOf(" ");
 		if (index < 0) {
-			return Optional.empty();
+			return new None<Definition>();
 		}
 
 		final String beforeName = stripped.substring(0, index).strip();
 		final String name = stripped.substring(index + " ".length()).strip();
 		if (!isIdentifier(name)) {
-			return Optional.empty();
+			return new None<Definition>();
 		}
 
 		final ArrayList<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
@@ -1613,10 +1613,10 @@ public class Main {
 		return appended;
 	}
 
-	private static Optional<String> compileType(String input) {
+	private static Option<String> compileType(String input) {
 		final String stripped = input.strip();
 		if (stripped.equals("public")) {
-			return Optional.empty();
+			return new None<String>();
 		}
 
 		if (stripped.endsWith(">")) {
@@ -1628,7 +1628,7 @@ public class Main {
 
 				final String arguments =
 						compileValues(argumentsString, slice -> compileType(slice).orElseGet(() -> wrap(slice)));
-				return Optional.of(base + "<" + arguments + ">");
+				return new Some<String>(base + "<" + arguments + ">");
 			}
 		}
 
@@ -1638,16 +1638,16 @@ public class Main {
 		}
 
 		if (stripped.equals("String")) {
-			return Optional.of("char*");
+			return new Some<String>("char*");
 		}
 		if (stripped.equals("int")) {
-			return Optional.of("int");
+			return new Some<String>("int");
 		}
 
 		if (isIdentifier(stripped)) {
-			return Optional.of(stripped);
+			return new Some<String>(stripped);
 		}
-		return Optional.of(wrap(stripped));
+		return new Some<String>(wrap(stripped));
 	}
 
 	private static String wrap(String input) {

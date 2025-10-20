@@ -6,22 +6,14 @@ import java.util.function.Supplier;
 public class Lib {
 	public sealed interface Result<T, X> permits Err, Ok {}
 
-	sealed public interface Optional<T> permits Some, None {
-		static <T> Optional<T> empty() {
-			return new None<T>();
-		}
+	sealed public interface Option<T> permits Some, None {
+		<R> Option<R> map(Function<T, R> mapper);
 
-		static <T> Optional<T> of(T value) {
-			return new Some<T>(value);
-		}
-
-		<R> Optional<R> map(Function<T, R> mapper);
-
-		Optional<T> or(Supplier<Optional<T>> other);
+		Option<T> or(Supplier<Option<T>> other);
 
 		T orElseGet(Supplier<T> other);
 
-		<R> Optional<R> flatMap(Function<T, Optional<R>> mapper);
+		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
 		T orElse(T other);
 	}
@@ -35,9 +27,9 @@ public class Lib {
 
 		Result<String, IOError> readString();
 
-		Optional<IOError> createDirectories();
+		Option<IOError> createDirectories();
 
-		Optional<IOError> writeString(String output);
+		Option<IOError> writeString(String output);
 
 		Path getParent();
 	}
@@ -46,14 +38,14 @@ public class Lib {
 
 	record Err<T, X>(X error) implements Result<T, X> {}
 
-	record Some<T>(T value) implements Optional<T> {
+	record Some<T>(T value) implements Option<T> {
 		@Override
-		public <R> Optional<R> map(Function<T, R> mapper) {
+		public <R> Option<R> map(Function<T, R> mapper) {
 			return new Some<R>(mapper.apply(this.value));
 		}
 
 		@Override
-		public Optional<T> or(Supplier<Optional<T>> other) {
+		public Option<T> or(Supplier<Option<T>> other) {
 			return this;
 		}
 
@@ -63,7 +55,7 @@ public class Lib {
 		}
 
 		@Override
-		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 			return mapper.apply(this.value);
 		}
 
@@ -73,14 +65,14 @@ public class Lib {
 		}
 	}
 
-	public record None<T>() implements Optional<T> {
+	public record None<T>() implements Option<T> {
 		@Override
-		public <R> Optional<R> map(Function<T, R> mapper) {
+		public <R> Option<R> map(Function<T, R> mapper) {
 			return new None<R>();
 		}
 
 		@Override
-		public Optional<T> or(Supplier<Optional<T>> other) {
+		public Option<T> or(Supplier<Option<T>> other) {
 			return other.get();
 		}
 
@@ -90,7 +82,7 @@ public class Lib {
 		}
 
 		@Override
-		public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 			return new None<R>();
 		}
 
