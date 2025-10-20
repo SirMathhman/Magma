@@ -218,9 +218,7 @@ public class Main {
 		};
 	}
 
-	private static Option<IOError> runWithSources(ArrayList<Path> sources,
-																								Path sourceDirectory,
-																								Path targetDirectory) {
+	private static Option<IOError> runWithSources(ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory) {
 		return sources.stream().filter(path -> path.asString().endsWith(".java")).map(source -> runWithSource(source,
 																																																					sourceDirectory,
 																																																					targetDirectory)).flatMap(
@@ -228,11 +226,10 @@ public class Main {
 	}
 
 	private static Option<IOError> runWithSource(Path source, Path sourceDirectory, Path targetDirectory) {
-		final Path relative = sourceDirectory.relativize(source);
-		final Path target = targetDirectory.resolve(relative);
+		final Path relativeParent = sourceDirectory.relativize(source.getParent());
+		final Path targetParent = targetDirectory.resolveByPath(relativeParent);
 
 		if (source.readString() instanceof Ok<String, IOError>(String input)) {
-			final Path targetParent = target.getParent();
 			if (!targetParent.exists()) {
 				final Option<IOError> result = targetParent.createDirectories();
 				if (result instanceof Some<IOError>) {
@@ -243,6 +240,11 @@ public class Main {
 			final String output =
 					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator() +
 					"#include \"Main.h\"" + System.lineSeparator() + compile(input);
+
+			final String fileName = source.getFileName().asString();
+			final int separator = fileName.lastIndexOf(".");
+			final String name = fileName.substring(0, separator);
+			final Path target = targetParent.resolveByString(name + ".cpp");
 			return target.writeString(output);
 		}
 
@@ -447,8 +449,7 @@ public class Main {
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		final ArrayList<String> segments =
-				divide(content, Main::foldStatement).collect(new ListCollector<String>());
+		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 
 		StringBuilder inner = new StringBuilder();
 		ParseState outer = state;
@@ -711,9 +712,8 @@ public class Main {
 		}
 		final String withConditionEnd = conditionEnd.getFirst().orElse(null);
 		final String substring1 = withConditionEnd.substring(0, withConditionEnd.length() - 1).strip();
-		final String body = conditionEnd.subList(1,
-																						 conditionEnd.size()).orElse(new ArrayList<String>()).stream().collect(
-				new Joiner(""));
+		final String body =
+				conditionEnd.subList(1, conditionEnd.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 
 		if (!substring1.startsWith("(")) {
 			return new None<Tuple<String, ParseState>>();
@@ -1030,10 +1030,8 @@ public class Main {
 			return new None<Tuple<String, ParseState>>();
 		}
 
-		final String callerWithExt = segments.subList(0,
-																									segments.size() -
-																									1).orElse(new ArrayList<String>()).stream().collect(new Joiner(
-				""));
+		final String callerWithExt =
+				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(""));
 		if (!callerWithExt.endsWith("(")) {
 			return new None<Tuple<String, ParseState>>();
 		}
@@ -1096,10 +1094,9 @@ public class Main {
 		} else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 			final String withoutParentheses = beforeArrow.substring(1, beforeArrow.length() - 1);
 			final String[] array = withoutParentheses.split(Pattern.quote(","));
-			outputParams =
-					Streams.fromRef(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
-																																																			 slice).collect(
-							new Joiner(", "));
+			outputParams = Streams.fromRef(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
+																																																							slice).collect(
+					new Joiner(", "));
 
 		} else {
 			return new None<Tuple<String, ParseState>>();
@@ -1163,8 +1160,7 @@ public class Main {
 
 		final String left = segments.getFirst().orElse(null);
 		final String right =
-				segments.subList(1, segments.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(
-						operator));
+				segments.subList(1, segments.size()).orElse(new ArrayList<String>()).stream().collect(new Joiner(operator));
 
 		final Option<Tuple<String, ParseState>> maybeLeftResult =
 				tryCompileExpression(left, state).map(tuple1 -> new Tuple<String, ParseState>(tuple1.left.generate(),
@@ -1277,16 +1273,13 @@ public class Main {
 			return new None<Definition>();
 		}
 
-		final ArrayList<String> segments =
-				divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
+		final ArrayList<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
-		final String withoutLast = segments.subList(0,
-																								segments.size() -
-																								1).orElse(new ArrayList<String>()).stream().collect(new Joiner(
-				" "));
+		final String withoutLast =
+				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(" "));
 		final ArrayList<String> annotations = findAnnotations(withoutLast);
 
 		final String typeString = segments.getLast().orElse(null);

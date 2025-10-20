@@ -1,6 +1,0 @@
-Exception in thread "main" java.lang.UnsupportedOperationException
-	at magma.Lib$Stream$1.next(Lib.java:160)
-	at magma.Lib$Stream.next(Lib.java:171)
-	at magma.Main.runWithSources(Main.java:227)
-	at magma.Main.run(Main.java:217)
-	at magma.Main.main(Main.java:205)

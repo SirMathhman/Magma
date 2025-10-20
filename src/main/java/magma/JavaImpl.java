@@ -30,7 +30,6 @@ public class JavaImpl {
 	}
 
 	private record JavaPath(java.nio.file.Path path) implements Path {
-
 		@Override
 		public Result<String, IOError> readString() {
 			try {
@@ -92,7 +91,7 @@ public class JavaImpl {
 		}
 
 		@Override
-		public Path resolve(Path path) {
+		public Path resolveByPath(Path path) {
 			return new JavaPath(path.stream().foldWithInitial(this.path, java.nio.file.Path::resolve));
 		}
 
@@ -100,6 +99,16 @@ public class JavaImpl {
 		public Lib.Stream<String> stream() {
 			final int length = this.path.getNameCount();
 			return Streams.fromLength(length).map(this.path::getName).map(java.nio.file.Path::toString);
+		}
+
+		@Override
+		public Path getFileName() {
+			return new JavaPath(this.path.getFileName());
+		}
+
+		@Override
+		public Path resolveByString(String name) {
+			return new JavaPath(this.path.resolve(name));
 		}
 
 		@Override

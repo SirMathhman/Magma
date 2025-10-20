@@ -42,9 +42,13 @@ public class Lib {
 
 		Path relativize(Path path);
 
-		Path resolve(Path path);
+		Path resolveByPath(Path path);
 
 		Stream<String> stream();
+
+		Path getFileName();
+
+		Path resolveByString(String name);
 	}
 
 	private interface Collector<T, C> {
@@ -153,18 +157,17 @@ public class Lib {
 			return accumulator;
 		}
 
-		public <R> Stream<R> flatMap(Function<T, Stream<R>> ignoredMapper) {
-			return new Stream<R>(new Head<R>() {
-				@Override
-				public Option<R> next() {
-					throw new UnsupportedOperationException();
-				}
-			});
+		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
+			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
 		}
 
 		public Option<T> fold(BiFunction<T, T, T> folder) {
-			return this.<Option<T>>foldWithInitial(new None<T>(),
-																						 (current, element) -> current.map(inner -> folder.apply(inner, element)));
+			return this.<Option<T>>foldWithInitial(new None<T>(), (current, element) -> {
+				if (current instanceof None<T>) {
+					return new Some<T>(element);
+				}
+				return current.map(inner -> folder.apply(inner, element));
+			});
 		}
 
 		public Option<T> next() {
@@ -514,6 +517,42 @@ public class Lib {
 				return new Some<Integer>(preserve);
 			} else {
 				return new None<Integer>();
+			}
+		}
+	}
+
+	private static class FlatMapHead<T, R> implements Head<R> {
+		private final Head<T> sourceHead;
+		private final Function<T, Stream<R>> mapper;
+		private Option<Stream<R>> currentStream;
+
+		public FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper) {
+			this.sourceHead = sourceHead;
+			this.mapper = mapper;
+			this.currentStream = new None<Stream<R>>();
+		}
+
+		@Override
+		public Option<R> next() {
+			while (true) {
+				// Try to get next element from current inner stream
+				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
+					Option<R> nextValue = stream.next();
+					if (nextValue instanceof Some<R> _) {
+						return nextValue;
+					}
+					// Current stream is exhausted, move to next
+					this.currentStream = new None<Stream<R>>();
+				}
+
+				// Get next element from source and map it to a stream
+				Option<T> nextSource = this.sourceHead.next();
+				if (nextSource instanceof Some<T>(T value)) {
+					this.currentStream = new Some<Stream<R>>(this.mapper.apply(value));
+				} else {
+					// No more source elements
+					return new None<R>();
+				}
 			}
 		}
 	}
