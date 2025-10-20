@@ -6,7 +6,6 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 public class Lib {
-	public sealed interface Result<T, X> permits Err, Ok {}
 
 	public interface IOError {
 		String display();
@@ -15,7 +14,7 @@ public class Lib {
 	public interface Path {
 		boolean exists();
 
-		Result<String, IOError> readString();
+		Results.Result<String, IOError> readString();
 
 		Options.Option<IOError> createDirectories();
 
@@ -23,7 +22,7 @@ public class Lib {
 
 		Path getParent();
 
-		Result<ArrayList<Path>, IOError> walk();
+		Results.Result<ArrayList<Path>, IOError> walk();
 
 		String asString();
 
@@ -49,10 +48,6 @@ public class Lib {
 	public interface Head<T> {
 		Options.Option<T> next();
 	}
-
-	record Ok<T, X>(T value) implements Result<T, X> {}
-
-	record Err<T, X>(X error) implements Result<T, X> {}
 
 	public record Stream<T>(Head<T> head) {
 		<R> Stream<R> map(Function<T, R> mapper) {

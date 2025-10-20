@@ -1,19 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Lib.java]'. This is not source code!
 #include "Main.h"
-enum ResultTag {
-	Err,
-	Ok
-};
-template <typeparam T, typeparam X>
-union ResultData {
-	Err<T, X> err;
-	Ok<T, X> ok;
-};
-template <typeparam T, typeparam X>
-struct Result {
-	ResultTag tag;
-	ResultData<T, X> data;
-};
 struct IOError {
 };
 struct Path {
@@ -25,14 +11,6 @@ struct Actual {
 };
 template <typeparam T>
 struct Head {
-};
-template <typeparam T, typeparam X>
-struct Ok {
-	T value;
-};
-template <typeparam T, typeparam X>
-struct Err {
-	X error;
 };
 template <typeparam T>
 struct Stream {
@@ -95,11 +73,11 @@ struct Lib {
 };
 char* display_IOError();
 boolean exists_Path();
-Result<char*, IOError> readString_Path();
+Results.Result<char*, IOError> readString_Path();
 Options.Option<IOError> createDirectories_Path();
 Options.Option<IOError> writeString_Path(char* output);
 Path getParent_Path();
-Result<ArrayList<Path>, IOError> walk_Path();
+Results.Result<ArrayList<Path>, IOError> walk_Path();
 char* asString_Path();
 Path relativize_Path(Path path);
 Path resolveByPath_Path(Path path);

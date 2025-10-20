@@ -2,16 +2,16 @@ package magma;
 
 import magma.Lib.Actual;
 import magma.Lib.ArrayList;
-import magma.Lib.Err;
 import magma.Lib.IOError;
 import magma.Lib.ListCollector;
-import magma.Lib.Ok;
 import magma.Lib.Path;
-import magma.Lib.Result;
 import magma.Lib.Streams;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
+import magma.Results.Err;
+import magma.Results.Ok;
+import magma.Results.Result;
 
 import java.io.IOException;
 import java.io.PrintWriter;
