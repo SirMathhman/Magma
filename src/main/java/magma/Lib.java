@@ -4,22 +4,9 @@ import java.util.Objects;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 public class Lib {
 	public sealed interface Result<T, X> permits Err, Ok {}
-
-	sealed public interface Option<T> permits Some, None {
-		<R> Option<R> map(Function<T, R> mapper);
-
-		Option<T> or(Supplier<Option<T>> other);
-
-		T orElseGet(Supplier<T> other);
-
-		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
-
-		T orElse(T other);
-	}
 
 	public interface IOError {
 		String display();
@@ -30,9 +17,9 @@ public class Lib {
 
 		Result<String, IOError> readString();
 
-		Option<IOError> createDirectories();
+		Options.Option<IOError> createDirectories();
 
-		Option<IOError> writeString(String output);
+		Options.Option<IOError> writeString(String output);
 
 		Path getParent();
 
@@ -60,66 +47,12 @@ public class Lib {
 	@interface Actual {}
 
 	public interface Head<T> {
-		Option<T> next();
+		Options.Option<T> next();
 	}
 
 	record Ok<T, X>(T value) implements Result<T, X> {}
 
 	record Err<T, X>(X error) implements Result<T, X> {}
-
-	record Some<T>(T value) implements Option<T> {
-		@Override
-		public <R> Option<R> map(Function<T, R> mapper) {
-			return new Some<R>(mapper.apply(this.value));
-		}
-
-		@Override
-		public Option<T> or(Supplier<Option<T>> other) {
-			return this;
-		}
-
-		@Override
-		public T orElseGet(Supplier<T> other) {
-			return this.value;
-		}
-
-		@Override
-		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
-			return mapper.apply(this.value);
-		}
-
-		@Override
-		public T orElse(T other) {
-			return this.value;
-		}
-	}
-
-	public record None<T>() implements Option<T> {
-		@Override
-		public <R> Option<R> map(Function<T, R> mapper) {
-			return new None<R>();
-		}
-
-		@Override
-		public Option<T> or(Supplier<Option<T>> other) {
-			return other.get();
-		}
-
-		@Override
-		public T orElseGet(Supplier<T> other) {
-			return other.get();
-		}
-
-		@Override
-		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
-			return new None<R>();
-		}
-
-		@Override
-		public T orElse(T other) {
-			return other;
-		}
-	}
 
 	public record Stream<T>(Head<T> head) {
 		<R> Stream<R> map(Function<T, R> mapper) {
@@ -130,14 +63,14 @@ public class Lib {
 			final Head<T> sourceHead = this.head;
 			return new Stream<T>(() -> {
 				while (true) {
-					Option<T> nextValue = sourceHead.next();
-					if (nextValue instanceof Some<T>(T value)) {
+					Options.Option<T> nextValue = sourceHead.next();
+					if (nextValue instanceof Options.Some<T>(T value)) {
 						if (predicate.test(value)) {
-							return new Some<T>(value);
+							return new Options.Some<T>(value);
 						}
 						// Continue to next element
 					} else {
-						return new None<T>();
+						return new Options.None<T>();
 					}
 				}
 			});
@@ -149,8 +82,8 @@ public class Lib {
 
 		public <C> C foldWithInitial(C initial, BiFunction<C, T, C> folder) {
 			C accumulator = initial;
-			Option<T> current = this.head.next();
-			while (current instanceof Some<T>(T value)) {
+			Options.Option<T> current = this.head.next();
+			while (current instanceof Options.Some<T>(T value)) {
 				accumulator = folder.apply(accumulator, value);
 				current = this.head.next();
 			}
@@ -161,16 +94,16 @@ public class Lib {
 			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
 		}
 
-		public Option<T> fold(BiFunction<T, T, T> folder) {
-			return this.<Option<T>>foldWithInitial(new None<T>(), (current, element) -> {
-				if (current instanceof None<T>) {
-					return new Some<T>(element);
+		public Options.Option<T> fold(BiFunction<T, T, T> folder) {
+			return this.<Options.Option<T>>foldWithInitial(new Options.None<T>(), (current, element) -> {
+				if (current instanceof Options.None<T>) {
+					return new Options.Some<T>(element);
 				}
 				return current.map(inner -> folder.apply(inner, element));
 			});
 		}
 
-		public Option<T> next() {
+		public Options.Option<T> next() {
 			return this.head.next();
 		}
 	}
@@ -206,11 +139,11 @@ public class Lib {
 			}
 		}
 
-		public Option<T> get(int index) {
+		public Options.Option<T> get(int index) {
 			if (index < this.length) {
-				return new Some<T>(this.ref[index]);
+				return new Options.Some<T>(this.ref[index]);
 			} else {
-				return new None<T>();
+				return new Options.None<T>();
 			}
 		}
 
@@ -277,9 +210,9 @@ public class Lib {
 			return new Stream<T>(new ListHead<T>(this));
 		}
 
-		public Option<T> get(int index) {
+		public Options.Option<T> get(int index) {
 			if (index < 0 || index >= (this.elements).length) {
-				return new None<T>();
+				return new Options.None<T>();
 			}
 
 			return this.elements.get(index);
@@ -306,19 +239,19 @@ public class Lib {
 			return this.elements.contains(element);
 		}
 
-		public Option<T> getFirst() {
+		public Options.Option<T> getFirst() {
 			return this.get(0);
 		}
 
-		public Option<ArrayList<T>> subList(int start, int end) {
+		public Options.Option<ArrayList<T>> subList(int start, int end) {
 			if (start < 0 || end > (this.elements).length || start > end) {
-				return new None<ArrayList<T>>();
+				return new Options.None<ArrayList<T>>();
 			}
 			int subSize = end - start;
 			Array<T> newElements = Array.alloc(Math.max(10, subSize));
 			MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 			newElements.length = subSize;
-			return new Some<ArrayList<T>>(new ArrayList<T>(newElements));
+			return new Options.Some<ArrayList<T>>(new ArrayList<T>(newElements));
 		}
 
 		public ArrayList<T> addAll(ArrayList<T> elements) {
@@ -332,9 +265,9 @@ public class Lib {
 			return this;
 		}
 
-		public Option<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
+		public Options.Option<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
 			if (index < 0 || index > (this.elements).length) {
-				return new None<ArrayList<T>>();
+				return new Options.None<ArrayList<T>>();
 			}
 
 			int elementsSize = elements.size();
@@ -349,10 +282,10 @@ public class Lib {
 			}
 
 			this.elements.length += elementsSize;
-			return new Some<ArrayList<T>>(this);
+			return new Options.Some<ArrayList<T>>(this);
 		}
 
-		public Option<T> getLast() {
+		public Options.Option<T> getLast() {
 			return this.get((this.elements).length - 1);
 		}
 
@@ -371,10 +304,10 @@ public class Lib {
 			return new Stream<T>(new ArrayHead<T>(elements, elements.length));
 		}
 
-		public static <T> Stream<T> fromOption(Option<T> option) {
+		public static <T> Stream<T> fromOption(Options.Option<T> option) {
 			return new Stream<T>(switch (option) {
-				case None<T> _ -> new EmptyHead<T>();
-				case Some<T> v -> new SingletonHead<T>(v.value());
+				case Options.None<T> _ -> new EmptyHead<T>();
+				case Options.Some<T> v -> new SingletonHead<T>(v.value());
 			});
 		}
 
@@ -393,12 +326,12 @@ public class Lib {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Options.Option<T> next() {
 			if (this.index < this.self.size()) {
 				return this.self.get(this.index++);
 			}
 
-			return new None<T>();
+			return new Options.None<T>();
 		}
 	}
 
@@ -451,13 +384,13 @@ public class Lib {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Options.Option<T> next() {
 			if (this.counter < this.length) {
 				final T element = this.elements[this.counter];
 				this.counter++;
-				return new Some<T>(element);
+				return new Options.Some<T>(element);
 			} else {
-				return new None<T>();
+				return new Options.None<T>();
 			}
 		}
 	}
@@ -476,8 +409,8 @@ public class Lib {
 
 	private static class EmptyHead<T> implements Head<T> {
 		@Override
-		public Option<T> next() {
-			return new None<T>();
+		public Options.Option<T> next() {
+			return new Options.None<T>();
 		}
 	}
 
@@ -491,12 +424,12 @@ public class Lib {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Options.Option<T> next() {
 			if (this.retrieved) {
-				return new None<T>();
+				return new Options.None<T>();
 			}
 			this.retrieved = true;
-			return new Some<T>(this.value);
+			return new Options.Some<T>(this.value);
 		}
 	}
 
@@ -510,13 +443,13 @@ public class Lib {
 		}
 
 		@Override
-		public Option<Integer> next() {
+		public Options.Option<Integer> next() {
 			if (this.index < this.length) {
 				final int preserve = this.index;
 				this.index++;
-				return new Some<Integer>(preserve);
+				return new Options.Some<Integer>(preserve);
 			} else {
-				return new None<Integer>();
+				return new Options.None<Integer>();
 			}
 		}
 	}
@@ -524,34 +457,34 @@ public class Lib {
 	private static class FlatMapHead<T, R> implements Head<R> {
 		private final Head<T> sourceHead;
 		private final Function<T, Stream<R>> mapper;
-		private Option<Stream<R>> currentStream;
+		private Options.Option<Stream<R>> currentStream;
 
 		public FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper) {
 			this.sourceHead = sourceHead;
 			this.mapper = mapper;
-			this.currentStream = new None<Stream<R>>();
+			this.currentStream = new Options.None<Stream<R>>();
 		}
 
 		@Override
-		public Option<R> next() {
+		public Options.Option<R> next() {
 			while (true) {
 				// Try to get next element from current inner stream
-				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
-					Option<R> nextValue = stream.next();
-					if (nextValue instanceof Some<R> _) {
+				if (this.currentStream instanceof Options.Some<Stream<R>>(Stream<R> stream)) {
+					Options.Option<R> nextValue = stream.next();
+					if (nextValue instanceof Options.Some<R> _) {
 						return nextValue;
 					}
 					// Current stream is exhausted, move to next
-					this.currentStream = new None<Stream<R>>();
+					this.currentStream = new Options.None<Stream<R>>();
 				}
 
 				// Get next element from source and map it to a stream
-				Option<T> nextSource = this.sourceHead.next();
-				if (nextSource instanceof Some<T>(T value)) {
-					this.currentStream = new Some<Stream<R>>(this.mapper.apply(value));
+				Options.Option<T> nextSource = this.sourceHead.next();
+				if (nextSource instanceof Options.Some<T>(T value)) {
+					this.currentStream = new Options.Some<Stream<R>>(this.mapper.apply(value));
 				} else {
 					// No more source elements
-					return new None<R>();
+					return new Options.None<R>();
 				}
 			}
 		}

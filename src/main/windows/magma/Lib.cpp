@@ -14,20 +14,6 @@ struct Result {
 	ResultTag tag;
 	ResultData<T, X> data;
 };
-enum OptionTag {
-	Some,
-	None
-};
-template <typeparam T>
-union OptionData {
-	Some<T> some;
-	None<T> none;
-};
-template <typeparam T>
-struct Option {
-	OptionTag tag;
-	OptionData<T> data;
-};
 struct IOError {
 };
 struct Path {
@@ -47,13 +33,6 @@ struct Ok {
 template <typeparam T, typeparam X>
 struct Err {
 	X error;
-};
-template <typeparam T>
-struct Some {
-	T value;
-};
-template <typeparam T>
-struct None {
 };
 template <typeparam T>
 struct Stream {
@@ -110,20 +89,15 @@ template <typeparam T, typeparam R>
 struct FlatMapHead {
 	Head<T> sourceHead;
 	Function<T, Stream<R>> mapper;
-	Option<Stream<R>> currentStream;
+	Options.Option<Stream<R>> currentStream;
 };
 struct Lib {
 };
-Option<R> map_Option(Function<T, R> mapper);
-Option<T> or_Option(Supplier<Option<T>> other);
-T orElseGet_Option(Supplier<T> other);
-Option<R> flatMap_Option(Function<T, Option<R>> mapper);
-T orElse_Option(T other);
 char* display_IOError();
 boolean exists_Path();
 Result<char*, IOError> readString_Path();
-Option<IOError> createDirectories_Path();
-Option<IOError> writeString_Path(char* output);
+Options.Option<IOError> createDirectories_Path();
+Options.Option<IOError> writeString_Path(char* output);
 Path getParent_Path();
 Result<ArrayList<Path>, IOError> walk_Path();
 char* asString_Path();
@@ -134,37 +108,7 @@ Path getFileName_Path();
 Path resolveByString_Path(char* name);
 C createInitial_Collector();
 C fold_Collector(C current, T element);
-Option<T> next_Head();
-Option<R> map_Some(Function<T, R> mapper){
-	return new_Some<R>(mapper.apply(this.value));
-}
-Option<T> or_Some(Supplier<Option<T>> other){
-	return this;
-}
-T orElseGet_Some(Supplier<T> other){
-	return this.value;
-}
-Option<R> flatMap_Some(Function<T, Option<R>> mapper){
-	return mapper.apply(this.value);
-}
-T orElse_Some(T other){
-	return this.value;
-}
-Option<R> map_None(Function<T, R> mapper){
-	return new_None<R>();
-}
-Option<T> or_None(Supplier<Option<T>> other){
-	return other.get();
-}
-T orElseGet_None(Supplier<T> other){
-	return other.get();
-}
-Option<R> flatMap_None(Function<T, Option<R>> mapper){
-	return new_None<R>();
-}
-T orElse_None(T other){
-	return other;
-}
+Options.Option<T> next_Head();
 auto __lambda0__() {
 	return this.head.next().map(mapper);
 }
@@ -173,17 +117,17 @@ Stream<R> map_Stream(Function<T, R> mapper){
 }
 auto __lambda1__() {
 	while (true) {
-		Option < T >= nextValue == sourceHead.next();
-		if (nextValue.tag == Some) {
+		Options.Option < T >= nextValue == sourceHead.next();
+		if (nextValue.tag == Options.Some) {
 			if (predicate.test(value)) {
-		Some<T> _cast = nextValue.data.some;
+		Options.Some<T> _cast = nextValue.data.options.some;
 		T value = _cast.value;
-				return new_Some<T>(value);
+				return new_Options.Some<T>(value);
 			}
 			/*// Continue to next element*/
 		}
 		else {
-			return new_None<T>();
+			return new_Options.None<T>();
 		}
 	}
 }
@@ -196,9 +140,9 @@ C collect_Stream(Collector<T, C> collector){
 }
 C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
-	Option < T >= current == this.head.next();
-	while (current.tag == Some) {
-		Some<T> _cast = current.data.some;
+	Options.Option < T >= current == this.head.next();
+	while (current.tag == Options.Some) {
+		Options.Some<T> _cast = current.data.options.some;
 		T value = _cast.value;
 		accumulator == folder.apply(accumulator, value);
 		current == this.head.next();
@@ -212,16 +156,16 @@ auto __lambda2__(auto inner) {
 	return folder.apply(inner, element);
 }
 auto __lambda3__(auto current, auto element) {
-	if (current.tag == None) {
-		None<T> _cast = current.data.none;
-		return new_Some<T>(element);
+	if (current.tag == Options.None) {
+		Options.None<T> _cast = current.data.options.none;
+		return new_Options.Some<T>(element);
 	}
 	return current.map(__lambda2__);
 }
-Option<T> fold_Stream(BiFunction<T, T, T> folder){
-	return this. < Option < T >= foldWithInitial(new_None<T>(), __lambda3__);
+Options.Option<T> fold_Stream(BiFunction<T, T, T> folder){
+	return this. < Options.Option < T >= foldWithInitial(new_Options.None<T>(), __lambda3__);
 }
-Option<T> next_Stream(){
+Options.Option<T> next_Stream(){
 	return this.head.next();
 }
 private Array_Array(T* ref, int capacity){
@@ -248,12 +192,12 @@ void setNext_Array(T element){
 		this.length++;
 	}
 }
-Option<T> get_Array(int index){
+Options.Option<T> get_Array(int index){
 	if (index < this.length) {
-		return new_Some<T>(/*this.ref[index]*/);
+		return new_Options.Some<T>(/*this.ref[index]*/);
 	}
 	else {
-		return new_None<T>();
+		return new_Options.None<T>();
 	}
 }
 void setFirst_Array(T element){
@@ -297,9 +241,9 @@ int size_ArrayList(){
 Stream<T> stream_ArrayList(){
 	return new_Stream<T>(new_ListHead<T>(this));
 }
-Option<T> get_ArrayList(int index){
+Options.Option<T> get_ArrayList(int index){
 	if (index < 0 || index >= (this.elements).length) {
-		return new_None<T>();
+		return new_Options.None<T>();
 	}
 	return this.elements.get(index);
 }
@@ -320,18 +264,18 @@ ArrayList<T> addLast_ArrayList(T element){
 boolean contains_ArrayList(T element){
 	return this.elements.contains(element);
 }
-Option<T> getFirst_ArrayList(){
+Options.Option<T> getFirst_ArrayList(){
 	return this.get(0);
 }
-Option<ArrayList<T>> subList_ArrayList(int start, int end){
+Options.Option<ArrayList<T>> subList_ArrayList(int start, int end){
 	if (start < 0 || end >= (this.elements).length || start >= end) {
-		return new_None<ArrayList<T>>();
+		return new_Options.None<ArrayList<T>>();
 	}
 	int subSize = end - start;
 	Array < T >= newElements == Array.alloc(Math.max(10, subSize));
 	MemUtils.memCopy(this.elements, start, newElements, 0, subSize);
 	newElements.length = subSize;
-	return new_Some<ArrayList<T>>(new_ArrayList<T>(newElements));
+	return new_Options.Some<ArrayList<T>>(new_ArrayList<T>(newElements));
 }
 ArrayList<T> addAll_ArrayList(ArrayList<T> elements){
 	int elementsSize = elements.size();
@@ -341,9 +285,9 @@ ArrayList<T> addAll_ArrayList(ArrayList<T> elements){
 			}*/
 	return this;
 }
-Option<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
+Options.Option<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
 	if (index < 0 || index >= (this.elements).length) {
-		return new_None<ArrayList<T>>();
+		return new_Options.None<ArrayList<T>>();
 	}
 	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
@@ -354,9 +298,9 @@ Option<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
 				this.elements.ref[index + i] = elements.get(i).orElse(null);
 			}*/
 	this.elements.length +  = elementsSize;
-	return new_Some<ArrayList<T>>(this);
+	return new_Options.Some<ArrayList<T>>(this);
 }
-Option<T> getLast_ArrayList(){
+Options.Option<T> getLast_ArrayList(){
 	return this.get((this.elements).length - 1);
 }
 ArrayList<T> copy_ArrayList(){
@@ -370,10 +314,10 @@ ArrayList<T> copy_ArrayList(){
 Stream<T> fromRef_Streams(T* elements){
 	return new_Stream<T>(new_ArrayHead<T>(elements, elements.length));
 }
-Stream<T> fromOption_Streams(Option<T> option){
+Stream<T> fromOption_Streams(Options.Option<T> option){
 	return new_Stream<T>(/*switch (option) {
-				case None<T> _ -> new EmptyHead<T>();
-				case Some<T> v -> new SingletonHead<T>(v.value());
+				case Options.None<T> _ -> new EmptyHead<T>();
+				case Options.Some<T> v -> new SingletonHead<T>(v.value());
 			}*/);
 }
 Stream<Integer> fromLength_Streams(int length){
@@ -385,11 +329,11 @@ ListHead new_ListHead(ArrayList<T> self){
 	this.index = 0;
 	return this;
 }
-Option<T> next_ListHead(){
+Options.Option<T> next_ListHead(){
 	if (this.index < this.self.size()) {
 		return this.self.get(this.index + );
 	}
-	return new_None<T>();
+	return new_Options.None<T>();
 }
 ListCollector new_ListCollector(){
 	ListCollector this;
@@ -427,14 +371,14 @@ ArrayHead new_ArrayHead(T* elements, int length){
 	this.length = length;
 	return this;
 }
-Option<T> next_ArrayHead(){
+Options.Option<T> next_ArrayHead(){
 	if (this.counter < this.length) {
 		T element = /* this.elements[this.counter]*/;
 		this.counter++;
-		return new_Some<T>(element);
+		return new_Options.Some<T>(element);
 	}
 	else {
-		return new_None<T>();
+		return new_Options.None<T>();
 	}
 }
 Boolean createInitial_AnyMatch(){
@@ -443,8 +387,8 @@ Boolean createInitial_AnyMatch(){
 Boolean fold_AnyMatch(Boolean current, T element){
 	return current || this.predicate.test(element);
 }
-Option<T> next_EmptyHead(){
-	return new_None<T>();
+Options.Option<T> next_EmptyHead(){
+	return new_Options.None<T>();
 }
 SingletonHead new_SingletonHead(T value){
 	SingletonHead this;
@@ -452,12 +396,12 @@ SingletonHead new_SingletonHead(T value){
 	this.retrieved = false;
 	return this;
 }
-Option<T> next_SingletonHead(){
+Options.Option<T> next_SingletonHead(){
 	if (this.retrieved) {
-		return new_None<T>();
+		return new_Options.None<T>();
 	}
 	this.retrieved = true;
-	return new_Some<T>(this.value);
+	return new_Options.Some<T>(this.value);
 }
 RangeStream new_RangeStream(int length){
 	RangeStream this;
@@ -465,44 +409,44 @@ RangeStream new_RangeStream(int length){
 	this.index = 0;
 	return this;
 }
-Option<Integer> next_RangeStream(){
+Options.Option<Integer> next_RangeStream(){
 	if (this.index < this.length) {
 		int preserve = this.index;
 		this.index++;
-		return new_Some<Integer>(preserve);
+		return new_Options.Some<Integer>(preserve);
 	}
 	else {
-		return new_None<Integer>();
+		return new_Options.None<Integer>();
 	}
 }
 FlatMapHead new_FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper){
 	FlatMapHead this;
 	this.sourceHead = sourceHead;
 	this.mapper = mapper;
-	this.currentStream = new_None<Stream<R>>();
+	this.currentStream = new_Options.None<Stream<R>>();
 	return this;
 }
-Option<R> next_FlatMapHead(){
+Options.Option<R> next_FlatMapHead(){
 	while (true) {
 		/*// Try to get next element from current inner stream
-				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
-					Option<R> nextValue = stream.next();
-					if (nextValue instanceof Some<R> _) {
+				if (this.currentStream instanceof Options.Some<Stream<R>>(Stream<R> stream)) {
+					Options.Option<R> nextValue = stream.next();
+					if (nextValue instanceof Options.Some<R> _) {
 						return nextValue;
 					}
 					// Current stream is exhausted, move to next
-					this.currentStream = new None<Stream<R>>();
+					this.currentStream = new Options.None<Stream<R>>();
 				}*/
 		stream
-				Option<T> nextSource = this.sourceHead.next();
-		if (nextSource.tag == Some) {
-		Some<T> _cast = nextSource.data.some;
+				Options.Option<T> nextSource = this.sourceHead.next();
+		if (nextSource.tag == Options.Some) {
+		Options.Some<T> _cast = nextSource.data.options.some;
 		T value = _cast.value;
-			this.currentStream = new_Some<Stream<R>>(this.mapper.apply(value));
+			this.currentStream = new_Options.Some<Stream<R>>(this.mapper.apply(value));
 		}
 		else {
 			/*// No more source elements
-					return new None<R>()*/;
+					return new Options.None<R>()*/;
 		}
 	}
 }

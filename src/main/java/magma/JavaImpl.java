@@ -5,13 +5,13 @@ import magma.Lib.ArrayList;
 import magma.Lib.Err;
 import magma.Lib.IOError;
 import magma.Lib.ListCollector;
-import magma.Lib.None;
 import magma.Lib.Ok;
-import magma.Lib.Option;
 import magma.Lib.Path;
 import magma.Lib.Result;
-import magma.Lib.Some;
 import magma.Lib.Streams;
+import magma.Options.None;
+import magma.Options.Option;
+import magma.Options.Some;
 
 import java.io.IOException;
 import java.io.PrintWriter;

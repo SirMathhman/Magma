@@ -6,14 +6,14 @@ import magma.Lib.Err;
 import magma.Lib.IOError;
 import magma.Lib.Joiner;
 import magma.Lib.ListCollector;
-import magma.Lib.None;
 import magma.Lib.Ok;
-import magma.Lib.Option;
 import magma.Lib.Path;
 import magma.Lib.Result;
-import magma.Lib.Some;
 import magma.Lib.Stream;
 import magma.Lib.Streams;
+import magma.Options.None;
+import magma.Options.Option;
+import magma.Options.Some;
 
 import java.util.Objects;
 import java.util.Stack;
