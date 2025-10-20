@@ -40,6 +40,7 @@ public class Main {
 		private ArrayList<String> structs;
 		private ArrayList<String> functions;
 		private int counter;
+		private ArrayList<String> includes;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
@@ -50,15 +51,16 @@ public class Main {
 
 			this.afterStatements = new ArrayList<String>();
 			this.counter = -1;
+			this.includes = new ArrayList<String>();
 		}
 
 		public ParseState addFunction(String func) {
-			this.functions = this.functions.add(func);
+			this.functions = this.functions.addLast(func);
 			return this;
 		}
 
 		public ParseState addStruct(String struct) {
-			this.structs = this.structs.add(struct);
+			this.structs = this.structs.addLast(struct);
 			return this;
 		}
 
@@ -68,7 +70,7 @@ public class Main {
 		}
 
 		public ParseState addAfterStatement(String statement) {
-			this.afterStatements = this.afterStatements.add(statement);
+			this.afterStatements = this.afterStatements.addLast(statement);
 			return this;
 		}
 
@@ -80,7 +82,7 @@ public class Main {
 
 		public void addBeforeStatement(String beforeStatement) {
 			final ArrayList<String> peek = this.beforeStatements.pop();
-			final ArrayList<String> added = peek.add(beforeStatement);
+			final ArrayList<String> added = peek.addLast(beforeStatement);
 			this.beforeStatements.push(added);
 		}
 
@@ -90,6 +92,13 @@ public class Main {
 
 		public ParseState pushBeforeStatements() {
 			this.beforeStatements.push(new ArrayList<String>());
+			return this;
+		}
+
+		public ParseState addIncludes(String include) {
+			if (!this.includes.contains(include)) {
+				this.includes = this.includes.addLast(include);
+			}
 			return this;
 		}
 	}
@@ -137,7 +146,7 @@ public class Main {
 		}
 
 		private DivideState advance() {
-			this.segments = this.segments.add(this.buffer.toString());
+			this.segments = this.segments.addLast(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
@@ -200,6 +209,8 @@ public class Main {
 		}
 	}
 
+	private record Location(ArrayList<String> namespace, String name) {}
+
 	public static void main(String[] args) {
 		if (run() instanceof Some<IOError>(IOError value)) {
 			System.out.println(value.display());
@@ -228,6 +239,8 @@ public class Main {
 		final Path relativeParent = sourceDirectory.relativize(source.getParent());
 		final Path targetParent = targetDirectory.resolveByPath(relativeParent);
 
+		final ArrayList<String> namespace = relativeParent.stream().collect(new ListCollector<String>());
+
 		if (source.readString() instanceof Ok<String, IOError>(String input)) {
 			if (!targetParent.exists()) {
 				final Option<IOError> result = targetParent.createDirectories();
@@ -236,18 +249,19 @@ public class Main {
 				}
 			}
 
-			final Tuple<String, String> compiled = compile(input);
-			final String prefix =
-					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
-
 			final String fileName = source.getFileName().asString();
 			final int separator = fileName.lastIndexOf(".");
 			final String name = fileName.substring(0, separator);
+
+			final Tuple<String, String> compiled = compile(input, new Location(namespace, name));
+			final String prefix =
+					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
 
 			final String defined = name.toUpperCase() + "_H";
 			final String headerOutput =
 					"#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() +
 					compiled.left + "#endif";
+
 			final String targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 
 			final Path header = targetParent.resolveByString(name + ".h");
@@ -258,26 +272,31 @@ public class Main {
 		return new None<IOError>();
 	}
 
-	private static Tuple<String, String> compile(String input) {
+	private static Tuple<String, String> compile(String input, Location location) {
 		StringJoiner joiner = new StringJoiner("");
 		ParseState state = new ParseState();
 		ArrayList<String> list = divide(input, Main::foldStatement).collect(new ListCollector<String>());
 		int i = 0;
 		while (i < list.size()) {
 			String input1 = list.get(i).orElse(null);
-			Tuple<String, ParseState> s = compileRootSegment(input1, state);
+			Tuple<String, ParseState> s = compileRootSegment(input1, state, location);
 			joiner.add(s.left);
 			state = s.right;
 			i++;
 		}
 
 		final String joined = joiner.toString();
+
+		final String joinedIncludes = state.includes.stream().collect(new Joiner(""));
 		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
 		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
 
-		final String generated = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
-														 System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
-		return new Tuple<>(joinedStructs, generated);
+		final String generatedHeaderContent = joinedIncludes + joinedStructs;
+		final String generatedSourceContent =
+				joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
+				System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
+
+		return new Tuple<String, String>(generatedHeaderContent, generatedSourceContent);
 	}
 
 	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
@@ -376,13 +395,26 @@ public class Main {
 		return appended;
 	}
 
-	private static Tuple<String, ParseState> compileRootSegment(String input, ParseState state) {
+	private static Tuple<String, ParseState> compileRootSegment(String input, ParseState state, Location location) {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return new Tuple<String, ParseState>("", state);
 		}
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+		if (stripped.startsWith("package ")) {
 			return new Tuple<String, ParseState>("", state);
+		}
+
+		if (stripped.startsWith("import ") && stripped.endsWith(";")) {
+			final String slice = stripped.substring("import ".length(), stripped.length() - 1);
+			final String[] divisionArray = slice.split(Pattern.quote("."));
+			final ArrayList<String> divisions = Streams.fromRef(divisionArray).collect(new ListCollector<String>());
+
+			final String joined = Streams.fromLength(location.namespace.size()).map(_ -> "..").collect(new Joiner("/"));
+			final ArrayList<String> segments = divisions.subList(0, divisions.size() - 1).orElse(new ArrayList<>());
+			final String folded = segments.stream().foldWithInitial(joined, (string, string2) -> string + "/" + string2);
+
+			return new Tuple<String, ParseState>("",
+																					 state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator()));
 		}
 
 		return compileStructure(stripped, "class", state).orElseGet(() -> new Tuple<String, ParseState>(wrap(stripped),
@@ -620,8 +652,8 @@ public class Main {
 
 			ArrayList<String> statements = compiledBody.left;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
-				statements =
-						statements.addFirst(generateStatement(name + " this", 1)).addLast(generateStatement("return this", 1));
+				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(name + " this", 1));
+				statements = stringArrayList.addLast(generateStatement("return this", 1));
 			}
 
 			final String joined = statements.stream().collect(new Joiner(""));
@@ -755,7 +787,7 @@ public class Main {
 			String s = list.get(i).orElse(null);
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
-			compiled = compiled.addAll(string.right.popBeforeStatements()).add(string.left);
+			compiled = compiled.addAll(string.right.popBeforeStatements()).addLast(string.left);
 			current = string.right;
 			i++;
 		}

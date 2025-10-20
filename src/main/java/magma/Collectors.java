@@ -21,7 +21,7 @@ public class Collectors {
 
 		@Override
 		public ArrayList<T> fold(ArrayList<T> current, T element) {
-			return current.add(element);
+			return current.addLast(element);
 		}
 	}
 

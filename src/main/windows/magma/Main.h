@@ -1,5 +1,16 @@
 #ifndef MAIN_H
 #define MAIN_H
+#include "../magma/Collections.h"
+#include "../magma/Collectors.h"
+#include "../magma/IO.h"
+#include "../magma/JavaImpl.h"
+#include "../magma/Options.h"
+#include "../magma/Results.h"
+#include "../magma/Streams.h"
+#include "../java/util.h"
+#include "../java/util/function.h"
+#include "../java/util/regex.h"
+#include "../java/util/stream.h"
 enum DefinableTag {
 	Definition,
 	Placeholder
@@ -42,6 +53,7 @@ struct ParseState {
 	ArrayList<char*> structs;
 	ArrayList<char*> functions;
 	int counter;
+	ArrayList<char*> includes;
 };
 struct DivideState {
 	char* input;
@@ -71,6 +83,10 @@ struct Content {
 };
 struct CIdentifier {
 	char* value;
+};
+struct Location {
+	ArrayList<char*> namespace;
+	char* name;
 };
 struct Main {
 };

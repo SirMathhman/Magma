@@ -59,7 +59,7 @@ void ensureCapacity_ArrayList(int minCapacity){
 	newElements.length = (this.elements).length;
 	this.elements = newElements;
 }
-ArrayList<T> add_ArrayList(T element){
+ArrayList<T> addLast_ArrayList(T element){
 	this.ensureCapacity((this.elements).length + 1);
 	this.elements.setNext(element);
 	return this;
@@ -90,9 +90,6 @@ ArrayList<T> addFirst_ArrayList(T element){
 	this.elements.setFirst(element);
 	this.elements.length++;
 	return this;
-}
-ArrayList<T> addLast_ArrayList(T element){
-	return this.add(element);
 }
 boolean contains_ArrayList(T element){
 	return this.elements.contains(element);

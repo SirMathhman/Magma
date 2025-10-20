@@ -1,5 +1,7 @@
 #ifndef COLLECTORS_H
 #define COLLECTORS_H
+#include "../magma/Collections.h"
+#include "../java/util/function.h"
 template <typeparam T, typeparam C>
 struct Collector {
 };

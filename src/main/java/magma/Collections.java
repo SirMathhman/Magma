@@ -86,7 +86,7 @@ public class Collections {
 			this.elements = newElements;
 		}
 
-		public ArrayList<T> add(T element) {
+		public ArrayList<T> addLast(T element) {
 			this.ensureCapacity((this.elements).length + 1);
 			this.elements.setNext(element);
 			return this;
@@ -124,10 +124,6 @@ public class Collections {
 			this.elements.setFirst(element);
 			this.elements.length++;
 			return this;
-		}
-
-		public ArrayList<T> addLast(T element) {
-			return this.add(element);
 		}
 
 		public boolean contains(T element) {

@@ -1,5 +1,6 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
+#include "../java/util/function.h"
 enum OptionTag {
 	Some,
 	None

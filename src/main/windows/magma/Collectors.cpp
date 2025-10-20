@@ -10,7 +10,7 @@ ArrayList<T> createInitial_ListCollector(){
 	return new_ArrayList<T>();
 }
 ArrayList<T> fold_ListCollector(ArrayList<T> current, T element){
-	return current.add(element);
+	return current.addLast(element);
 }
 Joiner new_Joiner(char* delimiter){
 	Joiner this;
