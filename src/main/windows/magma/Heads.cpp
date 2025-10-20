@@ -1,0 +1,107 @@
+// File generated from 'JavaPath[path=.\src\main\java\magma\Heads.java]'. This is not source code!
+#include "Main.h"
+template <typeparam T>
+struct Head {
+};
+template <typeparam T>
+struct ListHead {
+	ArrayList<T> self;
+	int index;
+};
+template <typeparam T>
+struct ArrayHead {
+	T* elements;
+	int length;
+	int counter;
+};
+template <typeparam T>
+struct SingletonHead {
+	T value;
+	boolean retrieved;
+};
+template <typeparam T, typeparam R>
+struct FlatMapHead {
+	Head<T> sourceHead;
+	Function<T, Stream<R>> mapper;
+	Option<Stream<R>> currentStream;
+};
+struct Heads {
+};
+Option<T> next_Head();
+ListHead new_ListHead(ArrayList<T> self){
+	ListHead this;
+	this.self = self;
+	this.index = 0;
+	return this;
+}
+Option<T> next_ListHead(){
+	if (this.index < this.self.size()) {
+		return this.self.get(this.index + );
+	}
+	return new_None<T>();
+}
+ArrayHead new_ArrayHead(T* elements, int length){
+	ArrayHead this;
+	this.elements = elements;
+	this.counter = 0;
+	this.length = length;
+	return this;
+}
+Option<T> next_ArrayHead(){
+	if (this.counter < this.length) {
+		T element = /* this.elements[this.counter]*/;
+		this.counter++;
+		return new_Some<T>(element);
+	}
+	else {
+		return new_None<T>();
+	}
+}
+SingletonHead new_SingletonHead(T value){
+	SingletonHead this;
+	this.value = value;
+	this.retrieved = false;
+	return this;
+}
+Option<T> next_SingletonHead(){
+	if (this.retrieved) {
+		return new_None<T>();
+	}
+	this.retrieved = true;
+	return new_Some<T>(this.value);
+}
+FlatMapHead new_FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper){
+	FlatMapHead this;
+	this.sourceHead = sourceHead;
+	this.mapper = mapper;
+	this.currentStream = new_None<Stream<R>>();
+	return this;
+}
+Option<R> next_FlatMapHead(){
+	while (true) {
+		/*// Try to get next element from current inner stream
+				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
+					Option<R> nextValue = stream.next();
+					if (nextValue instanceof Some<R> _) {
+						return nextValue;
+					}
+					// Current stream is exhausted, move to next
+					this.currentStream = new None<Stream<R>>();
+				}*/
+		stream
+				Option<T> nextSource = this.sourceHead.next();
+		if (nextSource.tag == Some) {
+		Some<T> _cast = nextSource.data.some;
+		T value = _cast.value;
+			this.currentStream = new_Some<Stream<R>>(this.mapper.apply(value));
+		}
+		else {
+			/*// No more source elements
+					return new None<R>()*/;
+		}
+	}
+}
+int main(){
+	main_Main();
+	return 0;
+}
