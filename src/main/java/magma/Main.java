@@ -549,7 +549,9 @@ public class Main {
 				return targetParent.createDirectories();
 			}
 
-			final String output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+			final String output =
+					"// File generated from '" + source + "'. This is not source code!" + System.lineSeparator() +
+					"#include \"Main.h\"" + System.lineSeparator() + compile(input);
 			return target.writeString(output);
 		}
 
@@ -1027,8 +1029,8 @@ public class Main {
 
 		final Tuple<String, ParseState> condition = compileExpression(expression, state);
 		final Tuple<String, ParseState> compiledBody = compileMethodSegmentValue(body, depth, condition.right);
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(type + " (" + condition.left + ") " + compiledBody.left,
-																																						 compiledBody.right));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(
+				type + " (" + condition.left + ") " + compiledBody.left, compiledBody.right));
 	}
 
 	private static Option<Tuple<String, ParseState>> compileBlock(ParseState state, String input, int depth) {
@@ -1296,7 +1298,8 @@ public class Main {
 		final String content = afterOperator + " _cast = " + targetAlias + ".data." + variantName.toLowerCase();
 		final String statement = generateStatement(content, 2) + parameters;
 		final ParseState parseState = maybeWithBeforeStatement.addAfterStatement(statement);
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(targetAlias + ".tag == " + variantName, parseState));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(targetAlias + ".tag == " + variantName,
+																																						 parseState));
 	}
 
 	private static Option<Tuple<String, ParseState>> compileChar(String stripped, ParseState state) {
@@ -1354,7 +1357,8 @@ public class Main {
 				new Tuple<StringJoiner, ParseState>(new StringJoiner(", "), value.right),
 				(tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
 		final String collect = reduce.left.toString();
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value.left + "(" + collect + ")", reduce.right));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value.left + "(" + collect + ")",
+																																						 reduce.right));
 	}
 
 	private static Tuple<StringJoiner, ParseState> mergeExpression(StringJoiner joiner,
@@ -1410,7 +1414,8 @@ public class Main {
 
 		final String generatedName = bodyResult.right.generateAnonymousFunctionName();
 		final String s1 = "auto " + generatedName + "(" + outputParams + ") " + bodyResult.left + System.lineSeparator();
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(generatedName, bodyResult.right.addFunction(s1)));
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(generatedName,
+																																						 bodyResult.right.addFunction(s1)));
 	}
 
 	private static Tuple<String, ParseState> compileLambdaBody(ParseState state, String body) {
@@ -1439,7 +1444,8 @@ public class Main {
 
 	private static Option<Tuple<CExpression, ParseState>> compileIdentifier(String input, ParseState state) {
 		if (isIdentifier(input)) {
-			return new Some<Tuple<CExpression, ParseState>>(new Tuple<CExpression, ParseState>(new CIdentifier(input), state));
+			return new Some<Tuple<CExpression, ParseState>>(new Tuple<CExpression, ParseState>(new CIdentifier(input),
+																																												 state));
 		}
 		return new None<Tuple<CExpression, ParseState>>();
 	}

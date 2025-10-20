@@ -1,4 +1,5 @@
 // File generated from 'JavaPath[path=.\src\main\java\magma\Main.java]'. This is not source code!
+#include "Main.h"
 template <typeparam T, typeparam C>
 struct Collector {
 };
@@ -512,7 +513,7 @@ Option<IOError> run_Main(){
 		char* input = _cast.input;
 			return targetParent.createDirectories();
 		}
-		char* output = "// File generated from '" + source + "'. This is not source code!\n" + compile(input);
+		char* output = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator() + "#include \"Main.h\"" + System.lineSeparator() + compile(input);
 		return target.writeString(output);
 	}
 	return new_None<IOError>();
