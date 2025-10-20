@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Heads.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Heads.java'. This is not source code!
 #include "Main.h"
 Option<T> next_Head();
 ListHead new_ListHead(ArrayList<T> self){

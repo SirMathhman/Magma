@@ -1,3 +1,4 @@
+// File generated from '.\src\main\java\magma\JavaImpl.java'. This is not source code!
 #ifndef JAVAIMPL_H
 #define JAVAIMPL_H
 #include "../magma/Collections.h"

@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Options.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Options.java'. This is not source code!
 #include "Main.h"
 Option<R> map_Option(Function<T, R> mapper);
 Option<T> or_Option(Supplier<Option<T>> other);

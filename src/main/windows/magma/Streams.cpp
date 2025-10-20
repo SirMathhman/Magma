@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Streams.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Streams.java'. This is not source code!
 #include "Main.h"
 auto __lambda0__() {
 	return this.head.next().map(mapper);

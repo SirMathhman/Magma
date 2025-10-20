@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\IO.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\IO.java'. This is not source code!
 #include "Main.h"
 char* display_IOError();
 boolean exists_Path();

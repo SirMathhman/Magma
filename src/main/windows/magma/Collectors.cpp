@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Collectors.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Collectors.java'. This is not source code!
 #include "Main.h"
 C createInitial_Collector();
 C fold_Collector(C current, T element);

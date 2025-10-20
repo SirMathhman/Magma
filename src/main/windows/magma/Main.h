@@ -1,3 +1,4 @@
+// File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 #ifndef MAIN_H
 #define MAIN_H
 #include "../magma/Collections.h"

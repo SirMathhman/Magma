@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Collections.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Collections.java'. This is not source code!
 #include "Main.h"
 private Array_Array(T* ref, int capacity){
 	this.ref = ref;

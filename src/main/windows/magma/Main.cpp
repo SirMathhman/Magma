@@ -1,4 +1,4 @@
-// File generated from 'JavaPath[path=.\src\main\java\magma\Main.java]'. This is not source code!
+// File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 #include "Main.h"
 char* generate_Definable();
 char* generate_CExpression();
@@ -198,9 +198,9 @@ Result<ArrayList<Path>, IOError> compileInput_Main(Path source, char* input, Pat
 	int separator = fileName.lastIndexOf(".");
 	char* name = fileName.substring(0, separator);
 	Tuple<char*, char*> compiled = compile(input, new_Location(namespace, name));
-	char* prefix = "// File generated from '" + source + "'. This is not source code!" + System.lineSeparator();
+	char* prefix = "// File generated from '" + source.asString() + "'. This is not source code!" + System.lineSeparator();
 	char* defined = name.toUpperCase() + "_H";
-	char* headerOutput = "#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left + "#endif";
+	char* headerOutput = prefix + "#ifndef " + defined + System.lineSeparator() + "#define " + defined + System.lineSeparator() + compiled.left + "#endif";
 	char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 	Path header = targetParent.resolveByString(name + ".h");
 	Path target = targetParent.resolveByString(name + ".cpp");

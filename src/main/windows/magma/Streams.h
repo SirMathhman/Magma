@@ -1,3 +1,4 @@
+// File generated from '.\src\main\java\magma\Streams.java'. This is not source code!
 #ifndef STREAMS_H
 #define STREAMS_H
 #include "../magma/Collectors.h"

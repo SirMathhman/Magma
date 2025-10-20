@@ -1,3 +1,4 @@
+// File generated from '.\src\main\java\magma\Heads.java'. This is not source code!
 #ifndef HEADS_H
 #define HEADS_H
 #include "../magma/Collections.h"
