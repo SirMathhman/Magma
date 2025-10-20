@@ -75,6 +75,7 @@ public class Main {
 			}
 			return accumulator;
 		}
+
 	}
 
 	private static final class Array<T> {
@@ -92,13 +93,13 @@ public class Main {
 			return new Array<T>(MemUtils.malloc(length), length);
 		}
 
-		private boolean contains(T element) {
-			for (int i = 0; i < this.length; i++) {
-				if (Objects.equals(Array.this.ref[i], element)) {
-					return true;
-				}
-			}
-			return false;
+		private boolean contains(T test) {
+			Stream<T> tStream = this.stream();
+			return tStream.collect(new AnyMatch<T>(element -> Objects.equals(element, test)));
+		}
+
+		private Stream<T> stream() {
+			return new Stream<T>(new ArrayHead<T>(this.ref, this.length));
 		}
 
 		public void setNext(T element) {
@@ -125,10 +126,6 @@ public class Main {
 		@Actual
 		private static <T> T[] malloc(int length) {
 			return (T[]) new Object[length];
-		}
-
-		@Actual
-		public static <T> void free(T[] elements) {
 		}
 
 		@Actual
@@ -274,8 +271,8 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
-		private ArrayList<String> structs;
 		private ArrayList<String> afterStatements;
+		private ArrayList<String> structs;
 		private ArrayList<String> functions;
 		private int counter;
 
@@ -439,8 +436,8 @@ public class Main {
 	}
 
 	private static class Streams {
-		public static <T> Stream<T> from(T[] elements) {
-			return new Stream<T>(new ArrayHead<T>(elements));
+		public static <T> Stream<T> fromRef(T[] elements) {
+			return new Stream<T>(new ArrayHead<T>(elements, elements.length));
 		}
 	}
 
@@ -502,22 +499,36 @@ public class Main {
 
 	private static class ArrayHead<T> implements Head<T> {
 		private final T[] elements;
+		private final int length;
 		private int counter;
 
-		public ArrayHead(T[] elements) {
+		public ArrayHead(T[] elements, int length) {
 			this.elements = elements;
 			this.counter = 0;
+			this.length = length;
 		}
 
 		@Override
 		public Optional<T> next() {
-			if (this.counter < this.elements.length) {
+			if (this.counter < this.length) {
 				final T element = this.elements[this.counter];
 				this.counter++;
 				return new Some<T>(element);
 			} else {
 				return new None<T>();
 			}
+		}
+	}
+
+	private record AnyMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+		@Override
+		public Boolean createInitial() {
+			return false;
+		}
+
+		@Override
+		public Boolean fold(Boolean current, T element) {
+			return current || this.predicate.test(element);
 		}
 	}
 
@@ -1042,7 +1053,6 @@ public class Main {
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
 			compiled = compiled.addAll(string.right.popBeforeStatements()).add(string.left);
-
 			current = string.right;
 			i++;
 		}
@@ -1387,8 +1397,8 @@ public class Main {
 		} else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 			final String withoutParentheses = beforeArrow.substring(1, beforeArrow.length() - 1);
 			final String[] array = withoutParentheses.split(Pattern.quote(","));
-			outputParams = Streams.from(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
-																																																					 slice).collect(
+			outputParams = Streams.fromRef(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
+																																																							slice).collect(
 					new Joiner(", "));
 
 		} else {
@@ -1584,8 +1594,8 @@ public class Main {
 		}
 
 		final String[] slices = withoutLast.substring(0, i).strip().split(Pattern.quote("\n"));
-		return Streams.from(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(1)).collect(
-				new ListCollector<String>());
+		return Streams.fromRef(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(
+				1)).collect(new ListCollector<String>());
 	}
 
 	private static DivideState foldTypeSeparator(DivideState state, Character c) {
