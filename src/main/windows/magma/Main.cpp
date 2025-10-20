@@ -2,6 +2,7 @@
 #include "Main.h"
 char* generate_Definable();
 char* generate_CExpression();
+ArrayList<> new_ArrayList<>();
 ParseState new_ParseState(){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -50,6 +51,10 @@ ParseState addIncludes_ParseState(char* include){
 	if (!this.includes.contains(include)) {
 		this.includes == this.includes.addLast(include);
 	}
+	return this;
+}
+ParseState addBeforeStruct_ParseState(char* beforeStruct){
+	this.beforeStructs == this.beforeStructs.addLast(beforeStruct);
 	return this;
 }
 DivideState new_DivideState(char* input){
@@ -226,9 +231,10 @@ Tuple<char*, char*> compile_Main(char* input, Location location){
 	}
 	char* joined = joiner.toString();
 	char* joinedIncludes = state.includes.stream().collect(new_Joiner(""));
+	char* joinedBeforeStructs = state.beforeStructs.stream().collect(new_Joiner(""));
 	char* joinedStructs = state.structs.stream().collect(new_Joiner(""));
 	char* joinedFunctions = state.functions.stream().collect(new_Joiner(""));
-	char* generatedHeaderContent = joinedIncludes + joinedStructs;
+	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs;
 	char* generatedSourceContent = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	return new_Tuple<char*, char*>(generatedHeaderContent, generatedSourceContent);
 }
@@ -463,7 +469,8 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
-	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", outer.addStruct(generated)));
+	ParseState parseState = outer.addBeforeStruct("struct " + name + ";" + System.lineSeparator()).addStruct(generated);
+	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
 char* compileValues_Main(char* input, Function<char*, char*> mapper){
 	return compileValues(input, mapper, ", ");

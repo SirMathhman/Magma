@@ -5,6 +5,9 @@
 #include "../magma/Options.h"
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
+struct IOError;
+struct Path;
+struct IO;
 struct IOError {
 };
 struct Path {

@@ -4,6 +4,14 @@
 #include "../magma/Collections.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
+struct Head;
+struct ListHead;
+struct ArrayHead;
+struct SingletonHead;
+struct FlatMapHead;
+struct RangeHead;
+struct EmptyHead;
+struct Heads;
 template <typename T>
 struct Head {
 };

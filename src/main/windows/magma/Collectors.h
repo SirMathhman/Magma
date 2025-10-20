@@ -3,6 +3,13 @@
 #define COLLECTORS_H
 #include "../magma/Collections.h"
 #include "../magma/Results.h"
+struct Collector;
+struct ListCollector;
+struct Joiner;
+struct AnyMatch;
+struct ResultCollector;
+struct AllMatch;
+struct Collectors;
 template <typename T, typename C>
 struct Collector {
 };

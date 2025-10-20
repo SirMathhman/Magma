@@ -5,6 +5,8 @@
 #include "../magma/Heads.h"
 #include "../magma/Main.h"
 #include "../magma/Options.h"
+struct Stream;
+struct Streams;
 template <typename T>
 struct Stream {
 	Head<T> head;

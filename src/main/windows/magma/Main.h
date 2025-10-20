@@ -8,6 +8,19 @@
 #include "../magma/Options.h"
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
+struct Definable;
+struct JMethodHeader;
+struct CExpression;
+struct ParseState;
+struct DivideState;
+struct Tuple;
+struct Definition;
+struct Placeholder;
+struct JConstructor;
+struct Content;
+struct CIdentifier;
+struct Location;
+struct Main;
 enum DefinableTag {
 	Definition,
 	Placeholder

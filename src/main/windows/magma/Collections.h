@@ -6,6 +6,9 @@
 #include "../magma/Main.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
+struct Array;
+struct ArrayList;
+struct Collections;
 template <typename T>
 struct Array {
 	T* ref;

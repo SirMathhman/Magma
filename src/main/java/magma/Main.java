@@ -37,6 +37,7 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
+		public ArrayList<String> beforeStructs = new ArrayList<>();
 		private ArrayList<String> afterStatements;
 		private ArrayList<String> structs;
 		private ArrayList<String> functions;
@@ -100,6 +101,11 @@ public class Main {
 			if (!this.includes.contains(include)) {
 				this.includes = this.includes.addLast(include);
 			}
+			return this;
+		}
+
+		public ParseState addBeforeStruct(String beforeStruct) {
+			this.beforeStructs = this.beforeStructs.addLast(beforeStruct);
 			return this;
 		}
 	}
@@ -327,10 +333,12 @@ public class Main {
 		final String joined = joiner.toString();
 
 		final String joinedIncludes = state.includes.stream().collect(new Joiner(""));
+
+		final String joinedBeforeStructs = state.beforeStructs.stream().collect(new Joiner(""));
 		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
 		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
 
-		final String generatedHeaderContent = joinedIncludes + joinedStructs;
+		final String generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs;
 		final String generatedSourceContent =
 				joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
 				System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
@@ -586,7 +594,10 @@ public class Main {
 		final String generated =
 				generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() +
 				"};" + System.lineSeparator();
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", outer.addStruct(generated)));
+
+		final ParseState parseState =
+				outer.addBeforeStruct("struct " + name + ";" + System.lineSeparator()).addStruct(generated);
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {

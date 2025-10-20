@@ -2,6 +2,10 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 #include "../magma/Main.h"
+struct Option;
+struct Some;
+struct None;
+struct Options;
 enum OptionTag {
 	Some,
 	None
