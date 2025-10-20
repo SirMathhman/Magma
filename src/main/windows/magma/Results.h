@@ -5,21 +5,21 @@ enum ResultTag {
 	Err,
 	Ok
 };
-template <typeparam T, typeparam X>
+template <typename T, typename X>
 union ResultData {
 	Err<T, X> err;
 	Ok<T, X> ok;
 };
-template <typeparam T, typeparam X>
+template <typename T, typename X>
 struct Result {
 	ResultTag tag;
 	ResultData<T, X> data;
 };
-template <typeparam T, typeparam X>
+template <typename T, typename X>
 struct Ok {
 	T value;
 };
-template <typeparam T, typeparam X>
+template <typename T, typename X>
 struct Err {
 	X error;
 };

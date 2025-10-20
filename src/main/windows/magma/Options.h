@@ -6,21 +6,21 @@ enum OptionTag {
 	Some,
 	None
 };
-template <typeparam T>
+template <typename T>
 union OptionData {
 	Some<T> some;
 	None<T> none;
 };
-template <typeparam T>
+template <typename T>
 struct Option {
 	OptionTag tag;
 	OptionData<T> data;
 };
-template <typeparam T>
+template <typename T>
 struct Some {
 	T value;
 };
-template <typeparam T>
+template <typename T>
 struct None {
 };
 struct Options {

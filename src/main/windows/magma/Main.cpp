@@ -345,7 +345,9 @@ Tuple<char*, ParseState> compileRootSegment_Main(char* input, ParseState state, 
 		char* joined = Streams.fromLength(location.namespace.size()).map(/*_ -> ".."*/).collect(new_Joiner("/"));
 		ArrayList<char*> segments = divisions.subList(0, divisions.size() - 1).orElse(new_ArrayList<>());
 		ParseState newState;
-		if (segments.equalsTo(ArrayList.from("java", "util", "function"))) {
+	??? _temp = segments.getFirst();
+		if (_temp.tag == Some) {
+		Some<String> _cast = _temp.data.some;
 			newState = state;
 		}
 		else {
@@ -441,7 +443,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 	}
 	else {
 		char* collect = /*
-					"<" + typeParameters.stream().map(slice -> "typeparam " + slice).collect(new Joiner(", ")) + ">"*/;
+					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">"*/;
 		char* templateValues = collect + System.lineSeparator();
 		templateString = "template " + templateValues;
 	}

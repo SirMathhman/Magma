@@ -5,7 +5,7 @@
 #include "../magma/Heads.h"
 #include "../magma/Main.h"
 #include "../magma/Options.h"
-template <typeparam T>
+template <typename T>
 struct Stream {
 	Head<T> head;
 };

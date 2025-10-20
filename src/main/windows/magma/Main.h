@@ -8,9 +8,6 @@
 #include "../magma/Options.h"
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
-#include "../java/util.h"
-#include "../java/util/regex.h"
-#include "../java/util/stream.h"
 enum DefinableTag {
 	Definition,
 	Placeholder
@@ -62,7 +59,7 @@ struct DivideState {
 	int depth;
 	int index;
 };
-template <typeparam A, typeparam B>
+template <typename A, typename B>
 struct Tuple {
 	A left;
 	B right;

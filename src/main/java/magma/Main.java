@@ -291,7 +291,8 @@ public class Main {
 		final String name = fileName.substring(0, separator);
 
 		final Tuple<String, String> compiled = compile(input, new Location(namespace, name));
-		final String prefix = "// File generated from '" + source.asString() + "'. This is not source code!" + System.lineSeparator();
+		final String prefix =
+				"// File generated from '" + source.asString() + "'. This is not source code!" + System.lineSeparator();
 
 		final String defined = name.toUpperCase() + "_H";
 		final String headerOutput =
@@ -450,7 +451,7 @@ public class Main {
 			final String joined = Streams.fromLength(location.namespace.size()).map(_ -> "..").collect(new Joiner("/"));
 			final ArrayList<String> segments = divisions.subList(0, divisions.size() - 1).orElse(new ArrayList<>());
 			final ParseState newState;
-			if (segments.equalsTo(ArrayList.from("java", "util", "function"))) {
+			if (segments.getFirst() instanceof Some<String>(String first) && first.startsWith("java")) {
 				newState = state;
 			} else {
 				final String folded = segments.stream().foldWithInitial(joined, (string, string2) -> string + "/" + string2);
@@ -551,7 +552,7 @@ public class Main {
 			templateString = "";
 		} else {
 			final String collect =
-					"<" + typeParameters.stream().map(slice -> "typeparam " + slice).collect(new Joiner(", ")) + ">";
+					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">";
 
 			final String templateValues = collect + System.lineSeparator();
 			templateString = "template " + templateValues;

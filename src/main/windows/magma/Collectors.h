@@ -3,24 +3,24 @@
 #define COLLECTORS_H
 #include "../magma/Collections.h"
 #include "../magma/Results.h"
-template <typeparam T, typeparam C>
+template <typename T, typename C>
 struct Collector {
 };
-template <typeparam T>
+template <typename T>
 struct ListCollector {
 };
 struct Joiner {
 	char* delimiter;
 };
-template <typeparam T>
+template <typename T>
 struct AnyMatch {
 	Predicate<T> predicate;
 };
-template <typeparam T, typeparam X, typeparam C>
+template <typename T, typename X, typename C>
 struct ResultCollector {
 	Collector<T, C> collector;
 };
-template <typeparam T>
+template <typename T>
 struct AllMatch {
 	Predicate<T> predicate;
 };

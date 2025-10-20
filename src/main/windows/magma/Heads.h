@@ -4,26 +4,26 @@
 #include "../magma/Collections.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
-template <typeparam T>
+template <typename T>
 struct Head {
 };
-template <typeparam T>
+template <typename T>
 struct ListHead {
 	ArrayList<T> self;
 	int index;
 };
-template <typeparam T>
+template <typename T>
 struct ArrayHead {
 	T* elements;
 	int length;
 	int counter;
 };
-template <typeparam T>
+template <typename T>
 struct SingletonHead {
 	T value;
 	boolean retrieved;
 };
-template <typeparam T, typeparam R>
+template <typename T, typename R>
 struct FlatMapHead {
 	Head<T> sourceHead;
 	Function<T, Stream<R>> mapper;
@@ -33,7 +33,7 @@ struct RangeHead {
 	int length;
 	int index;
 };
-template <typeparam T>
+template <typename T>
 struct EmptyHead {
 };
 struct Heads {

@@ -6,14 +6,13 @@
 #include "../magma/Main.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
-#include "../java/util.h"
-template <typeparam T>
+template <typename T>
 struct Array {
 	T* ref;
 	int capacity;
 	int length;
 };
-template <typeparam T>
+template <typename T>
 struct ArrayList {
 	Array<T> elements;
 };
