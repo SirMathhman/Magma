@@ -1,0 +1,3 @@
+package magma;
+
+@interface Actual {}

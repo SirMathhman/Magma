@@ -69,7 +69,7 @@ auto __lambda0__() {
 Path resolveByPath_JavaPath(Path path){
 	return new_JavaPath(path.stream().foldWithInitial(this.path, resolve_/*java.nio.file.Path*/));
 }
-Lib.Stream<char*> stream_JavaPath(){
+Streams.Stream<char*> stream_JavaPath(){
 	int length = this.path.getNameCount();
 	return Streams.fromLength(length).map(getName_/*this.path*/).map(toString_/*java.nio.file.Path*/);
 }

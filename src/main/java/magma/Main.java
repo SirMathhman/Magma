@@ -1,19 +1,18 @@
 package magma;
 
+import magma.Collections.ArrayList;
+import magma.Collectors.Joiner;
+import magma.Collectors.ListCollector;
+import magma.IO.IOError;
+import magma.IO.Path;
 import magma.JavaImpl.Paths;
-import magma.Lib.ArrayList;
-import magma.Lib.IOError;
-import magma.Lib.Joiner;
-import magma.Lib.ListCollector;
-import magma.Lib.Path;
-import magma.Lib.Stream;
-import magma.Lib.Streams;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
 import magma.Results.Err;
 import magma.Results.Ok;
 import magma.Results.Result;
+import magma.Streams.Stream;
 
 import java.util.Objects;
 import java.util.Stack;

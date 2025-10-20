@@ -25,6 +25,13 @@ struct FlatMapHead {
 	Function<T, Stream<R>> mapper;
 	Option<Stream<R>> currentStream;
 };
+struct RangeHead {
+	int length;
+	int index;
+};
+template <typeparam T>
+struct EmptyHead {
+};
 struct Heads {
 };
 Option<T> next_Head();
@@ -100,6 +107,26 @@ Option<R> next_FlatMapHead(){
 					return new None<R>()*/;
 		}
 	}
+}
+private RangeHead_RangeHead(int length){
+	this.length = length;
+	this.index = 0;
+}
+RangeHead createRangeStream_RangeHead(int length){
+	return new_RangeHead(length);
+}
+Option<Integer> next_RangeHead(){
+	if (this.index < this.length) {
+		int preserve = this.index;
+		this.index++;
+		return new_Some<Integer>(preserve);
+	}
+	else {
+		return new_None<Integer>();
+	}
+}
+Option<T> next_EmptyHead(){
+	return new_None<T>();
 }
 int main(){
 	main_Main();

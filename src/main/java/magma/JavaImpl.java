@@ -1,11 +1,9 @@
 package magma;
 
-import magma.Lib.Actual;
-import magma.Lib.ArrayList;
-import magma.Lib.IOError;
-import magma.Lib.ListCollector;
-import magma.Lib.Path;
-import magma.Lib.Streams;
+import magma.Collections.ArrayList;
+import magma.Collectors.ListCollector;
+import magma.IO.IOError;
+import magma.IO.Path;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
@@ -96,7 +94,7 @@ public class JavaImpl {
 		}
 
 		@Override
-		public Lib.Stream<String> stream() {
+		public Streams.Stream<String> stream() {
 			final int length = this.path.getNameCount();
 			return Streams.fromLength(length).map(this.path::getName).map(java.nio.file.Path::toString);
 		}

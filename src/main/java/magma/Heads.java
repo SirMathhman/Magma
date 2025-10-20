@@ -1,10 +1,10 @@
 package magma;
 
-import magma.Lib.ArrayList;
-import magma.Lib.Stream;
+import magma.Collections.ArrayList;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
+import magma.Streams.Stream;
 
 import java.util.function.Function;
 
@@ -107,6 +107,38 @@ public class Heads {
 					return new None<R>();
 				}
 			}
+		}
+	}
+
+	static class RangeHead implements Head<Integer> {
+		private final int length;
+		private int index;
+
+		private RangeHead(int length) {
+			this.length = length;
+			this.index = 0;
+		}
+
+		public static RangeHead createRangeStream(int length) {
+			return new RangeHead(length);
+		}
+
+		@Override
+		public Option<Integer> next() {
+			if (this.index < this.length) {
+				final int preserve = this.index;
+				this.index++;
+				return new Some<Integer>(preserve);
+			} else {
+				return new None<Integer>();
+			}
+		}
+	}
+
+	static class EmptyHead<T> implements Head<T> {
+		@Override
+		public Option<T> next() {
+			return new None<T>();
 		}
 	}
 }
