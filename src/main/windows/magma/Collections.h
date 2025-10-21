@@ -3,9 +3,9 @@
 #define COLLECTIONS_H
 #include "../magma/Collectors.h"
 #include "../magma/Heads.h"
-#include "../magma/Utils.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
+#include "../magma/Utils.h"
 template <typename T>
 struct Array;
 template <typename T>
