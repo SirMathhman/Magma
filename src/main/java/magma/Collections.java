@@ -189,6 +189,8 @@ public class Collections {
 
 		public ArrayList<T> copy() {
 			final ArrayList<T> list = new ArrayList<T>();
+			list.ensureCapacity(this.elements.length);
+
 			if ((this.elements).length >= 0) {
 				this.elements.copyTo(0, list.elements, 0, (this.elements).length);
 				list.elements.length = (this.elements).length;
@@ -198,8 +200,10 @@ public class Collections {
 
 		public boolean equalsTo(ArrayList<T> other) {
 			if (this.size() == other.size()) {
-				return this.stream().zip(other.stream()).collect(new AllMatch<Tuple<T, T>>(ttTuple -> ttTuple.left().equals(
-						ttTuple.right())));
+				return this
+						.stream()
+						.zip(other.stream())
+						.collect(new AllMatch<Tuple<T, T>>(ttTuple -> ttTuple.left().equals(ttTuple.right())));
 			}
 
 			return false;

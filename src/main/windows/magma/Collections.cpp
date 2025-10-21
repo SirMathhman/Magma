@@ -138,6 +138,7 @@ Option<T> getLast_ArrayList(void* _ref){
 }
 ArrayList<T> copy_ArrayList(void* _ref){
 	ArrayList<T> list = new_ArrayList<T>();
+	list.ensureCapacity(this.elements.length);
 	if ((this.elements).length >= 0) {
 		this.elements.copyTo(0, list.elements, 0, (this.elements).length);
 		list.elements.length = (this.elements).length;

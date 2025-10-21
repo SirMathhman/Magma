@@ -61,6 +61,8 @@ struct CExpression {
 };
 struct ParseState {
 	Stack<ArrayList<char*>> beforeStatements;
+	ArrayList<char*> beforeStructs;
+	ArrayList<char*> functionDeclarations;
 	ArrayList<char*> afterStatements;
 	ArrayList<char*> structs;
 	ArrayList<char*> functions;

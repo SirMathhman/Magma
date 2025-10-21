@@ -40,7 +40,8 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
-		public ArrayList<String> beforeStructs = new ArrayList<String>();
+		public ArrayList<String> beforeStructs;
+		private ArrayList<String> functionDeclarations;
 		private ArrayList<String> afterStatements;
 		private ArrayList<String> structs;
 		private ArrayList<String> functions;
@@ -57,6 +58,8 @@ public class Main {
 			this.afterStatements = new ArrayList<String>();
 			this.counter = -1;
 			this.includes = new ArrayList<String>();
+			this.beforeStructs = new ArrayList<String>();
+			this.functionDeclarations = new ArrayList<String>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -110,6 +113,17 @@ public class Main {
 		public ParseState addBeforeStruct(String beforeStruct) {
 			this.beforeStructs = this.beforeStructs.addLast(beforeStruct);
 			return this;
+		}
+
+		public ParseState addFunctionDeclaration(String functionDeclaration) {
+			this.functionDeclarations = this.functionDeclarations.addLast(functionDeclaration);
+			return this;
+		}
+
+		public ArrayList<String> popFunctionDeclarations() {
+			final ArrayList<String> copy = this.functionDeclarations.copy();
+			this.functionDeclarations = this.functionDeclarations.clear();
+			return copy;
 		}
 	}
 
@@ -609,17 +623,17 @@ public class Main {
 			templateString = "template " + templateValues;
 		}
 
+		final String joinedTypeParameters;
+		if (typeParameters.isEmpty()) {
+			joinedTypeParameters = "";
+		} else {
+			joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
+		}
+
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
 			final String enumFields =
 					variants.stream().map(slice -> generateIndent(1) + slice + "Tag").collect(new Joiner(","));
-
-			final String joinedTypeParameters;
-			if (typeParameters.isEmpty()) {
-				joinedTypeParameters = "";
-			} else {
-				joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
-			}
 
 			final String unionFields = variants
 					.stream()
@@ -636,9 +650,13 @@ public class Main {
 			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 		} else if (type.equals("interface")) {
 			final String vTableName = name + "VTable";
-			generatedSubStructs = "struct " + vTableName + " {};" + System.lineSeparator();
+
+			final String functionDeclarations = outer.popFunctionDeclarations().stream().collect(new Joiner());
+			generatedSubStructs =
+					templateString + "struct " + vTableName + " {" + functionDeclarations + System.lineSeparator() + "};" +
+					System.lineSeparator();
 			recordFields += generateStatement("void* data", 1);
-			recordFields += generateStatement(vTableName + " vtable", 1);
+			recordFields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 		}
 
 		final String generated =
@@ -761,9 +779,10 @@ public class Main {
 
 		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 
-		final String outputBodyWithBraces;
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
-			outputBodyWithBraces = ";";
+			final ParseState withFunctionDeclaration = state.addFunctionDeclaration(generateStatement(outputMethodHeader,
+																																																1));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", withFunctionDeclaration));
 		} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
 			final Tuple<ArrayList<String>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
@@ -775,13 +794,14 @@ public class Main {
 			}
 
 			final String joined = statements.stream().collect(new Joiner(""));
-			outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
+			final String outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
+
+			final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
+			final ParseState parseState = state.addFunction(generated);
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 		} else {
 			return new None<Tuple<String, ParseState>>();
 		}
-
-		final String generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", state.addFunction(generated)));
 	}
 
 	private static boolean isPlatformDependentMethod(JMethodHeader methodHeader) {
@@ -805,13 +825,6 @@ public class Main {
 				.<JMethodHeader>map(definable -> definable)
 				.or(() -> compileConstructor(beforeParams))
 				.orElseGet(() -> new Placeholder(beforeParams));
-	}
-
-	private static String compileParameters(String input) {
-		if (input.isEmpty()) {
-			return "";
-		}
-		return compileValues(input, slice -> compileDefinition(slice).map(Definable::generate).orElse(""));
 	}
 
 	private static Tuple<String, ParseState> compileMethodSegment(String input, int depth, ParseState state) {

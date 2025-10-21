@@ -15,11 +15,15 @@ struct ResultCollector;
 template <typename T>
 struct AllMatch;
 struct Collectors;
-struct CollectorVTable {};
+template <typename T, typename C>
+struct CollectorVTable {
+	C createInitial_Collector(void* _ref);
+	C fold_Collector(void* _ref, C current, T element);
+};
 template <typename T, typename C>
 struct Collector {
 	void* data;
-	CollectorVTable vtable;
+	CollectorVTable<T, C> vtable;
 };
 template <typename T>
 struct ListCollector {
