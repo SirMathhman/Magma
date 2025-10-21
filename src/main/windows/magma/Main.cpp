@@ -162,7 +162,10 @@ Option<IOError> run_Main(){
 Option<IOError> runBuildFile_Main(Path targetDirectory, Path path){
 	/*try {
 			final ProcessBuilder builder =
-					new ProcessBuilder("cmd.exe", "/c", targetDirectory.relativize(path).asString()).directory(JavaPath.unwrap(targetDirectory).toFile());
+					new ProcessBuilder("cmd.exe", "/c", targetDirectory.relativize(path).asString()).directory(JavaPath
+																																																				 .unwrap(
+																																																						 targetDirectory)
+																																																				 .toFile());
 
 			// Use the parent's console so the spawned process' stdout/stderr show up
 			builder.inheritIO();
@@ -187,7 +190,7 @@ Result<Path, IOError> writeBuildFile_Main(Ok<ArrayList<ArrayList<Path>>, IOError
 	Path path = targetDirectory.resolveByString("build.bat");
 	char* joined = list.stream().map(relativize_targetDirectory).map(asString_Path).map(__lambda2__).collect(new_Joiner(" "));
 	return /*switch (path.writeString("clang " + joined + " -o magmac.exe")) {
-			case None<IOError> v -> new Ok<Path, IOError>(path);
+			case None<IOError> _ -> new Ok<Path, IOError>(path);
 			case Some<IOError> v -> new Err<Path, IOError>(v.value());
 		}*/;
 }
@@ -497,10 +500,10 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
-char* compileValues_Main(char* input, Function<char*, char*> mapper){
+char* compileValues_Main(char* input, char* (*)(char*) mapper){
 	return compileValues(input, mapper, ", ");
 }
-char* compileValues_Main(char* input, Function<char*, char*> mapper, char* delimiter){
+char* compileValues_Main(char* input, char* (*)(char*) mapper, char* delimiter){
 	return divide(input, foldValue_Main).map(mapper).collect(new_Joiner(delimiter));
 }
 auto __lambda14__() {
@@ -1301,13 +1304,7 @@ DivideState foldTypeSeparator_Main(DivideState state, Character c){
 	}
 	return appended;
 }
-auto __lambda62__() {
-	return wrap(slice);
-}
-auto __lambda63__(auto slice) {
-	return compileType(slice).orElseGet(__lambda62__);
-}
-auto __lambda64__(auto result) {
+auto __lambda62__(auto result) {
 	return result + "*";
 }
 Option<char*> compileType_Main(char* input){
@@ -1321,13 +1318,20 @@ Option<char*> compileType_Main(char* input){
 		if (argumentStart >= 0) {
 			char* base = withoutEnd.substring(0, argumentStart);
 			char* argumentsString = withoutEnd.substring(argumentStart + "<".length());
-			char* arguments = compileValues(argumentsString, __lambda63__);
-			return new_Some<char*>(base + "<" + arguments + ">");
+			ArrayList<char*> arguments = divide(argumentsString, foldValue_Main).map(compileTypeOrPlaceholder_Main).collect(new_ListCollector<char*>());
+	??? _temp = base.equals("Function") && arguments.get(0);
+			if (_temp.tag == Some) {
+		Some<String> _cast = _temp.data.some;
+		/*Some<String>(String*/ returns = _cast.returns;
+				return new_Some<char*>(returns + " (*)(" + arg + ")");
+			}
+			char* outputArguments = arguments.stream().collect(new_Joiner(", "));
+			return new_Some<char*>(base + "<" + outputArguments + ">");
 		}
 	}
 	if (stripped.endsWith("[]")) {
 		char* slice = stripped.substring(0, stripped.length() - 2);
-		return compileType(slice).map(__lambda64__);
+		return compileType(slice).map(__lambda62__);
 	}
 	if (stripped.equals("String")) {
 		return new_Some<char*>("char*");
@@ -1339,6 +1343,12 @@ Option<char*> compileType_Main(char* input){
 		return new_Some<char*>(stripped);
 	}
 	return new_Some<char*>(wrap(stripped));
+}
+auto __lambda63__() {
+	return wrap(slice);
+}
+char* compileTypeOrPlaceholder_Main(char* slice){
+	return compileType(slice).orElseGet(__lambda63__);
 }
 char* wrap_Main(char* input){
 	char* replaced = input.replace("/*", "start").replace("*/", "end");

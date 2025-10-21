@@ -251,7 +251,10 @@ public class Main {
 	private static Option<IOError> runBuildFile(Path targetDirectory, Path path) {
 		try {
 			final ProcessBuilder builder =
-					new ProcessBuilder("cmd.exe", "/c", targetDirectory.relativize(path).asString()).directory(JavaPath.unwrap(targetDirectory).toFile());
+					new ProcessBuilder("cmd.exe", "/c", targetDirectory.relativize(path).asString()).directory(JavaPath
+																																																				 .unwrap(
+																																																						 targetDirectory)
+																																																				 .toFile());
 
 			// Use the parent's console so the spawned process' stdout/stderr show up
 			builder.inheritIO();
@@ -272,12 +275,14 @@ public class Main {
 		final ArrayList<Path> list = v1.value().stream().flatMap(ArrayList::stream).collect(new ListCollector<Path>());
 
 		final Path path = targetDirectory.resolveByString("build.bat");
-		final String joined = list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice + "^" +
-																																																					System.lineSeparator() +
-																																																					"\t").collect(
-				new Joiner(" "));
+		final String joined = list
+				.stream()
+				.map(targetDirectory::relativize)
+				.map(Path::asString)
+				.map(slice -> slice + "^" + System.lineSeparator() + "\t")
+				.collect(new Joiner(" "));
 		return switch (path.writeString("clang " + joined + " -o magmac.exe")) {
-			case None<IOError> v -> new Ok<Path, IOError>(path);
+			case None<IOError> _ -> new Ok<Path, IOError>(path);
 			case Some<IOError> v -> new Err<Path, IOError>(v.value());
 		};
 	}
@@ -291,10 +296,11 @@ public class Main {
 	private static Result<ArrayList<ArrayList<Path>>, IOError> compileSources(ArrayList<Path> sources,
 																																						Path sourceDirectory,
 																																						Path targetDirectory) {
-		return sources.stream().filter(path -> path.asString().endsWith(".java")).map(source -> compileSource(source,
-																																																					sourceDirectory,
-																																																					targetDirectory)).collect(
-				new ResultCollector<ArrayList<Path>, IOError, ArrayList<ArrayList<Path>>>(new ListCollector<ArrayList<Path>>()));
+		return sources
+				.stream()
+				.filter(path -> path.asString().endsWith(".java"))
+				.map(source -> compileSource(source, sourceDirectory, targetDirectory))
+				.collect(new ResultCollector<ArrayList<Path>, IOError, ArrayList<ArrayList<Path>>>(new ListCollector<ArrayList<Path>>()));
 	}
 
 	private static Result<ArrayList<Path>, IOError> compileSource(Path source,
@@ -397,8 +403,9 @@ public class Main {
 	private static DivideState foldEscaped(DivideState state,
 																				 char next,
 																				 BiFunction<DivideState, Character, DivideState> folder) {
-		return foldSingleQuotes(state, next).or(() -> foldDoubleQuotes(state, next)).orElseGet(() -> folder.apply(state,
-																																																							next));
+		return foldSingleQuotes(state, next)
+				.or(() -> foldDoubleQuotes(state, next))
+				.orElseGet(() -> folder.apply(state, next));
 	}
 
 	private static Option<DivideState> foldSingleQuotes(DivideState state, char next) {
@@ -524,8 +531,10 @@ public class Main {
 		final int permitsIndex = beforeContent.indexOf("permits");
 		if (permitsIndex >= 0) {
 			final String slice = beforeContent.substring(permitsIndex + "permits".length());
-			variants = divide(slice,
-												Main::foldValue).map(String::strip).filter(segment -> !segment.isEmpty()).collect(new ListCollector<String>());
+			variants = divide(slice, Main::foldValue)
+					.map(String::strip)
+					.filter(segment -> !segment.isEmpty())
+					.collect(new ListCollector<String>());
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
@@ -608,10 +617,11 @@ public class Main {
 				joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
 			}
 
-			final String unionFields = variants.stream().map(slice -> slice + joinedTypeParameters + " " +
-																																slice.toLowerCase()).map(content1 -> generateStatement(
-					content1,
-					1)).collect(new Joiner());
+			final String unionFields = variants
+					.stream()
+					.map(slice -> slice + joinedTypeParameters + " " + slice.toLowerCase())
+					.map(content1 -> generateStatement(content1, 1))
+					.collect(new Joiner());
 
 			generatedSubStructs =
 					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
@@ -698,15 +708,15 @@ public class Main {
 			return new Tuple<String, ParseState>("", state);
 		}
 
-		return compileStructure(input, "class", state).or(() -> compileStructure(input,
-																																						 "record",
-																																						 state)).or(() -> compileStructure(input,
-																																																							 "interface",
-																																																							 state)).or(
-				() -> compileField(input, state)).or(() -> compileMethod(input, name, state)).orElseGet(() -> {
-			final String generated = generateSegment(wrap(input), 1);
-			return new Tuple<String, ParseState>(generated, state);
-		});
+		return compileStructure(input, "class", state)
+				.or(() -> compileStructure(input, "record", state))
+				.or(() -> compileStructure(input, "interface", state))
+				.or(() -> compileField(input, state))
+				.or(() -> compileMethod(input, name, state))
+				.orElseGet(() -> {
+					final String generated = generateSegment(wrap(input), 1);
+					return new Tuple<String, ParseState>(generated, state);
+				});
 	}
 
 	private static Option<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
@@ -770,8 +780,10 @@ public class Main {
 	}
 
 	private static JMethodHeader compileMethodHeader(String beforeParams) {
-		return compileDefinition(beforeParams).<JMethodHeader>map(definable -> definable).or(() -> compileConstructor(
-				beforeParams)).orElseGet(() -> new Placeholder(beforeParams));
+		return compileDefinition(beforeParams)
+				.<JMethodHeader>map(definable -> definable)
+				.or(() -> compileConstructor(beforeParams))
+				.orElseGet(() -> new Placeholder(beforeParams));
 	}
 
 	private static String compileParameters(String input) {
@@ -926,26 +938,24 @@ public class Main {
 		if (i >= 0) {
 			final String destinationString = input.substring(0, i);
 			final String source = input.substring(i + 1);
-			final Tuple<String, ParseState> destinationResult =
-					compileDefinition(destinationString).map(Definition::generate).map(generated -> new Tuple<String, ParseState>(
-							generated,
-							state)).orElseGet(() -> compileExpression(destinationString, state));
+			final Tuple<String, ParseState> destinationResult = compileDefinition(destinationString)
+					.map(Definition::generate)
+					.map(generated -> new Tuple<String, ParseState>(generated, state))
+					.orElseGet(() -> compileExpression(destinationString, state));
 
 			final Tuple<String, ParseState> sourceResult = compileExpression(source, destinationResult.right);
 			return new Tuple<String, ParseState>(destinationResult.left + " = " + sourceResult.left, sourceResult.right);
 		}
 
-		return compileDefinition(input).map(value -> new Tuple<String, ParseState>(value.generate(),
-																																							 state)).orElseGet(() -> new Tuple<String, ParseState>(
-				wrap(input),
-				state));
+		return compileDefinition(input)
+				.map(value -> new Tuple<String, ParseState>(value.generate(), state))
+				.orElseGet(() -> new Tuple<String, ParseState>(wrap(input), state));
 	}
 
 	private static Tuple<String, ParseState> compileExpression(String input, ParseState state) {
-		return tryCompileExpression(input, state).map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(),
-																																												 tuple.right)).orElseGet(() -> new Tuple<String, ParseState>(
-				wrap(input),
-				state));
+		return tryCompileExpression(input, state)
+				.map(tuple -> new Tuple<String, ParseState>(tuple.left.generate(), tuple.right))
+				.orElseGet(() -> new Tuple<String, ParseState>(wrap(input), state));
 	}
 
 	private static Option<Tuple<CExpression, ParseState>> tryCompileExpression(String input, ParseState state) {
@@ -990,26 +1000,21 @@ public class Main {
 			return fieldAccessResult.map(Main::wrapInContent);
 		}
 
-		return getOr(state, stripped).map(Main::wrapInContent).or(() -> compileIdentifier(stripped,
-																																											state)).or(() -> compileNumber(
-				stripped,
-				state).map(Main::wrapInContent));
+		return getOr(state, stripped)
+				.map(Main::wrapInContent)
+				.or(() -> compileIdentifier(stripped, state))
+				.or(() -> compileNumber(stripped, state).map(Main::wrapInContent));
 	}
 
 	private static Option<Tuple<String, ParseState>> getOr(ParseState state, String stripped) {
-		return compileOperator(stripped, "+", state).or(() -> compileOperator(stripped,
-																																					"-",
-																																					state)).or(() -> compileOperator(stripped,
-																																																					 ">=",
-																																																					 state)).or(() -> compileOperator(
-				stripped,
-				"<",
-				state)).or(() -> compileOperator(stripped, "!=", state)).or(() -> compileOperator(stripped,
-																																													"==",
-																																													state)).or(() -> compileOperator(
-				stripped,
-				"&&",
-				state)).or(() -> compileOperator(stripped, "||", state));
+		return compileOperator(stripped, "+", state)
+				.or(() -> compileOperator(stripped, "-", state))
+				.or(() -> compileOperator(stripped, ">=", state))
+				.or(() -> compileOperator(stripped, "<", state))
+				.or(() -> compileOperator(stripped, "!=", state))
+				.or(() -> compileOperator(stripped, "==", state))
+				.or(() -> compileOperator(stripped, "&&", state))
+				.or(() -> compileOperator(stripped, "||", state));
 	}
 
 	private static Tuple<CExpression, ParseState> wrapInContent(Tuple<String, ParseState> tuple) {
@@ -1172,10 +1177,11 @@ public class Main {
 			return new None<Tuple<String, ParseState>>();
 		}
 
-		final Tuple<StringJoiner, ParseState> reduce = divide(arguments,
-																													Main::foldValue).collect(new ListCollector<String>()).stream().foldWithInitial(
-				new Tuple<StringJoiner, ParseState>(new StringJoiner(", "), value.right),
-				(tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
+		final Tuple<StringJoiner, ParseState> reduce = divide(arguments, Main::foldValue)
+				.collect(new ListCollector<String>())
+				.stream()
+				.foldWithInitial(new Tuple<StringJoiner, ParseState>(new StringJoiner(", "), value.right),
+												 (tuple, s) -> mergeExpression(tuple.left, tuple.right, s));
 		final String collect = reduce.left.toString();
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(value.left + "(" + collect + ")",
 																																						 reduce.right));
@@ -1221,9 +1227,12 @@ public class Main {
 		} else if (beforeArrow.startsWith("(") && beforeArrow.endsWith(")")) {
 			final String withoutParentheses = beforeArrow.substring(1, beforeArrow.length() - 1);
 			final String[] array = withoutParentheses.split(Pattern.quote(","));
-			outputParams = Streams.fromRef(array).map(String::strip).filter(slice -> !slice.isEmpty()).map(slice -> "auto " +
-																																																							slice).collect(
-					new Joiner(", "));
+			outputParams = Streams
+					.fromRef(array)
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.map(slice -> "auto " + slice)
+					.collect(new Joiner(", "));
 
 		} else {
 			return new None<Tuple<String, ParseState>>();
@@ -1400,7 +1409,8 @@ public class Main {
 			return new None<Definition>();
 		}
 
-		final ArrayList<String> segments = divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
+		final ArrayList<String> segments =
+				divide(beforeName, Main::foldTypeSeparator).collect(new ListCollector<String>());
 		if (segments.size() < 2) {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
@@ -1420,8 +1430,12 @@ public class Main {
 		}
 
 		final String[] slices = withoutLast.substring(0, i).strip().split(Pattern.quote("\n"));
-		return Streams.fromRef(slices).map(String::strip).filter(slice -> slice.startsWith("@")).map(slice -> slice.substring(
-				1)).collect(new ListCollector<String>());
+		return Streams
+				.fromRef(slices)
+				.map(String::strip)
+				.filter(slice -> slice.startsWith("@"))
+				.map(slice -> slice.substring(1))
+				.collect(new ListCollector<String>());
 	}
 
 	private static DivideState foldTypeSeparator(DivideState state, Character c) {
@@ -1452,9 +1466,17 @@ public class Main {
 				final String base = withoutEnd.substring(0, argumentStart);
 				final String argumentsString = withoutEnd.substring(argumentStart + "<".length());
 
-				final String arguments =
-						compileValues(argumentsString, slice -> compileType(slice).orElseGet(() -> wrap(slice)));
-				return new Some<String>(base + "<" + arguments + ">");
+				final ArrayList<String> arguments = divide(argumentsString, Main::foldValue)
+						.map(Main::compileTypeOrPlaceholder)
+						.collect(new ListCollector<String>());
+
+				if (base.equals("Function") && arguments.get(0) instanceof Some<String>(String arg) &&
+						arguments.get(1) instanceof Some<String>(String returns)) {
+					return new Some<String>(returns + " (*)(" + arg + ")");
+				}
+
+				final String outputArguments = arguments.stream().collect(new Joiner(", "));
+				return new Some<String>(base + "<" + outputArguments + ">");
 			}
 		}
 
@@ -1474,6 +1496,10 @@ public class Main {
 			return new Some<String>(stripped);
 		}
 		return new Some<String>(wrap(stripped));
+	}
+
+	private static String compileTypeOrPlaceholder(String slice) {
+		return compileType(slice).orElseGet(() -> wrap(slice));
 	}
 
 	private static String wrap(String input) {

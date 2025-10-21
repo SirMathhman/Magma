@@ -42,7 +42,7 @@ Option<T> get_SingletonHead(){
 	this.retrieved = true;
 	return new_Some<T>(this.value);
 }
-FlatMapHead new_FlatMapHead(Supplier<Option<T>> sourceHead, Function<T, Stream<R>> mapper){
+FlatMapHead new_FlatMapHead(Supplier<Option<T>> sourceHead, Stream<R> (*)(T) mapper){
 	FlatMapHead this;
 	this.sourceHead = sourceHead;
 	this.mapper = mapper;
