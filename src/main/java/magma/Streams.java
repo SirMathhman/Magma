@@ -1,6 +1,8 @@
 package magma;
 
 import magma.Collectors.Collector;
+import magma.Functions.BiFunction;
+import magma.Functions.Function;
 import magma.Heads.ArrayHead;
 import magma.Heads.FlatMapHead;
 import magma.Heads.RangeHead;
@@ -9,8 +11,6 @@ import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
 
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
 

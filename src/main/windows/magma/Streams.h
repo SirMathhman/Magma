@@ -2,6 +2,7 @@
 #ifndef STREAMS_H
 #define STREAMS_H
 #include "../magma/Collectors.h"
+#include "../magma/Functions.h"
 #include "../magma/Heads.h"
 #include "../magma/Main.h"
 #include "../magma/Options.h"

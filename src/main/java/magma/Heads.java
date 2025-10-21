@@ -6,7 +6,6 @@ import magma.Options.Option;
 import magma.Options.Some;
 import magma.Streams.Stream;
 
-import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class Heads {
@@ -73,10 +72,10 @@ public class Heads {
 
 	static class FlatMapHead<T, R> implements Supplier<Option<R>> {
 		private final Supplier<Option<T>> sourceHead;
-		private final Function<T, Stream<R>> mapper;
+		private final Functions.Function<T, Stream<R>> mapper;
 		private Option<Stream<R>> currentStream;
 
-		public FlatMapHead(Supplier<Option<T>> sourceHead, Function<T, Stream<R>> mapper) {
+		public FlatMapHead(Supplier<Option<T>> sourceHead, Functions.Function<T, Stream<R>> mapper) {
 			this.sourceHead = sourceHead;
 			this.mapper = mapper;
 			this.currentStream = new None<Stream<R>>();

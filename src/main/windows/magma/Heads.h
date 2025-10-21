@@ -35,7 +35,7 @@ struct SingletonHead {
 template <typename T, typename R>
 struct FlatMapHead {
 	Supplier<Option<T>> sourceHead;
-	Function<T, Stream<R>> mapper;
+	Functions.Function<T, Stream<R>> mapper;
 	Option<Stream<R>> currentStream;
 };
 struct RangeHead {

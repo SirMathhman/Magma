@@ -1,6 +1,7 @@
 clang magma\Actual.cpp^
 	 magma\Collections.cpp^
 	 magma\Collectors.cpp^
+	 magma\Functions.cpp^
 	 magma\Heads.cpp^
 	 magma\IO.cpp^
 	 magma\JavaImpl.cpp^

@@ -4,6 +4,8 @@ import magma.Collections.ArrayList;
 import magma.Collectors.Joiner;
 import magma.Collectors.ListCollector;
 import magma.Collectors.ResultCollector;
+import magma.Functions.BiFunction;
+import magma.Functions.Function;
 import magma.IO.IOError;
 import magma.IO.Path;
 import magma.JavaImpl.JIOError;
@@ -21,8 +23,6 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
-import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 

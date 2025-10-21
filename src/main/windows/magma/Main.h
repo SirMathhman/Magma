@@ -3,6 +3,7 @@
 #define MAIN_H
 #include "../magma/Collections.h"
 #include "../magma/Collectors.h"
+#include "../magma/Functions.h"
 #include "../magma/IO.h"
 #include "../magma/JavaImpl.h"
 #include "../magma/Options.h"
