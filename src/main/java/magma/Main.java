@@ -610,7 +610,9 @@ public class Main {
 			variants = divide(slice, Main::foldValue)
 					.map(String::strip)
 					.filter(segment -> !segment.isEmpty())
+					.map(variant -> variant)
 					.collect(new ListCollector<String>());
+
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
@@ -627,7 +629,7 @@ public class Main {
 		}
 
 		String beforeMaybeParams = maybeWithImplements.strip();
-		String recordFields = "";
+		StringBuilder recordFields = new StringBuilder();
 		if (maybeWithImplements.endsWith(")")) {
 			final String slice = maybeWithImplements.substring(0, maybeWithImplements.length() - 1);
 			final int beforeParams = slice.indexOf("(");
@@ -639,7 +641,7 @@ public class Main {
 				for (int i = 0; i < parameters.size(); i++) {
 					if (parameters.get(i) instanceof Some<String>(String parameter)) {
 						final Tuple<String, ParseState> tuple = compileParameter(parameter, current);
-						recordFields += tuple.left();
+						recordFields.append(tuple.left());
 						current = tuple.right();
 					}
 				}
@@ -680,7 +682,7 @@ public class Main {
 			outer = compiled.right();
 			j++;
 		}
-		recordFields += inner;
+		recordFields.append(inner);
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -698,12 +700,13 @@ public class Main {
 					.map(content1 -> generateStatement(content1, 1))
 					.collect(new Joiner());
 
+			final var collect = variants.stream().map(variant -> variant + "Type").collect(new ListCollector<>());
 			emittedRootSegments = emittedRootSegments
-					.addLast(new EnumNode(name, variants))
+					.addLast(new EnumNode(name, collect))
 					.addLast(new Union(typeParameters, name, unionFields));
 
-			recordFields += generateStatement(name + "Tag tag", 1);
-			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
+			recordFields.append(generateStatement(name + "Tag tag", 1));
+			recordFields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
 		} else if (type.equals("interface")) {
 			final String vTableName = name + "VTable";
 
@@ -711,12 +714,12 @@ public class Main {
 			emittedRootSegments =
 					emittedRootSegments.addLast(new Struct(typeParameters, vTableName, new Some<String>(functionDeclarations)));
 
-			recordFields += generateStatement("void* data", 1);
-			recordFields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
+			recordFields.append(generateStatement("void* data", 1));
+			recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
 		}
 
 		emittedRootSegments = emittedRootSegments.addLast(new Struct(typeParameters, name,
-																																 new Some<String>(recordFields)));
+																																 new Some<String>(recordFields.toString())));
 
 		final ParseState parseState = outer
 				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())

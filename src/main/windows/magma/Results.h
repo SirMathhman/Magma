@@ -9,8 +9,8 @@ template <typename T, typename X>
 struct Err;
 struct Results;
 enum ResultTag {
-	Err,
-	Ok
+	ErrType,
+	OkType
 };
 template <typename T, typename X>
 union ResultData {

@@ -28,8 +28,8 @@ struct EnumNode;
 struct Union;
 struct Main;
 enum DefinableTag {
-	Definition,
-	Placeholder
+	DefinitionType,
+	PlaceholderType
 };
 union DefinableData {
 	Definition definition;
@@ -40,8 +40,8 @@ struct Definable {
 	DefinableData data;
 };
 enum JMethodHeaderTag {
-	JConstructor,
-	Definable
+	JConstructorType,
+	DefinableType
 };
 union JMethodHeaderData {
 	JConstructor jconstructor;
@@ -52,8 +52,8 @@ struct JMethodHeader {
 	JMethodHeaderData data;
 };
 enum CExpressionTag {
-	CIdentifier,
-	Content
+	CIdentifierType,
+	ContentType
 };
 union CExpressionData {
 	CIdentifier cidentifier;
@@ -64,9 +64,9 @@ struct CExpression {
 	CExpressionData data;
 };
 enum CRootSegmentTag {
-	EnumNode,
-	Struct,
-	Union
+	EnumNodeType,
+	StructType,
+	UnionType
 };
 union CRootSegmentData {
 	EnumNode enumnode;
