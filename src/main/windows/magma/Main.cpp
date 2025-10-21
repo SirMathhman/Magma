@@ -405,11 +405,11 @@ auto __lambda13__(auto content1) {
 	return generateStatement(content1, 1);
 }
 Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, ParseState state){
-	int i = input.indexOf(type + " ");
-	if (i < 0) {
+	int keywordIndex = input.indexOf(type + " ");
+	if (keywordIndex < 0) {
 		return new_None<Tuple<char*, ParseState>>();
 	}
-	char* afterKeyword = input.substring(i + (type + " ").length());
+	char* afterKeyword = input.substring(keywordIndex + (type + " ").length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) {
 		return new_None<Tuple<char*, ParseState>>();
@@ -495,6 +495,11 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 		generatedSubStructs == "enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 		recordFields +  == generateStatement(name + "Tag tag", 1);
 		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
+	}
+	else if (type.equals("interface")) {
+		char* vTableName = name + "VTable";
+		generatedSubStructs == "struct " + vTableName + " {};" + System.lineSeparator();
+		recordFields +  == generateStatement(vTableName + " vtable", 1);
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
 	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);

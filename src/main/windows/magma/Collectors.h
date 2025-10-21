@@ -15,8 +15,10 @@ struct ResultCollector;
 template <typename T>
 struct AllMatch;
 struct Collectors;
+struct CollectorVTable {};
 template <typename T, typename C>
 struct Collector {
+	CollectorVTable vtable;
 };
 template <typename T>
 struct ListCollector {

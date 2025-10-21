@@ -512,12 +512,12 @@ public class Main {
 	}
 
 	private static Option<Tuple<String, ParseState>> compileStructure(String input, String type, ParseState state) {
-		final int i = input.indexOf(type + " ");
-		if (i < 0) {
+		final int keywordIndex = input.indexOf(type + " ");
+		if (keywordIndex < 0) {
 			return new None<Tuple<String, ParseState>>();
 		}
 
-		final String afterKeyword = input.substring(i + (type + " ").length());
+		final String afterKeyword = input.substring(keywordIndex + (type + " ").length());
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) {
@@ -630,6 +630,11 @@ public class Main {
 
 			recordFields += generateStatement(name + "Tag tag", 1);
 			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
+		} else if (type.equals("interface")) {
+			final String vTableName = name + "VTable";
+			generatedSubStructs = "struct " + vTableName + " {};" + System.lineSeparator();
+			recordFields += generateStatement(vTableName + " vtable", 1);
+
 		}
 
 		final String generated =

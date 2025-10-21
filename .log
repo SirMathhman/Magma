@@ -3,11 +3,11 @@ C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
@@ -86,11 +86,11 @@ magma\Actual.cpp:4:2: error: use of undeclared identifier 'main_Main'
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
@@ -173,11 +173,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
@@ -260,11 +260,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
@@ -347,11 +347,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
@@ -439,11 +439,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
@@ -525,11 +525,11 @@ magma\IO.cpp:17:2: error: use of undeclared identifier 'main_Main'
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
@@ -612,11 +612,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
@@ -699,11 +699,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
@@ -785,11 +785,11 @@ magma\MemUtils.cpp:5:2: error: use of undeclared identifier 'main_Main'
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
@@ -875,11 +875,11 @@ fatal error: too many errors emitted, stopping now [-ferror-limit=]
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
@@ -958,11 +958,11 @@ magma\Results.cpp:4:2: error: use of undeclared identifier 'main_Main'
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
-   29 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:31:2: error: no template named 'Predicate'
+   31 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
-   37 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:39:2: error: no template named 'Predicate'
+   39 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:

@@ -8,9 +8,13 @@
 struct IOError;
 struct Path;
 struct IO;
+struct IOErrorVTable {};
 struct IOError {
+	IOErrorVTable vtable;
 };
+struct PathVTable {};
 struct Path {
+	PathVTable vtable;
 };
 struct IO {
 };
