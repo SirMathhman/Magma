@@ -12,6 +12,7 @@
 struct Definable;
 struct JMethodHeader;
 struct CExpression;
+struct CRootSegment;
 struct ParseState;
 struct DivideState;
 template <typename A, typename B>
@@ -62,12 +63,26 @@ struct CExpression {
 	CExpressionTag tag;
 	CExpressionData data;
 };
+enum CRootSegmentTag {
+	EnumNode,
+	Struct,
+	Union
+};
+union CRootSegmentData {
+	EnumNode enumnode;
+	Struct struct;
+	Union union;
+};
+struct CRootSegment {
+	CRootSegmentTag tag;
+	CRootSegmentData data;
+};
 struct ParseState {
 	Stack<ArrayList<char*>> beforeStatements;
 	ArrayList<char*> beforeStructs;
 	ArrayList<char*> structFields;
 	ArrayList<char*> afterStatements;
-	ArrayList<char*> structs;
+	ArrayList<CRootSegment> rootSegments;
 	ArrayList<char*> functions;
 	int counter;
 	ArrayList<char*> includes;
@@ -123,5 +138,6 @@ struct Main {
 };
 char* generate_Definable(void* _ref);
 char* generate_CExpression(void* _ref);
+char* generate_CRootSegment(void* _ref);
 ArrayList<String> new_ArrayList<String>(void* _ref);
 #endif

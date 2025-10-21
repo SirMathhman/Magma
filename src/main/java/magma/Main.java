@@ -38,12 +38,16 @@ public class Main {
 		String generate();
 	}
 
+	private sealed interface CRootSegment permits EnumNode, Struct, Union {
+		String generate();
+	}
+
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
 		public ArrayList<String> beforeStructs;
 		private ArrayList<String> structFields;
 		private ArrayList<String> afterStatements;
-		private ArrayList<String> structs;
+		private ArrayList<CRootSegment> rootSegments;
 		private ArrayList<String> functions;
 		private int counter;
 		private ArrayList<String> includes;
@@ -51,7 +55,7 @@ public class Main {
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
-			this.structs = new ArrayList<String>();
+			this.rootSegments = new ArrayList<CRootSegment>();
 
 			this.beforeStatements = new Stack<ArrayList<String>>();
 			this.beforeStatements.add(new ArrayList<String>());
@@ -68,8 +72,8 @@ public class Main {
 			return this;
 		}
 
-		public ParseState addStruct(String struct) {
-			this.structs = this.structs.addLast(struct);
+		public ParseState addAllRootSegments(ArrayList<CRootSegment> struct) {
+			this.rootSegments = this.rootSegments.addAllLast(struct);
 			return this;
 		}
 
@@ -245,23 +249,27 @@ public class Main {
 
 	private record Location(ArrayList<String> namespace, String name) {}
 
-	private record Struct(ArrayList<String> typeParameters, String name, Option<String> maybeFields) {
-		private String generate() {
+	private record Struct(ArrayList<String> typeParameters, String name, Option<String> maybeFields)
+			implements CRootSegment {
+		@Override
+		public String generate() {
 			final String s = this.maybeFields.map(fields -> " {" + fields + System.lineSeparator() + "}").orElse("");
 			return generateTemplateString(this.typeParameters) + "struct " + this.name() + s + ";" + System.lineSeparator();
 		}
 	}
 
-	private record EnumNode(String name, ArrayList<String> variants) {
-		private String generate() {
+	private record EnumNode(String name, ArrayList<String> variants) implements CRootSegment {
+		@Override
+		public String generate() {
 			final String enumFields =
 					this.variants().stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
 			return "enum " + this.name() + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 		}
 	}
 
-	private record Union(ArrayList<String> typeParameters, String name, String fields) {
-		private String generate() {
+	private record Union(ArrayList<String> typeParameters, String name, String fields) implements CRootSegment {
+		@Override
+		public String generate() {
 			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() +
 						 System.lineSeparator() + "};" + System.lineSeparator();
 		}
@@ -417,7 +425,8 @@ public class Main {
 		final String joinedIncludes = state.includes.stream().collect(new Joiner(""));
 
 		final String joinedBeforeStructs = state.beforeStructs.stream().collect(new Joiner(""));
-		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
+		final String joinedStructs = state.rootSegments.stream().map(CRootSegment::generate).collect(new Joiner(""));
+
 		final String joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new Joiner(""));
 
 		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
@@ -659,7 +668,7 @@ public class Main {
 			joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
 		}
 
-		String generatedSubStructs = "";
+		ArrayList<CRootSegment> emittedRootSegments = new ArrayList<CRootSegment>();
 		if (!variants.isEmpty()) {
 
 			final String unionFields = variants
@@ -668,8 +677,9 @@ public class Main {
 					.map(content1 -> generateStatement(content1, 1))
 					.collect(new Joiner());
 
-			generatedSubStructs = new EnumNode(name, variants).generate() +
-														new Union(typeParameters, name, unionFields).generate();
+			emittedRootSegments = emittedRootSegments
+					.addLast(new EnumNode(name, variants))
+					.addLast(new Union(typeParameters, name, unionFields));
 
 			recordFields += generateStatement(name + "Tag tag", 1);
 			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
@@ -677,16 +687,20 @@ public class Main {
 			final String vTableName = name + "VTable";
 
 			final String functionDeclarations = outer.popStructFields().stream().collect(new Joiner());
-			generatedSubStructs = new Struct(typeParameters, vTableName, new Some<String>(functionDeclarations)).generate();
+			emittedRootSegments =
+					emittedRootSegments.addLast(new Struct(typeParameters, vTableName, new Some<String>(functionDeclarations)));
+
 			recordFields += generateStatement("void* data", 1);
 			recordFields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 		}
 
-		final String generated =
-				generatedSubStructs + new Struct(typeParameters, name, new Some<String>(recordFields)).generate();
+		emittedRootSegments = emittedRootSegments.addLast(new Struct(typeParameters, name,
+																																 new Some<String>(recordFields)));
 
-		final ParseState parseState =
-				outer.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate()).addStruct(generated);
+		final ParseState parseState = outer
+				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())
+				.addAllRootSegments(emittedRootSegments);
+
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 	}
 
@@ -991,7 +1005,7 @@ public class Main {
 			String s = list.get(i).orElse(null);
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
-			compiled = compiled.addAll(string.right.popBeforeStatements()).addLast(string.left);
+			compiled = compiled.addAllLast(string.right.popBeforeStatements()).addLast(string.left);
 			current = string.right;
 			i++;
 		}

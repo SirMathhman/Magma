@@ -8,6 +8,10 @@ char* generate_CExpression(void* _ref){
 	CExpression this = *((CExpression*) _ref);
 	return this.vtable.apply(this.data);
 }
+char* generate_CRootSegment(void* _ref){
+	CRootSegment this = *((CRootSegment*) _ref);
+	return this.vtable.apply(this.data);
+}
 ArrayList<String> new_ArrayList<String>(void* _ref){
 	ParseState this = *((ParseState*) _ref);
 	return this.vtable.apply(this.data);
@@ -15,7 +19,7 @@ ArrayList<String> new_ArrayList<String>(void* _ref){
 ParseState new_ParseState(void* _ref){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
-	this.structs = new_ArrayList<char*>();
+	this.rootSegments = new_ArrayList<CRootSegment>();
 	this.beforeStatements = new_Stack<ArrayList<char*>>();
 	this.beforeStatements.add(new_ArrayList<char*>());
 	this.afterStatements = new_ArrayList<char*>();
@@ -29,8 +33,8 @@ ParseState addFunction_ParseState(void* _ref, char* func){
 	this.functions == this.functions.addLast(func);
 	return this;
 }
-ParseState addStruct_ParseState(void* _ref, char* struct){
-	this.structs == this.structs.addLast(struct);
+ParseState addAllRootSegments_ParseState(void* _ref, ArrayList<CRootSegment> struct){
+	this.rootSegments == this.rootSegments.addAllLast(struct);
 	return this;
 }
 char* generateAnonymousFunctionName_ParseState(void* _ref){
@@ -306,7 +310,7 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 	char* joined = joiner.toString();
 	char* joinedIncludes = state.includes.stream().collect(new_Joiner(""));
 	char* joinedBeforeStructs = state.beforeStructs.stream().collect(new_Joiner(""));
-	char* joinedStructs = state.structs.stream().collect(new_Joiner(""));
+	char* joinedStructs = state.rootSegments.stream().map(generate_CRootSegment).collect(new_Joiner(""));
 	char* joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new_Joiner(""));
 	char* joinedFunctions = state.functions.stream().collect(new_Joiner(""));
 	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
@@ -530,22 +534,22 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	else {
 		joinedTypeParameters = "<" + typeParameters.stream().collect(new_Joiner(", ")) + ">";
 	}
-	char* generatedSubStructs = "";
+	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
 	if (!variants.isEmpty()) {
 		char* unionFields = variants.stream().map(__lambda13__).map(__lambda14__).collect(new_Joiner());
-		generatedSubStructs == new_EnumNode(name, variants).generate() + new_Union(typeParameters, name, unionFields).generate();
+		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, variants)).addLast(new_Union(typeParameters, name, unionFields));
 		recordFields +  == generateStatement(name + "Tag tag", 1);
 		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 	}
 	else if (type.equals("interface")) {
 		char* vTableName = name + "VTable";
 		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
-		generatedSubStructs == new_Struct(typeParameters, vTableName, new_Some<char*>(functionDeclarations)).generate();
+		emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, vTableName, new_Some<char*>(functionDeclarations)));
 		recordFields +  == generateStatement("void* data", 1);
 		recordFields +  == generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 	}
-	char* generated = generatedSubStructs + new_Struct(typeParameters, name, new_Some<char*>(recordFields)).generate();
-	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addStruct(generated);
+	emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, name, new_Some<char*>(recordFields)));
+	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(emittedRootSegments);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
 char* generateTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
@@ -819,7 +823,7 @@ Tuple<ArrayList<char*>, ParseState> compileMethodStatements_Main(void* _ref, Par
 	while (i < list.size()) {
 		char* s = list.get(i).orElse(null);
 		Tuple<char*, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
-		compiled == compiled.addAll(string.right.popBeforeStatements()).addLast(string.left);
+		compiled == compiled.addAllLast(string.right.popBeforeStatements()).addLast(string.left);
 		current = string.right;
 		i++;
 	}

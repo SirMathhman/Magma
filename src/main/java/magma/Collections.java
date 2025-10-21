@@ -152,7 +152,7 @@ public class Collections {
 			return new Some<ArrayList<T>>(new ArrayList<T>(newElements));
 		}
 
-		public ArrayList<T> addAll(ArrayList<T> elements) {
+		public ArrayList<T> addAllLast(ArrayList<T> elements) {
 			int elementsSize = elements.size();
 			this.ensureCapacity((this.elements).length + elementsSize);
 

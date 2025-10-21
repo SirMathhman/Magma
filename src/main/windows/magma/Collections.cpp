@@ -133,7 +133,7 @@ Option<ArrayList<T>> subList_ArrayList(void* _ref, int start, int end){
 	return new_Some<ArrayList<T>>(new_ArrayList<T>(newElements));
 }
 template <typename T>
-ArrayList<T> addAll_ArrayList(void* _ref, ArrayList<T> elements){
+ArrayList<T> addAllLast_ArrayList(void* _ref, ArrayList<T> elements){
 	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
