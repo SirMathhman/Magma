@@ -25,51 +25,50 @@ In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
@@ -97,51 +96,50 @@ In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
@@ -169,51 +167,50 @@ In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
@@ -241,51 +238,50 @@ In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Functions.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
@@ -313,51 +309,50 @@ In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
@@ -385,51 +380,50 @@ In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
@@ -457,51 +451,50 @@ In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
@@ -529,51 +522,50 @@ In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
@@ -601,51 +593,50 @@ In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
@@ -673,51 +664,50 @@ In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
@@ -745,51 +735,50 @@ In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
@@ -817,50 +806,49 @@ In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:5:
-magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                  ^
-magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                                           ^
-magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
-   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
-      |                     ^
-magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
-   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+In file included from magma\../magma\../magma\../magma/Options.h:4:
+magma\../magma\../magma\../magma\../magma/Functions.h:29:1: error: unknown type name 'R'
+   29 | R apply_Function(void* _ref, T arg);
       | ^
-magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
-   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma\../magma/Functions.h:29:30: error: unknown type name 'T'
+   29 | R apply_Function(void* _ref, T arg);
+      |                              ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:1: error: unknown type name 'R'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      | ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:32: error: unknown type name 'A'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
+      |                                ^
+magma\../magma\../magma\../magma\../magma/Functions.h:30:41: error: unknown type name 'B'
+   30 | R apply_BiFunction(void* _ref, A first, B second);
       |                                         ^
-magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'R'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                      ^
-magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                                               ^
-magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
-   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
-      |                         ^
-magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
+magma\../magma\../magma\../magma/Options.h:36:43: error: use of undeclared identifier 'T'
+   36 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:49: error: use of undeclared identifier 'T'
+   37 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:38:1: error: unknown type name 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
       | ^
-magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
-   39 | T orElse_Option(void* _ref, T other);
-      |                             ^
-magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
-   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |              ^
+magma\../magma\../magma\../magma/Options.h:38:41: error: use of undeclared identifier 'T'
+   38 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:39:8: error: use of undeclared identifier 'R'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:39:47: error: use of undeclared identifier 'T'
+   39 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

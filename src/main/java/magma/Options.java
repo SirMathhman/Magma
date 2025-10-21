@@ -1,18 +1,19 @@
 package magma;
 
+import magma.Functions.Function;
 import magma.Main.Tuple;
 
 import java.util.function.Supplier;
 
 public class Options {
 	sealed public interface Option<T> permits Some, None {
-		<R> Option<R> map(Functions.Function<T, R> mapper);
+		<R> Option<R> map(Function<T, R> mapper);
 
 		Option<T> or(Supplier<Option<T>> other);
 
 		T orElseGet(Supplier<T> other);
 
-		<R> Option<R> flatMap(Functions.Function<T, Option<R>> mapper);
+		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
 
 		T orElse(T other);
 
@@ -21,7 +22,7 @@ public class Options {
 
 	record Some<T>(T value) implements Option<T> {
 		@Override
-		public <R> Option<R> map(Functions.Function<T, R> mapper) {
+		public <R> Option<R> map(Function<T, R> mapper) {
 			return new Some<R>(mapper.apply(this.value));
 		}
 
@@ -36,7 +37,7 @@ public class Options {
 		}
 
 		@Override
-		public <R> Option<R> flatMap(Functions.Function<T, Option<R>> mapper) {
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 			return mapper.apply(this.value);
 		}
 
@@ -53,7 +54,7 @@ public class Options {
 
 	public record None<T>() implements Option<T> {
 		@Override
-		public <R> Option<R> map(Functions.Function<T, R> mapper) {
+		public <R> Option<R> map(Function<T, R> mapper) {
 			return new None<R>();
 		}
 
@@ -68,7 +69,7 @@ public class Options {
 		}
 
 		@Override
-		public <R> Option<R> flatMap(Functions.Function<T, Option<R>> mapper) {
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
 			return new None<R>();
 		}
 
