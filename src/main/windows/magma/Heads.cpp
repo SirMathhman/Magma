@@ -1,65 +1,68 @@
 // File generated from '.\src\main\java\magma\Heads.java'. This is not source code!
 #include "Main.h"
-template <typename T>
-ListHead new_ListHead(void* _ref, ArrayList<T> self){
-	ListHead this;
+/*index;
+
+		public*/ ListHead_Heads(void* _ref, ArrayList<T> self){
 	this.self = self;
 	this.index = 0;
-	return this;
-}
-template <typename T>
-Option<T> get_ListHead(void* _ref){
-	if (this.index < this.self.size()) {
-		return this.self.get(this.index + );
-	}
+	/*}
+
+		@Override
+		public Option<T> get() {
+			if (this.index < this.self.size()) {
+				return this.self.get(this.index++);
+			}*/
 	return new_None<T>();
+	/*}*/
 }
-template <typename T>
-ArrayHead new_ArrayHead(void* _ref, T* elements, int length){
-	ArrayHead this;
+/*counter;
+
+		public*/ ArrayHead_Heads(void* _ref, T* elements, int length){
 	this.elements = elements;
 	this.counter = 0;
 	this.length = length;
-	return this;
-}
-template <typename T>
-Option<T> get_ArrayHead(void* _ref){
-	if (this.counter < this.length) {
-		T element = /* this.elements[this.counter]*/;
-		this.counter++;
-		return new_Some<T>(element);
-	}
+	/*}
+
+		@Override
+		public Option<T> get() {
+			if (this.counter < this.length) {
+				final T element = this.elements[this.counter];
+				this.counter++;
+				return new Some<T>(element);
+			}*/
 	else {
 		return new_None<T>();
 	}
+	/*}*/
 }
-template <typename T>
-SingletonHead new_SingletonHead(void* _ref, T value){
-	SingletonHead this;
+/*retrieved;
+
+		public*/ SingletonHead_Heads(void* _ref, T value){
 	this.value = value;
 	this.retrieved = false;
-	return this;
-}
-template <typename T>
-Option<T> get_SingletonHead(void* _ref){
-	if (this.retrieved) {
-		return new_None<T>();
-	}
+	/*}
+
+		@Override
+		public Option<T> get() {
+			if (this.retrieved) {
+				return new None<T>();
+			}*/
 	this.retrieved = true;
 	return new_Some<T>(this.value);
+	/*}*/
 }
-template <typename T, typename R>
-FlatMapHead new_FlatMapHead(void* _ref, Supplier<Option<T>> sourceHead, Functions.Function<T, Stream<R>> mapper){
-	FlatMapHead this;
+/*currentStream;
+
+		public*/ FlatMapHead_Heads(void* _ref, Supplier<Option<T>> sourceHead, Functions.Function<T, Stream<R>> mapper){
 	this.sourceHead = sourceHead;
 	this.mapper = mapper;
 	this.currentStream = new_None<Stream<R>>();
-	return this;
-}
-template <typename T, typename R>
-Option<R> get_FlatMapHead(void* _ref){
-	while (true) {
-		/*// Try to get next element from current inner stream
+	/*}
+
+		@Override
+		public Option<R> get() {
+			while (true) {
+				// Try to get next element from current inner stream
 				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
 					Option<R> nextValue = stream.next();
 					if (nextValue instanceof Some<R> _) {
@@ -67,19 +70,18 @@ Option<R> get_FlatMapHead(void* _ref){
 					}
 					// Current stream is exhausted, move to next
 					this.currentStream = new None<Stream<R>>();
-				}*/
-		stream
+				}
+
+				// Get next element from source and map it to a stream
 				Option<T> nextSource = this.sourceHead.get();
-		if (nextSource.tag == Some) {
-		Some<T> _cast = nextSource.data.some;
-		T value = _cast.value;
-			this.currentStream = new_Some<Stream<R>>(this.mapper.apply(value));
-		}
-		else {
-			/*// No more source elements
-					return new None<R>()*/;
-		}
-	}
+				if (nextSource instanceof Some<T>(T value)) {
+					this.currentStream = new Some<Stream<R>>(this.mapper.apply(value));
+				} else {
+					// No more source elements
+					return new None<R>();
+				}
+			}*/
+	/*}*/
 }
 private RangeHead_RangeHead(void* _ref, int length){
 	this.length = length;
@@ -98,9 +100,9 @@ Option<Integer> get_RangeHead(void* _ref){
 		return new_None<Integer>();
 	}
 }
-template <typename T>
-Option<T> get_EmptyHead(void* _ref){
+Option<T> get_Heads(void* _ref){
 	return new_None<T>();
+	/*}*/
 }
 int main(){
 	main_Main();

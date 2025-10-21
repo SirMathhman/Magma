@@ -144,6 +144,10 @@ Option<Character> peek_DivideState(void* _ref){
 		return new_None<Character>();
 	}
 }
+B> new_B>(void* _ref, A left, B right){
+	Main this;
+	return this;
+}
 Definition new_Definition(void* _ref, char* type, char* name){
 	Definition this;
 	this(new_ArrayList<char*>(), type, name);
@@ -479,6 +483,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		}
 	}
 	char* name = beforeMaybeParams.strip();
+	if (!isIdentifier(name)) return new_None<>();
 	ArrayList<char*> typeParameters = new_ArrayList<char*>();
 	if (beforeMaybeParams.endsWith(">")) {
 		char* withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
@@ -524,13 +529,19 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	else if (type.equals("interface")) {
 		char* vTableName = name + "VTable";
 		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
-		generatedSubStructs == templateString + "struct " + vTableName + " {" + functionDeclarations + System.lineSeparator() + "};" + System.lineSeparator();
+		generatedSubStructs == templateString + generateStruct(vTableName, functionDeclarations);
 		recordFields +  == generateStatement("void* data", 1);
 		recordFields +  == generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 	}
-	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
+	char* generated = generatedSubStructs + templateString + generateStruct(name, recordFields);
 	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+}
+char* generateStruct_Main(void* _ref, char* name, char* fields){
+	if (!isIdentifier(name)) {
+		/*throw new RuntimeException()*/;
+	}
+	return "struct " + name + " {" + fields + System.lineSeparator() + "};" + System.lineSeparator();
 }
 char* createTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
 	char* templateString;
@@ -627,48 +638,70 @@ Tuple<char*, ParseState> compileClassSegmentValue_Main(void* _ref, char* input, 
 	}
 	return compileStructure(input, "class", state).or(__lambda16__).or(__lambda17__).or(__lambda18__).or(__lambda19__).orElseGet(__lambda20__);
 }
-/*=*/ compileMethodStatements_methods */";
-		};
-
-		final String outputParamsString = "(void* _ref){
-	methods */";
-		};
-
-		final String outputParamsString = " this = *((methods */";
-		};
-
-		final String outputParamsString = "*) _ref);
-	return this.vtable.apply(this.data);
-}
-System.lineSeparator new_System.lineSeparator(void* _ref){
-	methods */";
-		};
-
-		final String outputParamsString = " this = *((methods */";
-		};
-
-		final String outputParamsString = "*) _ref);
-	return this.vtable.apply(this.data);
-}
-state.addFunction new_state.addFunction(void* _ref){
-	methods */";
-		};
-
-		final String outputParamsString = " this = *((methods */";
-		};
-
-		final String outputParamsString = "*) _ref);
-	return this.vtable.apply(this.data);
-}
-ParseState>> new_ParseState>>(void* _ref){
-	methods */";
-		};
-
-		final String outputParamsString = " this = *((methods */";
-		};
-
-		final String outputParamsString = "*) _ref);
-	return this.vtable.apply(this.data);
+Option<Tuple<char*, ParseState>> compileMethod_Main(void* _ref, char* input, char* structName, ParseState state, ArrayList<char*> typeParams){
+	int paramStart = input.indexOf("(");
+	if (paramStart < 0) {
+		return new_None<Tuple<char*, ParseState>>();
+	}
+	char* beforeParams = input.substring(0, paramStart).strip();
+	char* withParams = input.substring(paramStart + 1);
+	int paramEnd = withParams.indexOf(")");
+	if (paramEnd < 0) {
+		return new_None<Tuple<char*, ParseState>>();
+	}
+	JMethodHeader methodHeader = compileMethodHeader(beforeParams);
+	char* inputParamString = withParams.substring(0, paramEnd);
+	char* withBraces = withParams.substring(paramEnd + 1).strip();
+	ArrayList<Definition> params;
+	if (!inputParamString.isEmpty()) {
+		params == divide(inputParamString, foldValue_Main).map(compileDefinition_Main).flatMap(fromOption_Streams).collect(new_ListCollector<Definition>());
+	}
+	else {
+		params = new_ArrayList<Definition>();
+	}
+	char* templateString = createTemplateString(typeParams);
+	ArrayList<Definition> outputParams = params.addFirst(new_Definition("void*", "_ref"));
+	char* joinedOutputParams = outputParams.stream().map(generate_Definition).collect(new_Joiner(", "));
+	char* field = /* switch (methodHeader) {
+			case Definable definable -> switch (definable) {
+				case Definition definition -> definition.type + " (*" + definition.name + ")";
+				case Placeholder placeholder -> placeholder.generate();
+			};
+			case JConstructor _ -> "start Constructors not allowed as interface methods end";
+		}*/;
+	char* outputParamsString = "(" + joinedOutputParams + ")";
+	char* outputMethodHeader = templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
+	if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
+		char* joinedTypes = outputParams.stream().map(type_Definition).collect(new_Joiner(", "));
+		char* functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);
+		ArrayList<char*> paramNames = params.stream().map(name_Definition).collect(new_ListCollector<>());
+		ArrayList<char*> stringArrayList = paramNames.subList(1, paramNames.size()).orElse(new_ArrayList<>()).addFirst("this.data");
+		char* joinedArgs = stringArrayList.stream().collect(new_Joiner(", "));
+		ParseState withFunctionDeclaration = state.addStructField(functionDeclaration).addFunctionDeclaration(outputMethodHeader + ";" + System.lineSeparator()).addFunction(/*
+							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +
+							generateStatement("return this.vtable.apply(" + joinedArgs + ")", 1) + System.lineSeparator() + "}" +
+							System.lineSeparator()*/);
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", withFunctionDeclaration));
+	}
+	else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+		char* inputBody = withBraces.substring(1, withBraces.length() - 1);
+		Tuple<ArrayList<char*>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
+		ArrayList<char*> statements = compiledBody.left;
+	??? _temp = Objects.requireNonNull(methodHeader);
+		if (_temp.tag == JConstructor) {
+		JConstructor _cast = _temp.data.jconstructor;
+			ArrayList < String >= stringArrayList == statements.addFirst(generateStatement(structName + " this", 1));
+			statements == stringArrayList.addLast(generateStatement("return this", 1));
+		}
+		char* joined = statements.stream().collect(new_Joiner(""));
+		char* outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
+		char* generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
+		ParseState parseState = state.addFunction(generated);
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+	}
+	else {
+		return new_None<Tuple<char*, ParseState>>();
+	}
 }
 boolean isPlatformDependentMethod_Main(void* _ref, JMethodHeader methodHeader){
 		Definition definition && definition.annotations.contains _cast = methodHeader.data.definition definition && definition.annotations.contains("actual");

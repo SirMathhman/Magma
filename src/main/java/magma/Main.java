@@ -47,7 +47,7 @@ public class Main {
 		private ArrayList<String> functions;
 		private int counter;
 		private ArrayList<String> includes;
-		private ArrayList<String> functionDeclarations = new ArrayList<>();
+		private ArrayList<String> functionDeclarations = new ArrayList<String>();
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
@@ -546,7 +546,7 @@ public class Main {
 
 		final ArrayList<String> annotations = findAnnotations(input.substring(0, keywordIndex));
 		if (annotations.contains("Actual")) {
-			return new Some<>(new Tuple<>("", state));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", state));
 		}
 
 		final String afterKeyword = input.substring(keywordIndex + (type + " ").length());
@@ -595,6 +595,10 @@ public class Main {
 		}
 
 		String name = beforeMaybeParams.strip();
+		if (!isIdentifier(name)) {
+			return new None<Tuple<String, ParseState>>();
+		}
+
 		ArrayList<String> typeParameters = new ArrayList<String>();
 		if (beforeMaybeParams.endsWith(">")) {
 			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
@@ -657,20 +661,23 @@ public class Main {
 			final String vTableName = name + "VTable";
 
 			final String functionDeclarations = outer.popStructFields().stream().collect(new Joiner());
-			generatedSubStructs =
-					templateString + "struct " + vTableName + " {" + functionDeclarations + System.lineSeparator() + "};" +
-					System.lineSeparator();
+			generatedSubStructs = templateString + generateStruct(vTableName, functionDeclarations);
 			recordFields += generateStatement("void* data", 1);
 			recordFields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 		}
 
-		final String generated =
-				generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() +
-				"};" + System.lineSeparator();
+		final String generated = generatedSubStructs + templateString + generateStruct(name, recordFields);
 
 		final ParseState parseState =
 				outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+	}
+
+	private static String generateStruct(String name, String fields) {
+		if (!isIdentifier(name)) {
+			throw new RuntimeException();
+		}
+		return "struct " + name + " {" + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	}
 
 	private static String createTemplateString(ArrayList<String> typeParameters) {
@@ -823,9 +830,9 @@ public class Main {
 
 			final String functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);
 
-			final ArrayList<String> paramNames = params.stream().map(Definition::name).collect(new ListCollector<>());
+			final ArrayList<String> paramNames = params.stream().map(Definition::name).collect(new ListCollector<String>());
 			final ArrayList<String> stringArrayList =
-					paramNames.subList(1, paramNames.size()).orElse(new ArrayList<>()).addFirst("this.data");
+					paramNames.subList(1, paramNames.size()).orElse(new ArrayList<String>()).addFirst("this.data");
 
 			final String joinedArgs = stringArrayList.stream().collect(new Joiner(", "));
 			final ParseState withFunctionDeclaration = state
