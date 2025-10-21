@@ -3,7 +3,7 @@
 auto __lambda0__() {
 	return this.head.get().map(mapper);
 }
-Stream<R> map_Stream(R (*)(T) mapper){
+Stream<R> map_Stream(Function<T, R> mapper){
 	return new_Stream<R>(__lambda0__);
 }
 auto __lambda1__() {
@@ -39,7 +39,7 @@ C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	}
 	return accumulator;
 }
-Stream<R> flatMap_Stream(Stream<R> (*)(T) mapper){
+Stream<R> flatMap_Stream(Function<T, Stream<R>> mapper){
 	return new_Stream<R>(new_FlatMapHead<T, R>(this.head, mapper));
 }
 auto __lambda2__(auto inner) {

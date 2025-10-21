@@ -1470,11 +1470,6 @@ public class Main {
 						.map(Main::compileTypeOrPlaceholder)
 						.collect(new ListCollector<String>());
 
-				if (base.equals("Function") && arguments.get(0) instanceof Some<String>(String arg) &&
-						arguments.get(1) instanceof Some<String>(String returns)) {
-					return new Some<String>(returns + " (*)(" + arg + ")");
-				}
-
 				final String outputArguments = arguments.stream().collect(new Joiner(", "));
 				return new Some<String>(base + "<" + outputArguments + ">");
 			}

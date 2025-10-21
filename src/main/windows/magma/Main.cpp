@@ -500,10 +500,10 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
-char* compileValues_Main(char* input, char* (*)(char*) mapper){
+char* compileValues_Main(char* input, Function<char*, char*> mapper){
 	return compileValues(input, mapper, ", ");
 }
-char* compileValues_Main(char* input, char* (*)(char*) mapper, char* delimiter){
+char* compileValues_Main(char* input, Function<char*, char*> mapper, char* delimiter){
 	return divide(input, foldValue_Main).map(mapper).collect(new_Joiner(delimiter));
 }
 auto __lambda14__() {
@@ -1319,12 +1319,6 @@ Option<char*> compileType_Main(char* input){
 			char* base = withoutEnd.substring(0, argumentStart);
 			char* argumentsString = withoutEnd.substring(argumentStart + "<".length());
 			ArrayList<char*> arguments = divide(argumentsString, foldValue_Main).map(compileTypeOrPlaceholder_Main).collect(new_ListCollector<char*>());
-	??? _temp = base.equals("Function") && arguments.get(0);
-			if (_temp.tag == Some) {
-		Some<String> _cast = _temp.data.some;
-		/*Some<String>(String*/ returns = _cast.returns;
-				return new_Some<char*>(returns + " (*)(" + arg + ")");
-			}
 			char* outputArguments = arguments.stream().collect(new_Joiner(", "));
 			return new_Some<char*>(base + "<" + outputArguments + ">");
 		}
