@@ -1,17 +1,20 @@
 // File generated from '.\src\main\java\magma\Heads.java'. This is not source code!
 #include "Main.h"
+template <typename T>
 ListHead new_ListHead(void* _ref, ArrayList<T> self){
 	ListHead this;
 	this.self = self;
 	this.index = 0;
 	return this;
 }
+template <typename T>
 Option<T> get_ListHead(void* _ref){
 	if (this.index < this.self.size()) {
 		return this.self.get(this.index + );
 	}
 	return new_None<T>();
 }
+template <typename T>
 ArrayHead new_ArrayHead(void* _ref, T* elements, int length){
 	ArrayHead this;
 	this.elements = elements;
@@ -19,6 +22,7 @@ ArrayHead new_ArrayHead(void* _ref, T* elements, int length){
 	this.length = length;
 	return this;
 }
+template <typename T>
 Option<T> get_ArrayHead(void* _ref){
 	if (this.counter < this.length) {
 		T element = /* this.elements[this.counter]*/;
@@ -29,12 +33,14 @@ Option<T> get_ArrayHead(void* _ref){
 		return new_None<T>();
 	}
 }
+template <typename T>
 SingletonHead new_SingletonHead(void* _ref, T value){
 	SingletonHead this;
 	this.value = value;
 	this.retrieved = false;
 	return this;
 }
+template <typename T>
 Option<T> get_SingletonHead(void* _ref){
 	if (this.retrieved) {
 		return new_None<T>();
@@ -42,6 +48,7 @@ Option<T> get_SingletonHead(void* _ref){
 	this.retrieved = true;
 	return new_Some<T>(this.value);
 }
+template <typename T, typename R>
 FlatMapHead new_FlatMapHead(void* _ref, Supplier<Option<T>> sourceHead, Functions.Function<T, Stream<R>> mapper){
 	FlatMapHead this;
 	this.sourceHead = sourceHead;
@@ -49,6 +56,7 @@ FlatMapHead new_FlatMapHead(void* _ref, Supplier<Option<T>> sourceHead, Function
 	this.currentStream = new_None<Stream<R>>();
 	return this;
 }
+template <typename T, typename R>
 Option<R> get_FlatMapHead(void* _ref){
 	while (true) {
 		/*// Try to get next element from current inner stream
@@ -90,6 +98,7 @@ Option<Integer> get_RangeHead(void* _ref){
 		return new_None<Integer>();
 	}
 }
+template <typename T>
 Option<T> get_EmptyHead(void* _ref){
 	return new_None<T>();
 }

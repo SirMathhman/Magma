@@ -3,6 +3,7 @@
 auto __lambda0__() {
 	return this.head.get().map(mapper);
 }
+template <typename T>
 Stream<R> map_Stream(void* _ref, Function<T, R> mapper){
 	return new_Stream<R>(__lambda0__);
 }
@@ -22,12 +23,15 @@ auto __lambda1__() {
 		}
 	}
 }
+template <typename T>
 Stream<T> filter_Stream(void* _ref, Predicate<T> predicate){
 	return new_Stream<T>(__lambda1__);
 }
+template <typename T>
 C collect_Stream(void* _ref, Collector<T, C> collector){
 	return this.foldWithInitial(collector.createInitial(), fold_collector);
 }
+template <typename T>
 C foldWithInitial_Stream(void* _ref, C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
 	Option < T >= current == this.head.get();
@@ -39,6 +43,7 @@ C foldWithInitial_Stream(void* _ref, C initial, BiFunction<C, T, C> folder){
 	}
 	return accumulator;
 }
+template <typename T>
 Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper){
 	return new_Stream<R>(new_FlatMapHead<T, R>(this.head, mapper));
 }
@@ -52,15 +57,18 @@ auto __lambda3__(auto current, auto element) {
 	}
 	return current.map(__lambda2__);
 }
+template <typename T>
 Option<T> fold_Stream(void* _ref, BiFunction<T, T, T> folder){
 	return this. < Option < T >= foldWithInitial(new_None<T>(), __lambda3__);
 }
+template <typename T>
 Option<T> next_Stream(void* _ref){
 	return this.head.get();
 }
 auto __lambda4__() {
 	return this.head.get().and(next_stream);
 }
+template <typename T>
 Stream<Tuple<T, R>> zip_Stream(void* _ref, Stream<R> stream){
 	return new_Stream<Tuple<T, R>>(__lambda4__);
 }

@@ -496,21 +496,12 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	int j = 0;
 	while (j < segments.size()) {
 		char* segment = segments.get(j).orElse(null);
-		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer);
+		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
 		inner.append(compiled.left);
 		outer = compiled.right;
 		j++;
 	}
-	char* templateString;
-	if (typeParameters.isEmpty()) {
-		templateString = "";
-	}
-	else {
-		char* collect = /*
-					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">"*/;
-		char* templateValues = collect + System.lineSeparator();
-		templateString = "template " + templateValues;
-	}
+	char* templateString = createTemplateString(typeParameters);
 	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";
@@ -536,6 +527,19 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
 	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+}
+char* createTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
+	char* templateString;
+	if (typeParameters.isEmpty()) {
+		templateString = "";
+	}
+	else {
+		char* collect = /*
+					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">"*/;
+		char* templateValues = collect + System.lineSeparator();
+		templateString = "template " + templateValues;
+	}
+	return templateString;
 }
 char* compileValues_Main(void* _ref, char* input, Function<char*, char*> mapper){
 	return compileValues(input, mapper, ", ");
@@ -590,12 +594,12 @@ DivideState foldValue_Main(void* _ref, DivideState state, char next){
 	}
 	return appended;
 }
-Tuple<char*, ParseState> compileClassSegment_Main(void* _ref, char* input, char* name, ParseState state){
+Tuple<char*, ParseState> compileClassSegment_Main(void* _ref, char* input, char* name, ParseState state, ArrayList<char*> typeParams){
 	char* stripped = input.strip();
 	if (stripped.isEmpty()) {
 		return new_Tuple<char*, ParseState>("", state);
 	}
-	return compileClassSegmentValue(stripped, name, state);
+	return compileClassSegmentValue(stripped, name, state, typeParams);
 }
 auto __lambda16__() {
 	return compileStructure(input, "record", state);
@@ -607,13 +611,13 @@ auto __lambda18__() {
 	return compileField(input, state);
 }
 auto __lambda19__() {
-	return compileMethod(input, name, state);
+	return compileMethod(input, name, state, typeParams);
 }
 auto __lambda20__() {
 	char* generated = generateSegment(wrap(input), 1);
 	return new_Tuple<char*, ParseState>(generated, state);
 }
-Tuple<char*, ParseState> compileClassSegmentValue_Main(void* _ref, char* input, char* name, ParseState state){
+Tuple<char*, ParseState> compileClassSegmentValue_Main(void* _ref, char* input, char* name, ParseState state, ArrayList<char*> typeParams){
 	if (input.isEmpty()) {
 		return new_Tuple<char*, ParseState>("", state);
 	}

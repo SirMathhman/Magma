@@ -26,6 +26,8 @@ struct BiFunction {
 };
 struct Functions {
 };
+template <typename T, typename R>
 R apply_Function(void* _ref, T arg);
+template <typename A, typename B, typename R>
 R apply_BiFunction(void* _ref, A first, B second);
 #endif

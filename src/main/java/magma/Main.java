@@ -615,22 +615,13 @@ public class Main {
 		int j = 0;
 		while (j < segments.size()) {
 			String segment = segments.get(j).orElse(null);
-			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer);
+			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
 			inner.append(compiled.left);
 			outer = compiled.right;
 			j++;
 		}
 
-		String templateString;
-		if (typeParameters.isEmpty()) {
-			templateString = "";
-		} else {
-			final String collect =
-					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">";
-
-			final String templateValues = collect + System.lineSeparator();
-			templateString = "template " + templateValues;
-		}
+		final String templateString = createTemplateString(typeParameters);
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -675,6 +666,20 @@ public class Main {
 		final ParseState parseState =
 				outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+	}
+
+	private static String createTemplateString(ArrayList<String> typeParameters) {
+		String templateString;
+		if (typeParameters.isEmpty()) {
+			templateString = "";
+		} else {
+			final String collect =
+					"<" + typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", ")) + ">";
+
+			final String templateValues = collect + System.lineSeparator();
+			templateString = "template " + templateValues;
+		}
+		return templateString;
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
@@ -731,15 +736,21 @@ public class Main {
 		return appended;
 	}
 
-	private static Tuple<String, ParseState> compileClassSegment(String input, String name, ParseState state) {
+	private static Tuple<String, ParseState> compileClassSegment(String input,
+																															 String name,
+																															 ParseState state,
+																															 ArrayList<String> typeParams) {
 		final String stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return new Tuple<String, ParseState>("", state);
 		}
-		return compileClassSegmentValue(stripped, name, state);
+		return compileClassSegmentValue(stripped, name, state, typeParams);
 	}
 
-	private static Tuple<String, ParseState> compileClassSegmentValue(String input, String name, ParseState state) {
+	private static Tuple<String, ParseState> compileClassSegmentValue(String input,
+																																		String name,
+																																		ParseState state,
+																																		ArrayList<String> typeParams) {
 		if (input.isEmpty()) {
 			return new Tuple<String, ParseState>("", state);
 		}
@@ -748,14 +759,17 @@ public class Main {
 				.or(() -> compileStructure(input, "record", state))
 				.or(() -> compileStructure(input, "interface", state))
 				.or(() -> compileField(input, state))
-				.or(() -> compileMethod(input, name, state))
+				.or(() -> compileMethod(input, name, state, typeParams))
 				.orElseGet(() -> {
 					final String generated = generateSegment(wrap(input), 1);
 					return new Tuple<String, ParseState>(generated, state);
 				});
 	}
 
-	private static Option<Tuple<String, ParseState>> compileMethod(String input, String structName, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileMethod(String input,
+																																 String structName,
+																																 ParseState state,
+																																 ArrayList<String> typeParams) {
 		final int paramStart = input.indexOf("(");
 		if (paramStart < 0) {
 			return new None<Tuple<String, ParseState>>();
@@ -783,6 +797,7 @@ public class Main {
 			params = new ArrayList<Definition>();
 		}
 
+		final var templateString = createTemplateString(typeParams);
 		final ArrayList<Definition> outputParams = params.addFirst(new Definition("void*", "_ref"));
 		String joinedOutputParams = outputParams.stream().map(Definition::generate).collect(new Joiner(", "));
 
@@ -795,7 +810,7 @@ public class Main {
 		};
 
 		final String outputParamsString = "(" + joinedOutputParams + ")";
-		final String outputMethodHeader = transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
+		final String outputMethodHeader = templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
 			final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));
