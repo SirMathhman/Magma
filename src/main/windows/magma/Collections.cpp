@@ -1,33 +1,33 @@
 // File generated from '.\src\main\java\magma\Collections.java'. This is not source code!
 #include "Main.h"
-private Array_Array(T* ref, int capacity){
+private Array_Array(void* _ref, T* ref, int capacity){
 	this.ref = ref;
 	this.capacity = capacity;
 	this.length = 0;
 }
-Array<T> alloc_Array(int length){
+Array<T> alloc_Array(void* _ref, int length){
 	return new_Array<T>(MemUtils.malloc(length), length);
 }
-void copyTo_Array(int srcPos, Array<T> dest, int destPos, int length){
+void copyTo_Array(void* _ref, int srcPos, Array<T> dest, int destPos, int length){
 	System.arraycopy(this.ref, srcPos, dest.ref, destPos, length);
 }
 auto __lambda0__(auto element) {
 	return Objects.equals(element, test);
 }
-boolean contains_Array(T test){
+boolean contains_Array(void* _ref, T test){
 	Stream < T >= tStream == this.stream();
 	return tStream.collect(new_AnyMatch<T>(__lambda0__));
 }
-Stream<T> stream_Array(){
+Stream<T> stream_Array(void* _ref){
 	return new_Stream<T>(new_ArrayHead<T>(this.ref, this.length));
 }
-void setNext_Array(T element){
+void setNext_Array(void* _ref, T element){
 	if (this.length < this.ref.length) {
 		/*this.ref[this.length] */ = element;
 		this.length++;
 	}
 }
-Option<T> get_Array(int index){
+Option<T> get_Array(void* _ref, int index){
 	if (index < this.length) {
 		return new_Some<T>(/*this.ref[index]*/);
 	}
@@ -35,21 +35,21 @@ Option<T> get_Array(int index){
 		return new_None<T>();
 	}
 }
-void setFirst_Array(T element){
+void setFirst_Array(void* _ref, T element){
 	/*this.ref[0] */ = element;
 }
-private ArrayList_ArrayList(Array<T> elements){
+private ArrayList_ArrayList(void* _ref, Array<T> elements){
 	this.elements = elements;
 }
-ArrayList new_ArrayList(){
+ArrayList new_ArrayList(void* _ref){
 	ArrayList this;
 	this(Array.alloc(10));
 	return this;
 }
-ArrayList<T> from_ArrayList(/*T...*/ elements){
+ArrayList<T> from_ArrayList(void* _ref, /*T...*/ elements){
 	return Streams.fromRef(elements).collect(new_ListCollector<T>());
 }
-void ensureCapacity_ArrayList(int minCapacity){
+void ensureCapacity_ArrayList(void* _ref, int minCapacity){
 	if (minCapacity <  == this.elements.capacity) {
 		/*return*/;
 	}
@@ -62,31 +62,31 @@ void ensureCapacity_ArrayList(int minCapacity){
 	newElements.length = (this.elements).length;
 	this.elements = newElements;
 }
-ArrayList<T> addLast_ArrayList(T element){
+ArrayList<T> addLast_ArrayList(void* _ref, T element){
 	this.ensureCapacity((this.elements).length + 1);
 	this.elements.setNext(element);
 	return this;
 }
-ArrayList<T> clear_ArrayList(){
+ArrayList<T> clear_ArrayList(void* _ref){
 	this.elements == Array.alloc(10);
 	return this;
 }
-int size_ArrayList(){
+int size_ArrayList(void* _ref){
 	return (this.elements).length;
 }
-Stream<T> stream_ArrayList(){
+Stream<T> stream_ArrayList(void* _ref){
 	return new_Stream<T>(new_ListHead<T>(this));
 }
-Option<T> get_ArrayList(int index){
+Option<T> get_ArrayList(void* _ref, int index){
 	if (index < 0 || index >= (this.elements).length) {
 		return new_None<T>();
 	}
 	return this.elements.get(index);
 }
-boolean isEmpty_ArrayList(){
+boolean isEmpty_ArrayList(void* _ref){
 	return this.size() == 0;
 }
-ArrayList<T> addFirst_ArrayList(T element){
+ArrayList<T> addFirst_ArrayList(void* _ref, T element){
 	this.ensureCapacity((this.elements).length + 1);
 	/*// Shift all elements one position to the right
 			this.elements.copyTo(0, this.elements, 1, (this.elements).length)*/;
@@ -94,13 +94,13 @@ ArrayList<T> addFirst_ArrayList(T element){
 	this.elements.length++;
 	return this;
 }
-boolean contains_ArrayList(T element){
+boolean contains_ArrayList(void* _ref, T element){
 	return this.elements.contains(element);
 }
-Option<T> getFirst_ArrayList(){
+Option<T> getFirst_ArrayList(void* _ref){
 	return this.get(0);
 }
-Option<ArrayList<T>> subList_ArrayList(int start, int end){
+Option<ArrayList<T>> subList_ArrayList(void* _ref, int start, int end){
 	if (start < 0 || end >= (this.elements).length || start >= end) {
 		return new_None<ArrayList<T>>();
 	}
@@ -110,7 +110,7 @@ Option<ArrayList<T>> subList_ArrayList(int start, int end){
 	newElements.length = subSize;
 	return new_Some<ArrayList<T>>(new_ArrayList<T>(newElements));
 }
-ArrayList<T> addAll_ArrayList(ArrayList<T> elements){
+ArrayList<T> addAll_ArrayList(void* _ref, ArrayList<T> elements){
 	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
@@ -118,7 +118,7 @@ ArrayList<T> addAll_ArrayList(ArrayList<T> elements){
 			}*/
 	return this;
 }
-Option<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
+Option<ArrayList<T>> addAllAt_ArrayList(void* _ref, int index, ArrayList<T> elements){
 	if (index < 0 || index >= (this.elements).length) {
 		return new_None<ArrayList<T>>();
 	}
@@ -133,10 +133,10 @@ Option<ArrayList<T>> addAllAt_ArrayList(int index, ArrayList<T> elements){
 	this.elements.length +  = elementsSize;
 	return new_Some<ArrayList<T>>(this);
 }
-Option<T> getLast_ArrayList(){
+Option<T> getLast_ArrayList(void* _ref){
 	return this.get((this.elements).length - 1);
 }
-ArrayList<T> copy_ArrayList(){
+ArrayList<T> copy_ArrayList(void* _ref){
 	ArrayList<T> list = new_ArrayList<T>();
 	if ((this.elements).length >= 0) {
 		this.elements.copyTo(0, list.elements, 0, (this.elements).length);
@@ -147,7 +147,7 @@ ArrayList<T> copy_ArrayList(){
 auto __lambda1__(auto ttTuple) {
 	return ttTuple.left().equals(ttTuple.right());
 }
-boolean equalsTo_ArrayList(ArrayList<T> other){
+boolean equalsTo_ArrayList(void* _ref, ArrayList<T> other){
 	if (this.size() == other.size()) {
 		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda1__));
 	}

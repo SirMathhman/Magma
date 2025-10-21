@@ -3,7 +3,7 @@
 auto __lambda0__() {
 	return this.head.get().map(mapper);
 }
-Stream<R> map_Stream(Function<T, R> mapper){
+Stream<R> map_Stream(void* _ref, Function<T, R> mapper){
 	return new_Stream<R>(__lambda0__);
 }
 auto __lambda1__() {
@@ -22,13 +22,13 @@ auto __lambda1__() {
 		}
 	}
 }
-Stream<T> filter_Stream(Predicate<T> predicate){
+Stream<T> filter_Stream(void* _ref, Predicate<T> predicate){
 	return new_Stream<T>(__lambda1__);
 }
-C collect_Stream(Collector<T, C> collector){
+C collect_Stream(void* _ref, Collector<T, C> collector){
 	return this.foldWithInitial(collector.createInitial(), fold_collector);
 }
-C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
+C foldWithInitial_Stream(void* _ref, C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
 	Option < T >= current == this.head.get();
 	while (current.tag == Some) {
@@ -39,7 +39,7 @@ C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	}
 	return accumulator;
 }
-Stream<R> flatMap_Stream(Function<T, Stream<R>> mapper){
+Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper){
 	return new_Stream<R>(new_FlatMapHead<T, R>(this.head, mapper));
 }
 auto __lambda2__(auto inner) {
@@ -52,23 +52,29 @@ auto __lambda3__(auto current, auto element) {
 	}
 	return current.map(__lambda2__);
 }
-Option<T> fold_Stream(BiFunction<T, T, T> folder){
+Option<T> fold_Stream(void* _ref, BiFunction<T, T, T> folder){
 	return this. < Option < T >= foldWithInitial(new_None<T>(), __lambda3__);
 }
-Option<T> next_Stream(){
+Option<T> next_Stream(void* _ref){
 	return this.head.get();
 }
 auto __lambda4__() {
 	return this.head.get().and(next_stream);
 }
-Stream<Tuple<T, R>> zip_Stream(Stream<R> stream){
+Stream<Tuple<T, R>> zip_Stream(void* _ref, Stream<R> stream){
 	return new_Stream<Tuple<T, R>>(__lambda4__);
 }
-Stream<T> fromRef_Streams(T* elements){
+Stream<T> fromRef_Streams(void* _ref, T* elements){
 	return new_Stream<T>(new_ArrayHead<T>(elements, elements.length));
 }
-Stream<Integer> fromLength_Streams(int length){
+Stream<Integer> fromLength_Streams(void* _ref, int length){
 	return new_Stream<Integer>(RangeHead.createRangeStream(length));
+}
+Stream<T> fromOption_Streams(void* _ref, Option<T> option){
+	return new_Stream<T>(/*switch (option) {
+			case None<T> _ -> new EmptyHead<T>();
+			case Some<T> v -> new SingletonHead<T>(v.value());
+		}*/);
 }
 int main(){
 	main_Main();

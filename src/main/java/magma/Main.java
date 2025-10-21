@@ -190,6 +190,10 @@ public class Main {
 	public record Tuple<A, B>(A left, B right) {}
 
 	private record Definition(ArrayList<String> annotations, String type, String name) implements Definable {
+		public Definition(String type, String name) {
+			this(new ArrayList<String>(), type, name);
+		}
+
 		@Override
 		public String generate() {
 			return this.type + " " + this.name;
@@ -739,10 +743,22 @@ public class Main {
 		}
 
 		final JMethodHeader methodHeader = compileMethodHeader(beforeParams);
-		final String inputParams = withParams.substring(0, paramEnd);
+		final String inputParamString = withParams.substring(0, paramEnd);
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final String outputParams = compileParameters(inputParams);
+		final ArrayList<Definition> params;
+		if (!inputParamString.isEmpty()) {
+			params = divide(inputParamString, Main::foldValue)
+					.map(Main::compileDefinition)
+					.flatMap(Streams::fromOption)
+					.collect(new ListCollector<Definition>());
+		} else {
+			params = new ArrayList<Definition>();
+		}
+
+		String outputParams =
+				params.addFirst(new Definition("void*", "_ref")).stream().map(Definition::generate).collect(new Joiner(", "));
+
 		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
 
 		final String outputBodyWithBraces;

@@ -163,10 +163,10 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Collections.cpp:3:1: error: expected unqualified-id
-    3 | private Array_Array(T* ref, int capacity){
+    3 | private Array_Array(void* _ref, T* ref, int capacity){
       | ^
 magma\Collections.cpp:8:7: error: use of undeclared identifier 'T'
-    8 | Array<T> alloc_Array(int length){
+    8 | Array<T> alloc_Array(void* _ref, int length){
       |       ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -250,10 +250,10 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Collectors.cpp:3:1: error: unknown type name 'C'
-    3 | C createInitial_Collector();
+    3 | C createInitial_Collector(void* _ref);
       | ^
 magma\Collectors.cpp:4:1: error: unknown type name 'C'
-    4 | C fold_Collector(C current, T element);
+    4 | C fold_Collector(void* _ref, C current, T element);
       | ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -337,11 +337,11 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Functions.cpp:3:1: error: unknown type name 'R'
-    3 | R apply_Function(T arg);
+    3 | R apply_Function(void* _ref, T arg);
       | ^
-magma\Functions.cpp:3:18: error: unknown type name 'T'
-    3 | R apply_Function(T arg);
-      |                  ^
+magma\Functions.cpp:3:30: error: unknown type name 'T'
+    3 | R apply_Function(void* _ref, T arg);
+      |                              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
@@ -424,16 +424,16 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Heads.cpp:3:1: error: use of class template 'ListHead' requires template arguments
-    3 | ListHead new_ListHead(ArrayList<T> self){
+    3 | ListHead new_ListHead(void* _ref, ArrayList<T> self){
       | ^
 magma\../magma\../magma/Heads.h:20:8: note: template is declared here
    19 | template <typename T>
       | ~~~~~~~~~~~~~~~~~~~~~
    20 | struct ListHead {
       |        ^
-magma\Heads.cpp:3:33: error: use of undeclared identifier 'T'
-    3 | ListHead new_ListHead(ArrayList<T> self){
-      |                                 ^
+magma\Heads.cpp:3:45: error: use of undeclared identifier 'T'
+    3 | ListHead new_ListHead(void* _ref, ArrayList<T> self){
+      |                                             ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
@@ -516,7 +516,7 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\IO.cpp:4:1: error: unknown type name 'boolean'
-    4 | boolean exists_Path();
+    4 | boolean exists_Path(void* _ref);
       | ^
 magma\IO.cpp:17:2: error: use of undeclared identifier 'main_Main'
    17 |         main_Main();
@@ -689,10 +689,10 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Main.cpp:5:11: error: use of undeclared identifier 'String'
-    5 | ArrayList<String> new_ArrayList<String>();
+    5 | ArrayList<String> new_ArrayList<String>(void* _ref);
       |           ^
 magma\Main.cpp:5:33: error: use of undeclared identifier 'String'
-    5 | ArrayList<String> new_ArrayList<String>();
+    5 | ArrayList<String> new_ArrayList<String>(void* _ref);
       |                                 ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -776,7 +776,7 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\MemUtils.cpp:3:1: error: unknown type name 'T'
-    3 | T* malloc_MemUtils(int length);
+    3 | T* malloc_MemUtils(void* _ref, int length);
       | ^
 magma\MemUtils.cpp:5:2: error: use of undeclared identifier 'main_Main'
     5 |         main_Main();
@@ -862,13 +862,13 @@ magma\Main.h:100:19: error: expected member name or ';' after declaration specif
   100 |         ArrayList<char*> namespace;
       |         ~~~~~~~~~~~~~~~~ ^
 magma\Options.cpp:3:8: error: use of undeclared identifier 'R'
-    3 | Option<R> map_Option(Functions.Function<T, R> mapper);
+    3 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
       |        ^
-magma\Options.cpp:3:31: error: expected ')'
-    3 | Option<R> map_Option(Functions.Function<T, R> mapper);
-      |                               ^
+magma\Options.cpp:3:43: error: expected ')'
+    3 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
 magma\Options.cpp:3:21: note: to match this '('
-    3 | Option<R> map_Option(Functions.Function<T, R> mapper);
+    3 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
       |                     ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

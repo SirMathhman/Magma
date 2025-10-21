@@ -4,8 +4,10 @@ import magma.Collectors.Collector;
 import magma.Functions.BiFunction;
 import magma.Functions.Function;
 import magma.Heads.ArrayHead;
+import magma.Heads.EmptyHead;
 import magma.Heads.FlatMapHead;
 import magma.Heads.RangeHead;
+import magma.Heads.SingletonHead;
 import magma.Main.Tuple;
 import magma.Options.None;
 import magma.Options.Option;
@@ -78,5 +80,12 @@ public class Streams {
 
 	static Stream<Integer> fromLength(int length) {
 		return new Stream<Integer>(RangeHead.createRangeStream(length));
+	}
+
+	public static <T> Stream<T> fromOption(Option<T> option) {
+		return new Stream<T>(switch (option) {
+			case None<T> _ -> new EmptyHead<T>();
+			case Some<T> v -> new SingletonHead<T>(v.value());
+		});
 	}
 }
