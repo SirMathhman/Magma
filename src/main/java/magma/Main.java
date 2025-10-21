@@ -774,14 +774,25 @@ public class Main {
 			params = new ArrayList<Definition>();
 		}
 
-		String outputParams =
-				params.addFirst(new Definition("void*", "_ref")).stream().map(Definition::generate).collect(new Joiner(", "));
+		final ArrayList<Definition> outputParams = params.addFirst(new Definition("void*", "_ref"));
+		String joinedOutputParams = outputParams.stream().map(Definition::generate).collect(new Joiner(", "));
 
-		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
+		String field = switch (methodHeader) {
+			case Definable definable -> switch (definable) {
+				case Definition definition -> definition.type + " (*" + definition.name + ")";
+				case Placeholder placeholder -> placeholder.generate();
+			};
+			case JConstructor _ -> "/* Constructors not allowed as interface methods */";
+		};
+
+		final String outputParamsString = "(" + joinedOutputParams + ")";
+		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
-			final ParseState withFunctionDeclaration = state.addFunctionDeclaration(generateStatement(outputMethodHeader,
-																																																1));
+			final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));
+
+			final String functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);
+			final ParseState withFunctionDeclaration = state.addFunctionDeclaration(functionDeclaration);
 			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", withFunctionDeclaration));
 		} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);

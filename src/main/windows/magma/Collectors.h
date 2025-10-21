@@ -17,8 +17,8 @@ struct AllMatch;
 struct Collectors;
 template <typename T, typename C>
 struct CollectorVTable {
-	C createInitial_Collector(void* _ref);
-	C fold_Collector(void* _ref, C current, T element);
+	C (*createInitial)(void*);
+	C (*fold)(void*, C, T);
 };
 template <typename T, typename C>
 struct Collector {

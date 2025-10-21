@@ -602,53 +602,6 @@ Tuple<char*, ParseState> compileClassSegmentValue_Main(void* _ref, char* input, 
 	}
 	return compileStructure(input, "class", state).or(__lambda16__).or(__lambda17__).or(__lambda18__).or(__lambda19__).orElseGet(__lambda20__);
 }
-Option<Tuple<char*, ParseState>> compileMethod_Main(void* _ref, char* input, char* name, ParseState state){
-	int paramStart = input.indexOf("(");
-	if (paramStart < 0) {
-		return new_None<Tuple<char*, ParseState>>();
-	}
-	char* beforeParams = input.substring(0, paramStart).strip();
-	char* withParams = input.substring(paramStart + 1);
-	int paramEnd = withParams.indexOf(")");
-	if (paramEnd < 0) {
-		return new_None<Tuple<char*, ParseState>>();
-	}
-	JMethodHeader methodHeader = compileMethodHeader(beforeParams);
-	char* inputParamString = withParams.substring(0, paramEnd);
-	char* withBraces = withParams.substring(paramEnd + 1).strip();
-	ArrayList<Definition> params;
-	if (!inputParamString.isEmpty()) {
-		params == divide(inputParamString, foldValue_Main).map(compileDefinition_Main).flatMap(fromOption_Streams).collect(new_ListCollector<Definition>());
-	}
-	else {
-		params = new_ArrayList<Definition>();
-	}
-	char* outputParams = params.addFirst(new_Definition("void*", "_ref")).stream().map(generate_Definition).collect(new_Joiner(", "));
-	char* outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + "(" + outputParams + ")";
-	if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
-		ParseState withFunctionDeclaration = state.addFunctionDeclaration(generateStatement(outputMethodHeader, 1));
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", withFunctionDeclaration));
-	}
-	else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-		char* inputBody = withBraces.substring(1, withBraces.length() - 1);
-		Tuple<ArrayList<char*>, ParseState> compiledBody = compileMethodStatements(state, 0, inputBody);
-		ArrayList<char*> statements = compiledBody.left;
-	??? _temp = Objects.requireNonNull(methodHeader);
-		if (_temp.tag == JConstructor) {
-		JConstructor _cast = _temp.data.jconstructor;
-			ArrayList < String >= stringArrayList == statements.addFirst(generateStatement(name + " this", 1));
-			statements == stringArrayList.addLast(generateStatement("return this", 1));
-		}
-		char* joined = statements.stream().collect(new_Joiner(""));
-		char* outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";
-		char* generated = outputMethodHeader + outputBodyWithBraces + System.lineSeparator();
-		ParseState parseState = state.addFunction(generated);
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
-	}
-	else {
-		return new_None<Tuple<char*, ParseState>>();
-	}
-}
 boolean isPlatformDependentMethod_Main(void* _ref, JMethodHeader methodHeader){
 		Definition definition && definition.annotations.contains _cast = methodHeader.data.definition definition && definition.annotations.contains("actual");
 	return methodHeader.tag == Definition definition && definition.annotations.contains("Actual");

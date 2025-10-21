@@ -22,6 +22,10 @@ struct JConstructor;
 struct Content;
 struct CIdentifier;
 struct Location;
+struct methods */";
+		};
+
+		final String outputParamsString = ";
 struct Main;
 enum DefinableTag {
 	DefinitionTag,
@@ -101,6 +105,45 @@ struct CIdentifier {
 struct Location {
 	ArrayList<char*> namespace;
 	char* name;
+};
+struct methods */";
+		};
+
+		final String outputParamsString = "VTable {
+	char* (*generate)(void*);
+	char* (*generate)(void*);
+	/* Constructors not allowed as interface methods */(void*);
+	/*=*/ (*compileMethodStatements)(void*);
+	/* Constructors not allowed as interface methods */(void*);
+	/* Constructors not allowed as interface methods */(void*);
+	/* Constructors not allowed as interface methods */(void*);
+};
+struct methods */";
+		};
+
+		final String outputParamsString = " {/*" + joinedOutputParams + ")";
+		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + outputParamsString;
+
+		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)*/
+	void* data;
+	methods */";
+		};
+
+		final String outputParamsString = "VTable vtable;
+	/*final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));*/
+	/*final String functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);*/
+	/*return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", withFunctionDeclaration));*/
+	/*} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+			final String inputBody = withBraces.substring(1, withBraces.length() - 1);*/
+	/*ArrayList<String> statements = compiledBody.left;*/
+	/*if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
+				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(name + " this", 1));
+				statements = stringArrayList.addLast(generateStatement("return this", 1));
+			}*/
+	/*final String joined = statements.stream().collect(new Joiner(""));*/
+	/*final String outputBodyWithBraces = "{" + joined + System.lineSeparator() + "}";*/
+	/*return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));*/
+	/*}*/
 };
 struct Main {
 };

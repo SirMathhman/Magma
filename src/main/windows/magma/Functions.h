@@ -8,7 +8,7 @@ struct BiFunction;
 struct Functions;
 template <typename T, typename R>
 struct FunctionVTable {
-	R apply_Function(void* _ref, T arg);
+	R (*apply)(void*, T);
 };
 template <typename T, typename R>
 struct Function {
@@ -17,7 +17,7 @@ struct Function {
 };
 template <typename A, typename B, typename R>
 struct BiFunctionVTable {
-	R apply_BiFunction(void* _ref, A first, B second);
+	R (*apply)(void*, A, B);
 };
 template <typename A, typename B, typename R>
 struct BiFunction {
