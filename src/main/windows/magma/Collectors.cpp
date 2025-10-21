@@ -1,5 +1,13 @@
 // File generated from '.\src\main\java\magma\Collectors.java'. This is not source code!
 #include "Main.h"
+C createInitial_Collector(void* _ref){
+	Collector this = *((Collector*) _ref);
+	return this.vtable.apply(this.data);
+}
+C fold_Collector(void* _ref, C current, T element){
+	Collector this = *((Collector*) _ref);
+	return this.vtable.apply(this.data, current, element);
+}
 ListCollector new_ListCollector(void* _ref){
 	ListCollector this;
 	return this;

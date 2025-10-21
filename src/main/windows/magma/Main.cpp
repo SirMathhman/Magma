@@ -1,5 +1,13 @@
 // File generated from '.\src\main\java\magma\Main.java'. This is not source code!
 #include "Main.h"
+char* generate_Definable(void* _ref){
+	Definable this = *((Definable*) _ref);
+	return this.vtable.apply(this.data);
+}
+char* generate_CExpression(void* _ref){
+	CExpression this = *((CExpression*) _ref);
+	return this.vtable.apply(this.data);
+}
 ParseState new_ParseState(void* _ref){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -601,6 +609,49 @@ Tuple<char*, ParseState> compileClassSegmentValue_Main(void* _ref, char* input, 
 		return new_Tuple<char*, ParseState>("", state);
 	}
 	return compileStructure(input, "class", state).or(__lambda16__).or(__lambda17__).or(__lambda18__).or(__lambda19__).orElseGet(__lambda20__);
+}
+/*=*/ compileMethodStatements_methods */";
+		};
+
+		final String outputParamsString = "(void* _ref){
+	methods */";
+		};
+
+		final String outputParamsString = " this = *((methods */";
+		};
+
+		final String outputParamsString = "*) _ref);
+	return this.vtable.apply(this.data);
+}
+System.lineSeparator new_System.lineSeparator(void* _ref){
+	methods */";
+		};
+
+		final String outputParamsString = " this = *((methods */";
+		};
+
+		final String outputParamsString = "*) _ref);
+	return this.vtable.apply(this.data);
+}
+state.addFunction new_state.addFunction(void* _ref){
+	methods */";
+		};
+
+		final String outputParamsString = " this = *((methods */";
+		};
+
+		final String outputParamsString = "*) _ref);
+	return this.vtable.apply(this.data);
+}
+ParseState>> new_ParseState>>(void* _ref){
+	methods */";
+		};
+
+		final String outputParamsString = " this = *((methods */";
+		};
+
+		final String outputParamsString = "*) _ref);
+	return this.vtable.apply(this.data);
 }
 boolean isPlatformDependentMethod_Main(void* _ref, JMethodHeader methodHeader){
 		Definition definition && definition.annotations.contains _cast = methodHeader.data.definition definition && definition.annotations.contains("actual");

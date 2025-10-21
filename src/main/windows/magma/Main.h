@@ -112,7 +112,6 @@ struct methods */";
 		final String outputParamsString = "VTable {
 	char* (*generate)(void*);
 	char* (*generate)(void*);
-	/* Constructors not allowed as interface methods */(void*);
 	/*=*/ (*compileMethodStatements)(void*);
 	/* Constructors not allowed as interface methods */(void*);
 	/* Constructors not allowed as interface methods */(void*);
@@ -122,7 +121,7 @@ struct methods */";
 		};
 
 		final String outputParamsString = " {/*" + joinedOutputParams + ")";
-		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + outputParamsString;
+		final String outputMethodHeader = transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)*/
 	void* data;
@@ -132,12 +131,22 @@ struct methods */";
 		final String outputParamsString = "VTable vtable;
 	/*final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));*/
 	/*final String functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);*/
+	/*final ArrayList<String> paramNames = params.stream().map(Definition::name).collect(new ListCollector<>());*/
+	/*final ArrayList<String> stringArrayList =
+					paramNames.subList(1, paramNames.size()).orElse(new ArrayList<>()).addFirst("this.data");*/
+	/*final String joinedArgs = stringArrayList.stream().collect(new Joiner(", "));*/
+	/*final ParseState withFunctionDeclaration = state
+					.addFunctionDeclaration(functionDeclaration)
+					.addFunction(
+							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +
+							generateStatement("return this.vtable.apply(" + joinedArgs + ")", 1) + System.lineSeparator() + "}" +
+							System.lineSeparator());*/
 	/*return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", withFunctionDeclaration));*/
 	/*} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);*/
 	/*ArrayList<String> statements = compiledBody.left;*/
 	/*if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
-				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(name + " this", 1));
+				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(structName + " this", 1));
 				statements = stringArrayList.addLast(generateStatement("return this", 1));
 			}*/
 	/*final String joined = statements.stream().collect(new Joiner(""));*/

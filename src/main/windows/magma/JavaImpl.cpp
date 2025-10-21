@@ -72,6 +72,10 @@ Path resolveByString_JavaPath(void* _ref, char* name){
 boolean exists_JavaPath(void* _ref){
 	return Files.exists(this.path);
 }
+Path get_Paths(void* _ref, char* first, /*String...*/ more){
+	Paths this = *((Paths*) _ref);
+	return this.vtable.apply(this.data, first, more);
+}
 int main(){
 	main_Main();
 	return 0;

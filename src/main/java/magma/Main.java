@@ -746,7 +746,7 @@ public class Main {
 				});
 	}
 
-	private static Option<Tuple<String, ParseState>> compileMethod(String input, String name, ParseState state) {
+	private static Option<Tuple<String, ParseState>> compileMethod(String input, String structName, ParseState state) {
 		final int paramStart = input.indexOf("(");
 		if (paramStart < 0) {
 			return new None<Tuple<String, ParseState>>();
@@ -786,13 +786,25 @@ public class Main {
 		};
 
 		final String outputParamsString = "(" + joinedOutputParams + ")";
-		final String outputMethodHeader = transformMethodHeader(methodHeader, name).generate() + outputParamsString;
+		final String outputMethodHeader = transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
 			final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));
 
 			final String functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);
-			final ParseState withFunctionDeclaration = state.addFunctionDeclaration(functionDeclaration);
+
+			final ArrayList<String> paramNames = params.stream().map(Definition::name).collect(new ListCollector<>());
+			final ArrayList<String> stringArrayList =
+					paramNames.subList(1, paramNames.size()).orElse(new ArrayList<>()).addFirst("this.data");
+
+			final String joinedArgs = stringArrayList.stream().collect(new Joiner(", "));
+			final ParseState withFunctionDeclaration = state
+					.addFunctionDeclaration(functionDeclaration)
+					.addFunction(
+							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +
+							generateStatement("return this.vtable.apply(" + joinedArgs + ")", 1) + System.lineSeparator() + "}" +
+							System.lineSeparator());
+
 			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", withFunctionDeclaration));
 		} else if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String inputBody = withBraces.substring(1, withBraces.length() - 1);
@@ -800,7 +812,7 @@ public class Main {
 
 			ArrayList<String> statements = compiledBody.left;
 			if (Objects.requireNonNull(methodHeader) instanceof JConstructor) {
-				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(name + " this", 1));
+				ArrayList<String> stringArrayList = statements.addFirst(generateStatement(structName + " this", 1));
 				statements = stringArrayList.addLast(generateStatement("return this", 1));
 			}
 
