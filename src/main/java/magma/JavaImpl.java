@@ -18,6 +18,7 @@ import java.nio.file.Files;
 import java.util.stream.Stream;
 
 public class JavaImpl {
+	@Actual
 	public record JIOError(IOException e) implements IOError {
 		@Override
 		public String display() {
@@ -27,6 +28,7 @@ public class JavaImpl {
 		}
 	}
 
+	@Actual
 	public record JavaPath(java.nio.file.Path path) implements Path {
 		public static java.nio.file.Path unwrap(Path path) {
 			return path.stream().map(java.nio.file.Paths::get).fold(java.nio.file.Path::resolve).orElseGet(() -> java.nio.file.Paths.get(

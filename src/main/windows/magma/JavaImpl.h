@@ -6,16 +6,8 @@
 #include "../magma/IO.h"
 #include "../magma/Options.h"
 #include "../magma/Results.h"
-struct JIOError;
-struct JavaPath;
 struct Paths;
 struct JavaImpl;
-struct JIOError {
-	IOException e;
-};
-struct JavaPath {
-	/*java.nio.file.Path*/ path;
-};
 struct Paths {
 };
 struct JavaImpl {

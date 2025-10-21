@@ -544,6 +544,11 @@ public class Main {
 			return new None<Tuple<String, ParseState>>();
 		}
 
+		final ArrayList<String> annotations = findAnnotations(input.substring(0, keywordIndex));
+		if (annotations.contains("Actual")) {
+			return new Some<>(new Tuple<>("", state));
+		}
+
 		final String afterKeyword = input.substring(keywordIndex + (type + " ").length());
 		final int contentStart = afterKeyword.indexOf("{");
 
@@ -797,7 +802,7 @@ public class Main {
 			params = new ArrayList<Definition>();
 		}
 
-		final var templateString = createTemplateString(typeParams);
+		final String templateString = createTemplateString(typeParams);
 		final ArrayList<Definition> outputParams = params.addFirst(new Definition("void*", "_ref"));
 		String joinedOutputParams = outputParams.stream().map(Definition::generate).collect(new Joiner(", "));
 
@@ -810,7 +815,8 @@ public class Main {
 		};
 
 		final String outputParamsString = "(" + joinedOutputParams + ")";
-		final String outputMethodHeader = templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
+		final String outputMethodHeader =
+				templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
 			final String joinedTypes = outputParams.stream().map(Definition::type).collect(new Joiner(", "));
@@ -1497,9 +1503,10 @@ public class Main {
 			return compileType(beforeName).map(type -> new Definition(new ArrayList<String>(), type, name));
 		}
 
-		final String withoutLast =
+		final String beforeType =
 				segments.subList(0, segments.size() - 1).orElse(new ArrayList<String>()).stream().collect(new Joiner(" "));
-		final ArrayList<String> annotations = findAnnotations(withoutLast);
+
+		final ArrayList<String> annotations = findAnnotations(beforeType);
 
 		final String typeString = segments.getLast().orElse(null);
 		return compileType(typeString).map(type -> new Definition(annotations, type, name));

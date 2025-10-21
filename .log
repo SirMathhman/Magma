@@ -69,14 +69,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Actual.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -146,14 +150,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Collections.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -223,14 +231,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Collectors.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -300,14 +312,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Functions.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -377,14 +393,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Heads.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -454,14 +474,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\IO.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -531,14 +555,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\JavaImpl.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -608,14 +636,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Main.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -685,14 +717,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\MemUtils.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -762,14 +798,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Options.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -839,14 +879,18 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Results.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -916,11 +960,15 @@ magma\../magma/IO.h:39:1: error: unknown type name 'boolean'
       | ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Streams.cpp:2:
+magma\Main.h:25:17: error: expected unqualified-id
+   25 | struct methods */";
+      |                 ^
+magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
+   25 | struct methods */";
+      |                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+1 warning and 20 errors generated.

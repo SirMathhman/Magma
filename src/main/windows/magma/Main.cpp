@@ -439,6 +439,10 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	if (keywordIndex < 0) {
 		return new_None<Tuple<char*, ParseState>>();
 	}
+	ArrayList<char*> annotations = findAnnotations(input.substring(0, keywordIndex));
+	if (annotations.contains("Actual")) {
+		return new_Some<>(new_Tuple<>("", state));
+	}
 	char* afterKeyword = input.substring(keywordIndex + (type + " ").length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) {
@@ -1308,8 +1312,8 @@ Option<Definition> compileDefinition_Main(void* _ref, char* input){
 	if (segments.size() < 2) {
 		return compileType(beforeName).map(__lambda57__);
 	}
-	char* withoutLast = segments.subList(0, segments.size() - 1).orElse(new_ArrayList<char*>()).stream().collect(new_Joiner(" "));
-	ArrayList<char*> annotations = findAnnotations(withoutLast);
+	char* beforeType = segments.subList(0, segments.size() - 1).orElse(new_ArrayList<char*>()).stream().collect(new_Joiner(" "));
+	ArrayList<char*> annotations = findAnnotations(beforeType);
 	char* typeString = segments.getLast().orElse(null);
 	return compileType(typeString).map(__lambda58__);
 }

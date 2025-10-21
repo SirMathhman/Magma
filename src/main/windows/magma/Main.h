@@ -122,7 +122,8 @@ struct methods */";
 		};
 
 		final String outputParamsString = " {/*" + joinedOutputParams + ")";
-		final String outputMethodHeader = templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
+		final String outputMethodHeader =
+				templateString + transformMethodHeader(methodHeader, structName).generate() + outputParamsString;
 
 		if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)*/
 	void* data;
