@@ -49,7 +49,7 @@ Option<T> get_SingletonHead(void* _ref){
 	return new_Some<T>(this.value);
 }
 template <typename T, typename R>
-FlatMapHead new_FlatMapHead(void* _ref, Supplier<Option<T>> sourceHead, Functions.Function<T, Stream<R>> mapper){
+FlatMapHead new_FlatMapHead(void* _ref, Supplier<Option<T>> sourceHead, Function<T, Stream<R>> mapper){
 	FlatMapHead this;
 	this.sourceHead = sourceHead;
 	this.mapper = mapper;

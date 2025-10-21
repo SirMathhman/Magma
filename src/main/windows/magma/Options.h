@@ -2,7 +2,7 @@
 #ifndef OPTIONS_H
 #define OPTIONS_H
 #include "../magma/Functions.h"
-#include "../magma/Main.h"
+#include "../magma/Utils.h"
 template <typename T>
 struct Option;
 template <typename T>

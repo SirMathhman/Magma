@@ -3,7 +3,7 @@
 #define COLLECTIONS_H
 #include "../magma/Collectors.h"
 #include "../magma/Heads.h"
-#include "../magma/Main.h"
+#include "../magma/Utils.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
 template <typename T>

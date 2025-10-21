@@ -8,10 +8,10 @@ import magma.Heads.EmptyHead;
 import magma.Heads.FlatMapHead;
 import magma.Heads.RangeHead;
 import magma.Heads.SingletonHead;
-import magma.Main.Tuple;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
+import magma.Utils.Tuple;
 
 import java.util.function.Predicate;
 import java.util.function.Supplier;

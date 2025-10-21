@@ -10,4 +10,5 @@ clang magma\Actual.cpp^
 	 magma\Options.cpp^
 	 magma\Results.cpp^
 	 magma\Streams.cpp^
+	 magma\Utils.cpp^
 	 -o magmac.exe

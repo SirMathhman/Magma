@@ -1,7 +1,7 @@
 package magma;
 
 import magma.Functions.Function;
-import magma.Main.Tuple;
+import magma.Utils.Tuple;
 
 import java.util.function.Supplier;
 

@@ -9,14 +9,13 @@
 #include "../magma/Options.h"
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
+#include "../magma/Utils.h"
 struct Definable;
 struct JMethodHeader;
 struct CExpression;
 struct CRootSegment;
 struct ParseState;
 struct DivideState;
-template <typename A, typename B>
-struct Tuple;
 struct Definition;
 struct Placeholder;
 struct JConstructor;
@@ -93,11 +92,6 @@ struct DivideState {
 	StringBuilder buffer;
 	int depth;
 	int index;
-};
-template <typename A, typename B>
-struct Tuple {
-	A left;
-	B right;
 };
 struct Definition {
 	ArrayList<char*> annotations;

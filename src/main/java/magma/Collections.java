@@ -5,11 +5,11 @@ import magma.Collectors.AnyMatch;
 import magma.Collectors.ListCollector;
 import magma.Heads.ArrayHead;
 import magma.Heads.ListHead;
-import magma.Main.Tuple;
 import magma.Options.None;
 import magma.Options.Option;
 import magma.Options.Some;
 import magma.Streams.Stream;
+import magma.Utils.Tuple;
 
 import java.util.Objects;
 

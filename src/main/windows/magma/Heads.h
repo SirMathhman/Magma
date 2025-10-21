@@ -2,6 +2,7 @@
 #ifndef HEADS_H
 #define HEADS_H
 #include "../magma/Collections.h"
+#include "../magma/Functions.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
 template <typename T>
@@ -35,7 +36,7 @@ struct SingletonHead {
 template <typename T, typename R>
 struct FlatMapHead {
 	Supplier<Option<T>> sourceHead;
-	Functions.Function<T, Stream<R>> mapper;
+	Function<T, Stream<R>> mapper;
 	Option<Stream<R>> currentStream;
 };
 struct RangeHead {

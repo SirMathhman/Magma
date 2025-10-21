@@ -4,7 +4,7 @@
 #include "../magma/Collectors.h"
 #include "../magma/Functions.h"
 #include "../magma/Heads.h"
-#include "../magma/Main.h"
+#include "../magma/Utils.h"
 #include "../magma/Options.h"
 template <typename T>
 struct Stream;

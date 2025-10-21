@@ -1,5 +1,5 @@
 
-C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma\Collections.cpp	 magma\Collectors.cpp	 magma\Functions.cpp	 magma\Heads.cpp	 magma\IO.cpp	 magma\JavaImpl.cpp	 magma\Main.cpp	 magma\MemUtils.cpp	 magma\Options.cpp	 magma\Results.cpp	 magma\Streams.cpp	 -o magmac.exe 
+C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma\Collections.cpp	 magma\Collectors.cpp	 magma\Functions.cpp	 magma\Heads.cpp	 magma\IO.cpp	 magma\JavaImpl.cpp	 magma\Main.cpp	 magma\MemUtils.cpp	 magma\Options.cpp	 magma\Results.cpp	 magma\Streams.cpp	 magma\Utils.cpp	 -o magmac.exe 
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -28,7 +28,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -68,25 +68,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
@@ -117,7 +119,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -157,25 +159,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
@@ -206,7 +210,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -246,25 +250,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
@@ -295,7 +301,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -335,25 +341,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Functions.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
@@ -384,7 +392,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -424,25 +432,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
@@ -473,7 +483,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -513,25 +523,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
@@ -562,7 +574,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -602,25 +614,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
@@ -651,7 +665,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -691,25 +705,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
@@ -740,7 +756,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -780,25 +796,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
@@ -829,7 +847,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -869,25 +887,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
@@ -918,7 +938,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -958,25 +978,27 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
@@ -1007,7 +1029,7 @@ magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
 magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
    14 |         Some,
       |         ^
@@ -1047,24 +1069,117 @@ magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared ident
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
+In file included from magma\../magma\../magma/Heads.h:7:
 magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
    14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
       |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
       |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+In file included from magma\../magma\../magma/Collectors.h:5:
+magma\../magma\../magma\../magma/Results.h:12:2: error: redefinition of 'Err'
+   12 |         Err,
+      |         ^
+magma\../magma\../magma\../magma/Results.h:9:8: note: previous definition is here
+    9 | struct Err;
+      |        ^
+magma\../magma\../magma\../magma/Results.h:13:2: error: redefinition of 'Ok'
+   13 |         Ok
+      |         ^
+magma\../magma\../magma\../magma/Results.h:7:8: note: previous definition is here
+    7 | struct Ok;
+      |        ^
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
+   44 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Options.h:14:2: error: redefinition of 'Some'
+   14 |         Some,
+      |         ^
+magma\../magma\../magma\../magma/Options.h:9:8: note: previous definition is here
+    9 | struct Some;
+      |        ^
+magma\../magma\../magma\../magma/Options.h:15:2: error: redefinition of 'None'
+   15 |         None
+      |         ^
+magma\../magma\../magma\../magma/Options.h:11:8: note: previous definition is here
+   11 | struct None;
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
+   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
+   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                              ^
+magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
+   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                 ^
+magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
+   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                ^
+magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
+   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
+   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                                         ^
+magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
+   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |                 ^
+magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
+   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |                                                            ^
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:7:
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
+   22 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
+   34 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
+   38 |         Supplier<Option<T>> sourceHead;
+      |         ^
+In file included from magma\Utils.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
+   19 |         boolean (*exists)(void*);
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
