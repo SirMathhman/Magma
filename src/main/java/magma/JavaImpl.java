@@ -27,7 +27,12 @@ public class JavaImpl {
 		}
 	}
 
-	private record JavaPath(java.nio.file.Path path) implements Path {
+	public record JavaPath(java.nio.file.Path path) implements Path {
+		public static java.nio.file.Path unwrap(Path path) {
+			return path.stream().map(java.nio.file.Paths::get).fold(java.nio.file.Path::resolve).orElseGet(() -> java.nio.file.Paths.get(
+					"."));
+		}
+
 		@Override
 		public Result<String, IOError> readString() {
 			try {
@@ -79,13 +84,8 @@ public class JavaImpl {
 
 		@Override
 		public Path relativize(Path path) {
-			final java.nio.file.Path fold = this.unwrap(path);
+			final java.nio.file.Path fold = JavaPath.unwrap(path);
 			return new JavaPath(this.path.relativize(fold));
-		}
-
-		private java.nio.file.Path unwrap(Path path) {
-			return path.stream().map(java.nio.file.Paths::get).fold(java.nio.file.Path::resolve).orElseGet(() -> java.nio.file.Paths.get(
-					"."));
 		}
 
 		@Override

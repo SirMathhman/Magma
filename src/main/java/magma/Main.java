@@ -6,6 +6,8 @@ import magma.Collectors.ListCollector;
 import magma.Collectors.ResultCollector;
 import magma.IO.IOError;
 import magma.IO.Path;
+import magma.JavaImpl.JIOError;
+import magma.JavaImpl.JavaPath;
 import magma.JavaImpl.Paths;
 import magma.Options.None;
 import magma.Options.Option;
@@ -15,6 +17,7 @@ import magma.Results.Ok;
 import magma.Results.Result;
 import magma.Streams.Stream;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -37,7 +40,7 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
-		public ArrayList<String> beforeStructs = new ArrayList<>();
+		public ArrayList<String> beforeStructs = new ArrayList<String>();
 		private ArrayList<String> afterStatements;
 		private ArrayList<String> structs;
 		private ArrayList<String> functions;
@@ -235,20 +238,47 @@ public class Main {
 				final Result<ArrayList<ArrayList<Path>>, IOError> result =
 						runWithSources(v.value(), sourceDirectory, targetDirectory);
 				yield switch (result) {
-					case Err<ArrayList<ArrayList<Path>>, IOError> v1 -> new Some<>(v1.error());
-					case Ok<ArrayList<ArrayList<Path>>, IOError> v1 -> {
-						final ArrayList<Path> list = v1.value().stream().flatMap(ArrayList::stream).collect(new ListCollector<>());
-
-						final Path path = targetDirectory.resolveByString("build.bat");
-						final String joined =
-								list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice + "^" +
-																																																System.lineSeparator() +
-																																																"\t").collect(new Joiner(
-										" "));
-						yield path.writeString("clang " + joined + " -o magmac.exe");
-					}
+					case Err<ArrayList<ArrayList<Path>>, IOError> v1 -> new Some<IOError>(v1.error());
+					case Ok<ArrayList<ArrayList<Path>>, IOError> v1 -> switch (writeBuildFile(v1, targetDirectory)) {
+						case Err<Path, IOError> v2 -> new Some<IOError>(v2.error());
+						case Ok<Path, IOError> v2 -> runBuildFile(targetDirectory, v2.value());
+					};
 				};
 			}
+		};
+	}
+
+	private static Option<IOError> runBuildFile(Path targetDirectory, Path path) {
+		try {
+			final ProcessBuilder builder =
+					new ProcessBuilder(targetDirectory.relativize(path).asString()).directory(JavaPath.unwrap(targetDirectory).toFile());
+
+			// Use the parent's console so the spawned process' stdout/stderr show up
+			builder.inheritIO();
+			final Process proc = builder.start();
+			proc.waitFor();
+
+			return new None<IOError>();
+		} catch (InterruptedException e) {
+			Thread.currentThread().interrupt();
+			return new Some<IOError>(new JIOError(new IOException(e)));
+		} catch (IOException e) {
+			return new Some<IOError>(new JIOError(e));
+		}
+	}
+
+	private static Result<Path, IOError> writeBuildFile(Ok<ArrayList<ArrayList<Path>>, IOError> v1,
+																											Path targetDirectory) {
+		final ArrayList<Path> list = v1.value().stream().flatMap(ArrayList::stream).collect(new ListCollector<Path>());
+
+		final Path path = targetDirectory.resolveByString("build.bat");
+		final String joined = list.stream().map(targetDirectory::relativize).map(Path::asString).map(slice -> slice + "^" +
+																																																					System.lineSeparator() +
+																																																					"\t").collect(
+				new Joiner(" "));
+		return switch (path.writeString("clang " + joined + " -o magmac.exe")) {
+			case None<IOError> v -> new Ok<Path, IOError>(path);
+			case Some<IOError> v -> new Err<Path, IOError>(v.value());
 		};
 	}
 
@@ -264,7 +294,7 @@ public class Main {
 		return sources.stream().filter(path -> path.asString().endsWith(".java")).map(source -> compileSource(source,
 																																																					sourceDirectory,
 																																																					targetDirectory)).collect(
-				new ResultCollector<>(new ListCollector<>()));
+				new ResultCollector<ArrayList<Path>, IOError, ArrayList<ArrayList<Path>>>(new ListCollector<ArrayList<Path>>()));
 	}
 
 	private static Result<ArrayList<Path>, IOError> compileSource(Path source,
@@ -288,7 +318,7 @@ public class Main {
 		if (!targetParent.exists()) {
 			final Option<IOError> result = targetParent.createDirectories();
 			if (result instanceof Some<IOError>(IOError error)) {
-				return new Err<>(error);
+				return new Err<ArrayList<Path>, IOError>(error);
 			}
 		}
 
@@ -311,10 +341,10 @@ public class Main {
 		final Path target = targetParent.resolveByString(name + ".cpp");
 		final Option<IOError> maybeError = header.writeString(headerOutput).or(() -> target.writeString(targetOutput));
 		if (maybeError instanceof Some<IOError>(IOError error)) {
-			return new Err<>(error);
+			return new Err<ArrayList<Path>, IOError>(error);
 		}
 
-		return new Ok<>(new ArrayList<Path>().addLast(target));
+		return new Ok<ArrayList<Path>, IOError>(new ArrayList<Path>().addLast(target));
 	}
 
 	private static Tuple<String, String> compile(String input, Location location) {
@@ -457,7 +487,7 @@ public class Main {
 			final ArrayList<String> divisions = Streams.fromRef(divisionArray).collect(new ListCollector<String>());
 
 			final String joined = Streams.fromLength(location.namespace.size()).map(_ -> "..").collect(new Joiner("/"));
-			final ArrayList<String> segments = divisions.subList(0, divisions.size() - 1).orElse(new ArrayList<>());
+			final ArrayList<String> segments = divisions.subList(0, divisions.size() - 1).orElse(new ArrayList<String>());
 			final ParseState newState;
 			if (segments.getFirst() instanceof Some<String>(String first) && first.startsWith("java")) {
 				newState = state;
@@ -568,7 +598,8 @@ public class Main {
 
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice + "Tag").collect(new Joiner(","));
+			final String enumFields =
+					variants.stream().map(slice -> generateIndent(1) + slice + "Tag").collect(new Joiner(","));
 
 			final String joinedTypeParameters;
 			if (typeParameters.isEmpty()) {

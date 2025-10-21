@@ -1,0 +1,13 @@
+java.io.IOException: Cannot run program "build.bat" (in directory ".\src\main\windows"): CreateProcess error=2, The system cannot find the file specified
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1110)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1044)
+	at magma.Main.runBuildFile(Main.java:258)
+	at magma.Main.run(Main.java:244)
+	at magma.Main.main(Main.java:225)
+Caused by: java.io.IOException: CreateProcess error=2, The system cannot find the file specified
+	at java.base/java.lang.ProcessImpl.create(Native Method)
+	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:485)
+	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:146)
+	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1076)
+	... 4 more
+

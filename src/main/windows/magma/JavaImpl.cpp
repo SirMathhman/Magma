@@ -5,6 +5,12 @@ char* display_JIOError(){
 	this.e.printStackTrace(new_PrintWriter(writer));
 	return writer.toString();
 }
+auto __lambda0__() {
+	return java.nio.file.Paths.get(".");
+}
+/*java.nio.file.Path*/ unwrap_JavaPath(Path path){
+	return path.stream().map(get_/*java.nio.file.Paths*/).fold(resolve_/*java.nio.file.Path*/).orElseGet(__lambda0__);
+}
 Result<char*, IOError> readString_JavaPath(){
 	/*try {
 				return new Ok<String, IOError>(Files.readString(this.path));
@@ -47,14 +53,8 @@ char* asString_JavaPath(){
 	return this.path.toString();
 }
 Path relativize_JavaPath(Path path){
-	/*java.nio.file.Path*/ fold = this.unwrap(path);
+	/*java.nio.file.Path*/ fold = JavaPath.unwrap(path);
 	return new_JavaPath(this.path.relativize(fold));
-}
-auto __lambda0__() {
-	return java.nio.file.Paths.get(".");
-}
-/*java.nio.file.Path*/ unwrap_JavaPath(Path path){
-	return path.stream().map(get_/*java.nio.file.Paths*/).fold(resolve_/*java.nio.file.Path*/).orElseGet(__lambda0__);
 }
 Path resolveByPath_JavaPath(Path path){
 	return new_JavaPath(path.stream().foldWithInitial(this.path, resolve_/*java.nio.file.Path*/));
