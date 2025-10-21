@@ -13,6 +13,7 @@ struct JMethodHeader;
 struct CExpression;
 struct ParseState;
 struct DivideState;
+template <typename A, typename B>
 struct Tuple;
 struct Definition;
 struct Placeholder;

@@ -596,7 +596,7 @@ public class Main {
 				"};" + System.lineSeparator();
 
 		final ParseState parseState =
-				outer.addBeforeStruct("struct " + name + ";" + System.lineSeparator()).addStruct(generated);
+				outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 	}
 

@@ -469,7 +469,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();
-	ParseState parseState = outer.addBeforeStruct("struct " + name + ";" + System.lineSeparator()).addStruct(generated);
+	ParseState parseState = outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
 char* compileValues_Main(char* input, Function<char*, char*> mapper){
