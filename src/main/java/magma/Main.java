@@ -568,7 +568,7 @@ public class Main {
 
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
+			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice + "Tag").collect(new Joiner(","));
 
 			final String joinedTypeParameters;
 			if (typeParameters.isEmpty()) {

@@ -22,8 +22,8 @@ struct CIdentifier;
 struct Location;
 struct Main;
 enum DefinableTag {
-	Definition,
-	Placeholder
+	DefinitionTag,
+	PlaceholderTag
 };
 union DefinableData {
 	Definition definition;
@@ -34,8 +34,8 @@ struct Definable {
 	DefinableData data;
 };
 enum JMethodHeaderTag {
-	JConstructor,
-	Definable
+	JConstructorTag,
+	DefinableTag
 };
 union JMethodHeaderData {
 	JConstructor jconstructor;
@@ -46,8 +46,8 @@ struct JMethodHeader {
 	JMethodHeaderData data;
 };
 enum CExpressionTag {
-	CIdentifier,
-	Content
+	CIdentifierTag,
+	ContentTag
 };
 union CExpressionData {
 	CIdentifier cidentifier;

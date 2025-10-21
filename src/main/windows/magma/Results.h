@@ -6,8 +6,8 @@ struct Ok;
 struct Err;
 struct Results;
 enum ResultTag {
-	Err,
-	Ok
+	ErrTag,
+	OkTag
 };
 template <typename T, typename X>
 union ResultData {

@@ -7,8 +7,8 @@ struct Some;
 struct None;
 struct Options;
 enum OptionTag {
-	Some,
-	None
+	SomeTag,
+	NoneTag
 };
 template <typename T>
 union OptionData {

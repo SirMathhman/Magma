@@ -368,7 +368,7 @@ auto __lambda9__(auto segment) {
 	return !segment.isEmpty();
 }
 auto __lambda10__(auto slice) {
-	return generateIndent(1) + slice;
+	return generateIndent(1) + slice + "Tag";
 }
 auto __lambda11__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
