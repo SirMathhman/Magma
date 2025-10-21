@@ -53,6 +53,7 @@ public class Main {
 		private int counter;
 		private ArrayList<String> includes;
 		private ArrayList<String> functionDeclarations = new ArrayList<String>();
+		private boolean usesBoolean = false;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
@@ -134,6 +135,11 @@ public class Main {
 
 		public ParseState addFunctionDeclaration(String functionDeclaration) {
 			this.functionDeclarations = this.functionDeclarations.addLast(functionDeclaration);
+			return this;
+		}
+
+		public ParseState toggleBoolean() {
+			this.usesBoolean = true;
 			return this;
 		}
 	}
@@ -421,19 +427,25 @@ public class Main {
 			i++;
 		}
 
+
 		final String joined = joiner.toString();
 
-		final String joinedIncludes = state.includes.stream().collect(new Joiner(""));
+		final ParseState current;
+		if (state.usesBoolean) current = state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
+		else current = state;
 
-		final String joinedBeforeStructs = state.beforeStructs.stream().collect(new Joiner(""));
-		final String joinedStructs = state.rootSegments.stream().map(CRootSegment::generate).collect(new Joiner(""));
+		final String joinedIncludes = current.includes.stream().collect(new Joiner(""));
 
-		final String joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new Joiner(""));
+		final String joinedBeforeStructs = current.beforeStructs.stream().collect(new Joiner(""));
+		final String joinedStructs = current.rootSegments.stream().map(CRootSegment::generate).collect(new Joiner(""));
 
-		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
+		final String joinedFunctionDeclarations = current.functionDeclarations.stream().collect(new Joiner(""));
+
+		final String joinedFunctions = current.functions.stream().collect(new Joiner(""));
 
 		final String generatedHeaderContent =
 				joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
+
 		final String generatedSourceContent =
 				joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
 				System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
@@ -1606,6 +1618,18 @@ public class Main {
 
 	private static Option<Tuple<String, ParseState>> compileType(ParseState state, String input) {
 		final String stripped = input.strip();
+		if (stripped.equals("int")) {
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("int", state));
+		}
+
+		if (stripped.equals("String")) {
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("char*", state));
+		}
+
+		if (stripped.equals("boolean")) {
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("bool", state.toggleBoolean()));
+		}
+
 		if (stripped.equals("public")) {
 			return new None<Tuple<String, ParseState>>();
 		}
@@ -1641,16 +1665,10 @@ public class Main {
 			return compileType(state, slice).map(Tuple.mapLeft(result -> result + "*"));
 		}
 
-		if (stripped.equals("String")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("char*", state));
-		}
-		if (stripped.equals("int")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("int", state));
-		}
-
 		if (isIdentifier(stripped)) {
 			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped, state));
 		}
+
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(wrap(stripped), state));
 	}
 

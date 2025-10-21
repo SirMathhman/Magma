@@ -5,6 +5,7 @@
 #include "../magma/Functions.h"
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
+#include <stdbool.h>
 template <typename T>
 struct ListHead;
 template <typename T>
@@ -31,7 +32,7 @@ struct ArrayHead {
 template <typename T>
 struct SingletonHead {
 	T value;
-	boolean retrieved;
+	bool retrieved;
 };
 template <typename T, typename R>
 struct FlatMapHead {

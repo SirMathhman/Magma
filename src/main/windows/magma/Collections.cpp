@@ -18,7 +18,7 @@ auto __lambda0__(auto element) {
 	return Objects.equals(element, test);
 }
 template <typename T>
-boolean contains_Array(void* _ref, T test){
+bool contains_Array(void* _ref, T test){
 	Stream < T >= tStream == this.stream();
 	return tStream.collect(new_AnyMatch<T>(__lambda0__));
 }
@@ -101,7 +101,7 @@ Option<T> get_ArrayList(void* _ref, int index){
 	return this.elements.get(index);
 }
 template <typename T>
-boolean isEmpty_ArrayList(void* _ref){
+bool isEmpty_ArrayList(void* _ref){
 	return this.size() == 0;
 }
 template <typename T>
@@ -114,7 +114,7 @@ ArrayList<T> addFirst_ArrayList(void* _ref, T element){
 	return this;
 }
 template <typename T>
-boolean contains_ArrayList(void* _ref, T element){
+bool contains_ArrayList(void* _ref, T element){
 	return this.elements.contains(element);
 }
 template <typename T>
@@ -175,7 +175,7 @@ auto __lambda1__(auto ttTuple) {
 	return ttTuple.left().equals(ttTuple.right());
 }
 template <typename T>
-boolean equalsTo_ArrayList(void* _ref, ArrayList<T> other){
+bool equalsTo_ArrayList(void* _ref, ArrayList<T> other){
 	if (this.size() == other.size()) {
 		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda1__));
 	}

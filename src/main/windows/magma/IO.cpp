@@ -4,7 +4,7 @@ char* display_IOError(void* _ref){
 	IOError this = *((IOError*) _ref);
 	return this.vtable.apply(this.data);
 }
-boolean exists_Path(void* _ref){
+bool exists_Path(void* _ref){
 	Path this = *((Path*) _ref);
 	return this.vtable.apply(this.data);
 }

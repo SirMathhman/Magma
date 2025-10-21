@@ -85,6 +85,10 @@ ParseState addFunctionDeclaration_ParseState(void* _ref, char* functionDeclarati
 	this.functionDeclarations == this.functionDeclarations.addLast(functionDeclaration);
 	return this;
 }
+ParseState toggleBoolean_ParseState(void* _ref){
+	this.usesBoolean = true;
+	return this;
+}
 DivideState new_DivideState(void* _ref, char* input){
 	DivideState this;
 	this.input = input;
@@ -105,10 +109,10 @@ DivideState exit_DivideState(void* _ref){
 	this.depth = this.depth - 1;
 	return this;
 }
-boolean isShallow_DivideState(void* _ref){
+bool isShallow_DivideState(void* _ref){
 	return this.depth == 1;
 }
-boolean isLevel_DivideState(void* _ref){
+bool isLevel_DivideState(void* _ref){
 	return this.depth == 0;
 }
 DivideState append_DivideState(void* _ref, char c){
@@ -305,11 +309,14 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 		i++;
 	}
 	char* joined = joiner.toString();
-	char* joinedIncludes = state.includes.stream().collect(new_Joiner(""));
-	char* joinedBeforeStructs = state.beforeStructs.stream().collect(new_Joiner(""));
-	char* joinedStructs = state.rootSegments.stream().map(generate_CRootSegment).collect(new_Joiner(""));
-	char* joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new_Joiner(""));
-	char* joinedFunctions = state.functions.stream().collect(new_Joiner(""));
+	ParseState current;
+	if (state.usesBoolean) current == state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
+	else current = state;
+	char* joinedIncludes = current.includes.stream().collect(new_Joiner(""));
+	char* joinedBeforeStructs = current.beforeStructs.stream().collect(new_Joiner(""));
+	char* joinedStructs = current.rootSegments.stream().map(generate_CRootSegment).collect(new_Joiner(""));
+	char* joinedFunctionDeclarations = current.functionDeclarations.stream().collect(new_Joiner(""));
+	char* joinedFunctions = current.functions.stream().collect(new_Joiner(""));
 	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
 	char* generatedSourceContent = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	return new_Tuple<char*, char*>(generatedHeaderContent, generatedSourceContent);
@@ -724,7 +731,7 @@ Option<Tuple<char*, ParseState>> compileMethod_Main(void* _ref, char* input, cha
 		return new_None<Tuple<char*, ParseState>>();
 	}
 }
-boolean isPlatformDependentMethod_Main(void* _ref, JMethodHeader methodHeader){
+bool isPlatformDependentMethod_Main(void* _ref, JMethodHeader methodHeader){
 		Definition definition && definition.annotations.contains _cast = methodHeader.data.definition definition && definition.annotations.contains("actual");
 	return methodHeader.tag == Definition definition && definition.annotations.contains("Actual");
 }
@@ -1097,7 +1104,7 @@ Option<Tuple<char*, ParseState>> compileChar_Main(void* _ref, char* stripped, Pa
 	}
 	return new_None<Tuple<char*, ParseState>>();
 }
-boolean isABoolean_Main(void* _ref, char* stripped){
+bool isABoolean_Main(void* _ref, char* stripped){
 	return stripped.startsWith("'") && stripped.endsWith("'") && stripped.length() <  == 4;
 }
 auto __lambda43__(auto tuple) {
@@ -1281,11 +1288,11 @@ DivideState foldOperator_Main(void* _ref, char* operator, DivideState state1, Ch
 	}
 	return state1.advance();
 }
-boolean isString_Main(void* _ref, char* stripped){
+bool isString_Main(void* _ref, char* stripped){
 	if (stripped.length() < 2) {
 		return false;
 	}
-	boolean hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
+	bool hasDoubleQuotes = stripped.startsWith("\"") && stripped.endsWith("\"");
 	if (!hasDoubleQuotes) {
 		return false;
 	}
@@ -1303,21 +1310,21 @@ auto __lambda52__(auto i) {
 	char previous = input.charAt(i - 1);
 	return previous == '\\';
 }
-boolean areAllDoubleQuotesEscaped_Main(void* _ref, char* input){
+bool areAllDoubleQuotesEscaped_Main(void* _ref, char* input){
 	return IntStream.range(0, input.length()).allMatch(__lambda52__);
 }
 auto __lambda53__(auto i) {
 	return Character.isDigit(input.charAt(i));
 }
-boolean isNumber_Main(void* _ref, char* input){
+bool isNumber_Main(void* _ref, char* input){
 	return IntStream.range(0, input.length()).allMatch(__lambda53__);
 }
 auto __lambda54__(auto i) {
 	char next = input.charAt(i);
-	boolean isValidDigit = i != 0 && Character.isDigit(next);
+	bool isValidDigit = i != 0 && Character.isDigit(next);
 	return Character.isLetter(next) || isValidDigit;
 }
-boolean isIdentifier_Main(void* _ref, char* input){
+bool isIdentifier_Main(void* _ref, char* input){
 	return IntStream.range(0, input.length()).allMatch(__lambda54__);
 }
 Option<Tuple<JMethodHeader, ParseState>> compileConstructor_Main(void* _ref, char* beforeParams, ParseState state){
@@ -1398,6 +1405,15 @@ auto __lambda59__(auto result) {
 }
 Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, char* input){
 	char* stripped = input.strip();
+	if (stripped.equals("int")) {
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("int", state));
+	}
+	if (stripped.equals("String")) {
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("char*", state));
+	}
+	if (stripped.equals("boolean")) {
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("bool", state.toggleBoolean()));
+	}
 	if (stripped.equals("public")) {
 		return new_None<Tuple<char*, ParseState>>();
 	}
@@ -1424,12 +1440,6 @@ Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, 
 	if (stripped.endsWith("[]")) {
 		char* slice = stripped.substring(0, stripped.length() - 2);
 		return compileType(state, slice).map(Tuple.mapLeft(__lambda59__));
-	}
-	if (stripped.equals("String")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("char*", state));
-	}
-	if (stripped.equals("int")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("int", state));
 	}
 	if (isIdentifier(stripped)) {
 		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(stripped, state));

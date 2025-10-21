@@ -5,6 +5,7 @@
 #include "../magma/Options.h"
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
+#include <stdbool.h>
 struct IOError;
 struct Path;
 struct IO;
@@ -16,7 +17,7 @@ struct IOError {
 	IOErrorVTable vtable;
 };
 struct PathVTable {
-	boolean (*exists)(void*);
+	bool (*exists)(void*);
 	Result<char*, IOError> (*readString)(void*);
 	Option<IOError> (*createDirectories)(void*);
 	Option<IOError> (*writeString)(void*, char*);
@@ -36,7 +37,7 @@ struct Path {
 struct IO {
 };
 char* display_IOError(void* _ref);
-boolean exists_Path(void* _ref);
+bool exists_Path(void* _ref);
 Result<char*, IOError> readString_Path(void* _ref);
 Option<IOError> createDirectories_Path(void* _ref);
 Option<IOError> writeString_Path(void* _ref, char* output);

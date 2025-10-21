@@ -75,19 +75,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Actual.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -166,19 +171,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Collections.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Collections.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -257,19 +267,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Collectors.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Collectors.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -348,19 +363,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Functions.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Functions.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -439,19 +459,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Heads.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Heads.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -530,19 +555,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\IO.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\IO.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -621,19 +651,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\JavaImpl.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\JavaImpl.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -712,19 +747,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Main.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Main.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -803,19 +843,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\MemUtils.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\MemUtils.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -894,19 +939,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Options.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Options.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -985,19 +1035,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Results.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Results.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -1076,19 +1131,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Streams.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Streams.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
@@ -1167,19 +1227,24 @@ magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Suppl
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:22:2: error: no template named 'ArrayList'
-   22 |         ArrayList<T> self;
+magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
+   23 |         ArrayList<T> self;
       |         ^
-magma\../magma\../magma/Heads.h:34:2: error: unknown type name 'boolean'
-   34 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:38:2: error: no template named 'Supplier'
-   38 |         Supplier<Option<T>> sourceHead;
+magma\../magma\../magma/Heads.h:39:2: error: no template named 'Supplier'
+   39 |         Supplier<Option<T>> sourceHead;
       |         ^
 In file included from magma\Utils.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
+In file included from magma\Main.h:8:
+magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
+   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+      |                                                       ^
+In file included from magma\Utils.cpp:2:
+magma\Main.h:35:2: error: must use 'struct' tag to refer to type 'Definition' in this scope
+   35 |         Definition definition;
+      |         ^
+      |         struct 
+magma\Main.h:31:2: note: struct 'Definition' is hidden by a non-type declaration of 'Definition' here
+   31 |         Definition,
       |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

@@ -10,6 +10,7 @@
 #include "../magma/Results.h"
 #include "../magma/Streams.h"
 #include "../magma/Utils.h"
+#include <stdbool.h>
 struct Definable;
 struct JMethodHeader;
 struct CExpression;
@@ -85,6 +86,7 @@ struct ParseState {
 	ArrayList<char*> functions;
 	int counter;
 	ArrayList<char*> includes;
+	/*=*/ false;
 };
 struct DivideState {
 	char* input;

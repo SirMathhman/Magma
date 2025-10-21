@@ -6,6 +6,7 @@
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
 #include "../magma/Utils.h"
+#include <stdbool.h>
 template <typename T>
 struct Array;
 template <typename T>
