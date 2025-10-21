@@ -11,8 +11,8 @@ template <typename T>
 struct None;
 struct Options;
 enum OptionTag {
-	SomeTag,
-	NoneTag
+	Some,
+	None
 };
 template <typename T>
 union OptionData {

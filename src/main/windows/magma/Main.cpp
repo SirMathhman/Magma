@@ -426,7 +426,7 @@ auto __lambda10__(auto segment) {
 	return !segment.isEmpty();
 }
 auto __lambda11__(auto slice) {
-	return generateIndent(1) + slice + "Tag";
+	return generateIndent(1) + slice;
 }
 auto __lambda12__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
