@@ -4,4 +4,5 @@
 struct MemUtils;
 struct MemUtils {
 };
+T* malloc_MemUtils(void* _ref, int length);
 #endif

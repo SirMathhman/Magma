@@ -20,4 +20,5 @@ struct Paths {
 };
 struct JavaImpl {
 };
+Path get_Paths(void* _ref, char* first, /*String...*/ more);
 #endif

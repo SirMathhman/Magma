@@ -26,4 +26,6 @@ struct BiFunction {
 };
 struct Functions {
 };
+R apply_Function(void* _ref, T arg);
+R apply_BiFunction(void* _ref, A first, B second);
 #endif

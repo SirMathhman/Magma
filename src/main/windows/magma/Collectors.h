@@ -45,4 +45,6 @@ struct AllMatch {
 };
 struct Collectors {
 };
+C createInitial_Collector(void* _ref);
+C fold_Collector(void* _ref, C current, T element);
 #endif

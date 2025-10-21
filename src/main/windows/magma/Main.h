@@ -66,7 +66,7 @@ struct CExpression {
 struct ParseState {
 	Stack<ArrayList<char*>> beforeStatements;
 	ArrayList<char*> beforeStructs;
-	ArrayList<char*> functionDeclarations;
+	ArrayList<char*> structFields;
 	ArrayList<char*> afterStatements;
 	ArrayList<char*> structs;
 	ArrayList<char*> functions;
@@ -112,6 +112,7 @@ struct methods */";
 		final String outputParamsString = "VTable {
 	char* (*generate)(void*);
 	char* (*generate)(void*);
+	/* Constructors not allowed as interface methods */(void*);
 	/*=*/ (*compileMethodStatements)(void*);
 	/* Constructors not allowed as interface methods */(void*);
 	/* Constructors not allowed as interface methods */(void*);
@@ -136,7 +137,8 @@ struct methods */";
 					paramNames.subList(1, paramNames.size()).orElse(new ArrayList<>()).addFirst("this.data");*/
 	/*final String joinedArgs = stringArrayList.stream().collect(new Joiner(", "));*/
 	/*final ParseState withFunctionDeclaration = state
-					.addFunctionDeclaration(functionDeclaration)
+					.addStructField(functionDeclaration)
+					.addFunctionDeclaration(outputMethodHeader + ";" + System.lineSeparator())
 					.addFunction(
 							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +
 							generateStatement("return this.vtable.apply(" + joinedArgs + ")", 1) + System.lineSeparator() + "}" +
@@ -156,4 +158,14 @@ struct methods */";
 };
 struct Main {
 };
+char* generate_Definable(void* _ref);
+char* generate_CExpression(void* _ref);
+ArrayList<> new_ArrayList<>(void* _ref);
+/*=*/ compileMethodStatements_methods */";
+		};
+
+		final String outputParamsString = "(void* _ref);
+System.lineSeparator new_System.lineSeparator(void* _ref);
+state.addFunction new_state.addFunction(void* _ref);
+ParseState>> new_ParseState>>(void* _ref);
 #endif

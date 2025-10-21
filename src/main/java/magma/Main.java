@@ -41,12 +41,13 @@ public class Main {
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
 		public ArrayList<String> beforeStructs;
-		private ArrayList<String> functionDeclarations;
+		private ArrayList<String> structFields;
 		private ArrayList<String> afterStatements;
 		private ArrayList<String> structs;
 		private ArrayList<String> functions;
 		private int counter;
 		private ArrayList<String> includes;
+		private ArrayList<String> functionDeclarations = new ArrayList<>();
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
@@ -59,7 +60,7 @@ public class Main {
 			this.counter = -1;
 			this.includes = new ArrayList<String>();
 			this.beforeStructs = new ArrayList<String>();
-			this.functionDeclarations = new ArrayList<String>();
+			this.structFields = new ArrayList<String>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -115,15 +116,20 @@ public class Main {
 			return this;
 		}
 
-		public ParseState addFunctionDeclaration(String functionDeclaration) {
-			this.functionDeclarations = this.functionDeclarations.addLast(functionDeclaration);
+		public ParseState addStructField(String field) {
+			this.structFields = this.structFields.addLast(field);
 			return this;
 		}
 
-		public ArrayList<String> popFunctionDeclarations() {
-			final ArrayList<String> copy = this.functionDeclarations.copy();
-			this.functionDeclarations = this.functionDeclarations.clear();
+		public ArrayList<String> popStructFields() {
+			final ArrayList<String> copy = this.structFields.copy();
+			this.structFields = this.structFields.clear();
 			return copy;
+		}
+
+		public ParseState addFunctionDeclaration(String functionDeclaration) {
+			this.functionDeclarations = this.functionDeclarations.addLast(functionDeclaration);
+			return this;
 		}
 	}
 
@@ -390,9 +396,12 @@ public class Main {
 
 		final String joinedBeforeStructs = state.beforeStructs.stream().collect(new Joiner(""));
 		final String joinedStructs = state.structs.stream().collect(new Joiner(""));
+		final String joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new Joiner(""));
+
 		final String joinedFunctions = state.functions.stream().collect(new Joiner(""));
 
-		final String generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs;
+		final String generatedHeaderContent =
+				joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
 		final String generatedSourceContent =
 				joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" +
 				System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
@@ -651,7 +660,7 @@ public class Main {
 		} else if (type.equals("interface")) {
 			final String vTableName = name + "VTable";
 
-			final String functionDeclarations = outer.popFunctionDeclarations().stream().collect(new Joiner());
+			final String functionDeclarations = outer.popStructFields().stream().collect(new Joiner());
 			generatedSubStructs =
 					templateString + "struct " + vTableName + " {" + functionDeclarations + System.lineSeparator() + "};" +
 					System.lineSeparator();
@@ -799,7 +808,8 @@ public class Main {
 
 			final String joinedArgs = stringArrayList.stream().collect(new Joiner(", "));
 			final ParseState withFunctionDeclaration = state
-					.addFunctionDeclaration(functionDeclaration)
+					.addStructField(functionDeclaration)
+					.addFunctionDeclaration(outputMethodHeader + ";" + System.lineSeparator())
 					.addFunction(
 							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +
 							generateStatement("return this.vtable.apply(" + joinedArgs + ")", 1) + System.lineSeparator() + "}" +

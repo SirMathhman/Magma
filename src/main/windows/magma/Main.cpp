@@ -8,6 +8,10 @@ char* generate_CExpression(void* _ref){
 	CExpression this = *((CExpression*) _ref);
 	return this.vtable.apply(this.data);
 }
+ArrayList<> new_ArrayList<>(void* _ref){
+	ParseState this = *((ParseState*) _ref);
+	return this.vtable.apply(this.data);
+}
 ParseState new_ParseState(void* _ref){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -18,7 +22,7 @@ ParseState new_ParseState(void* _ref){
 	this.counter =  - 1;
 	this.includes = new_ArrayList<char*>();
 	this.beforeStructs = new_ArrayList<char*>();
-	this.functionDeclarations = new_ArrayList<char*>();
+	this.structFields = new_ArrayList<char*>();
 	return this;
 }
 ParseState addFunction_ParseState(void* _ref, char* func){
@@ -64,14 +68,18 @@ ParseState addBeforeStruct_ParseState(void* _ref, char* beforeStruct){
 	this.beforeStructs == this.beforeStructs.addLast(beforeStruct);
 	return this;
 }
+ParseState addStructField_ParseState(void* _ref, char* field){
+	this.structFields == this.structFields.addLast(field);
+	return this;
+}
+ArrayList<char*> popStructFields_ParseState(void* _ref){
+	ArrayList<char*> copy = this.structFields.copy();
+	this.structFields == this.structFields.clear();
+	return copy;
+}
 ParseState addFunctionDeclaration_ParseState(void* _ref, char* functionDeclaration){
 	this.functionDeclarations == this.functionDeclarations.addLast(functionDeclaration);
 	return this;
-}
-ArrayList<char*> popFunctionDeclarations_ParseState(void* _ref){
-	ArrayList<char*> copy = this.functionDeclarations.copy();
-	this.functionDeclarations == this.functionDeclarations.clear();
-	return copy;
 }
 DivideState new_DivideState(void* _ref, char* input){
 	DivideState this;
@@ -282,8 +290,9 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 	char* joinedIncludes = state.includes.stream().collect(new_Joiner(""));
 	char* joinedBeforeStructs = state.beforeStructs.stream().collect(new_Joiner(""));
 	char* joinedStructs = state.structs.stream().collect(new_Joiner(""));
+	char* joinedFunctionDeclarations = state.functionDeclarations.stream().collect(new_Joiner(""));
 	char* joinedFunctions = state.functions.stream().collect(new_Joiner(""));
-	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs;
+	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
 	char* generatedSourceContent = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	return new_Tuple<char*, char*>(generatedHeaderContent, generatedSourceContent);
 }
@@ -519,7 +528,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	}
 	else if (type.equals("interface")) {
 		char* vTableName = name + "VTable";
-		char* functionDeclarations = outer.popFunctionDeclarations().stream().collect(new_Joiner());
+		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
 		generatedSubStructs == templateString + "struct " + vTableName + " {" + functionDeclarations + System.lineSeparator() + "};" + System.lineSeparator();
 		recordFields +  == generateStatement("void* data", 1);
 		recordFields +  == generateStatement(vTableName + joinedTypeParameters + " vtable", 1);

@@ -9,93 +9,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Actual.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -105,93 +81,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Collections.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Collections.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Collections.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Collections.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -201,93 +153,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Collectors.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Collectors.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Collectors.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Collectors.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -297,93 +225,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Functions.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Functions.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Functions.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Functions.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -393,93 +297,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Heads.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Heads.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Heads.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Heads.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -489,93 +369,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\IO.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\IO.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\IO.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\IO.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -585,93 +441,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\JavaImpl.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\JavaImpl.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\JavaImpl.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\JavaImpl.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -681,93 +513,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Main.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Main.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Main.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Main.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -777,93 +585,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\MemUtils.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\MemUtils.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\MemUtils.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\MemUtils.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -873,93 +657,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Options.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Options.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Options.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Options.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -969,93 +729,69 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Results.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Results.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Results.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Results.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
@@ -1065,90 +801,66 @@ magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
 magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
    44 |         Predicate<T> predicate;
       |         ^
+magma\../magma\../magma/Collectors.h:48:1: error: unknown type name 'C'
+   48 | C createInitial_Collector(void* _ref);
+      | ^
+magma\../magma\../magma/Collectors.h:49:1: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      | ^
+magma\../magma\../magma/Collectors.h:49:30: error: unknown type name 'C'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                              ^
+magma\../magma\../magma/Collectors.h:49:41: error: unknown type name 'T'
+   49 | C fold_Collector(void* _ref, C current, T element);
+      |                                         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
-      |         ^
-In file included from magma\Streams.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
-   21 |         ArrayList<T> self;
-      |         ^
-magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
-   33 |         boolean retrieved;
-      |         ^
-magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
-   37 |         Supplier<Option<T>> sourceHead;
-      |         ^
-magma\../magma\../magma/Heads.h:38:11: error: expected member name or ';' after declaration specifiers
-   38 |         Functions.Function<T, Stream<R>> mapper;
-      |         ~~~~~~~~~^
-In file included from magma\Streams.cpp:2:
-In file included from magma\Main.h:7:
-magma\../magma/IO.h:19:2: error: unknown type name 'boolean'
-   19 |         boolean (*exists)(void*);
-      |         ^
-In file included from magma\Streams.cpp:2:
-In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
-   14 |         IOException e;
-      |         ^
-magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
-   17 |         /*java.nio.file.Path*/ path;
-      |                                ^
-In file included from magma\Streams.cpp:2:
-magma\Main.h:25:17: error: expected unqualified-id
-   25 | struct methods */";
-      |                 ^
-magma\Main.h:25:18: warning: missing terminating '"' character [-Winvalid-pp-token]
-   25 | struct methods */";
-      |                  ^
-magma\Main.h:26:3: error: extraneous closing brace ('}')
-   26 |                 };
-      |                 ^
-magma\Main.h:28:3: error: unknown type name 'final'
-   28 |                 final String outputParamsString = ";
-      |                 ^
-magma\Main.h:28:15: error: expected ';' after top level declarator
-   28 |                 final String outputParamsString = ";
+In file included from magma\../magma\../magma/Heads.h:5:
+magma\../magma\../magma\../magma/Options.h:35:8: error: use of undeclared identifier 'R'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:35:34: error: unknown type name 'Functions'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                  ^
+magma\../magma\../magma\../magma/Options.h:35:43: error: expected ')'
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                                           ^
+magma\../magma\../magma\../magma/Options.h:35:21: note: to match this '('
+   35 | Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+      |                     ^
+magma\../magma\../magma\../magma/Options.h:36:8: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:36:49: error: use of undeclared identifier 'T'
+   36 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+magma\../magma\../magma\../magma/Options.h:37:1: error: unknown type name 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:37:41: error: use of undeclared identifier 'T'
+   37 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
+magma\../magma\../magma\../magma/Options.h:38:8: error: use of undeclared identifier 'R'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:38:38: error: unknown type name 'Functions'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                      ^
+magma\../magma\../magma\../magma/Options.h:38:47: error: expected ')'
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                                               ^
+magma\../magma\../magma\../magma/Options.h:38:25: note: to match this '('
+   38 | Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+      |                         ^
+magma\../magma\../magma\../magma/Options.h:39:1: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
+      | ^
+magma\../magma\../magma\../magma/Options.h:39:29: error: unknown type name 'T'
+   39 | T orElse_Option(void* _ref, T other);
       |                             ^
-      |                             ;
-magma\Main.h:28:37: warning: missing terminating '"' character [-Winvalid-pp-token]
-   28 |                 final String outputParamsString = ";
-      |                                                   ^
-magma\Main.h:35:13: error: field has incomplete type 'Definition'
-   35 |         Definition definition;
-      |                    ^
-magma\Main.h:19:8: note: forward declaration of 'Definition'
-   19 | struct Definition;
-      |        ^
-magma\Main.h:36:14: error: field has incomplete type 'Placeholder'
-   36 |         Placeholder placeholder;
-      |                     ^
-magma\Main.h:20:8: note: forward declaration of 'Placeholder'
-   20 | struct Placeholder;
-      |        ^
-magma\Main.h:47:15: error: field has incomplete type 'JConstructor'
-   47 |         JConstructor jconstructor;
-      |                      ^
-magma\Main.h:21:8: note: forward declaration of 'JConstructor'
-   21 | struct JConstructor;
-      |        ^
-magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
-   59 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:23:8: note: forward declaration of 'CIdentifier'
-   23 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:22:8: note: forward declaration of 'Content'
-   22 | struct Content;
-      |        ^
+magma\../magma\../magma\../magma/Options.h:40:14: error: use of undeclared identifier 'T'
+   40 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |              ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+20 errors generated.

@@ -32,4 +32,10 @@ struct None {
 };
 struct Options {
 };
+Option<R> map_Option(void* _ref, Functions.Function<T, R> mapper);
+Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+T orElseGet_Option(void* _ref, Supplier<T> other);
+Option<R> flatMap_Option(void* _ref, Functions.Function<T, Option<R>> mapper);
+T orElse_Option(void* _ref, T other);
+Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
 #endif
