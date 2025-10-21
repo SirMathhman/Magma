@@ -1,69 +1,70 @@
 // File generated from '.\src\main\java\magma\Collections.java'. This is not source code!
 #include "Main.h"
-auto __lambda0__(auto element) {
-	return Objects.equals(element, test);
-}
-/*length;
-
-		private*/ Array_Collections(void* _ref, T* ref, int capacity){
+template <typename T>
+private Array_Array(void* _ref, T* ref, int capacity){
 	this.ref = ref;
 	this.capacity = capacity;
 	this.length = 0;
-	/*}
-
-		private static <T> Array<T> alloc(int length) {
-			return new Array<T>(MemUtils.malloc(length), length)*/;
-	/*}
-
-		public void copyTo(int srcPos, Array<T> dest, int destPos, int length) {
-			System.arraycopy(this.ref, srcPos, dest.ref, destPos, length)*/;
-	{
-			Stream<T> tStream = this.stream();
+}
+template <typename T>
+Array<T> alloc_Array(void* _ref, int length){
+	return new_Array<T>(MemUtils.malloc(length), length);
+}
+template <typename T>
+void copyTo_Array(void* _ref, int srcPos, Array<T> dest, int destPos, int length){
+	System.arraycopy(this.ref, srcPos, dest.ref, destPos, length);
+}
+auto __lambda0__(auto element) {
+	return Objects.equals(element, test);
+}
+template <typename T>
+boolean contains_Array(void* _ref, T test){
+	Stream < T >= tStream == this.stream();
 	return tStream.collect(new_AnyMatch<T>(__lambda0__));
-	/*}
-
-		private Stream<T> stream() {
-			return new Stream<T>(new ArrayHead<T>(this.ref, this.length))*/;
-	/*}
-
-		public void setNext(T element) {
-			if (this.length < this.ref.length) {
-				this.ref[this.length] = element;
-				this.length++;
-			}*/
-	/*}
-
-		public Option<T> get(int index) {
-			if (index < this.length) {
-				return new Some<T>(this.ref[index]);
-			}*/
+}
+template <typename T>
+Stream<T> stream_Array(void* _ref){
+	return new_Stream<T>(new_ArrayHead<T>(this.ref, this.length));
+}
+template <typename T>
+void setNext_Array(void* _ref, T element){
+	if (this.length < this.ref.length) {
+		/*this.ref[this.length] */ = element;
+		this.length++;
+	}
+}
+template <typename T>
+Option<T> get_Array(void* _ref, int index){
+	if (index < this.length) {
+		return new_Some<T>(/*this.ref[index]*/);
+	}
 	else {
 		return new_None<T>();
 	}
-	/*}
-
-		public void setFirst(T element) {
-			this.ref[0] */ = element;
-	/*}*/
 }
-/*elements;
-
-		private*/ ArrayList_Collections(void* _ref, Array<T> elements){
+template <typename T>
+void setFirst_Array(void* _ref, T element){
+	/*this.ref[0] */ = element;
+}
+template <typename T>
+private ArrayList_ArrayList(void* _ref, Array<T> elements){
 	this.elements = elements;
-	/*}
-
-		public ArrayList() {
-			this(Array.alloc(10))*/;
-	/*}
-
-		public static <T> ArrayList<T> from(T... elements) {
-			return Streams.fromRef(elements).collect(new ListCollector<T>())*/;
-	/*}
-
-		private void ensureCapacity(int minCapacity) {
-			if (minCapacity <= this.elements.capacity) {
-				return;
-			}*/
+}
+template <typename T>
+ArrayList new_ArrayList(void* _ref){
+	ArrayList this;
+	this(Array.alloc(10));
+	return this;
+}
+template <typename T>
+ArrayList<T> from_ArrayList(void* _ref, /*T...*/ elements){
+	return Streams.fromRef(elements).collect(new_ListCollector<T>());
+}
+template <typename T>
+void ensureCapacity_ArrayList(void* _ref, int minCapacity){
+	if (minCapacity <  == this.elements.capacity) {
+		/*return*/;
+	}
 	int newCapacity = /* this.elements.capacity * 2*/;
 	if (newCapacity < minCapacity) {
 		newCapacity = minCapacity;
@@ -72,77 +73,79 @@ auto __lambda0__(auto element) {
 	this.elements.copyTo(0, newElements, 0, (this.elements).length);
 	newElements.length = (this.elements).length;
 	this.elements = newElements;
-	/*}
-
-		public ArrayList<T> addLast(T element) {
-			this.ensureCapacity((this.elements).length + 1)*/;
+}
+template <typename T>
+ArrayList<T> addLast_ArrayList(void* _ref, T element){
+	this.ensureCapacity((this.elements).length + 1);
 	this.elements.setNext(element);
 	return this;
-	/*}
-
-		public ArrayList<T> clear() {
-			this.elements */ = Array.alloc(10);
+}
+template <typename T>
+ArrayList<T> clear_ArrayList(void* _ref){
+	this.elements == Array.alloc(10);
 	return this;
-	/*}
-
-		public int size() {
-			return (this.elements).length*/;
-	/*}
-
-		public Stream<T> stream() {
-			return new Stream<T>(new ListHead<T>(this))*/;
-	/*}
-
-		public Option<T> get(int index) {
-			if (index < 0 || index >= (this.elements).length) {
-				return new None<T>();
-			}*/
+}
+template <typename T>
+int size_ArrayList(void* _ref){
+	return (this.elements).length;
+}
+template <typename T>
+Stream<T> stream_ArrayList(void* _ref){
+	return new_Stream<T>(new_ListHead<T>(this));
+}
+template <typename T>
+Option<T> get_ArrayList(void* _ref, int index){
+	if (index < 0 || index >= (this.elements).length) {
+		return new_None<T>();
+	}
 	return this.elements.get(index);
-	/*}
-
-		public boolean isEmpty() {
-			return this.size() */ =  == 0;
-	/*}
-
-		public ArrayList<T> addFirst(T element) {
-			this.ensureCapacity((this.elements).length + 1)*/;
+}
+template <typename T>
+boolean isEmpty_ArrayList(void* _ref){
+	return this.size() == 0;
+}
+template <typename T>
+ArrayList<T> addFirst_ArrayList(void* _ref, T element){
+	this.ensureCapacity((this.elements).length + 1);
 	/*// Shift all elements one position to the right
 			this.elements.copyTo(0, this.elements, 1, (this.elements).length)*/;
 	this.elements.setFirst(element);
 	this.elements.length++;
 	return this;
-	/*}
-
-		public boolean contains(T element) {
-			return this.elements.contains(element)*/;
-	/*}
-
-		public Option<T> getFirst() {
-			return this.get(0)*/;
-	/*}
-
-		public Option<ArrayList<T>> subList(int start, int end) {
-			if (start < 0 || end > (this.elements).length || start > end) {
-				return new None<ArrayList<T>>();
-			}*/
+}
+template <typename T>
+boolean contains_ArrayList(void* _ref, T element){
+	return this.elements.contains(element);
+}
+template <typename T>
+Option<T> getFirst_ArrayList(void* _ref){
+	return this.get(0);
+}
+template <typename T>
+Option<ArrayList<T>> subList_ArrayList(void* _ref, int start, int end){
+	if (start < 0 || end >= (this.elements).length || start >= end) {
+		return new_None<ArrayList<T>>();
+	}
 	int subSize = end - start;
 	Array < T >= newElements == Array.alloc(Math.max(10, subSize));
 	this.elements.copyTo(start, newElements, 0, subSize);
 	newElements.length = subSize;
 	return new_Some<ArrayList<T>>(new_ArrayList<T>(newElements));
-	/*{
-			int*/ elementsSize = elements.size();
+}
+template <typename T>
+ArrayList<T> addAll_ArrayList(void* _ref, ArrayList<T> elements){
+	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*for (int i = 0; i < elementsSize; i++) {
 				this.elements.setNext(elements.get(i).orElse(null));
 			}*/
 	return this;
-	/*}
-
-		public Option<ArrayList<T>> addAllAt(int index, ArrayList<T> elements) {
-			if (index < 0 || index > (this.elements).length) {
-				return new None<ArrayList<T>>();
-			}*/
+}
+template <typename T>
+Option<ArrayList<T>> addAllAt_ArrayList(void* _ref, int index, ArrayList<T> elements){
+	if (index < 0 || index >= (this.elements).length) {
+		return new_None<ArrayList<T>>();
+	}
 	int elementsSize = elements.size();
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*// Shift elements to the right to make room
@@ -153,10 +156,13 @@ auto __lambda0__(auto element) {
 			}*/
 	this.elements.length +  = elementsSize;
 	return new_Some<ArrayList<T>>(this);
-	/*}
-
-		public Option<T> getLast() {
-			return this.get((this.elements).length - 1)*/;
+}
+template <typename T>
+Option<T> getLast_ArrayList(void* _ref){
+	return this.get((this.elements).length - 1);
+}
+template <typename T>
+ArrayList<T> copy_ArrayList(void* _ref){
 	ArrayList<T> list = new_ArrayList<T>();
 	list.ensureCapacity(this.elements.length);
 	if ((this.elements).length >= 0) {
@@ -164,17 +170,16 @@ auto __lambda0__(auto element) {
 		list.elements.length = (this.elements).length;
 	}
 	return list;
-	/*}
-
-		public boolean equalsTo(ArrayList<T> other) {
-			if (this.size() == other.size()) {
-				return this
-						.stream()
-						.zip(other.stream())
-						.collect(new AllMatch<Tuple<T, T>>(ttTuple -> ttTuple.left().equals(ttTuple.right())));
-			}*/
+}
+auto __lambda1__(auto ttTuple) {
+	return ttTuple.left().equals(ttTuple.right());
+}
+template <typename T>
+boolean equalsTo_ArrayList(void* _ref, ArrayList<T> other){
+	if (this.size() == other.size()) {
+		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda1__));
+	}
 	return false;
-	/*}*/
 }
 int main(){
 	main_Main();

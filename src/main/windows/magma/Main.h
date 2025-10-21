@@ -14,6 +14,8 @@ struct JMethodHeader;
 struct CExpression;
 struct ParseState;
 struct DivideState;
+template <typename A, typename B>
+struct Tuple;
 struct Definition;
 struct Placeholder;
 struct JConstructor;
@@ -61,6 +63,11 @@ struct ParseState {
 };
 struct DivideState {
 };
+template <typename A, typename B>
+struct Tuple {
+	A left;
+	B right;
+};
 struct Definition {
 	ArrayList<char*> annotations;
 	char* type;
@@ -86,5 +93,5 @@ struct Main {
 };
 char* generate_Definable(void* _ref);
 char* generate_CExpression(void* _ref);
-ArrayList<> new_ArrayList<>(void* _ref);
+ArrayList<String> new_ArrayList<String>(void* _ref);
 #endif

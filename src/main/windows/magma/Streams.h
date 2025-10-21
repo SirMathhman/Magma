@@ -6,7 +6,13 @@
 #include "../magma/Heads.h"
 #include "../magma/Main.h"
 #include "../magma/Options.h"
+template <typename T>
+struct Stream;
 struct Streams;
+template <typename T>
+struct Stream {
+	Supplier<Option<T>> head;
+};
 struct Streams {
 };
 #endif

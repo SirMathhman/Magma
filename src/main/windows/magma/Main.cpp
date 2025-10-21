@@ -8,7 +8,7 @@ char* generate_CExpression(void* _ref){
 	CExpression this = *((CExpression*) _ref);
 	return this.vtable.apply(this.data);
 }
-ArrayList<> new_ArrayList<>(void* _ref){
+ArrayList<String> new_ArrayList<String>(void* _ref){
 	ParseState this = *((ParseState*) _ref);
 	return this.vtable.apply(this.data);
 }
@@ -143,10 +143,6 @@ Option<Character> peek_DivideState(void* _ref){
 	else {
 		return new_None<Character>();
 	}
-}
-B> new_B>(void* _ref, A left, B right){
-	Main this;
-	return this;
 }
 Definition new_Definition(void* _ref, char* type, char* name){
 	Definition this;
@@ -445,7 +441,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	}
 	ArrayList<char*> annotations = findAnnotations(input.substring(0, keywordIndex));
 	if (annotations.contains("Actual")) {
-		return new_Some<>(new_Tuple<>("", state));
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", state));
 	}
 	char* afterKeyword = input.substring(keywordIndex + (type + " ").length());
 	int contentStart = afterKeyword.indexOf("{");
@@ -483,7 +479,6 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		}
 	}
 	char* name = beforeMaybeParams.strip();
-	if (!isIdentifier(name)) return new_None<>();
 	ArrayList<char*> typeParameters = new_ArrayList<char*>();
 	if (beforeMaybeParams.endsWith(">")) {
 		char* withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
@@ -493,6 +488,9 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 			char* arguments = withoutEnd.substring(i1 + "<".length());
 			typeParameters == divide(arguments, foldValue_Main).map(strip_char*).collect(new_ListCollector<char*>());
 		}
+	}
+	if (!isIdentifier(name)) {
+		return new_None<Tuple<char*, ParseState>>();
 	}
 	char* afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 	if (!afterContent.endsWith("}")) {
@@ -674,8 +672,8 @@ Option<Tuple<char*, ParseState>> compileMethod_Main(void* _ref, char* input, cha
 	if (withBraces.equals(";") || isPlatformDependentMethod(methodHeader)) {
 		char* joinedTypes = outputParams.stream().map(type_Definition).collect(new_Joiner(", "));
 		char* functionDeclaration = generateStatement(field + "(" + joinedTypes + ")", 1);
-		ArrayList<char*> paramNames = params.stream().map(name_Definition).collect(new_ListCollector<>());
-		ArrayList<char*> stringArrayList = paramNames.subList(1, paramNames.size()).orElse(new_ArrayList<>()).addFirst("this.data");
+		ArrayList<char*> paramNames = params.stream().map(name_Definition).collect(new_ListCollector<char*>());
+		ArrayList<char*> stringArrayList = paramNames.subList(1, paramNames.size()).orElse(new_ArrayList<char*>()).addFirst("this.data");
 		char* joinedArgs = stringArrayList.stream().collect(new_Joiner(", "));
 		ParseState withFunctionDeclaration = state.addStructField(functionDeclaration).addFunctionDeclaration(outputMethodHeader + ";" + System.lineSeparator()).addFunction(/*
 							outputMethodHeader + "{" + generateStatement(structName + " this = *((" + structName + "*) _ref)", 1) +

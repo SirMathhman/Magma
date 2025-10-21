@@ -595,10 +595,6 @@ public class Main {
 		}
 
 		String name = beforeMaybeParams.strip();
-		if (!isIdentifier(name)) {
-			return new None<Tuple<String, ParseState>>();
-		}
-
 		ArrayList<String> typeParameters = new ArrayList<String>();
 		if (beforeMaybeParams.endsWith(">")) {
 			final String withoutEnd = beforeMaybeParams.substring(0, beforeMaybeParams.length() - 1);
@@ -610,8 +606,11 @@ public class Main {
 			}
 		}
 
-		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
+		if (!isIdentifier(name)) {
+			return new None<Tuple<String, ParseState>>();
+		}
 
+		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 		if (!afterContent.endsWith("}")) {
 			return new None<Tuple<String, ParseState>>();
 		}
