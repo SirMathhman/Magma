@@ -251,7 +251,7 @@ public class Main {
 	private static Option<IOError> runBuildFile(Path targetDirectory, Path path) {
 		try {
 			final ProcessBuilder builder =
-					new ProcessBuilder(targetDirectory.relativize(path).asString()).directory(JavaPath.unwrap(targetDirectory).toFile());
+					new ProcessBuilder("cmd.exe", "/c", targetDirectory.relativize(path).asString()).directory(JavaPath.unwrap(targetDirectory).toFile());
 
 			// Use the parent's console so the spawned process' stdout/stderr show up
 			builder.inheritIO();
