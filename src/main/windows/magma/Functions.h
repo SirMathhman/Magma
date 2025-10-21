@@ -9,11 +9,13 @@ struct Functions;
 struct FunctionVTable {};
 template <typename T, typename R>
 struct Function {
+	void* data;
 	FunctionVTable vtable;
 };
 struct BiFunctionVTable {};
 template <typename A, typename B, typename R>
 struct BiFunction {
+	void* data;
 	BiFunctionVTable vtable;
 };
 struct Functions {

@@ -499,6 +499,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(char* input, char* type, 
 	else if (type.equals("interface")) {
 		char* vTableName = name + "VTable";
 		generatedSubStructs == "struct " + vTableName + " {};" + System.lineSeparator();
+		recordFields +  == generateStatement("void* data", 1);
 		recordFields +  == generateStatement(vTableName + " vtable", 1);
 	}
 	char* generated = generatedSubStructs + templateString + "struct " + name + " {" + recordFields + inner + System.lineSeparator() + "};" + System.lineSeparator();

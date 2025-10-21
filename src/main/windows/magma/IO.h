@@ -10,10 +10,12 @@ struct Path;
 struct IO;
 struct IOErrorVTable {};
 struct IOError {
+	void* data;
 	IOErrorVTable vtable;
 };
 struct PathVTable {};
 struct Path {
+	void* data;
 	PathVTable vtable;
 };
 struct IO {

@@ -633,8 +633,8 @@ public class Main {
 		} else if (type.equals("interface")) {
 			final String vTableName = name + "VTable";
 			generatedSubStructs = "struct " + vTableName + " {};" + System.lineSeparator();
+			recordFields += generateStatement("void* data", 1);
 			recordFields += generateStatement(vTableName + " vtable", 1);
-
 		}
 
 		final String generated =

@@ -18,6 +18,7 @@ struct Collectors;
 struct CollectorVTable {};
 template <typename T, typename C>
 struct Collector {
+	void* data;
 	CollectorVTable vtable;
 };
 template <typename T>
