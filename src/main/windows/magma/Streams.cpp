@@ -1,14 +1,14 @@
 // File generated from '.\src\main\java\magma\Streams.java'. This is not source code!
 #include "Main.h"
 auto __lambda0__() {
-	return this.head.next().map(mapper);
+	return this.head.get().map(mapper);
 }
 Stream<R> map_Stream(Function<T, R> mapper){
 	return new_Stream<R>(__lambda0__);
 }
 auto __lambda1__() {
 	while (true) {
-		Option < T >= nextValue == sourceHead.next();
+		Option < T >= nextValue == this.head.get();
 		if (nextValue.tag == Some) {
 			if (predicate.test(value)) {
 		Some<T> _cast = nextValue.data.some;
@@ -23,7 +23,6 @@ auto __lambda1__() {
 	}
 }
 Stream<T> filter_Stream(Predicate<T> predicate){
-	Head<T> sourceHead = this.head;
 	return new_Stream<T>(__lambda1__);
 }
 C collect_Stream(Collector<T, C> collector){
@@ -31,12 +30,12 @@ C collect_Stream(Collector<T, C> collector){
 }
 C foldWithInitial_Stream(C initial, BiFunction<C, T, C> folder){
 	C accumulator = initial;
-	Option < T >= current == this.head.next();
+	Option < T >= current == this.head.get();
 	while (current.tag == Some) {
 		Some<T> _cast = current.data.some;
 		T value = _cast.value;
 		accumulator == folder.apply(accumulator, value);
-		current == this.head.next();
+		current == this.head.get();
 	}
 	return accumulator;
 }
@@ -57,13 +56,13 @@ Option<T> fold_Stream(BiFunction<T, T, T> folder){
 	return this. < Option < T >= foldWithInitial(new_None<T>(), __lambda3__);
 }
 Option<T> next_Stream(){
-	return this.head.next();
+	return this.head.get();
 }
 auto __lambda4__() {
-	return this.head.next().and(next_stream);
+	return this.head.get().and(next_stream);
 }
 Stream<Tuple<T, R>> zip_Stream(Stream<R> stream){
-	return new_Stream<>(__lambda4__);
+	return new_Stream<Tuple<T, R>>(__lambda4__);
 }
 Stream<T> fromRef_Streams(T* elements){
 	return new_Stream<T>(new_ArrayHead<T>(elements, elements.length));

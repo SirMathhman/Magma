@@ -5,8 +5,6 @@
 #include "../magma/Options.h"
 #include "../magma/Streams.h"
 template <typename T>
-struct Head;
-template <typename T>
 struct ListHead;
 template <typename T>
 struct ArrayHead;
@@ -18,9 +16,6 @@ struct RangeHead;
 template <typename T>
 struct EmptyHead;
 struct Heads;
-template <typename T>
-struct Head {
-};
 template <typename T>
 struct ListHead {
 	ArrayList<T> self;
@@ -39,7 +34,7 @@ struct SingletonHead {
 };
 template <typename T, typename R>
 struct FlatMapHead {
-	Head<T> sourceHead;
+	Supplier<Option<T>> sourceHead;
 	Function<T, Stream<R>> mapper;
 	Option<Stream<R>> currentStream;
 };

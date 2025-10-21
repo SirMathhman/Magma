@@ -1,13 +1,954 @@
-java.io.IOException: Cannot run program "build.bat" (in directory ".\src\main\windows"): CreateProcess error=2, The system cannot find the file specified
-	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1110)
-	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1044)
-	at magma.Main.runBuildFile(Main.java:258)
-	at magma.Main.run(Main.java:244)
-	at magma.Main.main(Main.java:225)
-Caused by: java.io.IOException: CreateProcess error=2, The system cannot find the file specified
-	at java.base/java.lang.ProcessImpl.create(Native Method)
-	at java.base/java.lang.ProcessImpl.<init>(ProcessImpl.java:485)
-	at java.base/java.lang.ProcessImpl.start(ProcessImpl.java:146)
-	at java.base/java.lang.ProcessBuilder.start(ProcessBuilder.java:1076)
-	... 4 more
 
+C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma\Collections.cpp	 magma\Collectors.cpp	 magma\Heads.cpp	 magma\IO.cpp	 magma\JavaImpl.cpp	 magma\Main.cpp	 magma\MemUtils.cpp	 magma\Options.cpp	 magma\Results.cpp	 magma\Streams.cpp	 -o magmac.exe 
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Actual.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Actual.cpp:4:2: error: use of undeclared identifier 'main_Main'
+    4 |         main_Main();
+      |         ^
+18 errors generated.
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Collections.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Collections.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Collections.cpp:3:1: error: expected unqualified-id
+    3 | private Array_Array(T* ref, int capacity){
+      | ^
+magma\Collections.cpp:8:7: error: use of undeclared identifier 'T'
+    8 | Array<T> alloc_Array(int length){
+      |       ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Collectors.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Collectors.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Collectors.cpp:3:1: error: unknown type name 'C'
+    3 | C createInitial_Collector();
+      | ^
+magma\Collectors.cpp:4:1: error: unknown type name 'C'
+    4 | C fold_Collector(C current, T element);
+      | ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Heads.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Heads.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Heads.cpp:3:1: error: use of class template 'ListHead' requires template arguments
+    3 | ListHead new_ListHead(ArrayList<T> self){
+      | ^
+magma\../magma\../magma/Heads.h:20:8: note: template is declared here
+   19 | template <typename T>
+      | ~~~~~~~~~~~~~~~~~~~~~
+   20 | struct ListHead {
+      |        ^
+magma\Heads.cpp:3:33: error: use of undeclared identifier 'T'
+    3 | ListHead new_ListHead(ArrayList<T> self){
+      |                                 ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\IO.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\IO.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\IO.cpp:4:1: error: unknown type name 'boolean'
+    4 | boolean exists_Path();
+      | ^
+magma\IO.cpp:17:2: error: use of undeclared identifier 'main_Main'
+   17 |         main_Main();
+      |         ^
+19 errors generated.
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\JavaImpl.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\JavaImpl.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\JavaImpl.cpp:4:2: error: unknown type name 'StringWriter'
+    4 |         StringWriter writer = new_StringWriter();
+      |         ^
+magma\JavaImpl.cpp:4:24: error: use of undeclared identifier 'new_StringWriter'
+    4 |         StringWriter writer = new_StringWriter();
+      |                               ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Main.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Main.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.cpp:5:11: error: use of undeclared identifier 'String'
+    5 | ArrayList<String> new_ArrayList<String>();
+      |           ^
+magma\Main.cpp:5:33: error: use of undeclared identifier 'String'
+    5 | ArrayList<String> new_ArrayList<String>();
+      |                                 ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\MemUtils.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\MemUtils.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\MemUtils.cpp:3:1: error: unknown type name 'T'
+    3 | T* malloc_MemUtils(int length);
+      | ^
+magma\MemUtils.cpp:5:2: error: use of undeclared identifier 'main_Main'
+    5 |         main_Main();
+      |         ^
+19 errors generated.
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Options.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Options.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Options.cpp:3:8: error: use of undeclared identifier 'R'
+    3 | Option<R> map_Option(Function<T, R> mapper);
+      |        ^
+magma\Options.cpp:3:31: error: use of undeclared identifier 'T'
+    3 | Option<R> map_Option(Function<T, R> mapper);
+      |                               ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Results.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Results.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Results.cpp:4:2: error: use of undeclared identifier 'main_Main'
+    4 |         main_Main();
+      |         ^
+18 errors generated.
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:4:
+magma\../magma\../magma/Collectors.h:29:2: error: no template named 'Predicate'
+   29 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:37:2: error: no template named 'Predicate'
+   37 |         Predicate<T> predicate;
+      |         ^
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Streams.h:13:2: error: no template named 'Supplier'
+   13 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+magma\../magma\../magma/Heads.h:21:2: error: no template named 'ArrayList'
+   21 |         ArrayList<T> self;
+      |         ^
+magma\../magma\../magma/Heads.h:33:2: error: unknown type name 'boolean'
+   33 |         boolean retrieved;
+      |         ^
+magma\../magma\../magma/Heads.h:37:2: error: no template named 'Supplier'
+   37 |         Supplier<Option<T>> sourceHead;
+      |         ^
+magma\../magma\../magma/Heads.h:38:2: error: no template named 'Function'
+   38 |         Function<T, Stream<R>> mapper;
+      |         ^
+In file included from magma\Streams.cpp:2:
+In file included from magma\Main.h:7:
+magma\../magma/JavaImpl.h:14:2: error: unknown type name 'IOException'
+   14 |         IOException e;
+      |         ^
+magma\../magma/JavaImpl.h:17:25: error: a type specifier is required for all declarations
+   17 |         /*java.nio.file.Path*/ path;
+      |                                ^
+In file included from magma\Streams.cpp:2:
+magma\Main.h:30:13: error: field has incomplete type 'Definition'
+   30 |         Definition definition;
+      |                    ^
+magma\Main.h:18:8: note: forward declaration of 'Definition'
+   18 | struct Definition;
+      |        ^
+magma\Main.h:31:14: error: field has incomplete type 'Placeholder'
+   31 |         Placeholder placeholder;
+      |                     ^
+magma\Main.h:19:8: note: forward declaration of 'Placeholder'
+   19 | struct Placeholder;
+      |        ^
+magma\Main.h:42:15: error: field has incomplete type 'JConstructor'
+   42 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:20:8: note: forward declaration of 'JConstructor'
+   20 | struct JConstructor;
+      |        ^
+magma\Main.h:54:14: error: field has incomplete type 'CIdentifier'
+   54 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:22:8: note: forward declaration of 'CIdentifier'
+   22 | struct CIdentifier;
+      |        ^
+magma\Main.h:55:10: error: field has incomplete type 'Content'
+   55 |         Content content;
+      |                 ^
+magma\Main.h:21:8: note: forward declaration of 'Content'
+   21 | struct Content;
+      |        ^
+magma\Main.h:62:2: error: no template named 'Stack'
+   62 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
+magma\Main.h:72:2: error: unknown type name 'StringBuilder'
+   72 |         StringBuilder buffer;
+      |         ^
+magma\Main.h:99:19: error: expected member name or ';' after declaration specifiers
+   99 |         ArrayList<char*> namespace;
+      |         ~~~~~~~~~~~~~~~~ ^
+magma\Streams.cpp:4:9: error: invalid use of 'this' outside of a non-static member function
+    4 |         return this.head.get().map(mapper);
+      |                ^
+magma\Streams.cpp:4:29: error: use of undeclared identifier 'mapper'
+    4 |         return this.head.get().map(mapper);
+      |                                    ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.

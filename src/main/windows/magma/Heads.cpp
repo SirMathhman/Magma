@@ -1,13 +1,12 @@
 // File generated from '.\src\main\java\magma\Heads.java'. This is not source code!
 #include "Main.h"
-Option<T> next_Head();
 ListHead new_ListHead(ArrayList<T> self){
 	ListHead this;
 	this.self = self;
 	this.index = 0;
 	return this;
 }
-Option<T> next_ListHead(){
+Option<T> get_ListHead(){
 	if (this.index < this.self.size()) {
 		return this.self.get(this.index + );
 	}
@@ -20,7 +19,7 @@ ArrayHead new_ArrayHead(T* elements, int length){
 	this.length = length;
 	return this;
 }
-Option<T> next_ArrayHead(){
+Option<T> get_ArrayHead(){
 	if (this.counter < this.length) {
 		T element = /* this.elements[this.counter]*/;
 		this.counter++;
@@ -36,21 +35,21 @@ SingletonHead new_SingletonHead(T value){
 	this.retrieved = false;
 	return this;
 }
-Option<T> next_SingletonHead(){
+Option<T> get_SingletonHead(){
 	if (this.retrieved) {
 		return new_None<T>();
 	}
 	this.retrieved = true;
 	return new_Some<T>(this.value);
 }
-FlatMapHead new_FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper){
+FlatMapHead new_FlatMapHead(Supplier<Option<T>> sourceHead, Function<T, Stream<R>> mapper){
 	FlatMapHead this;
 	this.sourceHead = sourceHead;
 	this.mapper = mapper;
 	this.currentStream = new_None<Stream<R>>();
 	return this;
 }
-Option<R> next_FlatMapHead(){
+Option<R> get_FlatMapHead(){
 	while (true) {
 		/*// Try to get next element from current inner stream
 				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
@@ -62,7 +61,7 @@ Option<R> next_FlatMapHead(){
 					this.currentStream = new None<Stream<R>>();
 				}*/
 		stream
-				Option<T> nextSource = this.sourceHead.next();
+				Option<T> nextSource = this.sourceHead.get();
 		if (nextSource.tag == Some) {
 		Some<T> _cast = nextSource.data.some;
 		T value = _cast.value;
@@ -81,7 +80,7 @@ private RangeHead_RangeHead(int length){
 RangeHead createRangeStream_RangeHead(int length){
 	return new_RangeHead(length);
 }
-Option<Integer> next_RangeHead(){
+Option<Integer> get_RangeHead(){
 	if (this.index < this.length) {
 		int preserve = this.index;
 		this.index++;
@@ -91,7 +90,7 @@ Option<Integer> next_RangeHead(){
 		return new_None<Integer>();
 	}
 }
-Option<T> next_EmptyHead(){
+Option<T> get_EmptyHead(){
 	return new_None<T>();
 }
 int main(){

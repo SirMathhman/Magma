@@ -10,7 +10,7 @@ struct Stream;
 struct Streams;
 template <typename T>
 struct Stream {
-	Head<T> head;
+	Supplier<Option<T>> head;
 };
 struct Streams {
 };

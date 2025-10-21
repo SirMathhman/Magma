@@ -7,13 +7,10 @@ import magma.Options.Some;
 import magma.Streams.Stream;
 
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public class Heads {
-	public interface Head<T> {
-		Option<T> next();
-	}
-
-	static class ListHead<T> implements Head<T> {
+	static class ListHead<T> implements Supplier<Option<T>> {
 		private final ArrayList<T> self;
 		private int index;
 
@@ -23,7 +20,7 @@ public class Heads {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Option<T> get() {
 			if (this.index < this.self.size()) {
 				return this.self.get(this.index++);
 			}
@@ -32,7 +29,7 @@ public class Heads {
 		}
 	}
 
-	static class ArrayHead<T> implements Head<T> {
+	static class ArrayHead<T> implements Supplier<Option<T>> {
 		private final T[] elements;
 		private final int length;
 		private int counter;
@@ -44,7 +41,7 @@ public class Heads {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Option<T> get() {
 			if (this.counter < this.length) {
 				final T element = this.elements[this.counter];
 				this.counter++;
@@ -55,7 +52,7 @@ public class Heads {
 		}
 	}
 
-	static class SingletonHead<T> implements Head<T> {
+	static class SingletonHead<T> implements Supplier<Option<T>> {
 		private final T value;
 		private boolean retrieved;
 
@@ -65,7 +62,7 @@ public class Heads {
 		}
 
 		@Override
-		public Option<T> next() {
+		public Option<T> get() {
 			if (this.retrieved) {
 				return new None<T>();
 			}
@@ -74,19 +71,19 @@ public class Heads {
 		}
 	}
 
-	static class FlatMapHead<T, R> implements Head<R> {
-		private final Head<T> sourceHead;
+	static class FlatMapHead<T, R> implements Supplier<Option<R>> {
+		private final Supplier<Option<T>> sourceHead;
 		private final Function<T, Stream<R>> mapper;
 		private Option<Stream<R>> currentStream;
 
-		public FlatMapHead(Head<T> sourceHead, Function<T, Stream<R>> mapper) {
+		public FlatMapHead(Supplier<Option<T>> sourceHead, Function<T, Stream<R>> mapper) {
 			this.sourceHead = sourceHead;
 			this.mapper = mapper;
 			this.currentStream = new None<Stream<R>>();
 		}
 
 		@Override
-		public Option<R> next() {
+		public Option<R> get() {
 			while (true) {
 				// Try to get next element from current inner stream
 				if (this.currentStream instanceof Some<Stream<R>>(Stream<R> stream)) {
@@ -99,7 +96,7 @@ public class Heads {
 				}
 
 				// Get next element from source and map it to a stream
-				Option<T> nextSource = this.sourceHead.next();
+				Option<T> nextSource = this.sourceHead.get();
 				if (nextSource instanceof Some<T>(T value)) {
 					this.currentStream = new Some<Stream<R>>(this.mapper.apply(value));
 				} else {
@@ -110,7 +107,7 @@ public class Heads {
 		}
 	}
 
-	static class RangeHead implements Head<Integer> {
+	static class RangeHead implements Supplier<Option<Integer>> {
 		private final int length;
 		private int index;
 
@@ -124,7 +121,7 @@ public class Heads {
 		}
 
 		@Override
-		public Option<Integer> next() {
+		public Option<Integer> get() {
 			if (this.index < this.length) {
 				final int preserve = this.index;
 				this.index++;
@@ -135,9 +132,9 @@ public class Heads {
 		}
 	}
 
-	static class EmptyHead<T> implements Head<T> {
+	static class EmptyHead<T> implements Supplier<Option<T>> {
 		@Override
-		public Option<T> next() {
+		public Option<T> get() {
 			return new None<T>();
 		}
 	}

@@ -3,7 +3,6 @@ package magma;
 import magma.Collectors.Collector;
 import magma.Heads.ArrayHead;
 import magma.Heads.FlatMapHead;
-import magma.Heads.Head;
 import magma.Heads.RangeHead;
 import magma.Main.Tuple;
 import magma.Options.None;
@@ -13,18 +12,18 @@ import magma.Options.Some;
 import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public class Streams {
-	public record Stream<T>(Head<T> head) {
+	public record Stream<T>(Supplier<Option<T>> head) {
 		<R> Stream<R> map(Function<T, R> mapper) {
-			return new Stream<R>(() -> this.head.next().map(mapper));
+			return new Stream<R>(() -> this.head.get().map(mapper));
 		}
 
 		public Stream<T> filter(Predicate<T> predicate) {
-			final Head<T> sourceHead = this.head;
 			return new Stream<T>(() -> {
 				while (true) {
-					Option<T> nextValue = sourceHead.next();
+					Option<T> nextValue = this.head.get();
 					if (nextValue instanceof Some<T>(T value)) {
 						if (predicate.test(value)) {
 							return new Some<T>(value);
@@ -43,10 +42,10 @@ public class Streams {
 
 		public <C> C foldWithInitial(C initial, BiFunction<C, T, C> folder) {
 			C accumulator = initial;
-			Option<T> current = this.head.next();
+			Option<T> current = this.head.get();
 			while (current instanceof Some<T>(T value)) {
 				accumulator = folder.apply(accumulator, value);
-				current = this.head.next();
+				current = this.head.get();
 			}
 			return accumulator;
 		}
@@ -65,11 +64,11 @@ public class Streams {
 		}
 
 		public Option<T> next() {
-			return this.head.next();
+			return this.head.get();
 		}
 
 		public <R> Stream<Tuple<T, R>> zip(Stream<R> stream) {
-			return new Stream<>(() -> this.head.next().and(stream::next));
+			return new Stream<Tuple<T, R>>(() -> this.head.get().and(stream::next));
 		}
 	}
 
