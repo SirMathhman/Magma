@@ -13,9 +13,13 @@ struct ArrayList;
 struct Collections;
 template <typename T>
 struct Array {
+	T* ref;
+	int capacity;
+	int length;
 };
 template <typename T>
 struct ArrayList {
+	Array<T> elements;
 };
 struct Collections {
 };

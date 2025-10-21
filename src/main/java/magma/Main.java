@@ -245,6 +245,13 @@ public class Main {
 
 	private record Location(ArrayList<String> namespace, String name) {}
 
+	private record Struct(ArrayList<String> typeParameters, String name, Option<String> maybeFields) {
+		private String generate() {
+			final String s = this.maybeFields.map(fields -> " {" + fields + System.lineSeparator() + "}").orElse("");
+			return generateTemplateString(this.typeParameters) + "struct " + this.name() + s + ";" + System.lineSeparator();
+		}
+	}
+
 	public static void main(String[] args) {
 		if (run() instanceof Some<IOError>(IOError value)) {
 			System.out.println(value.display());
@@ -628,8 +635,7 @@ public class Main {
 			outer = compiled.right;
 			j++;
 		}
-
-		final String templateString = createTemplateString(typeParameters);
+		recordFields += inner;
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -640,8 +646,7 @@ public class Main {
 
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String enumFields =
-					variants.stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
+			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
 
 			final String unionFields = variants
 					.stream()
@@ -651,8 +656,8 @@ public class Main {
 
 			generatedSubStructs =
 					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
-					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
-					System.lineSeparator();
+					generateTemplateString(typeParameters) + "union " + name + "Data {" + unionFields + System.lineSeparator() +
+					"};" + System.lineSeparator();
 
 			recordFields += generateStatement(name + "Tag tag", 1);
 			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
@@ -660,26 +665,20 @@ public class Main {
 			final String vTableName = name + "VTable";
 
 			final String functionDeclarations = outer.popStructFields().stream().collect(new Joiner());
-			generatedSubStructs = templateString + generateStruct(vTableName, functionDeclarations);
+			generatedSubStructs = new Struct(typeParameters, vTableName, new Some<String>(functionDeclarations)).generate();
 			recordFields += generateStatement("void* data", 1);
 			recordFields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
 		}
 
-		final String generated = generatedSubStructs + templateString + generateStruct(name, recordFields);
+		final String generated =
+				generatedSubStructs + new Struct(typeParameters, name, new Some<String>(recordFields)).generate();
 
 		final ParseState parseState =
-				outer.addBeforeStruct(templateString + "struct " + name + ";" + System.lineSeparator()).addStruct(generated);
+				outer.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate()).addStruct(generated);
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 	}
 
-	private static String generateStruct(String name, String fields) {
-		if (!isIdentifier(name)) {
-			throw new RuntimeException();
-		}
-		return "struct " + name + " {" + fields + System.lineSeparator() + "};" + System.lineSeparator();
-	}
-
-	private static String createTemplateString(ArrayList<String> typeParameters) {
+	private static String generateTemplateString(ArrayList<String> typeParameters) {
 		String templateString;
 		if (typeParameters.isEmpty()) {
 			templateString = "";
@@ -808,7 +807,7 @@ public class Main {
 			params = new ArrayList<Definition>();
 		}
 
-		final String templateString = createTemplateString(typeParams);
+		final String templateString = generateTemplateString(typeParams);
 		final ArrayList<Definition> outputParams = params.addFirst(new Definition("void*", "_ref"));
 		String joinedOutputParams = outputParams.stream().map(Definition::generate).collect(new Joiner(", "));
 

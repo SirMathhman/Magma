@@ -29,6 +29,7 @@ template <typename T>
 struct ListCollector {
 };
 struct Joiner {
+	char* delimiter;
 };
 template <typename T>
 struct AnyMatch {

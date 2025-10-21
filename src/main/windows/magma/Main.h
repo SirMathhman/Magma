@@ -22,6 +22,7 @@ struct JConstructor;
 struct Content;
 struct CIdentifier;
 struct Location;
+struct Struct;
 struct Main;
 enum DefinableTag {
 	Definition,
@@ -60,8 +61,21 @@ struct CExpression {
 	CExpressionData data;
 };
 struct ParseState {
+	Stack<ArrayList<char*>> beforeStatements;
+	ArrayList<char*> beforeStructs;
+	ArrayList<char*> structFields;
+	ArrayList<char*> afterStatements;
+	ArrayList<char*> structs;
+	ArrayList<char*> functions;
+	int counter;
+	ArrayList<char*> includes;
 };
 struct DivideState {
+	char* input;
+	ArrayList<char*> segments;
+	StringBuilder buffer;
+	int depth;
+	int index;
 };
 template <typename A, typename B>
 struct Tuple {
@@ -88,6 +102,11 @@ struct CIdentifier {
 struct Location {
 	ArrayList<char*> namespace;
 	char* name;
+};
+struct Struct {
+	ArrayList<char*> typeParameters;
+	char* name;
+	Option<char*> maybeFields;
 };
 struct Main {
 };
