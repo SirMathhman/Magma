@@ -168,6 +168,16 @@ char* generate_Struct(void* _ref){
 	char* s = this.maybeFields.map(__lambda2__).orElse("");
 	return generateTemplateString(this.typeParameters) + "struct " + this.name() + s + ";" + System.lineSeparator();
 }
+auto __lambda3__(auto slice) {
+	return generateIndent(1) + slice;
+}
+char* generate_EnumNode(void* _ref){
+	char* enumFields = this.variants().stream().map(__lambda3__).collect(new_Joiner(","));
+	return "enum " + this.name() + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+}
+char* generate_Union(void* _ref){
+	return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() + System.lineSeparator() + "};" + System.lineSeparator();
+}
 void main_Main(void* _ref, char** args){
 	??? _temp = run();
 	if (_temp.tag == Some) {
@@ -218,13 +228,13 @@ Option<IOError> runBuildFile_Main(void* _ref, Path targetDirectory, Path path){
 			return new Some<IOError>(new JIOError(e));
 		}*/
 }
-auto __lambda3__(auto slice) {
+auto __lambda4__(auto slice) {
 	return slice + "^" + System.lineSeparator() + "\t";
 }
 Result<Path, IOError> writeBuildFile_Main(void* _ref, Ok<ArrayList<ArrayList<Path>>, IOError> v1, Path targetDirectory){
 	ArrayList<Path> list = v1.value().stream().flatMap(stream_ArrayList).collect(new_ListCollector<Path>());
 	Path path = targetDirectory.resolveByString("build.bat");
-	char* joined = list.stream().map(relativize_targetDirectory).map(asString_Path).map(__lambda3__).collect(new_Joiner(" "));
+	char* joined = list.stream().map(relativize_targetDirectory).map(asString_Path).map(__lambda4__).collect(new_Joiner(" "));
 	return /*switch (path.writeString("clang " + joined + " -o magmac.exe")) {
 			case None<IOError> _ -> new Ok<Path, IOError>(path);
 			case Some<IOError> v -> new Err<Path, IOError>(v.value());
@@ -233,14 +243,14 @@ Result<Path, IOError> writeBuildFile_Main(void* _ref, Ok<ArrayList<ArrayList<Pat
 Result<ArrayList<ArrayList<Path>>, IOError> runWithSources_Main(void* _ref, ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory){
 	return compileSources(sources, sourceDirectory, targetDirectory);
 }
-auto __lambda4__(auto path) {
+auto __lambda5__(auto path) {
 	return path.asString().endsWith(".java");
 }
-auto __lambda5__(auto source) {
+auto __lambda6__(auto source) {
 	return compileSource(source, sourceDirectory, targetDirectory);
 }
 Result<ArrayList<ArrayList<Path>>, IOError> compileSources_Main(void* _ref, ArrayList<Path> sources, Path sourceDirectory, Path targetDirectory){
-	return sources.stream().filter(__lambda4__).map(__lambda5__).collect(new_ResultCollector<ArrayList<Path>, IOError, ArrayList<ArrayList<Path>>>(new_ListCollector<ArrayList<Path>>()));
+	return sources.stream().filter(__lambda5__).map(__lambda6__).collect(new_ResultCollector<ArrayList<Path>, IOError, ArrayList<ArrayList<Path>>>(new_ListCollector<ArrayList<Path>>()));
 }
 Result<ArrayList<Path>, IOError> compileSource_Main(void* _ref, Path source, Path sourceDirectory, Path targetDirectory){
 	Path relativeParent = sourceDirectory.relativize(source.getParent());
@@ -251,7 +261,7 @@ Result<ArrayList<Path>, IOError> compileSource_Main(void* _ref, Path source, Pat
 			case Err<String, IOError>(IOError error) -> new Err<ArrayList<Path>, IOError>(error);
 		}*/;
 }
-auto __lambda6__() {
+auto __lambda7__() {
 	return target.writeString(targetOutput);
 }
 Result<ArrayList<Path>, IOError> compileInput_Main(void* _ref, Path source, char* input, Path targetParent, ArrayList<char*> namespace){
@@ -273,7 +283,7 @@ Result<ArrayList<Path>, IOError> compileInput_Main(void* _ref, Path source, char
 	char* targetOutput = prefix + "#include \"Main.h\"" + System.lineSeparator() + compiled.right;
 	Path header = targetParent.resolveByString(name + ".h");
 	Path target = targetParent.resolveByString(name + ".cpp");
-	Option<IOError> maybeError = header.writeString(headerOutput).or(__lambda6__);
+	Option<IOError> maybeError = header.writeString(headerOutput).or(__lambda7__);
 	if (maybeError.tag == Some) {
 		Some<IOError> _cast = maybeError.data.some;
 		IOError error = _cast.error;
@@ -319,14 +329,14 @@ Tuple<DivideState, Boolean> foldCycle_Main(void* _ref, DivideState state, BiFunc
 	}
 	return new_Tuple<DivideState, Boolean>(state, false);
 }
-auto __lambda7__() {
+auto __lambda8__() {
 	return foldDoubleQuotes(state, next);
 }
-auto __lambda8__() {
+auto __lambda9__() {
 	return folder.apply(state, next);
 }
 DivideState foldEscaped_Main(void* _ref, DivideState state, char next, BiFunction<DivideState, Character, DivideState> folder){
-	return foldSingleQuotes(state, next).or(__lambda7__).orElseGet(__lambda8__);
+	return foldSingleQuotes(state, next).or(__lambda8__).orElseGet(__lambda9__);
 }
 Option<DivideState> foldSingleQuotes_Main(void* _ref, DivideState state, char next){
 	if (next != '\'') {
@@ -395,10 +405,10 @@ DivideState foldStatement_Main(void* _ref, DivideState state, char c){
 	}
 	return appended;
 }
-auto __lambda9__(auto string, auto string2) {
+auto __lambda10__(auto string, auto string2) {
 	return string + "/" + string2;
 }
-auto __lambda10__() {
+auto __lambda11__() {
 	return new_Tuple<char*, ParseState>(wrap(stripped), state);
 }
 Tuple<char*, ParseState> compileRootSegment_Main(void* _ref, char* input, ParseState state, Location location){
@@ -422,18 +432,15 @@ Tuple<char*, ParseState> compileRootSegment_Main(void* _ref, char* input, ParseS
 			newState = state;
 		}
 		else {
-			char* folded = segments.stream().foldWithInitial(joined, __lambda9__);
+			char* folded = segments.stream().foldWithInitial(joined, __lambda10__);
 			newState == state.addIncludes("#include \"" + folded + ".h\"" + System.lineSeparator());
 		}
 		return new_Tuple<char*, ParseState>("", newState);
 	}
-	return compileStructure(stripped, "class", state).orElseGet(__lambda10__);
+	return compileStructure(stripped, "class", state).orElseGet(__lambda11__);
 }
-auto __lambda11__(auto segment) {
+auto __lambda12__(auto segment) {
 	return !segment.isEmpty();
-}
-auto __lambda12__(auto slice) {
-	return generateIndent(1) + slice;
 }
 auto __lambda13__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
@@ -461,7 +468,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	int permitsIndex = beforeContent.indexOf("permits");
 	if (permitsIndex >= 0) {
 		char* slice = beforeContent.substring(permitsIndex + "permits".length());
-		variants == divide(slice, foldValue_Main).map(strip_char*).filter(__lambda11__).collect(new_ListCollector<char*>());
+		variants == divide(slice, foldValue_Main).map(strip_char*).filter(__lambda12__).collect(new_ListCollector<char*>());
 		withoutPermits == beforeContent.substring(0, permitsIndex);
 	}
 	char* maybeWithExtends = withoutPermits.strip();
@@ -525,9 +532,8 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	}
 	char* generatedSubStructs = "";
 	if (!variants.isEmpty()) {
-		char* enumFields = variants.stream().map(__lambda12__).collect(new_Joiner(","));
 		char* unionFields = variants.stream().map(__lambda13__).map(__lambda14__).collect(new_Joiner());
-		generatedSubStructs == "enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + generateTemplateString(typeParameters) + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
+		generatedSubStructs == new_EnumNode(name, variants).generate() + new_Union(typeParameters, name, unionFields).generate();
 		recordFields +  == generateStatement(name + "Tag tag", 1);
 		recordFields +  == generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
 	}

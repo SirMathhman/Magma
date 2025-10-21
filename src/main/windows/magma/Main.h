@@ -23,6 +23,8 @@ struct Content;
 struct CIdentifier;
 struct Location;
 struct Struct;
+struct EnumNode;
+struct Union;
 struct Main;
 enum DefinableTag {
 	Definition,
@@ -107,6 +109,15 @@ struct Struct {
 	ArrayList<char*> typeParameters;
 	char* name;
 	Option<char*> maybeFields;
+};
+struct EnumNode {
+	char* name;
+	ArrayList<char*> variants;
+};
+struct Union {
+	ArrayList<char*> typeParameters;
+	char* name;
+	char* fields;
 };
 struct Main {
 };

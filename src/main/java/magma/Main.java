@@ -252,6 +252,21 @@ public class Main {
 		}
 	}
 
+	private record EnumNode(String name, ArrayList<String> variants) {
+		private String generate() {
+			final String enumFields =
+					this.variants().stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
+			return "enum " + this.name() + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
+	private record Union(ArrayList<String> typeParameters, String name, String fields) {
+		private String generate() {
+			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() +
+						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
 	public static void main(String[] args) {
 		if (run() instanceof Some<IOError>(IOError value)) {
 			System.out.println(value.display());
@@ -646,7 +661,6 @@ public class Main {
 
 		String generatedSubStructs = "";
 		if (!variants.isEmpty()) {
-			final String enumFields = variants.stream().map(slice -> generateIndent(1) + slice).collect(new Joiner(","));
 
 			final String unionFields = variants
 					.stream()
@@ -654,10 +668,8 @@ public class Main {
 					.map(content1 -> generateStatement(content1, 1))
 					.collect(new Joiner());
 
-			generatedSubStructs =
-					"enum " + name + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() +
-					generateTemplateString(typeParameters) + "union " + name + "Data {" + unionFields + System.lineSeparator() +
-					"};" + System.lineSeparator();
+			generatedSubStructs = new EnumNode(name, variants).generate() +
+														new Union(typeParameters, name, unionFields).generate();
 
 			recordFields += generateStatement(name + "Tag tag", 1);
 			recordFields += generateStatement(name + "Data" + joinedTypeParameters + " data", 1);
