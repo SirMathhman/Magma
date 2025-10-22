@@ -12,10 +12,6 @@ char* generate_CRootSegment(void* _ref){
 	CRootSegment this = *((CRootSegment*) _ref);
 	return this.vtable.apply(this.data);
 }
-ArrayList<String> new_ArrayList<String>(void* _ref){
-	ParseState this = *((ParseState*) _ref);
-	return this.vtable.apply(this.data);
-}
 ParseState new_ParseState(void* _ref){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
@@ -27,6 +23,11 @@ ParseState new_ParseState(void* _ref){
 	this.includes = new_ArrayList<char*>();
 	this.beforeStructs = new_ArrayList<char*>();
 	this.structFields = new_ArrayList<char*>();
+	this.functionDeclarations = new_ArrayList<char*>();
+	this.usesBoolean = false;
+	this.typeUsages = new_ArrayList<char*>();
+	this.maybeCurrentStructName = new_None<char*>();
+	this.structDependencies = new_HashMap<char*, ArrayList<char*>>();
 	return this;
 }
 ParseState addFunction_ParseState(void* _ref, char* func){
@@ -87,6 +88,24 @@ ParseState addFunctionDeclaration_ParseState(void* _ref, char* functionDeclarati
 }
 ParseState toggleBoolean_ParseState(void* _ref){
 	this.usesBoolean = true;
+	return this;
+}
+ParseState withStructName_ParseState(void* _ref, char* name){
+	??? _temp = this.maybeCurrentStructName;
+	if (_temp.tag == Some) {
+		Some<String> _cast = _temp.data.some;
+		char* oldName = _cast.oldName;
+		ArrayList<char*> copy = this.typeUsages.copy();
+		this.typeUsages = new_ArrayList<char*>();
+		this.structDependencies.put(oldName, copy);
+	}
+	this.maybeCurrentStructName = new_Some<char*>(name);
+	return this;
+}
+ParseState addTypeUsage_ParseState(void* _ref, char* identifier){
+	if (!this.typeUsages.contains(identifier)) {
+		this.typeUsages == this.typeUsages.addLast(identifier);
+	}
 	return this;
 }
 DivideState new_DivideState(void* _ref, char* input){
@@ -309,10 +328,12 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 		i++;
 	}
 	char* joined = joiner.toString();
-	ParseState current;
-	if (state.usesBoolean) current == state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
-	else current = state;
+	ParseState withBoolean = attachBoolean(state);
+	ParseState current = withBoolean.withStructName("?");
 	char* joinedIncludes = current.includes.stream().collect(new_Joiner(""));
+	HashMap<char*, ArrayList<char*>> copy = new_HashMap<char*, ArrayList<char*>>(current.structDependencies);
+	Map<char*, ArrayList<char*>> adjacencies = removeItemFromValueWhenNotPresentInKey(copy);
+	var structOrder = computeStructOrder(adjacencies);
 	char* joinedBeforeStructs = current.beforeStructs.stream().collect(new_Joiner(""));
 	char* joinedStructs = current.rootSegments.stream().map(generate_CRootSegment).collect(new_Joiner(""));
 	char* joinedFunctionDeclarations = current.functionDeclarations.stream().collect(new_Joiner(""));
@@ -320,6 +341,65 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
 	char* generatedSourceContent = joinedFunctions + joined + "int main(){" + System.lineSeparator() + "\t" + "main_Main();" + System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 	return new_Tuple<char*, char*>(generatedHeaderContent, generatedSourceContent);
+}
+ArrayList<char*> computeStructOrder_Main(void* _ref, Map<char*, ArrayList<char*>> adjacencies){
+	ArrayList<char*> structOrder = new_ArrayList<char*>();
+	while (!adjacencies.isEmpty()) {
+		dependencies
+			List<char*> structsToRemove = new_LinkedList<char*>();
+		/*for (Entry<String, ArrayList<String>> entry : adjacencies.entrySet()) {
+				final String structName = entry.getKey();
+				final ArrayList<String> adjacentList = entry.getValue();
+
+				if (adjacentList.isEmpty()) {
+					structsToRemove.add(structName);
+				}
+			}*/
+		/*// Process the structs with no dependencies
+			for (String structName : structsToRemove) {
+				structOrder = structOrder.addFirst(structName);
+				adjacencies.remove(structName);
+
+				// Remove this struct from all other adjacency lists
+				Map<String, ArrayList<String>> updates = new HashMap<String, ArrayList<String>>();
+				for (Entry<String, ArrayList<String>> otherEntry : adjacencies.entrySet()) {
+					final ArrayList<String> otherAdjacencies = otherEntry.getValue();
+					if (otherAdjacencies.contains(structName)) {
+						final ArrayList<String> filtered =
+								otherAdjacencies.stream().filter(dep -> !dep.equals(structName)).collect(new ListCollector<String>());
+						updates.put(otherEntry.getKey(), filtered);
+					}
+				}
+				// Apply updates after iteration
+				adjacencies.putAll(updates);
+			}*/
+	}
+	return structOrder;
+}
+Map<char*, ArrayList<char*>> removeItemFromValueWhenNotPresentInKey_Main(void* _ref, HashMap<char*, ArrayList<char*>> copy){
+	Map<char*, ArrayList<char*>> result = new_HashMap<char*, ArrayList<char*>>();
+	/*for (Entry<String, ArrayList<String>> entry : copy.entrySet()) {
+			final String key = entry.getKey();
+			ArrayList<String> values = entry
+					.getValue()
+					.stream()
+					.filter(copy::containsKey)
+					.filter(element -> !element.equals(key))
+					.collect(new ListCollector<>());
+
+			result.put(key, values);
+		}*/
+	return result;
+}
+ParseState attachBoolean_Main(void* _ref, ParseState state){
+	ParseState current;
+	if (state.usesBoolean) {
+		current == state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
+	}
+	else {
+		current = state;
+	}
+	return current;
 }
 Stream<char*> divide_Main(void* _ref, char* input, BiFunction<DivideState, Character, DivideState> folder){
 	Tuple<DivideState, Boolean> current = new_Tuple<DivideState, Boolean>(new_DivideState(input), true);
@@ -535,7 +615,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
 	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	StringBuilder inner = new_StringBuilder();
-	ParseState outer = state;
+	ParseState outer = state.withStructName(name);
 	int j = 0;
 	while (j < segments.size()) {
 		char* segment = segments.get(j).orElse(null);
@@ -555,7 +635,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
 	if (!variants.isEmpty()) {
 		char* unionFields = variants.stream().map(__lambda13__).map(__lambda14__).collect(new_Joiner());
-		var collect = variants.stream().map(__lambda15__).collect(new_ListCollector<>());
+		ArrayList<char*> collect = variants.stream().map(__lambda15__).collect(new_ListCollector<char*>());
 		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, collect)).addLast(new_Union(typeParameters, name, unionFields));
 		recordFields.append(generateStatement(name + "Tag tag", 1));
 		recordFields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
@@ -1441,7 +1521,7 @@ Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, 
 					}
 				}*/
 			char* outputArguments = arguments.stream().collect(new_Joiner(", "));
-			return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(base + "<" + outputArguments + ">", current));
+			return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(base + "<" + outputArguments + ">", current.addTypeUsage(base)));
 		}
 	}
 	if (stripped.endsWith("[]")) {
@@ -1449,7 +1529,7 @@ Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, 
 		return compileType(state, slice).map(Tuple.mapLeft(__lambda61__));
 	}
 	if (isIdentifier(stripped)) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(stripped, state));
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(stripped, state.addTypeUsage((stripped))));
 	}
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(wrap(stripped), state));
 }

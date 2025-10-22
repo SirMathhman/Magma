@@ -3,50 +3,53 @@ C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
       |         ^
-In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
-      |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
-      |                                                            ^
-In file included from magma\Actual.cpp:2:
-In file included from magma\Main.h:4:
-In file included from magma\../magma/Collections.h:5:
-In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
-   14 |         Supplier<Option<T>> head;
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:6:
+magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
+   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
+   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                              ^
+magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
+   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                 ^
+magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
+   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                ^
+magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
+   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
+   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                                         ^
+magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
+   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |                 ^
+magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
+   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+      |                                                            ^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
+In file included from magma\../magma\../magma/Heads.h:7:
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
+      |         ^
+In file included from magma\Actual.cpp:2:
+In file included from magma\Main.h:4:
+In file included from magma\../magma/Collections.h:5:
 magma\../magma\../magma/Heads.h:23:2: error: no template named 'ArrayList'
    23 |         ArrayList<T> self;
       |         ^
@@ -83,22 +86,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
@@ -174,22 +174,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
@@ -265,22 +262,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
@@ -356,22 +350,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
@@ -447,22 +438,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
@@ -538,22 +526,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
@@ -629,22 +614,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
@@ -720,22 +702,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
@@ -811,22 +790,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
@@ -902,22 +878,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
@@ -993,22 +966,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
@@ -1084,22 +1054,19 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
       |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
-   36 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:38:2: error: no template named 'Predicate'
+   38 |         Predicate<T> predicate;
       |         ^
-magma\../magma\../magma/Collectors.h:44:2: error: no template named 'Predicate'
-   44 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:46:2: error: no template named 'Predicate'
+   46 |         Predicate<T> predicate;
+      |         ^
+magma\../magma\../magma/Collectors.h:50:2: error: no template named 'Predicate'
+   50 |         Predicate<T> predicate;
       |         ^
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
@@ -1174,12 +1141,6 @@ magma\Main.h:59:14: error: field has incomplete type 'CIdentifier'
       |                     ^
 magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
    24 | struct CIdentifier;
-      |        ^
-magma\Main.h:60:10: error: field has incomplete type 'Content'
-   60 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
       |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

@@ -21,6 +21,11 @@ import magma.Streams.Stream;
 import magma.Utils.Tuple;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -45,15 +50,18 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
+		private final Map<String, ArrayList<String>> structDependencies;
 		public ArrayList<String> beforeStructs;
+		private Option<String> maybeCurrentStructName;
 		private ArrayList<String> structFields;
 		private ArrayList<String> afterStatements;
 		private ArrayList<CRootSegment> rootSegments;
 		private ArrayList<String> functions;
 		private int counter;
 		private ArrayList<String> includes;
-		private ArrayList<String> functionDeclarations = new ArrayList<String>();
-		private boolean usesBoolean = false;
+		private ArrayList<String> functionDeclarations;
+		private boolean usesBoolean;
+		private ArrayList<String> typeUsages;
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
@@ -67,6 +75,11 @@ public class Main {
 			this.includes = new ArrayList<String>();
 			this.beforeStructs = new ArrayList<String>();
 			this.structFields = new ArrayList<String>();
+			this.functionDeclarations = new ArrayList<String>();
+			this.usesBoolean = false;
+			this.typeUsages = new ArrayList<String>();
+			this.maybeCurrentStructName = new None<String>();
+			this.structDependencies = new HashMap<String, ArrayList<String>>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -140,6 +153,24 @@ public class Main {
 
 		public ParseState toggleBoolean() {
 			this.usesBoolean = true;
+			return this;
+		}
+
+		public ParseState withStructName(String name) {
+			if (this.maybeCurrentStructName instanceof Some<String>(String oldName)) {
+				final ArrayList<String> copy = this.typeUsages.copy();
+				this.typeUsages = new ArrayList<String>();
+				this.structDependencies.put(oldName, copy);
+			}
+
+			this.maybeCurrentStructName = new Some<String>(name);
+			return this;
+		}
+
+		public ParseState addTypeUsage(String identifier) {
+			if (!this.typeUsages.contains(identifier)) {
+				this.typeUsages = this.typeUsages.addLast(identifier);
+			}
 			return this;
 		}
 	}
@@ -430,11 +461,15 @@ public class Main {
 
 		final String joined = joiner.toString();
 
-		final ParseState current;
-		if (state.usesBoolean) current = state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
-		else current = state;
+		final ParseState withBoolean = attachBoolean(state);
+		final ParseState current = withBoolean.withStructName("?");
 
 		final String joinedIncludes = current.includes.stream().collect(new Joiner(""));
+
+		final HashMap<String, ArrayList<String>> copy = new HashMap<String, ArrayList<String>>(current.structDependencies);
+		final Map<String, ArrayList<String>> adjacencies = removeItemFromValueWhenNotPresentInKey(copy);
+
+		final ArrayList<String> structOrder = computeStructOrder(adjacencies);
 
 		final String joinedBeforeStructs = current.beforeStructs.stream().collect(new Joiner(""));
 		final String joinedStructs = current.rootSegments.stream().map(CRootSegment::generate).collect(new Joiner(""));
@@ -451,6 +486,69 @@ public class Main {
 				System.lineSeparator() + "\treturn 0;" + System.lineSeparator() + "}";
 
 		return new Tuple<String, String>(generatedHeaderContent, generatedSourceContent);
+	}
+
+	private static ArrayList<String> computeStructOrder(Map<String, ArrayList<String>> adjacencies) {
+		ArrayList<String> structOrder = new ArrayList<String>();
+		while (!adjacencies.isEmpty()) {
+			// Collect structs with no dependencies
+			List<String> structsToRemove = new LinkedList<String>();
+			for (Entry<String, ArrayList<String>> entry : adjacencies.entrySet()) {
+				final String structName = entry.getKey();
+				final ArrayList<String> adjacentList = entry.getValue();
+
+				if (adjacentList.isEmpty()) {
+					structsToRemove.add(structName);
+				}
+			}
+
+			// Process the structs with no dependencies
+			for (String structName : structsToRemove) {
+				structOrder = structOrder.addFirst(structName);
+				adjacencies.remove(structName);
+
+				// Remove this struct from all other adjacency lists
+				Map<String, ArrayList<String>> updates = new HashMap<String, ArrayList<String>>();
+				for (Entry<String, ArrayList<String>> otherEntry : adjacencies.entrySet()) {
+					final ArrayList<String> otherAdjacencies = otherEntry.getValue();
+					if (otherAdjacencies.contains(structName)) {
+						final ArrayList<String> filtered =
+								otherAdjacencies.stream().filter(dep -> !dep.equals(structName)).collect(new ListCollector<String>());
+						updates.put(otherEntry.getKey(), filtered);
+					}
+				}
+				// Apply updates after iteration
+				adjacencies.putAll(updates);
+			}
+		}
+		return structOrder;
+	}
+
+	private static Map<String, ArrayList<String>> removeItemFromValueWhenNotPresentInKey(HashMap<String,
+			ArrayList<String>> copy) {
+		final Map<String, ArrayList<String>> result = new HashMap<String, ArrayList<String>>();
+		for (Entry<String, ArrayList<String>> entry : copy.entrySet()) {
+			final String key = entry.getKey();
+			ArrayList<String> values = entry
+					.getValue()
+					.stream()
+					.filter(copy::containsKey)
+					.filter(element -> !element.equals(key))
+					.collect(new ListCollector<>());
+
+			result.put(key, values);
+		}
+		return result;
+	}
+
+	private static ParseState attachBoolean(ParseState state) {
+		final ParseState current;
+		if (state.usesBoolean) {
+			current = state.addIncludes("#include <stdbool.h>" + System.lineSeparator());
+		} else {
+			current = state;
+		}
+		return current;
 	}
 
 	private static Stream<String> divide(String input, BiFunction<DivideState, Character, DivideState> folder) {
@@ -673,7 +771,8 @@ public class Main {
 		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 
 		StringBuilder inner = new StringBuilder();
-		ParseState outer = state;
+		ParseState outer = state.withStructName(name);
+
 		int j = 0;
 		while (j < segments.size()) {
 			String segment = segments.get(j).orElse(null);
@@ -700,7 +799,9 @@ public class Main {
 					.map(content1 -> generateStatement(content1, 1))
 					.collect(new Joiner());
 
-			final var collect = variants.stream().map(variant -> variant + "Type").collect(new ListCollector<>());
+			final ArrayList<String> collect =
+					variants.stream().map(variant -> variant + "Type").collect(new ListCollector<String>());
+
 			emittedRootSegments = emittedRootSegments
 					.addLast(new EnumNode(name, collect))
 					.addLast(new Union(typeParameters, name, unionFields));
@@ -718,8 +819,8 @@ public class Main {
 			recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
 		}
 
-		emittedRootSegments = emittedRootSegments.addLast(new Struct(typeParameters, name,
-																																 new Some<String>(recordFields.toString())));
+		emittedRootSegments =
+				emittedRootSegments.addLast(new Struct(typeParameters, name, new Some<String>(recordFields.toString())));
 
 		final ParseState parseState = outer
 				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())
@@ -1659,7 +1760,7 @@ public class Main {
 
 				final String outputArguments = arguments.stream().collect(new Joiner(", "));
 				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(base + "<" + outputArguments + ">",
-																																								 current));
+																																								 current.addTypeUsage(base)));
 			}
 		}
 
@@ -1669,7 +1770,8 @@ public class Main {
 		}
 
 		if (isIdentifier(stripped)) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped, state));
+			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped,
+																																							 state.addTypeUsage((stripped))));
 		}
 
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(wrap(stripped), state));

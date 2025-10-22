@@ -14,6 +14,8 @@ template <typename T, typename X, typename C>
 struct ResultCollector;
 template <typename T>
 struct AllMatch;
+template <typename T>
+struct NoneMatch;
 struct Collectors;
 template <typename T, typename C>
 struct CollectorVTable {
@@ -41,6 +43,10 @@ struct ResultCollector {
 };
 template <typename T>
 struct AllMatch {
+	Predicate<T> predicate;
+};
+template <typename T>
+struct NoneMatch {
 	Predicate<T> predicate;
 };
 struct Collectors {

@@ -181,6 +181,19 @@ bool equalsTo_ArrayList(void* _ref, ArrayList<T> other){
 	}
 	return false;
 }
+template <typename T>
+ArrayList<T> removeValue_ArrayList(void* _ref, T element){
+	/*for (int i = 0; i < this.elements.length; i++) {
+				Option<T> current = this.elements.get(i);
+				if (current instanceof Some<T>(T value) && Objects.equals(value, element)) {
+					// Shift elements left to fill the gap
+					this.elements.copyTo(i + 1, this.elements, i, this.elements.length - i - 1);
+					this.elements.length--;
+					break;
+				}
+			}*/
+	return this;
+}
 int main(){
 	main_Main();
 	return 0;

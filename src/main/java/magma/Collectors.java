@@ -93,4 +93,16 @@ public class Collectors {
 			return current && this.predicate.test(element);
 		}
 	}
+
+	public record NoneMatch<T>(Predicate<T> predicate)  implements Collector<T, Boolean> {
+		@Override
+		public Boolean createInitial() {
+			return true;
+		}
+
+		@Override
+		public Boolean fold(Boolean current, T element) {
+			return current && !predicate.test(element);
+		}
+	}
 }

@@ -79,14 +79,18 @@ struct CRootSegment {
 };
 struct ParseState {
 	Stack<ArrayList<char*>> beforeStatements;
+	Map<char*, ArrayList<char*>> structDependencies;
 	ArrayList<char*> beforeStructs;
+	Option<char*> maybeCurrentStructName;
 	ArrayList<char*> structFields;
 	ArrayList<char*> afterStatements;
 	ArrayList<CRootSegment> rootSegments;
 	ArrayList<char*> functions;
 	int counter;
 	ArrayList<char*> includes;
-	/*=*/ false;
+	ArrayList<char*> functionDeclarations;
+	bool usesBoolean;
+	ArrayList<char*> typeUsages;
 };
 struct DivideState {
 	char* input;
@@ -135,5 +139,4 @@ struct Main {
 char* generate_Definable(void* _ref);
 char* generate_CExpression(void* _ref);
 char* generate_CRootSegment(void* _ref);
-ArrayList<String> new_ArrayList<String>(void* _ref);
 #endif
