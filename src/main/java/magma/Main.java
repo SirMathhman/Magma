@@ -521,8 +521,14 @@ public class Main {
 			}
 
 			// Process the structs with no dependencies
-			final Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> result =
-					structsToRemove.stream().foldWithInitial(new Tuple<>(structOrder, current), Main::getArrayListListMapTuple);
+			final Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> result = structsToRemove
+					.stream()
+					.foldWithInitial(new Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>>(structOrder, current),
+													 (first, structName) -> {
+														 final ArrayList<String> left = first.left();
+														 final ListMap<String, ArrayList<String>> right = first.right();
+														 return removeStruct(structName, left, right);
+													 });
 
 			structOrder = result.left();
 			current = result.right();
@@ -530,20 +536,20 @@ public class Main {
 		return structOrder;
 	}
 
-	private static Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> getArrayListListMapTuple(Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> first,
-																																																			 String structName) {
-		final ArrayList<String> left = first.left();
-		final ListMap<String, ArrayList<String>> right = first.right();
+	private static Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> removeStruct(String structName,
+																																													 ArrayList<String> structOrder,
+																																													 ListMap<String,
+																																															 ArrayList<String>> edges) {
 
-		ArrayList<String> structOrder0 = left.addFirst(structName);
-		final ListMap<String, ArrayList<String>> updates = collectUpdates(right, structName);
-		ListMap<String, ArrayList<String>> current0 = right.removeKey(structName).putAll(updates);
+		ArrayList<String> structOrder0 = structOrder.addFirst(structName);
+		final ListMap<String, ArrayList<String>> updates = collectUpdates(edges, structName);
+		ListMap<String, ArrayList<String>> current0 = edges.putAll(updates).removeKey(structName);
 		return new Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>>(structOrder0, current0);
 	}
 
-	private static ListMap<String, ArrayList<String>> collectUpdates(ListMap<String, ArrayList<String>> adjacencies,
+	private static ListMap<String, ArrayList<String>> collectUpdates(ListMap<String, ArrayList<String>> edges,
 																																	 String structName) {
-		return adjacencies
+		return edges
 				.stream()
 				.map(entry -> new Tuple<String, ArrayList<String>>(entry.left(), entry.right().removeValue(structName)))
 				.collect(new MapCollector<String, ArrayList<String>>());

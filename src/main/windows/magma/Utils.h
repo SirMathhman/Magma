@@ -5,11 +5,11 @@
 template <typename A, typename B>
 struct Tuple;
 struct Utils;
+struct Utils {
+};
 template <typename A, typename B>
 struct Tuple {
 	A left;
 	B right;
-};
-struct Utils {
 };
 #endif

@@ -72,13 +72,13 @@ template <typename T>
 Boolean fold_AllMatch(void* _ref, Boolean current, T element){
 	return current && this.predicate.test(element);
 }
-template <typename T>
-Boolean createInitial_NoneMatch(void* _ref){
-	return true;
+template <typename K, typename V>
+ListMap<K, V> createInitial_MapCollector(void* _ref){
+	return new_ListMap<K, V>();
 }
-template <typename T>
-Boolean fold_NoneMatch(void* _ref, Boolean current, T element){
-	return current &&  != predicate.test(element);
+template <typename K, typename V>
+ListMap<K, V> fold_MapCollector(void* _ref, ListMap<K, V> current, Tuple<K, V> element){
+	return current.put(element.left(), element.right());
 }
 int main(){
 	main_Main();

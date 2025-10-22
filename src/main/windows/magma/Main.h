@@ -30,6 +30,21 @@ struct JStructure;
 struct Main;
 struct Main {
 };
+struct ParseState {
+	Stack<ArrayList<char*>> beforeStatements;
+	ListMap<char*, ArrayList<char*>> structDependencies;
+	ArrayList<char*> beforeStructs;
+	ListMap<char*, ArrayList<CRootSegment>> rootSegments;
+	Option<char*> maybeCurrentStructName;
+	ArrayList<char*> structFields;
+	ArrayList<char*> afterStatements;
+	ArrayList<char*> functions;
+	int counter;
+	ArrayList<char*> includes;
+	ArrayList<char*> functionDeclarations;
+	bool usesBoolean;
+	ArrayList<char*> typeUsages;
+};
 enum JMethodHeaderTag {
 	JConstructorType,
 	DefinableType
@@ -40,20 +55,25 @@ union JMethodHeaderData {
 };
 struct JMethodHeader {
 };
-struct ParseState {
-	Stack<ArrayList<char*>> beforeStatements;
-	Map<char*, ArrayList<char*>> structDependencies;
-	Map<char*, ArrayList<CRootSegment>> rootSegments;
-	ArrayList<char*> beforeStructs;
-	Option<char*> maybeCurrentStructName;
-	ArrayList<char*> structFields;
-	ArrayList<char*> afterStatements;
-	ArrayList<char*> functions;
-	int counter;
-	ArrayList<char*> includes;
-	ArrayList<char*> functionDeclarations;
-	bool usesBoolean;
-	ArrayList<char*> typeUsages;
+struct JStructure {
+	ArrayList<char*> annotations;
+	char* type;
+	char* name;
+	ArrayList<char*> typeParameters;
+	ArrayList<char*> variants;
+	StringBuilder fields;
+};
+enum CRootSegmentTag {
+	EnumNodeType,
+	CStructType,
+	UnionType
+};
+union CRootSegmentData {
+	EnumNode enumnode;
+	CStruct cstruct;
+	Union union;
+};
+struct CRootSegment {
 };
 enum CExpressionTag {
 	CIdentifierType,
@@ -75,25 +95,19 @@ union DefinableData {
 };
 struct Definable {
 };
-enum CRootSegmentTag {
-	EnumNodeType,
-	CStructType,
-	UnionType
-};
-union CRootSegmentData {
-	EnumNode enumnode;
-	CStruct cstruct;
-	Union union;
-};
-struct CRootSegment {
-};
-struct JStructure {
-	ArrayList<char*> annotations;
-	char* type;
-	char* name;
+struct Union {
 	ArrayList<char*> typeParameters;
+	char* name;
+	char* fields;
+};
+struct EnumNode {
+	char* name;
 	ArrayList<char*> variants;
-	StringBuilder fields;
+};
+struct CStruct {
+	ArrayList<char*> typeParameters;
+	char* name;
+	Option<char*> maybeFields;
 };
 struct Location {
 	ArrayList<char*> namespace;
@@ -105,10 +119,16 @@ struct CIdentifier {
 struct Content {
 	char* value;
 };
-struct Union {
-	ArrayList<char*> typeParameters;
+struct JConstructor {
 	char* name;
-	char* fields;
+};
+struct Placeholder {
+	char* input;
+};
+struct Definition {
+	ArrayList<char*> annotations;
+	char* type;
+	char* name;
 };
 struct DivideState {
 	char* input;
@@ -116,26 +136,6 @@ struct DivideState {
 	StringBuilder buffer;
 	int depth;
 	int index;
-};
-struct EnumNode {
-	char* name;
-	ArrayList<char*> variants;
-};
-struct Definition {
-	ArrayList<char*> annotations;
-	char* type;
-	char* name;
-};
-struct JConstructor {
-	char* name;
-};
-struct CStruct {
-	ArrayList<char*> typeParameters;
-	char* name;
-	Option<char*> maybeFields;
-};
-struct Placeholder {
-	char* input;
 };
 char* generate_Definable(void* _ref);
 char* generate_CExpression(void* _ref);

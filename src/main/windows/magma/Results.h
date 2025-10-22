@@ -20,14 +20,14 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 };
-template <typename T, typename X>
-struct Ok {
-	T value;
-};
 struct Results {
 };
 template <typename T, typename X>
 struct Err {
 	X error;
+};
+template <typename T, typename X>
+struct Ok {
+	T value;
 };
 #endif

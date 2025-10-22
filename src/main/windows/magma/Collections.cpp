@@ -46,6 +46,71 @@ template <typename T>
 void setFirst_Array(void* _ref, T element){
 	/*this.ref[0] */ = element;
 }
+template <typename K, typename V>
+ListMap new_ListMap(void* _ref){
+	ListMap this;
+	this(new_ArrayList<Tuple<K, V>>());
+	return this;
+}
+template <typename K, typename V>
+ListMap new_ListMap(void* _ref, ArrayList<Tuple<K, V>> entries){
+	ListMap this;
+	this.entries = entries;
+	return this;
+}
+auto __lambda1__(auto entry) {
+	return !entry.left().equals(key);
+}
+template <typename K, typename V>
+ListMap<K, V> put_ListMap(void* _ref, K key, V value){
+	this.entries == this.entries.stream().filter(__lambda1__).collect(new_ListCollector<Tuple<K, V>>()).addLast(new_Tuple<K, V>(key, value));
+	return this;
+}
+template <typename K, typename V>
+ListMap<K, V> copy_ListMap(void* _ref){
+	return new_ListMap<K, V>(this.entries.copy());
+}
+auto __lambda2__(auto tuple) {
+	return tuple.left().equals(key);
+}
+template <typename K, typename V>
+Option<V> get_ListMap(void* _ref, char* key){
+	return this.entries.stream().filter(__lambda2__).map(right_Tuple).next();
+}
+template <typename K, typename V>
+bool isEmpty_ListMap(void* _ref){
+	return this.entries.isEmpty();
+}
+template <typename K, typename V>
+Stream<Tuple<K, V>> stream_ListMap(void* _ref){
+	return this.entries.stream();
+}
+auto __lambda3__(auto entry) {
+	return !entry.left().equals(key);
+}
+template <typename K, typename V>
+ListMap<K, V> removeKey_ListMap(void* _ref, K key){
+	this.entries == this.entries.stream().filter(__lambda3__).collect(new_ListCollector<Tuple<K, V>>());
+	return this;
+}
+auto __lambda4__(auto first, auto second) {
+	return first.put(second.left(), second.right());
+}
+template <typename K, typename V>
+ListMap<K, V> putAll_ListMap(void* _ref, ListMap<K, V> other){
+	return other.entries.stream().foldWithInitial(this, __lambda4__);
+}
+auto __lambda5__(auto tuple) {
+	return new_Tuple<K, R>(tuple.left(), mapper.apply(tuple.left(), tuple.right()));
+}
+template <typename K, typename V>
+ListMap<K, R> mapValues_ListMap(void* _ref, BiFunction<K, V, R> mapper){
+	return this.stream().map(__lambda5__).collect(new_MapCollector<K, R>());
+}
+template <typename K, typename V>
+ArrayList<K> keys_ListMap(void* _ref){
+	return this.stream().map(left_Tuple).collect(new_ListCollector<K>());
+}
 template <typename T>
 private ArrayList_ArrayList(void* _ref, Array<T> elements){
 	this.elements = elements;
@@ -171,13 +236,13 @@ ArrayList<T> copy_ArrayList(void* _ref){
 	}
 	return list;
 }
-auto __lambda1__(auto ttTuple) {
+auto __lambda6__(auto ttTuple) {
 	return ttTuple.left().equals(ttTuple.right());
 }
 template <typename T>
 bool equalsTo_ArrayList(void* _ref, ArrayList<T> other){
 	if (this.size() == other.size()) {
-		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda1__));
+		return this.stream().zip(other.stream()).collect(new_AllMatch<Tuple<T, T>>(__lambda6__));
 	}
 	return false;
 }
@@ -193,6 +258,10 @@ ArrayList<T> removeValue_ArrayList(void* _ref, T element){
 				}
 			}*/
 	return this;
+}
+template <typename T>
+ArrayList<T> join_ArrayList(void* _ref, ArrayList<T> other){
+	return this.stream().filter(contains_other).collect(new_ListCollector<T>());
 }
 int main(){
 	main_Main();

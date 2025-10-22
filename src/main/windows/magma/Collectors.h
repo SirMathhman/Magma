@@ -3,6 +3,7 @@
 #define COLLECTORS_H
 #include "../magma/Collections.h"
 #include "../magma/Results.h"
+#include "../magma/Utils.h"
 template <typename T, typename C>
 struct Collector;
 template <typename T>
@@ -14,20 +15,17 @@ template <typename T, typename X, typename C>
 struct ResultCollector;
 template <typename T>
 struct AllMatch;
-template <typename T>
-struct NoneMatch;
+template <typename K, typename V>
+struct MapCollector;
 struct Collectors;
 template <typename T, typename X, typename C>
 struct ResultCollector {
 	Collector<T, C> collector;
 };
-template <typename T, typename C>
-struct CollectorVTable {
-	C (*createInitial)(void*);
-	C (*fold)(void*, C, T);
+struct Collectors {
 };
-template <typename T, typename C>
-struct Collector {
+template <typename K, typename V>
+struct MapCollector {
 };
 template <typename T>
 struct AllMatch {
@@ -37,17 +35,19 @@ template <typename T>
 struct AnyMatch {
 	Predicate<T> predicate;
 };
-template <typename T>
-struct NoneMatch {
-	Predicate<T> predicate;
-};
 struct Joiner {
 	char* delimiter;
 };
 template <typename T>
 struct ListCollector {
 };
-struct Collectors {
+template <typename T, typename C>
+struct CollectorVTable {
+	C (*createInitial)(void*);
+	C (*fold)(void*, C, T);
+};
+template <typename T, typename C>
+struct Collector {
 };
 template <typename T, typename C>
 C createInitial_Collector(void* _ref);
