@@ -16,6 +16,8 @@ template <typename T>
 struct ArrayList {
 	Array<T> elements;
 };
+struct Collections {
+};
 template <typename T>
 struct Array {
 	T* ref;

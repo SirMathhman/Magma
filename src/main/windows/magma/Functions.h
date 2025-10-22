@@ -6,6 +6,8 @@ struct Function;
 template <typename A, typename B, typename R>
 struct BiFunction;
 struct Functions;
+struct Functions {
+};
 template <typename A, typename B, typename R>
 struct BiFunctionVTable {
 	R (*apply)(void*, A, B);

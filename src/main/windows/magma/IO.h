@@ -9,13 +9,6 @@
 struct IOError;
 struct Path;
 struct IO;
-struct IOErrorVTable {
-	char* (*display)(void*);
-};
-struct IOError {
-	void* data;
-	IOErrorVTable vtable;
-};
 struct PathVTable {
 	bool (*exists)(void*);
 	Result<char*, IOError> (*readString)(void*);
@@ -33,6 +26,15 @@ struct PathVTable {
 struct Path {
 	void* data;
 	PathVTable vtable;
+};
+struct IO {
+};
+struct IOErrorVTable {
+	char* (*display)(void*);
+};
+struct IOError {
+	void* data;
+	IOErrorVTable vtable;
 };
 char* display_IOError(void* _ref);
 bool exists_Path(void* _ref);

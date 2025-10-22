@@ -10,4 +10,6 @@ struct Tuple {
 	A left;
 	B right;
 };
+struct Utils {
+};
 #endif

@@ -51,6 +51,8 @@ struct Location {
 	ArrayList<char*> namespace;
 	char* name;
 };
+struct Main {
+};
 struct CIdentifier {
 	char* value;
 };

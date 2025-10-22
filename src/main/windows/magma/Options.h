@@ -11,11 +11,11 @@ template <typename T>
 struct None;
 struct Options;
 template <typename T>
-struct Some {
-	T value;
+struct None {
 };
 template <typename T>
-struct None {
+struct Some {
+	T value;
 };
 enum OptionTag {
 	SomeType,
@@ -30,6 +30,8 @@ template <typename T>
 struct Option {
 	OptionTag tag;
 	OptionData<T> data;
+};
+struct Options {
 };
 template <typename T>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);

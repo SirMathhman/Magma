@@ -26,6 +26,8 @@ template <typename T, typename X>
 struct Ok {
 	T value;
 };
+struct Results {
+};
 template <typename T, typename X>
 struct Err {
 	X error;
