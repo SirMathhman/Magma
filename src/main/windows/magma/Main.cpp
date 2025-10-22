@@ -533,15 +533,6 @@ Tuple<char*, ParseState> compileRootSegment_Main(void* _ref, char* input, ParseS
 	}
 	return compileStructure(stripped, "class", state).orElseGet(__lambda10__);
 }
-auto __lambda11__(auto slice) {
-	return slice + joinedTypeParameters + " " + slice.toLowerCase();
-}
-auto __lambda12__(auto content1) {
-	return generateStatement(content1, 1);
-}
-auto __lambda13__(auto variant) {
-	return variant + "Type";
-}
 Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, char* type, ParseState state){
 	int keywordIndex = input.indexOf(type + " ");
 	if (keywordIndex < 0) {
@@ -617,6 +608,49 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	Tuple<char*, ParseState> parseState1 = compileStructureSegments(content, name, outer, typeParameters);
 	outer == parseState1.right();
 	recordFields.append(parseState1.left());
+	/*final ParseState
+				parseState */ = getParseState(new_JStructure(type, name, typeParameters, variants, recordFields), outer);
+	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+}
+ParseState getParseState_Main(void* _ref, JStructure JStructure, ParseState state){
+	ArrayList < CRootSegment >= emittedRootSegments == flattenStructure(JStructure.type(), JStructure.variants(), JStructure.name(), JStructure.typeParameters(), JStructure.fields(), state);
+	emittedRootSegments == emittedRootSegments.addLast(new_Struct(JStructure.typeParameters(), JStructure.name(), new_Some<char*>(JStructure.fields().toString())));
+	ParseState registerVariantsAsTypeUsages = JStructure.variants().stream().foldWithInitial(state, addTypeUsage_ParseState);
+	Struct struct = new_Struct(JStructure.typeParameters(), JStructure.name(), new_None<char*>());
+	return registerStruct(registerVariantsAsTypeUsages, struct, emittedRootSegments);
+}
+auto __lambda11__(auto variant) {
+	return variant + "Type";
+}
+ArrayList<CRootSegment> flattenStructure_Main(void* _ref, char* type, ArrayList<char*> variants, char* name, ArrayList<char*> typeParameters, StringBuilder fields, ParseState outer){
+	char* joinedTypeParameters = joinTypeParameters(typeParameters);
+	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
+	if (!variants.isEmpty()) {
+		char* unionFields = joinUnionFields(variants, joinedTypeParameters);
+		ArrayList<char*> collect = variants.stream().map(__lambda11__).collect(new_ListCollector<char*>());
+		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, collect)).addLast(new_Union(typeParameters, name, unionFields));
+		fields.append(generateStatement(name + "Tag tag", 1));
+		fields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
+	}
+	else if (type.equals("interface")) {
+		char* vTableName = name + "VTable";
+		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
+		emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, vTableName, new_Some<char*>(functionDeclarations)));
+		fields.append(generateStatement("void* data", 1));
+		fields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
+	}
+	return emittedRootSegments;
+}
+auto __lambda12__(auto slice) {
+	return slice + joinedTypeParameters + " " + slice.toLowerCase();
+}
+auto __lambda13__(auto content1) {
+	return generateStatement(content1, 1);
+}
+char* joinUnionFields_Main(void* _ref, ArrayList<char*> variants, char* joinedTypeParameters){
+	return variants.stream().map(__lambda12__).map(__lambda13__).collect(new_Joiner());
+}
+char* joinTypeParameters_Main(void* _ref, ArrayList<char*> typeParameters){
 	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";
@@ -624,25 +658,10 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	else {
 		joinedTypeParameters = "<" + typeParameters.stream().collect(new_Joiner(", ")) + ">";
 	}
-	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
-	if (!variants.isEmpty()) {
-		char* unionFields = variants.stream().map(__lambda11__).map(__lambda12__).collect(new_Joiner());
-		ArrayList<char*> collect = variants.stream().map(__lambda13__).collect(new_ListCollector<char*>());
-		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, collect)).addLast(new_Union(typeParameters, name, unionFields));
-		recordFields.append(generateStatement(name + "Tag tag", 1));
-		recordFields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
-	}
-	else if (type.equals("interface")) {
-		char* vTableName = name + "VTable";
-		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
-		emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, vTableName, new_Some<char*>(functionDeclarations)));
-		recordFields.append(generateStatement("void* data", 1));
-		recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
-	}
-	emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, name, new_Some<char*>(recordFields.toString())));
-	ParseState registerVariantsAsTypeUsages = variants.stream().foldWithInitial(outer, addTypeUsage_ParseState);
-	ParseState parseState = registerVariantsAsTypeUsages.completeStructure().addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(name, emittedRootSegments);
-	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+	return joinedTypeParameters;
+}
+ParseState registerStruct_Main(void* _ref, ParseState state, Struct struct, ArrayList<CRootSegment> more){
+	return state.completeStructure().addBeforeStruct(struct.generate()).addAllRootSegments(struct.name, more);
 }
 Tuple<char*, ParseState> compileStructureSegments_Main(void* _ref, char* content, char* name, ParseState state, ArrayList<char*> typeParameters){
 	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());

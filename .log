@@ -62,30 +62,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Actual.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
@@ -150,30 +144,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Collections.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
@@ -238,30 +226,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Collectors.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
@@ -326,30 +308,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Functions.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
@@ -414,30 +390,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Heads.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
@@ -502,30 +472,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\IO.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
@@ -590,30 +554,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\JavaImpl.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
@@ -678,30 +636,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Main.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
@@ -766,30 +718,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\MemUtils.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
@@ -854,30 +800,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Options.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
@@ -942,30 +882,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Results.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
@@ -1030,30 +964,24 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Streams.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Utils.cpp:2:
@@ -1118,29 +1046,23 @@ magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
    13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Utils.cpp:2:
-magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
-   35 |         JConstructor jconstructor;
+magma\Main.h:36:2: error: unknown type name 'StringBuilder'
+   36 |         StringBuilder fields;
+      |         ^
+magma\Main.h:43:15: error: field has incomplete type 'JConstructor'
+   43 |         JConstructor jconstructor;
       |                      ^
 magma\Main.h:22:8: note: forward declaration of 'JConstructor'
    22 | struct JConstructor;
       |        ^
-magma\Main.h:36:12: error: field has incomplete type 'Definable'
-   36 |         Definable definable;
+magma\Main.h:44:12: error: field has incomplete type 'Definable'
+   44 |         Definable definable;
       |                   ^
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
-   47 |         CIdentifier cidentifier;
-      |                     ^
-magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
-   24 | struct CIdentifier;
-      |        ^
-magma\Main.h:48:10: error: field has incomplete type 'Content'
-   48 |         Content content;
-      |                 ^
-magma\Main.h:23:8: note: forward declaration of 'Content'
-   23 | struct Content;
-      |        ^
+magma\Main.h:51:2: error: no template named 'Stack'
+   51 |         Stack<ArrayList<char*>> beforeStatements;
+      |         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

@@ -26,7 +26,15 @@ struct Location;
 struct Struct;
 struct EnumNode;
 struct Union;
+struct JStructure;
 struct Main;
+struct JStructure {
+	char* type;
+	char* name;
+	ArrayList<char*> typeParameters;
+	ArrayList<char*> variants;
+	StringBuilder fields;
+};
 enum JMethodHeaderTag {
 	JConstructorType,
 	DefinableType
@@ -38,6 +46,21 @@ union JMethodHeaderData {
 struct JMethodHeader {
 	JMethodHeaderTag tag;
 	JMethodHeaderData data;
+};
+struct ParseState {
+	Stack<ArrayList<char*>> beforeStatements;
+	Map<char*, ArrayList<char*>> structDependencies;
+	Map<char*, ArrayList<CRootSegment>> rootSegments;
+	ArrayList<char*> beforeStructs;
+	Option<char*> maybeCurrentStructName;
+	ArrayList<char*> structFields;
+	ArrayList<char*> afterStatements;
+	ArrayList<char*> functions;
+	int counter;
+	ArrayList<char*> includes;
+	ArrayList<char*> functionDeclarations;
+	bool usesBoolean;
+	ArrayList<char*> typeUsages;
 };
 enum CExpressionTag {
 	CIdentifierType,
@@ -63,6 +86,20 @@ struct Definable {
 	DefinableTag tag;
 	DefinableData data;
 };
+enum CRootSegmentTag {
+	EnumNodeType,
+	StructType,
+	UnionType
+};
+union CRootSegmentData {
+	EnumNode enumnode;
+	Struct struct;
+	Union union;
+};
+struct CRootSegment {
+	CRootSegmentTag tag;
+	CRootSegmentData data;
+};
 struct Location {
 	ArrayList<char*> namespace;
 	char* name;
@@ -77,6 +114,11 @@ struct Struct {
 	ArrayList<char*> typeParameters;
 	char* name;
 	Option<char*> maybeFields;
+};
+struct Union {
+	ArrayList<char*> typeParameters;
+	char* name;
+	char* fields;
 };
 struct DivideState {
 	char* input;

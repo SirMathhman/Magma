@@ -44,7 +44,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface CRootSegment permits EnumNode, Struct, Union {
+	private sealed interface CRootSegment permits EnumNode, CStruct, Union {
 		String generate();
 	}
 
@@ -130,7 +130,7 @@ public class Main {
 			return this;
 		}
 
-		public ParseState addBeforeStruct(String beforeStruct) {
+		public ParseState addStructForwardDeclaration(String beforeStruct) {
 			this.beforeStructs = this.beforeStructs.addLast(beforeStruct);
 			return this;
 		}
@@ -290,7 +290,7 @@ public class Main {
 
 	private record Location(ArrayList<String> namespace, String name) {}
 
-	private record Struct(ArrayList<String> typeParameters, String name, Option<String> maybeFields)
+	private record CStruct(ArrayList<String> typeParameters, String name, Option<String> maybeFields)
 			implements CRootSegment {
 		@Override
 		public String generate() {
@@ -313,6 +313,17 @@ public class Main {
 		public String generate() {
 			return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() +
 						 System.lineSeparator() + "};" + System.lineSeparator();
+		}
+	}
+
+	private record JStructure(String type, String name, ArrayList<String> typeParameters, ArrayList<String> variants,
+														StringBuilder fields) {
+		private CStruct toStruct() {
+			return new CStruct(this.typeParameters(), this.name(), new Some<String>(this.fields().toString()));
+		}
+
+		private CStruct toStructForwardDeclaration() {
+			return new CStruct(this.typeParameters(), this.name(), new None<String>());
 		}
 	}
 
@@ -781,52 +792,76 @@ public class Main {
 		outer = parseState1.right();
 		recordFields.append(parseState1.left());
 
+		final ParseState parseState =
+				completeStructure(new JStructure(type, name, typeParameters, variants, recordFields), outer);
+
+		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+	}
+
+	private static ParseState completeStructure(JStructure JStructure, ParseState state) {
+		final CStruct struct = JStructure.toStruct();
+		ArrayList<CRootSegment> emittedRootSegments = pullOutDependentTypes(JStructure, state).addLast(struct);
+
+		final ParseState registerVariantsAsTypeUsages =
+				JStructure.variants().stream().foldWithInitial(state, ParseState::addTypeUsage);
+
+		final CStruct structForwardDeclaration = JStructure.toStructForwardDeclaration();
+
+		return registerVariantsAsTypeUsages
+				.completeStructure()
+				.addStructForwardDeclaration(structForwardDeclaration.generate())
+				.addAllRootSegments(structForwardDeclaration.name, emittedRootSegments);
+	}
+
+	private static ArrayList<CRootSegment> pullOutDependentTypes(JStructure JStructure, ParseState state) {
+		StringBuilder fields = JStructure.fields();
+		final String joinedTypeParameters = joinTypeParameters(JStructure.typeParameters());
+
+		if (!JStructure.variants().isEmpty()) {
+			final String unionFields = joinUnionFields(JStructure.variants(), joinedTypeParameters);
+
+			final ArrayList<String> collect =
+					JStructure.variants().stream().map(variant -> variant + "Type").collect(new ListCollector<String>());
+
+			fields.append(generateStatement(JStructure.name() + "Tag tag", 1));
+			fields.append(generateStatement(JStructure.name() + "Data" + joinedTypeParameters + " data", 1));
+
+			return new ArrayList<CRootSegment>()
+					.addLast(new EnumNode(JStructure.name(), collect))
+					.addLast(new Union(JStructure.typeParameters(), JStructure.name(), unionFields));
+		}
+
+		if (JStructure.type().equals("interface")) {
+			final String vTableName = JStructure.name() + "VTable";
+
+			final String functionDeclarations = state.popStructFields().stream().collect(new Joiner());
+
+			fields.append(generateStatement("void* data", 1));
+			fields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
+			return new ArrayList<CRootSegment>().addLast(new CStruct(JStructure.typeParameters(),
+																															 vTableName,
+																															 new Some<String>(functionDeclarations)));
+		}
+
+		return new ArrayList<>();
+	}
+
+	private static String joinUnionFields(ArrayList<String> variants, String joinedTypeParameters) {
+		return variants
+				.stream()
+				.map(slice -> slice + joinedTypeParameters + " " + slice.toLowerCase())
+				.map(content1 -> generateStatement(content1, 1))
+				.collect(new Joiner());
+	}
+
+	private static String joinTypeParameters(ArrayList<String> typeParameters) {
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
 			joinedTypeParameters = "";
 		} else {
 			joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
 		}
-
-		ArrayList<CRootSegment> emittedRootSegments = new ArrayList<CRootSegment>();
-		if (!variants.isEmpty()) {
-			final String unionFields = variants
-					.stream()
-					.map(slice -> slice + joinedTypeParameters + " " + slice.toLowerCase())
-					.map(content1 -> generateStatement(content1, 1))
-					.collect(new Joiner());
-
-			final ArrayList<String> collect =
-					variants.stream().map(variant -> variant + "Type").collect(new ListCollector<String>());
-
-			emittedRootSegments = emittedRootSegments
-					.addLast(new EnumNode(name, collect))
-					.addLast(new Union(typeParameters, name, unionFields));
-
-			recordFields.append(generateStatement(name + "Tag tag", 1));
-			recordFields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
-		} else if (type.equals("interface")) {
-			final String vTableName = name + "VTable";
-
-			final String functionDeclarations = outer.popStructFields().stream().collect(new Joiner());
-			emittedRootSegments =
-					emittedRootSegments.addLast(new Struct(typeParameters, vTableName, new Some<String>(functionDeclarations)));
-
-			recordFields.append(generateStatement("void* data", 1));
-			recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
-		}
-
-		emittedRootSegments =
-				emittedRootSegments.addLast(new Struct(typeParameters, name, new Some<String>(recordFields.toString())));
-
-		final ParseState registerVariantsAsTypeUsages = variants.stream().foldWithInitial(outer, ParseState::addTypeUsage);
-
-		final ParseState parseState = registerVariantsAsTypeUsages
-				.completeStructure()
-				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())
-				.addAllRootSegments(name, emittedRootSegments);
-
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+		return joinedTypeParameters;
 	}
 
 	private static Tuple<String, ParseState> compileStructureSegments(String content,
