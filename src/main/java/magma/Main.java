@@ -791,8 +791,7 @@ public class Main {
 		}
 		recordFields.append(inner);
 
-		final ParseState withUsages = variants.stream().foldWithInitial(outer0, ParseState::addTypeUsage);
-		ParseState outer = withUsages.completeStruct();
+		ParseState outer = outer0.completeStruct();
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -803,6 +802,7 @@ public class Main {
 
 		ArrayList<CRootSegment> emittedRootSegments = new ArrayList<CRootSegment>();
 		if (!variants.isEmpty()) {
+
 			final String unionFields = variants
 					.stream()
 					.map(slice -> slice + joinedTypeParameters + " " + slice.toLowerCase())

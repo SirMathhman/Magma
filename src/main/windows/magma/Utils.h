@@ -5,4 +5,9 @@
 template <typename A, typename B>
 struct Tuple;
 struct Utils;
+template <typename A, typename B>
+struct Tuple {
+	A left;
+	B right;
+};
 #endif

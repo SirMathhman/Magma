@@ -9,6 +9,31 @@
 struct IOError;
 struct Path;
 struct IO;
+struct IOErrorVTable {
+	char* (*display)(void*);
+};
+struct IOError {
+	void* data;
+	IOErrorVTable vtable;
+};
+struct PathVTable {
+	bool (*exists)(void*);
+	Result<char*, IOError> (*readString)(void*);
+	Option<IOError> (*createDirectories)(void*);
+	Option<IOError> (*writeString)(void*, char*);
+	Path (*getParent)(void*);
+	Result<ArrayList<Path>, IOError> (*walk)(void*);
+	char* (*asString)(void*);
+	Path (*relativize)(void*, Path);
+	Path (*resolveByPath)(void*, Path);
+	Stream<char*> (*stream)(void*);
+	Path (*getFileName)(void*);
+	Path (*resolveByString)(void*, char*);
+};
+struct Path {
+	void* data;
+	PathVTable vtable;
+};
 char* display_IOError(void* _ref);
 bool exists_Path(void* _ref);
 Result<char*, IOError> readString_Path(void* _ref);

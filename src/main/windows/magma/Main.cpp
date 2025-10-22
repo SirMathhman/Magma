@@ -618,7 +618,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
 	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	StringBuilder inner = new_StringBuilder();
-	ParseState outer0 = state;
+	ParseState outer0 = state.withStructName(name);
 	int j = 0;
 	while (j < segments.size()) {
 		char* segment = segments.get(j).orElse(null);
@@ -628,8 +628,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		j++;
 	}
 	recordFields.append(inner);
-	ParseState withUsages = variants.stream().foldWithInitial(outer0, addTypeUsage_ParseState);
-	ParseState outer = withUsages.completeStruct();
+	ParseState outer = outer0.completeStruct();
 	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";
