@@ -6,8 +6,11 @@
 #include "../magma/IO.h"
 #include "../magma/Options.h"
 #include "../magma/Results.h"
+#include <stdbool.h>
 struct Paths;
 struct JavaImpl;
+struct JavaImpl {
+};
 struct Paths {
 };
 Path get_Paths(void* _ref, char* first, /*String...*/ more);

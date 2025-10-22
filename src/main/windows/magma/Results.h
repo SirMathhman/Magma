@@ -19,12 +19,12 @@ union ResultData {
 };
 template <typename T, typename X>
 struct Result {
-	ResultTag tag;
-	ResultData<T, X> data;
 };
 template <typename T, typename X>
 struct Ok {
 	T value;
+};
+struct Results {
 };
 template <typename T, typename X>
 struct Err {

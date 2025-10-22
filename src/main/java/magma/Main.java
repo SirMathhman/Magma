@@ -316,8 +316,8 @@ public class Main {
 		}
 	}
 
-	private record JStructure(String type, String name, ArrayList<String> typeParameters, ArrayList<String> variants,
-														StringBuilder fields) {
+	private record JStructure(ArrayList<String> annotations, String type, String name, ArrayList<String> typeParameters,
+														ArrayList<String> variants, StringBuilder fields) {
 		private CStruct toStruct() {
 			return new CStruct(this.typeParameters(), this.name(), new Some<String>(this.fields().toString()));
 		}
@@ -704,21 +704,31 @@ public class Main {
 	}
 
 	private static Option<Tuple<String, ParseState>> compileStructure(String input, String type, ParseState state) {
+		final Option<Tuple<JStructure, ParseState>> maybeStructure = parseStructure(input, type, state);
+		if (maybeStructure instanceof Some<Tuple<JStructure, ParseState>>(Tuple<JStructure, ParseState> tuple)) {
+			final Option<ParseState> maybeCompleted = completeStructure(tuple.left(), tuple.right());
+			if (maybeCompleted instanceof Some<ParseState>(ParseState completed)) {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", completed));
+			} else {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", tuple.right()));
+			}
+		}
+
+		return new None<Tuple<String, ParseState>>();
+	}
+
+	private static Option<Tuple<JStructure, ParseState>> parseStructure(String input, String type, ParseState state) {
 		final int keywordIndex = input.indexOf(type + " ");
 		if (keywordIndex < 0) {
-			return new None<Tuple<String, ParseState>>();
+			return new None<Tuple<JStructure, ParseState>>();
 		}
 
 		final ArrayList<String> annotations = findAnnotations(input.substring(0, keywordIndex));
-		if (annotations.contains("Actual")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", state));
-		}
-
 		final String afterKeyword = input.substring(keywordIndex + (type + " ").length());
 		final int contentStart = afterKeyword.indexOf("{");
 
 		if (contentStart < 0) {
-			return new None<Tuple<String, ParseState>>();
+			return new None<Tuple<JStructure, ParseState>>();
 		}
 
 		final String beforeContent = afterKeyword.substring(0, contentStart).strip();
@@ -777,40 +787,43 @@ public class Main {
 		}
 
 		if (!isIdentifier(name)) {
-			return new None<Tuple<String, ParseState>>();
+			return new None<Tuple<JStructure, ParseState>>();
 		}
 
 		final String afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 		if (!afterContent.endsWith("}")) {
-			return new None<Tuple<String, ParseState>>();
+			return new None<Tuple<JStructure, ParseState>>();
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		ParseState outer = state.withStructName(name);
+		final Tuple<String, ParseState> parseState1 = compileStructureSegments(content, name, state, typeParameters);
 
-		final Tuple<String, ParseState> parseState1 = compileStructureSegments(content, name, outer, typeParameters);
-		outer = parseState1.right();
+		ParseState outer = parseState1.right().withStructName(name);
 		recordFields.append(parseState1.left());
 
-		final ParseState parseState =
-				completeStructure(new JStructure(type, name, typeParameters, variants, recordFields), outer);
-
-		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+		final JStructure jStructure = new JStructure(annotations, type, name, typeParameters, variants, recordFields);
+		return new Some<Tuple<JStructure, ParseState>>(new Tuple<JStructure, ParseState>(jStructure, outer));
 	}
 
-	private static ParseState completeStructure(JStructure JStructure, ParseState state) {
-		final CStruct struct = JStructure.toStruct();
-		ArrayList<CRootSegment> emittedRootSegments = pullOutDependentTypes(JStructure, state).addLast(struct);
+	private static Option<ParseState> completeStructure(JStructure structure, ParseState state) {
+		if (structure.annotations.contains("Actual")) {
+			return new None<ParseState>();
+		}
+
+		final CStruct struct = structure.toStruct();
+		ArrayList<CRootSegment> emittedRootSegments = pullOutDependentTypes(structure, state).addLast(struct);
 
 		final ParseState registerVariantsAsTypeUsages =
-				JStructure.variants().stream().foldWithInitial(state, ParseState::addTypeUsage);
+				structure.variants().stream().foldWithInitial(state, ParseState::addTypeUsage);
 
-		final CStruct structForwardDeclaration = JStructure.toStructForwardDeclaration();
+		final CStruct structForwardDeclaration = structure.toStructForwardDeclaration();
 
-		return registerVariantsAsTypeUsages
+		final ParseState registered = registerVariantsAsTypeUsages
 				.completeStructure()
 				.addStructForwardDeclaration(structForwardDeclaration.generate())
 				.addAllRootSegments(structForwardDeclaration.name, emittedRootSegments);
+
+		return new Some<ParseState>(registered);
 	}
 
 	private static ArrayList<CRootSegment> pullOutDependentTypes(JStructure JStructure, ParseState state) {
@@ -843,7 +856,7 @@ public class Main {
 																															 new Some<String>(functionDeclarations)));
 		}
 
-		return new ArrayList<>();
+		return new ArrayList<CRootSegment>();
 	}
 
 	private static String joinUnionFields(ArrayList<String> variants, String joinedTypeParameters) {
@@ -880,7 +893,7 @@ public class Main {
 			j++;
 		}
 
-		return new Tuple<>(inner.toString(), state);
+		return new Tuple<String, ParseState>(inner.toString(), state);
 	}
 
 	private static ArrayList<String> splitVariants(String slice) {

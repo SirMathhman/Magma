@@ -69,7 +69,7 @@ ParseState addIncludes_ParseState(void* _ref, char* include){
 	}
 	return this;
 }
-ParseState addBeforeStruct_ParseState(void* _ref, char* beforeStruct){
+ParseState addStructForwardDeclaration_ParseState(void* _ref, char* beforeStruct){
 	this.beforeStructs == this.beforeStructs.addLast(beforeStruct);
 	return this;
 }
@@ -191,7 +191,7 @@ char* generate_CIdentifier(void* _ref){
 auto __lambda1__(auto fields) {
 	return " {" + fields + System.lineSeparator() + "}";
 }
-char* generate_Struct(void* _ref){
+char* generate_CStruct(void* _ref){
 	char* s = this.maybeFields.map(__lambda1__).orElse("");
 	return generateTemplateString(this.typeParameters) + "struct " + this.name() + s + ";" + System.lineSeparator();
 }
@@ -204,6 +204,12 @@ char* generate_EnumNode(void* _ref){
 }
 char* generate_Union(void* _ref){
 	return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() + System.lineSeparator() + "};" + System.lineSeparator();
+}
+CStruct toStruct_JStructure(void* _ref){
+	return new_CStruct(this.typeParameters(), this.name(), new_Some<char*>(this.fields().toString()));
+}
+CStruct toStructForwardDeclaration_JStructure(void* _ref){
+	return new_CStruct(this.typeParameters(), this.name(), new_None<char*>());
 }
 void main_Main(void* _ref, char** args){
 	??? _temp = run();
@@ -534,18 +540,32 @@ Tuple<char*, ParseState> compileRootSegment_Main(void* _ref, char* input, ParseS
 	return compileStructure(stripped, "class", state).orElseGet(__lambda10__);
 }
 Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, char* type, ParseState state){
+	Option<Tuple<JStructure, ParseState>> maybeStructure = parseStructure(input, type, state);
+	if (maybeStructure.tag == Some) {
+		Option<ParseState> maybeCompleted = completeStructure(tuple.left(), tuple.right());
+		if (maybeCompleted.tag == Some) {
+		Some<Tuple<JStructure, ParseState>> _cast = maybeStructure.data.some;
+		Tuple<JStructure, ParseState> tuple = _cast.tuple;
+		Some<ParseState> _cast = maybeCompleted.data.some;
+		ParseState completed = _cast.completed;
+			return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", completed));
+		}
+		else {
+			return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", tuple.right()));
+		}
+	}
+	return new_None<Tuple<char*, ParseState>>();
+}
+Option<Tuple<JStructure, ParseState>> parseStructure_Main(void* _ref, char* input, char* type, ParseState state){
 	int keywordIndex = input.indexOf(type + " ");
 	if (keywordIndex < 0) {
-		return new_None<Tuple<char*, ParseState>>();
+		return new_None<Tuple<JStructure, ParseState>>();
 	}
 	ArrayList<char*> annotations = findAnnotations(input.substring(0, keywordIndex));
-	if (annotations.contains("Actual")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", state));
-	}
 	char* afterKeyword = input.substring(keywordIndex + (type + " ").length());
 	int contentStart = afterKeyword.indexOf("{");
 	if (contentStart < 0) {
-		return new_None<Tuple<char*, ParseState>>();
+		return new_None<Tuple<JStructure, ParseState>>();
 	}
 	char* beforeContent = afterKeyword.substring(0, contentStart).strip();
 	char* withoutPermits = beforeContent;
@@ -597,49 +617,53 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		}
 	}
 	if (!isIdentifier(name)) {
-		return new_None<Tuple<char*, ParseState>>();
+		return new_None<Tuple<JStructure, ParseState>>();
 	}
 	char* afterContent = afterKeyword.substring(contentStart + "{".length()).strip();
 	if (!afterContent.endsWith("}")) {
-		return new_None<Tuple<char*, ParseState>>();
+		return new_None<Tuple<JStructure, ParseState>>();
 	}
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
-	ParseState outer = state.withStructName(name);
-	Tuple<char*, ParseState> parseState1 = compileStructureSegments(content, name, outer, typeParameters);
-	outer == parseState1.right();
+	Tuple<char*, ParseState> parseState1 = compileStructureSegments(content, name, state, typeParameters);
+	ParseState outer = parseState1.right().withStructName(name);
 	recordFields.append(parseState1.left());
-	/*final ParseState
-				parseState */ = getParseState(new_JStructure(type, name, typeParameters, variants, recordFields), outer);
-	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+	JStructure jStructure = new_JStructure(annotations, type, name, typeParameters, variants, recordFields);
+	return new_Some<Tuple<JStructure, ParseState>>(new_Tuple<JStructure, ParseState>(jStructure, outer));
 }
-ParseState getParseState_Main(void* _ref, JStructure JStructure, ParseState state){
-	ArrayList < CRootSegment >= emittedRootSegments == flattenStructure(JStructure.type(), JStructure.variants(), JStructure.name(), JStructure.typeParameters(), JStructure.fields(), state);
-	emittedRootSegments == emittedRootSegments.addLast(new_Struct(JStructure.typeParameters(), JStructure.name(), new_Some<char*>(JStructure.fields().toString())));
-	ParseState registerVariantsAsTypeUsages = JStructure.variants().stream().foldWithInitial(state, addTypeUsage_ParseState);
-	Struct struct = new_Struct(JStructure.typeParameters(), JStructure.name(), new_None<char*>());
-	return registerStruct(registerVariantsAsTypeUsages, struct, emittedRootSegments);
+Option<ParseState> completeStructure_Main(void* _ref, JStructure structure, ParseState state){
+	if (structure.annotations.contains("Actual")) {
+		return new_None<ParseState>();
+	}
+	CStruct struct = structure.toStruct();
+	ArrayList < CRootSegment >= emittedRootSegments == pullOutDependentTypes(structure, state).addLast(struct);
+	ParseState registerVariantsAsTypeUsages = structure.variants().stream().foldWithInitial(state, addTypeUsage_ParseState);
+	CStruct structForwardDeclaration = structure.toStructForwardDeclaration();
+	ParseState registered = registerVariantsAsTypeUsages.completeStructure().addStructForwardDeclaration(structForwardDeclaration.generate()).addAllRootSegments(structForwardDeclaration.name, emittedRootSegments);
+	return new_Some<ParseState>(registered);
 }
 auto __lambda11__(auto variant) {
 	return variant + "Type";
 }
-ArrayList<CRootSegment> flattenStructure_Main(void* _ref, char* type, ArrayList<char*> variants, char* name, ArrayList<char*> typeParameters, StringBuilder fields, ParseState outer){
-	char* joinedTypeParameters = joinTypeParameters(typeParameters);
-	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
-	if (!variants.isEmpty()) {
-		char* unionFields = joinUnionFields(variants, joinedTypeParameters);
-		ArrayList<char*> collect = variants.stream().map(__lambda11__).collect(new_ListCollector<char*>());
-		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, collect)).addLast(new_Union(typeParameters, name, unionFields));
-		fields.append(generateStatement(name + "Tag tag", 1));
-		fields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
+ArrayList<CRootSegment> pullOutDependentTypes_Main(void* _ref, JStructure JStructure, ParseState state){
+	StringBuilder fields = JStructure.fields();
+	char* joinedTypeParameters = joinTypeParameters(JStructure.typeParameters());
+	if (!JStructure.variants().isEmpty()) {
+		char* unionFields = joinUnionFields(JStructure.variants(), joinedTypeParameters);
+		ArrayList<char*> collect = JStructure.variants().stream().map(__lambda11__).collect(new_ListCollector<char*>());
+		fields.append(generateStatement(JStructure.name() + "Tag tag", 1));
+		fields.append(generateStatement(JStructure.name() + "Data" + joinedTypeParameters + " data", 1));
+		return new_/*ArrayList<CRootSegment>()
+					.addLast(new EnumNode(JStructure.name(), collect))
+					.addLast*/(new_Union(JStructure.typeParameters(), JStructure.name(), unionFields));
 	}
-	else if (type.equals("interface")) {
-		char* vTableName = name + "VTable";
-		char* functionDeclarations = outer.popStructFields().stream().collect(new_Joiner());
-		emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, vTableName, new_Some<char*>(functionDeclarations)));
+	if (JStructure.type().equals("interface")) {
+		char* vTableName = JStructure.name() + "VTable";
+		char* functionDeclarations = state.popStructFields().stream().collect(new_Joiner());
 		fields.append(generateStatement("void* data", 1));
 		fields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
+		return new_/*ArrayList<CRootSegment>().addLast*/(new_CStruct(JStructure.typeParameters(), vTableName, new_Some<char*>(functionDeclarations)));
 	}
-	return emittedRootSegments;
+	return new_ArrayList<CRootSegment>();
 }
 auto __lambda12__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
@@ -660,9 +684,6 @@ char* joinTypeParameters_Main(void* _ref, ArrayList<char*> typeParameters){
 	}
 	return joinedTypeParameters;
 }
-ParseState registerStruct_Main(void* _ref, ParseState state, Struct struct, ArrayList<CRootSegment> more){
-	return state.completeStructure().addBeforeStruct(struct.generate()).addAllRootSegments(struct.name, more);
-}
 Tuple<char*, ParseState> compileStructureSegments_Main(void* _ref, char* content, char* name, ParseState state, ArrayList<char*> typeParameters){
 	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	StringBuilder inner = new_StringBuilder();
@@ -674,7 +695,7 @@ Tuple<char*, ParseState> compileStructureSegments_Main(void* _ref, char* content
 		state == compiled.right();
 		j++;
 	}
-	return new_Tuple<>(inner.toString(), state);
+	return new_Tuple<char*, ParseState>(inner.toString(), state);
 }
 auto __lambda14__(auto segment) {
 	return !segment.isEmpty();

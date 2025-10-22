@@ -28,8 +28,6 @@ struct CollectorVTable {
 };
 template <typename T, typename C>
 struct Collector {
-	void* data;
-	CollectorVTable<T, C> vtable;
 };
 template <typename T>
 struct AllMatch {
@@ -48,6 +46,8 @@ struct Joiner {
 };
 template <typename T>
 struct ListCollector {
+};
+struct Collectors {
 };
 template <typename T, typename C>
 C createInitial_Collector(void* _ref);

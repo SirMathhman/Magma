@@ -10,8 +10,7 @@ struct Some;
 template <typename T>
 struct None;
 struct Options;
-template <typename T>
-struct None {
+struct Options {
 };
 template <typename T>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);
