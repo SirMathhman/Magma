@@ -527,19 +527,13 @@ Tuple<char*, ParseState> compileRootSegment_Main(void* _ref, char* input, ParseS
 	}
 	return compileStructure(stripped, "class", state).orElseGet(__lambda10__);
 }
-auto __lambda11__(auto segment) {
-	return !segment.isEmpty();
-}
-auto __lambda12__(auto variant) {
-	return variant;
-}
-auto __lambda13__(auto slice) {
+auto __lambda11__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
 }
-auto __lambda14__(auto content1) {
+auto __lambda12__(auto content1) {
 	return generateStatement(content1, 1);
 }
-auto __lambda15__(auto variant) {
+auto __lambda13__(auto variant) {
 	return variant + "Type";
 }
 Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, char* type, ParseState state){
@@ -562,7 +556,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	int permitsIndex = beforeContent.indexOf("permits");
 	if (permitsIndex >= 0) {
 		char* slice = beforeContent.substring(permitsIndex + "permits".length());
-		variants == divide(slice, foldValue_Main).map(strip_char*).filter(__lambda11__).map(__lambda12__).collect(new_ListCollector<char*>());
+		variants == splitVariants(slice);
 		withoutPermits == beforeContent.substring(0, permitsIndex);
 	}
 	char* maybeWithExtends = withoutPermits.strip();
@@ -613,18 +607,10 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		return new_None<Tuple<char*, ParseState>>();
 	}
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
-	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
-	StringBuilder inner = new_StringBuilder();
 	ParseState outer = state.withStructName(name);
-	int j = 0;
-	while (j < segments.size()) {
-		char* segment = segments.get(j).orElse(null);
-		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
-		inner.append(compiled.left());
-		outer == compiled.right();
-		j++;
-	}
-	recordFields.append(inner);
+	Tuple<char*, ParseState> parseState1 = compileStructureSegments(content, name, outer, typeParameters);
+	outer == parseState1.right();
+	recordFields.append(parseState1.left());
 	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";
@@ -634,8 +620,8 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	}
 	ArrayList<CRootSegment> emittedRootSegments = new_ArrayList<CRootSegment>();
 	if (!variants.isEmpty()) {
-		char* unionFields = variants.stream().map(__lambda13__).map(__lambda14__).collect(new_Joiner());
-		ArrayList<char*> collect = variants.stream().map(__lambda15__).collect(new_ListCollector<char*>());
+		char* unionFields = variants.stream().map(__lambda11__).map(__lambda12__).collect(new_Joiner());
+		ArrayList<char*> collect = variants.stream().map(__lambda13__).collect(new_ListCollector<char*>());
 		emittedRootSegments == emittedRootSegments.addLast(new_EnumNode(name, collect)).addLast(new_Union(typeParameters, name, unionFields));
 		recordFields.append(generateStatement(name + "Tag tag", 1));
 		recordFields.append(generateStatement(name + "Data" + joinedTypeParameters + " data", 1));
@@ -650,6 +636,28 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, name, new_Some<char*>(recordFields.toString())));
 	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(name, emittedRootSegments);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
+}
+Tuple<char*, ParseState> compileStructureSegments_Main(void* _ref, char* content, char* name, ParseState state, ArrayList<char*> typeParameters){
+	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
+	StringBuilder inner = new_StringBuilder();
+	int j = 0;
+	while (j < segments.size()) {
+		char* segment = segments.get(j).orElse(null);
+		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, state, typeParameters);
+		inner.append(compiled.left());
+		state == compiled.right();
+		j++;
+	}
+	return new_Tuple<>(inner.toString(), state);
+}
+auto __lambda14__(auto segment) {
+	return !segment.isEmpty();
+}
+auto __lambda15__(auto variant) {
+	return variant;
+}
+ArrayList<char*> splitVariants_Main(void* _ref, char* slice){
+	return divide(slice, foldValue_Main).map(strip_char*).filter(__lambda14__).map(__lambda15__).collect(new_ListCollector<char*>());
 }
 char* generateTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
 	char* templateString;

@@ -710,12 +710,7 @@ public class Main {
 		final int permitsIndex = beforeContent.indexOf("permits");
 		if (permitsIndex >= 0) {
 			final String slice = beforeContent.substring(permitsIndex + "permits".length());
-			variants = divide(slice, Main::foldValue)
-					.map(String::strip)
-					.filter(segment -> !segment.isEmpty())
-					.map(variant -> variant)
-					.collect(new ListCollector<String>());
-
+			variants = splitVariants(slice);
 			withoutPermits = beforeContent.substring(0, permitsIndex);
 		}
 
@@ -773,20 +768,11 @@ public class Main {
 		}
 		final String content = afterContent.substring(0, afterContent.length() - "}".length());
 
-		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
-
-		StringBuilder inner = new StringBuilder();
 		ParseState outer = state.withStructName(name);
 
-		int j = 0;
-		while (j < segments.size()) {
-			String segment = segments.get(j).orElse(null);
-			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
-			inner.append(compiled.left());
-			outer = compiled.right();
-			j++;
-		}
-		recordFields.append(inner);
+		final Tuple<String, ParseState> parseState1 = compileStructureSegments(content, name, outer, typeParameters);
+		outer = parseState1.right();
+		recordFields.append(parseState1.left());
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -832,6 +818,33 @@ public class Main {
 				.addAllRootSegments(name, emittedRootSegments);
 
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
+	}
+
+	private static Tuple<String, ParseState> compileStructureSegments(String content,
+																																		String name,
+																																		ParseState state,
+																																		ArrayList<String> typeParameters) {
+		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
+		StringBuilder inner = new StringBuilder();
+
+		int j = 0;
+		while (j < segments.size()) {
+			String segment = segments.get(j).orElse(null);
+			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, state, typeParameters);
+			inner.append(compiled.left());
+			state = compiled.right();
+			j++;
+		}
+
+		return new Tuple<>(inner.toString(), state);
+	}
+
+	private static ArrayList<String> splitVariants(String slice) {
+		return divide(slice, Main::foldValue)
+				.map(String::strip)
+				.filter(segment -> !segment.isEmpty())
+				.map(variant -> variant)
+				.collect(new ListCollector<String>());
 	}
 
 	private static String generateTemplateString(ArrayList<String> typeParameters) {
