@@ -12,4 +12,14 @@ struct Array;
 template <typename T>
 struct ArrayList;
 struct Collections;
+template <typename T>
+struct ArrayList {
+	Array<T> elements;
+};
+template <typename T>
+struct Array {
+	T* ref;
+	int capacity;
+	int length;
+};
 #endif
