@@ -158,6 +158,11 @@ Option<ArrayList<T>> addAllAt_ArrayList(void* _ref, int index, ArrayList<T> elem
 	return new_Some<ArrayList<T>>(this);
 }
 template <typename T>
+char* toString_ArrayList(void* _ref){
+	char* joined = this.stream().map(toString_Objects).collect(new_Joiner(", "));
+	return "[" + joined + "]";
+}
+template <typename T>
 Option<T> getLast_ArrayList(void* _ref){
 	return this.get((this.elements).length - 1);
 }

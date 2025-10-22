@@ -72,14 +72,6 @@ template <typename T>
 Boolean fold_AllMatch(void* _ref, Boolean current, T element){
 	return current && this.predicate.test(element);
 }
-template <typename T>
-Boolean createInitial_NoneMatch(void* _ref){
-	return true;
-}
-template <typename T>
-Boolean fold_NoneMatch(void* _ref, Boolean current, T element){
-	return current &&  != predicate.test(element);
-}
 int main(){
 	main_Main();
 	return 0;

@@ -14,13 +14,7 @@ template <typename T, typename X, typename C>
 struct ResultCollector;
 template <typename T>
 struct AllMatch;
-template <typename T>
-struct NoneMatch;
 struct Collectors;
-template <typename T>
-struct AnyMatch {
-	Predicate<T> predicate;
-};
 template <typename T, typename X, typename C>
 struct ResultCollector {
 	Collector<T, C> collector;
@@ -40,7 +34,7 @@ struct AllMatch {
 	Predicate<T> predicate;
 };
 template <typename T>
-struct NoneMatch {
+struct AnyMatch {
 	Predicate<T> predicate;
 };
 struct Joiner {
@@ -48,8 +42,6 @@ struct Joiner {
 };
 template <typename T>
 struct ListCollector {
-};
-struct Collectors {
 };
 template <typename T, typename C>
 C createInitial_Collector(void* _ref);

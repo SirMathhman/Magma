@@ -157,13 +157,16 @@ public class Main {
 		}
 
 		public ParseState withStructName(String name) {
+			this.maybeCurrentStructName = new Some<String>(name);
+			return this;
+		}
+
+		private ParseState completeStruct() {
 			if (this.maybeCurrentStructName instanceof Some<String>(String oldName)) {
 				final ArrayList<String> copy = this.typeUsages.copy();
 				this.typeUsages = new ArrayList<String>();
 				this.structDependencies.put(oldName, copy);
 			}
-
-			this.maybeCurrentStructName = new Some<String>(name);
 			return this;
 		}
 
@@ -776,17 +779,19 @@ public class Main {
 		final ArrayList<String> segments = divide(content, Main::foldStatement).collect(new ListCollector<String>());
 
 		StringBuilder inner = new StringBuilder();
-		ParseState outer = state.withStructName(name);
+		ParseState outer0 = state;
 
 		int j = 0;
 		while (j < segments.size()) {
 			String segment = segments.get(j).orElse(null);
-			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
+			Tuple<String, ParseState> compiled = compileClassSegment(segment, name, outer0, typeParameters);
 			inner.append(compiled.left());
-			outer = compiled.right();
+			outer0 = compiled.right();
 			j++;
 		}
 		recordFields.append(inner);
+
+		ParseState outer = outer0.completeStruct();
 
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {

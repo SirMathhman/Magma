@@ -2,6 +2,7 @@ package magma;
 
 import magma.Collectors.AllMatch;
 import magma.Collectors.AnyMatch;
+import magma.Collectors.Joiner;
 import magma.Collectors.ListCollector;
 import magma.Heads.ArrayHead;
 import magma.Heads.ListHead;
@@ -181,6 +182,12 @@ public class Collections {
 
 			this.elements.length += elementsSize;
 			return new Some<ArrayList<T>>(this);
+		}
+
+		@Override
+		public String toString() {
+			final String joined = this.stream().map(Objects::toString).collect(new Joiner(", "));
+			return "[" + joined + "]";
 		}
 
 		public Option<T> getLast() {

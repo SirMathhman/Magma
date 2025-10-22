@@ -91,6 +91,10 @@ ParseState toggleBoolean_ParseState(void* _ref){
 	return this;
 }
 ParseState withStructName_ParseState(void* _ref, char* name){
+	this.maybeCurrentStructName = new_Some<char*>(name);
+	return this;
+}
+ParseState completeStruct_ParseState(void* _ref){
 	??? _temp = this.maybeCurrentStructName;
 	if (_temp.tag == Some) {
 		Some<String> _cast = _temp.data.some;
@@ -99,7 +103,6 @@ ParseState withStructName_ParseState(void* _ref, char* name){
 		this.typeUsages = new_ArrayList<char*>();
 		this.structDependencies.put(oldName, copy);
 	}
-	this.maybeCurrentStructName = new_Some<char*>(name);
 	return this;
 }
 ParseState addTypeUsage_ParseState(void* _ref, char* identifier){
@@ -615,16 +618,17 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 	char* content = afterContent.substring(0, afterContent.length() - "}".length());
 	ArrayList<char*> segments = divide(content, foldStatement_Main).collect(new_ListCollector<char*>());
 	StringBuilder inner = new_StringBuilder();
-	ParseState outer = state.withStructName(name);
+	ParseState outer0 = state.withStructName(name);
 	int j = 0;
 	while (j < segments.size()) {
 		char* segment = segments.get(j).orElse(null);
-		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer, typeParameters);
+		Tuple<char*, ParseState> compiled = compileClassSegment(segment, name, outer0, typeParameters);
 		inner.append(compiled.left());
-		outer == compiled.right();
+		outer0 == compiled.right();
 		j++;
 	}
 	recordFields.append(inner);
+	ParseState outer = outer0.completeStruct();
 	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";

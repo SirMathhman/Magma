@@ -63,8 +63,7 @@ public class Collectors {
 		}
 	}
 
-	public record ResultCollector<T, X, C>(Collector<T, C> collector)
-			implements Collector<Result<T, X>, Result<C, X>> {
+	public record ResultCollector<T, X, C>(Collector<T, C> collector) implements Collector<Result<T, X>, Result<C, X>> {
 		@Override
 		public Result<C, X> createInitial() {
 			return new Ok<C, X>(this.collector.createInitial());
@@ -91,18 +90,6 @@ public class Collectors {
 		@Override
 		public Boolean fold(Boolean current, T element) {
 			return current && this.predicate.test(element);
-		}
-	}
-
-	public record NoneMatch<T>(Predicate<T> predicate)  implements Collector<T, Boolean> {
-		@Override
-		public Boolean createInitial() {
-			return true;
-		}
-
-		@Override
-		public Boolean fold(Boolean current, T element) {
-			return current && !predicate.test(element);
 		}
 	}
 }
