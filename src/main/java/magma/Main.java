@@ -1,8 +1,10 @@
 package magma;
 
 import magma.Collections.ArrayList;
+import magma.Collections.ListMap;
 import magma.Collectors.Joiner;
 import magma.Collectors.ListCollector;
+import magma.Collectors.MapCollector;
 import magma.Collectors.ResultCollector;
 import magma.Functions.BiFunction;
 import magma.Functions.Function;
@@ -21,11 +23,6 @@ import magma.Streams.Stream;
 import magma.Utils.Tuple;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Stack;
 import java.util.StringJoiner;
@@ -50,9 +47,9 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
-		private final Map<String, ArrayList<String>> structDependencies;
-		private final Map<String, ArrayList<CRootSegment>> rootSegments;
+		private final ListMap<String, ArrayList<String>> structDependencies;
 		public ArrayList<String> beforeStructs;
+		private ListMap<String, ArrayList<CRootSegment>> rootSegments;
 		private Option<String> maybeCurrentStructName;
 		private ArrayList<String> structFields;
 		private ArrayList<String> afterStatements;
@@ -65,7 +62,7 @@ public class Main {
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
-			this.rootSegments = new HashMap<String, ArrayList<CRootSegment>>();
+			this.rootSegments = new ListMap<String, ArrayList<CRootSegment>>();
 
 			this.beforeStatements = new Stack<ArrayList<String>>();
 			this.beforeStatements.add(new ArrayList<String>());
@@ -79,7 +76,7 @@ public class Main {
 			this.usesBoolean = false;
 			this.typeUsages = new ArrayList<String>();
 			this.maybeCurrentStructName = new None<String>();
-			this.structDependencies = new HashMap<String, ArrayList<String>>();
+			this.structDependencies = new ListMap<String, ArrayList<String>>();
 		}
 
 		public ParseState addFunction(String func) {
@@ -88,7 +85,7 @@ public class Main {
 		}
 
 		public ParseState addAllRootSegments(String name, ArrayList<CRootSegment> generated) {
-			this.rootSegments.put(name, generated);
+			this.rootSegments = this.rootSegments.put(name, generated);
 			return this;
 		}
 
@@ -480,8 +477,8 @@ public class Main {
 
 		final String joinedIncludes = current.includes.stream().collect(new Joiner(""));
 
-		final HashMap<String, ArrayList<String>> copy = new HashMap<String, ArrayList<String>>(current.structDependencies);
-		final Map<String, ArrayList<String>> adjacency = removeItemFromValueWhenNotPresentInKey(copy);
+		final ListMap<String, ArrayList<String>> copy = current.structDependencies.copy();
+		final ListMap<String, ArrayList<String>> adjacency = removeItemFromValueWhenNotPresentInKey(copy);
 
 		final ArrayList<String> structOrder = computeStructOrder(adjacency);
 		final String joinedBeforeStructs = current.beforeStructs.stream().collect(new Joiner(""));
@@ -489,6 +486,7 @@ public class Main {
 		final String joinedStructs = structOrder
 				.stream()
 				.map(current.rootSegments::get)
+				.flatMap(Streams::fromOption)
 				.flatMap(ArrayList::stream)
 				.map(CRootSegment::generate)
 				.collect(new Joiner(""));
@@ -507,61 +505,58 @@ public class Main {
 		return new Tuple<String, String>(generatedHeaderContent, generatedSourceContent);
 	}
 
-	private static ArrayList<String> computeStructOrder(Map<String, ArrayList<String>> adjacencies) {
+	private static ArrayList<String> computeStructOrder(ListMap<String, ArrayList<String>> input) {
 		ArrayList<String> structOrder = new ArrayList<String>();
-		while (!adjacencies.isEmpty()) {
+		ListMap<String, ArrayList<String>> current = input;
+		while (!current.isEmpty()) {
 			// Collect structs with no dependencies
-			List<String> structsToRemove = new LinkedList<String>();
-			for (Entry<String, ArrayList<String>> entry : adjacencies.entrySet()) {
-				final String structName = entry.getKey();
-				final ArrayList<String> adjacentList = entry.getValue();
-
-				if (adjacentList.isEmpty()) {
-					structsToRemove.add(structName);
-				}
-			}
+			ArrayList<String> structsToRemove = current
+					.stream()
+					.filter(entry -> entry.right().isEmpty())
+					.map(Tuple::left)
+					.collect(new ListCollector<String>());
 
 			if (structsToRemove.isEmpty()) {
 				break;
 			}
 
 			// Process the structs with no dependencies
-			for (String structName : structsToRemove) {
-				structOrder = structOrder.addFirst(structName);
-				adjacencies.remove(structName);
+			final Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> result =
+					structsToRemove.stream().foldWithInitial(new Tuple<>(structOrder, current), Main::getArrayListListMapTuple);
 
-				// Remove this struct from all other adjacency lists
-				Map<String, ArrayList<String>> updates = new HashMap<String, ArrayList<String>>();
-				for (Entry<String, ArrayList<String>> otherEntry : adjacencies.entrySet()) {
-					final ArrayList<String> otherAdjacencies = otherEntry.getValue();
-					if (otherAdjacencies.contains(structName)) {
-						final ArrayList<String> filtered =
-								otherAdjacencies.stream().filter(dep -> !dep.equals(structName)).collect(new ListCollector<String>());
-						updates.put(otherEntry.getKey(), filtered);
-					}
-				}
-				// Apply updates after iteration
-				adjacencies.putAll(updates);
-			}
+			structOrder = result.left();
+			current = result.right();
 		}
 		return structOrder;
 	}
 
-	private static Map<String, ArrayList<String>> removeItemFromValueWhenNotPresentInKey(HashMap<String,
-			ArrayList<String>> copy) {
-		final Map<String, ArrayList<String>> result = new HashMap<String, ArrayList<String>>();
-		for (Entry<String, ArrayList<String>> entry : copy.entrySet()) {
-			final String key = entry.getKey();
-			ArrayList<String> values = entry
-					.getValue()
-					.stream()
-					.filter(copy::containsKey)
-					.filter(element -> !element.equals(key))
-					.collect(new ListCollector<String>());
+	private static Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> getArrayListListMapTuple(Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>> first,
+																																																			 String structName) {
+		final ArrayList<String> left = first.left();
+		final ListMap<String, ArrayList<String>> right = first.right();
 
-			result.put(key, values);
-		}
-		return result;
+		ArrayList<String> structOrder0 = left.addFirst(structName);
+		final ListMap<String, ArrayList<String>> updates = collectUpdates(right, structName);
+		ListMap<String, ArrayList<String>> current0 = right.removeKey(structName).putAll(updates);
+		return new Tuple<ArrayList<String>, ListMap<String, ArrayList<String>>>(structOrder0, current0);
+	}
+
+	private static ListMap<String, ArrayList<String>> collectUpdates(ListMap<String, ArrayList<String>> adjacencies,
+																																	 String structName) {
+		return adjacencies
+				.stream()
+				.map(entry -> new Tuple<String, ArrayList<String>>(entry.left(), entry.right().removeValue(structName)))
+				.collect(new MapCollector<String, ArrayList<String>>());
+	}
+
+	private static ListMap<String, ArrayList<String>> removeItemFromValueWhenNotPresentInKey(ListMap<String,
+			ArrayList<String>> items) {
+		final ArrayList<String> keys = items.keys();
+		return items.mapValues((key, second) -> retainKeysInEntry(key, second, keys));
+	}
+
+	private static ArrayList<String> retainKeysInEntry(String key, ArrayList<String> values, ArrayList<String> keys) {
+		return values.join(keys).removeValue(key);
 	}
 
 	private static ParseState attachBoolean(ParseState state) {

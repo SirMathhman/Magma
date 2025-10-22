@@ -1,9 +1,11 @@
 package magma;
 
 import magma.Collections.ArrayList;
+import magma.Collections.ListMap;
 import magma.Results.Err;
 import magma.Results.Ok;
 import magma.Results.Result;
+import magma.Utils.Tuple;
 
 import java.util.function.Predicate;
 
@@ -63,8 +65,7 @@ public class Collectors {
 		}
 	}
 
-	public record ResultCollector<T, X, C>(Collector<T, C> collector)
-			implements Collector<Result<T, X>, Result<C, X>> {
+	public record ResultCollector<T, X, C>(Collector<T, C> collector) implements Collector<Result<T, X>, Result<C, X>> {
 		@Override
 		public Result<C, X> createInitial() {
 			return new Ok<C, X>(this.collector.createInitial());
@@ -94,15 +95,15 @@ public class Collectors {
 		}
 	}
 
-	public record NoneMatch<T>(Predicate<T> predicate)  implements Collector<T, Boolean> {
+	public static class MapCollector<K, V> implements Collector<Tuple<K, V>, ListMap<K, V>> {
 		@Override
-		public Boolean createInitial() {
-			return true;
+		public ListMap<K, V> createInitial() {
+			return new ListMap<K, V>();
 		}
 
 		@Override
-		public Boolean fold(Boolean current, T element) {
-			return current && !predicate.test(element);
+		public ListMap<K, V> fold(ListMap<K, V> current, Tuple<K, V> element) {
+			return current.put(element.left(), element.right());
 		}
 	}
 }

@@ -3,6 +3,8 @@ package magma;
 import magma.Collectors.AllMatch;
 import magma.Collectors.AnyMatch;
 import magma.Collectors.ListCollector;
+import magma.Collectors.MapCollector;
+import magma.Functions.BiFunction;
 import magma.Heads.ArrayHead;
 import magma.Heads.ListHead;
 import magma.Options.None;
@@ -59,6 +61,61 @@ public class Collections {
 
 		public void setFirst(T element) {
 			this.ref[0] = element;
+		}
+	}
+
+	public static class ListMap<K, V> {
+		private ArrayList<Tuple<K, V>> entries;
+
+		public ListMap() {this(new ArrayList<Tuple<K, V>>());}
+
+		public ListMap(ArrayList<Tuple<K, V>> entries) {this.entries = entries;}
+
+		public ListMap<K, V> put(K key, V value) {
+			this.entries = this.entries
+					.stream()
+					.filter(entry -> !entry.left().equals(key))
+					.collect(new ListCollector<Tuple<K, V>>())
+					.addLast(new Tuple<K, V>(key, value));
+
+			return this;
+		}
+
+		public ListMap<K, V> copy() {
+			return new ListMap<K, V>(this.entries.copy());
+		}
+
+		public Option<V> get(String key) {
+			return this.entries.stream().filter(tuple -> tuple.left().equals(key)).map(Tuple::right).next();
+		}
+
+		public boolean isEmpty() {
+			return this.entries.isEmpty();
+		}
+
+		public Stream<Tuple<K, V>> stream() {
+			return this.entries.stream();
+		}
+
+		public ListMap<K, V> removeKey(K key) {
+			this.entries =
+					this.entries.stream().filter(entry -> !entry.left().equals(key)).collect(new ListCollector<Tuple<K, V>>());
+			return this;
+		}
+
+		public ListMap<K, V> putAll(ListMap<K, V> other) {
+			return other.entries.stream().foldWithInitial(this, (first, second) -> first.put(second.left(), second.right()));
+		}
+
+		public <R> ListMap<K, R> mapValues(BiFunction<K, V, R> mapper) {
+			return this
+					.stream()
+					.map(tuple -> new Tuple<K, R>(tuple.left(), mapper.apply(tuple.left(), tuple.right())))
+					.collect(new MapCollector<K, R>());
+		}
+
+		public ArrayList<K> keys() {
+			return this.stream().map(Tuple::left).collect(new ListCollector<K>());
 		}
 	}
 
@@ -221,5 +278,11 @@ public class Collections {
 			}
 			return this;
 		}
+
+		public ArrayList<T> join(ArrayList<T> other) {
+			return this.stream().filter(other::contains).collect(new ListCollector<T>());
+		}
 	}
 }
+
+
