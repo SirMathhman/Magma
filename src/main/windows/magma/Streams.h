@@ -9,8 +9,4 @@
 template <typename T>
 struct Stream;
 struct Streams;
-template <typename T>
-struct Stream {
-	Supplier<Option<T>> head;
-};
 #endif

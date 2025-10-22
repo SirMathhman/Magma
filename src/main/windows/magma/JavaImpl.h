@@ -8,7 +8,5 @@
 #include "../magma/Results.h"
 struct Paths;
 struct JavaImpl;
-struct Paths {
-};
 Path get_Paths(void* _ref, char* first, /*String...*/ more);
 #endif

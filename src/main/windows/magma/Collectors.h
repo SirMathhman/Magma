@@ -15,34 +15,6 @@ struct ResultCollector;
 template <typename T>
 struct AllMatch;
 struct Collectors;
-template <typename T, typename X, typename C>
-struct ResultCollector {
-	Collector<T, C> collector;
-};
-template <typename T, typename C>
-struct CollectorVTable {
-	C (*createInitial)(void*);
-	C (*fold)(void*, C, T);
-};
-template <typename T, typename C>
-struct Collector {
-	void* data;
-	CollectorVTable<T, C> vtable;
-};
-template <typename T>
-struct AllMatch {
-	Predicate<T> predicate;
-};
-template <typename T>
-struct AnyMatch {
-	Predicate<T> predicate;
-};
-struct Joiner {
-	char* delimiter;
-};
-template <typename T>
-struct ListCollector {
-};
 template <typename T, typename C>
 C createInitial_Collector(void* _ref);
 template <typename T, typename C>

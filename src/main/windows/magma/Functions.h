@@ -6,24 +6,6 @@ struct Function;
 template <typename A, typename B, typename R>
 struct BiFunction;
 struct Functions;
-template <typename A, typename B, typename R>
-struct BiFunctionVTable {
-	R (*apply)(void*, A, B);
-};
-template <typename A, typename B, typename R>
-struct BiFunction {
-	void* data;
-	BiFunctionVTable<A, B, R> vtable;
-};
-template <typename T, typename R>
-struct FunctionVTable {
-	R (*apply)(void*, T);
-};
-template <typename T, typename R>
-struct Function {
-	void* data;
-	FunctionVTable<T, R> vtable;
-};
 template <typename T, typename R>
 R apply_Function(void* _ref, T arg);
 template <typename A, typename B, typename R>
