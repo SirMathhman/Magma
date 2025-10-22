@@ -51,11 +51,11 @@ public class Main {
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
 		private final Map<String, ArrayList<String>> structDependencies;
+		private final Map<String, ArrayList<CRootSegment>> rootSegments;
 		public ArrayList<String> beforeStructs;
 		private Option<String> maybeCurrentStructName;
 		private ArrayList<String> structFields;
 		private ArrayList<String> afterStatements;
-		private ArrayList<CRootSegment> rootSegments;
 		private ArrayList<String> functions;
 		private int counter;
 		private ArrayList<String> includes;
@@ -65,7 +65,7 @@ public class Main {
 
 		public ParseState() {
 			this.functions = new ArrayList<String>();
-			this.rootSegments = new ArrayList<CRootSegment>();
+			this.rootSegments = new HashMap<String, ArrayList<CRootSegment>>();
 
 			this.beforeStatements = new Stack<ArrayList<String>>();
 			this.beforeStatements.add(new ArrayList<String>());
@@ -87,8 +87,8 @@ public class Main {
 			return this;
 		}
 
-		public ParseState addAllRootSegments(ArrayList<CRootSegment> struct) {
-			this.rootSegments = this.rootSegments.addAllLast(struct);
+		public ParseState addAllRootSegments(String name, ArrayList<CRootSegment> generated) {
+			this.rootSegments.put(name, generated);
 			return this;
 		}
 
@@ -467,12 +467,17 @@ public class Main {
 		final String joinedIncludes = current.includes.stream().collect(new Joiner(""));
 
 		final HashMap<String, ArrayList<String>> copy = new HashMap<String, ArrayList<String>>(current.structDependencies);
-		final Map<String, ArrayList<String>> adjacencies = removeItemFromValueWhenNotPresentInKey(copy);
+		final Map<String, ArrayList<String>> adjacency = removeItemFromValueWhenNotPresentInKey(copy);
 
-		final ArrayList<String> structOrder = computeStructOrder(adjacencies);
-
+		final ArrayList<String> structOrder = computeStructOrder(adjacency);
 		final String joinedBeforeStructs = current.beforeStructs.stream().collect(new Joiner(""));
-		final String joinedStructs = current.rootSegments.stream().map(CRootSegment::generate).collect(new Joiner(""));
+
+		final String joinedStructs = structOrder
+				.stream()
+				.map(current.rootSegments::get)
+				.flatMap(ArrayList::stream)
+				.map(CRootSegment::generate)
+				.collect(new Joiner(""));
 
 		final String joinedFunctionDeclarations = current.functionDeclarations.stream().collect(new Joiner(""));
 
@@ -534,7 +539,7 @@ public class Main {
 					.stream()
 					.filter(copy::containsKey)
 					.filter(element -> !element.equals(key))
-					.collect(new ListCollector<>());
+					.collect(new ListCollector<String>());
 
 			result.put(key, values);
 		}
@@ -824,7 +829,7 @@ public class Main {
 
 		final ParseState parseState = outer
 				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())
-				.addAllRootSegments(emittedRootSegments);
+				.addAllRootSegments(name, emittedRootSegments);
 
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("", parseState));
 	}
@@ -844,11 +849,7 @@ public class Main {
 	}
 
 	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileValues(input, mapper, ", ");
-	}
-
-	private static String compileValues(String input, Function<String, String> mapper, String delimiter) {
-		return divide(input, Main::foldValue).map(mapper).collect(new Joiner(delimiter));
+		return divide(input, Main::foldValue).map(mapper).collect(new Joiner(", "));
 	}
 
 	private static Tuple<String, ParseState> compileParameter(String input1, ParseState state) {
@@ -1722,20 +1723,19 @@ public class Main {
 
 	private static Option<Tuple<String, ParseState>> compileType(ParseState state, String input) {
 		final String stripped = input.strip();
-		if (stripped.equals("int")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("int", state));
-		}
-
-		if (stripped.equals("String")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("char*", state));
-		}
-
-		if (stripped.equals("boolean")) {
-			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("bool", state.toggleBoolean()));
-		}
-
-		if (stripped.equals("public")) {
-			return new None<Tuple<String, ParseState>>();
+		switch (stripped) {
+			case "int" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("int", state));
+			}
+			case "String" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("char*", state));
+			}
+			case "boolean" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("bool", state.toggleBoolean()));
+			}
+			case "public" -> {
+				return new None<Tuple<String, ParseState>>();
+			}
 		}
 
 		if (stripped.endsWith(">")) {

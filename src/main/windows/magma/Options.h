@@ -10,6 +10,13 @@ struct Some;
 template <typename T>
 struct None;
 struct Options;
+template <typename T>
+struct None {
+};
+template <typename T>
+struct Some {
+	T value;
+};
 enum OptionTag {
 	SomeType,
 	NoneType
@@ -23,13 +30,6 @@ template <typename T>
 struct Option {
 	OptionTag tag;
 	OptionData<T> data;
-};
-template <typename T>
-struct Some {
-	T value;
-};
-template <typename T>
-struct None {
 };
 struct Options {
 };

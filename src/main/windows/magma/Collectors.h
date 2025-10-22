@@ -17,6 +17,14 @@ struct AllMatch;
 template <typename T>
 struct NoneMatch;
 struct Collectors;
+template <typename T>
+struct AnyMatch {
+	Predicate<T> predicate;
+};
+template <typename T, typename X, typename C>
+struct ResultCollector {
+	Collector<T, C> collector;
+};
 template <typename T, typename C>
 struct CollectorVTable {
 	C (*createInitial)(void*);
@@ -28,26 +36,18 @@ struct Collector {
 	CollectorVTable<T, C> vtable;
 };
 template <typename T>
-struct ListCollector {
-};
-struct Joiner {
-	char* delimiter;
-};
-template <typename T>
-struct AnyMatch {
-	Predicate<T> predicate;
-};
-template <typename T, typename X, typename C>
-struct ResultCollector {
-	Collector<T, C> collector;
-};
-template <typename T>
 struct AllMatch {
 	Predicate<T> predicate;
 };
 template <typename T>
 struct NoneMatch {
 	Predicate<T> predicate;
+};
+struct Joiner {
+	char* delimiter;
+};
+template <typename T>
+struct ListCollector {
 };
 struct Collectors {
 };

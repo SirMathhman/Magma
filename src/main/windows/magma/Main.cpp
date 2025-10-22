@@ -15,7 +15,7 @@ char* generate_CRootSegment(void* _ref){
 ParseState new_ParseState(void* _ref){
 	ParseState this;
 	this.functions = new_ArrayList<char*>();
-	this.rootSegments = new_ArrayList<CRootSegment>();
+	this.rootSegments = new_HashMap<char*, ArrayList<CRootSegment>>();
 	this.beforeStatements = new_Stack<ArrayList<char*>>();
 	this.beforeStatements.add(new_ArrayList<char*>());
 	this.afterStatements = new_ArrayList<char*>();
@@ -34,8 +34,8 @@ ParseState addFunction_ParseState(void* _ref, char* func){
 	this.functions == this.functions.addLast(func);
 	return this;
 }
-ParseState addAllRootSegments_ParseState(void* _ref, ArrayList<CRootSegment> struct){
-	this.rootSegments == this.rootSegments.addAllLast(struct);
+ParseState addAllRootSegments_ParseState(void* _ref, char* name, ArrayList<CRootSegment> generated){
+	this.rootSegments.put(name, generated);
 	return this;
 }
 char* generateAnonymousFunctionName_ParseState(void* _ref){
@@ -332,10 +332,10 @@ Tuple<char*, char*> compile_Main(void* _ref, char* input, Location location){
 	ParseState current = withBoolean.withStructName("?");
 	char* joinedIncludes = current.includes.stream().collect(new_Joiner(""));
 	HashMap<char*, ArrayList<char*>> copy = new_HashMap<char*, ArrayList<char*>>(current.structDependencies);
-	Map<char*, ArrayList<char*>> adjacencies = removeItemFromValueWhenNotPresentInKey(copy);
-	var structOrder = computeStructOrder(adjacencies);
+	Map<char*, ArrayList<char*>> adjacency = removeItemFromValueWhenNotPresentInKey(copy);
+	ArrayList<char*> structOrder = computeStructOrder(adjacency);
 	char* joinedBeforeStructs = current.beforeStructs.stream().collect(new_Joiner(""));
-	char* joinedStructs = current.rootSegments.stream().map(generate_CRootSegment).collect(new_Joiner(""));
+	char* joinedStructs = structOrder.stream().map(get_/*current.rootSegments*/).flatMap(stream_ArrayList).map(generate_CRootSegment).collect(new_Joiner(""));
 	char* joinedFunctionDeclarations = current.functionDeclarations.stream().collect(new_Joiner(""));
 	char* joinedFunctions = current.functions.stream().collect(new_Joiner(""));
 	char* generatedHeaderContent = joinedIncludes + joinedBeforeStructs + joinedStructs + joinedFunctionDeclarations;
@@ -385,7 +385,7 @@ Map<char*, ArrayList<char*>> removeItemFromValueWhenNotPresentInKey_Main(void* _
 					.stream()
 					.filter(copy::containsKey)
 					.filter(element -> !element.equals(key))
-					.collect(new ListCollector<>());
+					.collect(new ListCollector<String>());
 
 			result.put(key, values);
 		}*/
@@ -648,7 +648,7 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
 	}
 	emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, name, new_Some<char*>(recordFields.toString())));
-	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(emittedRootSegments);
+	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(name, emittedRootSegments);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
 char* generateTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
@@ -665,10 +665,7 @@ char* generateTemplateString_Main(void* _ref, ArrayList<char*> typeParameters){
 	return templateString;
 }
 char* compileValues_Main(void* _ref, char* input, Function<char*, char*> mapper){
-	return compileValues(input, mapper, ", ");
-}
-char* compileValues_Main(void* _ref, char* input, Function<char*, char*> mapper, char* delimiter){
-	return divide(input, foldValue_Main).map(mapper).collect(new_Joiner(delimiter));
+	return divide(input, foldValue_Main).map(mapper).collect(new_Joiner(", "));
 }
 auto __lambda16__() {
 	return new_Tuple<char*, ParseState>(wrap(input1), state);
@@ -1492,18 +1489,20 @@ auto __lambda61__(auto result) {
 }
 Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, char* input){
 	char* stripped = input.strip();
-	if (stripped.equals("int")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("int", state));
-	}
-	if (stripped.equals("String")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("char*", state));
-	}
-	if (stripped.equals("boolean")) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("bool", state.toggleBoolean()));
-	}
-	if (stripped.equals("public")) {
-		return new_None<Tuple<char*, ParseState>>();
-	}
+	/*switch (stripped) {
+			case "int" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("int", state));
+			}
+			case "String" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("char*", state));
+			}
+			case "boolean" -> {
+				return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>("bool", state.toggleBoolean()));
+			}
+			case "public" -> {
+				return new None<Tuple<String, ParseState>>();
+			}
+		}*/
 	if (stripped.endsWith(">")) {
 		char* withoutEnd = stripped.substring(0, stripped.length() - 1);
 		int argumentStart = withoutEnd.indexOf("<");

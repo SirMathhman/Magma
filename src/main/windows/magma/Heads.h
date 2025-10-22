@@ -18,10 +18,21 @@ struct RangeHead;
 template <typename T>
 struct EmptyHead;
 struct Heads;
+template <typename T, typename R>
+struct FlatMapHead {
+	Supplier<Option<T>> sourceHead;
+	Function<T, Stream<R>> mapper;
+	Option<Stream<R>> currentStream;
+};
 template <typename T>
 struct ListHead {
 	ArrayList<T> self;
 	int index;
+};
+struct Heads {
+};
+template <typename T>
+struct EmptyHead {
 };
 template <typename T>
 struct ArrayHead {
@@ -29,24 +40,13 @@ struct ArrayHead {
 	int length;
 	int counter;
 };
-template <typename T>
-struct SingletonHead {
-	T value;
-	bool retrieved;
-};
-template <typename T, typename R>
-struct FlatMapHead {
-	Supplier<Option<T>> sourceHead;
-	Function<T, Stream<R>> mapper;
-	Option<Stream<R>> currentStream;
-};
 struct RangeHead {
 	int length;
 	int index;
 };
 template <typename T>
-struct EmptyHead {
-};
-struct Heads {
+struct SingletonHead {
+	T value;
+	bool retrieved;
 };
 #endif

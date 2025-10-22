@@ -27,17 +27,49 @@ struct Struct;
 struct EnumNode;
 struct Union;
 struct Main;
-enum DefinableTag {
-	DefinitionType,
-	PlaceholderType
+struct Union {
+	ArrayList<char*> typeParameters;
+	char* name;
+	char* fields;
 };
-union DefinableData {
-	Definition definition;
-	Placeholder placeholder;
+struct ParseState {
+	Stack<ArrayList<char*>> beforeStatements;
+	Map<char*, ArrayList<char*>> structDependencies;
+	Map<char*, ArrayList<CRootSegment>> rootSegments;
+	ArrayList<char*> beforeStructs;
+	Option<char*> maybeCurrentStructName;
+	ArrayList<char*> structFields;
+	ArrayList<char*> afterStatements;
+	ArrayList<char*> functions;
+	int counter;
+	ArrayList<char*> includes;
+	ArrayList<char*> functionDeclarations;
+	bool usesBoolean;
+	ArrayList<char*> typeUsages;
 };
-struct Definable {
-	DefinableTag tag;
-	DefinableData data;
+struct Location {
+	ArrayList<char*> namespace;
+	char* name;
+};
+struct Main {
+};
+struct CIdentifier {
+	char* value;
+};
+struct Content {
+	char* value;
+};
+enum CExpressionTag {
+	CIdentifierType,
+	ContentType
+};
+union CExpressionData {
+	CIdentifier cidentifier;
+	Content content;
+};
+struct CExpression {
+	CExpressionTag tag;
+	CExpressionData data;
 };
 enum JMethodHeaderTag {
 	JConstructorType,
@@ -51,17 +83,38 @@ struct JMethodHeader {
 	JMethodHeaderTag tag;
 	JMethodHeaderData data;
 };
-enum CExpressionTag {
-	CIdentifierType,
-	ContentType
+struct Struct {
+	ArrayList<char*> typeParameters;
+	char* name;
+	Option<char*> maybeFields;
 };
-union CExpressionData {
-	CIdentifier cidentifier;
-	Content content;
+struct DivideState {
+	char* input;
+	ArrayList<char*> segments;
+	StringBuilder buffer;
+	int depth;
+	int index;
 };
-struct CExpression {
-	CExpressionTag tag;
-	CExpressionData data;
+enum DefinableTag {
+	DefinitionType,
+	PlaceholderType
+};
+union DefinableData {
+	Definition definition;
+	Placeholder placeholder;
+};
+struct Definable {
+	DefinableTag tag;
+	DefinableData data;
+};
+struct EnumNode {
+	char* name;
+	ArrayList<char*> variants;
+};
+struct Definition {
+	ArrayList<char*> annotations;
+	char* type;
+	char* name;
 };
 enum CRootSegmentTag {
 	EnumNodeType,
@@ -77,64 +130,11 @@ struct CRootSegment {
 	CRootSegmentTag tag;
 	CRootSegmentData data;
 };
-struct ParseState {
-	Stack<ArrayList<char*>> beforeStatements;
-	Map<char*, ArrayList<char*>> structDependencies;
-	ArrayList<char*> beforeStructs;
-	Option<char*> maybeCurrentStructName;
-	ArrayList<char*> structFields;
-	ArrayList<char*> afterStatements;
-	ArrayList<CRootSegment> rootSegments;
-	ArrayList<char*> functions;
-	int counter;
-	ArrayList<char*> includes;
-	ArrayList<char*> functionDeclarations;
-	bool usesBoolean;
-	ArrayList<char*> typeUsages;
-};
-struct DivideState {
-	char* input;
-	ArrayList<char*> segments;
-	StringBuilder buffer;
-	int depth;
-	int index;
-};
-struct Definition {
-	ArrayList<char*> annotations;
-	char* type;
+struct JConstructor {
 	char* name;
 };
 struct Placeholder {
 	char* input;
-};
-struct JConstructor {
-	char* name;
-};
-struct Content {
-	char* value;
-};
-struct CIdentifier {
-	char* value;
-};
-struct Location {
-	ArrayList<char*> namespace;
-	char* name;
-};
-struct Struct {
-	ArrayList<char*> typeParameters;
-	char* name;
-	Option<char*> maybeFields;
-};
-struct EnumNode {
-	char* name;
-	ArrayList<char*> variants;
-};
-struct Union {
-	ArrayList<char*> typeParameters;
-	char* name;
-	char* fields;
-};
-struct Main {
 };
 char* generate_Definable(void* _ref);
 char* generate_CExpression(void* _ref);
