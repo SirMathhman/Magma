@@ -32,8 +32,8 @@ struct Main {
 };
 struct ParseState {
 	Stack<ArrayList<char*>> beforeStatements;
-	ListMap<char*, ArrayList<char*>> structDependencies;
 	ArrayList<char*> beforeStructs;
+	ListMap<char*, ArrayList<char*>> structDependencies;
 	ListMap<char*, ArrayList<CRootSegment>> rootSegments;
 	Option<char*> maybeCurrentStructName;
 	ArrayList<char*> structFields;
@@ -61,7 +61,7 @@ struct JStructure {
 	char* name;
 	ArrayList<char*> typeParameters;
 	ArrayList<char*> variants;
-	StringBuilder fields;
+	char* fields;
 };
 enum CRootSegmentTag {
 	EnumNodeType,
@@ -133,7 +133,7 @@ struct Definition {
 struct DivideState {
 	char* input;
 	ArrayList<char*> segments;
-	StringBuilder buffer;
+	char* buffer;
 	int depth;
 	int index;
 };

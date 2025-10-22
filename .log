@@ -81,9 +81,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
@@ -167,9 +170,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
@@ -253,9 +259,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
@@ -339,9 +348,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
@@ -425,9 +437,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
@@ -511,9 +526,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
@@ -597,9 +615,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
@@ -683,9 +704,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
@@ -769,9 +793,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
@@ -855,9 +882,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
@@ -941,9 +971,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
@@ -1027,9 +1060,12 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Utils.cpp:2:
@@ -1113,8 +1149,11 @@ magma\Main.h:54:12: error: field has incomplete type 'Definable'
 magma\Main.h:14:8: note: forward declaration of 'Definable'
    14 | struct Definable;
       |        ^
-magma\Main.h:64:2: error: unknown type name 'StringBuilder'
-   64 |         StringBuilder fields;
-      |         ^
+magma\Main.h:72:11: error: field has incomplete type 'EnumNode'
+   72 |         EnumNode enumnode;
+      |                  ^
+magma\Main.h:27:8: note: forward declaration of 'EnumNode'
+   27 | struct EnumNode;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

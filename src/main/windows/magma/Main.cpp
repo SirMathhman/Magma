@@ -107,14 +107,14 @@ ParseState completeStructure_ParseState(void* _ref){
 		char* oldName = _cast.oldName;
 		ArrayList<char*> copy = this.typeUsages.copy();
 		this.typeUsages = new_ArrayList<char*>();
-		this.structDependencies.put(oldName, copy);
+		this.structDependencies == this.structDependencies.put(oldName, copy);
 	}
 	return this;
 }
 DivideState new_DivideState(void* _ref, char* input){
 	DivideState this;
 	this.input = input;
-	this.buffer = new_StringBuilder();
+	this.buffer = "";
 	this.depth = 0;
 	this.segments = new_ArrayList<char*>();
 	this.index = 0;
@@ -138,12 +138,12 @@ bool isLevel_DivideState(void* _ref){
 	return this.depth == 0;
 }
 DivideState append_DivideState(void* _ref, char c){
-	this.buffer.append(c);
+	this.buffer +  = c;
 	return this;
 }
 DivideState advance_DivideState(void* _ref){
-	this.segments == this.segments.addLast(this.buffer.toString());
-	this.buffer = new_StringBuilder();
+	this.segments == this.segments.addLast(this.buffer);
+	this.buffer = "";
 	return this;
 }
 Option<Tuple<DivideState, Character>> pop_DivideState(void* _ref){
@@ -206,10 +206,13 @@ char* generate_Union(void* _ref){
 	return generateTemplateString(this.typeParameters()) + "union " + this.name() + "Data {" + this.fields() + System.lineSeparator() + "};" + System.lineSeparator();
 }
 CStruct toStruct_JStructure(void* _ref){
-	return new_CStruct(this.typeParameters(), this.name(), new_Some<char*>(this.fields().toString()));
+	return new_CStruct(this.typeParameters(), this.name(), new_Some<char*>(this.fields()));
 }
 CStruct toStructForwardDeclaration_JStructure(void* _ref){
 	return new_CStruct(this.typeParameters(), this.name(), new_None<char*>());
+}
+JStructure withFields_JStructure(void* _ref, char* fields){
+	return new_JStructure(this.annotations, this.type, this.name, this.typeParameters, this.variants, fields);
 }
 void main_Main(void* _ref, char** args){
 	??? _temp = run();
@@ -620,7 +623,7 @@ Option<Tuple<JStructure, ParseState>> parseStructure_Main(void* _ref, char* inpu
 	Tuple<char*, ParseState> parseState1 = compileStructureSegments(content, name, state, typeParameters);
 	ParseState outer = parseState1.right().withStructName(name);
 	recordFields.append(parseState1.left());
-	JStructure jStructure = new_JStructure(annotations, type, name, typeParameters, variants, recordFields);
+	JStructure jStructure = new_JStructure(annotations, type, name, typeParameters, variants, recordFields.toString());
 	return new_Some<Tuple<JStructure, ParseState>>(new_Tuple<JStructure, ParseState>(jStructure, outer));
 }
 Option<ParseState> completeStructure_Main(void* _ref, JStructure structure, ParseState state){
@@ -628,35 +631,40 @@ Option<ParseState> completeStructure_Main(void* _ref, JStructure structure, Pars
 		return new_None<ParseState>();
 	}
 	CStruct struct = structure.toStruct();
-	ArrayList < CRootSegment >= emittedRootSegments == pullOutDependentTypes(structure, state).addLast(struct);
-	ParseState registerVariantsAsTypeUsages = structure.variants().stream().foldWithInitial(state, addTypeUsage_ParseState);
-	CStruct structForwardDeclaration = structure.toStructForwardDeclaration();
+	Tuple<JStructure, ArrayList<CRootSegment>> tuple = pullOutDependentTypes(structure, state);
+	JStructure left = tuple.left();
+	ArrayList < CRootSegment >= emittedRootSegments == tuple.right().addLast(struct);
+	ParseState registerVariantsAsTypeUsages = left.variants().stream().foldWithInitial(state, addTypeUsage_ParseState);
+	CStruct structForwardDeclaration = left.toStructForwardDeclaration();
 	ParseState registered = registerVariantsAsTypeUsages.completeStructure().addStructForwardDeclaration(structForwardDeclaration.generate()).addAllRootSegments(structForwardDeclaration.name, emittedRootSegments);
 	return new_Some<ParseState>(registered);
 }
 auto __lambda15__(auto variant) {
 	return variant + "Type";
 }
-ArrayList<CRootSegment> pullOutDependentTypes_Main(void* _ref, JStructure JStructure, ParseState state){
-	StringBuilder fields = JStructure.fields();
-	char* joinedTypeParameters = joinTypeParameters(JStructure.typeParameters());
-	if (!JStructure.variants().isEmpty()) {
-		char* unionFields = joinUnionFields(JStructure.variants(), joinedTypeParameters);
-		ArrayList<char*> collect = JStructure.variants().stream().map(__lambda15__).collect(new_ListCollector<char*>());
-		fields.append(generateStatement(JStructure.name() + "Tag tag", 1));
-		fields.append(generateStatement(JStructure.name() + "Data" + joinedTypeParameters + " data", 1));
-		return new_/*ArrayList<CRootSegment>()
-					.addLast(new EnumNode(JStructure.name(), collect))
-					.addLast*/(new_Union(JStructure.typeParameters(), JStructure.name(), unionFields));
+Tuple<JStructure, ArrayList<CRootSegment>> pullOutDependentTypes_Main(void* _ref, JStructure structure, ParseState state){
+	char* fields = structure.fields();
+	char* joinedTypeParameters = joinTypeParameters(structure.typeParameters());
+	if (!structure.variants().isEmpty()) {
+		char* unionFields = joinUnionFields(structure.variants(), joinedTypeParameters);
+		ArrayList<char*> collect = structure.variants().stream().map(__lambda15__).collect(new_ListCollector<char*>());
+		fields +  == generateStatement(structure.name() + "Tag tag", 1);
+		fields +  == generateStatement(structure.name() + "Data" + joinedTypeParameters + " data", 1);
+		ArrayList<CRootSegment> cRootSegmentArrayList = new_/*ArrayList<CRootSegment>()
+					.addLast(new EnumNode(structure.name(), collect))
+					.addLast*/(new_Union(structure.typeParameters(), structure.name(), unionFields));
+		return new_Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), cRootSegmentArrayList);
 	}
-	if (JStructure.type().equals("interface")) {
-		char* vTableName = JStructure.name() + "VTable";
+	if (structure.type().equals("interface")) {
+		char* vTableName = structure.name() + "VTable";
 		char* functionDeclarations = state.popStructFields().stream().collect(new_Joiner());
-		fields.append(generateStatement("void* data", 1));
-		fields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
-		return new_/*ArrayList<CRootSegment>().addLast*/(new_CStruct(JStructure.typeParameters(), vTableName, new_Some<char*>(functionDeclarations)));
+		fields +  == generateStatement("void* data", 1);
+		fields +  == generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
+		CStruct struct = new_CStruct(structure.typeParameters(), vTableName, new_Some<char*>(functionDeclarations));
+		ArrayList<CRootSegment> cRootSegmentArrayList = new_/*ArrayList<CRootSegment>().addLast*/(struct);
+		return new_Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), cRootSegmentArrayList);
 	}
-	return new_ArrayList<CRootSegment>();
+	return new_Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), new_ArrayList<CRootSegment>());
 }
 auto __lambda16__(auto slice) {
 	return slice + joinedTypeParameters + " " + slice.toLowerCase();
@@ -1576,7 +1584,7 @@ Option<Tuple<char*, ParseState>> compileType_Main(void* _ref, ParseState state, 
 		return compileType(state, slice).map(Tuple.mapLeft(__lambda65__));
 	}
 	if (isIdentifier(stripped)) {
-		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(stripped, state.addTypeUsage((stripped))));
+		return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(stripped, state.addTypeUsage(stripped)));
 	}
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>(wrap(stripped), state));
 }

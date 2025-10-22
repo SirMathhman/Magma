@@ -47,8 +47,8 @@ public class Main {
 
 	private static class ParseState {
 		private final Stack<ArrayList<String>> beforeStatements;
-		private final ListMap<String, ArrayList<String>> structDependencies;
 		public ArrayList<String> beforeStructs;
+		private ListMap<String, ArrayList<String>> structDependencies;
 		private ListMap<String, ArrayList<CRootSegment>> rootSegments;
 		private Option<String> maybeCurrentStructName;
 		private ArrayList<String> structFields;
@@ -169,7 +169,7 @@ public class Main {
 			if (this.maybeCurrentStructName instanceof Some<String>(String oldName)) {
 				final ArrayList<String> copy = this.typeUsages.copy();
 				this.typeUsages = new ArrayList<String>();
-				this.structDependencies.put(oldName, copy);
+				this.structDependencies = this.structDependencies.put(oldName, copy);
 			}
 			return this;
 		}
@@ -178,13 +178,13 @@ public class Main {
 	private static class DivideState {
 		private final String input;
 		private ArrayList<String> segments;
-		private StringBuilder buffer;
+		private String buffer;
 		private int depth;
 		private int index;
 
 		public DivideState(String input) {
 			this.input = input;
-			this.buffer = new StringBuilder();
+			this.buffer = "";
 			this.depth = 0;
 			this.segments = new ArrayList<String>();
 			this.index = 0;
@@ -213,13 +213,13 @@ public class Main {
 		}
 
 		private DivideState append(char c) {
-			this.buffer.append(c);
+			this.buffer += c;
 			return this;
 		}
 
 		private DivideState advance() {
-			this.segments = this.segments.addLast(this.buffer.toString());
-			this.buffer = new StringBuilder();
+			this.segments = this.segments.addLast(this.buffer);
+			this.buffer = "";
 			return this;
 		}
 
@@ -314,13 +314,17 @@ public class Main {
 	}
 
 	private record JStructure(ArrayList<String> annotations, String type, String name, ArrayList<String> typeParameters,
-														ArrayList<String> variants, StringBuilder fields) {
+														ArrayList<String> variants, String fields) {
 		private CStruct toStruct() {
-			return new CStruct(this.typeParameters(), this.name(), new Some<String>(this.fields().toString()));
+			return new CStruct(this.typeParameters(), this.name(), new Some<String>(this.fields()));
 		}
 
 		private CStruct toStructForwardDeclaration() {
 			return new CStruct(this.typeParameters(), this.name(), new None<String>());
+		}
+
+		public JStructure withFields(String fields) {
+			return new JStructure(this.annotations, this.type, this.name, this.typeParameters, this.variants, fields);
 		}
 	}
 
@@ -802,7 +806,8 @@ public class Main {
 		ParseState outer = parseState1.right().withStructName(name);
 		recordFields.append(parseState1.left());
 
-		final JStructure jStructure = new JStructure(annotations, type, name, typeParameters, variants, recordFields);
+		final JStructure jStructure =
+				new JStructure(annotations, type, name, typeParameters, variants, recordFields.toString());
 		return new Some<Tuple<JStructure, ParseState>>(new Tuple<JStructure, ParseState>(jStructure, outer));
 	}
 
@@ -812,12 +817,14 @@ public class Main {
 		}
 
 		final CStruct struct = structure.toStruct();
-		ArrayList<CRootSegment> emittedRootSegments = pullOutDependentTypes(structure, state).addLast(struct);
+		final Tuple<JStructure, ArrayList<CRootSegment>> tuple = pullOutDependentTypes(structure, state);
+		final JStructure left = tuple.left();
+		ArrayList<CRootSegment> emittedRootSegments = tuple.right().addLast(struct);
 
 		final ParseState registerVariantsAsTypeUsages =
-				structure.variants().stream().foldWithInitial(state, ParseState::addTypeUsage);
+				left.variants().stream().foldWithInitial(state, ParseState::addTypeUsage);
 
-		final CStruct structForwardDeclaration = structure.toStructForwardDeclaration();
+		final CStruct structForwardDeclaration = left.toStructForwardDeclaration();
 
 		final ParseState registered = registerVariantsAsTypeUsages
 				.completeStructure()
@@ -827,37 +834,40 @@ public class Main {
 		return new Some<ParseState>(registered);
 	}
 
-	private static ArrayList<CRootSegment> pullOutDependentTypes(JStructure JStructure, ParseState state) {
-		StringBuilder fields = JStructure.fields();
-		final String joinedTypeParameters = joinTypeParameters(JStructure.typeParameters());
+	private static Tuple<JStructure, ArrayList<CRootSegment>> pullOutDependentTypes(JStructure structure,
+																																									ParseState state) {
+		String fields = structure.fields();
+		final String joinedTypeParameters = joinTypeParameters(structure.typeParameters());
 
-		if (!JStructure.variants().isEmpty()) {
-			final String unionFields = joinUnionFields(JStructure.variants(), joinedTypeParameters);
+		if (!structure.variants().isEmpty()) {
+			final String unionFields = joinUnionFields(structure.variants(), joinedTypeParameters);
 
 			final ArrayList<String> collect =
-					JStructure.variants().stream().map(variant -> variant + "Type").collect(new ListCollector<String>());
+					structure.variants().stream().map(variant -> variant + "Type").collect(new ListCollector<String>());
 
-			fields.append(generateStatement(JStructure.name() + "Tag tag", 1));
-			fields.append(generateStatement(JStructure.name() + "Data" + joinedTypeParameters + " data", 1));
+			fields += generateStatement(structure.name() + "Tag tag", 1);
+			fields += generateStatement(structure.name() + "Data" + joinedTypeParameters + " data", 1);
 
-			return new ArrayList<CRootSegment>()
-					.addLast(new EnumNode(JStructure.name(), collect))
-					.addLast(new Union(JStructure.typeParameters(), JStructure.name(), unionFields));
+			final ArrayList<CRootSegment> cRootSegmentArrayList = new ArrayList<CRootSegment>()
+					.addLast(new EnumNode(structure.name(), collect))
+					.addLast(new Union(structure.typeParameters(), structure.name(), unionFields));
+			return new Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), cRootSegmentArrayList);
 		}
 
-		if (JStructure.type().equals("interface")) {
-			final String vTableName = JStructure.name() + "VTable";
+		if (structure.type().equals("interface")) {
+			final String vTableName = structure.name() + "VTable";
 
 			final String functionDeclarations = state.popStructFields().stream().collect(new Joiner());
 
-			fields.append(generateStatement("void* data", 1));
-			fields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
-			return new ArrayList<CRootSegment>().addLast(new CStruct(JStructure.typeParameters(),
-																															 vTableName,
-																															 new Some<String>(functionDeclarations)));
+			fields += generateStatement("void* data", 1);
+			fields += generateStatement(vTableName + joinedTypeParameters + " vtable", 1);
+			final CStruct struct =
+					new CStruct(structure.typeParameters(), vTableName, new Some<String>(functionDeclarations));
+			final ArrayList<CRootSegment> cRootSegmentArrayList = new ArrayList<CRootSegment>().addLast(struct);
+			return new Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), cRootSegmentArrayList);
 		}
 
-		return new ArrayList<CRootSegment>();
+		return new Tuple<JStructure, ArrayList<CRootSegment>>(structure.withFields(fields), new ArrayList<CRootSegment>());
 	}
 
 	private static String joinUnionFields(ArrayList<String> variants, String joinedTypeParameters) {
@@ -1842,7 +1852,7 @@ public class Main {
 
 		if (isIdentifier(stripped)) {
 			return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(stripped,
-																																							 state.addTypeUsage((stripped))));
+																																							 state.addTypeUsage(stripped)));
 		}
 
 		return new Some<Tuple<String, ParseState>>(new Tuple<String, ParseState>(wrap(stripped), state));
