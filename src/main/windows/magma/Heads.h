@@ -29,8 +29,6 @@ struct ListHead {
 	ArrayList<T> self;
 	int index;
 };
-struct Heads {
-};
 template <typename T>
 struct EmptyHead {
 };

@@ -14,26 +14,6 @@ template <typename T>
 struct None {
 };
 template <typename T>
-struct Some {
-	T value;
-};
-enum OptionTag {
-	SomeType,
-	NoneType
-};
-template <typename T>
-union OptionData {
-	Some<T> some;
-	None<T> none;
-};
-template <typename T>
-struct Option {
-	OptionTag tag;
-	OptionData<T> data;
-};
-struct Options {
-};
-template <typename T>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);
 template <typename T>
 Option<T> or_Option(void* _ref, Supplier<Option<T>> other);

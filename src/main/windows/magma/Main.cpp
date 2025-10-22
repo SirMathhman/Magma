@@ -91,6 +91,16 @@ ParseState toggleBoolean_ParseState(void* _ref){
 	return this;
 }
 ParseState withStructName_ParseState(void* _ref, char* name){
+	this.maybeCurrentStructName = new_Some<char*>(name);
+	return this;
+}
+ParseState addTypeUsage_ParseState(void* _ref, char* identifier){
+	if (!this.typeUsages.contains(identifier)) {
+		this.typeUsages == this.typeUsages.addLast(identifier);
+	}
+	return this;
+}
+ParseState completeStructure_ParseState(void* _ref){
 	??? _temp = this.maybeCurrentStructName;
 	if (_temp.tag == Some) {
 		Some<String> _cast = _temp.data.some;
@@ -98,13 +108,6 @@ ParseState withStructName_ParseState(void* _ref, char* name){
 		ArrayList<char*> copy = this.typeUsages.copy();
 		this.typeUsages = new_ArrayList<char*>();
 		this.structDependencies.put(oldName, copy);
-	}
-	this.maybeCurrentStructName = new_Some<char*>(name);
-	return this;
-}
-ParseState addTypeUsage_ParseState(void* _ref, char* identifier){
-	if (!this.typeUsages.contains(identifier)) {
-		this.typeUsages == this.typeUsages.addLast(identifier);
 	}
 	return this;
 }
@@ -355,6 +358,9 @@ ArrayList<char*> computeStructOrder_Main(void* _ref, Map<char*, ArrayList<char*>
 					structsToRemove.add(structName);
 				}
 			}*/
+		if (structsToRemove.isEmpty()) {
+			/*break*/;
+		}
 		/*// Process the structs with no dependencies
 			for (String structName : structsToRemove) {
 				structOrder = structOrder.addFirst(structName);
@@ -634,7 +640,8 @@ Option<Tuple<char*, ParseState>> compileStructure_Main(void* _ref, char* input, 
 		recordFields.append(generateStatement(vTableName + joinedTypeParameters + " vtable", 1));
 	}
 	emittedRootSegments == emittedRootSegments.addLast(new_Struct(typeParameters, name, new_Some<char*>(recordFields.toString())));
-	ParseState parseState = outer.addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(name, emittedRootSegments);
+	ParseState registerVariantsAsTypeUsages = variants.stream().foldWithInitial(outer, addTypeUsage_ParseState);
+	ParseState parseState = registerVariantsAsTypeUsages.completeStructure().addBeforeStruct(new_/*Struct(typeParameters, name, new None<String>()).generate*/()).addAllRootSegments(name, emittedRootSegments);
 	return new_Some<Tuple<char*, ParseState>>(new_Tuple<char*, ParseState>("", parseState));
 }
 Tuple<char*, ParseState> compileStructureSegments_Main(void* _ref, char* content, char* name, ParseState state, ArrayList<char*> typeParameters){

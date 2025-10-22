@@ -3,8 +3,8 @@ C:\Users\mathm\IdeaProjects\Magma\src\main\windows>clang magma\Actual.cpp	 magma
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -16,36 +16,36 @@ In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:4:
@@ -58,29 +58,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Actual.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Actual.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -92,36 +104,36 @@ In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:4:
@@ -134,29 +146,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Collections.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Collections.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -168,36 +192,36 @@ In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:4:
@@ -210,29 +234,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Collectors.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Collectors.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -244,36 +280,36 @@ In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:4:
@@ -286,29 +322,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Functions.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Functions.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -320,36 +368,36 @@ In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:4:
@@ -362,29 +410,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Heads.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Heads.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -396,36 +456,36 @@ In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:4:
@@ -438,29 +498,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\IO.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\IO.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -472,36 +544,36 @@ In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:4:
@@ -514,29 +586,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\JavaImpl.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\JavaImpl.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -548,36 +632,36 @@ In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:4:
@@ -590,29 +674,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Main.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Main.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -624,36 +720,36 @@ In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:4:
@@ -666,29 +762,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\MemUtils.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\MemUtils.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -700,36 +808,36 @@ In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:4:
@@ -742,29 +850,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Options.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Options.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -776,36 +896,36 @@ In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:4:
@@ -818,29 +938,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Results.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Results.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -852,36 +984,36 @@ In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:4:
@@ -894,29 +1026,41 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Streams.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Streams.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:4:
-magma\../magma\../magma/Collectors.h:22:2: error: no template named 'Predicate'
-   22 |         Predicate<T> predicate;
+magma\../magma\../magma/Collectors.h:36:2: error: no template named 'Predicate'
+   36 |         Predicate<T> predicate;
       |         ^
 magma\../magma\../magma/Collectors.h:40:2: error: no template named 'Predicate'
    40 |         Predicate<T> predicate;
@@ -928,36 +1072,36 @@ In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:6:
-magma\../magma\../magma\../magma/Options.h:37:8: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:8: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:37:46: error: use of undeclared identifier 'R'
-   37 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+magma\../magma\../magma\../magma/Options.h:17:46: error: use of undeclared identifier 'R'
+   17 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-magma\../magma\../magma\../magma/Options.h:39:33: error: no template named 'Supplier'
-   39 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+magma\../magma\../magma\../magma/Options.h:19:33: error: no template named 'Supplier'
+   19 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-magma\../magma\../magma\../magma/Options.h:41:32: error: no template named 'Supplier'
-   41 | T orElseGet_Option(void* _ref, Supplier<T> other);
+magma\../magma\../magma\../magma/Options.h:21:32: error: no template named 'Supplier'
+   21 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-magma\../magma\../magma\../magma/Options.h:43:8: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:8: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-magma\../magma\../magma\../magma/Options.h:43:57: error: use of undeclared identifier 'R'
-   43 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+magma\../magma\../magma\../magma/Options.h:23:57: error: use of undeclared identifier 'R'
+   23 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-magma\../magma\../magma\../magma/Options.h:47:17: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:17: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                 ^
-magma\../magma\../magma\../magma/Options.h:47:60: error: use of undeclared identifier 'R'
-   47 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
+magma\../magma\../magma\../magma/Options.h:27:60: error: use of undeclared identifier 'R'
+   27 | Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> supplier);
       |                                                            ^
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
 In file included from magma\../magma/Collections.h:5:
 In file included from magma\../magma\../magma/Heads.h:7:
-magma\../magma\../magma\../magma/Streams.h:16:2: error: no template named 'Supplier'
-   16 |         Supplier<Option<T>> head;
+magma\../magma\../magma\../magma/Streams.h:14:2: error: no template named 'Supplier'
+   14 |         Supplier<Option<T>> head;
       |         ^
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:4:
@@ -970,21 +1114,33 @@ magma\../magma\../magma/Heads.h:29:2: error: no template named 'ArrayList'
       |         ^
 In file included from magma\Utils.cpp:2:
 In file included from magma\Main.h:8:
-magma\../magma/JavaImpl.h:15:55: error: unknown type name 'more'
-   15 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
+magma\../magma/JavaImpl.h:13:55: error: unknown type name 'more'
+   13 | Path get_Paths(void* _ref, char* first, /*String...*/ more);
       |                                                       ^
 In file included from magma\Utils.cpp:2:
-magma\Main.h:36:2: error: no template named 'Stack'
-   36 |         Stack<ArrayList<char*>> beforeStatements;
-      |         ^
-magma\Main.h:37:2: error: no template named 'Map'
-   37 |         Map<char*, ArrayList<char*>> structDependencies;
-      |         ^
-magma\Main.h:38:2: error: no template named 'Map'
-   38 |         Map<char*, ArrayList<CRootSegment>> rootSegments;
-      |         ^
-magma\Main.h:51:19: error: expected member name or ';' after declaration specifiers
-   51 |         ArrayList<char*> namespace;
-      |         ~~~~~~~~~~~~~~~~ ^
+magma\Main.h:35:15: error: field has incomplete type 'JConstructor'
+   35 |         JConstructor jconstructor;
+      |                      ^
+magma\Main.h:22:8: note: forward declaration of 'JConstructor'
+   22 | struct JConstructor;
+      |        ^
+magma\Main.h:36:12: error: field has incomplete type 'Definable'
+   36 |         Definable definable;
+      |                   ^
+magma\Main.h:14:8: note: forward declaration of 'Definable'
+   14 | struct Definable;
+      |        ^
+magma\Main.h:47:14: error: field has incomplete type 'CIdentifier'
+   47 |         CIdentifier cidentifier;
+      |                     ^
+magma\Main.h:24:8: note: forward declaration of 'CIdentifier'
+   24 | struct CIdentifier;
+      |        ^
+magma\Main.h:48:10: error: field has incomplete type 'Content'
+   48 |         Content content;
+      |                 ^
+magma\Main.h:23:8: note: forward declaration of 'Content'
+   23 | struct Content;
+      |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.

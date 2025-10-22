@@ -27,37 +27,17 @@ struct Struct;
 struct EnumNode;
 struct Union;
 struct Main;
-struct Union {
-	ArrayList<char*> typeParameters;
-	char* name;
-	char* fields;
+enum JMethodHeaderTag {
+	JConstructorType,
+	DefinableType
 };
-struct ParseState {
-	Stack<ArrayList<char*>> beforeStatements;
-	Map<char*, ArrayList<char*>> structDependencies;
-	Map<char*, ArrayList<CRootSegment>> rootSegments;
-	ArrayList<char*> beforeStructs;
-	Option<char*> maybeCurrentStructName;
-	ArrayList<char*> structFields;
-	ArrayList<char*> afterStatements;
-	ArrayList<char*> functions;
-	int counter;
-	ArrayList<char*> includes;
-	ArrayList<char*> functionDeclarations;
-	bool usesBoolean;
-	ArrayList<char*> typeUsages;
+union JMethodHeaderData {
+	JConstructor jconstructor;
+	Definable definable;
 };
-struct Location {
-	ArrayList<char*> namespace;
-	char* name;
-};
-struct Main {
-};
-struct CIdentifier {
-	char* value;
-};
-struct Content {
-	char* value;
+struct JMethodHeader {
+	JMethodHeaderTag tag;
+	JMethodHeaderData data;
 };
 enum CExpressionTag {
 	CIdentifierType,
@@ -71,17 +51,27 @@ struct CExpression {
 	CExpressionTag tag;
 	CExpressionData data;
 };
-enum JMethodHeaderTag {
-	JConstructorType,
-	DefinableType
+enum DefinableTag {
+	DefinitionType,
+	PlaceholderType
 };
-union JMethodHeaderData {
-	JConstructor jconstructor;
-	Definable definable;
+union DefinableData {
+	Definition definition;
+	Placeholder placeholder;
 };
-struct JMethodHeader {
-	JMethodHeaderTag tag;
-	JMethodHeaderData data;
+struct Definable {
+	DefinableTag tag;
+	DefinableData data;
+};
+struct Location {
+	ArrayList<char*> namespace;
+	char* name;
+};
+struct CIdentifier {
+	char* value;
+};
+struct Content {
+	char* value;
 };
 struct Struct {
 	ArrayList<char*> typeParameters;
@@ -95,18 +85,6 @@ struct DivideState {
 	int depth;
 	int index;
 };
-enum DefinableTag {
-	DefinitionType,
-	PlaceholderType
-};
-union DefinableData {
-	Definition definition;
-	Placeholder placeholder;
-};
-struct Definable {
-	DefinableTag tag;
-	DefinableData data;
-};
 struct EnumNode {
 	char* name;
 	ArrayList<char*> variants;
@@ -115,20 +93,6 @@ struct Definition {
 	ArrayList<char*> annotations;
 	char* type;
 	char* name;
-};
-enum CRootSegmentTag {
-	EnumNodeType,
-	StructType,
-	UnionType
-};
-union CRootSegmentData {
-	EnumNode enumnode;
-	Struct struct;
-	Union union;
-};
-struct CRootSegment {
-	CRootSegmentTag tag;
-	CRootSegmentData data;
 };
 struct JConstructor {
 	char* name;

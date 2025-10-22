@@ -157,12 +157,6 @@ public class Main {
 		}
 
 		public ParseState withStructName(String name) {
-			if (this.maybeCurrentStructName instanceof Some<String>(String oldName)) {
-				final ArrayList<String> copy = this.typeUsages.copy();
-				this.typeUsages = new ArrayList<String>();
-				this.structDependencies.put(oldName, copy);
-			}
-
 			this.maybeCurrentStructName = new Some<String>(name);
 			return this;
 		}
@@ -170,6 +164,15 @@ public class Main {
 		public ParseState addTypeUsage(String identifier) {
 			if (!this.typeUsages.contains(identifier)) {
 				this.typeUsages = this.typeUsages.addLast(identifier);
+			}
+			return this;
+		}
+
+		public ParseState completeStructure() {
+			if (this.maybeCurrentStructName instanceof Some<String>(String oldName)) {
+				final ArrayList<String> copy = this.typeUsages.copy();
+				this.typeUsages = new ArrayList<String>();
+				this.structDependencies.put(oldName, copy);
 			}
 			return this;
 		}
@@ -507,6 +510,10 @@ public class Main {
 				}
 			}
 
+			if (structsToRemove.isEmpty()) {
+				break;
+			}
+
 			// Process the structs with no dependencies
 			for (String structName : structsToRemove) {
 				structOrder = structOrder.addFirst(structName);
@@ -783,7 +790,6 @@ public class Main {
 
 		ArrayList<CRootSegment> emittedRootSegments = new ArrayList<CRootSegment>();
 		if (!variants.isEmpty()) {
-
 			final String unionFields = variants
 					.stream()
 					.map(slice -> slice + joinedTypeParameters + " " + slice.toLowerCase())
@@ -813,7 +819,10 @@ public class Main {
 		emittedRootSegments =
 				emittedRootSegments.addLast(new Struct(typeParameters, name, new Some<String>(recordFields.toString())));
 
-		final ParseState parseState = outer
+		final ParseState registerVariantsAsTypeUsages = variants.stream().foldWithInitial(outer, ParseState::addTypeUsage);
+
+		final ParseState parseState = registerVariantsAsTypeUsages
+				.completeStructure()
 				.addBeforeStruct(new Struct(typeParameters, name, new None<String>()).generate())
 				.addAllRootSegments(name, emittedRootSegments);
 
