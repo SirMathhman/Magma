@@ -215,7 +215,8 @@ Option<ArrayList<T>> addAllAt_ArrayList(void* _ref, int index, ArrayList<T> elem
 	this.ensureCapacity((this.elements).length + elementsSize);
 	/*// Shift elements to the right to make room
 			this.elements.copyTo(index, this.elements, index + elementsSize, (this.elements).length - index)*/;
-	/*// Copy inserted elements - need to use set with supplier since we're inserting in middle
+	/*// Copy inserted elements - need to use set with supplier since we're inserting
+			// in middle
 			for (int i = 0; i < elementsSize; i++) {
 				this.elements.ref[index + i] = elements.get(i).orElse(null);
 			}*/
@@ -262,6 +263,34 @@ ArrayList<T> removeValue_ArrayList(void* _ref, T element){
 template <typename T>
 ArrayList<T> join_ArrayList(void* _ref, ArrayList<T> other){
 	return this.stream().filter(contains_other).collect(new_ListCollector<T>());
+}
+template <typename T>
+Option<Tuple<T, ArrayList<T>>> removeLast_ArrayList(void* _ref){
+	if (this.isEmpty()) {
+		return new_None<>();
+	}
+	Option < T >= lastElement == this.getLast();
+	if (lastElement.tag == Some) {
+		Some<T> _cast = lastElement.data.some;
+		T value = _cast.value;
+		/*this.elements.length--*/;
+		return new_Some<>(new_Tuple<>(value, this));
+	}
+	return new_None<>();
+}
+template <typename T>
+ArrayList<T> mapLast_ArrayList(void* _ref, Function<T, T> mapper){
+	if (this.isEmpty()) {
+		return this;
+	}
+	int lastIndex = this.elements.length - 1;
+	Option < T >= lastElement == this.elements.get(lastIndex);
+	if (lastElement.tag == Some) {
+		Some<T> _cast = lastElement.data.some;
+		T value = _cast.value;
+		/*this.elements.ref[lastIndex] */ = mapper.apply(value);
+	}
+	return this;
 }
 int main(){
 	main_Main();

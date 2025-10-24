@@ -31,8 +31,8 @@ struct Main;
 struct Main {
 };
 struct ParseState {
-	Stack<ArrayList<char*>> beforeStatements;
 	ArrayList<char*> beforeStructs;
+	ArrayList<ArrayList<char*>> beforeStatements;
 	ListMap<char*, ArrayList<char*>> structDependencies;
 	ListMap<char*, ArrayList<CRootSegment>> rootSegments;
 	Option<char*> maybeCurrentStructName;
