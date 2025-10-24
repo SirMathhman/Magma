@@ -68,9 +68,13 @@ public class Collections {
 	public static class ListMap<K, V> {
 		private ArrayList<Tuple<K, V>> entries;
 
-		public ListMap() {this(new ArrayList<Tuple<K, V>>());}
+		public ListMap() {
+			this(new ArrayList<Tuple<K, V>>());
+		}
 
-		public ListMap(ArrayList<Tuple<K, V>> entries) {this.entries = entries;}
+		public ListMap(ArrayList<Tuple<K, V>> entries) {
+			this.entries = entries;
+		}
 
 		public ListMap<K, V> put(K key, V value) {
 			this.entries = this.entries
@@ -99,8 +103,8 @@ public class Collections {
 		}
 
 		public ListMap<K, V> removeKey(K key) {
-			this.entries =
-					this.entries.stream().filter(entry -> !entry.left().equals(key)).collect(new ListCollector<Tuple<K, V>>());
+			this.entries = this.entries.stream().filter(entry -> !entry.left().equals(key))
+					.collect(new ListCollector<Tuple<K, V>>());
 			return this;
 		}
 
@@ -232,7 +236,8 @@ public class Collections {
 			// Shift elements to the right to make room
 			this.elements.copyTo(index, this.elements, index + elementsSize, (this.elements).length - index);
 
-			// Copy inserted elements - need to use set with supplier since we're inserting in middle
+			// Copy inserted elements - need to use set with supplier since we're inserting
+			// in middle
 			for (int i = 0; i < elementsSize; i++) {
 				this.elements.ref[index + i] = elements.get(i).orElse(null);
 			}
@@ -289,15 +294,25 @@ public class Collections {
 				return new None<>();
 			}
 
-			// TODO:
-			return new Some<>(null);
+			Option<T> lastElement = this.getLast();
+			if (lastElement instanceof Some<T>(T value)) {
+				this.elements.length--;
+				return new Some<>(new Tuple<>(value, this));
+			}
+			return new None<>();
 		}
 
 		public ArrayList<T> mapLast(Function<T, T> mapper) {
-			// TODO:
-			throw new UnsupportedOperationException();
+			if (this.isEmpty()) {
+				return this;
+			}
+
+			int lastIndex = this.elements.length - 1;
+			Option<T> lastElement = this.elements.get(lastIndex);
+			if (lastElement instanceof Some<T>(T value)) {
+				this.elements.ref[lastIndex] = mapper.apply(value);
+			}
+			return this;
 		}
 	}
 }
-
-
