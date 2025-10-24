@@ -24,7 +24,6 @@ import magma.Utils.Tuple;
 
 import java.io.IOException;
 import java.util.Objects;
-import java.util.Stack;
 import java.util.StringJoiner;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
@@ -46,8 +45,8 @@ public class Main {
 	}
 
 	private static class ParseState {
-		private final Stack<ArrayList<String>> beforeStatements;
 		public ArrayList<String> beforeStructs;
+		private ArrayList<ArrayList<String>> beforeStatements;
 		private ListMap<String, ArrayList<String>> structDependencies;
 		private ListMap<String, ArrayList<CRootSegment>> rootSegments;
 		private Option<String> maybeCurrentStructName;
@@ -64,8 +63,7 @@ public class Main {
 			this.functions = new ArrayList<String>();
 			this.rootSegments = new ListMap<String, ArrayList<CRootSegment>>();
 
-			this.beforeStatements = new Stack<ArrayList<String>>();
-			this.beforeStatements.add(new ArrayList<String>());
+			this.beforeStatements = new ArrayList<ArrayList<String>>().addLast(new ArrayList<String>());
 
 			this.afterStatements = new ArrayList<String>();
 			this.counter = -1;
@@ -105,18 +103,26 @@ public class Main {
 			return copy;
 		}
 
-		public void addBeforeStatement(String beforeStatement) {
-			final ArrayList<String> peek = this.beforeStatements.pop();
-			final ArrayList<String> added = peek.addLast(beforeStatement);
-			this.beforeStatements.push(added);
+		public ParseState addBeforeStatement(String beforeStatement) {
+			this.beforeStatements = this.beforeStatements.mapLast(last -> last.addLast(beforeStatement));
+			return this;
 		}
 
-		public ArrayList<String> popBeforeStatements() {
-			return this.beforeStatements.pop();
+		public Option<ArrayList<String>> popBeforeStatements() {
+			final Option<Tuple<ArrayList<String>, ArrayList<ArrayList<String>>>> maybeTuple =
+					this.beforeStatements.removeLast();
+			if (maybeTuple instanceof Some<Tuple<ArrayList<String>, ArrayList<ArrayList<String>>>>(
+					Tuple<ArrayList<String>, ArrayList<ArrayList<String>>> tuple
+			)) {
+				this.beforeStatements = tuple.right();
+				return new Some<>(tuple.left());
+			}
+
+			return new None<>();
 		}
 
 		public ParseState pushBeforeStatements() {
-			this.beforeStatements.push(new ArrayList<String>());
+			this.beforeStatements = this.beforeStatements.addLast(new ArrayList<String>());
 			return this;
 		}
 
@@ -1222,8 +1228,11 @@ public class Main {
 			String s = list.get(i).orElse(null);
 
 			Tuple<String, ParseState> string = compileMethodSegment(s, depth + 1, current.pushBeforeStatements());
-			compiled = compiled.addAllLast(string.right().popBeforeStatements()).addLast(string.left());
-			current = string.right();
+			final Option<ArrayList<String>> maybePoppped = string.right().popBeforeStatements();
+			if (maybePoppped instanceof Some<ArrayList<String>>(ArrayList<String> popped)) {
+				compiled = compiled.addAllLast(popped).addLast(string.left());
+				current = string.right();
+			}
 			i++;
 		}
 

@@ -14,6 +14,7 @@ import magma.Streams.Stream;
 import magma.Utils.Tuple;
 
 import java.util.Objects;
+import java.util.function.Function;
 
 public class Collections {
 	static final class Array<T> {
@@ -281,6 +282,20 @@ public class Collections {
 
 		public ArrayList<T> join(ArrayList<T> other) {
 			return this.stream().filter(other::contains).collect(new ListCollector<T>());
+		}
+
+		public Option<Tuple<T, ArrayList<T>>> removeLast() {
+			if (this.isEmpty()) {
+				return new None<>();
+			}
+
+			// TODO:
+			return new Some<>(null);
+		}
+
+		public ArrayList<T> mapLast(Function<T, T> mapper) {
+			// TODO:
+			throw new UnsupportedOperationException();
 		}
 	}
 }
