@@ -665,6 +665,17 @@ public class App {
 			}
 		}
 
+		final var i = input.indexOf(".");
+		if (i >= 0) {
+			final var child = input.substring(0, i).strip();
+			final var name = input.substring(i + 1);
+			return this.compileExpression(child) + "." + name;
+		}
+
+		if (this.isIdentifier(input)) {
+			return input;
+		}
+
 		return Placeholder.wrap(input);
 	}
 

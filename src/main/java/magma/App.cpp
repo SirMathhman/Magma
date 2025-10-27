@@ -96,9 +96,9 @@ CPPType toCPPType_CPPPrimitiveType(void* _ref){
 CPPPrimitiveType new_CPPPrimitiveType(char* content) {
 	/*this.content = content*/;}
 char* generate() {
-	return /*this.content*/;}
+	return this.content;}
 char* getSimpleName() {
-	return /*this.content*/;}
+	return this.content;}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -120,9 +120,9 @@ CPPType toCPPType_CPointerType(void* _ref){
 	return CPPType { CPointerTypeTag, data };
 }
 char* generate() {
-	return /*this.type.generate() + "*"*/;}
+	return this.type.generate() + "*";}
 char* getSimpleName() {
-	return /*this.type.getSimpleName() + "_ref"*/;}
+	return this.type.getSimpleName() + "_ref";}
 CPPType toCPPType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CPPTypeData data;
@@ -131,9 +131,9 @@ CPPType toCPPType_CTemplateType(void* _ref){
 }
 char* generate() {
 	/*final var joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "))*/;
-	return /*this.base + "<" + joined + ">"*/;}
+	return this.base + "<" + joined + ">";}
 char* getSimpleName() {
-	return /*this.base*/;}
+	return this.base;}
 CPPType toCPPType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
 	CPPTypeData data;
@@ -141,9 +141,9 @@ CPPType toCPPType_CIdentifier(void* _ref){
 	return CPPType { CIdentifierTag, data };
 }
 char* generate() {
-	return /*this.input*/;}
+	return this.input;}
 char* getSimpleName() {
-	return /*this.input*/;}
+	return this.input;}
 CPPType toCPPType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CPPTypeData data;
@@ -151,11 +151,11 @@ CPPType toCPPType_Placeholder(void* _ref){
 	return CPPType { PlaceholderTag, data };
 }
 char* wrap(char* input) {
-	return /*"start" + input.replace("start", "start").replace("end", "end") + "end"*/;}
+	return /*"start" + input*/.replace("/*", "start").replace("*/", "end") + "*/";}
 char* generate() {
-	return /*wrap*/(/*this.input*/);}
+	return wrap(this.input);}
 char* getSimpleName() {
-	return /*this.generate*/(/**/);}
+	return this.generate();}
 /*0;
 
 		public*/ State(char* input) {
@@ -167,18 +167,18 @@ char* getSimpleName() {
 
 		State enter() {
 			this.depth = this.depth + 1*/;
-	return /*this*/;
+	return this;
 	/*}
 
 		State exit() {
 			this.depth = this.depth - 1*/;
-	return /*this*/;
+	return this;
 	/*}
 
 		State advance() {
 			this.segments.add(this.buffer.toString())*/;
 	/*this.buffer = new StringBuilder()*/;
-	return /*this*/;
+	return this;
 	/*}
 
 		boolean isShallow() {
@@ -187,7 +187,7 @@ char* getSimpleName() {
 
 		State append(char c) {
 			this.buffer.append(c)*/;
-	return /*this*/;
+	return this;
 	/*}
 
 		boolean isLevel() {
@@ -241,7 +241,7 @@ Optional<IOException> run() {
 Optional<IOException> compilePath(char* input) {
 	/*final var target = source.resolveSibling("App.cpp")*/;
 	/*final var output = this.compile(input)*/;
-	return /*this.writeString*/(/*target, output).or*/(/*() -> this.compileNative(target*/));}
+	return this.writeString(/*target, output)*/.or(/*() -> this*/.compileNative(target));}
 /*IOException>*/ compileNative(Path target) {
 	/*final var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"))*/;/*
 		return switch (clang) {
@@ -291,10 +291,10 @@ char* compile(char* input) {
 	/*final var joinedSealedStructures = String.join("", this.sealedStructures)*/;
 	/*final var joinedGlobals = String.join("", this.globals)*/;
 	return /*joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals +
-					 joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
-					 "}"*/;}
+					 joinedFunctions + "int main(){" + System*/.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
+					 "}";}
 char* compileStatements(/*String>*/ mapper) {
-	return /*this.divide*/(/*new State*/(/*input)).map(mapper).collect(Collectors.joining(*/));}
+	return this.divide(/*new State*/(/*input))*/.map(mapper).collect(Collectors.joining());}
 Stream<char*> divide(State state) {
 	/*var current = state*/;/*
 		while (true) {
@@ -305,7 +305,7 @@ Stream<char*> divide(State state) {
 
 			current = this.foldEscaped(current, maybeNext.get());
 		}*/
-	return /*current.advance*/(/*).stream(*/);}
+	return current.advance(/*)*/.stream();}
 State foldEscaped(char next) {/*
 		if (next == '\'') {
 			return current
@@ -340,12 +340,12 @@ State foldEscaped(char next) {/*
 
 			return current0;
 		}*/
-	return /*this.fold*/(/*current, next*/);}
+	return this.fold(/*current, next*/);}
 State foldSingleEscapeChar(/*State>*/ tuple) {/*
 		if (tuple.left == '\\') {
 			return tuple.right.popAndAppendToOption().orElse(tuple.right);
 		}*/
-	return /*tuple.right*/;}
+	return tuple.right;}
 State fold(Character c) {
 	/*final var appended = state.append(c)*/;/*
 		if (c == ';' && appended.isLevel()) {
@@ -359,13 +359,13 @@ State fold(Character c) {
 		if (c == '}') {
 			return appended.exit();
 		}*/
-	return /*appended*/;}
+	return appended;}
 char* compileRootSegment(char* input) {
 	/*final var stripped = input.strip()*/;/*
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
 		}*/
-	return /*this.compileStructure*/(/*"class", stripped).orElseGet*/(/*() -> Placeholder.wrap(input*/));}
+	return this.compileStructure(/*"class", stripped)*/.orElseGet(/*() -> Placeholder*/.wrap(input));}
 Optional<char*> compileStructure(char* input) {
 	/*final var classIndex = input.indexOf(type)*/;/*
 		if (classIndex >= 0) {
@@ -492,7 +492,7 @@ Optional<char*> compileStructure(char* input) {
 				}
 			}
 		}*/
-	return /*Optional.empty*/(/**/);}
+	return Optional.empty();}
 char* joinTypeArguments(List<char*> typeParameters) {
 	/*String joinedTypeArguments*/;/*
 		if (typeParameters.isEmpty()) {
@@ -500,11 +500,11 @@ char* joinTypeArguments(List<char*> typeParameters) {
 		}*//* else {
 			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
 		}*/
-	return /*joinedTypeArguments*/;}
+	return joinedTypeArguments;}
 char* generateStatement(char* content) {
-	return /*this.generateWithIndent(content) + ";"*/;}
+	return this.generateWithIndent(content) + ";";}
 char* generateWithIndent(char* content) {
-	return /*System.lineSeparator() + "\t" + content*/;}
+	return System.lineSeparator() + "\t" + content;}
 boolean isIdentifier(char* input) {
 	/*for (var i = 0*/;
 	/*i < input.length()*/;/* i++) {
@@ -512,7 +512,7 @@ boolean isIdentifier(char* input) {
 				return false;
 			}
 		}*/
-	return /*true*/;}
+	return true;}
 char* compileClassSegment(char* input) {/*
 		if (input.isEmpty()) {
 			return "";
@@ -564,7 +564,7 @@ char* compileClassSegment(char* input) {/*
 																											.orElseGet(() -> Placeholder.wrap(slice))));
 
 		}*/
-	return /*Placeholder.wrap*/(/*input*/);}
+	return Placeholder.wrap(input);}
 Optional<char*> compileConstructor(char* input) {
 	/*final var i = input.lastIndexOf(" ")*/;/*
 		if (i >= 0) {
@@ -579,7 +579,7 @@ Optional<char*> compileConstructor(char* input) {
 				return Optional.of(structName + " new_" + structName);
 			}
 		}*/
-	return /*Optional.empty*/(/**/);}
+	return Optional.empty();}
 Optional<char*> compileEnumValues(char* input) {
 	/*final var segments =
 				Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList()*/;/*
@@ -593,7 +593,7 @@ Optional<char*> compileEnumValues(char* input) {
 				return Optional.empty();
 			}
 		}*/
-	return /*Optional.of*/(/*""*/);}
+	return Optional.of(/*""*/);}
 Optional<char*> compileEnumValue(char* stripped) {/*
 		if (stripped.endsWith(")")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
@@ -608,7 +608,7 @@ Optional<char*> compileEnumValue(char* stripped) {/*
 				}
 			}
 		}*/
-	return /*Optional.empty*/(/**/);}
+	return Optional.empty();}
 char* compileMethodSegment(char* input) {
 	/*final var stripped = input.strip()*/;/*
 		if (stripped.isEmpty()) {
@@ -619,13 +619,13 @@ char* compileMethodSegment(char* input) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
 			return this.generateStatement(this.compileMethodStatement(slice));
 		}*/
-	return /*Placeholder.wrap*/(/*input*/);}
+	return Placeholder.wrap(input);}
 char* compileMethodStatement(char* input) {/*
 		if (input.startsWith("return ")) {
 			final var slice = input.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice);
 		}*/
-	return /*Placeholder.wrap*/(/*input*/);}
+	return Placeholder.wrap(input);}
 char* compileExpression(char* input) {/*
 		if (input.endsWith(")")) {
 			final var slice = input.substring(0, input.length() - 1);
@@ -636,14 +636,24 @@ char* compileExpression(char* input) {/*
 				return this.compileExpression(caller) + "(" + this.compileExpression(arguments) + ")";
 			}
 		}*/
-	return /*Placeholder.wrap*/(/*input*/);}
+	/*final var i = input.indexOf(".")*/;/*
+		if (i >= 0) {
+			final var child = input.substring(0, i).strip();
+			final var name = input.substring(i + 1);
+			return this.compileExpression(child) + "." + name;
+		}*//*
+
+		if (this.isIdentifier(input)) {
+			return input;
+		}*/
+	return Placeholder.wrap(input);}
 char* compileParameters(char* input) {/*
 		if (input.isEmpty()) {
 			return "";
 		}*/
-	return /*this.compileDefinitionOrPlaceholder*/(/*input*/);}
+	return this.compileDefinitionOrPlaceholder(input);}
 char* compileDefinitionOrPlaceholder(char* input) {
-	return /*this.compileDefinition*/(/*input).orElseGet*/(/*() -> Placeholder.wrap(input*/));}
+	return this.compileDefinition(/*input)*/.orElseGet(/*() -> Placeholder*/.wrap(input));}
 Optional<char*> compileDefinition(char* input) {
 	/*final var nameSeparator = input.lastIndexOf(" ")*/;/*
 		if (nameSeparator < 0) {
@@ -656,7 +666,7 @@ Optional<char*> compileDefinition(char* input) {
 			final var type = beforeName.substring(typeSeparator + 1).strip();
 			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
 		}*/
-	return /*this.compileType*/(/*beforeName).map(cppType -> cppType.generate() + " " + name*/);}
+	return this.compileType(/*beforeName)*/.map(cppType -> cppType.generate() + " " + name);}
 Optional<CPPType> compileType(char* input) {/*
 		if (input.equals("void")) {
 			return Optional.of(CPPPrimitiveType.Void);
@@ -697,7 +707,7 @@ Optional<CPPType> compileType(char* input) {/*
 
 			return Optional.of(new CIdentifier(input));
 		}*/
-	return /*Optional.of*/(/*new Placeholder*/(/*input*/));}
+	return Optional.of(/*new Placeholder*/(input));}
 int main(){
 	return 0;
 }

@@ -32,46 +32,45 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: 
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:89:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
    89 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:2: error: non-void function 'generate' should return a value [-Wreturn-mismatch]
-   99 |         return /*this.content*/;}
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:2: error: non-void function 'getSimpleName' should return a value [-Wreturn-mismatch]
-  101 |         return /*this.content*/;}
-      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:9: error: invalid use of 'this' outside of a non-static member function
+   99 |         return this.content;}
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:9: error: invalid use of 'this' outside of a non-static member function
+  101 |         return this.content;}
+      |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:122:7: error: redefinition of 'generate'
   122 | char* generate() {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:7: note: previous definition is here
    98 | char* generate() {
       |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:123:9: error: invalid use of 'this' outside of a non-static member function
+  123 |         return this.type.generate() + "*";}
+      |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:124:7: error: redefinition of 'getSimpleName'
   124 | char* getSimpleName() {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:7: note: previous definition is here
   100 | char* getSimpleName() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:154:2: error: non-void function 'wrap' should return a value [-Wreturn-mismatch]
-  154 |         return /*"start" + input.replace("start", "start").replace("end", "end") + "end"*/;}
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:156:32: error: expected expression
-  156 |         return /*wrap*/(/*this.input*/);}
-      |                                       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:31: error: expected expression
-  158 |         return /*this.generate*/(/**/);}
-      |                                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:161:12: error: a type specifier is required for all declarations
-  161 |                 public*/ State(char* input) {
-      |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:231:1: error: 'main' must return 'int'
-  231 | void main(char** args) {
-      | ^~~~
-      | int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:231:6: error: first parameter of 'main' (argument count) must be of type 'int'
-  231 | void main(char** args) {
-      |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:233:10: error: use of undeclared identifier 'IOException'
-  233 | Optional<IOException> run() {
-      |          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:125:9: error: invalid use of 'this' outside of a non-static member function
+  125 |         return this.type.getSimpleName() + "_ref";}
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:134:9: error: invalid use of 'this' outside of a non-static member function
+  134 |         return this.base + "<" + joined + ">";}
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:134:27: error: use of undeclared identifier 'joined'
+  134 |         return this.base + "<" + joined + ">";}
+      |                                  ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:136:9: error: invalid use of 'this' outside of a non-static member function
+  136 |         return this.base;}
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:144:9: error: invalid use of 'this' outside of a non-static member function
+  144 |         return this.input;}
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:146:9: error: invalid use of 'this' outside of a non-static member function
+  146 |         return this.input;}
+      |                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1
