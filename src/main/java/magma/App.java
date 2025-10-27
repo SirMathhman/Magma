@@ -600,8 +600,12 @@ public class App {
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final String content = withBraces.substring(1, withBraces.length() - 1);
 
-					generated = beforeContent + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
-											System.lineSeparator();
+					final String currentStructureName = this.structureNames.peek();
+					final String thisDefinition =
+							this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
+					generated =
+							beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() +
+							"}" + System.lineSeparator();
 				} else {
 					generated = beforeContent + ";" + System.lineSeparator();
 				}

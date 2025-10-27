@@ -93,12 +93,15 @@ CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	return CPPType { CPPPrimitiveTypeTag, data };
 }
 CPPPrimitiveType new_CPPPrimitiveType(void* _ref, char* content) {
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	_this.content = content;
 }
 char* generate(void* _ref) {
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	return _this.content;
 }
 char* getSimpleName(void* _ref) {
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	return _this.content;
 }
 char* generate(void* _ref);
@@ -124,9 +127,11 @@ CPPType toCPPType_CPointerType(void* _ref){
 	return CPPType { CPointerTypeTag, data };
 }
 char* generate(void* _ref) {
+	CPointerType _this = *((CPointerType*) _ref);
 	return _this.type.generate() + "*";
 }
 char* getSimpleName(void* _ref) {
+	CPointerType _this = *((CPointerType*) _ref);
 	return _this.type.getSimpleName() + "_ref";
 }
 CPPType toCPPType_CTemplateType(void* _ref){
@@ -136,10 +141,12 @@ CPPType toCPPType_CTemplateType(void* _ref){
 	return CPPType { CTemplateTypeTag, data };
 }
 char* generate(void* _ref) {
+	CTemplateType _this = *((CTemplateType*) _ref);
 	char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName(void* _ref) {
+	CTemplateType _this = *((CTemplateType*) _ref);
 	return _this.base;
 }
 CPPType toCPPType_CIdentifier(void* _ref){
@@ -149,9 +156,11 @@ CPPType toCPPType_CIdentifier(void* _ref){
 	return CPPType { CIdentifierTag, data };
 }
 char* generate(void* _ref) {
+	CIdentifier _this = *((CIdentifier*) _ref);
 	return _this.input;
 }
 char* getSimpleName(void* _ref) {
+	CIdentifier _this = *((CIdentifier*) _ref);
 	return _this.input;
 }
 CPPType toCPPType_Placeholder(void* _ref){
@@ -161,16 +170,20 @@ CPPType toCPPType_Placeholder(void* _ref){
 	return CPPType { PlaceholderTag, data };
 }
 char* wrap(void* _ref, char* input) {
+	Placeholder _this = *((Placeholder*) _ref);
 	char* replaced = input.replace("/*", "start").replace("*/", "end");
 	return "/*" + replaced + "*/";
 }
 char* generate(void* _ref) {
+	Placeholder _this = *((Placeholder*) _ref);
 	return wrap(_this.input);
 }
 char* getSimpleName(void* _ref) {
+	Placeholder _this = *((Placeholder*) _ref);
 	return _this.generate();
 }
 State new_State(void* _ref, char* input) {
+	State _this = *((State*) _ref);
 	_this.input = input;
 	_this.buffer = new_StringBuilder();
 	_this.depth = 0;
@@ -178,29 +191,36 @@ State new_State(void* _ref, char* input) {
 	_this.index = 0;
 }
 State enter(void* _ref) {
+	State _this = *((State*) _ref);
 	_this.depth = _this.depth + 1;
 	return _this;
 }
 State exit(void* _ref) {
+	State _this = *((State*) _ref);
 	_this.depth = _this.depth - 1;
 	return _this;
 }
 State advance(void* _ref) {
+	State _this = *((State*) _ref);
 	_this.segments.add(_this.buffer.toString());
 	_this.buffer = new_StringBuilder();
 	return _this;
 }
 boolean isShallow(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.depth == 1;
 }
 State append(void* _ref, char c) {
+	State _this = *((State*) _ref);
 	_this.buffer.append(c);
 	return _this;
 }
 boolean isLevel(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.depth == 0;
 }
 Optional<Character> pop(void* _ref) {
+	State _this = *((State*) _ref);
 	if (_this.index < _this.input.length()) {
 		int counter = _this.index;
 		_this.index++;
@@ -212,21 +232,26 @@ Optional<Character> pop(void* _ref) {
 	}
 }
 Stream<char*> stream(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.segments.stream();
 }
 auto _lambda1_(auto _ref, auto next) {
 		State appended = _this.append(next);
 		return new_Tuple<Character, State>(next, appended);
 	}Optional<Tuple<Character, State>> popAndAppendToTuple(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.pop().map(_lambda1_);
 }
 Optional<State> popAndAppendToOption(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.popAndAppendToTuple().map(right_Tuple);
 }
 char peek(void* _ref) {
+	State _this = *((State*) _ref);
 	return _this.input.charAt(_this.index);
 }
 App new_App(void* _ref) {
+	App _this = *((App*) _ref);
 	_this.globals = new_ArrayList<char*>();
 	_this.structureNames = new_Stack<char*>();
 	_this.functions = new_ArrayList<char*>();
@@ -237,9 +262,11 @@ App new_App(void* _ref) {
 	_this.counter = 0;
 }
 void main(void* _ref, char** args) {
+	App _this = *((App*) _ref);
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
 Optional<IOException> run(void* _ref) {
+	App _this = *((App*) _ref);
 	Path source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	Result<char*, IOException> input = _this.readString(source);
 	return _switch3_;
@@ -249,26 +276,34 @@ auto _lambda5_(auto _ref) {
 	return _this.compileNative(target);
 };
 Optional<IOException> compilePath(void* _ref, Path source, char* input) {
+	App _this = *((App*) _ref);
 	Path target = source.resolveSibling("App.cpp");
 	char* output = _this.compile(input);
 	return _this.writeString(target, output).or(_lambda5_);
 }
 Optional<> compileNative(void* _ref, Path target) {
+	App _this = *((App*) _ref);
 	Result<Process, IOException> clang = _this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 	return _switch7_;
 }
 Optional<IOException> waitForProcess(void* _ref, Process process) {
+	App _this = *((App*) _ref);
 	return _switch9_;
 }
 Result<Integer, IOException> waitFor(void* _ref, Process process) {
+	App _this = *((App*) _ref);
 }
 Result<Process, IOException> startCommand(void* _ref, List<char*> command) {
+	App _this = *((App*) _ref);
 }
 Optional<IOException> writeString(void* _ref, Path target, char* output) {
+	App _this = *((App*) _ref);
 }
 Result<char*, IOException> readString(void* _ref, Path source) {
+	App _this = *((App*) _ref);
 }
 char* compile(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* compiled = _this.compileStatements(input, compileRootSegment_this);
 	char* joinedForwardDeclarations = String.join("", _this.forwardDeclarations);
 	char* joinedFunctions = String.join("", _this.functions);
@@ -279,9 +314,11 @@ char* compile(void* _ref, char* input) {
 					 "}";
 }
 char* compileStatements(void* _ref, char* input, Function<char*, char*> mapper) {
+	App _this = *((App*) _ref);
 	return _this.divide(input, foldStatement_this).map(mapper).collect(Collectors.joining());
 }
 Stream<char*> divide(void* _ref, char* input, BiFunction<State, Character, State> folder) {
+	App _this = *((App*) _ref);
 	State current = new_State(input);
 	while (true) {
 		Optional<Character> maybeNext = current.pop();
@@ -293,6 +330,7 @@ Stream<char*> divide(void* _ref, char* input, BiFunction<State, Character, State
 	return current.advance().stream();
 }
 State foldEscaped(void* _ref, State current, char next, BiFunction<State, Character, State> folder) {
+	App _this = *((App*) _ref);
 	if (next == '\'') {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
@@ -319,12 +357,14 @@ State foldEscaped(void* _ref, State current, char next, BiFunction<State, Charac
 	return folder.apply(current, next);
 }
 State foldSingleEscapeChar(void* _ref, Tuple<Character, State> tuple) {
+	App _this = *((App*) _ref);
 	if (tuple.left == '\\') {
 		return tuple.right.popAndAppendToOption().orElse(tuple.right);
 	}
 	return tuple.right;
 }
 State foldStatement(void* _ref, State state, Character c) {
+	App _this = *((App*) _ref);
 	State appended = state.append(c);
 	if (c == ';' && appended.isLevel()) {
 		return appended.advance();
@@ -353,6 +393,7 @@ auto _lambda11_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileRootSegment(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* stripped = input.strip();
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
@@ -384,6 +425,7 @@ auto _lambda34_(auto _ref, auto slice) {
 	return System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
 Optional<char*> compileStructure(void* _ref, char* type, char* input) {
+	App _this = *((App*) _ref);
 	int classIndex = input.indexOf(type);
 	if (classIndex >= 0) {
 		char* afterKeyword = input.substring(classIndex + type.length());
@@ -478,6 +520,7 @@ Optional<char*> compileStructure(void* _ref, char* type, char* input) {
 	return Optional.empty();
 }
 char* joinTypeArguments(void* _ref, List<char*> typeParameters) {
+	App _this = *((App*) _ref);
 	char* joinedTypeArguments;
 	if (typeParameters.isEmpty()) {
 		joinedTypeArguments = "";
@@ -488,15 +531,19 @@ char* joinTypeArguments(void* _ref, List<char*> typeParameters) {
 	return joinedTypeArguments;
 }
 char* generateStatement(void* _ref, char* content, int depth) {
+	App _this = *((App*) _ref);
 	return _this.generateWithIndent(content, depth) + ";";
 }
 char* generateWithIndent(void* _ref, char* content, int depth) {
+	App _this = *((App*) _ref);
 	return _this.generateIndent(depth) + content;
 }
 char* generateIndent(void* _ref, int depth) {
+	App _this = *((App*) _ref);
 	return System.lineSeparator() + "\t".repeat(depth);
 }
-boolean isIdentifier(void* _ref, char* input) {/*
+boolean isIdentifier(void* _ref, char* input) {
+	App _this = *((App*) _ref);/*
 		for (int i = 0; i < input.length(); i++) {
 			final char next = input.charAt(i);
 			if (Character.isLetter(next) || (i != 0 && Character.isDigit(next))) {continue;}
@@ -517,6 +564,7 @@ auto _lambda41_(auto _ref) {
 	return _this.compileConstructor(definition);
 };
 char* compileClassSegment(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	if (input.isBlank()) {
 		return "";
 	}
@@ -556,7 +604,9 @@ char* compileClassSegment(void* _ref, char* input) {
 			char* generated;
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				char* content = withBraces.substring(1, withBraces.length() - 1);
-				generated = beforeContent + " {" + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
+				char* currentStructureName = _this.structureNames.peek();
+				char* thisDefinition = _this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
+				generated = beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 			}
 			else {
 				generated = beforeContent + ";" + System.lineSeparator();
@@ -572,12 +622,15 @@ auto _lambda43_(auto _ref, auto content) {
 	return _this.generateStatement(content, 1);
 };
 Optional<char*> compileDefinitionToField(void* _ref, char* slice) {
+	App _this = *((App*) _ref);
 	return _this.compileDefinition(slice).map(_lambda43_);
 }
 char* compileMethodSegments(void* _ref, char* content) {
+	App _this = *((App*) _ref);
 	return _this.compileStatements(content, compileMethodSegmentOrPlaceholder_this);
 }
 Optional<char*> compileConstructor(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	int i = input.lastIndexOf(" ");
 	if (i >= 0) {
 		char* name = input.substring(i + 1).strip();
@@ -599,6 +652,7 @@ auto _lambda47_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
 Optional<char*> compileEnumValues(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	List<char*> segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda47_).toList();/*
 
 		for (String segment : segments) {
@@ -613,6 +667,7 @@ Optional<char*> compileEnumValues(void* _ref, char* input) {
 	return Optional.of("");
 }
 Optional<char*> compileEnumValue(void* _ref, char* stripped) {
+	App _this = *((App*) _ref);
 	if (/*stripped.endsWith(")"*/) /*) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 			final int i = slice.indexOf("(");
@@ -633,9 +688,11 @@ auto _lambda49_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	return _this.compileMethodSegment(input).orElseGet(_lambda49_);
 }
 Optional<char*> compileMethodSegment(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* stripped = input.strip();
 	if (/*stripped.isEmpty() || stripped.startsWith("try ") || stripped*/.startsWith("catch ")) {
 		return Optional.of("");
@@ -666,6 +723,7 @@ Optional<char*> compileMethodSegment(void* _ref, char* input) {
 	return Optional.empty();
 }
 Optional<char*> compileConditional(void* _ref, char* input, char* type) {
+	App _this = *((App*) _ref);
 	if (input.startsWith(type)) {
 		char* substring = input.substring(type.length()).strip();/*
 			if (substring.startsWith("(")) {
@@ -683,6 +741,7 @@ Optional<char*> compileConditional(void* _ref, char* input, char* type) {
 	return Optional.empty();
 }
 int findConditionEnd(void* _ref, char* withCondition) {
+	App _this = *((App*) _ref);
 	int conditionEnd =  - 1;
 	int depth = 0;/*
 		for (int i = 0; i < withCondition.length(); i++) {
@@ -714,6 +773,7 @@ auto _lambda56_(auto _ref) {
 	return _this.compileDefinition(input);
 };
 char* compileMethodStatement(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* stripped = input.strip();
 	if (stripped.startsWith("return ")) {
 		char* slice = stripped.substring("return ".length()).strip();
@@ -758,6 +818,7 @@ auto _lambda70_(auto _ref) {
 	return _this.compileOperator(stripped, "-");
 };
 char* compileExpression(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* stripped = input.strip();
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return stripped;
@@ -814,6 +875,7 @@ auto _lambda78_(auto _ref, auto segment) {
 	return /*!segment*/.isEmpty();
 };
 Optional<char*> compileLambda(void* _ref, char* stripped) {
+	App _this = *((App*) _ref);
 	int arrowIndex = stripped.indexOf("->");
 	if (arrowIndex >= 0) {
 		char* names = stripped.substring(0, arrowIndex).strip();
@@ -842,11 +904,13 @@ Optional<char*> compileLambda(void* _ref, char* stripped) {
 	return Optional.empty();
 }
 char* createName(void* _ref, char* type) {
+	App _this = *((App*) _ref);
 	char* s = "_" + type + this.counter + "_";
 	_this.counter++;
 	return s;
 }
 Optional<char*> compileInvocation(void* _ref, char* stripped) {
+	App _this = *((App*) _ref);
 	if (/*stripped.endsWith(")"*/) /*) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 			int argStart = -1;
@@ -883,6 +947,7 @@ Optional<char*> compileInvocation(void* _ref, char* stripped) {
 	return Optional.empty();
 }
 Optional<char*> compileCaller(void* _ref, char* caller) {
+	App _this = *((App*) _ref);
 	char* newCaller;
 	if (caller.startsWith("new ")) {
 		char* substring = caller.substring("new ".length());
@@ -894,6 +959,7 @@ Optional<char*> compileCaller(void* _ref, char* caller) {
 	return Optional.of(_this.compileExpression(caller));
 }
 Optional<char*> compileOperator(void* _ref, char* stripped, char* separator) {
+	App _this = *((App*) _ref);
 	int i1 = stripped.indexOf(separator);
 	if (i1 >= 0) {
 		char* substring = stripped.substring(0, i1);
@@ -902,7 +968,8 @@ Optional<char*> compileOperator(void* _ref, char* stripped, char* separator) {
 	}
 	return Optional.empty();
 }
-boolean isNumber(void* _ref, char* input) {/*
+boolean isNumber(void* _ref, char* input) {
+	App _this = *((App*) _ref);/*
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
 			if (!Character.isDigit(c)) {
@@ -916,6 +983,7 @@ auto _lambda92_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
 char* compileParameters(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	List<char*> parameters = _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda92_).map(compileDefinition_this).flatMap(stream_Optional).toList();
 	ArrayList<char*> copy = new_ArrayList<char*>(parameters);
 	copy.addFirst("void* _ref");
@@ -926,6 +994,7 @@ auto _lambda94_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileDefinitionOrPlaceholder(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	return _this.compileDefinition(input).orElseGet(_lambda94_);
 }
 auto _lambda96_(auto _ref, auto cppType) {
@@ -937,6 +1006,7 @@ auto _lambda98_(auto _ref, auto cppType) {
 	return cppType.generate() + " " + name;
 };
 Optional<char*> compileDefinition(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	int nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return Optional.empty();
@@ -971,6 +1041,7 @@ auto _lambda106_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
 Optional<CPPType> compileType(void* _ref, char* input) {
+	App _this = *((App*) _ref);
 	char* stripped = input.strip();
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
@@ -1001,6 +1072,7 @@ Optional<CPPType> compileType(void* _ref, char* input) {
 	return Optional.empty();
 }
 State foldValue(void* _ref, State state, char next) {
+	App _this = *((App*) _ref);
 	if (next == ',' && state.isLevel()) {
 		return state.advance();
 	}
