@@ -1,4 +1,4 @@
-package magma;
+/*package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -10,10 +10,12 @@ public class Main {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.cpp");
-			Files.writeString(target, input);
+			final var replaced = input.replace("start", "start").replace("end", "end");
+			Files.writeString(target, "start" + replaced + "end");
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
 	}
 }
+*/
