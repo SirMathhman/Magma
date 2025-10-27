@@ -24,12 +24,20 @@ public class Main {
 	private static String compile(String input) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
+		var depth = 0;
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
-			if (c == ';') {
+			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else {
+				if (c == '{') {
+					depth++;
+				}
+				if (c == '}') {
+					depth--;
+				}
 			}
 		}
 		segments.add(buffer.toString());
@@ -44,6 +52,20 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
+		}
+
+		final var classIndex = stripped.indexOf("class");
+		if (classIndex >= 0) {
+			final var afterKeyword = stripped.substring(classIndex + "class".length());
+			final var contentStart = afterKeyword.indexOf("{");
+			if (contentStart >= 0) {
+				final var name = afterKeyword.substring(0, contentStart).strip();
+				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var content = withEnd.substring(0, withEnd.length() - 1);
+					return "struct " + name + " {};" + System.lineSeparator() + wrap(content);
+				}
+			}
 		}
 
 		return wrap(input);
