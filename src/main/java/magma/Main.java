@@ -12,6 +12,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 	private enum CPPPrimitiveType implements CPPType {
@@ -185,28 +186,38 @@ public class Main {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
-		for (var i = 0; i < input.length(); i++) {
-			final var c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			} else if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
+		final var stream = divide(new State(input, buffer, depth, segments));
+		return stream.map(mapper).collect(Collectors.joining());
+	}
+
+	private static Stream<String> divide(State state) {
+		while (true) {
+			final var maybeNext = state.pop();
+			if (maybeNext.isEmpty()) {
+				break;
+			}
+
+			final var c = maybeNext.get();
+			state.getBuffer().append(c);
+			if (c == ';' && state.getDepth() == 0) {
+				state.segments().add(state.getBuffer().toString());
+				state.setBuffer(new StringBuilder());
+			} else if (c == '}' && state.getDepth() == 1) {
+				state.segments().add(state.getBuffer().toString());
+				state.setBuffer(new StringBuilder());
+				state.setDepth(state.getDepth() - 1);
 			} else {
 				if (c == '{') {
-					depth++;
+					state.setDepth(state.getDepth() + 1);
 				}
 				if (c == '}') {
-					depth--;
+					state.setDepth(state.getDepth() - 1);
 				}
 			}
 		}
-		segments.add(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		state.segments().add(state.getBuffer().toString());
+		return state.segments().stream();
 	}
 
 	private static String compileRootSegment(String input) {
