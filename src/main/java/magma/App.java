@@ -648,11 +648,27 @@ public class App {
 		if (stripped.startsWith("if")) {
 			final var substring = stripped.substring(2).strip();
 			if (substring.startsWith("(")) {
-				final var substring1 = substring.substring(1);
-				final var i = substring1.indexOf(")");
-				if (i >= 0) {
-					final var condition = substring1.substring(0, i).strip();
-					final var substring2 = substring1.substring(i + 1).strip();
+				final var withCondition = substring.substring(1);
+				int conditionEnd = -1;
+				var depth = 0;
+				for (var i = 0; i < withCondition.length(); i++) {
+					final var c = withCondition.charAt(i);
+					if (c == ')') {
+						depth--;
+						if (depth == -1) {
+							conditionEnd = i;
+							break;
+						}
+					}
+
+					if (c == '(') {
+						depth++;
+					}
+				}
+
+				if (conditionEnd >= 0) {
+					final var condition = withCondition.substring(0, conditionEnd).strip();
+					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
 					return this.generateIndent() + "if (" + this.compileExpression(condition) + ") " +
 								 this.compileMethodSegment(substring2);
 				}
