@@ -715,23 +715,27 @@ public class App {
 	}
 
 	private String compileMethodStatement(String input) {
-		final var strip = input.strip();
+		final var stripped = input.strip();
 
-		if (strip.startsWith("return ")) {
-			final var slice = strip.substring("return ".length()).strip();
+		if (stripped.startsWith("return ")) {
+			final var slice = stripped.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice);
 		}
 
-		final var separator = strip.indexOf('=');
+		final var separator = stripped.indexOf('=');
 		if (separator >= 0) {
-			final var substring = strip.substring(0, separator).strip();
-			final var substring1 = strip.substring(separator + 1).strip();
+			final var substring = stripped.substring(0, separator).strip();
+			final var substring1 = stripped.substring(separator + 1).strip();
 			final var s = this.compileDefinition(substring).orElseGet(() -> this.compileExpression(substring));
 
 			return s + " = " + this.compileExpression(substring1);
 		}
 
-		return this.compileInvocation(strip).orElseGet(() -> Placeholder.wrap(strip));
+		if(stripped.endsWith("++")) {
+			return compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
+		}
+
+		return this.compileInvocation(stripped).orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
 	private String compileExpression(String input) {
