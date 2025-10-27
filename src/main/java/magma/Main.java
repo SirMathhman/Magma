@@ -216,8 +216,16 @@ public class Main {
 
 					if (maybeInterfaceType.isPresent()) {
 						final var interfaceType = maybeInterfaceType.get();
-						dependencies += templateString + interfaceType + " to" + interfaceType + "_" + beforeContent + "(){}" +
-														System.lineSeparator();
+						String joinedTypeArguments;
+						if (typeParameters.isEmpty()) {
+							joinedTypeArguments = "";
+						} else {
+							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
+						}
+
+						dependencies +=
+								templateString + interfaceType + " to" + interfaceType + "_" + beforeContent + "(" + beforeContent +
+								joinedTypeArguments + "* this" + "){}" + System.lineSeparator();
 					}
 
 					return Optional.of(

@@ -15,12 +15,12 @@ struct Result {
 	ResultData data
 };
 /**/template <typename T, typename X>
-Result<T, X> toResult<T, X>_Err(){}
+Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
 template <typename T, typename X>
 struct Err {
 };
 /**/template <typename T, typename X>
-Result<T, X> toResult<T, X>_Ok(){}
+Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
 template <typename T, typename X>
 struct Ok {
 };
@@ -118,16 +118,18 @@ struct Ok {
 };
 /*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get {
 };
-/*}" +
-														System.lineSeparator();
+/*joinedTypeArguments = "";*//*
+						} else {
+							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";*/struct Type + " to" + interfaceType + "_" + beforeContent + " {
+};
+/*}" + System.lineSeparator();
 					}
 
 					return Optional.of(
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
-			}
-		*//*
+			*//*
 
 		return Optional.empty();*//*
 	}

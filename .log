@@ -16,10 +16,10 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:17: error: e
       |                        ^
       |                        ;
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:14: error: no variable template matches partial specialization
-   18 | Result<T, X> toResult<T, X>_Err(){}
+   18 | Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
       |              ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:28: error: expected ';' after top level declarator
-   18 | Result<T, X> toResult<T, X>_Err(){}
+   18 | Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
       |                            ^
       |                            ;
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:20:8: error: redefinition of 'Err' as different kind of symbol
@@ -29,10 +29,10 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:4:2: note: prev
     4 |         Err,
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:14: error: no variable template matches partial specialization
-   23 | Result<T, X> toResult<T, X>_Ok(){}
+   23 | Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
       |              ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:28: error: expected ';' after top level declarator
-   23 | Result<T, X> toResult<T, X>_Ok(){}
+   23 | Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
       |                            ^
       |                            ;
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:25:8: error: redefinition of 'Ok' as different kind of symbol
