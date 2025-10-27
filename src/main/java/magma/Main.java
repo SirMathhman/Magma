@@ -94,10 +94,82 @@ public class Main {
 		}
 	}
 
+	private record Tuple<A, B>(A left, B right) {}
+
+	private static class State {
+		public final String input;
+		public final ArrayList<String> segments;
+		private StringBuilder buffer;
+		private int depth;
+		private int index = 0;
+
+		public State(String input) {
+			this.input = input;
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new ArrayList<String>();
+		}
+
+		State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}
+
+		State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}
+
+		State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer = new StringBuilder();
+			return this;
+		}
+
+		boolean isShallow() {
+			return this.depth == 1;
+		}
+
+		State append(char c) {
+			this.buffer.append(c);
+			return this;
+		}
+
+		boolean isLevel() {
+			return this.depth == 0;
+		}
+
+		public Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				var counter = this.index;
+				this.index++;
+				final var element = this.input.charAt(counter);
+				return Optional.of(element);
+			} else {
+				return Optional.empty();
+			}
+		}
+
+		public Stream<String> stream() {
+			return this.segments.stream();
+		}
+
+		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
+			return this.pop().map(next -> {
+				final var appended = this.append(next);
+				return new Tuple<Character, State>(next, this);
+			});
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(Tuple::right);
+		}
+	}
+
 	private static final List<String> forwardDeclarations = new ArrayList<String>();
 	private static final List<String> functions = new ArrayList<String>();
 	private static final List<String> structures = new ArrayList<String>();
-	private static final List<String> sealedStructures = new ArrayList<>();
+	private static final List<String> sealedStructures = new ArrayList<String>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -194,11 +266,39 @@ public class Main {
 				break;
 			}
 
-			final var c = maybeNext.get();
-			current = fold(current, c);
+			current = foldEscaped(current, maybeNext.get());
 		}
 
 		return current.advance().stream();
+	}
+
+	private static State foldEscaped(State current, char next) {
+		if (next == '\"') {
+			var current0 = current.append(next);
+			while (true) {
+				final var maybeTuple = current0.popAndAppendToTuple();
+				if (maybeTuple.isEmpty()) {
+					break;
+				}
+
+				final var tuple = maybeTuple.get();
+				current0 = tuple.right;
+
+				final var nextInQuotes = tuple.left;
+				if (nextInQuotes == '\\') {
+					current0 = current0.popAndAppendToOption().orElse(current0);
+					continue;
+				}
+
+				if (nextInQuotes == '\"') {
+					break;
+				}
+			}
+
+			return current0;
+		}
+
+		return fold(current, next);
 	}
 
 	private static State fold(State state, Character c) {

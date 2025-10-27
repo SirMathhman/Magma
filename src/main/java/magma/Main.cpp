@@ -11,7 +11,364 @@ struct CPointerType;
 struct CTemplateType;
 struct CIdentifier;
 struct Placeholder;
+template <typename A, typename B>
+struct Tuple;
+struct CPPPrimitiveType {
+/*Void("void"), Char("char");*//*
+
+		private final String content;*//*
+	*/};
+template <typename T, typename X>
+struct Err {
+/**/};
+template <typename T, typename X>
+struct Ok {
+/**/};
+struct CPointerType {
 /*
+	*/};
+struct CTemplateType {
+/*
+	*/};
+struct CIdentifier {
+/*
+	*/};
+struct Placeholder {
+/*
+	*/};
+template <typename A, typename B>
+struct Tuple {
+/**/};
+struct Main {
+/*
+
+	private static final List<String> forwardDeclarations = new ArrayList<String>();*//*
+	private static final List<String> functions = new ArrayList<String>();*//*
+	private static final List<String> structures = new ArrayList<String>();*//*
+	private static final List<String> sealedStructures = new ArrayList<String>();*/};
+enum ResultTag {
+	ErrTag,
+	OkTag
+};
+template <typename T, typename X>
+union ResultData {
+	Err<T, X> err;
+	Ok<T, X> ok;
+};
+template <typename T, typename X>
+struct Result {
+	ResultTag tag;
+	ResultData data;
+/**/};
+enum CPPTypeTag {
+	CIdentifierTag,
+	CPPPrimitiveTypeTag,
+	CPointerTypeTag,
+	CTemplateTypeTag,
+	PlaceholderTag
+};
+union CPPTypeData {
+	CIdentifier cidentifier;
+	CPPPrimitiveType cppprimitivetype;
+	CPointerType cpointertype;
+	CTemplateType ctemplatetype;
+	Placeholder placeholder;
+};
+struct CPPType {
+	CPPTypeTag tag;
+	CPPTypeData data;
+/*String generate();*//*
+
+		String getSimpleName();*//*
+	*/};
+CPPType toCPPType_CPPPrimitiveType(void* _ref){
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+	CPPTypeData data;
+	data.cppprimitivetype = _this;
+	return CPPType { CPPPrimitiveTypeTag, data };
+}
+/*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+/*@Override
+		public*/ char* generate() {/*
+			return this.content;*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.content;*//*
+		*/}
+template <typename T, typename X>
+Result<T, X> toResult_Err(void* _ref){
+	Err<T, X> _this = *((Err<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.err = _this;
+	return Result<T, X> { ErrTag, data };
+}
+template <typename T, typename X>
+Result<T, X> toResult_Ok(void* _ref){
+	Ok<T, X> _this = *((Ok<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.ok = _this;
+	return Result<T, X> { OkTag, data };
+}
+CPPType toCPPType_CPointerType(void* _ref){
+	CPointerType _this = *((CPointerType*) _ref);
+	CPPTypeData data;
+	data.cpointertype = _this;
+	return CPPType { CPointerTypeTag, data };
+}
+/*@Override
+		public*/ char* generate() {/*
+			return this.type.generate() + "*";*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.type.getSimpleName() + "_ref";*//*
+		*/}
+CPPType toCPPType_CTemplateType(void* _ref){
+	CTemplateType _this = *((CTemplateType*) _ref);
+	CPPTypeData data;
+	data.ctemplatetype = _this;
+	return CPPType { CTemplateTypeTag, data };
+}
+/*@Override
+		public*/ char* generate() {/*
+			final var joined = String.join(", ", this.list);*//*
+			return this.base + "<" + joined + ">";*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.base;*//*
+		*/}
+CPPType toCPPType_CIdentifier(void* _ref){
+	CIdentifier _this = *((CIdentifier*) _ref);
+	CPPTypeData data;
+	data.cidentifier = _this;
+	return CPPType { CIdentifierTag, data };
+}
+/*@Override
+		public*/ char* generate() {/*
+			return this.input;*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.input;*//*
+		*/}
+CPPType toCPPType_Placeholder(void* _ref){
+	Placeholder _this = *((Placeholder*) _ref);
+	CPPTypeData data;
+	data.placeholder = _this;
+	return CPPType { PlaceholderTag, data };
+}
+/*@Override
+		public*/ char* generate() {/*
+			return wrap(this.input);*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.generate();*//*
+		*/}
+/*private static class State {
+		public final String input;
+		public final ArrayList<String> segments;
+		private StringBuilder buffer;
+		private int depth;
+		private int index =*/ /*0;
+
+		public*/ State(char* input) {/*
+			this.input = input;*//*
+			this.buffer = new StringBuilder();*//*
+			this.depth = 0;*//*
+			this.segments = new ArrayList<String>();*//*
+		}
+
+		State enter() {
+			this.depth = this.depth + 1;*//*
+			return this;*//*
+		}
+
+		State exit() {
+			this.depth = this.depth - 1;*//*
+			return this;*//*
+		}
+
+		State advance() {
+			this.segments.add(this.buffer.toString());*//*
+			this.buffer = new StringBuilder();*//*
+			return this;*//*
+		}
+
+		boolean isShallow() {
+			return this.depth == 1;*//*
+		}
+
+		State append(char c) {
+			this.buffer.append(c);*//*
+			return this;*//*
+		}
+
+		boolean isLevel() {
+			return this.depth == 0;*//*
+		}
+
+		public Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				var counter = this.index;
+				this.index++;
+				final var element = this.input.charAt(counter);
+				return Optional.of(element);
+			}*//* else {
+				return Optional.empty();
+			}*//*
+		}
+
+		public Stream<String> stream() {
+			return this.segments.stream();*//*
+		}
+
+		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
+			return this.pop().map(next -> {
+				final var appended = this.append(next);
+				return new Tuple<Character, State>(next, this);
+			}*//*);*//*
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(Tuple::right);*//*
+		}
+	*/}
+/*public static*/ void main(char** args) {/*
+		run().ifPresent(Throwable::printStackTrace);*//*
+	*/}
+/*private static*/ Optional<IOException> run() {/*
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
+		final var input = readString(source);*//*
+		return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> compilePath(source, v.value);
+		}*//*;*//*
+	*/}
+/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
+		final var target = source.resolveSibling("Main.cpp");*//*
+		final var output = compile(input);*//*
+		return writeString(target, output).or(() -> compileNative(target));*//*
+	*/}
+/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
+		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));*//*
+		return switch (clang) {
+			case Err<Process, IOException> v1 -> Optional.of(v1.error);
+			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
+		}*//*;*//*
+	*/}
+/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
+		return switch (waitFor(process)) {
+			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
+			case Ok<Integer, IOException> v2 -> {
+				System.out.println("Compilation failed with exit code: " + v2.value);
+				yield Optional.empty();
+			}
+		}*//*;*//*
+	*/}
+/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
+		try {
+			return new Ok<Integer, IOException>(process.waitFor());
+		}*//* catch (InterruptedException e) {
+			return new Err<Integer, IOException>(new IOException(e));
+		}*//*
+	*/}
+/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
+		try {
+			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
+		}*//* catch (IOException e) {
+			return new Err<Process, IOException>(e);
+		}*//*
+	*/}
+/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
+		try {
+			Files.writeString(target, output);
+			return Optional.empty();
+		}*//* catch (IOException e) {
+			return Optional.of(e);
+		}*//*
+	*/}
+/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		}*//* catch (IOException e) {
+			return new Err<String, IOException>(e);
+		}*//*
+	*/}
+/*private static*/ char* compile(char* input) {/*
+		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
+
+		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
+		final var joinedFunctions = String.join("", functions);*//*
+
+		final var joinedStructures = String.join("", structures);*//*
+		final var joinedSealedStructures = String.join("", sealedStructures);*//*
+
+		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedFunctions +
+					 "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() + "}";*//*
+	*/}
+/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+		return divide(new State(input)).map(mapper).collect(Collectors.joining());*//*
+	*/}
+/*private static*/ Stream<char*> divide(State state) {/*
+		var current = state;*//*
+		while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) {
+				break;
+			}
+
+			current = foldEscaped(current, maybeNext.get());
+		}*//*
+
+		return current.advance().stream();*//*
+	*/}
+/*private static*/ State foldEscaped(/*State current,*/ char next) {/*
+		if (next == '\"') {
+			var current0 = current.append(next);
+			while (true) {
+				final var maybeTuple = current0.popAndAppendToTuple();
+				if (maybeTuple.isEmpty()) {
+					break;
+				}
+
+				final var tuple = maybeTuple.get();
+				current0 = tuple.right;
+
+				final var nextInQuotes = tuple.left;
+				if (nextInQuotes == '\\') {
+					current0 = current0.popAndAppendToOption().orElse(current0);
+					continue;
+				}
+
+				if (nextInQuotes == '\"') {
+					break;
+				}
+			}
+
+			return current0;
+		}
+
+		return fold(current, next);
+	}
+
+	private static State fold(State state, Character c) {
+		final var appended = state.append(c);
+		if (c == ';' && appended.isLevel()) {
+			return appended.advance();
+		} else if (c == '}' && appended.isShallow()) {
+			return appended.advance().exit();
+		}
+		if (c == '{') {
+			return appended.enter();
+		}
+		if (c == '}') {
+			return appended.exit();
+		}
+		return appended;
+	}
 
 	private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
@@ -20,7 +377,7 @@ struct Placeholder;
 		}
 
 		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
-	}*//*
+	}
 
 	private static Optional<String> compileStructure(String type, String input) {
 		final var classIndex = input.indexOf(type);
@@ -282,264 +639,7 @@ struct Placeholder;
 
 	private static String wrap(String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
-}*//*
-*/struct CPPPrimitiveType {
-/*Void("void"), Char("char");*//*
-
-		private final String content;*//*
-	*/};
-template <typename T, typename X>
-struct Err {
-/**/};
-template <typename T, typename X>
-struct Ok {
-/**/};
-struct CPointerType {
-/*
-	*/};
-struct CTemplateType {
-/*
-	*/};
-struct CIdentifier {
-/*
-	*/};
-struct Placeholder {
-/*
-	*/};
-struct Main {
-/*
-
-	private static final List<String> forwardDeclarations = new ArrayList<String>();*//*
-	private static final List<String> functions = new ArrayList<String>();*//*
-	private static final List<String> structures = new ArrayList<String>();*//*
-	private static final List<String> sealedStructures = new ArrayList<>();*//*' && appended.isShallow()) {
-			return appended.advance().exit();
-		}*//*') {
-			return appended.exit();
-		}*//*
-		return appended;*//*
-	*/};
-enum ResultTag {
-	ErrTag,
-	OkTag
-};
-template <typename T, typename X>
-union ResultData {
-	Err<T, X> err;
-	Ok<T, X> ok;
-};
-template <typename T, typename X>
-struct Result {
-	ResultTag tag;
-	ResultData data;
-/**/};
-enum CPPTypeTag {
-	CIdentifierTag,
-	CPPPrimitiveTypeTag,
-	CPointerTypeTag,
-	CTemplateTypeTag,
-	PlaceholderTag
-};
-union CPPTypeData {
-	CIdentifier cidentifier;
-	CPPPrimitiveType cppprimitivetype;
-	CPointerType cpointertype;
-	CTemplateType ctemplatetype;
-	Placeholder placeholder;
-};
-struct CPPType {
-	CPPTypeTag tag;
-	CPPTypeData data;
-/*String generate();*//*
-
-		String getSimpleName();*//*
-	*/};
-CPPType toCPPType_CPPPrimitiveType(void* _ref){
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
-	CPPTypeData data;
-	data.cppprimitivetype = _this;
-	return CPPType { CPPPrimitiveTypeTag, data };
-}
-/*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
-/*@Override
-		public*/ char* generate() {/*
-			return this.content;*//*
-		*/}
-/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.content;*//*
-		*/}
-template <typename T, typename X>
-Result<T, X> toResult_Err(void* _ref){
-	Err<T, X> _this = *((Err<T, X>*) _ref);
-	ResultData<T, X> data;
-	data.err = _this;
-	return Result<T, X> { ErrTag, data };
-}
-template <typename T, typename X>
-Result<T, X> toResult_Ok(void* _ref){
-	Ok<T, X> _this = *((Ok<T, X>*) _ref);
-	ResultData<T, X> data;
-	data.ok = _this;
-	return Result<T, X> { OkTag, data };
-}
-CPPType toCPPType_CPointerType(void* _ref){
-	CPointerType _this = *((CPointerType*) _ref);
-	CPPTypeData data;
-	data.cpointertype = _this;
-	return CPPType { CPointerTypeTag, data };
-}
-/*@Override
-		public*/ char* generate() {/*
-			return this.type.generate() + "*";*//*
-		*/}
-/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.type.getSimpleName() + "_ref";*//*
-		*/}
-CPPType toCPPType_CTemplateType(void* _ref){
-	CTemplateType _this = *((CTemplateType*) _ref);
-	CPPTypeData data;
-	data.ctemplatetype = _this;
-	return CPPType { CTemplateTypeTag, data };
-}
-/*@Override
-		public*/ char* generate() {/*
-			final var joined = String.join(", ", this.list);*//*
-			return this.base + "<" + joined + ">";*//*
-		*/}
-/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.base;*//*
-		*/}
-CPPType toCPPType_CIdentifier(void* _ref){
-	CIdentifier _this = *((CIdentifier*) _ref);
-	CPPTypeData data;
-	data.cidentifier = _this;
-	return CPPType { CIdentifierTag, data };
-}
-/*@Override
-		public*/ char* generate() {/*
-			return this.input;*//*
-		*/}
-/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.input;*//*
-		*/}
-CPPType toCPPType_Placeholder(void* _ref){
-	Placeholder _this = *((Placeholder*) _ref);
-	CPPTypeData data;
-	data.placeholder = _this;
-	return CPPType { PlaceholderTag, data };
-}
-/*@Override
-		public*/ char* generate() {/*
-			return wrap(this.input);*//*
-		*/}
-/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.generate();*//*
-		*/}
-/*public static*/ void main(char** args) {/*
-		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
-/*private static*/ Optional<IOException> run() {/*
-		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
-		final var input = readString(source);*//*
-		return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
-			case Ok<String, IOException> v -> compilePath(source, v.value);
-		}*//*;*//*
-	*/}
-/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-		final var target = source.resolveSibling("Main.cpp");*//*
-		final var output = compile(input);*//*
-		return writeString(target, output).or(() -> compileNative(target));*//*
-	*/}
-/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));*//*
-		return switch (clang) {
-			case Err<Process, IOException> v1 -> Optional.of(v1.error);
-			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
-		}*//*;*//*
-	*/}
-/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
-		return switch (waitFor(process)) {
-			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
-			case Ok<Integer, IOException> v2 -> {
-				System.out.println("Compilation failed with exit code: " + v2.value);
-				yield Optional.empty();
-			}
-		}*//*;*//*
-	*/}
-/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
-		try {
-			return new Ok<Integer, IOException>(process.waitFor());
-		}*//* catch (InterruptedException e) {
-			return new Err<Integer, IOException>(new IOException(e));
-		}*//*
-	*/}
-/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
-		try {
-			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
-		}*//* catch (IOException e) {
-			return new Err<Process, IOException>(e);
-		}*//*
-	*/}
-/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
-		try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		}*//* catch (IOException e) {
-			return Optional.of(e);
-		}*//*
-	*/}
-/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
-		try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*//* catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*//*
-	*/}
-/*private static*/ char* compile(char* input) {/*
-		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
-
-		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
-		final var joinedFunctions = String.join("", functions);*//*
-
-		final var joinedStructures = String.join("", structures);*//*
-		final var joinedSealedStructures = String.join("", sealedStructures);*//*
-
-		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedFunctions +
-					 "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() + "}*//*";*//*
-	*/}
-/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
-		return divide(new State(input)).map(mapper).collect(Collectors.joining());*//*
-	*/}
-/*private static*/ Stream<char*> divide(State state) {/*
-		var current = state;*//*
-		while (true) {
-			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) {
-				break;
-			}
-
-			final var c = maybeNext.get();
-			current = fold(current, c);
-		}*//*
-
-		return current.advance().stream();*//*
-	*/}
-/*private static*/ State fold(/*State state,*/ Character c) {/*
-		final var appended = state.append(c);*//*
-		if (c == ';*//*' && appended.isLevel()) {
-			return appended.advance();
-		}*//* else if (c == '*/}
-/*if*/(/*c*/ /*==*/ '{') {/*
-			return appended.enter();*//*
-		}
-		if (c == '*/}
 int main(){
 	return 0;
 }
