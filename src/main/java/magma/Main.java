@@ -152,12 +152,21 @@ public class Main {
 						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 					}
 
-					final var i = beforeContent.indexOf("implements");
+					final var implementsIndex = beforeContent.indexOf("implements");
 					Optional<String> maybeInterfaceType = Optional.empty();
-					if (i >= 0) {
-						final var slice = beforeContent.substring(i + "implements".length()).strip();
+					if (implementsIndex >= 0) {
+						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 						maybeInterfaceType = Optional.of(compileType(slice));
-						beforeContent = beforeContent.substring(0, i).strip();
+						beforeContent = beforeContent.substring(0, implementsIndex).strip();
+					}
+
+					if (beforeContent.endsWith(")")) {
+						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
+						final var i = slice.indexOf("(");
+						if (i >= 0) {
+							final var params = slice.substring(i + 1);
+							beforeContent = slice.substring(0, i).strip();
+						}
 					}
 
 					List<String> typeParameters = new ArrayList<String>();
@@ -207,7 +216,8 @@ public class Main {
 
 					if (maybeInterfaceType.isPresent()) {
 						final var interfaceType = maybeInterfaceType.get();
-						dependencies += interfaceType;
+						dependencies += templateString + interfaceType + " to" + interfaceType + "_" + beforeContent + "(){}" +
+														System.lineSeparator();
 					}
 
 					return Optional.of(

@@ -14,9 +14,15 @@ struct Result {
 	ResultTag tag;
 	ResultData data
 };
-/**/Result<T, X>struct Err<T, X>(X error) {
+/**/template <typename T, typename X>
+Result<T, X> toResult<T, X>_Err(){}
+template <typename T, typename X>
+struct Err {
 };
-/**/Result<T, X>struct Ok<T, X>(T value) {
+/**/template <typename T, typename X>
+Result<T, X> toResult<T, X>_Ok(){}
+template <typename T, typename X>
+struct Ok {
 };
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
@@ -108,17 +114,16 @@ struct Result {
 		}
 
 		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
-	}*/struct Index = input.indexOf(type);
-		if (classIndex >= 0) {
+	}*/struct Index = input.indexOf {
 };
-/*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get();
-						dependencies += interfaceType;
+/*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get {
+};
+/*}" +
+														System.lineSeparator();
 					}
 
 					return Optional.of(
-							dependencies + templateString + "struct " + beforeContent + " {
-};
-/*" + fields + System.lineSeparator() +
+							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
