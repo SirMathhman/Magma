@@ -1,78 +1,77 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:48:18: error: no template named 'List'
-   48 |         private final*/ List<char*> globals;
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:50:18: error: no template named 'List'
-   50 |         private final*/ List<char*> forwardDeclarations;
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:52:18: error: no template named 'List'
-   52 |         private final*/ List<char*> functions;
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:54:18: error: no template named 'List'
-   54 |         private final*/ List<char*> structures;
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:56:18: error: no template named 'List'
-   56 |         private final*/ List<char*> sealedStructures;
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:58:18: error: no template named 'Stack'
-   58 |         private final*/ Stack<char*> structureNames;/*
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:72:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
-   72 |         ResultData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:44:2: error: no template named 'List'
+   44 |         List<char*> globals;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:45:2: error: no template named 'List'
+   45 |         List<char*> forwardDeclarations;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:46:2: error: no template named 'List'
+   46 |         List<char*> functions;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:47:2: error: no template named 'List'
+   47 |         List<char*> structures;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:48:2: error: no template named 'List'
+   48 |         List<char*> sealedStructures;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:49:2: error: no template named 'Stack'
+   49 |         Stack<char*> structureNames;/*
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:63:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
+   63 |         ResultData data;
       |         ^~~~~~~~~~
       |         ResultTag
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:60:6: note: 'ResultTag' declared here
-   60 | enum ResultTag {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:51:6: note: 'ResultTag' declared here
+   51 | enum ResultTag {
       |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:95:12: error: a type specifier is required for all declarations
-   95 |                 String*/ getSimpleName();/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:86:12: error: a type specifier is required for all declarations
+   86 |                 String*/ getSimpleName();/*
       |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-   97 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   88 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-   98 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:89:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   89 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:22: error: expected unqualified-id
-  105 | /*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
-      |                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:22: error: expected ')'
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:21: note: to match this '('
-  105 | /*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
-      |                     ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:135:18: error: redefinition of 'generate'
-  135 |                 public*/ char* generate() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:107:18: note: previous definition is here
-  107 |                 public*/ char* generate() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:18: error: redefinition of 'getSimpleName'
-  139 |                 public*/ char* getSimpleName() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:111:18: note: previous definition is here
-  111 |                 public*/ char* getSimpleName() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:12: error: a type specifier is required for all declarations
-  195 |                 public*/ State(char* input) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:123:7: error: redefinition of 'generate'
+  123 | char* generate() {/*
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:7: note: previous definition is here
+   97 | char* generate() {/*
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:7: error: redefinition of 'getSimpleName'
+  126 | char* getSimpleName() {/*
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:7: note: previous definition is here
+  100 | char* getSimpleName() {/*
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:171:12: error: a type specifier is required for all declarations
+  171 |                 public*/ State(char* input) {/*
       |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:1: error: expected unqualified-id
-  257 | public App() {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:233:1: error: expected unqualified-id
+  233 | public App() {/*
       | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:265:19: error: 'main' must return 'int'
-  265 | /*public static*/ void main(char** args) {/*
-      |                   ^~~~
-      |                   int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:265:24: error: first parameter of 'main' (argument count) must be of type 'int'
-  265 | /*public static*/ void main(char** args) {/*
-      |                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:268:22: error: use of undeclared identifier 'IOException'
-  268 | /*private*/ Optional<IOException> run() {/*
-      |                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:276:22: error: use of undeclared identifier 'IOException'
-  276 | /*private*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-      |                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:281:63: error: unknown type name 'Path'
-  281 | /*private Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-      |                                                               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:241:1: error: 'main' must return 'int'
+  241 | void main(char** args) {/*
+      | ^~~~
+      | int
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:241:6: error: first parameter of 'main' (argument count) must be of type 'int'
+  241 | void main(char** args) {/*
+      |      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:244:10: error: use of undeclared identifier 'IOException'
+  244 | Optional<IOException> run() {/*
+      |          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:252:10: error: use of undeclared identifier 'IOException'
+  252 | Optional<IOException> compilePath(char* input) {/*
+      |          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:32: error: unknown type name 'Path'
+  257 | /*IOException>*/ compileNative(Path target) {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:18: error: a type specifier is required for all declarations
+  257 | /*IOException>*/ compileNative(Path target) {/*
+      |                  ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:264:10: error: use of undeclared identifier 'IOException'
+  264 | Optional<IOException> waitForProcess(Process process) {/*
+      |          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1

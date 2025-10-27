@@ -549,9 +549,14 @@ public class App {
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					final var generated =
-							this.compileDefinitionOrPlaceholder(definition) + "(" + this.compileParameters(params) + ") {" +
-							this.compileStatements(content, this::compileMethodSegment) + "}" + System.lineSeparator();
+					final var header = this
+							.compileDefinition(definition)
+							.or(() -> this.compileConstructor(definition))
+							.orElseGet(() -> Placeholder.wrap(definition));
+
+					final var generated = header + "(" + this.compileParameters(params) + ") {" +
+																this.compileStatements(content, this::compileMethodSegment) + "}" +
+																System.lineSeparator();
 
 					this.functions.add(generated);
 					return "";
@@ -570,6 +575,24 @@ public class App {
 		}
 
 		return Placeholder.wrap(input);
+	}
+
+	private Optional<String> compileConstructor(String input) {
+		final var i = input.lastIndexOf(" ");
+		if (i >= 0) {
+			final var name = input.substring(i + 1).strip();
+			if (this.isIdentifier(name)) {
+				final var structName = this.structureNames.peek();
+				return Optional.of(structName + " new_" + structName);
+			}
+		} else {
+			if (this.isIdentifier(input)) {
+				final var structName = this.structureNames.peek();
+				return Optional.of(structName + " new_" + structName);
+			}
+		}
+
+		return Optional.empty();
 	}
 
 	private Optional<String> compileEnumValues(String input) {
@@ -598,7 +621,8 @@ public class App {
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
 					final var structureName = this.structureNames.peek();
-					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" + System.lineSeparator());
+					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
+														 System.lineSeparator());
 				}
 			}
 		}
@@ -631,9 +655,8 @@ public class App {
 		final var name = input.substring(nameSeparator + 1).strip();
 		final var typeSeparator = beforeName.lastIndexOf(" ");
 		if (typeSeparator >= 0) {
-			final var beforeType = beforeName.substring(0, typeSeparator);
 			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return Optional.of(Placeholder.wrap(beforeType) + " " + this.compileType(type).generate() + " " + name);
+			return Optional.of(this.compileType(type).generate() + " " + name);
 		} else {
 			return Optional.of(this.compileType(beforeName).generate() + " " + name);
 		}
