@@ -865,9 +865,9 @@ public class App {
 
 			final String functionName = this.createName("lambda");
 
-			final String parameters;
+			final List<String> parameters;
 			if (this.isIdentifier(names)) {
-				parameters = "auto " + names;
+				parameters = List.of("auto " + names);
 			} else if (names.startsWith("(") && names.endsWith(")")) {
 				final String slice = names.substring(1, names.length() - 1);
 				parameters = this
@@ -875,17 +875,20 @@ public class App {
 						.map(String::strip)
 						.filter(segment -> !segment.isEmpty())
 						.map(segment -> "auto " + segment)
-						.collect(Collectors.joining());
+						.toList();
 			} else {
 				return Optional.empty();
 			}
 
-			this.functions.add(
-					"auto " + functionName + "(" + parameters + ") " + this.compileMethodSegment(content).orElseGet(() -> {
-						final String expression = this.compileExpression(content);
-						return "{" + this.generateStatement("return " + expression, 1) + System.lineSeparator() + "};" +
-									 System.lineSeparator();
-					}));
+			final ArrayList<String> copy = new ArrayList<String>(parameters);
+			copy.addFirst("auto _ref");
+
+			this.functions.add("auto " + functionName + "(" + String.join(", ", copy) + ") " +
+												 this.compileMethodSegment(content).orElseGet(() -> {
+													 final String expression = this.compileExpression(content);
+													 return "{" + this.generateStatement("return " + expression, 1) + System.lineSeparator() +
+																	"};" + System.lineSeparator();
+												 }));
 
 			return Optional.of(functionName);
 		}

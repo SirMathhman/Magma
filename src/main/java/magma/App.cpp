@@ -213,7 +213,7 @@ Optional<Character> pop() {
 Stream<char*> stream() {
 	return this.segments.stream();
 }
-auto _lambda1_(auto next) {
+auto _lambda1_(auto _ref, auto next) {
 		State appended = this.append(next);
 		return new_Tuple<Character, State>(next, appended);
 	}Optional<Tuple<Character, State>> popAndAppendToTuple() {
@@ -243,7 +243,7 @@ Optional<IOException> run() {
 	Result<char*, IOException> input = this.readString(source);
 	return _switch3_;
 }
-auto _lambda5_() {
+auto _lambda5_(auto _ref) {
 	return this.compileNative(target);
 };
 Optional<IOException> compilePath(char* input) {
@@ -345,7 +345,7 @@ State foldStatement(Character c) {
 		}*/
 	return appended;
 }
-auto _lambda11_() {
+auto _lambda11_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileRootSegment(char* input) {
@@ -355,22 +355,22 @@ char* compileRootSegment(char* input) {
 	}
 	return this.compileStructure("class", stripped).orElseGet(_lambda11_);
 }
-auto _lambda15_(auto slice) {
+auto _lambda15_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
-auto _lambda19_(auto slice) {
+auto _lambda19_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
-auto _lambda23_(auto slice) {
+auto _lambda23_(auto _ref, auto slice) {
 	return "typename " + slice;
 };
-auto _lambda27_(auto content1) {
+auto _lambda27_(auto _ref, auto content1) {
 	return this.generateWithIndent(content1, 1);
 };
-auto _lambda30_(auto slice) {
+auto _lambda30_(auto _ref, auto slice) {
 	return slice + "Tag";
 };
-auto _lambda34_(auto slice) {
+auto _lambda34_(auto _ref, auto slice) {
 	return System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
 Optional<char*> compileStructure(char* input) {
@@ -489,13 +489,13 @@ boolean isIdentifier(char* input) {/*
 		}*/
 	return true;
 }
-auto _lambda36_() {
+auto _lambda36_(auto _ref) {
 	return this.compileDefinitionToField(slice);
 };
-auto _lambda38_() {
+auto _lambda38_(auto _ref) {
 	return Placeholder.wrap(definition);
 };
-auto _lambda41_() {
+auto _lambda41_(auto _ref) {
 	return this.compileConstructor(definition);
 };
 char* compileClassSegment(char* input) {
@@ -548,7 +548,7 @@ char* compileClassSegment(char* input) {
 	}
 	return Placeholder.wrap(input);
 }
-auto _lambda43_(auto content) {
+auto _lambda43_(auto _ref, auto content) {
 	return this.generateStatement(content, 1);
 };
 Optional<char*> compileDefinitionToField(char* slice) {
@@ -573,7 +573,7 @@ Optional<char*> compileConstructor(char* input) {
 	}
 	return Optional.empty();
 }
-auto _lambda47_(auto slice) {
+auto _lambda47_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
 Optional<char*> compileEnumValues(char* input) {
@@ -606,7 +606,7 @@ Optional<char*> compileEnumValue(char* stripped) {
 		}*/
 	return Optional.empty();
 }
-auto _lambda49_() {
+auto _lambda49_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder(char* input) {
@@ -678,13 +678,13 @@ int findConditionEnd(char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda51_() {
+auto _lambda51_(auto _ref) {
 	return this.compileExpression(substring);
 };
-auto _lambda53_() {
+auto _lambda53_(auto _ref) {
 	return Placeholder.wrap(stripped);
 };
-auto _lambda56_() {
+auto _lambda56_(auto _ref) {
 	return this.compileDefinition(input);
 };
 char* compileMethodStatement(char* input) {
@@ -711,19 +711,19 @@ char* compileMethodStatement(char* input) {
 	}
 	return this.compileInvocation(stripped).or(_lambda56_).orElseGet(_lambda53_);
 }
-auto _lambda58_() {
+auto _lambda58_(auto _ref) {
 	return this.compileOperator(stripped, "<");
 };
-auto _lambda61_() {
+auto _lambda61_(auto _ref) {
 	return this.compileOperator(stripped, ">=");
 };
-auto _lambda64_() {
+auto _lambda64_(auto _ref) {
 	return this.compileOperator(stripped, "==");
 };
-auto _lambda67_() {
+auto _lambda67_(auto _ref) {
 	return this.compileOperator(stripped, "&&");
 };
-auto _lambda70_() {
+auto _lambda70_(auto _ref) {
 	return this.compileOperator(stripped, "-");
 };
 char* compileExpression(char* input) {
@@ -771,10 +771,10 @@ char* compileExpression(char* input) {
 	}
 	return Placeholder.wrap(stripped);
 }
-auto _lambda75_(auto segment) {
+auto _lambda75_(auto _ref, auto segment) {
 	return "auto " + segment;
 };
-auto _lambda78_(auto segment) {
+auto _lambda78_(auto _ref, auto segment) {
 	return /*!segment*/.isEmpty();
 };
 Optional<char*> compileLambda(char* stripped) {
@@ -783,21 +783,22 @@ Optional<char*> compileLambda(char* stripped) {
 		char* names = stripped.substring(0, arrowIndex).strip();
 		char* content = stripped.substring(arrowIndex + 2);
 		char* functionName = this.createName("lambda");
-		char* parameters;
+		List<char*> parameters;
 		if (this.isIdentifier(names)) {
-			parameters = "auto " + names;
+			parameters = List.of("auto " + names);
 		}else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			char* slice = names.substring(1, names.length() - 1);
-			parameters = this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda78_).map(_lambda75_).collect(Collectors.joining());
+			parameters = this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda78_).map(_lambda75_).toList();
 		}else {
 			return Optional.empty();
 		}
-		/*this.functions.add(
-					"auto "*/ + functionName + "(" + parameters + ") " + this.compileMethodSegment(content).orElseGet(/*(*/) - /*> {
-						final String expression*/ = /*this.compileExpression(content);
-						return "{"*/ + /*this.generateStatement("return "*/ + /*expression, 1)*/ + System.lineSeparator() + "};" + System.lineSeparator(/*);
-					})*/);
+		ArrayList<char*> copy = new_ArrayList<char*>(parameters);
+		copy.addFirst("auto _ref");
+		/*this.functions.add("auto "*/ + functionName + "(" + String.join(", ", copy) + ") " + this.compileMethodSegment(content).orElseGet(/*(*/) - /*> {
+													 final String expression*/ = /*this.compileExpression(content);
+													 return "{"*/ + /*this.generateStatement("return "*/ + /*expression, 1)*/ + System.lineSeparator() + "};" + System.lineSeparator(/*);
+												 })*/);
 		return Optional.of(functionName);
 	}
 	return Optional.empty();
@@ -878,16 +879,16 @@ char* compileParameters(char* input) {
 	}
 	return this.compileDefinitionOrPlaceholder(input);
 }
-auto _lambda86_() {
+auto _lambda86_(auto _ref) {
 	return Placeholder.wrap(input);
 };
 char* compileDefinitionOrPlaceholder(char* input) {
 	return this.compileDefinition(input).orElseGet(_lambda86_);
 }
-auto _lambda88_(auto cppType) {
+auto _lambda88_(auto _ref, auto cppType) {
 	return cppType.generate() + " " + name;
 };
-auto _lambda90_(auto cppType) {
+auto _lambda90_(auto _ref, auto cppType) {
 	return cppType.generate() + " " + name;
 };
 Optional<char*> compileDefinition(char* input) {
@@ -920,7 +921,7 @@ Optional<char*> compileDefinition(char* input) {
 	}
 	return this.compileType(beforeName).map(_lambda90_);
 }
-auto _lambda98_(auto slice) {
+auto _lambda98_(auto _ref, auto slice) {
 	return /*!slice*/.isEmpty();
 };
 Optional<CPPType> compileType(char* input) {
