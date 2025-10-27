@@ -5,9 +5,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -135,11 +138,32 @@ public class Main {
 			final var afterKeyword = input.substring(classIndex + type.length());
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
-				final var name = afterKeyword.substring(0, contentStart).strip();
+				final var beforeContent = afterKeyword.substring(0, contentStart).strip();
 				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 				if (withEnd.endsWith("}")) {
 					final var content = withEnd.substring(0, withEnd.length() - 1);
-					return Optional.of("struct " + name + " {};" + System.lineSeparator() +
+
+					final var permitsIndex = beforeContent.indexOf("permits");
+					var name = beforeContent;
+					List<String> variants = Collections.emptyList();
+					if (permitsIndex >= 0) {
+						name = beforeContent.substring(0, permitsIndex).strip();
+						final var variantsArray =
+								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
+						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+					}
+
+					String dependencies;
+					if (variants.isEmpty()) {
+						dependencies = "";
+					} else {
+						final var joined =
+								variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(Collectors.joining(","));
+
+						dependencies = "enum " + name + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
+					}
+
+					return Optional.of(dependencies + "struct " + name + " {};" + System.lineSeparator() +
 														 compileStatements(content, Main::compileClassSegment));
 				}
 			}

@@ -1,67 +1,63 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:15: error: use of undeclared identifier 'T'
-    2 | struct Result<T, X> permits Err, Ok {};
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:13: error: use of undeclared identifier 'T'
+    2 | enum Result<T, X>Tag {
+      |             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:6: error: expected identifier or '{'
+    2 | enum Result<T, X>Tag {
+      |      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:6:15: error: use of undeclared identifier 'T'
+    6 | struct Result<T, X> {};
       |               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:8: error: explicit specialization of undeclared template struct 'Result'
-    2 | struct Result<T, X> permits Err, Ok {};
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:6:8: error: explicit specialization of undeclared template struct 'Result'
+    6 | struct Result<T, X> {};
       |        ^     ~~~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:21: error: variable has incomplete type 'struct Result'
-    2 | struct Result<T, X> permits Err, Ok {};
-      |                     ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:8: note: forward declaration of 'Result'
-    2 | struct Result<T, X> permits Err, Ok {};
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:28: error: expected ';' after top level declarator
-    2 | struct Result<T, X> permits Err, Ok {};
-      |                            ^
-      |                            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:7:81: error: 'main' must return 'int'
-    7 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:11:81: error: 'main' must return 'int'
+   11 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
       |                                                                                        ^~~~
       |                                                                                        int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:7:86: error: first parameter of 'main' (argument count) must be of type 'int'
-    7 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:11:86: error: first parameter of 'main' (argument count) must be of type 'int'
+   11 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
       |                                                                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:50: error: a type specifier is required for all declarations
-    9 |         */}/*private static*/ /*Optional<IOException>*/ run() {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:13:50: error: a type specifier is required for all declarations
+   13 |         */}/*private static*/ /*Optional<IOException>*/ run() {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:16:50: error: a type specifier is required for all declarations
-   16 |         */}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:20:50: error: a type specifier is required for all declarations
+   20 |         */}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:20:60: error: unknown type name 'compileNative'
-   20 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:24:60: error: unknown type name 'compileNative'
+   24 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
       |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:26:5: error: expected ';' after top level declarator
-   26 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:30:5: error: expected ';' after top level declarator
+   30 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:34:57: error: unknown type name 'waitFor'
-   34 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:38:57: error: unknown type name 'waitFor'
+   38 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
       |                                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:5: error: expected ';' after top level declarator
-   40 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:44:5: error: expected ';' after top level declarator
+   44 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:50: error: a type specifier is required for all declarations
-   46 |         */}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:50:50: error: a type specifier is required for all declarations
+   50 |         */}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:53:56: error: unknown type name 'readString'
-   53 |         */}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:57:56: error: unknown type name 'readString'
+   57 |         */}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
       |                                                               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:59:5: error: expected ';' after top level declarator
-   59 |         */}/*private static*/ char* compile(char* input) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:63:5: error: expected ';' after top level declarator
+   63 |         */}/*private static*/ char* compile(char* input) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:62:95: error: unknown type name 'mapper'
-   62 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:66:95: error: unknown type name 'mapper'
+   66 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
       |                                                                                                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:97:18: error: expected unqualified-id
-   97 |         }*/struct Index = input.indexOf(type);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:101:18: error: expected unqualified-id
+  101 |         }*/struct Index = input.indexOf(type);
       |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:98:3: error: expected unqualified-id
-   98 |                 if (classIndex >= 0) {};
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:102:3: error: expected unqualified-id
+  102 |                 if (classIndex >= 0) {};
       |                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:131:76: error: expected unqualified-id
-  131 |                 final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:156:76: error: expected unqualified-id
+  156 |                 final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
       |                                                                                          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
