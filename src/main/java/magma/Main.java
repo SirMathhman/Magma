@@ -10,15 +10,21 @@ public class Main {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.cpp");
-			final var replaced = input.replace("/*", "start").replace("*/", "end");
-			Files.writeString(target,
-												"/*" + replaced + "*/" + System.lineSeparator() + "int main(){" + System.lineSeparator() +
-												"\treturn 0;" + System.lineSeparator() + "}");
+			Files.writeString(target, compile(input));
 
 			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
 		} catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String compile(String input) {
+		return wrap(input) + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
+					 System.lineSeparator() + "}";
+	}
+
+	private static String wrap(String input) {
+		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 }
