@@ -45,19 +45,19 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:102:9: error: us
   102 |         return _this.content;
       |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:7: error: redefinition of 'generate'
-  126 | char* generate() {
+  126 | char* generate(void* _ref) {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:7: note: previous definition is here
-   98 | char* generate() {
+   98 | char* generate(void* _ref) {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:127:9: error: use of undeclared identifier '_this'
   127 |         return _this.type.generate() + "*";
       |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:7: error: redefinition of 'getSimpleName'
-  129 | char* getSimpleName() {
+  129 | char* getSimpleName(void* _ref) {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:7: note: previous definition is here
-  101 | char* getSimpleName() {
+  101 | char* getSimpleName(void* _ref) {
       |       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:9: error: use of undeclared identifier '_this'
   130 |         return _this.type.getSimpleName() + "_ref";

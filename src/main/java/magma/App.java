@@ -595,15 +595,15 @@ public class App {
 						.or(() -> this.compileConstructor(definition))
 						.orElseGet(() -> Placeholder.wrap(definition));
 
-				final String s = header + "(" + this.compileParameters(params) + ")";
+				final String beforeContent = header + "(" + this.compileParameters(params) + ")";
 				final String generated;
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final String content = withBraces.substring(1, withBraces.length() - 1);
 
-					generated =
-							s + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
+					generated = beforeContent + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
+											System.lineSeparator();
 				} else {
-					generated = s + ";" + System.lineSeparator();
+					generated = beforeContent + ";" + System.lineSeparator();
 				}
 
 				this.functions.add(generated);
@@ -981,10 +981,17 @@ public class App {
 	}
 
 	private String compileParameters(String input) {
-		if (input.isEmpty()) {
-			return "";
-		}
-		return this.compileDefinitionOrPlaceholder(input);
+		final List<String> parameters = this
+				.divide(input, this::foldValue)
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.map(this::compileDefinition)
+				.flatMap(Optional::stream)
+				.toList();
+
+		final ArrayList<String> copy = new ArrayList<String>(parameters);
+		copy.addFirst("void* _ref");
+		return String.join(", ", copy);
 	}
 
 	private String compileDefinitionOrPlaceholder(String input) {
