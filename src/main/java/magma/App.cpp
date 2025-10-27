@@ -47,7 +47,7 @@ struct App {
 	List<char*> structures;
 	List<char*> sealedStructures;
 	Stack<char*> structureNames;
-	/*=*/ 1;/*
+	int depth;/*
 */};
 enum ResultTag {
 	ErrTag,
@@ -95,7 +95,7 @@ CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	return CPPType { CPPPrimitiveTypeTag, data };
 }
 CPPPrimitiveType new_CPPPrimitiveType(char* content) {
-	/*this.content = content*/;
+	this.content  = /* content*/;
 }
 char* generate() {
 	return this.content;
@@ -136,7 +136,7 @@ CPPType toCPPType_CTemplateType(void* _ref){
 	return CPPType { CTemplateTypeTag, data };
 }
 char* generate() {
-	/*final var joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "))*/;
+	/*final var joined */ = this.list.stream(/*)*/.map(/*CPPType::generate)*/.collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
 char* getSimpleName() {
@@ -172,30 +172,30 @@ char* getSimpleName() {
 /*0;
 
 		public*/ State(char* input) {
-	/*this.input = input*/;
-	/*this.buffer = new StringBuilder()*/;
-	/*this.depth = 0*/;
-	/*this.segments = new ArrayList<String>()*/;
+	this.input  = /* input*/;
+	this.buffer  = new_StringBuilder();
+	this.depth  = /* 0*/;
+	this.segments  = new_ArrayList<char*>();
 	/*}
 
 		State enter() {
-			this.depth = this.depth + 1*/;
+			this*/.depth  = this.depth + 1;
 	return this;
 	/*}
 
 		State exit() {
-			this.depth = this.depth - 1*/;
+			this*/.depth  = this.depth - 1;
 	return this;
 	/*}
 
 		State advance() {
 			this.segments.add(this.buffer.toString())*/;
-	/*this.buffer = new StringBuilder()*/;
+	this.buffer  = new_StringBuilder();
 	return this;
 	/*}
 
 		boolean isShallow() {
-			return this.depth == 1*/;
+			return this*/.depth  = /*= 1*/;
 	/*}
 
 		State append(char c) {
@@ -204,7 +204,7 @@ char* getSimpleName() {
 	/*}
 
 		boolean isLevel() {
-			return this.depth == 0*/;/*
+			return this*/.depth  = /*= 0*/;/*
 		}
 
 		public Optional<Character> pop() {
@@ -236,19 +236,20 @@ char* getSimpleName() {
 	*/
 }
 App new_App() {
-	/*this.globals = new ArrayList<String>()*/;
-	/*this.structureNames = new Stack<String>()*/;
-	/*this.functions = new ArrayList<String>()*/;
-	/*this.forwardDeclarations = new ArrayList<String>()*/;
-	/*this.structures = new ArrayList<String>()*/;
-	/*this.sealedStructures = new ArrayList<String>()*/;
+	this.globals  = new_ArrayList<char*>();
+	this.structureNames  = new_Stack<char*>();
+	this.functions  = new_ArrayList<char*>();
+	this.forwardDeclarations  = new_ArrayList<char*>();
+	this.structures  = new_ArrayList<char*>();
+	this.sealedStructures  = new_ArrayList<char*>();
+	this.depth  = /* 1*/;
 }
 void main(char** args) {
 	/*new App().run().ifPresent(Throwable::printStackTrace)*/;
 }
 Optional<IOException> run() {
-	/*final var source = Paths.get(".", "src", "main", "java", "magma", "App.java")*/;
-	/*final var input = this.readString(source)*/;/*
+	/*final var source */ = Paths.get(".", "src", "main", "java", "magma", "App.java");
+	/*final var input */ = this.readString(source);/*
 		return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> this.compilePath(source, v.value);
@@ -256,12 +257,12 @@ Optional<IOException> run() {
 	/**/;
 }
 Optional<IOException> compilePath(char* input) {
-	/*final var target = source.resolveSibling("App.cpp")*/;
-	/*final var output = this.compile(input)*/;
+	/*final var target */ = source.resolveSibling("App.cpp");
+	/*final var output */ = this.compile(input);
 	return this.writeString(/*target, output)*/.or(/*() -> this*/.compileNative(target));
 }
 /*IOException>*/ compileNative(Path target) {
-	/*final var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"))*/;/*
+	/*final var clang */ = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));/*
 		return switch (clang) {
 			case Err<Process, IOException> v1 -> Optional.of(v1.error);
 			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
@@ -308,12 +309,12 @@ Optional<IOException> writeString(char* output) {/*
 		}*/
 }
 char* compile(char* input) {
-	/*final var compiled = this.compileStatements(input, this::compileRootSegment)*/;
-	/*final var joinedForwardDeclarations = String.join("", this.forwardDeclarations)*/;
-	/*final var joinedFunctions = String.join("", this.functions)*/;
-	/*final var joinedStructures = String.join("", this.structures)*/;
-	/*final var joinedSealedStructures = String.join("", this.sealedStructures)*/;
-	/*final var joinedGlobals = String.join("", this.globals)*/;
+	/*final var compiled */ = this.compileStatements(/*input, this::compileRootSegment*/);
+	/*final var joinedForwardDeclarations */ = String.join(/*"", this*/.forwardDeclarations);
+	/*final var joinedFunctions */ = String.join(/*"", this*/.functions);
+	/*final var joinedStructures */ = String.join(/*"", this*/.structures);
+	/*final var joinedSealedStructures */ = String.join(/*"", this*/.sealedStructures);
+	/*final var joinedGlobals */ = String.join(/*"", this*/.globals);
 	return /*joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals +
 					 joinedFunctions + "int main(){" + System*/.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
 					 "}";
@@ -322,7 +323,7 @@ char* compileStatements(/*String>*/ mapper) {
 	return this.divide(new_State(/*input))*/.map(mapper).collect(Collectors.joining());
 }
 Stream<char*> divide(State state) {
-	/*var current = state*/;/*
+	/*var current */ = /* state*/;/*
 		while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -341,7 +342,7 @@ State foldEscaped(char next) {
 					.orElse(current);
 	}
 	if (/*next == '\"'*/) {
-		/*var current0 = current.append(next);
+		/*var current0 */ = current.append(next);
 			while (true) {
 				final var maybeTuple = current0.popAndAppendToTuple();
 				if (maybeTuple.isEmpty()) {
@@ -362,7 +363,7 @@ State foldEscaped(char next) {
 				}
 			}
 
-			return current0*/;
+			return current0;
 	}
 	return this.fold(/*current, next*/);
 }
@@ -373,7 +374,7 @@ State foldSingleEscapeChar(/*State>*/ tuple) {
 	return tuple.right;
 }
 State fold(Character c) {
-	/*final var appended = state.append(c)*/;
+	/*final var appended */ = state.append(c);
 	if (/*c == ';' && appended*/.isLevel()) {
 		return appended.advance();
 	}/* else if (c == '}' && appended.isShallow()) {
@@ -388,14 +389,14 @@ State fold(Character c) {
 	return appended;
 }
 char* compileRootSegment(char* input) {
-	/*final var stripped = input.strip()*/;
+	/*final var stripped */ = input.strip();
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
 	return this.compileStructure(/*"class", stripped)*/.orElseGet(/*() -> Placeholder*/.wrap(input));
 }
 Optional<char*> compileStructure(char* input) {
-	/*final var classIndex = input.indexOf(type)*/;
+	/*final var classIndex */ = input.indexOf(type);
 	if (/*classIndex >= 0*/) {/*
 			final var afterKeyword = input.substring(classIndex + type.length());
 			final var contentStart = afterKeyword.indexOf("{");
@@ -526,7 +527,7 @@ Optional<char*> compileStructure(char* input) {
 char* joinTypeArguments(List<char*> typeParameters) {
 	/*String joinedTypeArguments*/;
 	if (typeParameters.isEmpty()) {
-		/*joinedTypeArguments = ""*/;
+		/*joinedTypeArguments */ = /* ""*/;
 	}/* else {
 			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
 		}*/
@@ -542,7 +543,7 @@ char* generateIndent(int depth) {
 	return System.lineSeparator(/*) + "\t"*/.repeat(depth);
 }
 boolean isIdentifier(char* input) {
-	/*for (var i = 0*/;
+	/*for (var i */ = /* 0*/;
 	/*i < input.length()*/;/* i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
@@ -554,19 +555,19 @@ char* compileClassSegment(char* input) {
 	if (input.isEmpty()) {
 		return "";
 	}
-	/*final var maybeInterface = this.compileStructure("interface", input)*/;
+	/*final var maybeInterface */ = this.compileStructure(/*"interface", input*/);
 	if (maybeInterface.isPresent()) {
 		return maybeInterface.get();
 	}
-	/*final var maybeRecord = this.compileStructure("record", input)*/;
+	/*final var maybeRecord */ = this.compileStructure(/*"record", input*/);
 	if (maybeRecord.isPresent()) {
 		return maybeRecord.get();
 	}
-	/*final var maybeEnum = this.compileStructure("enum", input)*/;
+	/*final var maybeEnum */ = this.compileStructure(/*"enum", input*/);
 	if (maybeEnum.isPresent()) {
 		return maybeEnum.get();
 	}
-	/*final var paramStart = input.indexOf("(")*/;
+	/*final var paramStart */ = input.indexOf("(");
 	if (/*paramStart >= 0*/) {/*
 			final var definition = input.substring(0, paramStart).strip();
 			final var withParams = input.substring(paramStart + 1);
@@ -593,12 +594,11 @@ char* compileClassSegment(char* input) {
 		*/
 	}
 	if (input.endsWith(";")) {
-		/*final var slice = input.substring(0, input.length() - 1);
-			return this
-					.compileEnumValues(slice)
+		/*final var slice */ = input.substring(/*0, input*/.length(/*) - 1);
+			return this*/.compileEnumValues(slice)
 					.orElseGet(() -> this.generateStatement(this
 																											.compileDefinition(slice)
-																											.orElseGet(() -> Placeholder.wrap(slice)), 1))*/;
+																											.orElseGet(() -> Placeholder.wrap(slice)), 1));
 	}
 	return Placeholder.wrap(input);
 }
@@ -606,7 +606,7 @@ char* compileMethodStatements(char* content) {
 	return this.compileStatements(/*content, this::compileMethodSegment*/);
 }
 Optional<char*> compileConstructor(char* input) {
-	/*final var i = input.lastIndexOf(" ")*/;
+	/*final var i */ = input.lastIndexOf(" ");
 	if (/*i >= 0*/) {/*
 			final var name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
@@ -623,8 +623,7 @@ Optional<char*> compileConstructor(char* input) {
 	return Optional.empty();
 }
 Optional<char*> compileEnumValues(char* input) {
-	/*final var segments =
-				Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList()*/;/*
+	/*final var segments */ = Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();/*
 
 		for (var segment : segments) {
 			final var stripped = segment.strip();
@@ -654,18 +653,18 @@ Optional<char*> compileEnumValue(char* stripped) {
 	return Optional.empty();
 }
 char* compileMethodSegment(char* input) {
-	/*final var stripped = input.strip()*/;
+	/*final var stripped */ = input.strip();
 	if (stripped.isEmpty()) {
 		return "";
 	}
 	if (stripped.startsWith("{") && stripped.endsWith("}")) {
-		/*final var content = stripped.substring(1, stripped.length() - 1);
+		/*final var content */ = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
 			final var compiled = this.compileMethodSegment(content);
 			this.depth--;
 
-			return "{" + compiled + this.generateIndent(this.depth) + "}"*/;
+			return "{" + compiled + this.generateIndent(this.depth) + "}";
 	}
 	if (stripped.startsWith("if")) {/*
 			final var substring = stripped.substring(2).strip();
@@ -683,15 +682,15 @@ char* compileMethodSegment(char* input) {
 		*/
 	}
 	if (stripped.endsWith(";")) {
-		/*final var slice = stripped.substring(0, stripped.length() - 1);
-			return this.generateStatement(this.compileMethodStatement(slice), this.depth)*/;
+		/*final var slice */ = stripped.substring(/*0, stripped*/.length() - 1);
+			return this.generateStatement(this.compileMethodStatement(slice), this.depth);
 	}
 	return Placeholder.wrap(input);
 }
 int findConditionEnd(char* withCondition) {
-	/*int conditionEnd = -1*/;
-	/*var depth = 0*/;
-	/*for (var i = 0*/;
+	/*int conditionEnd */ = /* -1*/;
+	/*var depth */ = /* 0*/;
+	/*for (var i */ = /* 0*/;
 	/*i < withCondition.length()*/;/* i++) {
 			final var c = withCondition.charAt(i);
 			if (c == ')') {
@@ -710,8 +709,14 @@ int findConditionEnd(char* withCondition) {
 }
 char* compileMethodStatement(char* input) {
 	if (input.startsWith("return ")) {
-		/*final var slice = input.substring("return ".length()).strip();
-			return "return " + this.compileExpression(slice)*/;
+		/*final var slice */ = input.substring("return ".length()).strip();
+			return "return " + this.compileExpression(slice);
+	}
+	/*final var separator */ = input.indexOf(/*'='*/);
+	if (/*separator >= 0*/) {
+		/*final var substring */ = input.substring(/*0, separator);
+			final var substring1 = input*/.substring(separator + 1);
+			return this.compileExpression(substring) + " = " + this.compileExpression(substring1);
 	}
 	return Placeholder.wrap(input);
 }
@@ -736,11 +741,11 @@ char* compileExpression(char* input) {
 				return newCaller + "(" + this.compileExpression(arguments) + ")";
 			}
 		}*/
-	/*final var i = input.indexOf(".")*/;
+	/*final var i */ = input.indexOf(".");
 	if (/*i >= 0*/) {
-		/*final var child = input.substring(0, i).strip();
+		/*final var child */ = input.substring(0, i).strip();
 			final var name = input.substring(i + 1);
-			return this.compileExpression(child) + "." + name*/;
+			return this.compileExpression(child) + "." + name;
 	}
 	if (this.isIdentifier(input)) {
 		return input;
@@ -757,16 +762,16 @@ char* compileDefinitionOrPlaceholder(char* input) {
 	return this.compileDefinition(/*input)*/.orElseGet(/*() -> Placeholder*/.wrap(input));
 }
 Optional<char*> compileDefinition(char* input) {
-	/*final var nameSeparator = input.lastIndexOf(" ")*/;
+	/*final var nameSeparator */ = input.lastIndexOf(" ");
 	if (/*nameSeparator < 0*/) {
 		return Optional.empty();
 	}
-	/*final var beforeName = input.substring(0, nameSeparator)*/;
-	/*final var name = input.substring(nameSeparator + 1).strip()*/;
-	/*final var typeSeparator = beforeName.lastIndexOf(" ")*/;
+	/*final var beforeName */ = input.substring(/*0, nameSeparator*/);
+	/*final var name */ = input.substring(/*nameSeparator + 1)*/.strip();
+	/*final var typeSeparator */ = beforeName.lastIndexOf(" ");
 	if (/*typeSeparator >= 0*/) {
-		/*final var type = beforeName.substring(typeSeparator + 1).strip();
-			return this.compileType(type).map(cppType -> cppType.generate() + " " + name)*/;
+		/*final var type */ = beforeName.substring(/*typeSeparator + 1)*/.strip();
+			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
 	}
 	return this.compileType(/*beforeName)*/.map(cppType -> cppType.generate() + " " + name);
 }
@@ -775,8 +780,8 @@ Optional<CPPType> compileType(char* input) {
 		return Optional.of(CPPPrimitiveType.Void);
 	}
 	if (input.endsWith("[]")) {
-		/*final var slice = input.substring(0, input.length() - 2);
-			return this.compileType(slice).map(CPointerType::new)*/;
+		/*final var slice */ = input.substring(/*0, input*/.length() - 2);
+			return this.compileType(slice).map(CPointerType::new);
 	}
 	if (input.equals("String")) {
 		return Optional.of(new_CPointerType(CPPPrimitiveType.Char));

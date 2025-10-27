@@ -178,7 +178,7 @@ public class App {
 	private final List<String> structures;
 	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
-	private int depth = 1;
+	private int depth;
 
 	public App() {
 		this.globals = new ArrayList<String>();
@@ -187,6 +187,7 @@ public class App {
 		this.forwardDeclarations = new ArrayList<String>();
 		this.structures = new ArrayList<String>();
 		this.sealedStructures = new ArrayList<String>();
+		this.depth = 1;
 	}
 
 	public static void main(String[] args) {
@@ -704,6 +705,13 @@ public class App {
 		if (input.startsWith("return ")) {
 			final var slice = input.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice);
+		}
+
+		final var separator = input.indexOf('=');
+		if (separator >= 0) {
+			final var substring = input.substring(0, separator);
+			final var substring1 = input.substring(separator + 1);
+			return this.compileExpression(substring) + " = " + this.compileExpression(substring1);
 		}
 
 		return Placeholder.wrap(input);
