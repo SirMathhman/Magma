@@ -224,6 +224,11 @@ public class Main {
 			return maybeInterface.get();
 		}
 
+		final var maybeRecord = compileStructure("record ", input);
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
+		}
+
 		final var paramStart = input.indexOf("(");
 		if (paramStart >= 0) {
 			final var definition = input.substring(0, paramStart).strip();

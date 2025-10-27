@@ -4,66 +4,72 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:7:1: error: use
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:3:6: note: previous use is here
     3 | enum ResultTag {
       |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:19:81: error: 'main' must return 'int'
-   19 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
-      |                                                                                        ^~~~
-      |                                                                                        int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:19:86: error: first parameter of 'main' (argument count) must be of type 'int'
-   19 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
-      |                                                                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:21:50: error: a type specifier is required for all declarations
-   21 |         */}/*private static*/ /*Optional<IOException>*/ run() {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:41: error: expected ')'
+   15 | /**/template <typename T, typename X>(X error) implements Result<T, typename X>
+      |                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:38: note: to match this '('
+   15 | /**/template <typename T, typename X>(X error) implements Result<T, typename X>
+      |                                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:39: error: a type specifier is required for all declarations
+   15 | /**/template <typename T, typename X>(X error) implements Result<T, typename X>
+      |                                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:47: error: expected ';' after top level declarator
+   15 | /**/template <typename T, typename X>(X error) implements Result<T, typename X>
+      |                                               ^
+      |                                               ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:41: error: expected ')'
+   18 | /**/template <typename T, typename X>(T value) implements Result<T, typename X>
+      |                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:38: note: to match this '('
+   18 | /**/template <typename T, typename X>(T value) implements Result<T, typename X>
+      |                                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:39: error: a type specifier is required for all declarations
+   18 | /**/template <typename T, typename X>(T value) implements Result<T, typename X>
+      |                                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:47: error: expected ';' after top level declarator
+   18 | /**/template <typename T, typename X>(T value) implements Result<T, typename X>
+      |                                               ^
+      |                                               ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:21:23: error: 'main' must return 'int'
+   21 | /**//*public static*/ void main(char** args) {/*
+      |                       ^~~~
+      |                       int
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:21:28: error: first parameter of 'main' (argument count) must be of type 'int'
+   21 | /**//*public static*/ void main(char** args) {/*
+      |                            ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:50: error: a type specifier is required for all declarations
+   23 |         */}/*private static*/ /*Optional<IOException>*/ run() {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:28:50: error: a type specifier is required for all declarations
-   28 |         */}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:30:50: error: a type specifier is required for all declarations
+   30 |         */}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:60: error: unknown type name 'compileNative'
-   32 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:34:60: error: unknown type name 'compileNative'
+   34 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
       |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:38:5: error: expected ';' after top level declarator
-   38 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:5: error: expected ';' after top level declarator
+   40 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:57: error: unknown type name 'waitFor'
-   46 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:48:57: error: unknown type name 'waitFor'
+   48 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
       |                                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:52:5: error: expected ';' after top level declarator
-   52 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:54:5: error: expected ';' after top level declarator
+   54 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:50: error: a type specifier is required for all declarations
-   58 |         */}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:60:50: error: a type specifier is required for all declarations
+   60 |         */}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:65:56: error: unknown type name 'readString'
-   65 |         */}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:67:56: error: unknown type name 'readString'
+   67 |         */}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
       |                                                               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:71:5: error: expected ';' after top level declarator
-   71 |         */}/*private static*/ char* compile(char* input) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:73:5: error: expected ';' after top level declarator
+   73 |         */}/*private static*/ char* compile(char* input) {/*
       |            ^
       |            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:95: error: unknown type name 'mapper'
-   74 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:76:95: error: unknown type name 'mapper'
+   76 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
       |                                                                                                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:109:18: error: expected unqualified-id
-  109 |         }*/struct Index = input.indexOf(type);
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:110:3: error: expected unqualified-id
-  110 |                 if (classIndex >= 0) {
-      |                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:201:76: error: expected unqualified-id
-  201 |                 final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
-      |                                                                                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:201:76: error: expected ')'
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:201:53: note: to match this '('
-  201 |                 final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
-      |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:230:85: error: expected unqualified-id
-  230 |                 final var nameSeparator = input.lastIndexOf(" ");*//*if*/(/*nameSeparator*/ /*<*/ 0) {/*
-      |                                                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:230:85: error: expected ')'
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:230:60: note: to match this '('
-  230 |                 final var nameSeparator = input.lastIndexOf(" ");*//*if*/(/*nameSeparator*/ /*<*/ 0) {/*
-      |                                                                          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 Compilation failed with exit code: 1

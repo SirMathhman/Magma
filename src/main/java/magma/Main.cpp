@@ -12,11 +12,13 @@ template <typename T, typename X>
 struct Result {
 	ResultTag tag;
 };
-/**//*
-
-	private record Err<T, X>(X error) implements Result<T, X> {}*//*
-
-	private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+/**/template <typename T, typename X>(X error) implements Result<T, typename X>
+struct Err {
+};
+/**/template <typename T, typename X>(T value) implements Result<T, typename X>
+struct Ok {
+};
+/**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}/*private static*/ /*Optional<IOException>*/ run() {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
@@ -196,6 +198,11 @@ struct Result {
 		final var maybeInterface = compileStructure("interface", input);*//*
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
+		}*//*
+
+		final var maybeRecord = compileStructure("record ", input);*//*
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
 		}*//*
 
 		final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
