@@ -185,8 +185,8 @@ public class App {
 	private final List<String> structures;
 	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
-	private int depth;
 	private final int counter = 0;
+	private int depth;
 
 	public App() {
 		this.globals = new ArrayList<String>();
@@ -789,9 +789,9 @@ public class App {
 		final var arrowIndex = stripped.indexOf("->");
 		if (arrowIndex >= 0) {
 			final var name = stripped.substring(0, arrowIndex).strip();
-			final var substring1 = stripped.substring(arrowIndex + 2);
+			final var content = stripped.substring(arrowIndex + 2);
 
-			this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") {" + Placeholder.wrap(substring1) + "}");
+			this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") " + this.compileMethodSegment(content));
 
 			return "_lambda" + this.counter + "_";
 		}
@@ -841,7 +841,12 @@ public class App {
 
 			if (argStart >= 0) {
 				final var caller = slice.substring(0, argStart).strip();
-				final var arguments = slice.substring(argStart + 1);
+				final var arguments = divide(slice.substring(argStart + 1), this::foldValue)
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(this::compileExpression)
+						.toList();
+
 				final String newCaller;
 				if (!caller.startsWith("new ")) {
 					newCaller = this.compileExpression(caller);
@@ -850,7 +855,7 @@ public class App {
 					newCaller = "new_" + this.compileType(substring).orElseGet(() -> new Placeholder(substring)).generate();
 				}
 
-				return Optional.of(newCaller + "(" + this.compileExpression(arguments) + ")");
+				return Optional.of(newCaller + "(" + String.join(", ", arguments) + ")");
 			}
 		}
 

@@ -49,9 +49,9 @@ struct App {
 	List<char*> functions;
 	List<char*> structures;
 	List<char*> sealedStructures;
-	Stack<char*> structureNames;
-	int depth;/*
-	private final int counter = 0;*/};
+	Stack<char*> structureNames;/*
+	private final int counter = 0;*/
+	int depth;};
 enum ResultTag {
 	ErrTag,
 	OkTag
@@ -213,10 +213,10 @@ Optional<Character> pop() {
 Stream<char*> stream() {
 	return this.segments.stream();
 }
-auto _lambda0_(auto next) {/* {
-				final var appended = this.append(next);
-				return new Tuple<Character, State>(next, appended);
-			}*/}Optional<Tuple<Character, State>> popAndAppendToTuple() {
+auto _lambda0_(auto next) {
+		var appended = this.append(next);
+		return new_Tuple<Character, State>(/*next, appended*/);
+	}Optional<Tuple<Character, State>> popAndAppendToTuple() {
 	return this.pop().map(_lambda0_);
 }
 Optional<State> popAndAppendToOption() {
@@ -238,32 +238,32 @@ void main(char** args) {
 	new_/*App().run().ifPresent*/(printStackTrace_Throwable);
 }
 auto _lambda0_(auto switch (input) {
-			case Err<String, IOException> v) {/* Optional.of(v.error);
+			case Err<String, IOException> v) /* Optional.of(v.error);
 			case Ok<String, IOException> v -> this.compilePath(source, v.value);
-		}*/}Optional<IOException> run() {
+		}*/Optional<IOException> run() {
 	var source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	var input = this.readString(source);
 	return _lambda0_;
 }
-auto _lambda0_(auto ()) {/* this*/}Optional<IOException> compilePath(char* input) {
+auto _lambda0_(auto ()) /* this*/Optional<IOException> compilePath(char* input) {
 	var target = source.resolveSibling("App.cpp");
 	var output = this.compile(input);
 	return this.writeString(/*target, output*/).or(_lambda0_.compileNative(target));
 }
 auto _lambda0_(auto switch (clang) {
-			case Err<Process, IOException> v1) {/* Optional.of(v1.error);
+			case Err<Process, IOException> v1) /* Optional.of(v1.error);
 			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
-		}*/}Optional</*? extends IOException*/> compileNative(Path target) {
+		}*/Optional</*? extends IOException*/> compileNative(Path target) {
 	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 	return _lambda0_;
 }
 auto _lambda0_(auto switch (this.waitFor(process)) {
-			case Err<Integer, IOException> v2) {/* Optional.of(v2.error);
+			case Err<Integer, IOException> v2) /* Optional.of(v2.error);
 			case Ok<Integer, IOException> v2 -> {
 				System.out.println("Compilation failed with exit code: " + v2.value);
 				yield Optional.empty();
 			}
-		}*/}Optional<IOException> waitForProcess(Process process) {
+		}*/Optional<IOException> waitForProcess(Process process) {
 	return _lambda0_;
 }
 Result<Integer, IOException> waitFor(Process process) {/*
@@ -378,14 +378,14 @@ State foldStatement(Character c) {
 		}*/
 	return appended;
 }
-auto _lambda0_(auto ()) {/* Placeholder*/}char* compileRootSegment(char* input) {
+auto _lambda0_(auto ()) /* Placeholder*/char* compileRootSegment(char* input) {
 	var stripped = input.strip();
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
 	return this.compileStructure(/*"class", stripped*/).orElseGet(_lambda0_.wrap(input));
 }
-auto _lambda0_(auto slice) {/* !slice*/}auto _lambda0_(auto slice) {/* !slice*/}auto _lambda0_(auto slice) {/* "typename " + slice*/}auto _lambda0_(auto slice) {/* slice + "Tag"*/}auto _lambda0_(auto content1) {/* this*/}auto _lambda0_(auto slice) {/* System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";"*/}Optional<char*> compileStructure(char* input) {
+auto _lambda0_(auto slice) /* !slice*/auto _lambda0_(auto slice) /* !slice*/auto _lambda0_(auto slice) /* "typename " + slice*/auto _lambda0_(auto slice) /* slice + "Tag"*/auto _lambda0_(auto content1) /* this*/auto _lambda0_(auto slice) /* System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";"*/Optional<char*> compileStructure(char* input) {
 	var classIndex = input.indexOf(type);
 	if (/*classIndex >= 0*/) {
 		var afterKeyword = input.substring(classIndex + type.length());
@@ -501,7 +501,7 @@ boolean isIdentifier(char* input) {/*
 		}*/
 	return true;
 }
-auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* Placeholder*/}char* compileClassSegment(char* input) {
+auto _lambda0_(auto ()) /* this*/auto _lambda0_(auto ()) /* this*/auto _lambda0_(auto ()) /* Placeholder*/char* compileClassSegment(char* input) {
 	if (input.isBlank()) {
 		return "";
 	}
@@ -551,7 +551,7 @@ auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* this*/}auto _lamb
 	}
 	return Placeholder.wrap(input);
 }
-auto _lambda0_(auto content) {/* this*/}Optional<char*> compileDefinitionToField(char* slice) {
+auto _lambda0_(auto content) /* this*/Optional<char*> compileDefinitionToField(char* slice) {
 	return this.compileDefinition(slice).map(_lambda0_.generateStatement(/*content, 1*/));
 }
 char* compileMethodSegments(char* content) {
@@ -573,7 +573,7 @@ Optional<char*> compileConstructor(char* input) {
 	}
 	return Optional.empty();
 }
-auto _lambda0_(auto slice) {/* !slice*/}Optional<char*> compileEnumValues(char* input) {
+auto _lambda0_(auto slice) /* !slice*/Optional<char*> compileEnumValues(char* input) {
 	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda0_.isEmpty()).toList();/*
 
 		for (var segment : segments) {
@@ -658,7 +658,7 @@ int findConditionEnd(char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* Placeholder*/}char* compileMethodStatement(char* input) {
+auto _lambda0_(auto ()) /* this*/auto _lambda0_(auto ()) /* Placeholder*/char* compileMethodStatement(char* input) {
 	var stripped = input.strip();
 	if (stripped.startsWith("return ")) {
 		var slice = stripped.substring("return ".length()).strip();
@@ -676,7 +676,7 @@ auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* Placeholder*/}cha
 	}
 	return this.compileInvocation(stripped).orElseGet(_lambda0_.wrap(stripped));
 }
-auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* this*/}char* compileExpression(char* input) {
+auto _lambda0_(auto ()) /* this*/auto _lambda0_(auto ()) /* this*/auto _lambda0_(auto ()) /* this*/char* compileExpression(char* input) {
 	var stripped = input.strip();
 	if (/*stripped.startsWith("\"") && stripped*/.endsWith("\"")) {
 		return stripped;
@@ -699,8 +699,8 @@ auto _lambda0_(auto ()) {/* this*/}auto _lambda0_(auto ()) {/* this*/}auto _lamb
 	var arrowIndex = stripped.indexOf("->");
 	if (/*arrowIndex >= 0*/) {
 		var name = stripped.substring(/*0, arrowIndex*/).strip();
-		/*final var substring1*/ = stripped.substring(arrowIndex + 2);
-		this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") {" + Placeholder.wrap(substring1) + "}");
+		var content = stripped.substring(arrowIndex + 2);
+		this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") " + this.compileMethodSegment(content));
 		return "_lambda" + this.counter + "_";
 	}
 	var maybeOperator = this.compileOperator(/*stripped, "*/ + ").or(_lambda0_.compileOperator(/*stripped, "*/ - ")).or(_lambda0_.compileOperator(/*stripped, "*/ == ")).or(_lambda0_.compileOperator(/*stripped, "*/ < "));
@@ -777,10 +777,10 @@ char* compileParameters(char* input) {
 	}
 	return this.compileDefinitionOrPlaceholder(input);
 }
-auto _lambda0_(auto ()) {/* Placeholder*/}char* compileDefinitionOrPlaceholder(char* input) {
+auto _lambda0_(auto ()) /* Placeholder*/char* compileDefinitionOrPlaceholder(char* input) {
 	return this.compileDefinition(input).orElseGet(_lambda0_.wrap(input));
 }
-auto _lambda0_(auto cppType) {/* cppType.generate() + " " + name*/}auto _lambda0_(auto cppType) {/* cppType.generate() + " " + name*/}Optional<char*> compileDefinition(char* input) {
+auto _lambda0_(auto cppType) /* cppType.generate() + " " + name*/auto _lambda0_(auto cppType) /* cppType.generate() + " " + name*/Optional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return Optional.empty();
@@ -810,7 +810,7 @@ auto _lambda0_(auto cppType) {/* cppType.generate() + " " + name*/}auto _lambda0
 	}
 	return this.compileType(beforeName).map(_lambda0_);
 }
-auto _lambda0_(auto slice) {/* !slice*/}Optional<CPPType> compileType(char* input) {
+auto _lambda0_(auto slice) /* !slice*/Optional<CPPType> compileType(char* input) {
 	var stripped = input.strip();
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
