@@ -43,6 +43,10 @@ public class App {
 		String getSimpleName();
 	}
 
+	private interface CFunctionHeader {
+		String generate();
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
@@ -85,7 +89,7 @@ public class App {
 		}
 	}
 
-	private record Placeholder(String input) implements CPPType {
+	private record Placeholder(String input) implements CPPType, CFunctionHeader {
 		private static String wrap(String input) {
 			final String replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -176,6 +180,13 @@ public class App {
 
 		public char peek() {
 			return this.input.charAt(this.index);
+		}
+	}
+
+	private record CDefinition(CPPType cppType, String name) implements CFunctionHeader {
+		@Override
+		public String generate() {
+			return this.cppType().generate() + " " + this.name();
 		}
 	}
 
@@ -413,7 +424,7 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
-					List<String> recordFields = new ArrayList<>();
+					List<CDefinition> recordFields = new ArrayList<>();
 					if (beforeContent.endsWith(")")) {
 						final String slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final int i = slice.indexOf("(");
@@ -473,8 +484,11 @@ public class App {
 
 					final String fields;
 					if (variants.isEmpty()) {
-						fields =
-								recordFields.stream().map(slice -> this.generateStatement(slice, 1)).collect(Collectors.joining(""));
+						fields = recordFields
+								.stream()
+								.map(CDefinition::generate)
+								.map(slice -> this.generateStatement(slice, 1))
+								.collect(Collectors.joining(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
 										 this.generateStatement(beforeContent + "Data " + "data", 1);
@@ -599,12 +613,9 @@ public class App {
 		final String params = withParams.substring(0, paramEnd).strip();
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final String header = this
-				.compileDefinition(definition)
-				.or(() -> this.compileConstructor(definition))
-				.orElseGet(() -> Placeholder.wrap(definition));
+		final CFunctionHeader header = this.compileFunctionHeader(definition);
 
-		final String beforeContent = header + "(" + this.compileParameters(params) + ")";
+		final String beforeContent = header.generate() + "(" + this.compileParameters(params) + ")";
 		final String generated;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
@@ -621,29 +632,36 @@ public class App {
 
 		this.functions.add(generated);
 		return Optional.of("");
+	}
 
+	private CFunctionHeader compileFunctionHeader(String input) {
+		return this
+				.compileDefinition(input)
+				.<CFunctionHeader>map(item -> item)
+				.or(() -> this.compileConstructor(input))
+				.orElseGet(() -> new Placeholder(input));
 	}
 
 	private Optional<String> compileDefinitionToField(String slice) {
-		return this.compileDefinition(slice).map(content -> this.generateStatement(content, 1));
+		return this.compileDefinition(slice).map(CDefinition::generate).map(content -> this.generateStatement(content, 1));
 	}
 
 	private String compileMethodSegments(String content) {
 		return this.compileStatements(content, this::compileMethodSegmentOrPlaceholder);
 	}
 
-	private Optional<String> compileConstructor(String input) {
+	private Optional<CFunctionHeader> compileConstructor(String input) {
 		final int i = input.lastIndexOf(" ");
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
 				final String structName = this.structureNames.peek();
-				return Optional.of(structName + " new_" + structName);
+				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
 				final String structName = this.structureNames.peek();
-				return Optional.of(structName + " new_" + structName);
+				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		}
 
@@ -780,7 +798,10 @@ public class App {
 		if (separator >= 0) {
 			final String substring = stripped.substring(0, separator).strip();
 			final String substring1 = stripped.substring(separator + 1).strip();
-			final String s = this.compileDefinition(substring).orElseGet(() -> this.compileExpression(substring));
+			final String s = this
+					.compileDefinition(substring)
+					.map(CDefinition::generate)
+					.orElseGet(() -> this.compileExpression(substring));
 
 			return s + " = " + this.compileExpression(substring1);
 		}
@@ -799,7 +820,7 @@ public class App {
 
 		return this
 				.compileInvocation(stripped)
-				.or(() -> this.compileDefinition(input))
+				.or(() -> this.compileDefinition(input).map(CDefinition::generate))
 				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
@@ -991,13 +1012,14 @@ public class App {
 	}
 
 	private String compileParameters(String input) {
-		final List<String> parameters = this.compileParametersToList(input);
-		final ArrayList<String> copy = new ArrayList<String>(parameters);
-		copy.addFirst("void* _ref");
-		return String.join(", ", copy);
+		final List<CDefinition> parameters = this.compileParametersToList(input);
+		final ArrayList<CDefinition> copy = new ArrayList<CDefinition>(parameters);
+		copy.addFirst(new CDefinition(new CPointerType(CPPPrimitiveType.Void), "_ref"));
+
+		return copy.stream().map(CDefinition::generate).collect(Collectors.joining(", "));
 	}
 
-	private List<String> compileParametersToList(String input) {
+	private List<CDefinition> compileParametersToList(String input) {
 		return this
 				.divide(input, this::foldValue)
 				.map(String::strip)
@@ -1007,11 +1029,7 @@ public class App {
 				.toList();
 	}
 
-	private String compileDefinitionOrPlaceholder(String input) {
-		return this.compileDefinition(input).orElseGet(() -> Placeholder.wrap(input));
-	}
-
-	private Optional<String> compileDefinition(String input) {
+	private Optional<CDefinition> compileDefinition(String input) {
 		final int nameSeparator = input.lastIndexOf(" ");
 		if (nameSeparator < 0) {
 			return Optional.empty();
@@ -1040,10 +1058,10 @@ public class App {
 
 		if (typeSeparator >= 0) {
 			final String type = beforeName.substring(typeSeparator + 1).strip();
-			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
+			return this.compileType(type).map(cppType -> new CDefinition(cppType, name));
 		}
 
-		return this.compileType(beforeName).map(cppType -> cppType.generate() + " " + name);
+		return this.compileType(beforeName).map(cppType -> new CDefinition(cppType, name));
 	}
 
 	private Optional<CPPType> compileType(String input) {
