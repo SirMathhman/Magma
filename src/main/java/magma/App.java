@@ -824,6 +824,9 @@ public class App {
 		}
 
 		if (this.isIdentifier(stripped)) {
+			if (stripped.equals("this")) {
+				return "_this";
+			}
 			return stripped;
 		}
 
@@ -886,8 +889,9 @@ public class App {
 			this.functions.add("auto " + functionName + "(" + String.join(", ", copy) + ") " +
 												 this.compileMethodSegment(content).orElseGet(() -> {
 													 final String expression = this.compileExpression(content);
-													 return "{" + this.generateStatement("return " + expression, 1) + System.lineSeparator() +
-																	"};" + System.lineSeparator();
+													 return "{" + this.generateStatement("auto _this = _ref", 1) +
+																	this.generateStatement("return " + expression, 1) + System.lineSeparator() + "};" +
+																	System.lineSeparator();
 												 }));
 
 			return Optional.of(functionName);

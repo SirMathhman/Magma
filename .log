@@ -35,14 +35,14 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:87:49: warning: 
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
    88 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:96:2: error: invalid use of 'this' outside of a non-static member function
-   96 |         this.content = content;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:96:2: error: use of undeclared identifier '_this'
+   96 |         _this.content = content;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:9: error: invalid use of 'this' outside of a non-static member function
-   99 |         return this.content;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:9: error: use of undeclared identifier '_this'
+   99 |         return _this.content;
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:102:9: error: invalid use of 'this' outside of a non-static member function
-  102 |         return this.content;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:102:9: error: use of undeclared identifier '_this'
+  102 |         return _this.content;
       |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:7: error: redefinition of 'generate'
   126 | char* generate() {
@@ -50,8 +50,8 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:7: error: re
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:7: note: previous definition is here
    98 | char* generate() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:127:9: error: invalid use of 'this' outside of a non-static member function
-  127 |         return this.type.generate() + "*";
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:127:9: error: use of undeclared identifier '_this'
+  127 |         return _this.type.generate() + "*";
       |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:7: error: redefinition of 'getSimpleName'
   129 | char* getSimpleName() {
@@ -59,18 +59,18 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:7: error: re
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:7: note: previous definition is here
   101 | char* getSimpleName() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:9: error: invalid use of 'this' outside of a non-static member function
-  130 |         return this.type.getSimpleName() + "_ref";
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:9: error: use of undeclared identifier '_this'
+  130 |         return _this.type.getSimpleName() + "_ref";
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:17: error: invalid use of 'this' outside of a non-static member function
-  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:17: error: use of undeclared identifier '_this'
+  139 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:40: error: use of undeclared identifier 'generate_CPPType'
-  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                                               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:66: error: use of undeclared identifier 'Collectors'
-  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                                                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:41: error: use of undeclared identifier 'generate_CPPType'
+  139 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:67: error: use of undeclared identifier 'Collectors'
+  139 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                                                          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1
