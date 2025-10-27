@@ -726,10 +726,24 @@ public class App {
 
 		if (input.endsWith(")")) {
 			final var slice = input.substring(0, input.length() - 1);
-			final var i = slice.indexOf("(");
-			if (i >= 0) {
-				final var caller = slice.substring(0, i).strip();
-				final var arguments = slice.substring(i + 1);
+			int argStart = -1;
+			var depth = 0;
+			for (int i = 0; i < slice.length(); i++) {
+				final var next = slice.charAt(i);
+				if (next == '(') {
+					depth++;
+					if (depth == 0) {
+						argStart = i;
+					}
+				}
+				if (next == ')') {
+					depth--;
+				}
+			}
+
+			if (argStart >= 0) {
+				final var caller = slice.substring(0, argStart).strip();
+				final var arguments = slice.substring(argStart + 1);
 				final String newCaller;
 				if (!caller.startsWith("new ")) {
 					newCaller = this.compileExpression(caller);
@@ -745,8 +759,10 @@ public class App {
 		final var i = input.indexOf(".");
 		if (i >= 0) {
 			final var child = input.substring(0, i).strip();
-			final var name = input.substring(i + 1);
-			return this.compileExpression(child) + "." + name;
+			final var name = input.substring(i + 1).strip();
+			if (isIdentifier(name)) {
+				return this.compileExpression(child) + "." + name;
+			}
 		}
 
 		if (this.isIdentifier(input)) {
