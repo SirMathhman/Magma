@@ -12,12 +12,6 @@ struct CTemplateType;
 struct CIdentifier;
 struct Placeholder;
 struct Main {
-CPPType toCPPType_CPPPrimitiveType(void* _ref){
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
-	CPPTypeData data;
-	data.cppprimitivetype = _this;
-	return CPPType { CPPPrimitiveTypeTag, data };
-}
 struct CPPPrimitiveType {
 /*Void("void"), Char("char");*//*
 
@@ -59,58 +53,20 @@ struct CPPType {
 		String getSimpleName();*//*
 	*/};
 template <typename T, typename X>
-Result<T, X> toResult_Err(void* _ref){
-	Err<T, X> _this = *((Err<T, X>*) _ref);
-	ResultData<T, X> data;
-	data.err = _this;
-	return Result<T, X> { ErrTag, data };
-}
-template <typename T, typename X>
 struct Err {
 /**/};
 template <typename T, typename X>
-Result<T, X> toResult_Ok(void* _ref){
-	Ok<T, X> _this = *((Ok<T, X>*) _ref);
-	ResultData<T, X> data;
-	data.ok = _this;
-	return Result<T, X> { OkTag, data };
-}
-template <typename T, typename X>
 struct Ok {
 /**/};
-CPPType toCPPType_CPointerType(void* _ref){
-	CPointerType _this = *((CPointerType*) _ref);
-	CPPTypeData data;
-	data.cpointertype = _this;
-	return CPPType { CPointerTypeTag, data };
-}
 struct CPointerType {
 /*
 	*/};
-CPPType toCPPType_CTemplateType(void* _ref){
-	CTemplateType _this = *((CTemplateType*) _ref);
-	CPPTypeData data;
-	data.ctemplatetype = _this;
-	return CPPType { CTemplateTypeTag, data };
-}
 struct CTemplateType {
 /*
 	*/};
-CPPType toCPPType_CIdentifier(void* _ref){
-	CIdentifier _this = *((CIdentifier*) _ref);
-	CPPTypeData data;
-	data.cidentifier = _this;
-	return CPPType { CIdentifierTag, data };
-}
 struct CIdentifier {
 /*
 	*/};
-CPPType toCPPType_Placeholder(void* _ref){
-	Placeholder _this = *((Placeholder*) _ref);
-	CPPTypeData data;
-	data.placeholder = _this;
-	return CPPType { PlaceholderTag, data };
-}
 struct Placeholder {
 /*
 	*/};
@@ -228,13 +184,13 @@ struct Placeholder {
 						final var joinedTypeArguments = joinTypeArguments(typeParameters);
 
 						final var thisType = beforeContent + joinedTypeArguments;
-						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
-														beforeContent + "(void* _ref" + "){" +
-														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
-														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
+						functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
+													beforeContent + "(void* _ref" + "){" +
+													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+													generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
+													generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
 								"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }") +
-														System.lineSeparator() + "}" + System.lineSeparator();
+													System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
@@ -389,7 +345,13 @@ struct Placeholder {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
 }*//*
-*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+*/CPPType toCPPType_CPPPrimitiveType(void* _ref){
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+	CPPTypeData data;
+	data.cppprimitivetype = _this;
+	return CPPType { CPPPrimitiveTypeTag, data };
+}
+/*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
 /*@Override
 		public*/ char* generate() {/*
 			return this.content;*//*
@@ -398,6 +360,26 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.content;*//*
 		*/}
+template <typename T, typename X>
+Result<T, X> toResult_Err(void* _ref){
+	Err<T, X> _this = *((Err<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.err = _this;
+	return Result<T, X> { ErrTag, data };
+}
+template <typename T, typename X>
+Result<T, X> toResult_Ok(void* _ref){
+	Ok<T, X> _this = *((Ok<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.ok = _this;
+	return Result<T, X> { OkTag, data };
+}
+CPPType toCPPType_CPointerType(void* _ref){
+	CPointerType _this = *((CPointerType*) _ref);
+	CPPTypeData data;
+	data.cpointertype = _this;
+	return CPPType { CPointerTypeTag, data };
+}
 /*@Override
 		public*/ char* generate() {/*
 			return this.type.generate() + "*";*//*
@@ -406,6 +388,12 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.type.getSimpleName() + "_ref";*//*
 		*/}
+CPPType toCPPType_CTemplateType(void* _ref){
+	CTemplateType _this = *((CTemplateType*) _ref);
+	CPPTypeData data;
+	data.ctemplatetype = _this;
+	return CPPType { CTemplateTypeTag, data };
+}
 /*@Override
 		public*/ char* generate() {/*
 			final var joined = String.join(", ", this.list);*//*
@@ -415,6 +403,12 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.base;*//*
 		*/}
+CPPType toCPPType_CIdentifier(void* _ref){
+	CIdentifier _this = *((CIdentifier*) _ref);
+	CPPTypeData data;
+	data.cidentifier = _this;
+	return CPPType { CIdentifierTag, data };
+}
 /*@Override
 		public*/ char* generate() {/*
 			return this.input;*//*
@@ -423,6 +417,12 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.input;*//*
 		*/}
+CPPType toCPPType_Placeholder(void* _ref){
+	Placeholder _this = *((Placeholder*) _ref);
+	CPPTypeData data;
+	data.placeholder = _this;
+	return CPPType { PlaceholderTag, data };
+}
 /*@Override
 		public*/ char* generate() {/*
 			return wrap(this.input);*//*
@@ -498,8 +498,8 @@ struct Placeholder {
 		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
 		final var joinedFunctions = String.join("", functions);*//*
 
-		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
-					 System.lineSeparator() + "}*//*";*//*
+		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() +
+					 "\treturn " + "0;" + System.lineSeparator() + "}*//*";*//*
 	*/}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*

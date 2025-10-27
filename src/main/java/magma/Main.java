@@ -172,8 +172,8 @@ public class Main {
 		final var joinedForwardDeclarations = String.join("", forwardDeclarations);
 		final var joinedFunctions = String.join("", functions);
 
-		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
-					 System.lineSeparator() + "}";
+		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() +
+					 "\treturn " + "0;" + System.lineSeparator() + "}";
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
@@ -308,13 +308,13 @@ public class Main {
 						final var joinedTypeArguments = joinTypeArguments(typeParameters);
 
 						final var thisType = beforeContent + joinedTypeArguments;
-						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
-														beforeContent + "(void* _ref" + "){" +
-														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
-														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
+						functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
+													beforeContent + "(void* _ref" + "){" +
+													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+													generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
+													generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
 								"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }") +
-														System.lineSeparator() + "}" + System.lineSeparator();
+													System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
