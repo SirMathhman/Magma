@@ -632,7 +632,21 @@ public class App {
 	}
 
 	private String compileMethodSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
+		if (stripped.endsWith(";")) {
+			final var slice = stripped.substring(0, stripped.length() - 1);
+			return this.generateStatement(this.compileMethodStatement(slice));
+		}
+
 		return Placeholder.wrap(input);
+	}
+
+	private String compileMethodStatement(String slice) {
+		return Placeholder.wrap(slice);
 	}
 
 	private String compileParameters(String input) {
