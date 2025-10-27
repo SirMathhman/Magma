@@ -1,4 +1,5 @@
 struct Main;
+struct CPPPrimitiveType;
 template <typename T, typename X>
 struct Result;
 struct CPPType;
@@ -12,7 +13,24 @@ struct CIdentifier;
 struct Placeholder;
 struct Main {
 };
-enum ResultTag {
+CPPType toCPPType_CPPPrimitiveType(void* _ref){
+	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+	CPPTypeData data;
+	data.cppprimitivetype = _this;
+	return CPPType { CPPPrimitiveTypeTag, data };
+}
+struct CPPPrimitiveType {
+};
+/*Void("void"), Char("char");*//*
+
+		private final String content;*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}/*@Override
+		public*/ char* generate() {/*
+			return this.content;*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.content;*//*
+		*/}/*
+	*/enum ResultTag {
 	ErrTag,
 	OkTag
 };
@@ -52,7 +70,7 @@ Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.err = _this;
-	return Result<T, X> { Err, data };
+	return Result<T, X> { ErrTag, data };
 }
 template <typename T, typename X>
 struct Err {
@@ -62,7 +80,7 @@ Result<T, X> toResult_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.ok = _this;
-	return Result<T, X> { Ok, data };
+	return Result<T, X> { OkTag, data };
 }
 template <typename T, typename X>
 struct Ok {
@@ -71,7 +89,7 @@ struct Ok {
 	CPointerType _this = *((CPointerType*) _ref);
 	CPPTypeData data;
 	data.cpointertype = _this;
-	return CPPType { CPointerType, data };
+	return CPPType { CPointerTypeTag, data };
 }
 struct CPointerType {
 };
@@ -86,7 +104,7 @@ struct CPointerType {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CPPTypeData data;
 	data.ctemplatetype = _this;
-	return CPPType { CTemplateType, data };
+	return CPPType { CTemplateTypeTag, data };
 }
 struct CTemplateType {
 };
@@ -102,7 +120,7 @@ struct CTemplateType {
 	CIdentifier _this = *((CIdentifier*) _ref);
 	CPPTypeData data;
 	data.cidentifier = _this;
-	return CPPType { CIdentifier, data };
+	return CPPType { CIdentifierTag, data };
 }
 struct CIdentifier {
 };
@@ -117,7 +135,7 @@ struct CIdentifier {
 	Placeholder _this = *((Placeholder*) _ref);
 	CPPTypeData data;
 	data.placeholder = _this;
-	return CPPType { Placeholder, data };
+	return CPPType { PlaceholderTag, data };
 }
 struct Placeholder {
 };
@@ -129,7 +147,6 @@ struct Placeholder {
 			return this.generate();*//*
 		*/}/*
 	*//*
-
 	private static final List<String> forwardDeclarations = new ArrayList<>();*//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}/*private static*/ Optional<IOException> run() {/*
@@ -325,7 +342,7 @@ struct Placeholder {
 														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
 														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
 														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
-								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
+								"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
@@ -375,9 +392,14 @@ struct Placeholder {
 			return maybeInterface.get();
 		}
 
-		final var maybeRecord = compileStructure("record ", input);
+		final var maybeRecord = compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
+		}
+
+		final var maybeEnum = compileStructure("enum", input);
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
 		}
 
 		final var paramStart = input.indexOf("(");
@@ -469,24 +491,6 @@ struct Placeholder {
 
 	private static String wrap(String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
-	}
-
-	private enum CPPPrimitiveType implements CPPType {
-		Void("void"), Char("char");
-
-		private final String content;
-
-		CPPPrimitiveType(String content) {this.content = content;}
-
-		@Override
-		public String generate() {
-			return this.content;
-		}
-
-		@Override
-		public String getSimpleName() {
-			return this.content;
-		}
 	}
 }*//*
 */int main(){

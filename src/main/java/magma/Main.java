@@ -14,6 +14,24 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
+	private enum CPPPrimitiveType implements CPPType {
+		Void("void"), Char("char");
+
+		private final String content;
+
+		CPPPrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.content;
+		}
+	}
+
 	private sealed interface Result<T, X> permits Err, Ok {}
 
 	private sealed interface CPPType permits CIdentifier, CPPPrimitiveType, CPointerType, CTemplateType, Placeholder {
@@ -74,7 +92,6 @@ public class Main {
 			return this.generate();
 		}
 	}
-
 	private static final List<String> forwardDeclarations = new ArrayList<>();
 
 	public static void main(String[] args) {
@@ -292,7 +309,7 @@ public class Main {
 														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
 														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
 														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
-								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
+								"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
@@ -342,9 +359,14 @@ public class Main {
 			return maybeInterface.get();
 		}
 
-		final var maybeRecord = compileStructure("record ", input);
+		final var maybeRecord = compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
+		}
+
+		final var maybeEnum = compileStructure("enum", input);
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
 		}
 
 		final var paramStart = input.indexOf("(");
@@ -436,23 +458,5 @@ public class Main {
 
 	private static String wrap(String input) {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
-	}
-
-	private enum CPPPrimitiveType implements CPPType {
-		Void("void"), Char("char");
-
-		private final String content;
-
-		CPPPrimitiveType(String content) {this.content = content;}
-
-		@Override
-		public String generate() {
-			return this.content;
-		}
-
-		@Override
-		public String getSimpleName() {
-			return this.content;
-		}
 	}
 }
