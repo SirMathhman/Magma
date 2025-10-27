@@ -127,7 +127,7 @@ CPPType toCPPType_CTemplateType(void* _ref){
 	return CPPType { CTemplateTypeTag, data };
 }
 char* generate() {
-	var joined = this.list.stream().map(/*CPPType::generate*/).collect(Collectors.joining(", "));
+	var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
 char* getSimpleName() {
@@ -292,7 +292,7 @@ Optional<IOException> writeString(char* output) {/*
 		}*/
 }
 char* compile(char* input) {
-	var compiled = this.compileStatements(/*input, this::compileRootSegment*/);
+	var compiled = this.compileStatements(compileRootSegment_/*input, this*/);
 	var joinedForwardDeclarations = String.join(/*"", this*/.forwardDeclarations);
 	var joinedFunctions = String.join(/*"", this*/.functions);
 	var joinedStructures = String.join(/*"", this*/.structures);
@@ -318,7 +318,7 @@ Stream<char*> divide(State state) {
 }
 State foldEscaped(char next) {
 	if (/*next == '\''*/) {
-		return current.append(next).popAndAppendToTuple().map(/*this::foldSingleEscapeChar*/).flatMap(/*State::popAndAppendToOption*/).orElse(current);
+		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
 	if (/*next == '\"'*/) {
 		var current0 = /*current.append(next);
@@ -581,7 +581,7 @@ char* compileClassSegment(char* input) {
 	return Placeholder.wrap(input);
 }
 char* compileMethodStatements(char* content) {
-	return this.compileStatements(/*content, this::compileMethodSegment*/);
+	return this.compileStatements(compileMethodSegment_/*content, this*/);
 }
 Optional<char*> compileConstructor(char* input) {
 	var i = input.lastIndexOf(" ");
@@ -601,7 +601,7 @@ Optional<char*> compileConstructor(char* input) {
 	return Optional.empty();
 }
 Optional<char*> compileEnumValues(char* input) {
-	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(/*String::strip*/).filter(/*slice -> !slice*/.isEmpty()).toList();/*
+	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(/*slice -> !slice*/.isEmpty()).toList();/*
 
 		for (var segment : segments) {
 			final var stripped = segment.strip();
@@ -755,6 +755,12 @@ char* compileExpression(char* input) {
 			final var substring1 = stripped.substring(i1*/ + " + ".length(/*));
 			return this.compileExpression(substring*/) + " + " + this.compileExpression(/*substring1*/);
 	}
+	var i2 = stripped.lastIndexOf("::");
+	if (/*i2 >= 0*/) {
+		var substring = /*stripped.substring(0, i2);
+			final var substring1 = stripped.substring(i2*/ + /*2);
+			return substring1*/ + "_" + compileType(substring).map(generate_CPPType).orElse("?");
+	}
 	return Placeholder.wrap(stripped);
 }
 char* compileParameters(char* input) {
@@ -787,7 +793,7 @@ Optional<CPPType> compileType(char* input) {
 	}
 	if (stripped.endsWith("[]")) {
 		var slice = /*stripped.substring(0, stripped.length() - 2);
-			return this*/.compileType(slice).map(/*CPointerType::new*/);
+			return this*/.compileType(slice).map(new_CPointerType);
 	}
 	if (stripped.equals("String")) {
 		return Optional.of(new_CPointerType(CPPPrimitiveType.Char));

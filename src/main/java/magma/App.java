@@ -779,6 +779,13 @@ public class App {
 			return this.compileExpression(substring) + " + " + this.compileExpression(substring1);
 		}
 
+		final var i2 = stripped.lastIndexOf("::");
+		if(i2 >= 0) {
+			final var substring = stripped.substring(0, i2);
+			final var substring1 = stripped.substring(i2 + 2);
+			return substring1 + "_" + compileType(substring).map(CPPType::generate).orElse("?");
+		}
+
 		return Placeholder.wrap(stripped);
 	}
 

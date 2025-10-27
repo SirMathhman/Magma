@@ -57,19 +57,19 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:121:9: error: in
   121 |         return this.type.getSimpleName() + "_ref";
       |                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:2: error: unknown type name 'var'
-  130 |         var joined = this.list.stream().map(/*CPPType::generate*/).collect(Collectors.joining(", "));
+  130 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:15: error: invalid use of 'this' outside of a non-static member function
-  130 |         var joined = this.list.stream().map(/*CPPType::generate*/).collect(Collectors.joining(", "));
+  130 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:69: error: use of undeclared identifier 'Collectors'
-  130 |         var joined = this.list.stream().map(/*CPPType::generate*/).collect(Collectors.joining(", "));
-      |                                                                            ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:38: error: use of undeclared identifier 'generate_CPPType'
+  130 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:64: error: use of undeclared identifier 'Collectors'
+  130 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                                                       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:131:9: error: invalid use of 'this' outside of a non-static member function
   131 |         return this.base + "<" + joined + ">";
-      |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:134:9: error: invalid use of 'this' outside of a non-static member function
-  134 |         return this.base;
       |                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
