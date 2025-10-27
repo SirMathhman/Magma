@@ -1,0 +1,76 @@
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:41:2: error: no template named 'ArrayList'
+   41 |         ArrayList<char*> segments;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:42:2: error: unknown type name 'StringBuilder'
+   42 |         StringBuilder buffer;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:47:2: error: no template named 'List'
+   47 |         List<char*> globals;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:48:2: error: no template named 'List'
+   48 |         List<char*> forwardDeclarations;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:49:2: error: no template named 'List'
+   49 |         List<char*> functions;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:50:2: error: no template named 'List'
+   50 |         List<char*> structures;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:51:2: error: no template named 'List'
+   51 |         List<char*> sealedStructures;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:52:2: error: no template named 'Stack'
+   52 |         Stack<char*> structureNames;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:66:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
+   66 |         ResultData data;
+      |         ^~~~~~~~~~
+      |         ResultTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:54:6: note: 'ResultTag' declared here
+   54 | enum ResultTag {
+      |      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:86:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   86 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+      |                                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:87:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   87 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+      |                                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:95:2: error: invalid use of 'this' outside of a non-static member function
+   95 |         this.content = content;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:9: error: invalid use of 'this' outside of a non-static member function
+   98 |         return this.content;
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:9: error: invalid use of 'this' outside of a non-static member function
+  101 |         return this.content;
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:125:7: error: redefinition of 'generate'
+  125 | char* generate() {
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:7: note: previous definition is here
+   97 | char* generate() {
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:9: error: invalid use of 'this' outside of a non-static member function
+  126 |         return this.type.generate() + "*";
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:128:7: error: redefinition of 'getSimpleName'
+  128 | char* getSimpleName() {
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:7: note: previous definition is here
+  100 | char* getSimpleName() {
+      |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:9: error: invalid use of 'this' outside of a non-static member function
+  129 |         return this.type.getSimpleName() + "_ref";
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:138:2: error: unknown type name 'var'
+  138 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:138:15: error: invalid use of 'this' outside of a non-static member function
+  138 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:138:38: error: use of undeclared identifier 'generate_CPPType'
+  138 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                             ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+2 warnings and 20 errors generated.
+Compilation failed with exit code: 1

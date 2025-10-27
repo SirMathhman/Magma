@@ -200,11 +200,11 @@ boolean isLevel() {
 	return this.depth == 0;
 }
 Optional<Character> pop() {
-	if (/*this.index < this*/.input.length()) {
-		var counter = /*this.index;
-				this*/.index +  + /*;
-				final var element = this.input.charAt(counter);
-				return Optional*/.of(element);
+	if (this.index < this.input.length()) {
+		var counter = this.index;
+		/*this.index++*/;
+		var element = this.input.charAt(counter);
+		return Optional.of(element);
 	}/* else {
 				return Optional.empty();
 			}*/
@@ -325,7 +325,7 @@ State foldEscaped(char next) {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
 	if (next == /*'\"'*/) {
-		/*var current0*/ = /*current.append(next);
+		/*var current0*/ = current.append(next);/*
 			while (true) {
 				final var maybeTuple = current0.popAndAppendToTuple();
 				if (maybeTuple.isEmpty()) {
@@ -336,17 +336,16 @@ State foldEscaped(char next) {
 				current0 = tuple.right;
 
 				final var nextInQuotes = tuple.left;
-				if (nextInQuotes*/ == /*'\\') {
+				if (nextInQuotes == '\\') {
 					current0 = current0.popAndAppendToOption().orElse(current0);
 					continue;
 				}
 
-				if (nextInQuotes*/ == /*'\"') {
+				if (nextInQuotes == '\"') {
 					break;
 				}
-			}
-
-			return current0*/;
+			}*/
+		return /*current0*/;
 	}
 	return this.fold(/*current, next*/);
 }
@@ -380,70 +379,61 @@ char* compileRootSegment(char* input) {
 }
 Optional<char*> compileStructure(char* input) {
 	var classIndex = input.indexOf(type);
-	if (/*classIndex >= 0*/) {/*
-			final var afterKeyword = input.substring(classIndex + type.length());
-			final var contentStart = afterKeyword.indexOf("{");
-			if (contentStart >= 0) {
-				var beforeContent = afterKeyword.substring(0, contentStart).strip();
-				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var content = withEnd.substring(0, withEnd.length() - 1);
-
-					final var permitsIndex = beforeContent.indexOf("permits");
-					List<String> variants = Collections.emptyList();
-					if (permitsIndex >= 0) {
-						final var variantsArray =
-								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
-						beforeContent = beforeContent.substring(0, permitsIndex).strip();
-						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-					}
-
-					final var implementsIndex = beforeContent.indexOf("implements");
-					Optional<CPPType> maybeInterfaceType = Optional.empty();
-					if (implementsIndex >= 0) {
-						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
-						maybeInterfaceType = this.compileType(slice);
-						beforeContent = beforeContent.substring(0, implementsIndex).strip();
-					}
-
-					if (beforeContent.endsWith(")")) {
+	if (/*classIndex >= 0*/) {
+		var afterKeyword = input.substring(classIndex + type.length());
+		var contentStart = afterKeyword.indexOf("{");
+		if (/*contentStart >= 0*/) {
+			var beforeContent = afterKeyword.substring(/*0, contentStart*/).strip();
+			var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+			if (withEnd.endsWith("}")) {
+				var content = withEnd.substring(/*0, withEnd*/.length() - 1);
+				var permitsIndex = beforeContent.indexOf("permits");
+				List<char*> variants = Collections.emptyList();
+				if (/*permitsIndex >= 0*/) {
+					var variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
+					beforeContent = beforeContent.substring(/*0, permitsIndex*/).strip();
+					variants = Arrays.stream(variantsArray).map(strip_char*).filter(slice - /*> !slice*/.isEmpty()).toList();
+				}
+				var implementsIndex = beforeContent.indexOf("implements");
+				Optional<CPPType> maybeInterfaceType = Optional.empty();
+				if (/*implementsIndex >= 0*/) {
+					var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
+					maybeInterfaceType = this.compileType(slice);
+					beforeContent = beforeContent.substring(/*0, implementsIndex*/).strip();
+				}
+				if (/*beforeContent.endsWith(")"*/) /*) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i = slice.indexOf("(");
 						if (i >= 0) {
 							final var params = slice.substring(i + 1);
 							beforeContent = slice.substring(0, i).strip();
 						}
+					}*/
+				List<char*> typeParameters = new_ArrayList<char*>();
+				if (beforeContent.endsWith(">")) {
+					var withoutEnd = beforeContent.substring(/*0, beforeContent*/.length() - 1);
+					var typeParamStart = withoutEnd.indexOf("<");
+					if (/*typeParamStart >= 0*/) {
+						beforeContent = withoutEnd.substring(/*0, typeParamStart*/);
+						var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
+						typeParameters = Arrays.stream(typeParamsArray).map(strip_char*).filter(slice - /*> !slice*/.isEmpty()).toList();
 					}
-
-					List<String> typeParameters = new ArrayList<String>();
-					if (beforeContent.endsWith(">")) {
-						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
-						final var typeParamStart = withoutEnd.indexOf("<");
-						if (typeParamStart >= 0) {
-							beforeContent = withoutEnd.substring(0, typeParamStart);
-							final var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-							typeParameters =
-									Arrays.stream(typeParamsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-						}
-					}
-
-					if (!this.isIdentifier(beforeContent)) {
-						return Optional.empty();
-					}
-
-					String templateString;
-					if (typeParameters.isEmpty()) {
-						templateString = "";
-					} else {
+				}
+				if (/*!this*/.isIdentifier(beforeContent)) {
+					return Optional.empty();
+				}
+				/*String templateString*/;
+				if (typeParameters.isEmpty()) {
+					templateString = "";
+				}/* else {
 						final var collect =
 								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
 						templateString = "template <" + collect + ">" + System.lineSeparator();
-					}
-
-					String dependencies;
-					if (variants.isEmpty()) {
-						dependencies = "";
-					} else {
+					}*/
+				/*String dependencies*/;
+				if (variants.isEmpty()) {
+					dependencies = "";
+				}/* else {
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")
@@ -459,51 +449,34 @@ Optional<char*> compileStructure(char* input) {
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
 													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
 													 System.lineSeparator() + "};" + System.lineSeparator();
-					}
-
-					final String fields;
-					if (variants.isEmpty()) {
-						fields = "";
-					} else {
+					}*/
+				/*final String fields*/;
+				if (variants.isEmpty()) {
+					fields = "";
+				}/* else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
 										 this.generateStatement(beforeContent + "Data " + "data", 1);
-					}
-
-					if (maybeInterfaceType.isPresent()) {
-						final var interfaceType = maybeInterfaceType.get();
-						final var joinedTypeArguments = this.joinTypeArguments(typeParameters);
-
-						final var thisType = beforeContent + joinedTypeArguments;
-						this.functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() +
-															 "_" +
-															 beforeContent + "(void* _ref" + "){" +
-															 this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
-															 this.generateStatement(
-																	 interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data", 1) +
-															 this.generateStatement("data." + beforeContent.toLowerCase() + " = _this", 1) +
-															 this.generateStatement(
-																	 "return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }",
-																	 1) + System.lineSeparator() + "}" + System.lineSeparator());
-					}
-
-					this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
-
-					this.structureNames.push(beforeContent);
-					final var generated =
-							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
-							this.compileStatements(content, this::compileClassSegment) + "};" + System.lineSeparator();
-					this.structureNames.pop();
-
-					if (variants.isEmpty()) {
-						this.structures.add(generated);
-					} else {
-						this.sealedStructures.add(generated);
-					}
-
-					return Optional.of("");
+					}*/
+				if (maybeInterfaceType.isPresent()) {
+					var interfaceType = maybeInterfaceType.get();
+					var joinedTypeArguments = this.joinTypeArguments(typeParameters);
+					var thisType = beforeContent + joinedTypeArguments;
+					/*this.functions.add(templateString*/ + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*this.generateStatement(thisType*/ + /*" _this*/ = /**(("*/ + thisType + /*"*) _ref)", 1)*/ + this.generateStatement(/*interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data", 1)*/ + /*this.generateStatement("data."*/ + beforeContent.toLowerCase() + /*" = _this", 1)*/ + /*this.generateStatement(
+																	 "return "*/ + interfaceType.generate(/*)*/ + " { " + beforeContent + "Tag, " + /*"data }",
+																	 1)*/ + System.lineSeparator() + "}" + System.lineSeparator());
 				}
+				this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
+				this.structureNames.push(beforeContent);
+				var generated = dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() + this.compileStatements(compileClassSegment_/*content, this*/) + "};" + System.lineSeparator();
+				this.structureNames.pop();
+				if (variants.isEmpty()) {
+					this.structures.add(generated);
+				}/* else {
+						this.sealedStructures.add(generated);
+					}*/
+				return Optional.of("");
 			}
-		*/
+		}
 	}
 	return Optional.empty();
 }
@@ -527,7 +500,7 @@ char* generateIndent(int depth) {
 }
 boolean isIdentifier(char* input) {
 	/*(var*/ i = 0;
-	/*i < input*/.length();/* i++) {
+	i < input.length();/* i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
 			}
@@ -554,61 +527,50 @@ char* compileClassSegment(char* input) {
 	if (maybeEnum.isPresent()) {
 		return maybeEnum.get();
 	}
-	if (input.endsWith(";")) {/*
-			final var slice = input.substring(0, input.length() - 1);
-			final var maybeClassStatement = this.compileEnumValues(slice).or(() -> this.compileDefinitionToField(slice));
-			if (maybeClassStatement.isPresent()) {
-				return maybeClassStatement.get();
-			}
-		*/
+	if (input.endsWith(";")) {
+		var slice = input.substring(/*0, input*/.length() - 1);
+		var maybeClassStatement = this.compileEnumValues(slice).or(() - /*> this*/.compileDefinitionToField(slice));
+		if (maybeClassStatement.isPresent()) {
+			return maybeClassStatement.get();
+		}
 	}
 	var paramStart = input.indexOf("(");
-	if (/*paramStart >= 0*/) {/*
-			final var definition = input.substring(0, paramStart).strip();
-			final var withParams = input.substring(paramStart + 1);
-			final var paramEnd = withParams.indexOf(")");
-			if (paramEnd >= 0) {
-				final var params = withParams.substring(0, paramEnd).strip();
-				final var withBraces = withParams.substring(paramEnd + 1).strip();
-
-				final var header = this
-						.compileDefinition(definition)
-						.or(() -> this.compileConstructor(definition))
-						.orElseGet(() -> Placeholder.wrap(definition));
-
-				final var s = header + "(" + this.compileParameters(params) + ")";
-				final String generated;
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
-
-					generated =
-							s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
-				} else {
+	if (/*paramStart >= 0*/) {
+		var definition = input.substring(/*0, paramStart*/).strip();
+		var withParams = input.substring(paramStart + 1);
+		var paramEnd = withParams.indexOf(")");
+		if (/*paramEnd >= 0*/) {
+			var params = withParams.substring(/*0, paramEnd*/).strip();
+			var withBraces = withParams.substring(paramEnd + 1).strip();
+			var header = this.compileDefinition(definition).or(() - /*> this*/.compileConstructor(definition)).orElseGet(() - /*> Placeholder*/.wrap(definition));
+			var s = header + "(" + this.compileParameters(params) + ")";
+			/*final String generated*/;
+			if (/*withBraces.startsWith("{") && withBraces*/.endsWith("}")) {
+				var content = withBraces.substring(/*1, withBraces*/.length() - 1);
+				generated = s + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
+			}/* else {
 					generated = s + ";" + System.lineSeparator();
-				}
-
-				this.functions.add(generated);
-				return "";
-			}
-		*/
+				}*/
+			this.functions.add(generated);
+			return "";
+		}
 	}
 	return Placeholder.wrap(input);
 }
 Optional<char*> compileDefinitionToField(char* slice) {
 	return this.compileDefinition(slice).map(content - /*> this*/.generateStatement(/*content, 1*/));
 }
-char* compileMethodStatements(char* content) {
+char* compileMethodSegments(char* content) {
 	return this.compileStatements(compileMethodSegment_/*content, this*/);
 }
 Optional<char*> compileConstructor(char* input) {
 	var i = input.lastIndexOf(" ");
-	if (/*i >= 0*/) {/*
-			final var name = input.substring(i + 1).strip();
-			if (this.isIdentifier(name)) {
-				final var structName = this.structureNames.peek();
-				return Optional.of(structName + " new_" + structName);
-			}
-		*/
+	if (/*i >= 0*/) {
+		var name = input.substring(i + 1).strip();
+		if (this.isIdentifier(name)) {
+			var structName = this.structureNames.peek();
+			return Optional.of(structName + " new_" + structName);
+		}
 	}/* else {
 			if (this.isIdentifier(input)) {
 				final var structName = this.structureNames.peek();
@@ -653,16 +615,14 @@ char* compileMethodSegment(char* input) {
 		return "";
 	}
 	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
-		var content = stripped.substring(/*1, stripped.length(*/) - /*1);
-
-			this*/.depth +  + /*;
-			final var compiled = this.compileMethodSegment(content);
-			this*/.depth -  - /*;
-
-			return "{"*/ + compiled + this.generateIndent(this.depth) + "}";
+		var content = stripped.substring(/*1, stripped*/.length() - 1);
+		/*this.depth++*/;
+		var compiled = this.compileMethodSegments(content);
+		/*this.depth--*/;
+		return "{" + compiled + this.generateIndent(this.depth) + "}";
 	}
-	if (stripped.startsWith("if")) {/*
-			final var substring = stripped.substring(2).strip();
+	if (stripped.startsWith("if")) {
+		var substring = stripped.substring(2).strip();/*
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
 				final var conditionEnd = this.findConditionEnd(withCondition);
@@ -673,12 +633,11 @@ char* compileMethodSegment(char* input) {
 					return this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
 								 this.compileMethodSegment(substring2);
 				}
-			}
-		*/
+			}*/
 	}
 	if (stripped.endsWith(";")) {
-		var slice = stripped.substring(/*0, stripped.length(*/) - /*1);
-			return this*/.generateStatement(/*this.compileMethodStatement(slice), this*/.depth);
+		var slice = stripped.substring(/*0, stripped*/.length() - 1);
+		return this.generateStatement(/*this.compileMethodStatement(slice), this*/.depth);
 	}
 	return Placeholder.wrap(input);
 }
@@ -686,7 +645,7 @@ int findConditionEnd(char* withCondition) {
 	int conditionEnd =  - 1;
 	var depth = 0;
 	/*(var*/ i = 0;
-	/*i < withCondition*/.length();/* i++) {
+	i < withCondition.length();/* i++) {
 			final var c = withCondition.charAt(i);
 			if (c == ')') {
 				depth--;
@@ -705,16 +664,15 @@ int findConditionEnd(char* withCondition) {
 char* compileMethodStatement(char* input) {
 	var strip = input.strip();
 	if (strip.startsWith("return ")) {
-		var slice = /*strip.substring("return ".length()).strip();
-			return "return "*/ + this.compileExpression(slice);
+		var slice = strip.substring("return ".length()).strip();
+		return "return " + this.compileExpression(slice);
 	}
 	var separator = strip.indexOf(/*'='*/);
 	if (/*separator >= 0*/) {
-		var substring = /*strip.substring(0, separator).strip();
-			final var substring1 = strip.substring(separator*/ + /*1).strip();
-			final var s = this.compileDefinition(substring).orElseGet(*/() - /*> this.compileExpression(substring));
-
-			return s*/ + " = " + this.compileExpression(/*substring1*/);
+		var substring = strip.substring(/*0, separator*/).strip();
+		/*final var substring1*/ = strip.substring(separator + 1).strip();
+		var s = this.compileDefinition(substring).orElseGet(() - /*> this*/.compileExpression(substring));
+		return s + " = " + this.compileExpression(/*substring1*/);
 	}
 	return this.compileInvocation(strip).orElseGet(() - /*> Placeholder*/.wrap(strip));
 }
@@ -728,26 +686,25 @@ char* compileExpression(char* input) {
 		return maybeInvocation.get();
 	}
 	var i = stripped.lastIndexOf(".");
-	if (/*i >= 0*/) {/*
-			final var child = stripped.substring(0, i).strip();
-			final var name = stripped.substring(i + 1).strip();
-			if (this.isIdentifier(name)) {
-				return this.compileExpression(child) + "." + name;
-			}
-		*/
+	if (/*i >= 0*/) {
+		var child = stripped.substring(/*0, i*/).strip();
+		var name = stripped.substring(i + 1).strip();
+		if (this.isIdentifier(name)) {
+			return this.compileExpression(child) + "." + name;
+		}
 	}
 	if (this.isIdentifier(stripped)) {
 		return stripped;
 	}
-	var maybeOperator = this.compileOperator(/*stripped, "*/ + ").or(() - /*> this*/.compileOperator(/*stripped, "*/ - ")).or(() - /*> this*/.compileOperator(/*stripped, "*/ == "));
+	var maybeOperator = this.compileOperator(/*stripped, "*/ + ").or(() - /*> this*/.compileOperator(/*stripped, "*/ - ")).or(() - /*> this*/.compileOperator(/*stripped, "*/ == ")).or(() - /*> this*/.compileOperator(/*stripped, "*/ < "));
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
 	/*final var i2*/ = stripped.lastIndexOf("::");
 	if (/*i2 >= 0*/) {
-		var substring = /*stripped.substring(0, i2);
-			final var substring1 = stripped.substring(i2*/ + /*2);
-			return substring1*/ + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
+		var substring = stripped.substring(/*0, i2*/);
+		/*final var substring1*/ = stripped.substring(/*i2*/ + 2);
+		return /*substring1*/ + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
 	}
 	if (this.isNumber(stripped)) {
 		return stripped;
@@ -792,15 +749,15 @@ Optional<char*> compileInvocation(char* stripped) {
 Optional<char*> compileOperator(char* separator) {
 	/*final var i1*/ = stripped.indexOf(separator);
 	if (/*i1 >= 0*/) {
-		var substring = /*stripped.substring(0, i1);
-			final var substring1 = stripped.substring(i1*/ + /*separator.length());
-			return Optional*/.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(/*substring1*/));
+		var substring = stripped.substring(/*0, i1*/);
+		/*final var substring1*/ = stripped.substring(/*i1*/ + separator.length());
+		return Optional.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(/*substring1*/));
 	}
 	return Optional.empty();
 }
 boolean isNumber(char* input) {
 	/*(var*/ i = 0;
-	/*i < input*/.length();/* i++) {
+	i < input.length();/* i++) {
 			final var c = input.charAt(i);
 			if (!Character.isDigit(c)) {
 				return false;
@@ -819,7 +776,7 @@ char* compileDefinitionOrPlaceholder(char* input) {
 }
 Optional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
-	if (/*nameSeparator < 0*/) {
+	if (nameSeparator < 0) {
 		return Optional.empty();
 	}
 	var beforeName = input.substring(/*0, nameSeparator*/);
@@ -829,8 +786,8 @@ Optional<char*> compileDefinition(char* input) {
 	}
 	var typeSeparator = beforeName.lastIndexOf(" ");
 	if (/*typeSeparator >= 0*/) {
-		var type = /*beforeName.substring(typeSeparator*/ + /*1).strip();
-			return this*/.compileType(type).map(cppType - /*> cppType*/.generate() + " " + name);
+		var type = beforeName.substring(typeSeparator + 1).strip();
+		return this.compileType(type).map(cppType - /*> cppType*/.generate() + " " + name);
 	}
 	return this.compileType(beforeName).map(cppType - /*> cppType*/.generate() + " " + name);
 }
@@ -840,38 +797,27 @@ Optional<CPPType> compileType(char* input) {
 		return Optional.of(CPPPrimitiveType.Void);
 	}
 	if (stripped.endsWith("[]")) {
-		var slice = stripped.substring(/*0, stripped.length(*/) - /*2);
-			return this*/.compileType(slice).map(new_CPointerType);
+		var slice = stripped.substring(/*0, stripped*/.length() - 2);
+		return this.compileType(slice).map(new_CPointerType);
 	}
 	if (stripped.equals("String")) {
 		return Optional.of(new_CPointerType(CPPPrimitiveType.Char));
 	}
-	if (stripped.endsWith(">")) {/*
-			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
-			final var i = withoutEnd.indexOf("<");
-			if (i >= 0) {
-				final var base = withoutEnd.substring(0, i);
-				final var typeArguments = withoutEnd.substring(i + 1);
-
-				final var list = Arrays
-						.stream(typeArguments.split(Pattern.quote(",")))
-						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
-						.map(this::compileType)
-						.flatMap(Optional::stream)
-						.toList();
-
-				return Optional.of(new CTemplateType(base, list));
-			}
-		*/
+	if (stripped.endsWith(">")) {
+		var withoutEnd = stripped.substring(/*0, stripped*/.length() - 1);
+		var i = withoutEnd.indexOf("<");
+		if (/*i >= 0*/) {
+			var base = withoutEnd.substring(/*0, i*/);
+			var typeArguments = withoutEnd.substring(i + 1);
+			var list = Arrays.stream(typeArguments.split(Pattern.quote(","))).map(strip_char*).filter(slice - /*> !slice*/.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
+			return Optional.of(new_CTemplateType(/*base, list*/));
+		}
 	}
 	if (this.isIdentifier(stripped)) {
-		if (stripped.equals("public")) 
-		/*{
-				return Optional.empty();
-			}
-
-			return Optional*/.of(new_CIdentifier(stripped));
+		if (stripped.equals("public")) {
+			return Optional.empty();
+		}
+		return Optional.of(new_CIdentifier(stripped));
 	}
 	return Optional.of(new_Placeholder(stripped));
 }

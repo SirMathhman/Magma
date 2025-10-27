@@ -580,7 +580,7 @@ public class App {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
 					generated =
-							s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
+							s + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 				} else {
 					generated = s + ";" + System.lineSeparator();
 				}
@@ -597,7 +597,7 @@ public class App {
 		return this.compileDefinition(slice).map(content -> this.generateStatement(content, 1));
 	}
 
-	private String compileMethodStatements(String content) {
+	private String compileMethodSegments(String content) {
 		return this.compileStatements(content, this::compileMethodSegment);
 	}
 
@@ -664,7 +664,7 @@ public class App {
 			final var content = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
-			final var compiled = this.compileMethodSegment(content);
+			final var compiled = this.compileMethodSegments(content);
 			this.depth--;
 
 			return "{" + compiled + this.generateIndent(this.depth) + "}";
