@@ -94,8 +94,8 @@ struct CPPType {
 
 		String*/ getSimpleName();/*
 	*/};
-/*name*/
-/*name*/
+CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	CPPTypeData data;
@@ -633,7 +633,7 @@ public App() {/*
 			final var stripped = segment.strip();
 			final var maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
-				this.globals.add(maybeEnumValue.get() + System.lineSeparator());
+				this.globals.add(maybeEnumValue.get());
 			} else {
 				return Optional.empty();
 			}
@@ -649,7 +649,8 @@ public App() {/*
 				final var name = slice.substring(0, i).strip();
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					return Optional.of(Placeholder.wrap("name"));
+					final var structureName = this.structureNames.peek();
+					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" + System.lineSeparator());
 				}
 			}
 		}*//*

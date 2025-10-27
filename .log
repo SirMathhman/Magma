@@ -26,6 +26,12 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:60:6: note: 'Res
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:95:12: error: a type specifier is required for all declarations
    95 |                 String*/ getSimpleName();/*
       |                          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   97 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+      |                                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   98 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+      |                                                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:22: error: expected unqualified-id
   105 | /*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
       |                      ^
@@ -68,5 +74,5 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:281:63: error: u
   281 | /*private Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
       |                                                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-20 errors generated.
+2 warnings and 20 errors generated.
 Compilation failed with exit code: 1

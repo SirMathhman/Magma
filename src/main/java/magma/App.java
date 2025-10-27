@@ -580,7 +580,7 @@ public class App {
 			final var stripped = segment.strip();
 			final var maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
-				this.globals.add(maybeEnumValue.get() + System.lineSeparator());
+				this.globals.add(maybeEnumValue.get());
 			} else {
 				return Optional.empty();
 			}
@@ -597,7 +597,8 @@ public class App {
 				final var name = slice.substring(0, i).strip();
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					return Optional.of(Placeholder.wrap("name"));
+					final var structureName = this.structureNames.peek();
+					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" + System.lineSeparator());
 				}
 			}
 		}
