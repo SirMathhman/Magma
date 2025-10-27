@@ -250,7 +250,7 @@ public class Main {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var enumFields = variants.stream().map(Main::generateField).collect(Collectors.joining(","));
+						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
 
 						final var unionFields = variants
 								.stream()
@@ -266,7 +266,7 @@ public class Main {
 					if (variants.isEmpty()) {
 						fields = "";
 					} else {
-						fields = generateField(beforeContent + "Tag tag;") + generateField(beforeContent + "Data data");
+						fields = generateStatement(beforeContent + "Tag tag") + generateStatement(beforeContent + "Data data");
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -278,9 +278,14 @@ public class Main {
 							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
 						}
 
+						final var thisType = beforeContent + joinedTypeArguments;
 						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
-														beforeContent + "(" + beforeContent + joinedTypeArguments + "* this" + "){}" +
-														System.lineSeparator();
+														beforeContent + "(void* _ref" + "){" +
+														generateStatement(thisType + " this = *((" + thisType + "*) _ref)") +
+														generateStatement(interfaceType.getSimpleName() + "Data data") +
+														generateStatement("data." + beforeContent.toLowerCase() + " = this") + generateStatement(
+								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
+														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
 					return Optional.of(
@@ -293,7 +298,11 @@ public class Main {
 		return Optional.empty();
 	}
 
-	private static String generateField(String content) {
+	private static String generateStatement(String content) {
+		return generateWithIndent(content) + ";";
+	}
+
+	private static String generateWithIndent(String content) {
 		return System.lineSeparator() + "\t" + content;
 	}
 
