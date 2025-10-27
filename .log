@@ -1,0 +1,7 @@
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:47:17: error: expected unqualified-id
+   47 |         */struct Index = stripped.indexOf("class");
+      |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:48:3: error: expected unqualified-id
+   48 |                 if (classIndex >= 0) {};
+      |                 ^
+2 errors generated.

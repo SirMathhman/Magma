@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -22,6 +23,11 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
+					 "0;" + System.lineSeparator() + "}";
+	}
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -31,6 +37,10 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
 			} else {
 				if (c == '{') {
 					depth++;
@@ -42,10 +52,7 @@ public class Main {
 		}
 		segments.add(buffer.toString());
 
-		final var joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
-
-		return joined + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
-					 System.lineSeparator() + "}";
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
@@ -63,11 +70,16 @@ public class Main {
 				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 				if (withEnd.endsWith("}")) {
 					final var content = withEnd.substring(0, withEnd.length() - 1);
-					return "struct " + name + " {};" + System.lineSeparator() + wrap(content);
+					return "struct " + name + " {};" + System.lineSeparator() +
+								 compileStatements(content, Main::compileClassSegment);
 				}
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileClassSegment(String input) {
 		return wrap(input);
 	}
 

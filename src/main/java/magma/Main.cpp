@@ -11,9 +11,14 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}
+	}*//*
 
 	private static String compile(String input) {
+		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
+					 "0;" + System.lineSeparator() + "}";
+	}*//*
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -23,6 +28,10 @@ struct Main {};
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
+			} else if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
 			} else {
 				if (c == '{') {
 					depth++;
@@ -31,42 +40,36 @@ struct Main {};
 					depth--;
 				}
 			}
-		}
-		segments.add(buffer.toString());
+		}*//*
+		segments.add(buffer.toString());*//*
 
-		final var joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
-
-		return joined + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
-					 System.lineSeparator() + "}";
-	}
-
-	private static String compileRootSegment(String input) {
-		final var stripped = input.strip();
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-			return "";
-		}
-
-		final var classIndex = stripped.indexOf("class");
-		if (classIndex >= 0) {
-			final var afterKeyword = stripped.substring(classIndex + "class".length());
+		return segments.stream().map(mapper).collect(Collectors.joining());*//*
+	*/struct Index = stripped.indexOf("class");
+		if (classIndex >= 0) {};
+/*final var afterKeyword = stripped.substring(classIndex + "class".length());*//*
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final var name = afterKeyword.substring(0, contentStart).strip();
 				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 				if (withEnd.endsWith("}")) {
 					final var content = withEnd.substring(0, withEnd.length() - 1);
-					return "struct " + name + " {};" + System.lineSeparator() + wrap(content);
+					return "struct " + name + " {};" + System.lineSeparator() +
+								 compileStatements(content, Main::compileClassSegment);
 				}
 			}
-		}
+		}*//*
 
-		return wrap(input);
+		return wrap(input);*//*
+	}
+
+	private static String compileClassSegment(String input) {
+		return wrap(input);*//*
 	}
 
 	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
 	}
-*/
-int main(){
+*//*
+*/int main(){
 	return 0;
 }
