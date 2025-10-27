@@ -32,6 +32,12 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: 
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:89:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
    89 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:2: error: non-void function 'generate' should return a value [-Wreturn-mismatch]
+   99 |         return /*this.content*/;}
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:2: error: non-void function 'getSimpleName' should return a value [-Wreturn-mismatch]
+  101 |         return /*this.content*/;}
+      |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:122:7: error: redefinition of 'generate'
   122 | char* generate() {
       |       ^
@@ -44,6 +50,15 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:124:7: error: re
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:7: note: previous definition is here
   100 | char* getSimpleName() {
       |       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:154:2: error: non-void function 'wrap' should return a value [-Wreturn-mismatch]
+  154 |         return /*"start" + input.replace("start", "start").replace("end", "end") + "end"*/;}
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:156:32: error: expected expression
+  156 |         return /*wrap*/(/*this.input*/);}
+      |                                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:31: error: expected expression
+  158 |         return /*this.generate*/(/**/);}
+      |                                      ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:161:12: error: a type specifier is required for all declarations
   161 |                 public*/ State(char* input) {
       |                          ^
@@ -57,21 +72,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:231:6: error: fi
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:233:10: error: use of undeclared identifier 'IOException'
   233 | Optional<IOException> run() {
       |          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:241:10: error: use of undeclared identifier 'IOException'
-  241 | Optional<IOException> compilePath(char* input) {
-      |          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:245:32: error: unknown type name 'Path'
-  245 | /*IOException>*/ compileNative(Path target) {
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:245:18: error: a type specifier is required for all declarations
-  245 | /*IOException>*/ compileNative(Path target) {
-      |                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:252:10: error: use of undeclared identifier 'IOException'
-  252 | Optional<IOException> waitForProcess(Process process) {/*
-      |          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:252:38: error: unknown type name 'Process'
-  252 | Optional<IOException> waitForProcess(Process process) {/*
-      |                                      ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1

@@ -645,8 +645,27 @@ public class App {
 		return Placeholder.wrap(input);
 	}
 
-	private String compileMethodStatement(String slice) {
-		return Placeholder.wrap(slice);
+	private String compileMethodStatement(String input) {
+		if (input.startsWith("return ")) {
+			final var slice = input.substring("return ".length()).strip();
+			return "return " + this.compileExpression(slice);
+		}
+
+		return Placeholder.wrap(input);
+	}
+
+	private String compileExpression(String input) {
+		if (input.endsWith(")")) {
+			final var slice = input.substring(0, input.length() - 1);
+			final var i = slice.indexOf("(");
+			if (i >= 0) {
+				final var caller = slice.substring(0, i);
+				final var arguments = slice.substring(i + 1);
+				return this.compileExpression(caller) + "(" + this.compileExpression(arguments) + ")";
+			}
+		}
+
+		return Placeholder.wrap(input);
 	}
 
 	private String compileParameters(String input) {
