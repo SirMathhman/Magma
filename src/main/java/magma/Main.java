@@ -92,6 +92,18 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		final var paramStart = input.indexOf("(");
+		if (paramStart >= 0) {
+			final var definition = input.substring(0, paramStart);
+			final var withParams = input.substring(paramStart + 1);
+			final var paramEnd = withParams.indexOf(")");
+			if (paramEnd >= 0) {
+				final var params = withParams.substring(0, paramEnd);
+				final var content = withParams.substring(paramEnd + 1);
+				return wrap(definition) + "(" + wrap(params) + ")" + wrap(content);
+			}
+		}
+
 		return wrap(input);
 	}
 

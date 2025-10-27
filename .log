@@ -1,0 +1,4 @@
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:46: error: expected unqualified-id
+    2 | /*public static void main*/(/*String[] args*/)/* {
+      |                                              ^
+1 error generated.
