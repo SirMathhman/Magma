@@ -221,7 +221,8 @@ auto _lambda0_(auto next) {
 }
 Optional<State> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(right_Tuple);
-Hmchar peek() {
+}
+char peek() {
 	return this.input.charAt(this.index);
 }
 App new_App() {
@@ -302,7 +303,7 @@ State foldEscaped(BiFunction<State, Character, State> folder) {
 			var nextInQuotes = tuple.left;
 			if (nextInQuotes == '\\') {
 				current0 = current0.popAndAppendToOption().orElse(current0);
-				/*continue*/;
+				continue;
 			}
 			if (nextInQuotes == '\"') {
 				break;
@@ -320,11 +321,11 @@ State foldSingleEscapeChar(Tuple<Character, State> tuple) {
 }
 State foldStatement(Character c) {
 	var appended = state.append(c);
-	if (c == /*';' && appended*/.isLevel()) {
+	if (c == ';' && appended.isLevel()) {
 		return appended.advance();
 	}
-	if (c == /*'}' && appended*/.isShallow()) {
-		/*final State state1*/;
+	if (c == '}' && appended.isShallow()) {
+		State state1;
 		if (appended.peek() == ';') {
 			state1 = appended.popAndAppendToOption().orElse(appended);
 		}else {
@@ -393,14 +394,14 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 				if (/*!this*/.isIdentifier(beforeContent)) {
 					return Optional.empty();
 				}
-				/*String templateString*/;
+				char* templateString;
 				if (typeParameters.isEmpty()) {
 					templateString = "";
 				}else {
 					var collect = typeParameters.stream().map(_lambda8_).collect(Collectors.joining(", "));
 					templateString = "template <" + collect + ">" + System.lineSeparator();
 				}
-				/*String dependencies*/;
+				char* dependencies;
 				if (variants.isEmpty()) {
 					dependencies = "";
 				}else {
@@ -409,7 +410,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 					var unionFields = variants.stream().map(_lambda11_).collect(Collectors.joining());
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 				}
-				/*final String fields*/;
+				char* fields;
 				if (variants.isEmpty()) {
 					fields = "";
 				}else {
@@ -439,7 +440,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 	return Optional.empty();
 }
 char* joinTypeArguments(List<char*> typeParameters) {
-	/*String joinedTypeArguments*/;
+	char* joinedTypeArguments;
 	if (typeParameters.isEmpty()) {
 		joinedTypeArguments = "";
 	}else {
@@ -501,8 +502,8 @@ auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_
 			var withBraces = withParams.substring(paramEnd + 1).strip();
 			var header = this.compileDefinition(definition).or(_lambda14_.compileConstructor(definition)).orElseGet(_lambda13_.wrap(definition));
 			var s = header + "(" + this.compileParameters(params) + ")";
-			/*final String generated*/;
-			if (/*withBraces.startsWith("{") && withBraces*/.endsWith("}")) {
+			char* generated;
+			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				var content = withBraces.substring(1, withBraces.length() - 1);
 				generated = s + " {" + this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 			}else {
@@ -574,7 +575,7 @@ Optional<char*> compileMethodSegment(char* input) {
 	if (/*stripped.isEmpty() || stripped.startsWith("try ") || stripped*/.startsWith("catch ")) {
 		return Optional.of("");
 	}
-	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
+	if (stripped.startsWith("{") && stripped.endsWith("}")) {
 		var content = stripped.substring(1, stripped.length() - 1);
 		this.depth++;
 		var compiled = this.compileMethodSegments(content);
@@ -635,7 +636,7 @@ int findConditionEnd(char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderchar* compileMethodStatement(char* input) {
+auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_(auto ()) thischar* compileMethodStatement(char* input) {
 	var stripped = input.strip();
 	if (stripped.startsWith("return ")) {
 		var slice = stripped.substring("return ".length()).strip();
@@ -654,14 +655,17 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderchar* compileMe
 	if (stripped.equals("break")) {
 		return "break";
 	}
-	return this.compileInvocation(stripped).orElseGet(_lambda19_.wrap(stripped));
+	if (stripped.equals("continue")) {
+		return "continue";
+	}
+	return this.compileInvocation(stripped).or(_lambda20_.compileDefinition(input)).orElseGet(_lambda19_.wrap(stripped));
 }
-auto _lambda20_(auto ()) thisauto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thischar* compileExpression(char* input) {
+auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thisauto _lambda24_(auto ()) thisauto _lambda25_(auto ()) thischar* compileExpression(char* input) {
 	var stripped = input.strip();
-	if (/*stripped.startsWith("'") && stripped*/.endsWith("'")) {
+	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return stripped;
 	}
-	if (/*stripped.startsWith("\"") && stripped*/.endsWith("\"")) {
+	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
 		return stripped;
 	}
 	var maybeInvocation = this.compileInvocation(stripped);
@@ -687,10 +691,10 @@ auto _lambda20_(auto ()) thisauto _lambda21_(auto ()) thisauto _lambda22_(auto (
 		var name = stripped.substring(0, arrowIndex).strip();
 		var content = stripped.substring(arrowIndex + 2);
 		var functionName = this.createName("lambda");
-		this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content).orElseGet(_lambda20_.compileExpression(content)));
+		this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content).orElseGet(_lambda21_.compileExpression(content)));
 		return functionName;
 	}
-	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda23_.compileOperator(stripped, "-")).or(_lambda22_.compileOperator(stripped, "==")).or(_lambda21_.compileOperator(stripped, "<"));
+	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda25_.compileOperator(stripped, "-")).or(_lambda24_.compileOperator(stripped, "&&")).or(_lambda23_.compileOperator(stripped, "==")).or(_lambda22_.compileOperator(stripped, "<"));
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
@@ -747,7 +751,7 @@ Optional<char*> compileInvocation(char* stripped) {
 	return Optional.empty();
 }
 Optional<char*> compileCaller(char* caller) {
-	/*final String newCaller*/;
+	char* newCaller;
 	if (caller.startsWith("new ")) {
 		var substring = caller.substring("new ".length());
 		var maybeType = this.compileType(substring);
@@ -781,10 +785,10 @@ char* compileParameters(char* input) {
 	}
 	return this.compileDefinitionOrPlaceholder(input);
 }
-auto _lambda24_(auto ()) Placeholderchar* compileDefinitionOrPlaceholder(char* input) {
-	return this.compileDefinition(input).orElseGet(_lambda24_.wrap(input));
+auto _lambda26_(auto ()) Placeholderchar* compileDefinitionOrPlaceholder(char* input) {
+	return this.compileDefinition(input).orElseGet(_lambda26_.wrap(input));
 }
-auto _lambda25_(auto cppType) cppType.generate() + " " + nameauto _lambda26_(auto cppType) cppType.generate() + " " + nameOptional<char*> compileDefinition(char* input) {
+auto _lambda27_(auto cppType) cppType.generate() + " " + nameauto _lambda28_(auto cppType) cppType.generate() + " " + nameOptional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return Optional.empty();
@@ -810,11 +814,11 @@ auto _lambda25_(auto cppType) cppType.generate() + " " + nameauto _lambda26_(aut
 		}*/
 	if (/*typeSeparator >= 0*/) {
 		var type = beforeName.substring(typeSeparator + 1).strip();
-		return this.compileType(type).map(_lambda25_);
+		return this.compileType(type).map(_lambda27_);
 	}
-	return this.compileType(beforeName).map(_lambda26_);
+	return this.compileType(beforeName).map(_lambda28_);
 }
-auto _lambda27_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input) {
+auto _lambda29_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input) {
 	var stripped = input.strip();
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
@@ -832,7 +836,7 @@ auto _lambda27_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input)
 		if (/*i >= 0*/) {
 			var base = withoutEnd.substring(0, i);
 			var typeArguments = withoutEnd.substring(i + 1);
-			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda27_.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
+			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda29_.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
 			return Optional.of(new_CTemplateType(base, list));
 		}
 	}
@@ -845,7 +849,7 @@ auto _lambda27_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input)
 	return Optional.empty();
 }
 State foldValue(char next) {
-	if (next == /*',' && state*/.isLevel()) {
+	if (next == ',' && state.isLevel()) {
 		return state.advance();
 	}
 	var appended = state.append(next);

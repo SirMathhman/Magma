@@ -781,7 +781,14 @@ public class App {
 			return "break";
 		}
 
-		return this.compileInvocation(stripped).orElseGet(() -> Placeholder.wrap(stripped));
+		if (stripped.equals("continue")) {
+			return "continue";
+		}
+
+		return this
+				.compileInvocation(stripped)
+				.or(() -> this.compileDefinition(input))
+				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
 	private String compileExpression(String input) {
@@ -832,6 +839,7 @@ public class App {
 		final var maybeOperator = this
 				.compileOperator(stripped, "+")
 				.or(() -> this.compileOperator(stripped, "-"))
+				.or(() -> this.compileOperator(stripped, "&&"))
 				.or(() -> this.compileOperator(stripped, "=="))
 				.or(() -> this.compileOperator(stripped, "<"));
 
