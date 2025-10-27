@@ -13,7 +13,8 @@ struct CIdentifier;
 struct Placeholder;
 template <typename A, typename B>
 struct Tuple;
-struct CPPPrimitiveType {
+/*
+*/struct CPPPrimitiveType {
 /*Void("void"), Char("char");*//*
 
 		private final String content;*//*
@@ -45,7 +46,8 @@ struct Main {
 	private static final List<String> forwardDeclarations = new ArrayList<String>();*//*
 	private static final List<String> functions = new ArrayList<String>();*//*
 	private static final List<String> structures = new ArrayList<String>();*//*
-	private static final List<String> sealedStructures = new ArrayList<String>();*/};
+	private static final List<String> sealedStructures = new ArrayList<String>();*//*
+*/};
 enum ResultTag {
 	ErrTag,
 	OkTag
@@ -228,7 +230,7 @@ CPPType toCPPType_Placeholder(void* _ref){
 		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
 			return this.pop().map(next -> {
 				final var appended = this.append(next);
-				return new Tuple<Character, State>(next, this);
+				return new Tuple<Character, State>(next, appended);
 			}*//*);*//*
 		}
 
@@ -326,6 +328,14 @@ CPPType toCPPType_Placeholder(void* _ref){
 		return current.advance().stream();*//*
 	*/}
 /*private static*/ State foldEscaped(/*State current,*/ char next) {/*
+		if (next == '\'') {
+			return current.append(next)
+					.popAndAppendToTuple()
+					.map(Main::foldSingleEscapeChar)
+					.flatMap(State::popAndAppendToOption)
+					.orElse(current);
+		}*//*
+
 		if (next == '\"') {
 			var current0 = current.append(next);
 			while (true) {
@@ -349,38 +359,41 @@ CPPType toCPPType_Placeholder(void* _ref){
 			}
 
 			return current0;
-		}
+		}*//*
 
-		return fold(current, next);
-	}
-
-	private static State fold(State state, Character c) {
-		final var appended = state.append(c);
+		return fold(current, next);*//*
+	*/}
+/*private static*/ State foldSingleEscapeChar(/*Tuple<Character,*/ /*State>*/ tuple) {/*
+		if (tuple.left == '\\') {
+			return tuple.right.popAndAppendToOption().orElse(tuple.right);
+		}*//*
+		return tuple.right;*//*
+	*/}
+/*private static*/ State fold(/*State state,*/ Character c) {/*
+		final var appended = state.append(c);*//*
 		if (c == ';' && appended.isLevel()) {
 			return appended.advance();
-		} else if (c == '}' && appended.isShallow()) {
+		}*//* else if (c == '}' && appended.isShallow()) {
 			return appended.advance().exit();
-		}
+		}*//*
 		if (c == '{') {
 			return appended.enter();
-		}
+		}*//*
 		if (c == '}') {
 			return appended.exit();
-		}
-		return appended;
-	}
-
-	private static String compileRootSegment(String input) {
-		final var stripped = input.strip();
+		}*//*
+		return appended;*//*
+	*/}
+/*private static*/ char* compileRootSegment(char* input) {/*
+		final var stripped = input.strip();*//*
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
-		}
+		}*//*
 
-		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
-	}
-
-	private static Optional<String> compileStructure(String type, String input) {
-		final var classIndex = input.indexOf(type);
+		return compileStructure("class", stripped).orElseGet(() -> wrap(input));*//*
+	*/}
+/*private static*/ Optional<char*> compileStructure(/*String type,*/ char* input) {/*
+		final var classIndex = input.indexOf(type);*//*
 		if (classIndex >= 0) {
 			final var afterKeyword = input.substring(classIndex + type.length());
 			final var contentStart = afterKeyword.indexOf("{");
@@ -498,56 +511,51 @@ CPPType toCPPType_Placeholder(void* _ref){
 					return Optional.of("");
 				}
 			}
-		}
+		}*//*
 
-		return Optional.empty();
-	}
-
-	private static String joinTypeArguments(List<String> typeParameters) {
-		String joinedTypeArguments;
+		return Optional.empty();*//*
+	*/}
+/*private static*/ char* joinTypeArguments(List<char*> typeParameters) {/*
+		String joinedTypeArguments;*//*
 		if (typeParameters.isEmpty()) {
 			joinedTypeArguments = "";
-		} else {
+		}*//* else {
 			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
-		}
-		return joinedTypeArguments;
-	}
-
-	private static String generateStatement(String content) {
-		return generateWithIndent(content) + ";";
-	}
-
-	private static String generateWithIndent(String content) {
-		return System.lineSeparator() + "\t" + content;
-	}
-
-	private static boolean isIdentifier(String input) {
-		for (var i = 0; i < input.length(); i++) {
+		}*//*
+		return joinedTypeArguments;*//*
+	*/}
+/*private static*/ char* generateStatement(char* content) {/*
+		return generateWithIndent(content) + ";";*//*
+	*/}
+/*private static*/ char* generateWithIndent(char* content) {/*
+		return System.lineSeparator() + "\t" + content;*//*
+	*/}
+/*private static*/ boolean isIdentifier(char* input) {/*
+		for (var i = 0;*//* i < input.length();*//* i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
 			}
-		}
+		}*//*
 
-		return true;
-	}
-
-	private static String compileClassSegment(String input) {
-		final var maybeInterface = compileStructure("interface", input);
+		return true;*//*
+	*/}
+/*private static*/ char* compileClassSegment(char* input) {/*
+		final var maybeInterface = compileStructure("interface", input);*//*
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
-		}
+		}*//*
 
-		final var maybeRecord = compileStructure("record", input);
+		final var maybeRecord = compileStructure("record", input);*//*
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
-		}
+		}*//*
 
-		final var maybeEnum = compileStructure("enum", input);
+		final var maybeEnum = compileStructure("enum", input);*//*
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
-		}
+		}*//*
 
-		final var paramStart = input.indexOf("(");
+		final var paramStart = input.indexOf("(");*//*
 		if (paramStart >= 0) {
 			final var definition = input.substring(0, paramStart).strip();
 			final var withParams = input.substring(paramStart + 1);
@@ -564,53 +572,49 @@ CPPType toCPPType_Placeholder(void* _ref){
 					return "";
 				}
 			}
-		}
+		}*//*
 
-		return wrap(input);
-	}
-
-	private static String compileMethodSegment(String input) {
-		return wrap(input);
-	}
-
-	private static String compileParameters(String input) {
+		return wrap(input);*//*
+	*/}
+/*private static*/ char* compileMethodSegment(char* input) {/*
+		return wrap(input);*//*
+	*/}
+/*private static*/ char* compileParameters(char* input) {/*
 		if (input.isEmpty()) {
 			return "";
-		}
-		return compileDefinition(input);
-	}
-
-	private static String compileDefinition(String input) {
-		final var nameSeparator = input.lastIndexOf(" ");
+		}*//*
+		return compileDefinition(input);*//*
+	*/}
+/*private static*/ char* compileDefinition(char* input) {/*
+		final var nameSeparator = input.lastIndexOf(" ");*//*
 		if (nameSeparator < 0) {
 			return wrap(input);
-		}
+		}*//*
 
-		final var beforeName = input.substring(0, nameSeparator);
-		final var name = input.substring(nameSeparator + 1).strip();
-		final var typeSeparator = beforeName.lastIndexOf(" ");
+		final var beforeName = input.substring(0, nameSeparator);*//*
+		final var name = input.substring(nameSeparator + 1).strip();*//*
+		final var typeSeparator = beforeName.lastIndexOf(" ");*//*
 		if (typeSeparator >= 0) {
 			final var beforeType = beforeName.substring(0, typeSeparator);
 			final var type = beforeName.substring(typeSeparator + 1).strip();
 			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;
-		} else {
+		}*//* else {
 			return compileType(beforeName).generate() + " " + name;
-		}
-	}
-
-	private static CPPType compileType(String input) {
+		}*//*
+	*/}
+/*private static*/ CPPType compileType(char* input) {/*
 		if (input.equals("void")) {
 			return CPPPrimitiveType.Void;
-		}
+		}*//*
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
 			return new CPointerType(compileType(slice));
-		}
+		}*//*
 
 		if (input.equals("String")) {
 			return new CPointerType(CPPPrimitiveType.Char);
-		}
+		}*//*
 
 		if (input.endsWith(">")) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
@@ -628,17 +632,16 @@ CPPType toCPPType_Placeholder(void* _ref){
 
 				return new CTemplateType(base, list);
 			}
-		}
+		}*//*
 
 		if (isIdentifier(input)) {
 			return new CIdentifier(input);
-		}
+		}*//*
 
-		return new Placeholder(input);
-	}
-
-	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
+		return new Placeholder(input);*//*
+	*/}
+/*private static*/ char* wrap(char* input) {/*
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
 	*/}
 int main(){
 	return 0;

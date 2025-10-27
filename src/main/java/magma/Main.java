@@ -157,7 +157,7 @@ public class Main {
 		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
 			return this.pop().map(next -> {
 				final var appended = this.append(next);
-				return new Tuple<Character, State>(next, this);
+				return new Tuple<Character, State>(next, appended);
 			});
 		}
 
@@ -273,6 +273,14 @@ public class Main {
 	}
 
 	private static State foldEscaped(State current, char next) {
+		if (next == '\'') {
+			return current.append(next)
+					.popAndAppendToTuple()
+					.map(Main::foldSingleEscapeChar)
+					.flatMap(State::popAndAppendToOption)
+					.orElse(current);
+		}
+
 		if (next == '\"') {
 			var current0 = current.append(next);
 			while (true) {
@@ -299,6 +307,13 @@ public class Main {
 		}
 
 		return fold(current, next);
+	}
+
+	private static State foldSingleEscapeChar(Tuple<Character, State> tuple) {
+		if (tuple.left == '\\') {
+			return tuple.right.popAndAppendToOption().orElse(tuple.right);
+		}
+		return tuple.right;
 	}
 
 	private static State fold(State state, Character c) {
