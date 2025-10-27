@@ -1,76 +1,82 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:41:2: error: no template named 'ArrayList'
-   41 |         ArrayList<char*> segments;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:30:10: error: field has incomplete type 'CPPType'
+   30 |         CPPType type;
+      |                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CPPType'
+    5 | struct CPPType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:34:2: error: no template named 'List'
+   34 |         List<CPPType> list;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:42:2: error: unknown type name 'StringBuilder'
-   42 |         StringBuilder buffer;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:50:2: error: no template named 'ArrayList'
+   50 |         ArrayList<char*> segments;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:47:2: error: no template named 'List'
-   47 |         List<char*> globals;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:51:2: error: unknown type name 'StringBuilder'
+   51 |         StringBuilder buffer;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:48:2: error: no template named 'List'
-   48 |         List<char*> forwardDeclarations;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:56:2: error: no template named 'List'
+   56 |         List<char*> globals;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:49:2: error: no template named 'List'
-   49 |         List<char*> functions;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:57:2: error: no template named 'List'
+   57 |         List<char*> forwardDeclarations;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:50:2: error: no template named 'List'
-   50 |         List<char*> structures;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:58:2: error: no template named 'List'
+   58 |         List<char*> functions;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:51:2: error: no template named 'List'
-   51 |         List<char*> sealedStructures;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:59:2: error: no template named 'List'
+   59 |         List<char*> structures;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:52:2: error: no template named 'Stack'
-   52 |         Stack<char*> structureNames;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:60:2: error: no template named 'List'
+   60 |         List<char*> sealedStructures;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:67:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
-   67 |         ResultData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:61:2: error: no template named 'Stack'
+   61 |         Stack<char*> structureNames;
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:76:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
+   76 |         ResultData data;
       |         ^~~~~~~~~~
       |         ResultTag
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:55:6: note: 'ResultTag' declared here
-   55 | enum ResultTag {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:64:6: note: 'ResultTag' declared here
+   64 | enum ResultTag {
       |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:87:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-   87 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:96:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   96 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-   88 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+   97 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:7: error: redefinition of 'generate'
-  129 | char* generate(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:138:7: error: redefinition of 'generate'
+  138 | char* generate(void* _ref) {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:7: note: previous definition is here
-   99 | char* generate(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:108:7: note: previous definition is here
+  108 | char* generate(void* _ref) {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:131:15: error: no member named 'type' in 'CPointerType'
-  131 |         return _this.type.generate() + "*";
-      |                ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:133:7: error: redefinition of 'getSimpleName'
-  133 | char* getSimpleName(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:142:7: error: redefinition of 'getSimpleName'
+  142 | char* getSimpleName(void* _ref) {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:103:7: note: previous definition is here
-  103 | char* getSimpleName(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:112:7: note: previous definition is here
+  112 | char* getSimpleName(void* _ref) {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:135:15: error: no member named 'type' in 'CPointerType'
-  135 |         return _this.type.getSimpleName() + "_ref";
-      |                ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:23: error: no member named 'list' in 'CTemplateType'
-  145 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                        ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:41: error: use of undeclared identifier 'generate_CPPType'
-  145 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:154:41: error: use of undeclared identifier 'generate_CPPType'
+  154 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:67: error: use of undeclared identifier 'Collectors'
-  145 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:154:67: error: use of undeclared identifier 'Collectors'
+  154 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                                                                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:146:15: error: no member named 'base' in 'CTemplateType'
-  146 |         return _this.base + "<" + joined + ">";
-      |                ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:150:15: error: no member named 'base' in 'CTemplateType'
-  150 |         return _this.base;
-      |                ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:160:15: error: no member named 'input' in 'CIdentifier'
-  160 |         return _this.input;
-      |                ~~~~~ ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:155:20: error: invalid operands to binary expression ('char *' and 'const char[2]')
+  155 |         return _this.base + "<" + joined + ">";
+      |                ~~~~~~~~~~ ^ ~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:183:24: error: member reference base type 'char *' is not a structure or union
+  183 |         char* replaced = input.replace("/*", "start").replace("*/", "end");
+      |                          ~~~~~^~~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:184:14: error: invalid operands to binary expression ('const char[3]' and 'char *')
+  184 |         return "/*" + replaced + "*/";
+      |                ~~~~ ^ ~~~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:188:9: error: no matching function for call to 'wrap'
+  188 |         return wrap(_this.input);
+      |                ^~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:181:7: note: candidate function not viable: requires 2 arguments, but 1 was provided
+  181 | char* wrap(void* _ref, char* input) {
+      |       ^    ~~~~~~~~~~~~~~~~~~~~~~~
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1

@@ -413,12 +413,15 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
+					List<String> recordFields = new ArrayList<>();
 					if (beforeContent.endsWith(")")) {
 						final String slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final int i = slice.indexOf("(");
 						if (i >= 0) {
 							final String params = slice.substring(i + 1);
 							beforeContent = slice.substring(0, i).strip();
+
+							recordFields = this.compileParametersToList(params);
 						}
 					}
 
@@ -470,7 +473,7 @@ public class App {
 
 					final String fields;
 					if (variants.isEmpty()) {
-						fields = "";
+						fields = recordFields.stream().map(slice -> this.generateStatement(slice, 1)).collect(Collectors.joining(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
 										 this.generateStatement(beforeContent + "Data " + "data", 1);
@@ -985,17 +988,20 @@ public class App {
 	}
 
 	private String compileParameters(String input) {
-		final List<String> parameters = this
+		final List<String> parameters = this.compileParametersToList(input);
+		final ArrayList<String> copy = new ArrayList<String>(parameters);
+		copy.addFirst("void* _ref");
+		return String.join(", ", copy);
+	}
+
+	private List<String> compileParametersToList(String input) {
+		return this
 				.divide(input, this::foldValue)
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.map(this::compileDefinition)
 				.flatMap(Optional::stream)
 				.toList();
-
-		final ArrayList<String> copy = new ArrayList<String>(parameters);
-		copy.addFirst("void* _ref");
-		return String.join(", ", copy);
 	}
 
 	private String compileDefinitionOrPlaceholder(String input) {

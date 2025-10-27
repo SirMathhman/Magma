@@ -20,20 +20,29 @@ struct State;
 	char* content;};
 template <typename T, typename X>
 struct Err {
+	X error;
 };
 template <typename T, typename X>
 struct Ok {
+	T value;
 };
 struct CPointerType {
+	CPPType type;
 };
 struct CTemplateType {
+	char* base;
+	List<CPPType> list;
 };
 struct CIdentifier {
+	char* input;
 };
 struct Placeholder {
+	char* input;
 };
 template <typename A, typename B>
 struct Tuple {
+	A left;
+	B right;
 };
 struct State {
 
@@ -424,6 +433,10 @@ auto _lambda34_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
+auto _lambda38_(auto _ref, auto slice) {
+	auto _this = _ref;
+	return _this.generateStatement(slice, 1);
+};
 Optional<char*> compileStructure(void* _ref, char* type, char* input) {
 	App _this = *((App*) _ref);
 	int classIndex = input.indexOf(type);
@@ -449,12 +462,15 @@ Optional<char*> compileStructure(void* _ref, char* type, char* input) {
 					maybeInterfaceType = _this.compileType(slice);
 					beforeContent = beforeContent.substring(0, implementsIndex).strip();
 				}
+				List<char*> recordFields = new_ArrayList<>();
 				if (/*beforeContent.endsWith(")"*/) /*) {
 						final String slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final int i = slice.indexOf("(");
 						if (i >= 0) {
 							final String params = slice.substring(i + 1);
 							beforeContent = slice.substring(0, i).strip();
+
+							recordFields = this.compileParametersToList(params);
 						}
 					}*/
 				List<char*> typeParameters = new_ArrayList<char*>();
@@ -490,7 +506,7 @@ Optional<char*> compileStructure(void* _ref, char* type, char* input) {
 				}
 				char* fields;
 				if (variants.isEmpty()) {
-					fields = "";
+					fields = recordFields.stream().map(_lambda38_).collect(Collectors.joining(""));
 				}
 				else {
 					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data " + "data", 1);
@@ -551,15 +567,15 @@ boolean isIdentifier(void* _ref, char* input) {
 		}*/
 	return true;
 }
-auto _lambda36_(auto _ref) {
+auto _lambda40_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinitionToField(slice);
 };
-auto _lambda38_(auto _ref) {
+auto _lambda42_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(definition);
 };
-auto _lambda41_(auto _ref) {
+auto _lambda45_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileConstructor(definition);
 };
@@ -586,7 +602,7 @@ char* compileClassSegment(void* _ref, char* input) {
 	}
 	if (input.endsWith(";")) {
 		char* slice = input.substring(0, input.length() - 1);
-		Optional<char*> maybeClassStatement = _this.compileEnumValues(slice).or(_lambda36_);
+		Optional<char*> maybeClassStatement = _this.compileEnumValues(slice).or(_lambda40_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
@@ -599,7 +615,7 @@ char* compileClassSegment(void* _ref, char* input) {
 		if (paramEnd >= 0) {
 			char* params = withParams.substring(0, paramEnd).strip();
 			char* withBraces = withParams.substring(paramEnd + 1).strip();
-			char* header = _this.compileDefinition(definition).or(_lambda41_).orElseGet(_lambda38_);
+			char* header = _this.compileDefinition(definition).or(_lambda45_).orElseGet(_lambda42_);
 			char* beforeContent = header + "(" + this.compileParameters(params) + ")";
 			char* generated;
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -617,13 +633,13 @@ char* compileClassSegment(void* _ref, char* input) {
 	}
 	return Placeholder.wrap(input);
 }
-auto _lambda43_(auto _ref, auto content) {
+auto _lambda47_(auto _ref, auto content) {
 	auto _this = _ref;
 	return _this.generateStatement(content, 1);
 };
 Optional<char*> compileDefinitionToField(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(slice).map(_lambda43_);
+	return _this.compileDefinition(slice).map(_lambda47_);
 }
 char* compileMethodSegments(void* _ref, char* content) {
 	App _this = *((App*) _ref);
@@ -647,13 +663,13 @@ Optional<char*> compileConstructor(void* _ref, char* input) {
 	}
 	return Optional.empty();
 }
-auto _lambda47_(auto _ref, auto slice) {
+auto _lambda51_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 Optional<char*> compileEnumValues(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	List<char*> segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda47_).toList();/*
+	List<char*> segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda51_).toList();/*
 
 		for (String segment : segments) {
 			final String stripped = segment.strip();
@@ -683,13 +699,13 @@ Optional<char*> compileEnumValue(void* _ref, char* stripped) {
 		}*/
 	return Optional.empty();
 }
-auto _lambda49_(auto _ref) {
+auto _lambda53_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileMethodSegment(input).orElseGet(_lambda49_);
+	return _this.compileMethodSegment(input).orElseGet(_lambda53_);
 }
 Optional<char*> compileMethodSegment(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -760,15 +776,15 @@ int findConditionEnd(void* _ref, char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda51_(auto _ref) {
+auto _lambda55_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileExpression(substring);
 };
-auto _lambda53_(auto _ref) {
+auto _lambda57_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(stripped);
 };
-auto _lambda56_(auto _ref) {
+auto _lambda60_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinition(input);
 };
@@ -783,7 +799,7 @@ char* compileMethodStatement(void* _ref, char* input) {
 	if (separator >= 0) {
 		char* substring = stripped.substring(0, separator).strip();
 		char* substring1 = stripped.substring(separator + 1).strip();
-		char* s = _this.compileDefinition(substring).orElseGet(_lambda51_);
+		char* s = _this.compileDefinition(substring).orElseGet(_lambda55_);
 		return s + " = " + _this.compileExpression(substring1);
 	}
 	if (stripped.endsWith("++")) {
@@ -795,25 +811,25 @@ char* compileMethodStatement(void* _ref, char* input) {
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return _this.compileInvocation(stripped).or(_lambda56_).orElseGet(_lambda53_);
+	return _this.compileInvocation(stripped).or(_lambda60_).orElseGet(_lambda57_);
 }
-auto _lambda58_(auto _ref) {
+auto _lambda62_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "<");
 };
-auto _lambda61_(auto _ref) {
+auto _lambda65_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, ">=");
 };
-auto _lambda64_(auto _ref) {
+auto _lambda68_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "==");
 };
-auto _lambda67_(auto _ref) {
+auto _lambda71_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "&&");
 };
-auto _lambda70_(auto _ref) {
+auto _lambda74_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "-");
 };
@@ -851,7 +867,7 @@ char* compileExpression(void* _ref, char* input) {
 	if (stripped.startsWith("switch")) {
 		return _this.createName("switch");
 	}
-	Optional<char*> maybeOperator = _this.compileOperator(stripped, "+").or(_lambda70_).or(_lambda67_).or(_lambda64_).or(_lambda61_).or(_lambda58_);
+	Optional<char*> maybeOperator = _this.compileOperator(stripped, "+").or(_lambda74_).or(_lambda71_).or(_lambda68_).or(_lambda65_).or(_lambda62_);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
@@ -866,11 +882,11 @@ char* compileExpression(void* _ref, char* input) {
 	}
 	return Placeholder.wrap(stripped);
 }
-auto _lambda75_(auto _ref, auto segment) {
+auto _lambda79_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return "auto " + segment;
 };
-auto _lambda78_(auto _ref, auto segment) {
+auto _lambda82_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
@@ -888,7 +904,7 @@ Optional<char*> compileLambda(void* _ref, char* stripped) {
 		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			char* slice = names.substring(1, names.length() - 1);
-			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda78_).map(_lambda75_).toList();
+			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda82_).map(_lambda79_).toList();
 		}
 		else {
 			return Optional.empty();
@@ -978,30 +994,34 @@ boolean isNumber(void* _ref, char* input) {
 		}*/
 	return true;
 }
-auto _lambda92_(auto _ref, auto slice) {
-	auto _this = _ref;
-	return /*!slice*/.isEmpty();
-};
 char* compileParameters(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	List<char*> parameters = _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda92_).map(compileDefinition_this).flatMap(stream_Optional).toList();
+	List<char*> parameters = _this.compileParametersToList(input);
 	ArrayList<char*> copy = new_ArrayList<char*>(parameters);
 	copy.addFirst("void* _ref");
 	return String.join(", ", copy);
 }
-auto _lambda94_(auto _ref) {
+auto _lambda96_(auto _ref, auto slice) {
+	auto _this = _ref;
+	return /*!slice*/.isEmpty();
+};
+List<char*> compileParametersToList(void* _ref, char* input) {
+	App _this = *((App*) _ref);
+	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda96_).map(compileDefinition_this).flatMap(stream_Optional).toList();
+}
+auto _lambda98_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
 char* compileDefinitionOrPlaceholder(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(input).orElseGet(_lambda94_);
+	return _this.compileDefinition(input).orElseGet(_lambda98_);
 }
-auto _lambda96_(auto _ref, auto cppType) {
+auto _lambda100_(auto _ref, auto cppType) {
 	auto _this = _ref;
 	return cppType.generate() + " " + name;
 };
-auto _lambda98_(auto _ref, auto cppType) {
+auto _lambda102_(auto _ref, auto cppType) {
 	auto _this = _ref;
 	return cppType.generate() + " " + name;
 };
@@ -1032,11 +1052,11 @@ Optional<char*> compileDefinition(void* _ref, char* input) {
 		}*/
 	if (typeSeparator >= 0) {
 		char* type = beforeName.substring(typeSeparator + 1).strip();
-		return _this.compileType(type).map(_lambda96_);
+		return _this.compileType(type).map(_lambda100_);
 	}
-	return _this.compileType(beforeName).map(_lambda98_);
+	return _this.compileType(beforeName).map(_lambda102_);
 }
-auto _lambda106_(auto _ref, auto slice) {
+auto _lambda110_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
@@ -1059,7 +1079,7 @@ Optional<CPPType> compileType(void* _ref, char* input) {
 		if (i >= 0) {
 			char* base = withoutEnd.substring(0, i);
 			char* typeArguments = withoutEnd.substring(i + 1);
-			List<CPPType> list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda106_).map(compileType_this).flatMap(stream_Optional).toList();
+			List<CPPType> list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda110_).map(compileType_this).flatMap(stream_Optional).toList();
 			return Optional.of(new_CTemplateType(base, list));
 		}
 	}
