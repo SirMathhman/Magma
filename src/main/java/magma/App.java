@@ -813,6 +813,10 @@ public class App {
 
 		final var beforeName = input.substring(0, nameSeparator);
 		final var name = input.substring(nameSeparator + 1).strip();
+		if (!this.isIdentifier(name)) {
+			return Optional.empty();
+		}
+
 		final var typeSeparator = beforeName.lastIndexOf(" ");
 		if (typeSeparator >= 0) {
 			final var type = beforeName.substring(typeSeparator + 1).strip();

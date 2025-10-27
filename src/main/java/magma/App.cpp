@@ -13,6 +13,7 @@ struct CIdentifier;
 struct Placeholder;
 template <typename A, typename B>
 struct Tuple;
+struct State;
 /*
 */struct CPPPrimitiveType {
 
@@ -34,6 +35,14 @@ struct Placeholder {
 template <typename A, typename B>
 struct Tuple {
 };
+struct State {
+
+	char* input;
+	ArrayList<char*> segments;
+	StringBuilder buffer;
+	int depth;
+	/*
+		private int index = 0*/;};
 struct App {
 
 	List<char*> globals;
@@ -75,8 +84,10 @@ struct CPPType {
 	CPPTypeTag tag;
 	CPPTypeData data;
 
-	char* generate();
-	char* getSimpleName();};
+	/*String generate()*/;
+	/*
+
+		String getSimpleName()*/;};
 CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
 CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
@@ -160,63 +171,57 @@ char* generate() {
 char* getSimpleName() {
 	return this.generate();
 }
-/*0;
-
-		public*/ State(char* input) {
+State new_State(char* input) {
 	this.input = input;
 	this.buffer = new_StringBuilder();
 	this.depth = /*0*/;
 	this.segments = new_ArrayList<char*>();
-	/*enter()*/ {
-			this.depth = this.depth + /*1*/;
+}
+State enter() {
+	this.depth = this.depth + /*1*/;
 	return this;
-	/*exit()*/ {
-			this.depth = /*this.depth - 1*/;
+}
+State exit() {
+	this.depth = /*this.depth - 1*/;
 	return this;
-	/*}
-
-		State advance() {
-			this.segments.add(this.buffer.toString())*/;
+}
+State advance() {
+	/*this.segments.add(this.buffer.toString())*/;
 	this.buffer = new_StringBuilder();
 	return this;
-	/*{
-			return*/ this.depth = /*= 1*/;
-	/*}
-
-		State append(char c) {
-			this.buffer.append(c)*/;
+}
+boolean isShallow() {
+	return /*this.depth == 1*/;
+}
+State append(char c) {
+	/*this.buffer.append(c)*/;
 	return this;
-	/*{
-			return*/ this.depth = /*= 0*/;/*
-		}
-
-		public Optional<Character> pop() {
-			if (this.index < this.input.length()) {
-				var counter = this.index;
-				this.index++;
+}
+boolean isLevel() {
+	return /*this.depth == 0*/;
+}
+Optional<Character> pop() {
+	if (/*this.index < this*/.input.length()) {
+		var counter = /*this.index;
+				this*/.index +  + /*;
 				final var element = this.input.charAt(counter);
-				return Optional.of(element);
-			}*//* else {
+				return Optional*/.of(element);
+	}/* else {
 				return Optional.empty();
 			}*/
-	/*}
-
-		public Stream<String> stream() {
-			return this.segments.stream()*/;/*
-		}
-
-		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
+}
+Stream<char*> stream() {
+	return this.segments.stream();
+}
+/*State>>*/ popAndAppendToTuple() {/*
 			return this.pop().map(next -> {
 				final var appended = this.append(next);
 				return new Tuple<Character, State>(next, appended);
 			}*/
 	/*)*/;
-	/*}
-
-		public Optional<State> popAndAppendToOption() {
-			return this.popAndAppendToTuple().map(Tuple::right)*/;/*
-		}
-	*/
+}
+Optional<State> popAndAppendToOption() {
+	return this.popAndAppendToTuple().map(right_Tuple);
 }
 App new_App() {
 	this.globals = new_ArrayList<char*>();
@@ -321,7 +326,7 @@ State foldEscaped(char next) {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
 	if (/*next == '\"'*/) {
-		var current0 = /*current.append(next);
+		/*var current0*/ = /*current.append(next);
 			while (true) {
 				final var maybeTuple = current0.popAndAppendToTuple();
 				if (maybeTuple.isEmpty()) {
@@ -533,6 +538,10 @@ boolean isIdentifier(char* input) {
 char* compileClassSegment(char* input) {
 	if (input.isBlank()) {
 		return "";
+	}
+	var maybeClass = this.compileStructure(/*"class", input*/);
+	if (maybeClass.isPresent()) {
+		return maybeClass.get();
 	}
 	var maybeInterface = this.compileStructure(/*"interface", input*/);
 	if (maybeInterface.isPresent()) {
@@ -749,17 +758,17 @@ char* compileExpression(char* input) {
 	if (this.isIdentifier(stripped)) {
 		return stripped;
 	}
-	var i1 = stripped.indexOf("+");
+	/*final var i1*/ = stripped.indexOf("+");
 	if (/*i1 >= 0*/) {
 		var substring = /*stripped.substring(0, i1);
 			final var substring1 = stripped.substring(i1*/ + " + ".length(/*));
 			return this.compileExpression(substring*/) + " + " + this.compileExpression(/*substring1*/);
 	}
-	var i2 = stripped.lastIndexOf("::");
+	/*final var i2*/ = stripped.lastIndexOf("::");
 	if (/*i2 >= 0*/) {
 		var substring = /*stripped.substring(0, i2);
 			final var substring1 = stripped.substring(i2*/ + /*2);
-			return substring1*/ + "_" + compileType(substring).map(generate_CPPType).orElse("?");
+			return substring1*/ + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
 	}
 	return Placeholder.wrap(stripped);
 }
@@ -779,6 +788,9 @@ Optional<char*> compileDefinition(char* input) {
 	}
 	var beforeName = input.substring(/*0, nameSeparator*/);
 	var name = input.substring(nameSeparator + /*1*/).strip();
+	if (/*!this*/.isIdentifier(name)) {
+		return Optional.empty();
+	}
 	var typeSeparator = beforeName.lastIndexOf(" ");
 	if (/*typeSeparator >= 0*/) {
 		var type = /*beforeName.substring(typeSeparator*/ + /*1).strip();
