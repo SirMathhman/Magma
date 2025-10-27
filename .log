@@ -1,77 +1,90 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:24:55: error: expected member name or ';' after declaration specifiers
-   24 |                 private final String content;*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}/*@Override
-      |                                                                     ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:24:55: error: expected ')'
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:24:54: note: to match this '('
-   24 |                 private final String content;*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}/*@Override
-      |                                                                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:44:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
-   44 |         ResultData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:38:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
+   38 |         ResultData data;
       |         ^~~~~~~~~~
       |         ResultTag
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:6: note: 'ResultTag' declared here
-   32 | enum ResultTag {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:26:6: note: 'ResultTag' declared here
+   26 | enum ResultTag {
       |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:54:14: error: field has incomplete type 'CIdentifier'
-   54 |         CIdentifier cidentifier;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:48:14: error: field has incomplete type 'CIdentifier'
+   48 |         CIdentifier cidentifier;
       |                     ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:12:8: note: forward declaration of 'CIdentifier'
    12 | struct CIdentifier;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:56:15: error: field has incomplete type 'CPointerType'
-   56 |         CPointerType cpointertype;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:50:15: error: field has incomplete type 'CPointerType'
+   50 |         CPointerType cpointertype;
       |                      ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:8: note: forward declaration of 'CPointerType'
    10 | struct CPointerType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:57:16: error: field has incomplete type 'CTemplateType'
-   57 |         CTemplateType ctemplatetype;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:51:16: error: field has incomplete type 'CTemplateType'
+   51 |         CTemplateType ctemplatetype;
       |                       ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:11:8: note: forward declaration of 'CTemplateType'
    11 | struct CTemplateType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:14: error: field has incomplete type 'Placeholder'
-   58 |         Placeholder placeholder;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:52:14: error: field has incomplete type 'Placeholder'
+   52 |         Placeholder placeholder;
       |                     ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:13:8: note: forward declaration of 'Placeholder'
    13 | struct Placeholder;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:152:33: error: use of undeclared identifier 'IOException'
-  152 |         */}/*private static*/ Optional<IOException> run() {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:159:33: error: use of undeclared identifier 'IOException'
-  159 |         */}/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:163:74: error: unknown type name 'Path'
-  163 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-      |                                                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:163:60: error: a type specifier is required for all declarations
-  163 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-      |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:169:33: error: use of undeclared identifier 'IOException'
-  169 |         */}/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:169:61: error: unknown type name 'Process'
-  169 |         */}/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
-      |                                                                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:177:65: error: unknown type name 'Process'
-  177 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
-      |                                                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:177:57: error: a type specifier is required for all declarations
-  177 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
-      |                                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:183:70: error: no template named 'List'
-  183 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
-      |                                                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:183:57: error: a type specifier is required for all declarations
-  183 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
-      |                                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:189:33: error: use of undeclared identifier 'IOException'
-  189 |         */}/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:196:67: error: unknown type name 'Path'
-  196 |         */}/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
-      |                                                                          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:9: error: incomplete result type 'CPPType' in function definition
+   15 | CPPType toCPPType_CPPPrimitiveType(void* _ref){
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:8: note: forward declaration of 'CPPType'
+    5 | struct CPPType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:19:9: error: no viable conversion from 'CPPType' (aka 'Main::CPPType') to incomplete type 'CPPType'
+   19 |         return CPPType { CPPPrimitiveTypeTag, data };
+      |                ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:8: note: forward declaration of 'CPPType'
+    5 | struct CPPType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:392:24: error: expected unqualified-id
+  392 | *//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+      |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:392:24: error: expected ')'
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:392:23: note: to match this '('
+  392 | *//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+      |                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:402:18: error: redefinition of 'generate'
+  402 |                 public*/ char* generate() {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:394:18: note: previous definition is here
+  394 |                 public*/ char* generate() {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:406:18: error: redefinition of 'getSimpleName'
+  406 |                 public*/ char* getSimpleName() {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:398:18: note: previous definition is here
+  398 |                 public*/ char* getSimpleName() {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:434:19: error: 'main' must return 'int'
+  434 | /*public static*/ void main(char** args) {/*
+      |                   ^~~~
+      |                   int
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:434:24: error: first parameter of 'main' (argument count) must be of type 'int'
+  434 | /*public static*/ void main(char** args) {/*
+      |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:437:29: error: use of undeclared identifier 'IOException'
+  437 | /*private static*/ Optional<IOException> run() {/*
+      |                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:445:29: error: use of undeclared identifier 'IOException'
+  445 | /*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
+      |                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:450:70: error: unknown type name 'Path'
+  450 | /*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
+      |                                                                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:450:56: error: a type specifier is required for all declarations
+  450 | /*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
+      |                                                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:457:29: error: use of undeclared identifier 'IOException'
+  457 | /*private static*/ Optional<IOException> waitForProcess(Process process) {/*
+      |                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:457:57: error: unknown type name 'Process'
+  457 | /*private static*/ Optional<IOException> waitForProcess(Process process) {/*
+      |                                                         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 Compilation failed with exit code: 1

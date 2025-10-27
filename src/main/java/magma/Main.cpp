@@ -21,13 +21,7 @@ CPPType toCPPType_CPPPrimitiveType(void* _ref){
 struct CPPPrimitiveType {
 /*Void("void"), Char("char");*//*
 
-		private final String content;*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}/*@Override
-		public*/ char* generate() {/*
-			return this.content;*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.content;*//*
-		*/}/*
+		private final String content;*//*
 	*/};
 enum ResultTag {
 	ErrTag,
@@ -91,13 +85,7 @@ CPPType toCPPType_CPointerType(void* _ref){
 	return CPPType { CPointerTypeTag, data };
 }
 struct CPointerType {
-/*@Override
-		public*/ char* generate() {/*
-			return this.type.generate() + "*";*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.type.getSimpleName() + "_ref";*//*
-		*/}/*
+/*
 	*/};
 CPPType toCPPType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
@@ -106,14 +94,7 @@ CPPType toCPPType_CTemplateType(void* _ref){
 	return CPPType { CTemplateTypeTag, data };
 }
 struct CTemplateType {
-/*@Override
-		public*/ char* generate() {/*
-			final var joined = String.join(", ", this.list);*//*
-			return this.base + "<" + joined + ">";*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.base;*//*
-		*/}/*
+/*
 	*/};
 CPPType toCPPType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -122,13 +103,7 @@ CPPType toCPPType_CIdentifier(void* _ref){
 	return CPPType { CIdentifierTag, data };
 }
 struct CIdentifier {
-/*@Override
-		public*/ char* generate() {/*
-			return this.input;*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.input;*//*
-		*/}/*
+/*
 	*/};
 CPPType toCPPType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
@@ -137,97 +112,12 @@ CPPType toCPPType_Placeholder(void* _ref){
 	return CPPType { PlaceholderTag, data };
 }
 struct Placeholder {
-/*@Override
-		public*/ char* generate() {/*
-			return wrap(this.input);*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.generate();*//*
-		*/}/*
+/*
 	*/};
 /*
 
-	private static final List<String> forwardDeclarations = new ArrayList<>();*//*public static*/ void main(char** args) {/*
-		run().ifPresent(Throwable::printStackTrace);*//*
-	*/}/*private static*/ Optional<IOException> run() {/*
-		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
-		final var input = readString(source);*//*
-		return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
-			case Ok<String, IOException> v -> compilePath(source, v.value);
-		}*//*;*//*
-	*/}/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-		final var target = source.resolveSibling("Main.cpp");*//*
-		final var output = compile(input);*//*
-		return writeString(target, output).or(() -> compileNative(target));*//*
-	*/}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));*//*
-		return switch (clang) {
-			case Err<Process, IOException> v1 -> Optional.of(v1.error);
-			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
-		}*//*;*//*
-	*/}/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
-		return switch (waitFor(process)) {
-			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
-			case Ok<Integer, IOException> v2 -> {
-				System.out.println("Compilation failed with exit code: " + v2.value);
-				yield Optional.empty();
-			}
-		}*//*;*//*
-	*/}/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
-		try {
-			return new Ok<Integer, IOException>(process.waitFor());
-		}*//* catch (InterruptedException e) {
-			return new Err<Integer, IOException>(new IOException(e));
-		}*//*
-	*/}/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
-		try {
-			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
-		}*//* catch (IOException e) {
-			return new Err<Process, IOException>(e);
-		}*//*
-	*/}/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
-		try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		}*//* catch (IOException e) {
-			return Optional.of(e);
-		}*//*
-	*/}/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
-		try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*//* catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*//*
-	*/}/*private static*/ char* compile(char* input) {/*
-		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
-		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
-
-		return joinedForwardDeclarations + compiled + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
-					 System.lineSeparator() + "}*//*";*//*
-	*/}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
-		final var segments = new ArrayList<String>();*//*
-		var buffer = new StringBuilder();*//*
-		var depth = 0;*//*
-		for (var i = 0;*//* i < input.length();*//* i++) {
-			final var c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-			} else if (c == '}*//*' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-			}*//* else {
-				if (c == '{') {
-					depth++;
-				}
-				if (c == '}') {
-					depth--;
-				}
-			}*//*
-		*/}/*
+	private static final List<String> forwardDeclarations = new ArrayList<>();*//*
+	private static final List<String> functions = new ArrayList<>();*//*
 		segments.add(buffer.toString());*//*
 
 		return segments.stream().map(mapper).collect(Collectors.joining());*//*
@@ -352,7 +242,7 @@ struct Placeholder {
 					final var generated =
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
-					
+
 					return Optional.of(generated);
 				}
 			}
@@ -415,8 +305,11 @@ struct Placeholder {
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
-					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
-								 compileStatements(content, Main::compileMethodSegment) + "}";
+					final var generated = compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
+																compileStatements(content, Main::compileMethodSegment) + "}" + System.lineSeparator();
+
+					functions.add(generated);
+					return "";
 				}
 			}
 		}
@@ -496,6 +389,141 @@ struct Placeholder {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
 }*//*
-*/int main(){
+*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+/*@Override
+		public*/ char* generate() {/*
+			return this.content;*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.content;*//*
+		*/}
+/*@Override
+		public*/ char* generate() {/*
+			return this.type.generate() + "*";*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.type.getSimpleName() + "_ref";*//*
+		*/}
+/*@Override
+		public*/ char* generate() {/*
+			final var joined = String.join(", ", this.list);*//*
+			return this.base + "<" + joined + ">";*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.base;*//*
+		*/}
+/*@Override
+		public*/ char* generate() {/*
+			return this.input;*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.input;*//*
+		*/}
+/*@Override
+		public*/ char* generate() {/*
+			return wrap(this.input);*//*
+		*/}
+/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.generate();*//*
+		*/}
+/*public static*/ void main(char** args) {/*
+		run().ifPresent(Throwable::printStackTrace);*//*
+	*/}
+/*private static*/ Optional<IOException> run() {/*
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
+		final var input = readString(source);*//*
+		return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> compilePath(source, v.value);
+		}*//*;*//*
+	*/}
+/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
+		final var target = source.resolveSibling("Main.cpp");*//*
+		final var output = compile(input);*//*
+		return writeString(target, output).or(() -> compileNative(target));*//*
+	*/}
+/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
+		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));*//*
+		return switch (clang) {
+			case Err<Process, IOException> v1 -> Optional.of(v1.error);
+			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
+		}*//*;*//*
+	*/}
+/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
+		return switch (waitFor(process)) {
+			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
+			case Ok<Integer, IOException> v2 -> {
+				System.out.println("Compilation failed with exit code: " + v2.value);
+				yield Optional.empty();
+			}
+		}*//*;*//*
+	*/}
+/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
+		try {
+			return new Ok<Integer, IOException>(process.waitFor());
+		}*//* catch (InterruptedException e) {
+			return new Err<Integer, IOException>(new IOException(e));
+		}*//*
+	*/}
+/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
+		try {
+			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
+		}*//* catch (IOException e) {
+			return new Err<Process, IOException>(e);
+		}*//*
+	*/}
+/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
+		try {
+			Files.writeString(target, output);
+			return Optional.empty();
+		}*//* catch (IOException e) {
+			return Optional.of(e);
+		}*//*
+	*/}
+/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		}*//* catch (IOException e) {
+			return new Err<String, IOException>(e);
+		}*//*
+	*/}
+/*private static*/ char* compile(char* input) {/*
+		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
+
+		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
+		final var joinedFunctions = String.join("", functions);*//*
+
+		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
+					 System.lineSeparator() + "}*//*";*//*
+	*/}
+/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+		final var segments = new ArrayList<String>();*//*
+		var buffer = new StringBuilder();*//*
+		var depth = 0;*//*
+		for (var i = 0;*//* i < input.length();*//* i++) {
+			final var c = input.charAt(i);
+			buffer.append(c);
+			if (c == ';' && depth == 0) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			} else if (c == '}*//*' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
+			}*//* else {
+				if (c == '{') {
+					depth++;
+				}
+				if (c == '}') {
+					depth--;
+				}
+			}*//*
+		*/}
+int main(){
 	return 0;
 }

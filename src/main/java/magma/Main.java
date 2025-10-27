@@ -94,6 +94,7 @@ public class Main {
 	}
 
 	private static final List<String> forwardDeclarations = new ArrayList<>();
+	private static final List<String> functions = new ArrayList<>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -167,9 +168,11 @@ public class Main {
 
 	private static String compile(String input) {
 		final var compiled = compileStatements(input, Main::compileRootSegment);
-		final var joinedForwardDeclarations = String.join("", forwardDeclarations);
 
-		return joinedForwardDeclarations + compiled + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
+		final var joinedForwardDeclarations = String.join("", forwardDeclarations);
+		final var joinedFunctions = String.join("", functions);
+
+		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
 					 System.lineSeparator() + "}";
 	}
 
@@ -382,8 +385,11 @@ public class Main {
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
-					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
-								 compileStatements(content, Main::compileMethodSegment) + "}";
+					final var generated = compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
+																compileStatements(content, Main::compileMethodSegment) + "}" + System.lineSeparator();
+
+					functions.add(generated);
+					return "";
 				}
 			}
 		}
