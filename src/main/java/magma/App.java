@@ -530,6 +530,11 @@ public class App {
 			return "";
 		}
 
+		final var maybeClass = this.compileStructure("class", input);
+		if (maybeClass.isPresent()) {
+			return maybeClass.get();
+		}
+
 		final var maybeInterface = this.compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
@@ -780,10 +785,10 @@ public class App {
 		}
 
 		final var i2 = stripped.lastIndexOf("::");
-		if(i2 >= 0) {
+		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var substring1 = stripped.substring(i2 + 2);
-			return substring1 + "_" + compileType(substring).map(CPPType::generate).orElse("?");
+			return substring1 + "_" + this.compileType(substring).map(CPPType::generate).orElse("?");
 		}
 
 		return Placeholder.wrap(stripped);
