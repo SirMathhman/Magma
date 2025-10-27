@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ void main(char** args)/* {
+/*public static*/ void main(char** args) {/*
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -11,10 +11,10 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static*/ char* compile(char* input)/* {
+	*/}/*private static*/ char* compile(char* input) {/*
 		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
 					 "0;" + System.lineSeparator() + "}";
-	}*//*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
+	*/}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -36,7 +36,10 @@ struct Main {};
 					depth--;
 				}
 			}
-		}*//*segments.add*/(/*buffer.toString(*/)/*);*//*return*/ segments.stream()/*.map(mapper).collect(Collectors.joining());*//*
+		*/}/*
+		segments.add(buffer.toString());*//*
+
+		return segments.stream().map(mapper).collect(Collectors.joining());*//*
 	*//*
 
 	private static String compileRootSegment(String input) {
@@ -83,8 +86,11 @@ struct Main {};
 			final var paramEnd = withParams.indexOf(")");
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
-				final var content = withParams.substring(paramEnd + 1);
-				return compileDefinition(definition) + "(" + compileParameters(params) + ")" + wrap(content);
+				final var withBraces = withParams.substring(paramEnd + 1).strip();
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var slice = withBraces.substring(1, withBraces.length() - 1);
+					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" + wrap(slice) + "}";
+				}
 			}
 		}
 

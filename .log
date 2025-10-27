@@ -1,22 +1,11 @@
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:19: error: 'main' must return 'int'
-    2 | /*public static*/ void main(char** args)/* {
+    2 | /*public static*/ void main(char** args) {/*
       |                   ^~~~
       |                   int
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:24: error: first parameter of 'main' (argument count) must be of type 'int'
-    2 | /*public static*/ void main(char** args)/* {
+    2 | /*public static*/ void main(char** args) {/*
       |                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:41: error: expected ';' after top level declarator
-    2 | /*public static*/ void main(char** args)/* {
-      |                                         ^
-      |                                         ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:14:50: error: expected ';' after top level declarator
-   14 |         }*//*private static*/ char* compile(char* input)/* {
-      |                                                         ^
-      |                                                         ;
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:17:95: error: unknown type name 'mapper'
-   17 |         }*//*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
+   17 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
       |                                                                                                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:39:61: error: expected function body after function declarator
-   39 |                 }*//*segments.add*/(/*buffer.toString(*/)/*);*//*return*/ segments.stream()/*.map(mapper).collect(Collectors.joining());*//*
-      |                                                                           ^
-6 errors generated.
+3 errors generated.

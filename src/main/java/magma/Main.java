@@ -99,8 +99,11 @@ public class Main {
 			final var paramEnd = withParams.indexOf(")");
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
-				final var content = withParams.substring(paramEnd + 1);
-				return compileDefinition(definition) + "(" + compileParameters(params) + ")" + wrap(content);
+				final var withBraces = withParams.substring(paramEnd + 1).strip();
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var slice = withBraces.substring(1, withBraces.length() - 1);
+					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" + wrap(slice) + "}";
+				}
 			}
 		}
 
