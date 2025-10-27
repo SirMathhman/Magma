@@ -67,16 +67,28 @@ public class Main {
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final var name = afterKeyword.substring(0, contentStart).strip();
-				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var content = withEnd.substring(0, withEnd.length() - 1);
-					return "struct " + name + " {};" + System.lineSeparator() +
-								 compileStatements(content, Main::compileClassSegment);
+				if (isIdentifier(name)) {
+					final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+					if (withEnd.endsWith("}")) {
+						final var content = withEnd.substring(0, withEnd.length() - 1);
+						return "struct " + name + " {};" + System.lineSeparator() +
+									 compileStatements(content, Main::compileClassSegment);
+					}
 				}
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static boolean isIdentifier(String input) {
+		for (var i = 0; i < input.length(); i++) {
+			if (!Character.isLetter(input.charAt(i))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static String compileClassSegment(String input) {

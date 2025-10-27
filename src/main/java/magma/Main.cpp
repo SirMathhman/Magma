@@ -44,32 +44,52 @@ struct Main {};
 		segments.add(buffer.toString());*//*
 
 		return segments.stream().map(mapper).collect(Collectors.joining());*//*
-	*/struct Index = stripped.indexOf("class");
-		if (classIndex >= 0) {};
-/*final var afterKeyword = stripped.substring(classIndex + "class".length());*//*
+	*//*
+
+	private static String compileRootSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+			return "";
+		}
+
+		final var classIndex = stripped.indexOf("class");
+		if (classIndex >= 0) {
+			final var afterKeyword = stripped.substring(classIndex + "class".length());
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final var name = afterKeyword.substring(0, contentStart).strip();
-				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var content = withEnd.substring(0, withEnd.length() - 1);
-					return "struct " + name + " {};" + System.lineSeparator() +
-								 compileStatements(content, Main::compileClassSegment);
+				if (isIdentifier(name)) {
+					final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+					if (withEnd.endsWith("}")) {
+						final var content = withEnd.substring(0, withEnd.length() - 1);
+						return "struct " + name + " {};" + System.lineSeparator() +
+									 compileStatements(content, Main::compileClassSegment);
+					}
 				}
 			}
-		}*//*
+		}
 
-		return wrap(input);*//*
+		return wrap(input);
+	}
+
+	private static boolean isIdentifier(String input) {
+		for (var i = 0; i < input.length(); i++) {
+			if (!Character.isLetter(input.charAt(i))) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static String compileClassSegment(String input) {
-		return wrap(input);*//*
+		return wrap(input);
 	}
 
 	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
-*//*
+}*//*
 */int main(){
 	return 0;
 }
