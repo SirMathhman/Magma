@@ -3,6 +3,8 @@ package magma;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class Main {
 	public static void main(String[] args) {
@@ -20,7 +22,21 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return wrap(input) + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
+		final var segments = new ArrayList<String>();
+		var buffer = new StringBuilder();
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			buffer.append(c);
+			if (c == ';') {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+			}
+		}
+		segments.add(buffer.toString());
+
+		final var joined = segments.stream().map(Main::wrap).collect(Collectors.joining());
+
+		return joined + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
 					 System.lineSeparator() + "}";
 	}
 
