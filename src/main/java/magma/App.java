@@ -759,7 +759,11 @@ public class App {
 			return stripped;
 		}
 
-		final var maybeOperator = this.compileOperator(stripped, "+").or(() -> this.compileOperator(stripped, "-"));
+		final var maybeOperator = this
+				.compileOperator(stripped, "+")
+				.or(() -> this.compileOperator(stripped, "-"))
+				.or(() -> this.compileOperator(stripped, "=="))
+				.or(() -> this.compileOperator(stripped, "<"));
 
 		if (maybeOperator.isPresent()) {
 			return maybeOperator.get();
