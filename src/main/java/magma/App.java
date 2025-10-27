@@ -690,6 +690,11 @@ public class App {
 			return this.generateStatement(this.compileMethodStatement(slice), this.depth);
 		}
 
+		if (stripped.startsWith("else ")) {
+			final var substring = stripped.substring(5);
+			return "else " + this.compileMethodSegment(substring);
+		}
+
 		return Placeholder.wrap(input);
 	}
 
@@ -731,8 +736,8 @@ public class App {
 			return s + " = " + this.compileExpression(substring1);
 		}
 
-		if(stripped.endsWith("++")) {
-			return compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
+		if (stripped.endsWith("++")) {
+			return this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
 		}
 
 		return this.compileInvocation(stripped).orElseGet(() -> Placeholder.wrap(stripped));

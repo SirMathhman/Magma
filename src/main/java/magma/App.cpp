@@ -202,7 +202,7 @@ boolean isLevel() {
 Optional<Character> pop() {
 	if (this.index < this.input.length()) {
 		var counter = this.index;
-		/*this.index++*/;
+		this.index++;
 		var element = this.input.charAt(counter);
 		return Optional.of(element);
 	}/* else {
@@ -616,7 +616,7 @@ char* compileMethodSegment(char* input) {
 	}
 	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
 		var content = stripped.substring(/*1, stripped*/.length() - 1);
-		/*this.depth++*/;
+		this.depth++;
 		var compiled = this.compileMethodSegments(content);
 		/*this.depth--*/;
 		return "{" + compiled + this.generateIndent(this.depth) + "}";
@@ -662,19 +662,22 @@ int findConditionEnd(char* withCondition) {
 	return conditionEnd;
 }
 char* compileMethodStatement(char* input) {
-	var strip = input.strip();
-	if (strip.startsWith("return ")) {
-		var slice = strip.substring("return ".length()).strip();
+	var stripped = input.strip();
+	if (stripped.startsWith("return ")) {
+		var slice = stripped.substring("return ".length()).strip();
 		return "return " + this.compileExpression(slice);
 	}
-	var separator = strip.indexOf(/*'='*/);
+	var separator = stripped.indexOf(/*'='*/);
 	if (/*separator >= 0*/) {
-		var substring = strip.substring(/*0, separator*/).strip();
-		/*final var substring1*/ = strip.substring(separator + 1).strip();
+		var substring = stripped.substring(/*0, separator*/).strip();
+		/*final var substring1*/ = stripped.substring(separator + 1).strip();
 		var s = this.compileDefinition(substring).orElseGet(() - /*> this*/.compileExpression(substring));
 		return s + " = " + this.compileExpression(/*substring1*/);
 	}
-	return this.compileInvocation(strip).orElseGet(() - /*> Placeholder*/.wrap(strip));
+	if (stripped.endsWith("++")) {
+		return compileExpression(stripped.substring(/*0, stripped*/.length() - 2)) + "++";
+	}
+	return this.compileInvocation(stripped).orElseGet(() - /*> Placeholder*/.wrap(stripped));
 }
 char* compileExpression(char* input) {
 	var stripped = input.strip();
