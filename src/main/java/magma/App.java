@@ -178,6 +178,7 @@ public class App {
 	private final List<String> structures;
 	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
+	private int depth = 1;
 
 	public App() {
 		this.globals = new ArrayList<String>();
@@ -506,11 +507,11 @@ public class App {
 	}
 
 	private String generateWithIndent(String content) {
-		return this.generateIndent() + content;
+		return this.generateIndent(1) + content;
 	}
 
-	private String generateIndent() {
-		return System.lineSeparator() + "\t";
+	private String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private boolean isIdentifier(String input) {
@@ -645,31 +646,26 @@ public class App {
 			return "";
 		}
 
+		if (stripped.startsWith("{") && stripped.endsWith("}")) {
+			final var content = stripped.substring(1, stripped.length() - 1);
+
+			this.depth++;
+			final var compiled = this.compileMethodSegment(content);
+			this.depth--;
+
+			return "{" + compiled + "}";
+		}
+
 		if (stripped.startsWith("if")) {
 			final var substring = stripped.substring(2).strip();
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
-				int conditionEnd = -1;
-				var depth = 0;
-				for (var i = 0; i < withCondition.length(); i++) {
-					final var c = withCondition.charAt(i);
-					if (c == ')') {
-						depth--;
-						if (depth == -1) {
-							conditionEnd = i;
-							break;
-						}
-					}
-
-					if (c == '(') {
-						depth++;
-					}
-				}
+				final var conditionEnd = this.findConditionEnd(withCondition);
 
 				if (conditionEnd >= 0) {
 					final var condition = withCondition.substring(0, conditionEnd).strip();
 					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return this.generateIndent() + "if (" + this.compileExpression(condition) + ") " +
+					return this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
 								 this.compileMethodSegment(substring2);
 				}
 			}
@@ -681,6 +677,27 @@ public class App {
 		}
 
 		return Placeholder.wrap(input);
+	}
+
+	private int findConditionEnd(String withCondition) {
+		int conditionEnd = -1;
+		var depth = 0;
+		for (var i = 0; i < withCondition.length(); i++) {
+			final var c = withCondition.charAt(i);
+			if (c == ')') {
+				depth--;
+				if (depth == -1) {
+					conditionEnd = i;
+					break;
+				}
+			}
+
+			if (c == '(') {
+				depth++;
+			}
+		}
+
+		return conditionEnd;
 	}
 
 	private String compileMethodStatement(String input) {
