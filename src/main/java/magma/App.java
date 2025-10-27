@@ -718,7 +718,7 @@ public class App {
 
 	private Optional<String> compileConditional(String input, String type) {
 		if (input.startsWith(type)) {
-			final var substring = input.substring(2).strip();
+			final var substring = input.substring(type.length()).strip();
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
 				final var conditionEnd = this.findConditionEnd(withCondition);
@@ -777,11 +777,19 @@ public class App {
 			return this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
 		}
 
+		if (stripped.equals("break")) {
+			return "break";
+		}
+
 		return this.compileInvocation(stripped).orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
 	private String compileExpression(String input) {
 		final var stripped = input.strip();
+
+		if (stripped.startsWith("'") && stripped.endsWith("'")) {
+			return stripped;
+		}
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
 			return stripped;

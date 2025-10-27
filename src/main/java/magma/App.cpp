@@ -277,15 +277,14 @@ char* compileStatements(Function<char*, char*> mapper) {
 	return this.divide(input, foldStatement_this).map(mapper).collect(Collectors.joining());
 }
 Stream<char*> divide(BiFunction<State, Character, State> folder) {
-	var current = new_State(input);/*
-		while (true) {
-			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) {
-				break;
-			}
-
-			current = this.foldEscaped(current, maybeNext.get(), folder);
-		}*/
+	var current = new_State(input);
+	while (true) {
+		var maybeNext = current.pop();
+		if (maybeNext.isEmpty()) {
+			break;
+		}
+		current = this.foldEscaped(current, maybeNext.get(), folder);
+	}
 	return current.advance().stream();
 }
 State foldEscaped(BiFunction<State, Character, State> folder) {
@@ -293,26 +292,23 @@ State foldEscaped(BiFunction<State, Character, State> folder) {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
 	if (next == /*'\"'*/) {
-		/*var current0*/ = current.append(next);/*
-			while (true) {
-				final var maybeTuple = current0.popAndAppendToTuple();
-				if (maybeTuple.isEmpty()) {
-					break;
-				}
-
-				final var tuple = maybeTuple.get();
-				current0 = tuple.right;
-
-				final var nextInQuotes = tuple.left;
-				if (nextInQuotes == '\\') {
-					current0 = current0.popAndAppendToOption().orElse(current0);
-					continue;
-				}
-
-				if (nextInQuotes == '\"') {
-					break;
-				}
-			}*/
+		/*var current0*/ = current.append(next);
+		while (true) {
+			var maybeTuple = /*current0*/.popAndAppendToTuple();
+			if (maybeTuple.isEmpty()) {
+				break;
+			}
+			var tuple = maybeTuple.get();
+			/*current0*/ = tuple.right;
+			var nextInQuotes = tuple.left;
+			if (nextInQuotes == /*'\\'*/) {
+				/*current0*/ = /*current0*/.popAndAppendToOption().orElse(/*current0*/);
+				/*continue*/;
+			}
+			if (nextInQuotes == /*'\"'*/) {
+				break;
+			}
+		}
 		return /*current0*/;
 	}
 	return folder.apply(current, next);
@@ -606,7 +602,7 @@ Optional<char*> compileMethodSegment(char* input) {
 }
 Optional<char*> compileConditional(char* type) {
 	if (input.startsWith(type)) {
-		var substring = input.substring(2).strip();/*
+		var substring = input.substring(type.length()).strip();/*
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
 				final var conditionEnd = this.findConditionEnd(withCondition);
@@ -655,6 +651,9 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderchar* compileMe
 	}
 	if (stripped.endsWith("++")) {
 		return this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
+	}
+	if (stripped.equals("break")) {
+		return "break";
 	}
 	return this.compileInvocation(stripped).orElseGet(_lambda19_.wrap(stripped));
 }
