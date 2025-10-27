@@ -34,10 +34,19 @@ public class Main {
 		}
 		segments.add(buffer.toString());
 
-		final var joined = segments.stream().map(Main::wrap).collect(Collectors.joining());
+		final var joined = segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
 
 		return joined + System.lineSeparator() + "int main(){" + System.lineSeparator() + "\treturn 0;" +
 					 System.lineSeparator() + "}";
+	}
+
+	private static String compileRootSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+			return "";
+		}
+
+		return wrap(input);
 	}
 
 	private static String wrap(String input) {
