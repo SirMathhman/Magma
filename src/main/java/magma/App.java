@@ -58,10 +58,11 @@ public class App {
 		}
 	}
 
-	public record CTemplateType(String base, List<String> list) implements CPPType {
+	public record CTemplateType(String base, List<CPPType> list) implements CPPType {
 		@Override
 		public String generate() {
-			final var joined = String.join(", ", this.list);
+			final var joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "));
+
 			return this.base + "<" + joined + ">";
 		}
 
@@ -384,7 +385,7 @@ public class App {
 					Optional<CPPType> maybeInterfaceType = Optional.empty();
 					if (implementsIndex >= 0) {
 						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
-						maybeInterfaceType = Optional.of(this.compileType(slice));
+						maybeInterfaceType = this.compileType(slice);
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
@@ -656,24 +657,24 @@ public class App {
 		final var typeSeparator = beforeName.lastIndexOf(" ");
 		if (typeSeparator >= 0) {
 			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return Optional.of(this.compileType(type).generate() + " " + name);
-		} else {
-			return Optional.of(this.compileType(beforeName).generate() + " " + name);
+			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
 		}
+
+		return this.compileType(beforeName).map(cppType -> cppType.generate() + " " + name);
 	}
 
-	private CPPType compileType(String input) {
+	private Optional<CPPType> compileType(String input) {
 		if (input.equals("void")) {
-			return CPPPrimitiveType.Void;
+			return Optional.of(CPPPrimitiveType.Void);
 		}
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
-			return new CPointerType(this.compileType(slice));
+			return this.compileType(slice).map(CPointerType::new);
 		}
 
 		if (input.equals("String")) {
-			return new CPointerType(CPPPrimitiveType.Char);
+			return Optional.of(new CPointerType(CPPPrimitiveType.Char));
 		}
 
 		if (input.endsWith(">")) {
@@ -687,17 +688,22 @@ public class App {
 						.stream(typeArguments.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(input1 -> this.compileType(input1).generate())
+						.map(this::compileType)
+						.flatMap(Optional::stream)
 						.toList();
 
-				return new CTemplateType(base, list);
+				return Optional.of(new CTemplateType(base, list));
 			}
 		}
 
 		if (this.isIdentifier(input)) {
-			return new CIdentifier(input);
+			if (input.equals("public")) {
+				return Optional.empty();
+			}
+
+			return Optional.of(new CIdentifier(input));
 		}
 
-		return new Placeholder(input);
+		return Optional.of(new Placeholder(input));
 	}
 }

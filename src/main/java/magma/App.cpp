@@ -133,7 +133,8 @@ CPPType toCPPType_CTemplateType(void* _ref){
 	return CPPType { CTemplateTypeTag, data };
 }
 char* generate() {/*
-			final var joined = String.join(", ", this.list);*//*
+			final var joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "));*//*
+
 			return this.base + "<" + joined + ">";*//*
 		*/}
 char* getSimpleName() {/*
@@ -230,7 +231,7 @@ char* getSimpleName() {/*
 			return this.popAndAppendToTuple().map(Tuple::right);*//*
 		}
 	*/}
-public App() {/*
+App new_App() {/*
 		this.globals = new ArrayList<String>();*//*
 		this.structureNames = new Stack<String>();*//*
 		this.functions = new ArrayList<String>();*//*
@@ -419,7 +420,7 @@ Optional<char*> compileStructure(char* input) {/*
 					Optional<CPPType> maybeInterfaceType = Optional.empty();
 					if (implementsIndex >= 0) {
 						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
-						maybeInterfaceType = Optional.of(this.compileType(slice));
+						maybeInterfaceType = this.compileType(slice);
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
@@ -679,23 +680,23 @@ Optional<char*> compileDefinition(char* input) {/*
 		final var typeSeparator = beforeName.lastIndexOf(" ");*//*
 		if (typeSeparator >= 0) {
 			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return Optional.of(this.compileType(type).generate() + " " + name);
-		}*//* else {
-			return Optional.of(this.compileType(beforeName).generate() + " " + name);
+			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
 		}*//*
+
+		return this.compileType(beforeName).map(cppType -> cppType.generate() + " " + name);*//*
 	*/}
-CPPType compileType(char* input) {/*
+Optional<CPPType> compileType(char* input) {/*
 		if (input.equals("void")) {
-			return CPPPrimitiveType.Void;
+			return Optional.of(CPPPrimitiveType.Void);
 		}*//*
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
-			return new CPointerType(this.compileType(slice));
+			return this.compileType(slice).map(CPointerType::new);
 		}*//*
 
 		if (input.equals("String")) {
-			return new CPointerType(CPPPrimitiveType.Char);
+			return Optional.of(new CPointerType(CPPPrimitiveType.Char));
 		}*//*
 
 		if (input.endsWith(">")) {
@@ -709,18 +710,23 @@ CPPType compileType(char* input) {/*
 						.stream(typeArguments.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(input1 -> this.compileType(input1).generate())
+						.map(this::compileType)
+						.flatMap(Optional::stream)
 						.toList();
 
-				return new CTemplateType(base, list);
+				return Optional.of(new CTemplateType(base, list));
 			}
 		}*//*
 
 		if (this.isIdentifier(input)) {
-			return new CIdentifier(input);
+			if (input.equals("public")) {
+				return Optional.empty();
+			}
+
+			return Optional.of(new CIdentifier(input));
 		}*//*
 
-		return new Placeholder(input);*//*
+		return Optional.of(new Placeholder(input));*//*
 	*/}
 int main(){
 	return 0;
