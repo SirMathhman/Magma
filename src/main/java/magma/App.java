@@ -720,21 +720,24 @@ public class App {
 	}
 
 	private String compileExpression(String input) {
-		if (input.startsWith("\"") && input.endsWith("\"")) {
-			return input;
+		final var stripped = input.strip();
+
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
+			return stripped;
 		}
 
-		if (input.endsWith(")")) {
-			final var slice = input.substring(0, input.length() - 1);
+		if (stripped.endsWith(")")) {
+			final var slice = stripped.substring(0, stripped.length() - 1);
 			int argStart = -1;
 			var depth = 0;
 			for (int i = 0; i < slice.length(); i++) {
 				final var next = slice.charAt(i);
 				if (next == '(') {
-					depth++;
 					if (depth == 0) {
 						argStart = i;
 					}
+
+					depth++;
 				}
 				if (next == ')') {
 					depth--;
@@ -756,20 +759,27 @@ public class App {
 			}
 		}
 
-		final var i = input.indexOf(".");
+		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
-			final var child = input.substring(0, i).strip();
-			final var name = input.substring(i + 1).strip();
-			if (isIdentifier(name)) {
+			final var child = stripped.substring(0, i).strip();
+			final var name = stripped.substring(i + 1).strip();
+			if (this.isIdentifier(name)) {
 				return this.compileExpression(child) + "." + name;
 			}
 		}
 
-		if (this.isIdentifier(input)) {
-			return input;
+		if (this.isIdentifier(stripped)) {
+			return stripped;
 		}
 
-		return Placeholder.wrap(input);
+		final var i1 = stripped.indexOf("+");
+		if (i1 >= 0) {
+			final var substring = stripped.substring(0, i1);
+			final var substring1 = stripped.substring(i1 + "+".length());
+			return this.compileExpression(substring) + " + " + this.compileExpression(substring1);
+		}
+
+		return Placeholder.wrap(stripped);
 	}
 
 	private String compileParameters(String input) {
