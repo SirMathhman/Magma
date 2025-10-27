@@ -212,7 +212,7 @@ Optional<Character> pop() {
 Stream<char*> stream() {
 	return this.segments.stream();
 }
-Optional</*Tuple<Character*/, /*State>*/> popAndAppendToTuple() {/*
+Optional<Tuple<Character, State>> popAndAppendToTuple() {/*
 			return this.pop().map(next -> {
 				final var appended = this.append(next);
 				return new Tuple<Character, State>(next, appended);
@@ -221,6 +221,9 @@ Optional</*Tuple<Character*/, /*State>*/> popAndAppendToTuple() {/*
 }
 Optional<State> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(right_Tuple);
+}
+char peek() {
+	return this.input.charAt(this.index);
 }
 App new_App() {
 	this.globals = new_ArrayList<char*>();
@@ -236,12 +239,11 @@ void main(char** args) {
 }
 Optional<IOException> run() {
 	var source = Paths.get(".", "src", "main", "java", "magma", "App.java");
-	var input = this.readString(source);/*
-		return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
-			case Ok<String, IOException> v -> this.compilePath(source, v.value);
-		}*/
-	/**/;
+	var input = this.readString(source);
+	return /*switch (input) {
+			case Err*/ < /*String, IOException> v*/ - /*> Optional.of(v.error);
+			case Ok*/ < /*String, IOException> v*/ - /*> this.compilePath(source, v.value);
+		}*/;
 }
 Optional<IOException> compilePath(char* input) {
 	var target = source.resolveSibling("App.cpp");
@@ -249,22 +251,20 @@ Optional<IOException> compilePath(char* input) {
 	return this.writeString(/*target, output*/).or(() - /*> this*/.compileNative(target));
 }
 Optional</*? extends IOException*/> compileNative(Path target) {
-	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));/*
-		return switch (clang) {
-			case Err<Process, IOException> v1 -> Optional.of(v1.error);
-			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
-		}*/
-	/**/;
+	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
+	return /*switch (clang) {
+			case Err*/ < /*Process, IOException> v1*/ - /*> Optional.of(v1.error);
+			case Ok*/ < /*Process, IOException> v1*/ - /*> this.waitForProcess(v1.value);
+		}*/;
 }
-Optional<IOException> waitForProcess(Process process) {/*
-		return switch (this.waitFor(process)) {
-			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
-			case Ok<Integer, IOException> v2 -> {
-				System.out.println("Compilation failed with exit code: " + v2.value);
+Optional<IOException> waitForProcess(Process process) {
+	return /*switch (this.waitFor(process)) {
+			case Err*/ < /*Integer, IOException> v2*/ - /*> Optional.of(v2.error);
+			case Ok*/ < /*Integer, IOException> v2*/ - /*> {
+				System.out.println("Compilation failed with exit code: "*/ + /*v2.value);
 				yield Optional.empty();
 			}
-		}*/
-	/**/;
+		}*/;
 }
 Result<Integer, IOException> waitFor(Process process) {/*
 		try {
@@ -359,9 +359,15 @@ State foldStatement(Character c) {
 	var appended = state.append(c);
 	if (c == /*';' && appended*/.isLevel()) {
 		return appended.advance();
-	}else 
+	}
 	if (c == /*'}' && appended*/.isShallow()) {
-		return appended.advance().exit();
+		/*final State state1*/;
+		if (appended.peek() == /*';'*/) {
+			/*state1*/ = appended.popAndAppendToOption().orElse(appended);
+		}else {
+			/*state1*/ = appended;
+		}
+		return /*state1*/.advance().exit();
 	}
 	if (c == /*'{'*/) {
 		return appended.enter();
@@ -831,7 +837,7 @@ Optional<CPPType> compileType(char* input) {
 	return Optional.of(new_Placeholder(stripped));
 }
 State foldValue(char next) {
-	if (next == /*','*/) {
+	if (next == /*',' && state*/.isLevel()) {
 		return state.advance();
 	}
 	var appended = state.append(next);

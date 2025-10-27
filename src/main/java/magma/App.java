@@ -173,6 +173,10 @@ public class App {
 		public Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(Tuple::right);
 		}
+
+		public char peek() {
+			return this.input.charAt(this.index);
+		}
 	}
 
 	private final List<String> globals;
@@ -345,15 +349,27 @@ public class App {
 		final var appended = state.append(c);
 		if (c == ';' && appended.isLevel()) {
 			return appended.advance();
-		} else if (c == '}' && appended.isShallow()) {
-			return appended.advance().exit();
 		}
-		if (c == '{') {
+
+		if (c == '}' && appended.isShallow()) {
+			final State state1;
+			if (appended.peek() == ';') {
+				state1 = appended.popAndAppendToOption().orElse(appended);
+			} else {
+				state1 = appended;
+			}
+
+			return state1.advance().exit();
+		}
+
+		if (c == '{' || c == '(') {
 			return appended.enter();
 		}
-		if (c == '}') {
+
+		if (c == '}' || c == ')') {
 			return appended.exit();
 		}
+
 		return appended;
 	}
 
