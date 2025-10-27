@@ -1,9 +1,10 @@
 struct Main {};
-enum Result<T, X>Tag {
+enum ResultTag {
 	Err,
 	Ok
 };
-struct Result<T, X> {};
+template <typename T, typename X>
+struct Result {};
 /**//*
 
 	private record Err<T, X>(X error) implements Result<T, X> {}*//*
@@ -103,19 +104,40 @@ struct Result<T, X> {};
 /*final var afterKeyword = input.substring(classIndex + type.length());*//*
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
-				final var beforeContent = afterKeyword.substring(0, contentStart).strip();
+				var beforeContent = afterKeyword.substring(0, contentStart).strip();
 				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 				if (withEnd.endsWith("}")) {
 					final var content = withEnd.substring(0, withEnd.length() - 1);
 
 					final var permitsIndex = beforeContent.indexOf("permits");
-					var name = beforeContent;
 					List<String> variants = Collections.emptyList();
 					if (permitsIndex >= 0) {
-						name = beforeContent.substring(0, permitsIndex).strip();
 						final var variantsArray =
 								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
+						beforeContent = beforeContent.substring(0, permitsIndex).strip();
 						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+					}
+
+					List<String> typeParameters = new ArrayList<String>();
+					if (beforeContent.endsWith(">")) {
+						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
+						final var typeParamStart = withoutEnd.indexOf("<");
+						if (typeParamStart >= 0) {
+							beforeContent = withoutEnd.substring(0, typeParamStart);
+							final var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
+							typeParameters =
+									Arrays.stream(typeParamsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+						}
+					}
+
+
+					String variantsString;
+					if (typeParameters.isEmpty()) {
+						variantsString = "";
+					} else {
+						final var collect =
+								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+						variantsString = "template <" + collect + ">" + System.lineSeparator();
 					}
 
 					String dependencies;
@@ -125,11 +147,13 @@ struct Result<T, X> {};
 						final var joined =
 								variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(Collectors.joining(","));
 
-						dependencies = "enum " + name + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
+						dependencies =
+								"enum " + beforeContent + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
-					return Optional.of(dependencies + "struct " + name + " {};" + System.lineSeparator() +
-														 compileStatements(content, Main::compileClassSegment));
+					return Optional.of(
+							dependencies + variantsString + "struct " + beforeContent + " {};" + System.lineSeparator() +
+							compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}*//*
