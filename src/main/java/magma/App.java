@@ -709,8 +709,8 @@ public class App {
 
 		final var separator = input.indexOf('=');
 		if (separator >= 0) {
-			final var substring = input.substring(0, separator);
-			final var substring1 = input.substring(separator + 1);
+			final var substring = input.substring(0, separator).strip();
+			final var substring1 = input.substring(separator + 1).strip();
 			return this.compileExpression(substring) + " = " + this.compileExpression(substring1);
 		}
 
