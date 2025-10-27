@@ -185,7 +185,7 @@ public class App {
 	private final List<String> structures;
 	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
-	private final int counter = 0;
+	private int counter;
 	private int depth;
 
 	public App() {
@@ -196,6 +196,7 @@ public class App {
 		this.structures = new ArrayList<String>();
 		this.sealedStructures = new ArrayList<String>();
 		this.depth = 1;
+		this.counter = 0;
 	}
 
 	public static void main(String[] args) {
@@ -791,9 +792,10 @@ public class App {
 			final var name = stripped.substring(0, arrowIndex).strip();
 			final var content = stripped.substring(arrowIndex + 2);
 
-			this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") " + this.compileMethodSegment(content));
-
-			return "_lambda" + this.counter + "_";
+			final var functionName = "_lambda" + this.counter + "_";
+			this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content));
+			this.counter++;
+			return functionName;
 		}
 
 		final var maybeOperator = this
@@ -841,7 +843,8 @@ public class App {
 
 			if (argStart >= 0) {
 				final var caller = slice.substring(0, argStart).strip();
-				final var arguments = divide(slice.substring(argStart + 1), this::foldValue)
+				final var arguments = this
+						.divide(slice.substring(argStart + 1), this::foldValue)
 						.map(String::strip)
 						.filter(segment -> !segment.isEmpty())
 						.map(this::compileExpression)
@@ -983,12 +986,20 @@ public class App {
 		}
 
 		final var appended = state.append(next);
-		if (next == '<') {
+		if (next == '-') {
+			if (appended.peek() == '>') {
+				return appended.popAndAppendToOption().orElse(appended);
+			}
+		}
+
+		if (next == '<' || next == '(') {
 			return appended.enter();
 		}
-		if (next == '>') {
+
+		if (next == '>' || next == ')') {
 			return appended.exit();
 		}
+
 		return appended;
 	}
 }
