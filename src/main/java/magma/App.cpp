@@ -238,34 +238,22 @@ App new_App() {
 void main(char** args) {
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
-auto _lambda1_(auto switch (input) {
-			case Err<String, IOException> v) /* Optional.of(v.error);
-			case Ok<String, IOException> v -> this.compilePath(source, v.value);
-		}*/Optional<IOException> run() {
+Optional<IOException> run() {
 	var source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	var input = this.readString(source);
-	return _lambda1_;
+	return _switch1_;
 }
 auto _lambda2_(auto ()) /* this*/Optional<IOException> compilePath(char* input) {
 	var target = source.resolveSibling("App.cpp");
 	var output = this.compile(input);
 	return this.writeString(target, output).or(_lambda2_.compileNative(target));
 }
-auto _lambda3_(auto switch (clang) {
-			case Err<Process, IOException> v1) /* Optional.of(v1.error);
-			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
-		}*/Optional<> compileNative(Path target) {
+Optional<> compileNative(Path target) {
 	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _lambda3_;
+	return _switch3_;
 }
-auto _lambda4_(auto switch (this.waitFor(process)) {
-			case Err<Integer, IOException> v2) /* Optional.of(v2.error);
-			case Ok<Integer, IOException> v2 -> {
-				System.out.println("Compilation failed with exit code: " + v2.value);
-				yield Optional.empty();
-			}
-		}*/Optional<IOException> waitForProcess(Process process) {
-	return _lambda4_;
+Optional<IOException> waitForProcess(Process process) {
+	return _switch4_;
 }
 Result<Integer, IOException> waitFor(Process process) {/*
 		try {
@@ -697,13 +685,15 @@ auto _lambda19_(auto ()) /* this*/auto _lambda20_(auto ()) /* this*/auto _lambda
 	if (this.isIdentifier(stripped)) {
 		return stripped;
 	}
+	if (stripped.startsWith("switch")) {
+		return createName("switch");
+	}
 	var arrowIndex = stripped.indexOf("->");
 	if (/*arrowIndex >= 0*/) {
 		var name = stripped.substring(0, arrowIndex).strip();
 		var content = stripped.substring(arrowIndex + 2);
-		var functionName = "_lambda" + this.counter + "_";
+		var functionName = this.createName("lambda");
 		this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content));
-		this.counter++;
 		return functionName;
 	}
 	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda21_.compileOperator(stripped, "-")).or(_lambda20_.compileOperator(stripped, "==")).or(_lambda19_.compileOperator(stripped, "<"));
@@ -720,6 +710,11 @@ auto _lambda19_(auto ()) /* this*/auto _lambda20_(auto ()) /* this*/auto _lambda
 		return stripped;
 	}
 	return Placeholder.wrap(stripped);
+}
+char* createName(char* type) {
+	var s = "_" + type + this.counter + "_";
+	this.counter++;
+	return s;
 }
 Optional<char*> compileInvocation(char* stripped) {
 	if (/*stripped.endsWith(")"*/) /*) {

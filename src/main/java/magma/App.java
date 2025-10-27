@@ -787,14 +787,17 @@ public class App {
 			return stripped;
 		}
 
+		if (stripped.startsWith("switch")) {
+			return this.createName("switch");
+		}
+
 		final var arrowIndex = stripped.indexOf("->");
 		if (arrowIndex >= 0) {
 			final var name = stripped.substring(0, arrowIndex).strip();
 			final var content = stripped.substring(arrowIndex + 2);
 
-			final var functionName = "_lambda" + this.counter + "_";
+			final var functionName = this.createName("lambda");
 			this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content));
-			this.counter++;
 			return functionName;
 		}
 
@@ -820,6 +823,12 @@ public class App {
 		}
 
 		return Placeholder.wrap(stripped);
+	}
+
+	private String createName(String type) {
+		final var s = "_" + type + this.counter + "_";
+		this.counter++;
+		return s;
 	}
 
 	private Optional<String> compileInvocation(String stripped) {
