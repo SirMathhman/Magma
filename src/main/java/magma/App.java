@@ -617,7 +617,7 @@ public class App {
 	}
 
 	private String compileMethodSegments(String content) {
-		return this.compileStatements(content, this::compileMethodSegment);
+		return this.compileStatements(content, this::compileMethodSegmentOrPlaceholder);
 	}
 
 	private Optional<String> compileConstructor(String input) {
@@ -673,10 +673,14 @@ public class App {
 		return Optional.empty();
 	}
 
-	private String compileMethodSegment(String input) {
+	private String compileMethodSegmentOrPlaceholder(String input) {
+		return this.compileMethodSegment(input).orElseGet(() -> Placeholder.wrap(input));
+	}
+
+	private Optional<String> compileMethodSegment(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) {
-			return "";
+		if (stripped.isEmpty() || stripped.startsWith("try ") || stripped.startsWith("catch ")) {
+			return Optional.of("");
 		}
 
 		if (stripped.startsWith("{") && stripped.endsWith("}")) {
@@ -686,7 +690,7 @@ public class App {
 			final var compiled = this.compileMethodSegments(content);
 			this.depth--;
 
-			return "{" + compiled + this.generateIndent(this.depth) + "}";
+			return Optional.of("{" + compiled + this.generateIndent(this.depth) + "}");
 		}
 
 		if (stripped.startsWith("if")) {
@@ -698,23 +702,23 @@ public class App {
 				if (conditionEnd >= 0) {
 					final var condition = withCondition.substring(0, conditionEnd).strip();
 					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
-								 this.compileMethodSegment(substring2);
+					return Optional.of(this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
+														 this.compileMethodSegmentOrPlaceholder(substring2));
 				}
 			}
 		}
 
 		if (stripped.endsWith(";")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
-			return this.generateStatement(this.compileMethodStatement(slice), this.depth);
+			return Optional.of(this.generateStatement(this.compileMethodStatement(slice), this.depth));
 		}
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring(5);
-			return "else " + this.compileMethodSegment(substring);
+			return Optional.of("else " + this.compileMethodSegmentOrPlaceholder(substring));
 		}
 
-		return Placeholder.wrap(input);
+		return Optional.empty();
 	}
 
 	private int findConditionEnd(String withCondition) {
@@ -797,7 +801,9 @@ public class App {
 			final var content = stripped.substring(arrowIndex + 2);
 
 			final var functionName = this.createName("lambda");
-			this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content));
+			this.functions.add("auto " + functionName + "(auto " + name + ") " +
+												 this.compileMethodSegment(content).orElseGet(() -> this.compileExpression(content)));
+
 			return functionName;
 		}
 
