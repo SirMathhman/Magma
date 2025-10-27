@@ -15,60 +15,70 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:17: error: e
    15 |         ResultData data
       |                        ^
       |                        ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:14: error: no variable template matches partial specialization
-   18 | Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
-      |              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:18:28: error: expected ';' after top level declarator
-   18 | Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
-      |                            ^
-      |                            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:20:8: error: redefinition of 'Err' as different kind of symbol
-   20 | struct Err {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:27: error: 'Err' does not name a template but is followed by template arguments
+   23 | Result<T, X> toResult_Err(Err<T, X>* this){}
+      |                           ^  ~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:4:2: note: non-template declaration found by name lookup
+    4 |         Err,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:38: error: invalid use of 'this' outside of a non-static member function
+   23 | Result<T, X> toResult_Err(Err<T, X>* this){}
+      |                                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:43: error: expected ';' after top level declarator
+   23 | Result<T, X> toResult_Err(Err<T, X>* this){}
+      |                                           ^
+      |                                           ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:25:8: error: redefinition of 'Err' as different kind of symbol
+   25 | struct Err {
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:4:2: note: previous definition is here
     4 |         Err,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:14: error: no variable template matches partial specialization
-   23 | Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
-      |              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:23:28: error: expected ';' after top level declarator
-   23 | Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
-      |                            ^
-      |                            ;
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:25:8: error: redefinition of 'Ok' as different kind of symbol
-   25 | struct Ok {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:28:26: error: 'Ok' does not name a template but is followed by template arguments
+   28 | Result<T, X> toResult_Ok(Ok<T, X>* this){}
+      |                          ^ ~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:2: note: non-template declaration found by name lookup
+    5 |         Ok
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:28:36: error: invalid use of 'this' outside of a non-static member function
+   28 | Result<T, X> toResult_Ok(Ok<T, X>* this){}
+      |                                    ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:28:41: error: expected ';' after top level declarator
+   28 | Result<T, X> toResult_Ok(Ok<T, X>* this){}
+      |                                         ^
+      |                                         ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:30:8: error: redefinition of 'Ok' as different kind of symbol
+   30 | struct Ok {
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:2: note: previous definition is here
     5 |         Ok
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:27:23: error: 'main' must return 'int'
-   27 | /**//*public static*/ void main(char** args) {/*
-      |                       ^~~~
-      |                       int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:27:28: error: first parameter of 'main' (argument count) must be of type 'int'
-   27 | /**//*public static*/ void main(char** args) {/*
-      |                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:29:33: error: use of undeclared identifier 'IOException'
-   29 |         */}/*private static*/ Optional<IOException> run() {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:36:33: error: use of undeclared identifier 'IOException'
-   36 |         */}/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-      |                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:74: error: unknown type name 'Path'
-   40 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-      |                                                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:60: error: a type specifier is required for all declarations
-   40 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
-      |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:75: error: unknown type name 'Process'
-   46 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(Process process) {/*
-      |                                                                                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:60: error: a type specifier is required for all declarations
-   46 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(Process process) {/*
-      |                                                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:54:65: error: unknown type name 'Process'
-   54 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
-      |                                                                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:36: error: use of undeclared identifier 'CPointerType'
+   32 | /**/CPPType toCPPType_CPointerType(CPointerType* this){}
+      |                                    ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:50: error: invalid use of 'this' outside of a non-static member function
+   32 | /**/CPPType toCPPType_CPointerType(CPointerType* this){}
+      |                                                  ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:55: error: expected ';' after top level declarator
+   32 | /**/CPPType toCPPType_CPointerType(CPointerType* this){}
+      |                                                       ^
+      |                                                       ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:42:36: error: use of undeclared identifier 'CTemplateType'
+   42 |         */CPPType toCPPType_CTemplateType(CTemplateType* this){}
+      |                                           ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:42:51: error: invalid use of 'this' outside of a non-static member function
+   42 |         */CPPType toCPPType_CTemplateType(CTemplateType* this){}
+      |                                                          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:42:56: error: expected ';' after top level declarator
+   42 |         */CPPType toCPPType_CTemplateType(CTemplateType* this){}
+      |                                                               ^
+      |                                                               ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:18: error: redefinition of 'generate'
+   46 |                 public*/ char* generate() {/*
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:36:18: note: previous definition is here
+   36 |                 public*/ char* generate() {/*
+      |                                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 Compilation failed with exit code: 1

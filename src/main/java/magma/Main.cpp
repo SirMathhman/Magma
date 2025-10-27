@@ -14,17 +14,63 @@ struct Result {
 	ResultTag tag;
 	ResultData data
 };
-/**/template <typename T, typename X>
-Result<T, X> toResult<T, X>_Err(Err<T, X>* this){}
+/**/struct CPPType {
+};
+/*String generate();*//*
+
+		String getSimpleName();*//*
+	*/template <typename T, typename X>
+Result<T, X> toResult_Err(Err<T, X>* this){}
 template <typename T, typename X>
 struct Err {
 };
 /**/template <typename T, typename X>
-Result<T, X> toResult<T, X>_Ok(Ok<T, X>* this){}
+Result<T, X> toResult_Ok(Ok<T, X>* this){}
 template <typename T, typename X>
 struct Ok {
 };
-/**//*public static*/ void main(char** args) {/*
+/**/CPPType toCPPType_CPointerType(CPointerType* this){}
+struct CPointerType {
+};
+/*@Override
+		public*/ char* generate() {/*
+			return this.type.generate() + "*";*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.type.getSimpleName() + "_ref";*//*
+		*/}/*
+	*/CPPType toCPPType_CTemplateType(CTemplateType* this){}
+struct CTemplateType {
+};
+/*@Override
+		public*/ char* generate() {/*
+			final var joined = String.join(", ", this.list);*//*
+			return this.base + "<" + joined + ">";*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.base;*//*
+		*/}/*
+	*/CPPType toCPPType_CIdentifier(CIdentifier* this){}
+struct CIdentifier {
+};
+/*@Override
+		public*/ char* generate() {/*
+			return this.input;*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.input;*//*
+		*/}/*
+	*/CPPType toCPPType_Placeholder(Placeholder* this){}
+struct Placeholder {
+};
+/*@Override
+		public*/ char* generate() {/*
+			return wrap(this.input);*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.generate();*//*
+		*/}/*
+	*//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}/*private static*/ Optional<IOException> run() {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
@@ -43,7 +89,7 @@ struct Ok {
 			case Err<Process, IOException> v1 -> Optional.of(v1.error);
 			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
 		}*//*;*//*
-	*/}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(Process process) {/*
+	*/}/*private static*/ Optional<IOException> waitForProcess(Process process) {/*
 		return switch (waitFor(process)) {
 			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
 			case Ok<Integer, IOException> v2 -> {
@@ -120,9 +166,10 @@ struct Ok {
 };
 /*joinedTypeArguments = "";*//*
 						} else {
-							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";*/struct Type + " to" + interfaceType + "_" + beforeContent + " {
+							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";*/struct Type.generate {
 };
-/*}" + System.lineSeparator();
+/*}" +
+														System.lineSeparator();
 					}
 
 					return Optional.of(
@@ -197,23 +244,23 @@ struct Ok {
 		final var typeSeparator = beforeName.lastIndexOf(" ");*//*if*/(/*typeSeparator*/ /*>=*/ 0) {/*
 			final var beforeType = beforeName.substring(0, typeSeparator);*//*
 			final var type = beforeName.substring(typeSeparator + 1).strip();*//*
-			return wrap(beforeType) + " " + compileType(type) + " " + name;*//*
+			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;*//*
 		*/}/* else {
-			return compileType(beforeName) + " " + name;
+			return compileType(beforeName).generate() + " " + name;
 		}*//*}
 
-	private static*/ char* compileType(char* input) {/*
+	private static*/ CPPType compileType(char* input) {/*
 		if (input.equals("void")) {
-			return "void";
+			return CPPPrimitiveTypes.Void;
 		*/}/*
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
-			return compileType(slice) + "*";
+			return new CPointerType(compileType(slice));
 		}*//*
 
 		if (input.equals("String")) {
-			return "char*";
+			return new CPointerType(CPPPrimitiveTypes.Char);
 		}*//*
 
 		if (input.endsWith(">")) {
@@ -223,26 +270,38 @@ struct Ok {
 				final var base = withoutEnd.substring(0, i);
 				final var typeArguments = withoutEnd.substring(i + 1);
 
-				final var joined = Arrays
+				final var list = Arrays
 						.stream(typeArguments.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(Main::compileType)
-						.collect(Collectors.joining(", "));
+						.map(input1 -> compileType(input1).generate())
+						.toList();
 
-				return base + "<" + joined + ">";
+				return new CTemplateType(base, list);
 			}
 		}*//*
 
 		if (isIdentifier(input)) {
-			return input;
+			return new CIdentifier(input);
 		}*//*
 
-		return wrap(input);*//*
+		return new Placeholder(input);*//*
 	}
 
 	private static String wrap(String input) {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
+	}
+
+	private enum CPPPrimitiveTypes implements CPPType {
+		Void("void"), Char("char");*//*
+
+		private final String content;*//*CPPPrimitiveTypes*/(char* content) {/*this.content = content;*//**/}/*@Override
+		public*/ char* generate() {/*
+			return this.content;*//*
+		*/}/*@Override
+		public*/ char* getSimpleName() {/*
+			return this.content;*//*
+		*/}/*
 	}
 *//*
 */int main(){

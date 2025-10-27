@@ -16,9 +16,64 @@ import java.util.stream.Collectors;
 public class Main {
 	private sealed interface Result<T, X> permits Err, Ok {}
 
+	private interface CPPType {
+		String generate();
+
+		String getSimpleName();
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
+
+	private record CPointerType(CPPType type) implements CPPType {
+		@Override
+		public String generate() {
+			return this.type.generate() + "*";
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.type.getSimpleName() + "_ref";
+		}
+	}
+
+	public record CTemplateType(String base, List<String> list) implements CPPType {
+		@Override
+		public String generate() {
+			final var joined = String.join(", ", this.list);
+			return this.base + "<" + joined + ">";
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.base;
+		}
+	}
+
+	private record CIdentifier(String input) implements CPPType {
+		@Override
+		public String generate() {
+			return this.input;
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.input;
+		}
+	}
+
+	private record Placeholder(String input) implements CPPType {
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.generate();
+		}
+	}
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -47,7 +102,7 @@ public class Main {
 		};
 	}
 
-	private static Optional<? extends IOException> waitForProcess(Process process) {
+	private static Optional<IOException> waitForProcess(Process process) {
 		return switch (waitFor(process)) {
 			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
 			case Ok<Integer, IOException> v2 -> {
@@ -153,7 +208,7 @@ public class Main {
 					}
 
 					final var implementsIndex = beforeContent.indexOf("implements");
-					Optional<String> maybeInterfaceType = Optional.empty();
+					Optional<CPPType> maybeInterfaceType = Optional.empty();
 					if (implementsIndex >= 0) {
 						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 						maybeInterfaceType = Optional.of(compileType(slice));
@@ -223,9 +278,9 @@ public class Main {
 							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
 						}
 
-						dependencies +=
-								templateString + interfaceType + " to" + interfaceType + "_" + beforeContent + "(" + beforeContent +
-								joinedTypeArguments + "* this" + "){}" + System.lineSeparator();
+						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
+														beforeContent + "(" + beforeContent + joinedTypeArguments + "* this" + "){}" +
+														System.lineSeparator();
 					}
 
 					return Optional.of(
@@ -305,24 +360,24 @@ public class Main {
 		if (typeSeparator >= 0) {
 			final var beforeType = beforeName.substring(0, typeSeparator);
 			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return wrap(beforeType) + " " + compileType(type) + " " + name;
+			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;
 		} else {
-			return compileType(beforeName) + " " + name;
+			return compileType(beforeName).generate() + " " + name;
 		}
 	}
 
-	private static String compileType(String input) {
+	private static CPPType compileType(String input) {
 		if (input.equals("void")) {
-			return "void";
+			return CPPPrimitiveTypes.Void;
 		}
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
-			return compileType(slice) + "*";
+			return new CPointerType(compileType(slice));
 		}
 
 		if (input.equals("String")) {
-			return "char*";
+			return new CPointerType(CPPPrimitiveTypes.Char);
 		}
 
 		if (input.endsWith(">")) {
@@ -332,25 +387,43 @@ public class Main {
 				final var base = withoutEnd.substring(0, i);
 				final var typeArguments = withoutEnd.substring(i + 1);
 
-				final var joined = Arrays
+				final var list = Arrays
 						.stream(typeArguments.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(Main::compileType)
-						.collect(Collectors.joining(", "));
+						.map(input1 -> compileType(input1).generate())
+						.toList();
 
-				return base + "<" + joined + ">";
+				return new CTemplateType(base, list);
 			}
 		}
 
 		if (isIdentifier(input)) {
-			return input;
+			return new CIdentifier(input);
 		}
 
-		return wrap(input);
+		return new Placeholder(input);
 	}
 
 	private static String wrap(String input) {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+	}
+
+	private enum CPPPrimitiveTypes implements CPPType {
+		Void("void"), Char("char");
+
+		private final String content;
+
+		CPPPrimitiveTypes(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.content;
+		}
 	}
 }
