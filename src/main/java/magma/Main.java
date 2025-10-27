@@ -93,8 +93,10 @@ public class Main {
 		}
 	}
 
-	private static final List<String> forwardDeclarations = new ArrayList<>();
-	private static final List<String> functions = new ArrayList<>();
+	private static final List<String> forwardDeclarations = new ArrayList<String>();
+	private static final List<String> functions = new ArrayList<String>();
+	private static final List<String> structures = new ArrayList<String>();
+	private static final List<String> sealedStructures = new ArrayList<>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -172,8 +174,11 @@ public class Main {
 		final var joinedForwardDeclarations = String.join("", forwardDeclarations);
 		final var joinedFunctions = String.join("", functions);
 
-		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() +
-					 "\treturn " + "0;" + System.lineSeparator() + "}";
+		final var joinedStructures = String.join("", structures);
+		final var joinedSealedStructures = String.join("", sealedStructures);
+
+		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedFunctions +
+					 "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() + "}";
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
@@ -323,7 +328,13 @@ public class Main {
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
 
-					return Optional.of(generated);
+					if (variants.isEmpty()) {
+						structures.add(generated);
+					} else {
+						sealedStructures.add(generated);
+					}
+
+					return Optional.of("");
 				}
 			}
 		}

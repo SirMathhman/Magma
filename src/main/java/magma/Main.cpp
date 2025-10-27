@@ -11,73 +11,6 @@ struct CPointerType;
 struct CTemplateType;
 struct CIdentifier;
 struct Placeholder;
-struct Main {
-struct CPPPrimitiveType {
-/*Void("void"), Char("char");*//*
-
-		private final String content;*//*
-	*/};
-enum ResultTag {
-	ErrTag,
-	OkTag
-};
-template <typename T, typename X>
-union ResultData {
-	Err<T, X> err;
-	Ok<T, X> ok;
-};
-template <typename T, typename X>
-struct Result {
-	ResultTag tag;
-	ResultData data;
-/**/};
-enum CPPTypeTag {
-	CIdentifierTag,
-	CPPPrimitiveTypeTag,
-	CPointerTypeTag,
-	CTemplateTypeTag,
-	PlaceholderTag
-};
-union CPPTypeData {
-	CIdentifier cidentifier;
-	CPPPrimitiveType cppprimitivetype;
-	CPointerType cpointertype;
-	CTemplateType ctemplatetype;
-	Placeholder placeholder;
-};
-struct CPPType {
-	CPPTypeTag tag;
-	CPPTypeData data;
-/*String generate();*//*
-
-		String getSimpleName();*//*
-	*/};
-template <typename T, typename X>
-struct Err {
-/**/};
-template <typename T, typename X>
-struct Ok {
-/**/};
-struct CPointerType {
-/*
-	*/};
-struct CTemplateType {
-/*
-	*/};
-struct CIdentifier {
-/*
-	*/};
-struct Placeholder {
-/*
-	*/};
-/*
-
-	private static final List<String> forwardDeclarations = new ArrayList<>();*//*
-	private static final List<String> functions = new ArrayList<>();*//*
-		segments.add(buffer.toString());*//*
-
-		return segments.stream().map(mapper).collect(Collectors.joining());*//*
-	*/};
 /*
 
 	private static String compileRootSegment(String input) {
@@ -199,7 +132,13 @@ struct Placeholder {
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
 
-					return Optional.of(generated);
+					if (variants.isEmpty()) {
+						structures.add(generated);
+					} else {
+						sealedStructures.add(generated);
+					}
+					
+					return Optional.of("");
 				}
 			}
 		}
@@ -345,7 +284,76 @@ struct Placeholder {
 		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
 }*//*
-*/CPPType toCPPType_CPPPrimitiveType(void* _ref){
+*/struct CPPPrimitiveType {
+/*Void("void"), Char("char");*//*
+
+		private final String content;*//*
+	*/};
+template <typename T, typename X>
+struct Err {
+/**/};
+template <typename T, typename X>
+struct Ok {
+/**/};
+struct CPointerType {
+/*
+	*/};
+struct CTemplateType {
+/*
+	*/};
+struct CIdentifier {
+/*
+	*/};
+struct Placeholder {
+/*
+	*/};
+struct Main {
+/*
+
+	private static final List<String> forwardDeclarations = new ArrayList<String>();*//*
+	private static final List<String> functions = new ArrayList<String>();*//*
+	private static final List<String> structures = new ArrayList<String>();*//*
+	private static final List<String> sealedStructures = new ArrayList<>();*//*
+		segments.add(buffer.toString());*//*
+
+		return segments.stream().map(mapper).collect(Collectors.joining());*//*
+	*/};
+enum ResultTag {
+	ErrTag,
+	OkTag
+};
+template <typename T, typename X>
+union ResultData {
+	Err<T, X> err;
+	Ok<T, X> ok;
+};
+template <typename T, typename X>
+struct Result {
+	ResultTag tag;
+	ResultData data;
+/**/};
+enum CPPTypeTag {
+	CIdentifierTag,
+	CPPPrimitiveTypeTag,
+	CPointerTypeTag,
+	CTemplateTypeTag,
+	PlaceholderTag
+};
+union CPPTypeData {
+	CIdentifier cidentifier;
+	CPPPrimitiveType cppprimitivetype;
+	CPointerType cpointertype;
+	CTemplateType ctemplatetype;
+	Placeholder placeholder;
+};
+struct CPPType {
+	CPPTypeTag tag;
+	CPPTypeData data;
+/*String generate();*//*
+
+		String getSimpleName();*//*
+	*/};
+CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	CPPTypeData data;
 	data.cppprimitivetype = _this;
@@ -498,8 +506,11 @@ CPPType toCPPType_Placeholder(void* _ref){
 		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
 		final var joinedFunctions = String.join("", functions);*//*
 
-		return joinedForwardDeclarations + compiled + joinedFunctions + "int main(){" + System.lineSeparator() +
-					 "\treturn " + "0;" + System.lineSeparator() + "}*//*";*//*
+		final var joinedStructures = String.join("", structures);*//*
+		final var joinedSealedStructures = String.join("", sealedStructures);*//*
+
+		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedFunctions +
+					 "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() + "}*//*";*//*
 	*/}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*
