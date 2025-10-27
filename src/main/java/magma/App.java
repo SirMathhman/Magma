@@ -802,6 +802,11 @@ public class App {
 			return stripped;
 		}
 
+		final var maybeLambda = this.compileLambda(stripped);
+		if (maybeLambda.isPresent()) {
+			return maybeLambda.get();
+		}
+
 		final var maybeInvocation = this.compileInvocation(stripped);
 		if (maybeInvocation.isPresent()) {
 			return maybeInvocation.get();
@@ -822,18 +827,6 @@ public class App {
 
 		if (stripped.startsWith("switch")) {
 			return this.createName("switch");
-		}
-
-		final var arrowIndex = stripped.indexOf("->");
-		if (arrowIndex >= 0) {
-			final var name = stripped.substring(0, arrowIndex).strip();
-			final var content = stripped.substring(arrowIndex + 2);
-
-			final var functionName = this.createName("lambda");
-			this.functions.add("auto " + functionName + "(auto " + name + ") " +
-												 this.compileMethodSegment(content).orElseGet(() -> this.compileExpression(content)));
-
-			return functionName;
 		}
 
 		final var maybeOperator = this
@@ -860,6 +853,42 @@ public class App {
 		}
 
 		return Placeholder.wrap(stripped);
+	}
+
+	private Optional<String> compileLambda(String stripped) {
+		final var arrowIndex = stripped.indexOf("->");
+		if (arrowIndex >= 0) {
+			final var names = stripped.substring(0, arrowIndex).strip();
+			final var content = stripped.substring(arrowIndex + 2);
+
+			final var functionName = this.createName("lambda");
+
+			final String parameters;
+			if (this.isIdentifier(names)) {
+				parameters = "auto " + names;
+			} else if (names.startsWith("(") && names.endsWith(")")) {
+				final var slice = names.substring(1, names.length() - 1);
+				parameters = this
+						.divide(slice, this::foldValue)
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(segment -> "auto " + segment)
+						.collect(Collectors.joining());
+			} else {
+				return Optional.empty();
+			}
+
+			this.functions.add(
+					"auto " + functionName + "(" + parameters + ") " + this.compileMethodSegment(content).orElseGet(() -> {
+						final var expression = this.compileExpression(content);
+						return "{" + this.generateStatement("return " + expression, 1) + System.lineSeparator() + "};" +
+									 System.lineSeparator();
+					}));
+
+			return Optional.of(functionName);
+		}
+
+		return Optional.empty();
 	}
 
 	private String createName(String type) {

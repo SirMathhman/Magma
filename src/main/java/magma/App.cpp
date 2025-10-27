@@ -213,11 +213,11 @@ Optional<Character> pop() {
 Stream<char*> stream() {
 	return this.segments.stream();
 }
-auto _lambda0_(auto next) {
+auto _lambda1_(auto next) {
 		var appended = this.append(next);
 		return new_Tuple<Character, State>(next, appended);
 	}Optional<Tuple<Character, State>> popAndAppendToTuple() {
-	return this.pop().map(_lambda0_);
+	return this.pop().map(_lambda1_);
 }
 Optional<State> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(right_Tuple);
@@ -241,19 +241,22 @@ void main(char** args) {
 Optional<IOException> run() {
 	var source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	var input = this.readString(source);
-	return _switch1_;
+	return _switch3_;
 }
-auto _lambda2_(auto ()) thisOptional<IOException> compilePath(char* input) {
+auto _lambda5_() {
+	return this.compileNative(target);
+};
+Optional<IOException> compilePath(char* input) {
 	var target = source.resolveSibling("App.cpp");
 	var output = this.compile(input);
-	return this.writeString(target, output).or(_lambda2_.compileNative(target));
+	return this.writeString(target, output).or(_lambda5_);
 }
 Optional<> compileNative(Path target) {
 	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _switch3_;
+	return _switch7_;
 }
 Optional<IOException> waitForProcess(Process process) {
-	return _switch4_;
+	return _switch9_;
 }
 Result<Integer, IOException> waitFor(Process process) {
 }
@@ -342,14 +345,35 @@ State foldStatement(Character c) {
 		}*/
 	return appended;
 }
-auto _lambda5_(auto ()) Placeholderchar* compileRootSegment(char* input) {
+auto _lambda11_() {
+	return Placeholder.wrap(input);
+};
+char* compileRootSegment(char* input) {
 	var stripped = input.strip();
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return this.compileStructure("class", stripped).orElseGet(_lambda5_.wrap(input));
+	return this.compileStructure("class", stripped).orElseGet(_lambda11_);
 }
-auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _lambda8_(auto slice) "typename " + sliceauto _lambda9_(auto content1) thisauto _lambda10_(auto slice) slice + "Tag"auto _lambda11_(auto slice) System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";"Optional<char*> compileStructure(char* input) {
+auto _lambda15_(auto slice) {
+	return /*!slice*/.isEmpty();
+};
+auto _lambda19_(auto slice) {
+	return /*!slice*/.isEmpty();
+};
+auto _lambda23_(auto slice) {
+	return "typename " + slice;
+};
+auto _lambda27_(auto content1) {
+	return this.generateWithIndent(content1, 1);
+};
+auto _lambda30_(auto slice) {
+	return slice + "Tag";
+};
+auto _lambda34_(auto slice) {
+	return System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
+};
+Optional<char*> compileStructure(char* input) {
 	var classIndex = input.indexOf(type);
 	if (classIndex >= 0) {
 		var afterKeyword = input.substring(classIndex + type.length());
@@ -364,7 +388,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 				if (permitsIndex >= 0) {
 					var variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
-					variants = Arrays.stream(variantsArray).map(strip_char*).filter(_lambda6_.isEmpty()).toList();
+					variants = Arrays.stream(variantsArray).map(strip_char*).filter(_lambda15_).toList();
 				}
 				var implementsIndex = beforeContent.indexOf("implements");
 				Optional<CPPType> maybeInterfaceType = Optional.empty();
@@ -388,7 +412,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-						typeParameters = Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda7_.isEmpty()).toList();
+						typeParameters = Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda19_).toList();
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
@@ -398,16 +422,16 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 				if (typeParameters.isEmpty()) {
 					templateString = "";
 				}else {
-					var collect = typeParameters.stream().map(_lambda8_).collect(Collectors.joining(", "));
+					var collect = typeParameters.stream().map(_lambda23_).collect(Collectors.joining(", "));
 					templateString = "template <" + collect + ">" + System.lineSeparator();
 				}
 				char* dependencies;
 				if (variants.isEmpty()) {
 					dependencies = "";
 				}else {
-					var enumFields = variants.stream().map(_lambda10_).map(_lambda9_.generateWithIndent(content1, 1)).collect(Collectors.joining(","));
+					var enumFields = variants.stream().map(_lambda30_).map(_lambda27_).collect(Collectors.joining(","));
 					var typeArguments = this.joinTypeArguments(typeParameters);
-					var unionFields = variants.stream().map(_lambda11_).collect(Collectors.joining());
+					var unionFields = variants.stream().map(_lambda34_).collect(Collectors.joining());
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 				}
 				char* fields;
@@ -465,7 +489,16 @@ boolean isIdentifier(char* input) {/*
 		}*/
 	return true;
 }
-auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_(auto ()) thischar* compileClassSegment(char* input) {
+auto _lambda36_() {
+	return this.compileDefinitionToField(slice);
+};
+auto _lambda38_() {
+	return Placeholder.wrap(definition);
+};
+auto _lambda41_() {
+	return this.compileConstructor(definition);
+};
+char* compileClassSegment(char* input) {
 	if (input.isBlank()) {
 		return "";
 	}
@@ -487,7 +520,7 @@ auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_
 	}
 	if (input.endsWith(";")) {
 		var slice = input.substring(0, input.length() - 1);
-		var maybeClassStatement = this.compileEnumValues(slice).or(_lambda12_.compileDefinitionToField(slice));
+		var maybeClassStatement = this.compileEnumValues(slice).or(_lambda36_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
@@ -500,7 +533,7 @@ auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_
 		if (paramEnd >= 0) {
 			var params = withParams.substring(0, paramEnd).strip();
 			var withBraces = withParams.substring(paramEnd + 1).strip();
-			var header = this.compileDefinition(definition).or(_lambda14_.compileConstructor(definition)).orElseGet(_lambda13_.wrap(definition));
+			var header = this.compileDefinition(definition).or(_lambda41_).orElseGet(_lambda38_);
 			var s = header + "(" + this.compileParameters(params) + ")";
 			char* generated;
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -515,8 +548,11 @@ auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_
 	}
 	return Placeholder.wrap(input);
 }
-auto _lambda15_(auto content) thisOptional<char*> compileDefinitionToField(char* slice) {
-	return this.compileDefinition(slice).map(_lambda15_.generateStatement(content, 1));
+auto _lambda43_(auto content) {
+	return this.generateStatement(content, 1);
+};
+Optional<char*> compileDefinitionToField(char* slice) {
+	return this.compileDefinition(slice).map(_lambda43_);
 }
 char* compileMethodSegments(char* content) {
 	return this.compileStatements(content, compileMethodSegmentOrPlaceholder_this);
@@ -537,8 +573,11 @@ Optional<char*> compileConstructor(char* input) {
 	}
 	return Optional.empty();
 }
-auto _lambda16_(auto slice) /*!slice*/Optional<char*> compileEnumValues(char* input) {
-	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda16_.isEmpty()).toList();/*
+auto _lambda47_(auto slice) {
+	return /*!slice*/.isEmpty();
+};
+Optional<char*> compileEnumValues(char* input) {
+	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda47_).toList();/*
 
 		for (var segment : segments) {
 			final var stripped = segment.strip();
@@ -567,8 +606,11 @@ Optional<char*> compileEnumValue(char* stripped) {
 		}*/
 	return Optional.empty();
 }
-auto _lambda17_(auto ()) Placeholderchar* compileMethodSegmentOrPlaceholder(char* input) {
-	return this.compileMethodSegment(input).orElseGet(_lambda17_.wrap(input));
+auto _lambda49_() {
+	return Placeholder.wrap(input);
+};
+char* compileMethodSegmentOrPlaceholder(char* input) {
+	return this.compileMethodSegment(input).orElseGet(_lambda49_);
 }
 Optional<char*> compileMethodSegment(char* input) {
 	var stripped = input.strip();
@@ -636,7 +678,16 @@ int findConditionEnd(char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_(auto ()) thischar* compileMethodStatement(char* input) {
+auto _lambda51_() {
+	return this.compileExpression(substring);
+};
+auto _lambda53_() {
+	return Placeholder.wrap(stripped);
+};
+auto _lambda56_() {
+	return this.compileDefinition(input);
+};
+char* compileMethodStatement(char* input) {
 	var stripped = input.strip();
 	if (stripped.startsWith("return ")) {
 		var slice = stripped.substring("return ".length()).strip();
@@ -646,7 +697,7 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_
 	if (separator >= 0) {
 		var substring = stripped.substring(0, separator).strip();
 		var substring1 = stripped.substring(separator + 1).strip();
-		var s = this.compileDefinition(substring).orElseGet(_lambda18_.compileExpression(substring));
+		var s = this.compileDefinition(substring).orElseGet(_lambda51_);
 		return s + " = " + this.compileExpression(substring1);
 	}
 	if (stripped.endsWith("++")) {
@@ -658,15 +709,34 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return this.compileInvocation(stripped).or(_lambda20_.compileDefinition(input)).orElseGet(_lambda19_.wrap(stripped));
+	return this.compileInvocation(stripped).or(_lambda56_).orElseGet(_lambda53_);
 }
-auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thisauto _lambda24_(auto ()) thisauto _lambda25_(auto ()) thisauto _lambda26_(auto ()) thischar* compileExpression(char* input) {
+auto _lambda58_() {
+	return this.compileOperator(stripped, "<");
+};
+auto _lambda61_() {
+	return this.compileOperator(stripped, ">=");
+};
+auto _lambda64_() {
+	return this.compileOperator(stripped, "==");
+};
+auto _lambda67_() {
+	return this.compileOperator(stripped, "&&");
+};
+auto _lambda70_() {
+	return this.compileOperator(stripped, "-");
+};
+char* compileExpression(char* input) {
 	var stripped = input.strip();
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return stripped;
 	}
 	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
 		return stripped;
+	}
+	var maybeLambda = this.compileLambda(stripped);
+	if (maybeLambda.isPresent()) {
+		return maybeLambda.get();
 	}
 	var maybeInvocation = this.compileInvocation(stripped);
 	if (maybeInvocation.isPresent()) {
@@ -686,15 +756,7 @@ auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto (
 	if (stripped.startsWith("switch")) {
 		return this.createName("switch");
 	}
-	var arrowIndex = stripped.indexOf("->");
-	if (arrowIndex >= 0) {
-		var name = stripped.substring(0, arrowIndex).strip();
-		var content = stripped.substring(arrowIndex + 2);
-		var functionName = this.createName("lambda");
-		this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content).orElseGet(_lambda21_.compileExpression(content)));
-		return functionName;
-	}
-	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda26_.compileOperator(stripped, "-")).or(_lambda25_.compileOperator(stripped, "&&")).or(_lambda24_.compileOperator(stripped, "==")).or(_lambda23_.compileOperator(stripped, ">=")).or(_lambda22_.compileOperator(stripped, "<"));
+	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda70_).or(_lambda67_).or(_lambda64_).or(_lambda61_).or(_lambda58_);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
@@ -708,6 +770,37 @@ auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto (
 		return stripped;
 	}
 	return Placeholder.wrap(stripped);
+}
+auto _lambda75_(auto segment) {
+	return "auto " + segment;
+};
+auto _lambda78_(auto segment) {
+	return /*!segment*/.isEmpty();
+};
+Optional<char*> compileLambda(char* stripped) {
+	var arrowIndex = stripped.indexOf("->");
+	if (arrowIndex >= 0) {
+		var names = stripped.substring(0, arrowIndex).strip();
+		var content = stripped.substring(arrowIndex + 2);
+		var functionName = this.createName("lambda");
+		char* parameters;
+		if (this.isIdentifier(names)) {
+			parameters = "auto " + names;
+		}else 
+		if (names.startsWith("(") && names.endsWith(")")) {
+			var slice = names.substring(1, names.length() - 1);
+			parameters = this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda78_).map(_lambda75_).collect(Collectors.joining());
+		}else {
+			return Optional.empty();
+		}
+		/*this.functions.add(
+					"auto "*/ + functionName + "(" + parameters + ") " + this.compileMethodSegment(content).orElseGet(/*(*/) - /*> {
+						final var expression*/ = /*this.compileExpression(content);
+						return "{"*/ + /*this.generateStatement("return "*/ + /*expression, 1)*/ + System.lineSeparator() + "};" + System.lineSeparator(/*);
+					})*/);
+		return Optional.of(functionName);
+	}
+	return Optional.empty();
 }
 char* createName(char* type) {
 	var s = "_" + type + this.counter + "_";
@@ -785,10 +878,19 @@ char* compileParameters(char* input) {
 	}
 	return this.compileDefinitionOrPlaceholder(input);
 }
-auto _lambda27_(auto ()) Placeholderchar* compileDefinitionOrPlaceholder(char* input) {
-	return this.compileDefinition(input).orElseGet(_lambda27_.wrap(input));
+auto _lambda86_() {
+	return Placeholder.wrap(input);
+};
+char* compileDefinitionOrPlaceholder(char* input) {
+	return this.compileDefinition(input).orElseGet(_lambda86_);
 }
-auto _lambda28_(auto cppType) cppType.generate() + " " + nameauto _lambda29_(auto cppType) cppType.generate() + " " + nameOptional<char*> compileDefinition(char* input) {
+auto _lambda88_(auto cppType) {
+	return cppType.generate() + " " + name;
+};
+auto _lambda90_(auto cppType) {
+	return cppType.generate() + " " + name;
+};
+Optional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return Optional.empty();
@@ -814,11 +916,14 @@ auto _lambda28_(auto cppType) cppType.generate() + " " + nameauto _lambda29_(aut
 		}*/
 	if (typeSeparator >= 0) {
 		var type = beforeName.substring(typeSeparator + 1).strip();
-		return this.compileType(type).map(_lambda28_);
+		return this.compileType(type).map(_lambda88_);
 	}
-	return this.compileType(beforeName).map(_lambda29_);
+	return this.compileType(beforeName).map(_lambda90_);
 }
-auto _lambda30_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input) {
+auto _lambda98_(auto slice) {
+	return /*!slice*/.isEmpty();
+};
+Optional<CPPType> compileType(char* input) {
 	var stripped = input.strip();
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
@@ -836,7 +941,7 @@ auto _lambda30_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input)
 		if (i >= 0) {
 			var base = withoutEnd.substring(0, i);
 			var typeArguments = withoutEnd.substring(i + 1);
-			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda30_.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
+			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda98_).map(compileType_this).flatMap(stream_Optional).toList();
 			return Optional.of(new_CTemplateType(base, list));
 		}
 	}
