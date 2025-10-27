@@ -62,15 +62,15 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:7: note: pre
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:130:9: error: invalid use of 'this' outside of a non-static member function
   130 |         return this.type.getSimpleName() + "_ref";
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:2: error: unknown type name 'var'
-  139 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:15: error: invalid use of 'this' outside of a non-static member function
-  139 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:38: error: use of undeclared identifier 'generate_CPPType'
-  139 |         var joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:17: error: invalid use of 'this' outside of a non-static member function
+  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:40: error: use of undeclared identifier 'generate_CPPType'
+  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:66: error: use of undeclared identifier 'Collectors'
+  139 |         char* joined = this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+      |                                                                         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1
