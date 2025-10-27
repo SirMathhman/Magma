@@ -161,7 +161,7 @@ CPPType toCPPType_Placeholder(void* _ref){
 	return CPPType { PlaceholderTag, data };
 }
 char* wrap(char* input) {
-	return /*"start" + input*/.replace("/*", "start").replace("*/", "end") + "*/";
+	return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 }
 char* generate() {
 	return wrap(this.input);
@@ -383,8 +383,8 @@ State fold(Character c) {
 }
 char* compileRootSegment(char* input) {
 	/*final var stripped = input.strip()*/;
-	if (stripped.startsWith(/*"package ") || stripped*/.startsWith("import ")) {
-	return /*""*/;}
+	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+	return "";}
 	return this.compileStructure(/*"class", stripped)*/.orElseGet(/*() -> Placeholder*/.wrap(input));
 }
 Optional<char*> compileStructure(char* input) {
@@ -543,7 +543,7 @@ boolean isIdentifier(char* input) {
 }
 char* compileClassSegment(char* input) {
 	if (input.isEmpty()) {
-	return /*""*/;}
+	return "";}
 	/*final var maybeInterface = this.compileStructure("interface", input)*/;
 	if (maybeInterface.isPresent()) {
 	return maybeInterface.get();}
@@ -578,7 +578,7 @@ char* compileClassSegment(char* input) {
 				}
 			}
 		*/}
-	if (input.endsWith(/*";"*/)) {
+	if (input.endsWith(";")) {
 	/*final var slice = input.substring(0, input.length() - 1);
 			return this
 					.compileEnumValues(slice)
@@ -619,7 +619,7 @@ Optional<char*> compileEnumValues(char* input) {
 				return Optional.empty();
 			}
 		}*/
-	return Optional.of(/*""*/);
+	return Optional.of("");
 }
 Optional<char*> compileEnumValue(char* stripped) {
 	if (stripped.endsWith(")") /*) {
@@ -640,8 +640,8 @@ Optional<char*> compileEnumValue(char* stripped) {
 char* compileMethodSegment(char* input) {
 	/*final var stripped = input.strip()*/;
 	if (stripped.isEmpty()) {
-	return /*""*/;}
-	if (stripped.startsWith(/*"{") && stripped*/.endsWith("}")) {
+	return "";}
+	if (stripped.startsWith("{") && stripped.endsWith("}")) {
 	/*final var content = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
@@ -649,7 +649,7 @@ char* compileMethodSegment(char* input) {
 			this.depth--;
 
 			return "{" + compiled + "}"*/;}
-	if (stripped.startsWith(/*"if"*/)) {/*
+	if (stripped.startsWith("if")) {/*
 			final var substring = stripped.substring(2).strip();
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
@@ -663,7 +663,7 @@ char* compileMethodSegment(char* input) {
 				}
 			}
 		*/}
-	if (stripped.endsWith(/*";"*/)) {
+	if (stripped.endsWith(";")) {
 	/*final var slice = stripped.substring(0, stripped.length() - 1);
 			return this.generateStatement(this.compileMethodStatement(slice))*/;}
 	return Placeholder.wrap(input);
@@ -689,12 +689,14 @@ int findConditionEnd(char* withCondition) {
 	return conditionEnd;
 }
 char* compileMethodStatement(char* input) {
-	if (input.startsWith(/*"return "*/)) {
+	if (input.startsWith("return ")) {
 	/*final var slice = input.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice)*/;}
 	return Placeholder.wrap(input);
 }
 char* compileExpression(char* input) {
+	if (input.startsWith("\"") && input.endsWith("\"")) {
+	return input;}
 	if (input.endsWith(")") /*) {
 			final var slice = input.substring(0, input.length() - 1);
 			final var i = slice.indexOf("(");
@@ -723,7 +725,7 @@ char* compileExpression(char* input) {
 }
 char* compileParameters(char* input) {
 	if (input.isEmpty()) {
-	return /*""*/;}
+	return "";}
 	return this.compileDefinitionOrPlaceholder(input);
 }
 char* compileDefinitionOrPlaceholder(char* input) {
@@ -742,14 +744,14 @@ Optional<char*> compileDefinition(char* input) {
 	return this.compileType(/*beforeName)*/.map(cppType -> cppType.generate() + " " + name);
 }
 Optional<CPPType> compileType(char* input) {
-	if (input.equals(/*"void"*/)) {
+	if (input.equals("void")) {
 	return Optional.of(CPPPrimitiveType.Void);}
-	if (input.endsWith(/*"[]"*/)) {
+	if (input.endsWith("[]")) {
 	/*final var slice = input.substring(0, input.length() - 2);
 			return this.compileType(slice).map(CPointerType::new)*/;}
-	if (input.equals(/*"String"*/)) {
+	if (input.equals("String")) {
 	return Optional.of(new_CPointerType(CPPPrimitiveType.Char));}
-	if (input.endsWith(/*">"*/)) {/*
+	if (input.endsWith(">")) {/*
 			final var withoutEnd = input.substring(0, input.length() - 1);
 			final var i = withoutEnd.indexOf("<");
 			if (i >= 0) {
@@ -768,7 +770,7 @@ Optional<CPPType> compileType(char* input) {
 			}
 		*/}
 	if (this.isIdentifier(input)) {
-		if (input.equals(/*"public"*/)) 
+		if (input.equals("public")) 
 	/*{
 				return Optional.empty();
 			}

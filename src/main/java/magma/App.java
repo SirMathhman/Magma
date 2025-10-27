@@ -710,6 +710,10 @@ public class App {
 	}
 
 	private String compileExpression(String input) {
+		if (input.startsWith("\"") && input.endsWith("\"")) {
+			return input;
+		}
+
 		if (input.endsWith(")")) {
 			final var slice = input.substring(0, input.length() - 1);
 			final var i = slice.indexOf("(");
