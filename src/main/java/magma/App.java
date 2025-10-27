@@ -186,6 +186,7 @@ public class App {
 	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
 	private int depth;
+	private final int counter = 0;
 
 	public App() {
 		this.globals = new ArrayList<String>();
@@ -783,6 +784,16 @@ public class App {
 
 		if (this.isIdentifier(stripped)) {
 			return stripped;
+		}
+
+		final var arrowIndex = stripped.indexOf("->");
+		if (arrowIndex >= 0) {
+			final var name = stripped.substring(0, arrowIndex).strip();
+			final var substring1 = stripped.substring(arrowIndex + 2);
+
+			this.functions.add("auto _lambda" + this.counter + "_(auto " + name + ") {" + Placeholder.wrap(substring1) + "}");
+
+			return "_lambda" + this.counter + "_";
 		}
 
 		final var maybeOperator = this
