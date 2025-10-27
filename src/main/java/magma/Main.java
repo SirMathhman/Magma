@@ -101,12 +101,17 @@ public class Main {
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var slice = withBraces.substring(1, withBraces.length() - 1);
-					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" + wrap(slice) + "}";
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
+								 compileStatements(content, Main::compileMethodSegment) + "}";
 				}
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileMethodSegment(String input) {
 		return wrap(input);
 	}
 

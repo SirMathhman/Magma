@@ -7,35 +7,35 @@ struct Main {};
 			Files.writeString(target, compile(input));
 
 			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
-		} catch (IOException | InterruptedException e) {
+		}*//* catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}
+		}*//*
 	*/}/*private static*/ char* compile(char* input) {/*
 		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
-					 "0;" + System.lineSeparator() + "}";
+					 "0;" + System.lineSeparator() + "}*//*";*//*
 	*/}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		var depth = 0;
-		for (var i = 0; i < input.length(); i++) {
+		final var segments = new ArrayList<String>();*//*
+		var buffer = new StringBuilder();*//*
+		var depth = 0;*//*
+		for (var i = 0;*//* i < input.length();*//* i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
-			} else if (c == '}' && depth == 1) {
+			} else if (c == '}*//*' && depth == 1) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
 				depth--;
-			} else {
+			}*//* else {
 				if (c == '{') {
 					depth++;
 				}
 				if (c == '}') {
 					depth--;
 				}
-			}
+			}*//*
 		*/}/*
 		segments.add(buffer.toString());*//*
 
@@ -88,12 +88,17 @@ struct Main {};
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var slice = withBraces.substring(1, withBraces.length() - 1);
-					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" + wrap(slice) + "}";
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
+								 compileStatements(content, Main::compileMethodSegment) + "}";
 				}
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileMethodSegment(String input) {
 		return wrap(input);
 	}
 
