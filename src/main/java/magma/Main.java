@@ -126,24 +126,26 @@ public class Main {
 			return "";
 		}
 
-		final var classIndex = stripped.indexOf("class");
+		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
+	}
+
+	private static Optional<String> compileStructure(String type, String input) {
+		final var classIndex = input.indexOf(type);
 		if (classIndex >= 0) {
-			final var afterKeyword = stripped.substring(classIndex + "class".length());
+			final var afterKeyword = input.substring(classIndex + type.length());
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final var name = afterKeyword.substring(0, contentStart).strip();
-				if (isIdentifier(name)) {
-					final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-					if (withEnd.endsWith("}")) {
-						final var content = withEnd.substring(0, withEnd.length() - 1);
-						return "struct " + name + " {};" + System.lineSeparator() +
-									 compileStatements(content, Main::compileClassSegment);
-					}
+				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var content = withEnd.substring(0, withEnd.length() - 1);
+					return Optional.of("struct " + name + " {};" + System.lineSeparator() +
+														 compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}
 
-		return wrap(input);
+		return Optional.empty();
 	}
 
 	private static boolean isIdentifier(String input) {
@@ -157,6 +159,11 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		final var maybeInterface = compileStructure("interface", input);
+		if (maybeInterface.isPresent()) {
+			return maybeInterface.get();
+		}
+
 		final var paramStart = input.indexOf("(");
 		if (paramStart >= 0) {
 			final var definition = input.substring(0, paramStart).strip();

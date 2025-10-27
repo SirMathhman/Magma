@@ -1,5 +1,6 @@
 struct Main {};
-/*private sealed interface Result<T, X> permits Err, Ok {}*//*
+struct Result<T, X> permits Err, Ok {};
+/**//*
 
 	private record Err<T, X>(X error) implements Result<T, X> {}*//*
 
@@ -92,42 +93,45 @@ struct Main {};
 			return "";
 		}
 
-		final var classIndex = stripped.indexOf("class");
-		if (classIndex >= 0) {
-			final var afterKeyword = stripped.substring(classIndex + "class".length());
+		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
+	}*/struct Index = input.indexOf(type);
+		if (classIndex >= 0) {};
+/*final var afterKeyword = input.substring(classIndex + type.length());*//*
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
 				final var name = afterKeyword.substring(0, contentStart).strip();
-				if (isIdentifier(name)) {
-					final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-					if (withEnd.endsWith("}")) {
-						final var content = withEnd.substring(0, withEnd.length() - 1);
-						return "struct " + name + " {};" + System.lineSeparator() +
-									 compileStatements(content, Main::compileClassSegment);
-					}
+				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var content = withEnd.substring(0, withEnd.length() - 1);
+					return Optional.of("struct " + name + " {};" + System.lineSeparator() +
+														 compileStatements(content, Main::compileClassSegment));
 				}
 			}
-		}
+		}*//*
 
-		return wrap(input);
+		return Optional.empty();*//*
 	}
 
 	private static boolean isIdentifier(String input) {
-		for (var i = 0; i < input.length(); i++) {
+		for (var i = 0;*//* i < input.length();*//* i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
 			}
-		}
+		}*//*
 
-		return true;
+		return true;*//*
 	}
 
 	private static String compileClassSegment(String input) {
-		final var paramStart = input.indexOf("(");
-		if (paramStart >= 0) {
-			final var definition = input.substring(0, paramStart).strip();
-			final var withParams = input.substring(paramStart + 1);
-			final var paramEnd = withParams.indexOf(")");
+		final var maybeInterface = compileStructure("interface", input);*//*
+		if (maybeInterface.isPresent()) {
+			return maybeInterface.get();
+		}*//*
+
+		final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
+			final var definition = input.substring(0, paramStart).strip();*//*
+			final var withParams = input.substring(paramStart + 1);*//*
+			final var paramEnd = withParams.indexOf(")");*//*
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
@@ -136,62 +140,58 @@ struct Main {};
 					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
 								 compileStatements(content, Main::compileMethodSegment) + "}";
 				}
-			}
-		}
+			}*//*
+		*/}/*
 
-		return wrap(input);
+		return wrap(input);*//*
 	}
 
 	private static String compileMethodSegment(String input) {
-		return wrap(input);
-	}
+		return wrap(input);*//*}
 
-	private static String compileParameters(String input) {
+	private static*/ char* compileParameters(char* input) {/*
 		if (input.isEmpty()) {
 			return "";
-		}
-		return compileDefinition(input);
+		*/}/*
+		return compileDefinition(input);*//*
 	}
 
 	private static String compileDefinition(String input) {
-		final var nameSeparator = input.lastIndexOf(" ");
-		if (nameSeparator < 0) {
-			return wrap(input);
-		}
+		final var nameSeparator = input.lastIndexOf(" ");*//*if*/(/*nameSeparator*/ /*<*/ 0) {/*
+			return wrap(input);*//*
+		*/}/*
 
-		final var beforeName = input.substring(0, nameSeparator);
-		final var name = input.substring(nameSeparator + 1).strip();
-		final var typeSeparator = beforeName.lastIndexOf(" ");
-		if (typeSeparator >= 0) {
-			final var beforeType = beforeName.substring(0, typeSeparator);
-			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return wrap(beforeType) + " " + compileType(type) + " " + name;
-		} else {
+		final var beforeName = input.substring(0, nameSeparator);*//*
+		final var name = input.substring(nameSeparator + 1).strip();*//*
+		final var typeSeparator = beforeName.lastIndexOf(" ");*//*if*/(/*typeSeparator*/ /*>=*/ 0) {/*
+			final var beforeType = beforeName.substring(0, typeSeparator);*//*
+			final var type = beforeName.substring(typeSeparator + 1).strip();*//*
+			return wrap(beforeType) + " " + compileType(type) + " " + name;*//*
+		*/}/* else {
 			return compileType(beforeName) + " " + name;
-		}
-	}
+		}*//*}
 
-	private static String compileType(String input) {
+	private static*/ char* compileType(char* input) {/*
 		if (input.equals("void")) {
 			return "void";
-		}
+		*/}/*
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
 			return compileType(slice) + "*";
-		}
+		}*//*
 
 		if (input.equals("String")) {
 			return "char*";
-		}
+		}*//*
 
-		return wrap(input);
+		return wrap(input);*//*
 	}
 
 	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
 	}
-}*//*
+*//*
 */int main(){
 	return 0;
 }
