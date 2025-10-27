@@ -850,19 +850,27 @@ public class App {
 						.map(this::compileExpression)
 						.toList();
 
-				final String newCaller;
-				if (!caller.startsWith("new ")) {
-					newCaller = this.compileExpression(caller);
-				} else {
-					final var substring = caller.substring("new ".length());
-					newCaller = "new_" + this.compileType(substring).orElseGet(() -> new Placeholder(substring)).generate();
+				final var maybeCaller = this.compileCaller(caller);
+				if (maybeCaller.isPresent()) {
+					return Optional.of(maybeCaller.get() + "(" + String.join(", ", arguments) + ")");
 				}
-
-				return Optional.of(newCaller + "(" + String.join(", ", arguments) + ")");
 			}
 		}
 
 		return Optional.empty();
+	}
+
+	private Optional<String> compileCaller(String caller) {
+		final String newCaller;
+		if (caller.startsWith("new ")) {
+			final var substring = caller.substring("new ".length());
+			final var maybeType = this.compileType(substring);
+			if (maybeType.isPresent()) {
+				return Optional.of("new_" + maybeType.get().generate());
+			}
+		}
+
+		return Optional.of(this.compileExpression(caller));
 	}
 
 	private Optional<String> compileOperator(String stripped, String separator) {
@@ -977,7 +985,7 @@ public class App {
 			return Optional.of(new CIdentifier(stripped));
 		}
 
-		return Optional.of(new Placeholder(stripped));
+		return Optional.empty();
 	}
 
 	private State foldValue(State state, char next) {
