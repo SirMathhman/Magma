@@ -206,7 +206,8 @@ Optional<Character> pop() {
 		_this.index++;
 		char element = _this.input.charAt(counter);
 		return Optional.of(element);
-	}else {
+	}
+	else {
 		return Optional.empty();
 	}
 }
@@ -332,7 +333,8 @@ State foldStatement(Character c) {
 		State state1;
 		if (appended.peek() == ';') {
 			state1 = appended.popAndAppendToOption().orElse(appended);
-		}else {
+		}
+		else {
 			state1 = appended;
 		}
 		return state1.advance().exit();
@@ -429,14 +431,16 @@ Optional<char*> compileStructure(char* input) {
 				char* templateString;
 				if (typeParameters.isEmpty()) {
 					templateString = "";
-				}else {
+				}
+				else {
 					char* collect = typeParameters.stream().map(_lambda23_).collect(Collectors.joining(", "));
 					templateString = "template <" + collect + ">" + System.lineSeparator();
 				}
 				char* dependencies;
 				if (variants.isEmpty()) {
 					dependencies = "";
-				}else {
+				}
+				else {
 					char* enumFields = variants.stream().map(_lambda30_).map(_lambda27_).collect(Collectors.joining(","));
 					char* typeArguments = _this.joinTypeArguments(typeParameters);
 					char* unionFields = variants.stream().map(_lambda34_).collect(Collectors.joining());
@@ -445,7 +449,8 @@ Optional<char*> compileStructure(char* input) {
 				char* fields;
 				if (variants.isEmpty()) {
 					fields = "";
-				}else {
+				}
+				else {
 					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data " + "data", 1);
 				}
 				if (maybeInterfaceType.isPresent()) {
@@ -462,7 +467,8 @@ Optional<char*> compileStructure(char* input) {
 				_this.structureNames.pop();
 				if (variants.isEmpty()) {
 					_this.structures.add(generated);
-				}else {
+				}
+				else {
 					_this.sealedStructures.add(generated);
 				}
 				return Optional.of("");
@@ -475,7 +481,8 @@ char* joinTypeArguments(List<char*> typeParameters) {
 	char* joinedTypeArguments;
 	if (typeParameters.isEmpty()) {
 		joinedTypeArguments = "";
-	}else {
+	}
+	else {
 		joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
 	}
 	return joinedTypeArguments;
@@ -550,7 +557,8 @@ char* compileClassSegment(char* input) {
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				char* content = withBraces.substring(1, withBraces.length() - 1);
 				generated = s + " {" + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
-			}else {
+			}
+			else {
 				generated = s + ";" + System.lineSeparator();
 			}
 			_this.functions.add(generated);
@@ -577,7 +585,8 @@ Optional<char*> compileConstructor(char* input) {
 			char* structName = _this.structureNames.peek();
 			return Optional.of(structName + " new_" + structName);
 		}
-	}else {
+	}
+	else {
 		if (_this.isIdentifier(input)) {
 			char* structName = _this.structureNames.peek();
 			return Optional.of(structName + " new_" + structName);
@@ -652,7 +661,7 @@ Optional<char*> compileMethodSegment(char* input) {
 	}
 	if (stripped.startsWith("else ")) {
 		char* substring = stripped.substring(5);
-		return Optional.of("else " + _this.compileMethodSegmentOrPlaceholder(substring));
+		return Optional.of(_this.generateIndent(_this.depth) + "else " + _this.compileMethodSegmentOrPlaceholder(substring));
 	}
 	return Optional.empty();
 }
@@ -813,11 +822,13 @@ Optional<char*> compileLambda(char* stripped) {
 		List<char*> parameters;
 		if (_this.isIdentifier(names)) {
 			parameters = List.of("auto " + names);
-		}else 
+		}
+		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			char* slice = names.substring(1, names.length() - 1);
 			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda78_).map(_lambda75_).toList();
-		}else {
+		}
+		else {
 			return Optional.empty();
 		}
 		ArrayList<char*> copy = new_ArrayList<char*>(parameters);

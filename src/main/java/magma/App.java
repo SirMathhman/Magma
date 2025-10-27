@@ -712,7 +712,7 @@ public class App {
 
 		if (stripped.startsWith("else ")) {
 			final String substring = stripped.substring(5);
-			return Optional.of("else " + this.compileMethodSegmentOrPlaceholder(substring));
+			return Optional.of(this.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
 		}
 
 		return Optional.empty();
