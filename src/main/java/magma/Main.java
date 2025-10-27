@@ -111,15 +111,22 @@ public class Main {
 		final var nameSeparator = input.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
 			final var beforeName = input.substring(0, nameSeparator);
-			final var name = input.substring(nameSeparator + 1);
+			final var name = input.substring(nameSeparator + 1).strip();
 			final var typeSeparator = beforeName.lastIndexOf(" ");
 			if (typeSeparator >= 0) {
 				final var beforeType = beforeName.substring(0, typeSeparator);
-				final var type = beforeName.substring(typeSeparator + 1);
-				return wrap(beforeType) + " " + wrap(type) + " " + " " + name;
+				final var type = beforeName.substring(typeSeparator + 1).strip();
+				return wrap(beforeType) + " " + compileType(type) + " " + name;
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileType(String input) {
+		if (input.equals("void")) {
+			return "void";
+		}
 		return wrap(input);
 	}
 

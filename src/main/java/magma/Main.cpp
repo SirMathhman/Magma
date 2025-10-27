@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ /*void*/  main(/*String[] args*/)/* {
+/*public static*/ void main(/*String[] args*/)/* {
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -11,10 +11,10 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static*/ /*String*/  compile(/*String input*/)/* {
+	}*//*private static*/ /*String*/ compile(/*String input*/)/* {
 		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
 					 "0;" + System.lineSeparator() + "}";
-	}*//*private static*/ /*String*/  compileStatements(/*String input, Function<String, String> mapper*/)/* {
+	}*//*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -95,15 +95,22 @@ struct Main {};
 		final var nameSeparator = input.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
 			final var beforeName = input.substring(0, nameSeparator);
-			final var name = input.substring(nameSeparator + 1);
+			final var name = input.substring(nameSeparator + 1).strip();
 			final var typeSeparator = beforeName.lastIndexOf(" ");
 			if (typeSeparator >= 0) {
 				final var beforeType = beforeName.substring(0, typeSeparator);
-				final var type = beforeName.substring(typeSeparator + 1);
-				return wrap(beforeType) + " " + wrap(type) + " " + " " + name;
+				final var type = beforeName.substring(typeSeparator + 1).strip();
+				return wrap(beforeType) + " " + compileType(type) + " " + name;
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileType(String input) {
+		if (input.equals("void")) {
+			return "void";
+		}
 		return wrap(input);
 	}
 
