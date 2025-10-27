@@ -332,17 +332,16 @@ Stream<char*> divide(State state) {
 		}*/
 	return current.advance(/*)*/.stream();
 }
-State foldEscaped(char next) {/*
-		if (next == '\'') {
+State foldEscaped(char next) {
+	if (/*next == '\''*/) /*{
 			return current
 					.append(next)
 					.popAndAppendToTuple()
 					.map(this::foldSingleEscapeChar)
 					.flatMap(State::popAndAppendToOption)
 					.orElse(current);
-		}*//*
-
-		if (next == '\"') {
+		}*/
+	if (/*next == '\"'*/) /*{
 			var current0 = current.append(next);
 			while (true) {
 				final var maybeTuple = current0.popAndAppendToTuple();
@@ -368,37 +367,37 @@ State foldEscaped(char next) {/*
 		}*/
 	return this.fold(/*current, next*/);
 }
-State foldSingleEscapeChar(/*State>*/ tuple) {/*
-		if (tuple.left == '\\') {
+State foldSingleEscapeChar(/*State>*/ tuple) {
+	if (tuple.left == '\\') /*{
 			return tuple.right.popAndAppendToOption().orElse(tuple.right);
 		}*/
 	return tuple.right;
 }
 State fold(Character c) {
-	/*final var appended = state.append(c)*/;/*
-		if (c == ';' && appended.isLevel()) {
+	/*final var appended = state.append(c)*/;
+	if (/*c == ';' && appended*/.isLevel() /*) {
 			return appended.advance();
 		}*//* else if (c == '}' && appended.isShallow()) {
 			return appended.advance().exit();
-		}*//*
-		if (c == '{') {
+		}*/
+	if (/*c == '{'*/) /*{
 			return appended.enter();
-		}*//*
-		if (c == '}') {
+		}*/
+	if (/*c == '}'*/) /*{
 			return appended.exit();
 		}*/
 	return appended;
 }
 char* compileRootSegment(char* input) {
-	/*final var stripped = input.strip()*/;/*
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
+	/*final var stripped = input.strip()*/;
+	if (stripped.startsWith("package ") /*|| stripped.startsWith("import ")) {
 			return "";
 		}*/
 	return this.compileStructure(/*"class", stripped)*/.orElseGet(/*() -> Placeholder*/.wrap(input));
 }
 Optional<char*> compileStructure(char* input) {
-	/*final var classIndex = input.indexOf(type)*/;/*
-		if (classIndex >= 0) {
+	/*final var classIndex = input.indexOf(type)*/;
+	if (/*classIndex >= 0*/) /*{
 			final var afterKeyword = input.substring(classIndex + type.length());
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
@@ -525,8 +524,8 @@ Optional<char*> compileStructure(char* input) {
 	return Optional.empty();
 }
 char* joinTypeArguments(List<char*> typeParameters) {
-	/*String joinedTypeArguments*/;/*
-		if (typeParameters.isEmpty()) {
+	/*String joinedTypeArguments*/;
+	if (typeParameters.isEmpty() /*) {
 			joinedTypeArguments = "";
 		}*//* else {
 			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
@@ -537,7 +536,10 @@ char* generateStatement(char* content) {
 	return this.generateWithIndent(content) + ";";
 }
 char* generateWithIndent(char* content) {
-	return System.lineSeparator() + "\t" + content;
+	return this.generateIndent() + content;
+}
+char* generateIndent() {
+	return System.lineSeparator() + "\t";
 }
 boolean isIdentifier(char* input) {
 	/*for (var i = 0*/;
@@ -548,24 +550,24 @@ boolean isIdentifier(char* input) {
 		}*/
 	return true;
 }
-char* compileClassSegment(char* input) {/*
-		if (input.isEmpty()) {
+char* compileClassSegment(char* input) {
+	if (input.isEmpty() /*) {
 			return "";
 		}*/
-	/*final var maybeInterface = this.compileStructure("interface", input)*/;/*
-		if (maybeInterface.isPresent()) {
+	/*final var maybeInterface = this.compileStructure("interface", input)*/;
+	if (maybeInterface.isPresent() /*) {
 			return maybeInterface.get();
 		}*/
-	/*final var maybeRecord = this.compileStructure("record", input)*/;/*
-		if (maybeRecord.isPresent()) {
+	/*final var maybeRecord = this.compileStructure("record", input)*/;
+	if (maybeRecord.isPresent() /*) {
 			return maybeRecord.get();
 		}*/
-	/*final var maybeEnum = this.compileStructure("enum", input)*/;/*
-		if (maybeEnum.isPresent()) {
+	/*final var maybeEnum = this.compileStructure("enum", input)*/;
+	if (maybeEnum.isPresent() /*) {
 			return maybeEnum.get();
 		}*/
-	/*final var paramStart = input.indexOf("(")*/;/*
-		if (paramStart >= 0) {
+	/*final var paramStart = input.indexOf("(")*/;
+	if (/*paramStart >= 0*/) /*{
 			final var definition = input.substring(0, paramStart).strip();
 			final var withParams = input.substring(paramStart + 1);
 			final var paramEnd = withParams.indexOf(")");
@@ -580,17 +582,16 @@ char* compileClassSegment(char* input) {/*
 							.or(() -> this.compileConstructor(definition))
 							.orElseGet(() -> Placeholder.wrap(definition));
 
-					final var generated = header + "(" + this.compileParameters(params) + ") {" +
-																this.compileStatements(content, this::compileMethodSegment) + System.lineSeparator() +
-																"}" + System.lineSeparator();
+					final var generated =
+							header + "(" + this.compileParameters(params) + ") {" + this.compileMethodStatements(content) +
+							System.lineSeparator() + "}" + System.lineSeparator();
 
 					this.functions.add(generated);
 					return "";
 				}
 			}
-		}*//*
-
-		if (input.endsWith(";")) {
+		}*/
+	if (input.endsWith(";") /*) {
 			final var slice = input.substring(0, input.length() - 1);
 			return this
 					.compileEnumValues(slice)
@@ -601,9 +602,12 @@ char* compileClassSegment(char* input) {/*
 		}*/
 	return Placeholder.wrap(input);
 }
+char* compileMethodStatements(char* content) {
+	return this.compileStatements(/*content, this::compileMethodSegment*/);
+}
 Optional<char*> compileConstructor(char* input) {
-	/*final var i = input.lastIndexOf(" ")*/;/*
-		if (i >= 0) {
+	/*final var i = input.lastIndexOf(" ")*/;
+	if (/*i >= 0*/) /*{
 			final var name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
 				final var structName = this.structureNames.peek();
@@ -632,8 +636,8 @@ Optional<char*> compileEnumValues(char* input) {
 		}*/
 	return Optional.of(/*""*/);
 }
-Optional<char*> compileEnumValue(char* stripped) {/*
-		if (stripped.endsWith(")")) {
+Optional<char*> compileEnumValue(char* stripped) {
+	if (stripped.endsWith(") /*")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
 			final var i = slice.indexOf("(");
 			if (i >= 0) {
@@ -649,26 +653,38 @@ Optional<char*> compileEnumValue(char* stripped) {/*
 	return Optional.empty();
 }
 char* compileMethodSegment(char* input) {
-	/*final var stripped = input.strip()*/;/*
-		if (stripped.isEmpty()) {
+	/*final var stripped = input.strip()*/;
+	if (stripped.isEmpty() /*) {
 			return "";
-		}*//*
-
-		if (stripped.endsWith(";")) {
+		}*/
+	if (stripped.startsWith("if") /*) {
+			final var substring = stripped.substring(2).strip();
+			if (substring.startsWith("(")) {
+				final var substring1 = substring.substring(1);
+				final var i = substring1.indexOf(")");
+				if (i >= 0) {
+					final var condition = substring1.substring(0, i).strip();
+					final var substring2 = substring1.substring(i + 1).strip();
+					return this.generateIndent() + "if (" + this.compileExpression(condition) + ") " +
+								 this.compileMethodSegment(substring2);
+				}
+			}
+		}*/
+	if (stripped.endsWith(";") /*) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
 			return this.generateStatement(this.compileMethodStatement(slice));
 		}*/
 	return Placeholder.wrap(input);
 }
-char* compileMethodStatement(char* input) {/*
-		if (input.startsWith("return ")) {
+char* compileMethodStatement(char* input) {
+	if (input.startsWith("return ") /*) {
 			final var slice = input.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice);
 		}*/
 	return Placeholder.wrap(input);
 }
-char* compileExpression(char* input) {/*
-		if (input.endsWith(")")) {
+char* compileExpression(char* input) {
+	if (input.endsWith(") /*")) {
 			final var slice = input.substring(0, input.length() - 1);
 			final var i = slice.indexOf("(");
 			if (i >= 0) {
@@ -685,20 +701,19 @@ char* compileExpression(char* input) {/*
 				return newCaller + "(" + this.compileExpression(arguments) + ")";
 			}
 		}*/
-	/*final var i = input.indexOf(".")*/;/*
-		if (i >= 0) {
+	/*final var i = input.indexOf(".")*/;
+	if (/*i >= 0*/) /*{
 			final var child = input.substring(0, i).strip();
 			final var name = input.substring(i + 1);
 			return this.compileExpression(child) + "." + name;
-		}*//*
-
-		if (this.isIdentifier(input)) {
+		}*/
+	if (this.isIdentifier(input) /*) {
 			return input;
 		}*/
 	return Placeholder.wrap(input);
 }
-char* compileParameters(char* input) {/*
-		if (input.isEmpty()) {
+char* compileParameters(char* input) {
+	if (input.isEmpty() /*) {
 			return "";
 		}*/
 	return this.compileDefinitionOrPlaceholder(input);
@@ -707,34 +722,31 @@ char* compileDefinitionOrPlaceholder(char* input) {
 	return this.compileDefinition(/*input)*/.orElseGet(/*() -> Placeholder*/.wrap(input));
 }
 Optional<char*> compileDefinition(char* input) {
-	/*final var nameSeparator = input.lastIndexOf(" ")*/;/*
-		if (nameSeparator < 0) {
+	/*final var nameSeparator = input.lastIndexOf(" ")*/;
+	if (/*nameSeparator < 0*/) /*{
 			return Optional.empty();
 		}*/
 	/*final var beforeName = input.substring(0, nameSeparator)*/;
 	/*final var name = input.substring(nameSeparator + 1).strip()*/;
-	/*final var typeSeparator = beforeName.lastIndexOf(" ")*/;/*
-		if (typeSeparator >= 0) {
+	/*final var typeSeparator = beforeName.lastIndexOf(" ")*/;
+	if (/*typeSeparator >= 0*/) /*{
 			final var type = beforeName.substring(typeSeparator + 1).strip();
 			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
 		}*/
 	return this.compileType(/*beforeName)*/.map(cppType -> cppType.generate() + " " + name);
 }
-Optional<CPPType> compileType(char* input) {/*
-		if (input.equals("void")) {
+Optional<CPPType> compileType(char* input) {
+	if (input.equals("void") /*) {
 			return Optional.of(CPPPrimitiveType.Void);
-		}*//*
-
-		if (input.endsWith("[]")) {
+		}*/
+	if (input.endsWith("[]") /*) {
 			final var slice = input.substring(0, input.length() - 2);
 			return this.compileType(slice).map(CPointerType::new);
-		}*//*
-
-		if (input.equals("String")) {
+		}*/
+	if (input.equals("String") /*) {
 			return Optional.of(new CPointerType(CPPPrimitiveType.Char));
-		}*//*
-
-		if (input.endsWith(">")) {
+		}*/
+	if (input.endsWith(">") /*) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
 			final var i = withoutEnd.indexOf("<");
 			if (i >= 0) {
@@ -751,9 +763,8 @@ Optional<CPPType> compileType(char* input) {/*
 
 				return Optional.of(new CTemplateType(base, list));
 			}
-		}*//*
-
-		if (this.isIdentifier(input)) {
+		}*/
+	if (this.isIdentifier(input) /*) {
 			if (input.equals("public")) {
 				return Optional.empty();
 			}

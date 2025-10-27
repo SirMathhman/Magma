@@ -506,7 +506,11 @@ public class App {
 	}
 
 	private String generateWithIndent(String content) {
-		return System.lineSeparator() + "\t" + content;
+		return this.generateIndent() + content;
+	}
+
+	private String generateIndent() {
+		return System.lineSeparator() + "\t";
 	}
 
 	private boolean isIdentifier(String input) {
@@ -555,9 +559,9 @@ public class App {
 							.or(() -> this.compileConstructor(definition))
 							.orElseGet(() -> Placeholder.wrap(definition));
 
-					final var generated = header + "(" + this.compileParameters(params) + ") {" +
-																this.compileStatements(content, this::compileMethodSegment) + System.lineSeparator() +
-																"}" + System.lineSeparator();
+					final var generated =
+							header + "(" + this.compileParameters(params) + ") {" + this.compileMethodStatements(content) +
+							System.lineSeparator() + "}" + System.lineSeparator();
 
 					this.functions.add(generated);
 					return "";
@@ -576,6 +580,10 @@ public class App {
 		}
 
 		return Placeholder.wrap(input);
+	}
+
+	private String compileMethodStatements(String content) {
+		return this.compileStatements(content, this::compileMethodSegment);
 	}
 
 	private Optional<String> compileConstructor(String input) {
@@ -635,6 +643,20 @@ public class App {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return "";
+		}
+
+		if (stripped.startsWith("if")) {
+			final var substring = stripped.substring(2).strip();
+			if (substring.startsWith("(")) {
+				final var substring1 = substring.substring(1);
+				final var i = substring1.indexOf(")");
+				if (i >= 0) {
+					final var condition = substring1.substring(0, i).strip();
+					final var substring2 = substring1.substring(i + 1).strip();
+					return this.generateIndent() + "if (" + this.compileExpression(condition) + ") " +
+								 this.compileMethodSegment(substring2);
+				}
+			}
 		}
 
 		if (stripped.endsWith(";")) {
