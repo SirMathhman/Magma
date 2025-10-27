@@ -1,4 +1,4 @@
-struct Main;
+struct App;
 struct CPPPrimitiveType;
 template <typename T, typename X>
 struct Result;
@@ -15,16 +15,17 @@ template <typename A, typename B>
 struct Tuple;
 /*
 */struct CPPPrimitiveType {
-/*Void("void"), Char("char");*//*
 
-		private final String content;*//*
+	/*
+
+		private final*/ char* content;/*
 	*/};
 template <typename T, typename X>
 struct Err {
-/**/};
+};
 template <typename T, typename X>
 struct Ok {
-/**/};
+};
 struct CPointerType {
 /*
 	*/};
@@ -39,14 +40,22 @@ struct Placeholder {
 	*/};
 template <typename A, typename B>
 struct Tuple {
-/**/};
-struct Main {
-/*
+};
+struct App {
 
-	private static final List<String> forwardDeclarations = new ArrayList<String>();*//*
-	private static final List<String> functions = new ArrayList<String>();*//*
-	private static final List<String> structures = new ArrayList<String>();*//*
-	private static final List<String> sealedStructures = new ArrayList<String>();*//*
+	/*
+
+	public static final List<String> globals =*/ new ArrayList<>();
+	/*
+	private static final List<String> forwardDeclarations =*/ new ArrayList<String>();
+	/*
+	private static final List<String> functions =*/ new ArrayList<String>();
+	/*
+	private static final List<String> structures =*/ new ArrayList<String>();
+	/*
+	private static final List<String> sealedStructures =*/ new ArrayList<String>();
+	/*
+	private static final Stack<String> structureNames =*/ new Stack<>();/*
 */};
 enum ResultTag {
 	ErrTag,
@@ -61,7 +70,7 @@ template <typename T, typename X>
 struct Result {
 	ResultTag tag;
 	ResultData data;
-/**/};
+};
 enum CPPTypeTag {
 	CIdentifierTag,
 	CPPPrimitiveTypeTag,
@@ -79,10 +88,14 @@ union CPPTypeData {
 struct CPPType {
 	CPPTypeTag tag;
 	CPPTypeData data;
-/*String generate();*//*
 
-		String getSimpleName();*//*
+	char* generate();
+	/*
+
+		String*/ getSimpleName();/*
 	*/};
+/*name*/
+/*name*/
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	CPPTypeData data;
@@ -242,7 +255,7 @@ CPPType toCPPType_Placeholder(void* _ref){
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
 /*private static*/ Optional<IOException> run() {/*
-		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
+		final var source = Paths.get(".", "src", "main", "java", "magma", "App.java");*//*
 		final var input = readString(source);*//*
 		return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
@@ -250,7 +263,7 @@ CPPType toCPPType_Placeholder(void* _ref){
 		}*//*;*//*
 	*/}
 /*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
-		final var target = source.resolveSibling("Main.cpp");*//*
+		final var target = source.resolveSibling("App.cpp");*//*
 		final var output = compile(input);*//*
 		return writeString(target, output).or(() -> compileNative(target));*//*
 	*/}
@@ -300,16 +313,18 @@ CPPType toCPPType_Placeholder(void* _ref){
 		}*//*
 	*/}
 /*private static*/ char* compile(char* input) {/*
-		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
+		final var compiled = compileStatements(input, App::compileRootSegment);*//*
 
 		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
 		final var joinedFunctions = String.join("", functions);*//*
 
 		final var joinedStructures = String.join("", structures);*//*
 		final var joinedSealedStructures = String.join("", sealedStructures);*//*
+		final var joinedGlobals = String.join("", globals);*//*
 
-		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedFunctions +
-					 "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() + "}";*//*
+		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals +
+					 joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
+					 "}";*//*
 	*/}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		return divide(new State(input)).map(mapper).collect(Collectors.joining());*//*
@@ -329,9 +344,10 @@ CPPType toCPPType_Placeholder(void* _ref){
 	*/}
 /*private static*/ State foldEscaped(/*State current,*/ char next) {/*
 		if (next == '\'') {
-			return current.append(next)
+			return current
+					.append(next)
 					.popAndAppendToTuple()
-					.map(Main::foldSingleEscapeChar)
+					.map(App::foldSingleEscapeChar)
 					.flatMap(State::popAndAppendToOption)
 					.orElse(current);
 		}*//*
@@ -461,7 +477,7 @@ CPPType toCPPType_Placeholder(void* _ref){
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")
-								.map(Main::generateWithIndent)
+								.map(App::generateWithIndent)
 								.collect(Collectors.joining(","));
 
 						final var typeArguments = joinTypeArguments(typeParameters);
@@ -498,9 +514,11 @@ CPPType toCPPType_Placeholder(void* _ref){
 
 					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
+					structureNames.push(beforeContent);
 					final var generated =
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
-							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
+							compileStatements(content, App::compileClassSegment) + "};" + System.lineSeparator();
+					structureNames.pop();
 
 					if (variants.isEmpty()) {
 						structures.add(generated);
@@ -540,6 +558,10 @@ CPPType toCPPType_Placeholder(void* _ref){
 		return true;*//*
 	*/}
 /*private static*/ char* compileClassSegment(char* input) {/*
+		if (input.isEmpty()) {
+			return "";
+		}*//*
+
 		final var maybeInterface = compileStructure("interface", input);*//*
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
@@ -565,8 +587,9 @@ CPPType toCPPType_Placeholder(void* _ref){
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
-					final var generated = compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
-																compileStatements(content, Main::compileMethodSegment) + "}" + System.lineSeparator();
+
+					final var generated = compileDefinitionOrPlaceholder(definition) + "(" + compileParameters(params) + ") {" +
+																compileStatements(content, App::compileMethodSegment) + "}" + System.lineSeparator();
 
 					functions.add(generated);
 					return "";
@@ -574,7 +597,45 @@ CPPType toCPPType_Placeholder(void* _ref){
 			}
 		}*//*
 
+		if (input.endsWith(";")) {
+			final var slice = input.substring(0, input.length() - 1);
+			return compileEnumValues(slice).orElseGet(() -> generateStatement(compileDefinition(slice).orElseGet(() -> wrap(
+					slice))));
+
+		}*//*
+
 		return wrap(input);*//*
+	*/}
+/*private static*/ Optional<char*> compileEnumValues(char* input) {/*
+		final var segments =
+				Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();*//*
+
+		for (var segment : segments) {
+			final var stripped = segment.strip();
+			final var maybeEnumValue = compileEnumValue(stripped);
+			if (maybeEnumValue.isPresent()) {
+				globals.add(maybeEnumValue.get() + System.lineSeparator());
+			} else {
+				return Optional.empty();
+			}
+		}*//*
+
+		return Optional.of("");*//*
+	*/}
+/*private static*/ Optional<char*> compileEnumValue(char* stripped) {/*
+		if (stripped.endsWith(")")) {
+			final var slice = stripped.substring(0, stripped.length() - 1);
+			final var i = slice.indexOf("(");
+			if (i >= 0) {
+				final var name = slice.substring(0, i).strip();
+				final var arguments = slice.substring(i + 1);
+				if (isIdentifier(name)) {
+					return Optional.of(wrap("name"));
+				}
+			}
+		}*//*
+
+		return Optional.empty();*//*
 	*/}
 /*private static*/ char* compileMethodSegment(char* input) {/*
 		return wrap(input);*//*
@@ -583,12 +644,15 @@ CPPType toCPPType_Placeholder(void* _ref){
 		if (input.isEmpty()) {
 			return "";
 		}*//*
-		return compileDefinition(input);*//*
+		return compileDefinitionOrPlaceholder(input);*//*
 	*/}
-/*private static*/ char* compileDefinition(char* input) {/*
+/*private static*/ char* compileDefinitionOrPlaceholder(char* input) {/*
+		return compileDefinition(input).orElseGet(() -> wrap(input));*//*
+	*/}
+/*private static*/ Optional<char*> compileDefinition(char* input) {/*
 		final var nameSeparator = input.lastIndexOf(" ");*//*
 		if (nameSeparator < 0) {
-			return wrap(input);
+			return Optional.empty();
 		}*//*
 
 		final var beforeName = input.substring(0, nameSeparator);*//*
@@ -597,9 +661,9 @@ CPPType toCPPType_Placeholder(void* _ref){
 		if (typeSeparator >= 0) {
 			final var beforeType = beforeName.substring(0, typeSeparator);
 			final var type = beforeName.substring(typeSeparator + 1).strip();
-			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;
+			return Optional.of(wrap(beforeType) + " " + compileType(type).generate() + " " + name);
 		}*//* else {
-			return compileType(beforeName).generate() + " " + name;
+			return Optional.of(compileType(beforeName).generate() + " " + name);
 		}*//*
 	*/}
 /*private static*/ CPPType compileType(char* input) {/*
