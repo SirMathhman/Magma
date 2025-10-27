@@ -12,6 +12,7 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 	ResultTag tag;
+	ResultData data
 };
 /**/template <typename T, typename X>(X error) implements Result<T, typename X>
 struct Err {
@@ -155,8 +156,7 @@ struct Ok {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var enumFields =
-								variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(Collectors.joining(","));
+						final var enumFields = variants.stream().map(Main::generateField).collect(Collectors.joining(","));
 
 						final var unionFields = variants
 								.stream()
@@ -172,7 +172,7 @@ struct Ok {
 					if (variants.isEmpty()) {
 						fields = "";
 					} else {
-						fields = System.lineSeparator() + "\t" + beforeContent + "Tag tag;";
+						fields = generateField(beforeContent + "Tag tag;") + generateField(beforeContent + "Data data");
 					}
 
 					return Optional.of(
@@ -183,6 +183,10 @@ struct Ok {
 		}*//*
 
 		return Optional.empty();*//*
+	}
+
+	private static String generateField(String content) {
+		return System.lineSeparator() + "\t" + content;*//*
 	}
 
 	private static boolean isIdentifier(String input) {

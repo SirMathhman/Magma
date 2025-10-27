@@ -178,8 +178,7 @@ public class Main {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var enumFields =
-								variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(Collectors.joining(","));
+						final var enumFields = variants.stream().map(Main::generateField).collect(Collectors.joining(","));
 
 						final var unionFields = variants
 								.stream()
@@ -195,7 +194,7 @@ public class Main {
 					if (variants.isEmpty()) {
 						fields = "";
 					} else {
-						fields = System.lineSeparator() + "\t" + beforeContent + "Tag tag;";
+						fields = generateField(beforeContent + "Tag tag;") + generateField(beforeContent + "Data data");
 					}
 
 					return Optional.of(
@@ -206,6 +205,10 @@ public class Main {
 		}
 
 		return Optional.empty();
+	}
+
+	private static String generateField(String content) {
+		return System.lineSeparator() + "\t" + content;
 	}
 
 	private static boolean isIdentifier(String input) {
