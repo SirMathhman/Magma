@@ -94,13 +94,29 @@ public class Main {
 	private static String compileClassSegment(String input) {
 		final var paramStart = input.indexOf("(");
 		if (paramStart >= 0) {
-			final var definition = input.substring(0, paramStart);
+			final var definition = input.substring(0, paramStart).strip();
 			final var withParams = input.substring(paramStart + 1);
 			final var paramEnd = withParams.indexOf(")");
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd);
 				final var content = withParams.substring(paramEnd + 1);
-				return wrap(definition) + "(" + wrap(params) + ")" + wrap(content);
+				return compileDefinition(definition) + "(" + wrap(params) + ")" + wrap(content);
+			}
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileDefinition(String input) {
+		final var nameSeparator = input.lastIndexOf(" ");
+		if (nameSeparator >= 0) {
+			final var beforeName = input.substring(0, nameSeparator);
+			final var name = input.substring(nameSeparator + 1);
+			final var typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final var beforeType = beforeName.substring(0, typeSeparator);
+				final var type = beforeName.substring(typeSeparator + 1);
+				return wrap(beforeType) + " " + wrap(type) + " " + " " + name;
 			}
 		}
 

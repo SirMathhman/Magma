@@ -1,4 +1,4 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:46: error: expected unqualified-id
-    2 | /*public static void main*/(/*String[] args*/)/* {
-      |                                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:14:36: error: expected function body after function declarator
+   14 |         }*//*private static*/ /*String*/  compile(/*String input*/)/* {
+      |                                           ^
 1 error generated.
