@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 public class Main {
 	private sealed interface Result<T, X> permits Err, Ok {}
 
-	private interface CPPType {
+	private sealed interface CPPType permits CIdentifier, CPPPrimitiveType, CPointerType, CTemplateType, Placeholder {
 		String generate();
 
 		String getSimpleName();
@@ -74,6 +74,8 @@ public class Main {
 			return this.generate();
 		}
 	}
+
+	private static final List<String> forwardDeclarations = new ArrayList<>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -146,8 +148,11 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
-					 "0;" + System.lineSeparator() + "}";
+		final var compiled = compileStatements(input, Main::compileRootSegment);
+		final var joinedForwardDeclarations = String.join("", forwardDeclarations);
+
+		return joinedForwardDeclarations + compiled + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
+					 System.lineSeparator() + "}";
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
@@ -236,6 +241,9 @@ public class Main {
 						}
 					}
 
+					if (!isIdentifier(beforeContent)) {
+						return Optional.empty();
+					}
 
 					String templateString;
 					if (typeParameters.isEmpty()) {
@@ -252,11 +260,10 @@ public class Main {
 					} else {
 						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
 
-						final var joinedTypeArguments = joinTypeArguments(typeParameters);
+						final var typeArguments = joinTypeArguments(typeParameters);
 						final var unionFields = variants
 								.stream()
-								.map(slice -> System.lineSeparator() + "\t" + slice + joinedTypeArguments + " " + slice.toLowerCase() +
-															";")
+								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
 								.collect(Collectors.joining());
 
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
@@ -284,6 +291,8 @@ public class Main {
 								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
+
+					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					return Optional.of(
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
@@ -384,7 +393,7 @@ public class Main {
 
 	private static CPPType compileType(String input) {
 		if (input.equals("void")) {
-			return CPPPrimitiveTypes.Void;
+			return CPPPrimitiveType.Void;
 		}
 
 		if (input.endsWith("[]")) {
@@ -393,7 +402,7 @@ public class Main {
 		}
 
 		if (input.equals("String")) {
-			return new CPointerType(CPPPrimitiveTypes.Char);
+			return new CPointerType(CPPPrimitiveType.Char);
 		}
 
 		if (input.endsWith(">")) {
@@ -425,12 +434,12 @@ public class Main {
 		return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
 	}
 
-	private enum CPPPrimitiveTypes implements CPPType {
+	private enum CPPPrimitiveType implements CPPType {
 		Void("void"), Char("char");
 
 		private final String content;
 
-		CPPPrimitiveTypes(String content) {this.content = content;}
+		CPPPrimitiveType(String content) {this.content = content;}
 
 		@Override
 		public String generate() {

@@ -1,3 +1,15 @@
+struct Main;
+template <typename T, typename X>
+struct Result;
+struct CPPType;
+template <typename T, typename X>
+struct Err;
+template <typename T, typename X>
+struct Ok;
+struct CPointerType;
+struct CTemplateType;
+struct CIdentifier;
+struct Placeholder;
 struct Main {
 };
 enum ResultTag {
@@ -14,7 +26,23 @@ struct Result {
 	ResultTag tag;
 	ResultData data;
 };
-/**/struct CPPType {
+/**/enum CPPTypeTag {
+	CIdentifier,
+	CPPPrimitiveType,
+	CPointerType,
+	CTemplateType,
+	Placeholder
+};
+union CPPTypeData {
+	CIdentifier cidentifier;
+	CPPPrimitiveType cppprimitivetype;
+	CPointerType cpointertype;
+	CTemplateType ctemplatetype;
+	Placeholder placeholder;
+};
+struct CPPType {
+	CPPTypeTag tag;
+	CPPTypeData data;
 };
 /*String generate();*//*
 
@@ -100,7 +128,9 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.generate();*//*
 		*/}/*
-	*//*public static*/ void main(char** args) {/*
+	*//*
+
+	private static final List<String> forwardDeclarations = new ArrayList<>();*//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}/*private static*/ Optional<IOException> run() {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
@@ -153,8 +183,11 @@ struct Placeholder {
 			return new Err<String, IOException>(e);
 		}*//*
 	*/}/*private static*/ char* compile(char* input) {/*
-		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
-					 "0;" + System.lineSeparator() + "}*//*";*//*
+		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
+		final var joinedForwardDeclarations = String.join("", forwardDeclarations);*//*
+
+		return joinedForwardDeclarations + compiled + "int main(){" + System.lineSeparator() + "\treturn " + "0;" +
+					 System.lineSeparator() + "}*//*";*//*
 	*/}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*
 		var buffer = new StringBuilder();*//*
@@ -190,71 +223,164 @@ struct Placeholder {
 		}
 
 		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
-	}*/struct Index = input.indexOf {
-};
-/*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get {
-};
-struct Type.getSimpleName() + "Data" + joinedTypeArguments + " data") +
+	}*//*
+
+	private static Optional<String> compileStructure(String type, String input) {
+		final var classIndex = input.indexOf(type);
+		if (classIndex >= 0) {
+			final var afterKeyword = input.substring(classIndex + type.length());
+			final var contentStart = afterKeyword.indexOf("{");
+			if (contentStart >= 0) {
+				var beforeContent = afterKeyword.substring(0, contentStart).strip();
+				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+				if (withEnd.endsWith("}")) {
+					final var content = withEnd.substring(0, withEnd.length() - 1);
+
+					final var permitsIndex = beforeContent.indexOf("permits");
+					List<String> variants = Collections.emptyList();
+					if (permitsIndex >= 0) {
+						final var variantsArray =
+								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
+						beforeContent = beforeContent.substring(0, permitsIndex).strip();
+						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+					}
+
+					final var implementsIndex = beforeContent.indexOf("implements");
+					Optional<CPPType> maybeInterfaceType = Optional.empty();
+					if (implementsIndex >= 0) {
+						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
+						maybeInterfaceType = Optional.of(compileType(slice));
+						beforeContent = beforeContent.substring(0, implementsIndex).strip();
+					}
+
+					if (beforeContent.endsWith(")")) {
+						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
+						final var i = slice.indexOf("(");
+						if (i >= 0) {
+							final var params = slice.substring(i + 1);
+							beforeContent = slice.substring(0, i).strip();
+						}
+					}
+
+					List<String> typeParameters = new ArrayList<String>();
+					if (beforeContent.endsWith(">")) {
+						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
+						final var typeParamStart = withoutEnd.indexOf("<");
+						if (typeParamStart >= 0) {
+							beforeContent = withoutEnd.substring(0, typeParamStart);
+							final var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
+							typeParameters =
+									Arrays.stream(typeParamsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+						}
+					}
+
+					if (!isIdentifier(beforeContent)) {
+						return Optional.empty();
+					}
+
+					String templateString;
+					if (typeParameters.isEmpty()) {
+						templateString = "";
+					} else {
+						final var collect =
+								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+						templateString = "template <" + collect + ">" + System.lineSeparator();
+					}
+
+					String dependencies;
+					if (variants.isEmpty()) {
+						dependencies = "";
+					} else {
+						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
+
+						final var typeArguments = joinTypeArguments(typeParameters);
+						final var unionFields = variants
+								.stream()
+								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
+								.collect(Collectors.joining());
+
+						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
+													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
+													 System.lineSeparator() + "};" + System.lineSeparator();
+					}
+
+					final String fields;
+					if (variants.isEmpty()) {
+						fields = "";
+					} else {
+						fields = generateStatement(beforeContent + "Tag tag") + generateStatement(beforeContent + "Data data");
+					}
+
+					if (maybeInterfaceType.isPresent()) {
+						final var interfaceType = maybeInterfaceType.get();
+						final var joinedTypeArguments = joinTypeArguments(typeParameters);
+
+						final var thisType = beforeContent + joinedTypeArguments;
+						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
+														beforeContent + "(void* _ref" + "){" +
+														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
 														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
-								"return " + interfaceType.generate() + " {
-};
-/*" + beforeContent + ", " + "data *//*") +
+								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
+
+					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					return Optional.of(
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
-		*//*
+		}
 
-		return Optional.empty();*//*
+		return Optional.empty();
 	}
 
 	private static String joinTypeArguments(List<String> typeParameters) {
-		String joinedTypeArguments;*//*
+		String joinedTypeArguments;
 		if (typeParameters.isEmpty()) {
 			joinedTypeArguments = "";
-		}*//* else {
+		} else {
 			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
-		}*//*
-		return joinedTypeArguments;*//*
+		}
+		return joinedTypeArguments;
 	}
 
 	private static String generateStatement(String content) {
-		return generateWithIndent(content) + ";*//*";*//*
+		return generateWithIndent(content) + ";";
 	}
 
 	private static String generateWithIndent(String content) {
-		return System.lineSeparator() + "\t" + content;*//*
+		return System.lineSeparator() + "\t" + content;
 	}
 
 	private static boolean isIdentifier(String input) {
-		for (var i = 0;*//* i < input.length();*//* i++) {
+		for (var i = 0; i < input.length(); i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
 			}
-		}*//*
+		}
 
-		return true;*//*
+		return true;
 	}
 
 	private static String compileClassSegment(String input) {
-		final var maybeInterface = compileStructure("interface", input);*//*
+		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
-		}*//*
+		}
 
-		final var maybeRecord = compileStructure("record ", input);*//*
+		final var maybeRecord = compileStructure("record ", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
-		}*//*
+		}
 
-		final var paramStart = input.indexOf("(");*//*if*/(/*paramStart*/ /*>=*/ 0) {/*
-			final var definition = input.substring(0, paramStart).strip();*//*
-			final var withParams = input.substring(paramStart + 1);*//*
-			final var paramEnd = withParams.indexOf(")");*//*
+		final var paramStart = input.indexOf("(");
+		if (paramStart >= 0) {
+			final var definition = input.substring(0, paramStart).strip();
+			final var withParams = input.substring(paramStart + 1);
+			final var paramEnd = withParams.indexOf(")");
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
@@ -263,50 +389,54 @@ struct Type.getSimpleName() + "Data" + joinedTypeArguments + " data") +
 					return compileDefinition(definition) + "(" + compileParameters(params) + ") {" +
 								 compileStatements(content, Main::compileMethodSegment) + "}";
 				}
-			}*//*
-		*/}/*
+			}
+		}
 
-		return wrap(input);*//*
+		return wrap(input);
 	}
 
 	private static String compileMethodSegment(String input) {
-		return wrap(input);*//*}
+		return wrap(input);
+	}
 
-	private static*/ char* compileParameters(char* input) {/*
+	private static String compileParameters(String input) {
 		if (input.isEmpty()) {
 			return "";
-		*/}/*
-		return compileDefinition(input);*//*
+		}
+		return compileDefinition(input);
 	}
 
 	private static String compileDefinition(String input) {
-		final var nameSeparator = input.lastIndexOf(" ");*//*if*/(/*nameSeparator*/ /*<*/ 0) {/*
-			return wrap(input);*//*
-		*/}/*
+		final var nameSeparator = input.lastIndexOf(" ");
+		if (nameSeparator < 0) {
+			return wrap(input);
+		}
 
-		final var beforeName = input.substring(0, nameSeparator);*//*
-		final var name = input.substring(nameSeparator + 1).strip();*//*
-		final var typeSeparator = beforeName.lastIndexOf(" ");*//*if*/(/*typeSeparator*/ /*>=*/ 0) {/*
-			final var beforeType = beforeName.substring(0, typeSeparator);*//*
-			final var type = beforeName.substring(typeSeparator + 1).strip();*//*
-			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;*//*
-		*/}/* else {
+		final var beforeName = input.substring(0, nameSeparator);
+		final var name = input.substring(nameSeparator + 1).strip();
+		final var typeSeparator = beforeName.lastIndexOf(" ");
+		if (typeSeparator >= 0) {
+			final var beforeType = beforeName.substring(0, typeSeparator);
+			final var type = beforeName.substring(typeSeparator + 1).strip();
+			return wrap(beforeType) + " " + compileType(type).generate() + " " + name;
+		} else {
 			return compileType(beforeName).generate() + " " + name;
-		}*//*}
+		}
+	}
 
-	private static*/ CPPType compileType(char* input) {/*
+	private static CPPType compileType(String input) {
 		if (input.equals("void")) {
-			return CPPPrimitiveTypes.Void;
-		*/}/*
+			return CPPPrimitiveType.Void;
+		}
 
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
 			return new CPointerType(compileType(slice));
-		}*//*
+		}
 
 		if (input.equals("String")) {
-			return new CPointerType(CPPPrimitiveTypes.Char);
-		}*//*
+			return new CPointerType(CPPPrimitiveType.Char);
+		}
 
 		if (input.endsWith(">")) {
 			final var withoutEnd = input.substring(0, input.length() - 1);
@@ -324,31 +454,37 @@ struct Type.getSimpleName() + "Data" + joinedTypeArguments + " data") +
 
 				return new CTemplateType(base, list);
 			}
-		}*//*
+		}
 
 		if (isIdentifier(input)) {
 			return new CIdentifier(input);
-		}*//*
+		}
 
-		return new Placeholder(input);*//*
+		return new Placeholder(input);
 	}
 
 	private static String wrap(String input) {
-		return "start" + input.replace("start", "start").replace("end", "end") + "end";*//*
+		return "start" + input.replace("start", "start").replace("end", "end") + "end";
 	}
 
-	private enum CPPPrimitiveTypes implements CPPType {
-		Void("void"), Char("char");*//*
+	private enum CPPPrimitiveType implements CPPType {
+		Void("void"), Char("char");
 
-		private final String content;*//*CPPPrimitiveTypes*/(char* content) {/*this.content = content;*//**/}/*@Override
-		public*/ char* generate() {/*
-			return this.content;*//*
-		*/}/*@Override
-		public*/ char* getSimpleName() {/*
-			return this.content;*//*
-		*/}/*
+		private final String content;
+
+		CPPPrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.content;
+		}
 	}
-*//*
+}*//*
 */int main(){
 	return 0;
 }

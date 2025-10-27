@@ -1,75 +1,114 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:2: error: no template named 'Err'
-    9 |         Err<T, X> err;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:16:2: error: redefinition of 'Err'
+   16 |         Err,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:2: error: no template named 'Ok'
-   10 |         Ok<T, X> ok;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:6:8: note: previous definition is here
+    6 | struct Err;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:17:2: error: redefinition of 'Ok'
+   17 |         Ok
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
-   15 |         ResultData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:8:8: note: previous definition is here
+    8 | struct Ok;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:27:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
+   27 |         ResultData data;
       |         ^~~~~~~~~~
       |         ResultTag
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:3:6: note: 'ResultTag' declared here
-    3 | enum ResultTag {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:6: note: 'ResultTag' declared here
+   15 | enum ResultTag {
       |      ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:30:8: error: redefinition of 'Err' as different kind of symbol
-   30 | struct Err {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:37:2: error: must use 'struct' tag to refer to type 'CIdentifier' in this scope
+   37 |         CIdentifier cidentifier;
+      |         ^
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:30:2: note: struct 'CIdentifier' is hidden by a non-type declaration of 'CIdentifier' here
+   30 |         CIdentifier,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:37:14: error: field has incomplete type 'struct CIdentifier'
+   37 |         CIdentifier cidentifier;
+      |                     ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:11:8: note: forward declaration of 'CIdentifier'
+   11 | struct CIdentifier;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:4:2: note: previous definition is here
-    4 |         Err,
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:38:2: error: unknown type name 'CPPPrimitiveType'
+   38 |         CPPPrimitiveType cppprimitivetype;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:8: error: redefinition of 'Ok' as different kind of symbol
-   40 | struct Ok {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:39:2: error: must use 'struct' tag to refer to type 'CPointerType' in this scope
+   39 |         CPointerType cpointertype;
+      |         ^
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:2: note: struct 'CPointerType' is hidden by a non-type declaration of 'CPointerType' here
+   32 |         CPointerType,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:39:15: error: field has incomplete type 'struct CPointerType'
+   39 |         CPointerType cpointertype;
+      |                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:8: note: forward declaration of 'CPointerType'
+    9 | struct CPointerType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:2: note: previous definition is here
-    5 |         Ok
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:2: error: must use 'struct' tag to refer to type 'CTemplateType' in this scope
+   40 |         CTemplateType ctemplatetype;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:2: error: unknown type name 'CPointerType'
-   43 |         CPointerType _this = *((CPointerType*) _ref);
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:33:2: note: struct 'CTemplateType' is hidden by a non-type declaration of 'CTemplateType' here
+   33 |         CTemplateType,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:26: error: use of undeclared identifier 'CPointerType'
-   43 |         CPointerType _this = *((CPointerType*) _ref);
-      |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:39: error: expected expression
-   43 |         CPointerType _this = *((CPointerType*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:16: error: field has incomplete type 'struct CTemplateType'
+   40 |         CTemplateType ctemplatetype;
+      |                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:8: note: forward declaration of 'CTemplateType'
+   10 | struct CTemplateType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:41:2: error: must use 'struct' tag to refer to type 'Placeholder' in this scope
+   41 |         Placeholder placeholder;
+      |         ^
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:34:2: note: struct 'Placeholder' is hidden by a non-type declaration of 'Placeholder' here
+   34 |         Placeholder
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:41:14: error: field has incomplete type 'struct Placeholder'
+   41 |         Placeholder placeholder;
+      |                     ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:12:8: note: forward declaration of 'Placeholder'
+   12 | struct Placeholder;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:71:2: error: must use 'struct' tag to refer to type 'CPointerType' in this scope
+   71 |         CPointerType _this = *((CPointerType*) _ref);
+      |         ^
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:32:2: note: struct 'CPointerType' is hidden by a non-type declaration of 'CPointerType' here
+   32 |         CPointerType,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:71:39: error: expected expression
+   71 |         CPointerType _this = *((CPointerType*) _ref);
       |                                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:44:2: error: unknown type name 'CPPTypeData'
-   44 |         CPPTypeData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:71:15: error: variable has incomplete type 'CPointerType'
+   71 |         CPointerType _this = *((CPointerType*) _ref);
+      |                      ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:8: note: forward declaration of 'CPointerType'
+    9 | struct CPointerType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:86:2: error: must use 'struct' tag to refer to type 'CTemplateType' in this scope
+   86 |         CTemplateType _this = *((CTemplateType*) _ref);
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:19: error: use of undeclared identifier 'CPointerType'
-   46 |         return CPPType { CPointerType, data };
-      |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:2: error: unknown type name 'CTemplateType'
-   58 |         CTemplateType _this = *((CTemplateType*) _ref);
+      |         struct 
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:33:2: note: struct 'CTemplateType' is hidden by a non-type declaration of 'CTemplateType' here
+   33 |         CTemplateType,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:27: error: use of undeclared identifier 'CTemplateType'
-   58 |         CTemplateType _this = *((CTemplateType*) _ref);
-      |                                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:41: error: expected expression
-   58 |         CTemplateType _this = *((CTemplateType*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:86:41: error: expected expression
+   86 |         CTemplateType _this = *((CTemplateType*) _ref);
       |                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:59:2: error: unknown type name 'CPPTypeData'
-   59 |         CPPTypeData data;
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:61:19: error: use of undeclared identifier 'CTemplateType'
-   61 |         return CPPType { CTemplateType, data };
-      |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:66:18: error: redefinition of 'generate'
-   66 |                 public*/ char* generate() {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:86:16: error: variable has incomplete type 'CTemplateType'
+   86 |         CTemplateType _this = *((CTemplateType*) _ref);
+      |                       ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:8: note: forward declaration of 'CTemplateType'
+   10 | struct CTemplateType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:94:18: error: redefinition of 'generate'
+   94 |                 public*/ char* generate() {/*
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:51:18: note: previous definition is here
-   51 |                 public*/ char* generate() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:70:18: error: redefinition of 'getSimpleName'
-   70 |                 public*/ char* getSimpleName() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:54:18: note: previous definition is here
-   54 |                 public*/ char* getSimpleName() {/*
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:2: error: unknown type name 'CIdentifier'
-   74 |         CIdentifier _this = *((CIdentifier*) _ref);
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:25: error: use of undeclared identifier 'CIdentifier'
-   74 |         CIdentifier _this = *((CIdentifier*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:79:18: note: previous definition is here
+   79 |                 public*/ char* generate() {/*
       |                                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
