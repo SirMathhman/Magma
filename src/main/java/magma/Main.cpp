@@ -4,6 +4,10 @@ enum ResultTag {
 	Err,
 	Ok
 };
+union ResultTag {
+	Err err;
+	Ok ok;
+};
 template <typename T, typename X>
 struct Result {
 	ResultTag tag;
@@ -148,11 +152,17 @@ struct Result {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var joined =
+						final var enumFields =
 								variants.stream().map(slice -> System.lineSeparator() + "\t" + slice).collect(Collectors.joining(","));
 
-						dependencies =
-								"enum " + beforeContent + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
+						final var unionFields = variants
+								.stream()
+								.map(slice -> System.lineSeparator() + "\t" + slice + " " + slice.toLowerCase() + ";")
+								.collect(Collectors.joining());
+
+						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
+													 System.lineSeparator() + "union " + beforeContent + "Tag {" + unionFields +
+													 System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
 					final String fields;
