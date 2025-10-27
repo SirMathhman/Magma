@@ -556,8 +556,8 @@ public class App {
 							.orElseGet(() -> Placeholder.wrap(definition));
 
 					final var generated = header + "(" + this.compileParameters(params) + ") {" +
-																this.compileStatements(content, this::compileMethodSegment) + "}" +
-																System.lineSeparator();
+																this.compileStatements(content, this::compileMethodSegment) + System.lineSeparator() +
+																"}" + System.lineSeparator();
 
 					this.functions.add(generated);
 					return "";
@@ -659,9 +659,17 @@ public class App {
 			final var slice = input.substring(0, input.length() - 1);
 			final var i = slice.indexOf("(");
 			if (i >= 0) {
-				final var caller = slice.substring(0, i);
+				final var caller = slice.substring(0, i).strip();
 				final var arguments = slice.substring(i + 1);
-				return this.compileExpression(caller) + "(" + this.compileExpression(arguments) + ")";
+				final String newCaller;
+				if (!caller.startsWith("new ")) {
+					newCaller = this.compileExpression(caller);
+				} else {
+					final var substring = caller.substring("new ".length());
+					newCaller = "new_" + this.compileType(substring).orElseGet(() -> new Placeholder(substring)).generate();
+				}
+
+				return newCaller + "(" + this.compileExpression(arguments) + ")";
 			}
 		}
 

@@ -32,44 +32,44 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:88:49: warning: 
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:89:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
    89 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:9: error: invalid use of 'this' outside of a non-static member function
-   99 |         return this.content;}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:9: error: invalid use of 'this' outside of a non-static member function
+  100 |         return this.content;
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:101:9: error: invalid use of 'this' outside of a non-static member function
-  101 |         return this.content;}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:103:9: error: invalid use of 'this' outside of a non-static member function
+  103 |         return this.content;
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:122:7: error: redefinition of 'generate'
-  122 | char* generate() {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:125:7: error: redefinition of 'generate'
+  125 | char* generate() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:7: note: previous definition is here
-   98 | char* generate() {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:99:7: note: previous definition is here
+   99 | char* generate() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:123:9: error: invalid use of 'this' outside of a non-static member function
-  123 |         return this.type.generate() + "*";}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:126:9: error: invalid use of 'this' outside of a non-static member function
+  126 |         return this.type.generate() + "*";
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:124:7: error: redefinition of 'getSimpleName'
-  124 | char* getSimpleName() {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:128:7: error: redefinition of 'getSimpleName'
+  128 | char* getSimpleName() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:100:7: note: previous definition is here
-  100 | char* getSimpleName() {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:102:7: note: previous definition is here
+  102 | char* getSimpleName() {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:125:9: error: invalid use of 'this' outside of a non-static member function
-  125 |         return this.type.getSimpleName() + "_ref";}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:9: error: invalid use of 'this' outside of a non-static member function
+  129 |         return this.type.getSimpleName() + "_ref";
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:134:9: error: invalid use of 'this' outside of a non-static member function
-  134 |         return this.base + "<" + joined + ">";}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:9: error: invalid use of 'this' outside of a non-static member function
+  139 |         return this.base + "<" + joined + ">";
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:134:27: error: use of undeclared identifier 'joined'
-  134 |         return this.base + "<" + joined + ">";}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:139:27: error: use of undeclared identifier 'joined'
+  139 |         return this.base + "<" + joined + ">";
       |                                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:136:9: error: invalid use of 'this' outside of a non-static member function
-  136 |         return this.base;}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:142:9: error: invalid use of 'this' outside of a non-static member function
+  142 |         return this.base;
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:144:9: error: invalid use of 'this' outside of a non-static member function
-  144 |         return this.input;}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:151:9: error: invalid use of 'this' outside of a non-static member function
+  151 |         return this.input;
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:146:9: error: invalid use of 'this' outside of a non-static member function
-  146 |         return this.input;}
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:154:9: error: invalid use of 'this' outside of a non-static member function
+  154 |         return this.input;
       |                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
