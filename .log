@@ -1,11 +1,42 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:19: error: 'main' must return 'int'
-    2 | /*public static*/ void main(char** args) {/*
-      |                   ^~~~
-      |                   int
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:24: error: first parameter of 'main' (argument count) must be of type 'int'
-    2 | /*public static*/ void main(char** args) {/*
-      |                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:17:95: error: unknown type name 'mapper'
-   17 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:6:81: error: 'main' must return 'int'
+    6 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+      |                                                                                        ^~~~
+      |                                                                                        int
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:6:86: error: first parameter of 'main' (argument count) must be of type 'int'
+    6 |         private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+      |                                                                                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:8:50: error: a type specifier is required for all declarations
+    8 |         */}/*private static*/ /*Optional<IOException>*/ run() {/*
+      |                                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:50: error: a type specifier is required for all declarations
+   15 |         */}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
+      |                                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:19:60: error: unknown type name 'compileNative'
+   19 |         */}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
+      |                                                                   ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:25:5: error: expected ';' after top level declarator
+   25 |         */}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
+      |            ^
+      |            ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:33:57: error: unknown type name 'waitFor'
+   33 |         */}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
+      |                                                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:39:5: error: expected ';' after top level declarator
+   39 |         */}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
+      |            ^
+      |            ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:45:50: error: a type specifier is required for all declarations
+   45 |         */}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
+      |                                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:52:56: error: unknown type name 'readString'
+   52 |         */}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
+      |                                                               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:5: error: expected ';' after top level declarator
+   58 |         */}/*private static*/ char* compile(char* input) {/*
+      |            ^
+      |            ;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:61:95: error: unknown type name 'mapper'
+   61 |         */}/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
       |                                                                                                      ^
-3 errors generated.
+12 errors generated.
+Compilation failed with exit code: 1

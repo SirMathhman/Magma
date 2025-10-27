@@ -2,23 +2,88 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
-	public static void main(String[] args) {
-		try {
-			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-			final var input = Files.readString(source);
-			final var target = source.resolveSibling("Main.cpp");
-			Files.writeString(target, compile(input));
+	private sealed interface Result<T, X> permits Err, Ok {}
 
-			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
-		} catch (IOException | InterruptedException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+	private record Err<T, X>(X error) implements Result<T, X> {}
+
+	private record Ok<T, X>(T value) implements Result<T, X> {}
+
+	public static void main(String[] args) {
+		run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> run() {
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final var input = readString(source);
+		return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> compilePath(source, v.value);
+		};
+	}
+
+	private static Optional<IOException> compilePath(Path source, String input) {
+		final var target = source.resolveSibling("Main.cpp");
+		final var output = compile(input);
+		return writeString(target, output).or(() -> compileNative(target));
+	}
+
+	private static Optional<? extends IOException> compileNative(Path target) {
+		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
+		return switch (clang) {
+			case Err<Process, IOException> v1 -> Optional.of(v1.error);
+			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
+		};
+	}
+
+	private static Optional<? extends IOException> waitForProcess(Process process) {
+		return switch (waitFor(process)) {
+			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
+			case Ok<Integer, IOException> v2 -> {
+				System.out.println("Compilation failed with exit code: " + v2.value);
+				yield Optional.empty();
+			}
+		};
+	}
+
+	private static Result<Integer, IOException> waitFor(Process process) {
+		try {
+			return new Ok<Integer, IOException>(process.waitFor());
+		} catch (InterruptedException e) {
+			return new Err<Integer, IOException>(new IOException(e));
+		}
+	}
+
+	private static Result<Process, IOException> startCommand(List<String> command) {
+		try {
+			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
+		} catch (IOException e) {
+			return new Err<Process, IOException>(e);
+		}
+	}
+
+	private static Optional<IOException> writeString(Path target, String output) {
+		try {
+			Files.writeString(target, output);
+			return Optional.empty();
+		} catch (IOException e) {
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(Path source) {
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<String, IOException>(e);
 		}
 	}
 
