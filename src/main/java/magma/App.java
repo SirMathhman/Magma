@@ -715,21 +715,23 @@ public class App {
 	}
 
 	private String compileMethodStatement(String input) {
-		if (input.startsWith("return ")) {
-			final var slice = input.substring("return ".length()).strip();
+		final var strip = input.strip();
+
+		if (strip.startsWith("return ")) {
+			final var slice = strip.substring("return ".length()).strip();
 			return "return " + this.compileExpression(slice);
 		}
 
-		final var separator = input.indexOf('=');
+		final var separator = strip.indexOf('=');
 		if (separator >= 0) {
-			final var substring = input.substring(0, separator).strip();
-			final var substring1 = input.substring(separator + 1).strip();
+			final var substring = strip.substring(0, separator).strip();
+			final var substring1 = strip.substring(separator + 1).strip();
 			final var s = this.compileDefinition(substring).orElseGet(() -> this.compileExpression(substring));
 
 			return s + " = " + this.compileExpression(substring1);
 		}
 
-		return Placeholder.wrap(input);
+		return this.compileInvocation(strip).orElseGet(() -> Placeholder.wrap(strip));
 	}
 
 	private String compileExpression(String input) {
@@ -739,37 +741,9 @@ public class App {
 			return stripped;
 		}
 
-		if (stripped.endsWith(")")) {
-			final var slice = stripped.substring(0, stripped.length() - 1);
-			int argStart = -1;
-			var depth = 0;
-			for (int i = 0; i < slice.length(); i++) {
-				final var next = slice.charAt(i);
-				if (next == '(') {
-					if (depth == 0) {
-						argStart = i;
-					}
-
-					depth++;
-				}
-				if (next == ')') {
-					depth--;
-				}
-			}
-
-			if (argStart >= 0) {
-				final var caller = slice.substring(0, argStart).strip();
-				final var arguments = slice.substring(argStart + 1);
-				final String newCaller;
-				if (!caller.startsWith("new ")) {
-					newCaller = this.compileExpression(caller);
-				} else {
-					final var substring = caller.substring("new ".length());
-					newCaller = "new_" + this.compileType(substring).orElseGet(() -> new Placeholder(substring)).generate();
-				}
-
-				return newCaller + "(" + this.compileExpression(arguments) + ")";
-			}
+		final var maybeInvocation = this.compileInvocation(stripped);
+		if (maybeInvocation.isPresent()) {
+			return maybeInvocation.get();
 		}
 
 		final var i = stripped.lastIndexOf(".");
@@ -803,6 +777,43 @@ public class App {
 		}
 
 		return Placeholder.wrap(stripped);
+	}
+
+	private Optional<String> compileInvocation(String stripped) {
+		if (stripped.endsWith(")")) {
+			final var slice = stripped.substring(0, stripped.length() - 1);
+			int argStart = -1;
+			var depth = 0;
+			for (int i = 0; i < slice.length(); i++) {
+				final var next = slice.charAt(i);
+				if (next == '(') {
+					if (depth == 0) {
+						argStart = i;
+					}
+
+					depth++;
+				}
+				if (next == ')') {
+					depth--;
+				}
+			}
+
+			if (argStart >= 0) {
+				final var caller = slice.substring(0, argStart).strip();
+				final var arguments = slice.substring(argStart + 1);
+				final String newCaller;
+				if (!caller.startsWith("new ")) {
+					newCaller = this.compileExpression(caller);
+				} else {
+					final var substring = caller.substring("new ".length());
+					newCaller = "new_" + this.compileType(substring).orElseGet(() -> new Placeholder(substring)).generate();
+				}
+
+				return Optional.of(newCaller + "(" + this.compileExpression(arguments) + ")");
+			}
+		}
+
+		return Optional.empty();
 	}
 
 	private Optional<String> compileOperator(String stripped, String separator) {

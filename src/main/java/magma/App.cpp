@@ -181,7 +181,7 @@ State enter() {
 	return this;
 }
 State exit() {
-	this.depth = /*this.depth - 1*/;
+	this.depth = this.depth - 1;
 	return this;
 }
 State advance() {
@@ -246,7 +246,7 @@ Optional<IOException> run() {
 Optional<IOException> compilePath(char* input) {
 	var target = source.resolveSibling("App.cpp");
 	var output = this.compile(input);
-	return this.writeString(/*target, output*/).or(/*() -> this*/.compileNative(target));
+	return this.writeString(/*target, output*/).or(() - /*> this*/.compileNative(target));
 }
 /*IOException>*/ compileNative(Path target) {
 	var clang = this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));/*
@@ -376,7 +376,7 @@ char* compileRootSegment(char* input) {
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return this.compileStructure(/*"class", stripped*/).orElseGet(/*() -> Placeholder*/.wrap(input));
+	return this.compileStructure(/*"class", stripped*/).orElseGet(() - /*> Placeholder*/.wrap(input));
 }
 Optional<char*> compileStructure(char* input) {
 	var classIndex = input.indexOf(type);
@@ -595,7 +595,7 @@ char* compileClassSegment(char* input) {
 	return Placeholder.wrap(input);
 }
 Optional<char*> compileDefinitionToField(char* slice) {
-	return this.compileDefinition(slice).map(/*content -> this*/.generateStatement(/*content, 1*/));
+	return this.compileDefinition(slice).map(content - /*> this*/.generateStatement(/*content, 1*/));
 }
 char* compileMethodStatements(char* content) {
 	return this.compileStatements(compileMethodSegment_/*content, this*/);
@@ -618,7 +618,7 @@ Optional<char*> compileConstructor(char* input) {
 	return Optional.empty();
 }
 Optional<char*> compileEnumValues(char* input) {
-	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(/*slice -> !slice*/.isEmpty()).toList();/*
+	var segments = Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(slice - /*> !slice*/.isEmpty()).toList();/*
 
 		for (var segment : segments) {
 			final var stripped = segment.strip();
@@ -653,11 +653,11 @@ char* compileMethodSegment(char* input) {
 		return "";
 	}
 	if (/*stripped.startsWith("{") && stripped*/.endsWith("}")) {
-		var content = /*stripped.substring(1, stripped.length() - 1);
+		var content = stripped.substring(/*1, stripped.length(*/) - /*1);
 
 			this*/.depth +  + /*;
 			final var compiled = this.compileMethodSegment(content);
-			this.depth--;
+			this*/.depth -  - /*;
 
 			return "{"*/ + compiled + this.generateIndent(this.depth) + "}";
 	}
@@ -677,13 +677,13 @@ char* compileMethodSegment(char* input) {
 		*/
 	}
 	if (stripped.endsWith(";")) {
-		var slice = /*stripped.substring(0, stripped.length() - 1);
+		var slice = stripped.substring(/*0, stripped.length(*/) - /*1);
 			return this*/.generateStatement(/*this.compileMethodStatement(slice), this*/.depth);
 	}
 	return Placeholder.wrap(input);
 }
 int findConditionEnd(char* withCondition) {
-	int conditionEnd = /*-1*/;
+	int conditionEnd =  - 1;
 	var depth = 0;
 	/*(var*/ i = 0;
 	/*i < withCondition.length()*/;/* i++) {
@@ -711,7 +711,7 @@ char* compileMethodStatement(char* input) {
 	if (/*separator >= 0*/) {
 		var substring = /*input.substring(0, separator).strip();
 			final var substring1 = input.substring(separator*/ + /*1).strip();
-			final var s = this.compileDefinition(substring).orElseGet(() -> this.compileExpression(substring));
+			final var s = this.compileDefinition(substring).orElseGet(*/() - /*> this.compileExpression(substring));
 
 			return s*/ + " = " + this.compileExpression(/*substring1*/);
 	}
@@ -766,11 +766,9 @@ char* compileExpression(char* input) {
 	if (this.isIdentifier(stripped)) {
 		return stripped;
 	}
-	/*final var i1*/ = stripped.indexOf("+");
-	if (/*i1 >= 0*/) {
-		var substring = /*stripped.substring(0, i1);
-			final var substring1 = stripped.substring(i1*/ + " + ".length(/*));
-			return this.compileExpression(substring*/) + " + " + this.compileExpression(/*substring1*/);
+	var maybeOperator = this.compileOperator(/*stripped, "*/ + ").or(() - /*> this*/.compileOperator(/*stripped, "*/ - "));
+	if (maybeOperator.isPresent()) {
+		return maybeOperator.get();
 	}
 	/*final var i2*/ = stripped.lastIndexOf("::");
 	if (/*i2 >= 0*/) {
@@ -782,6 +780,15 @@ char* compileExpression(char* input) {
 		return stripped;
 	}
 	return Placeholder.wrap(stripped);
+}
+Optional<char*> compileOperator(char* separator) {
+	/*final var i1*/ = stripped.indexOf(separator);
+	if (/*i1 >= 0*/) {
+		var substring = /*stripped.substring(0, i1);
+			final var substring1 = stripped.substring(i1*/ + /*separator.length());
+			return Optional*/.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(/*substring1*/));
+	}
+	return Optional.empty();
 }
 boolean isNumber(char* input) {
 	/*(var*/ i = 0;
@@ -800,7 +807,7 @@ char* compileParameters(char* input) {
 	return this.compileDefinitionOrPlaceholder(input);
 }
 char* compileDefinitionOrPlaceholder(char* input) {
-	return this.compileDefinition(input).orElseGet(/*() -> Placeholder*/.wrap(input));
+	return this.compileDefinition(input).orElseGet(() - /*> Placeholder*/.wrap(input));
 }
 Optional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
@@ -815,9 +822,9 @@ Optional<char*> compileDefinition(char* input) {
 	var typeSeparator = beforeName.lastIndexOf(" ");
 	if (/*typeSeparator >= 0*/) {
 		var type = /*beforeName.substring(typeSeparator*/ + /*1).strip();
-			return this*/.compileType(type).map(/*cppType -> cppType*/.generate() + " " + name);
+			return this*/.compileType(type).map(cppType - /*> cppType*/.generate() + " " + name);
 	}
-	return this.compileType(beforeName).map(/*cppType -> cppType*/.generate() + " " + name);
+	return this.compileType(beforeName).map(cppType - /*> cppType*/.generate() + " " + name);
 }
 Optional<CPPType> compileType(char* input) {
 	var stripped = input.strip();
@@ -825,7 +832,7 @@ Optional<CPPType> compileType(char* input) {
 		return Optional.of(CPPPrimitiveType.Void);
 	}
 	if (stripped.endsWith("[]")) {
-		var slice = /*stripped.substring(0, stripped.length() - 2);
+		var slice = stripped.substring(/*0, stripped.length(*/) - /*2);
 			return this*/.compileType(slice).map(new_CPointerType);
 	}
 	if (stripped.equals("String")) {
