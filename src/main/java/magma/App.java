@@ -473,7 +473,8 @@ public class App {
 
 					final String fields;
 					if (variants.isEmpty()) {
-						fields = recordFields.stream().map(slice -> this.generateStatement(slice, 1)).collect(Collectors.joining(""));
+						fields =
+								recordFields.stream().map(slice -> this.generateStatement(slice, 1)).collect(Collectors.joining(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
 										 this.generateStatement(beforeContent + "Data " + "data", 1);
@@ -584,41 +585,43 @@ public class App {
 			}
 		}
 
+		return this.compileMethod(input).orElseGet(() -> Placeholder.wrap(input));
+	}
+
+	private Optional<String> compileMethod(String input) {
 		final int paramStart = input.indexOf("(");
-		if (paramStart >= 0) {
-			final String definition = input.substring(0, paramStart).strip();
-			final String withParams = input.substring(paramStart + 1);
-			final int paramEnd = withParams.indexOf(")");
-			if (paramEnd >= 0) {
-				final String params = withParams.substring(0, paramEnd).strip();
-				final String withBraces = withParams.substring(paramEnd + 1).strip();
+		if (paramStart < 0) {return Optional.empty();}
+		final String definition = input.substring(0, paramStart).strip();
+		final String withParams = input.substring(paramStart + 1);
 
-				final String header = this
-						.compileDefinition(definition)
-						.or(() -> this.compileConstructor(definition))
-						.orElseGet(() -> Placeholder.wrap(definition));
+		final int paramEnd = withParams.indexOf(")");
+		if (paramEnd < 0) {return Optional.empty();}
+		final String params = withParams.substring(0, paramEnd).strip();
+		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
-				final String beforeContent = header + "(" + this.compileParameters(params) + ")";
-				final String generated;
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final String content = withBraces.substring(1, withBraces.length() - 1);
+		final String header = this
+				.compileDefinition(definition)
+				.or(() -> this.compileConstructor(definition))
+				.orElseGet(() -> Placeholder.wrap(definition));
 
-					final String currentStructureName = this.structureNames.peek();
-					final String thisDefinition =
-							this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
-					generated =
-							beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() +
-							"}" + System.lineSeparator();
-				} else {
-					generated = beforeContent + ";" + System.lineSeparator();
-				}
+		final String beforeContent = header + "(" + this.compileParameters(params) + ")";
+		final String generated;
+		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+			final String content = withBraces.substring(1, withBraces.length() - 1);
 
-				this.functions.add(generated);
-				return "";
-			}
+			final String currentStructureName = this.structureNames.peek();
+			final String thisDefinition =
+					this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
+			generated =
+					beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
+					System.lineSeparator();
+		} else {
+			generated = beforeContent + ";" + System.lineSeparator();
 		}
 
-		return Placeholder.wrap(input);
+		this.functions.add(generated);
+		return Optional.of("");
+
 	}
 
 	private Optional<String> compileDefinitionToField(String slice) {
