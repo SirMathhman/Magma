@@ -1,4 +1,7 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:14:35: error: expected function body after function declarator
-   14 |         }*//*private static*/ /*String*/ compile(/*String input*/)/* {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:42: error: unknown type name 'args'
+    2 | /*public static*/ void main(/*String[]*/ args)/* {
       |                                          ^
-1 error generated.
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:14:35: error: expected function body after function declarator
+   14 |         }*//*private static*/ /*String*/ compile(/*String*/ input)/* {
+      |                                          ^
+2 errors generated.
