@@ -185,9 +185,16 @@ public class Main {
 								"enum " + beforeContent + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
+					final String fields;
+					if (variants.isEmpty()) {
+						fields = "";
+					} else {
+						fields = System.lineSeparator() + "\t" + beforeContent + "Tag tag;";
+					}
+
 					return Optional.of(
-							dependencies + variantsString + "struct " + beforeContent + " {};" + System.lineSeparator() +
-							compileStatements(content, Main::compileClassSegment));
+							dependencies + variantsString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
+							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}

@@ -1,10 +1,13 @@
-struct Main {};
+struct Main {
+};
 enum ResultTag {
 	Err,
 	Ok
 };
 template <typename T, typename X>
-struct Result {};
+struct Result {
+	ResultTag tag;
+};
 /**//*
 
 	private record Err<T, X>(X error) implements Result<T, X> {}*//*
@@ -100,7 +103,8 @@ struct Result {};
 
 		return compileStructure("class", stripped).orElseGet(() -> wrap(input));
 	}*/struct Index = input.indexOf(type);
-		if (classIndex >= 0) {};
+		if (classIndex >= 0) {
+};
 /*final var afterKeyword = input.substring(classIndex + type.length());*//*
 			final var contentStart = afterKeyword.indexOf("{");
 			if (contentStart >= 0) {
@@ -151,9 +155,16 @@ struct Result {};
 								"enum " + beforeContent + "Tag {" + joined + System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
+					final String fields;
+					if (variants.isEmpty()) {
+						fields = "";
+					} else {
+						fields = System.lineSeparator() + "\t" + beforeContent + "Tag tag;";
+					}
+
 					return Optional.of(
-							dependencies + variantsString + "struct " + beforeContent + " {};" + System.lineSeparator() +
-							compileStatements(content, Main::compileClassSegment));
+							dependencies + variantsString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
+							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}*//*
