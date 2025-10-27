@@ -221,8 +221,7 @@ auto _lambda0_(auto next) {
 }
 Optional<State> popAndAppendToOption() {
 	return this.popAndAppendToTuple().map(right_Tuple);
-}
-char peek() {
+Hmchar peek() {
 	return this.input.charAt(this.index);
 }
 App new_App() {
@@ -288,33 +287,33 @@ Stream<char*> divide(BiFunction<State, Character, State> folder) {
 	return current.advance().stream();
 }
 State foldEscaped(BiFunction<State, Character, State> folder) {
-	if (next == /*'\''*/) {
+	if (next == '\'') {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
-	if (next == /*'\"'*/) {
-		/*var current0*/ = current.append(next);
+	if (next == '\"') {
+		var current0 = current.append(next);
 		while (true) {
-			var maybeTuple = /*current0*/.popAndAppendToTuple();
+			var maybeTuple = current0.popAndAppendToTuple();
 			if (maybeTuple.isEmpty()) {
 				break;
 			}
 			var tuple = maybeTuple.get();
-			/*current0*/ = tuple.right;
+			current0 = tuple.right;
 			var nextInQuotes = tuple.left;
-			if (nextInQuotes == /*'\\'*/) {
-				/*current0*/ = /*current0*/.popAndAppendToOption().orElse(/*current0*/);
+			if (nextInQuotes == '\\') {
+				current0 = current0.popAndAppendToOption().orElse(current0);
 				/*continue*/;
 			}
-			if (nextInQuotes == /*'\"'*/) {
+			if (nextInQuotes == '\"') {
 				break;
 			}
 		}
-		return /*current0*/;
+		return current0;
 	}
 	return folder.apply(current, next);
 }
 State foldSingleEscapeChar(Tuple<Character, State> tuple) {
-	if (tuple.left == /*'\\'*/) {
+	if (tuple.left == '\\') {
 		return tuple.right.popAndAppendToOption().orElse(tuple.right);
 	}
 	return tuple.right;
@@ -326,18 +325,18 @@ State foldStatement(Character c) {
 	}
 	if (c == /*'}' && appended*/.isShallow()) {
 		/*final State state1*/;
-		if (appended.peek() == /*';'*/) {
-			/*state1*/ = appended.popAndAppendToOption().orElse(appended);
+		if (appended.peek() == ';') {
+			state1 = appended.popAndAppendToOption().orElse(appended);
 		}else {
-			/*state1*/ = appended;
+			state1 = appended;
 		}
-		return /*state1*/.advance().exit();
+		return state1.advance().exit();
 	}/*
 
 		if (c == '{' || c == '(') {
 			return appended.enter();
 		}*/
-	if (c == /*'}' || c*/ == /*'*/) /*') {
+	if (c == '}' || c == ') /*') {
 			return appended.exit();
 		}*/
 	return appended;
@@ -405,7 +404,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 				if (variants.isEmpty()) {
 					dependencies = "";
 				}else {
-					var enumFields = variants.stream().map(_lambda10_).map(_lambda9_.generateWithIndent(/*content1*/, 1)).collect(Collectors.joining(","));
+					var enumFields = variants.stream().map(_lambda10_).map(_lambda9_.generateWithIndent(content1, 1)).collect(Collectors.joining(","));
 					var typeArguments = this.joinTypeArguments(typeParameters);
 					var unionFields = variants.stream().map(_lambda11_).collect(Collectors.joining());
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -459,9 +458,9 @@ char* generateIndent(int depth) {
 }
 boolean isIdentifier(char* input) {/*
 		for (var i = 0; i < input.length(); i++) {
-			if (!Character.isLetter(input.charAt(i))) {
-				return false;
-			}
+			final var next = input.charAt(i);
+			if (Character.isLetter(next) || (i != 0 && Character.isDigit(next))) {continue;}
+			return false;
 		}*/
 	return true;
 }
@@ -642,12 +641,12 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderchar* compileMe
 		var slice = stripped.substring("return ".length()).strip();
 		return "return " + this.compileExpression(slice);
 	}
-	var separator = stripped.indexOf(/*'='*/);
+	var separator = stripped.indexOf('=');
 	if (/*separator >= 0*/) {
 		var substring = stripped.substring(0, separator).strip();
-		/*final var substring1*/ = stripped.substring(separator + 1).strip();
+		var substring1 = stripped.substring(separator + 1).strip();
 		var s = this.compileDefinition(substring).orElseGet(_lambda18_.compileExpression(substring));
-		return s + " = " + this.compileExpression(/*substring1*/);
+		return s + " = " + this.compileExpression(substring1);
 	}
 	if (stripped.endsWith("++")) {
 		return this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
@@ -659,6 +658,9 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderchar* compileMe
 }
 auto _lambda20_(auto ()) thisauto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thischar* compileExpression(char* input) {
 	var stripped = input.strip();
+	if (/*stripped.startsWith("'") && stripped*/.endsWith("'")) {
+		return stripped;
+	}
 	if (/*stripped.startsWith("\"") && stripped*/.endsWith("\"")) {
 		return stripped;
 	}
@@ -692,11 +694,11 @@ auto _lambda20_(auto ()) thisauto _lambda21_(auto ()) thisauto _lambda22_(auto (
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
-	/*final var i2*/ = stripped.lastIndexOf("::");
+	var i2 = stripped.lastIndexOf("::");
 	if (/*i2 >= 0*/) {
-		var substring = stripped.substring(0, /*i2*/);
-		/*final var substring1*/ = stripped.substring(/*i2*/ + 2);
-		return /*substring1*/ + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
+		var substring = stripped.substring(0, i2);
+		var substring1 = stripped.substring(i2 + 2);
+		return substring1 + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
 	}
 	if (this.isNumber(stripped)) {
 		return stripped;
@@ -756,11 +758,11 @@ Optional<char*> compileCaller(char* caller) {
 	return Optional.of(this.compileExpression(caller));
 }
 Optional<char*> compileOperator(char* separator) {
-	/*final var i1*/ = stripped.indexOf(separator);
+	var i1 = stripped.indexOf(separator);
 	if (/*i1 >= 0*/) {
-		var substring = stripped.substring(0, /*i1*/);
-		/*final var substring1*/ = stripped.substring(/*i1*/ + separator.length());
-		return Optional.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(/*substring1*/));
+		var substring = stripped.substring(0, i1);
+		var substring1 = stripped.substring(i1 + separator.length());
+		return Optional.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
 	}
 	return Optional.empty();
 }
@@ -847,8 +849,8 @@ State foldValue(char next) {
 		return state.advance();
 	}
 	var appended = state.append(next);
-	if (next == /*'*/ - /*'*/) {
-		if (appended.peek() == /*'>'*/) {
+	if (next == ' - ') {
+		if (appended.peek() == '>') {
 			return appended.popAndAppendToOption().orElse(appended);
 		}
 	}/*
@@ -856,7 +858,7 @@ State foldValue(char next) {
 		if (next == '<' || next == '(') {
 			return appended.enter();
 		}*/
-	if (next == /*'>' || next*/ == /*'*/) /*') {
+	if (next == '>' || next == ') /*') {
 			return appended.exit();
 		}*/
 	return appended;

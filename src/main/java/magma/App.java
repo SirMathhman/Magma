@@ -538,9 +538,9 @@ public class App {
 
 	private boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
-			if (!Character.isLetter(input.charAt(i))) {
-				return false;
-			}
+			final var next = input.charAt(i);
+			if (Character.isLetter(next) || (i != 0 && Character.isDigit(next))) {continue;}
+			return false;
 		}
 
 		return true;
