@@ -12,7 +12,6 @@ struct CTemplateType;
 struct CIdentifier;
 struct Placeholder;
 struct Main {
-};
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	CPPTypeData data;
@@ -20,7 +19,6 @@ CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	return CPPType { CPPPrimitiveTypeTag, data };
 }
 struct CPPPrimitiveType {
-};
 /*Void("void"), Char("char");*//*
 
 		private final String content;*//*CPPPrimitiveType*/(char* content) {/*this.content = content;*//**/}/*@Override
@@ -30,7 +28,8 @@ struct CPPPrimitiveType {
 		public*/ char* getSimpleName() {/*
 			return this.content;*//*
 		*/}/*
-	*/enum ResultTag {
+	*/};
+enum ResultTag {
 	ErrTag,
 	OkTag
 };
@@ -43,8 +42,8 @@ template <typename T, typename X>
 struct Result {
 	ResultTag tag;
 	ResultData data;
-};
-/**/enum CPPTypeTag {
+/**/};
+enum CPPTypeTag {
 	CIdentifierTag,
 	CPPPrimitiveTypeTag,
 	CPointerTypeTag,
@@ -61,11 +60,11 @@ union CPPTypeData {
 struct CPPType {
 	CPPTypeTag tag;
 	CPPTypeData data;
-};
 /*String generate();*//*
 
 		String getSimpleName();*//*
-	*/template <typename T, typename X>
+	*/};
+template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	ResultData<T, X> data;
@@ -74,8 +73,8 @@ Result<T, X> toResult_Err(void* _ref){
 }
 template <typename T, typename X>
 struct Err {
-};
-/**/template <typename T, typename X>
+/**/};
+template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
 	ResultData<T, X> data;
@@ -84,15 +83,14 @@ Result<T, X> toResult_Ok(void* _ref){
 }
 template <typename T, typename X>
 struct Ok {
-};
-/**/CPPType toCPPType_CPointerType(void* _ref){
+/**/};
+CPPType toCPPType_CPointerType(void* _ref){
 	CPointerType _this = *((CPointerType*) _ref);
 	CPPTypeData data;
 	data.cpointertype = _this;
 	return CPPType { CPointerTypeTag, data };
 }
 struct CPointerType {
-};
 /*@Override
 		public*/ char* generate() {/*
 			return this.type.generate() + "*";*//*
@@ -100,14 +98,14 @@ struct CPointerType {
 		public*/ char* getSimpleName() {/*
 			return this.type.getSimpleName() + "_ref";*//*
 		*/}/*
-	*/CPPType toCPPType_CTemplateType(void* _ref){
+	*/};
+CPPType toCPPType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CPPTypeData data;
 	data.ctemplatetype = _this;
 	return CPPType { CTemplateTypeTag, data };
 }
 struct CTemplateType {
-};
 /*@Override
 		public*/ char* generate() {/*
 			final var joined = String.join(", ", this.list);*//*
@@ -116,14 +114,14 @@ struct CTemplateType {
 		public*/ char* getSimpleName() {/*
 			return this.base;*//*
 		*/}/*
-	*/CPPType toCPPType_CIdentifier(void* _ref){
+	*/};
+CPPType toCPPType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
 	CPPTypeData data;
 	data.cidentifier = _this;
 	return CPPType { CIdentifierTag, data };
 }
 struct CIdentifier {
-};
 /*@Override
 		public*/ char* generate() {/*
 			return this.input;*//*
@@ -131,14 +129,14 @@ struct CIdentifier {
 		public*/ char* getSimpleName() {/*
 			return this.input;*//*
 		*/}/*
-	*/CPPType toCPPType_Placeholder(void* _ref){
+	*/};
+CPPType toCPPType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	CPPTypeData data;
 	data.placeholder = _this;
 	return CPPType { PlaceholderTag, data };
 }
 struct Placeholder {
-};
 /*@Override
 		public*/ char* generate() {/*
 			return wrap(this.input);*//*
@@ -146,7 +144,9 @@ struct Placeholder {
 		public*/ char* getSimpleName() {/*
 			return this.generate();*//*
 		*/}/*
-	*//*
+	*/};
+/*
+
 	private static final List<String> forwardDeclarations = new ArrayList<>();*//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}/*private static*/ Optional<IOException> run() {/*
@@ -231,7 +231,8 @@ struct Placeholder {
 		segments.add(buffer.toString());*//*
 
 		return segments.stream().map(mapper).collect(Collectors.joining());*//*
-	*//*
+	*/};
+/*
 
 	private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
@@ -348,9 +349,11 @@ struct Placeholder {
 
 					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
-					return Optional.of(
+					final var generated =
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
-							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
+							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
+					
+					return Optional.of(generated);
 				}
 			}
 		}

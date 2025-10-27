@@ -92,6 +92,7 @@ public class Main {
 			return this.generate();
 		}
 	}
+
 	private static final List<String> forwardDeclarations = new ArrayList<>();
 
 	public static void main(String[] args) {
@@ -315,9 +316,11 @@ public class Main {
 
 					forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
-					return Optional.of(
+					final var generated =
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
-							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
+							compileStatements(content, Main::compileClassSegment) + "};" + System.lineSeparator();
+
+					return Optional.of(generated);
 				}
 			}
 		}
