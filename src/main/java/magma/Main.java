@@ -12,7 +12,9 @@ public class Main {
 			final var target = source.resolveSibling("Main.cpp");
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			Files.writeString(target, "/*" + replaced + "*/");
-		} catch (IOException e) {
+
+			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
+		} catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
