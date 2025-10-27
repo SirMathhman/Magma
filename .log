@@ -1,7 +1,14 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:42: error: unknown type name 'args'
-    2 | /*public static*/ void main(/*String[]*/ args)/* {
-      |                                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:14:35: error: expected function body after function declarator
-   14 |         }*//*private static*/ /*String*/ compile(/*String*/ input)/* {
-      |                                          ^
-2 errors generated.
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:24: error: variable has incomplete type 'void'
+    2 | /*public static*/ void main(/*String*/* args)/* {
+      |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:19: error: main cannot be declared as a variable in the global scope
+    2 | /*public static*/ void main(/*String*/* args)/* {
+      |                   ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:41: error: use of undeclared identifier 'args'
+    2 | /*public static*/ void main(/*String*/* args)/* {
+      |                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:2:46: error: expected ';' after top level declarator
+    2 | /*public static*/ void main(/*String*/* args)/* {
+      |                                              ^
+      |                                              ;
+4 errors generated.

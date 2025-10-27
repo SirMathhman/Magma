@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ void main(/*String[]*/ args)/* {
+/*public static*/ void main(/*String*/* args)/* {
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -120,6 +120,11 @@ struct Main {};
 		if (input.equals("void")) {
 			return "void";
 		}
+		if (input.endsWith("[]")) {
+			final var slice = input.substring(0, input.length() - 2);
+			return compileType(slice) + "*";
+		}
+
 		return wrap(input);
 	}
 

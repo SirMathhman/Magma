@@ -136,6 +136,12 @@ public class Main {
 		if (input.equals("void")) {
 			return "void";
 		}
+
+		if (input.endsWith("[]")) {
+			final var slice = input.substring(0, input.length() - 2);
+			return compileType(slice) + "*";
+		}
+
 		return wrap(input);
 	}
 
