@@ -1,8 +1,8 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:2: error: unknown type name 'Err'
-    9 |         Err err;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:9:2: error: no template named 'Err'
+    9 |         Err<T, X> err;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:2: error: unknown type name 'Ok'
-   10 |         Ok ok;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:10:2: error: no template named 'Ok'
+   10 |         Ok<T, X> ok;
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:15:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
    15 |         ResultData data;
@@ -23,27 +23,33 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:40:8: error: re
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:5:2: note: previous definition is here
     5 |         Ok
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:2: error: use of undeclared identifier 'CPointerType'
-   43 |         CPointerType this = *((CPointerType*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:2: error: unknown type name 'CPointerType'
+   43 |         CPointerType _this = *((CPointerType*) _ref);
       |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:26: error: use of undeclared identifier 'CPointerType'
+   43 |         CPointerType _this = *((CPointerType*) _ref);
+      |                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:43:39: error: expected expression
+   43 |         CPointerType _this = *((CPointerType*) _ref);
+      |                                              ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:44:2: error: unknown type name 'CPPTypeData'
    44 |         CPPTypeData data;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:45:22: error: invalid use of 'this' outside of a non-static member function
-   45 |         data.cpointertype = this;
-      |                             ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:46:19: error: use of undeclared identifier 'CPointerType'
    46 |         return CPPType { CPointerType, data };
       |                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:2: error: use of undeclared identifier 'CTemplateType'
-   58 |         CTemplateType this = *((CTemplateType*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:2: error: unknown type name 'CTemplateType'
+   58 |         CTemplateType _this = *((CTemplateType*) _ref);
       |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:27: error: use of undeclared identifier 'CTemplateType'
+   58 |         CTemplateType _this = *((CTemplateType*) _ref);
+      |                                  ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:58:41: error: expected expression
+   58 |         CTemplateType _this = *((CTemplateType*) _ref);
+      |                                                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:59:2: error: unknown type name 'CPPTypeData'
    59 |         CPPTypeData data;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:60:23: error: invalid use of 'this' outside of a non-static member function
-   60 |         data.ctemplatetype = this;
-      |                              ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:61:19: error: use of undeclared identifier 'CTemplateType'
    61 |         return CPPType { CTemplateType, data };
       |                          ^
@@ -59,18 +65,12 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:70:18: error: r
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:54:18: note: previous definition is here
    54 |                 public*/ char* getSimpleName() {/*
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:2: error: use of undeclared identifier 'CIdentifier'
-   74 |         CIdentifier this = *((CIdentifier*) _ref);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:2: error: unknown type name 'CIdentifier'
+   74 |         CIdentifier _this = *((CIdentifier*) _ref);
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:75:2: error: unknown type name 'CPPTypeData'
-   75 |         CPPTypeData data;
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:76:21: error: invalid use of 'this' outside of a non-static member function
-   76 |         data.cidentifier = this;
-      |                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:77:19: error: use of undeclared identifier 'CIdentifier'
-   77 |         return CPPType { CIdentifier, data };
-      |                          ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\Main.cpp:74:25: error: use of undeclared identifier 'CIdentifier'
+   74 |         CIdentifier _this = *((CIdentifier*) _ref);
+      |                                ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
 Compilation failed with exit code: 1

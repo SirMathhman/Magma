@@ -252,9 +252,11 @@ public class Main {
 					} else {
 						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
 
+						final var joinedTypeArguments = joinTypeArguments(typeParameters);
 						final var unionFields = variants
 								.stream()
-								.map(slice -> System.lineSeparator() + "\t" + slice + " " + slice.toLowerCase() + ";")
+								.map(slice -> System.lineSeparator() + "\t" + slice + joinedTypeArguments + " " + slice.toLowerCase() +
+															";")
 								.collect(Collectors.joining());
 
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
@@ -271,19 +273,14 @@ public class Main {
 
 					if (maybeInterfaceType.isPresent()) {
 						final var interfaceType = maybeInterfaceType.get();
-						String joinedTypeArguments;
-						if (typeParameters.isEmpty()) {
-							joinedTypeArguments = "";
-						} else {
-							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
-						}
+						final var joinedTypeArguments = joinTypeArguments(typeParameters);
 
 						final var thisType = beforeContent + joinedTypeArguments;
 						dependencies += templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
 														beforeContent + "(void* _ref" + "){" +
-														generateStatement(thisType + " this = *((" + thisType + "*) _ref)") +
-														generateStatement(interfaceType.getSimpleName() + "Data data") +
-														generateStatement("data." + beforeContent.toLowerCase() + " = this") + generateStatement(
+														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+														generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
+														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
 								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data }") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
@@ -296,6 +293,16 @@ public class Main {
 		}
 
 		return Optional.empty();
+	}
+
+	private static String joinTypeArguments(List<String> typeParameters) {
+		String joinedTypeArguments;
+		if (typeParameters.isEmpty()) {
+			joinedTypeArguments = "";
+		} else {
+			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
+		}
+		return joinedTypeArguments;
 	}
 
 	private static String generateStatement(String content) {

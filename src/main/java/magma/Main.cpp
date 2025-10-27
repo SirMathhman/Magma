@@ -6,8 +6,8 @@ enum ResultTag {
 };
 template <typename T, typename X>
 union ResultData {
-	Err err;
-	Ok ok;
+	Err<T, X> err;
+	Ok<T, X> ok;
 };
 template <typename T, typename X>
 struct Result {
@@ -21,9 +21,9 @@ struct Result {
 		String getSimpleName();*//*
 	*/template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
-	Err<T, X> this = *((Err<T, X>*) _ref);
-	ResultData data;
-	data.err = this;
+	Err<T, X> _this = *((Err<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.err = _this;
 	return Result<T, X> { Err, data };
 }
 template <typename T, typename X>
@@ -31,18 +31,18 @@ struct Err {
 };
 /**/template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _ref){
-	Ok<T, X> this = *((Ok<T, X>*) _ref);
-	ResultData data;
-	data.ok = this;
+	Ok<T, X> _this = *((Ok<T, X>*) _ref);
+	ResultData<T, X> data;
+	data.ok = _this;
 	return Result<T, X> { Ok, data };
 }
 template <typename T, typename X>
 struct Ok {
 };
 /**/CPPType toCPPType_CPointerType(void* _ref){
-	CPointerType this = *((CPointerType*) _ref);
+	CPointerType _this = *((CPointerType*) _ref);
 	CPPTypeData data;
-	data.cpointertype = this;
+	data.cpointertype = _this;
 	return CPPType { CPointerType, data };
 }
 struct CPointerType {
@@ -55,9 +55,9 @@ struct CPointerType {
 			return this.type.getSimpleName() + "_ref";*//*
 		*/}/*
 	*/CPPType toCPPType_CTemplateType(void* _ref){
-	CTemplateType this = *((CTemplateType*) _ref);
+	CTemplateType _this = *((CTemplateType*) _ref);
 	CPPTypeData data;
-	data.ctemplatetype = this;
+	data.ctemplatetype = _this;
 	return CPPType { CTemplateType, data };
 }
 struct CTemplateType {
@@ -71,9 +71,9 @@ struct CTemplateType {
 			return this.base;*//*
 		*/}/*
 	*/CPPType toCPPType_CIdentifier(void* _ref){
-	CIdentifier this = *((CIdentifier*) _ref);
+	CIdentifier _this = *((CIdentifier*) _ref);
 	CPPTypeData data;
-	data.cidentifier = this;
+	data.cidentifier = _this;
 	return CPPType { CIdentifier, data };
 }
 struct CIdentifier {
@@ -86,9 +86,9 @@ struct CIdentifier {
 			return this.input;*//*
 		*/}/*
 	*/CPPType toCPPType_Placeholder(void* _ref){
-	Placeholder this = *((Placeholder*) _ref);
+	Placeholder _this = *((Placeholder*) _ref);
 	CPPTypeData data;
-	data.placeholder = this;
+	data.placeholder = _this;
 	return CPPType { Placeholder, data };
 }
 struct Placeholder {
@@ -194,15 +194,11 @@ struct Placeholder {
 };
 /*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get {
 };
-/*joinedTypeArguments = "";*//*
-						} else {
-							joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";*/struct Type.generate {
+struct Type.getSimpleName() + "Data" + joinedTypeArguments + " data") +
+														generateStatement("data." + beforeContent.toLowerCase() + " = _this") + generateStatement(
+								"return " + interfaceType.generate() + " {
 };
-/*" +
-														generateStatement(thisType + " this = *((" + thisType + "*) _ref)") +
-														generateStatement(interfaceType.getSimpleName() + "Data data") +
-														generateStatement("data." + beforeContent.toLowerCase() + " = this") + generateStatement(
-								"return " + interfaceType.generate() + " { " + beforeContent + ", " + "data *//*") +
+/*" + beforeContent + ", " + "data *//*") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
@@ -214,6 +210,16 @@ struct Placeholder {
 		*//*
 
 		return Optional.empty();*//*
+	}
+
+	private static String joinTypeArguments(List<String> typeParameters) {
+		String joinedTypeArguments;*//*
+		if (typeParameters.isEmpty()) {
+			joinedTypeArguments = "";
+		}*//* else {
+			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
+		}*//*
+		return joinedTypeArguments;*//*
 	}
 
 	private static String generateStatement(String content) {
