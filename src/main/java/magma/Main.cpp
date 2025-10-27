@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ void main(/*String*/* args)/* {
+/*public static*/ void main(char** args)/* {
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -11,10 +11,10 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static*/ /*String*/ compile(/*String*/ input)/* {
+	}*//*private static*/ char* compile(char* input)/* {
 		return compileStatements(input, Main::compileRootSegment) + "int main(){" + System.lineSeparator() + "\treturn " +
 					 "0;" + System.lineSeparator() + "}";
-	}*//*private static*/ /*String*/ compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
+	}*//*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -120,9 +120,14 @@ struct Main {};
 		if (input.equals("void")) {
 			return "void";
 		}
+
 		if (input.endsWith("[]")) {
 			final var slice = input.substring(0, input.length() - 2);
 			return compileType(slice) + "*";
+		}
+
+		if (input.equals("String")) {
+			return "char*";
 		}
 
 		return wrap(input);

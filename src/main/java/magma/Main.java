@@ -142,6 +142,10 @@ public class Main {
 			return compileType(slice) + "*";
 		}
 
+		if (input.equals("String")) {
+			return "char*";
+		}
+
 		return wrap(input);
 	}
 
