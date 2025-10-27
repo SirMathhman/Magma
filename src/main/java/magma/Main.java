@@ -258,7 +258,11 @@ public class Main {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
+						final var enumFields = variants
+								.stream()
+								.map(slice -> slice + "Tag")
+								.map(Main::generateWithIndent)
+								.collect(Collectors.joining(","));
 
 						final var typeArguments = joinTypeArguments(typeParameters);
 						final var unionFields = variants

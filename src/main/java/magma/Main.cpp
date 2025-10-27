@@ -13,8 +13,8 @@ struct Placeholder;
 struct Main {
 };
 enum ResultTag {
-	Err,
-	Ok
+	ErrTag,
+	OkTag
 };
 template <typename T, typename X>
 union ResultData {
@@ -27,11 +27,11 @@ struct Result {
 	ResultData data;
 };
 /**/enum CPPTypeTag {
-	CIdentifier,
-	CPPPrimitiveType,
-	CPointerType,
-	CTemplateType,
-	Placeholder
+	CIdentifierTag,
+	CPPPrimitiveTypeTag,
+	CPointerTypeTag,
+	CTemplateTypeTag,
+	PlaceholderTag
 };
 union CPPTypeData {
 	CIdentifier cidentifier;
@@ -291,7 +291,11 @@ struct Placeholder {
 					if (variants.isEmpty()) {
 						dependencies = "";
 					} else {
-						final var enumFields = variants.stream().map(Main::generateWithIndent).collect(Collectors.joining(","));
+						final var enumFields = variants
+								.stream()
+								.map(slice -> slice + "Tag")
+								.map(Main::generateWithIndent)
+								.collect(Collectors.joining(","));
 
 						final var typeArguments = joinTypeArguments(typeParameters);
 						final var unionFields = variants
