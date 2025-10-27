@@ -183,41 +183,38 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		var depth = 0;
-		final var stream = divide(new State(input, buffer, depth, segments));
-		return stream.map(mapper).collect(Collectors.joining());
+		return divide(new State(input)).map(mapper).collect(Collectors.joining());
 	}
 
 	private static Stream<String> divide(State state) {
+		var current = state;
 		while (true) {
-			final var maybeNext = state.pop();
+			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
 				break;
 			}
 
 			final var c = maybeNext.get();
-			state.getBuffer().append(c);
-			if (c == ';' && state.getDepth() == 0) {
-				state.segments().add(state.getBuffer().toString());
-				state.setBuffer(new StringBuilder());
-			} else if (c == '}' && state.getDepth() == 1) {
-				state.segments().add(state.getBuffer().toString());
-				state.setBuffer(new StringBuilder());
-				state.setDepth(state.getDepth() - 1);
-			} else {
-				if (c == '{') {
-					state.setDepth(state.getDepth() + 1);
-				}
-				if (c == '}') {
-					state.setDepth(state.getDepth() - 1);
-				}
-			}
+			current = fold(current, c);
 		}
 
-		state.segments().add(state.getBuffer().toString());
-		return state.segments().stream();
+		return current.advance().stream();
+	}
+
+	private static State fold(State state, Character c) {
+		final var appended = state.append(c);
+		if (c == ';' && appended.isLevel()) {
+			return appended.advance();
+		} else if (c == '}' && appended.isShallow()) {
+			return appended.advance().exit();
+		}
+		if (c == '{') {
+			return appended.enter();
+		}
+		if (c == '}') {
+			return appended.exit();
+		}
+		return appended;
 	}
 
 	private static String compileRootSegment(String input) {

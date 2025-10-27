@@ -2,6 +2,7 @@ package magma;
 
 import java.util.ArrayList;
 import java.util.Optional;
+import java.util.stream.Stream;
 
 public class State {
 	public final String input;
@@ -10,39 +11,40 @@ public class State {
 	private int depth;
 	private int index = 0;
 
-	public State(String input, StringBuilder buffer, int depth, ArrayList<String> segments) {
+	public State(String input) {
 		this.input = input;
-		this.buffer = buffer;
-		this.depth = depth;
-		this.segments = segments;
+		this.buffer = new StringBuilder();
+		this.depth = 0;
+		this.segments = new ArrayList<>();
 	}
 
-	public String getInput() {
-		return this.input;
+	State enter() {
+		this.depth = this.depth + 1;
+		return this;
 	}
 
-	public StringBuilder getBuffer() {
-		return this.buffer;
+	State exit() {
+		this.depth = this.depth - 1;
+		return this;
 	}
 
-	public void setBuffer(StringBuilder buffer) {
-		this.buffer = buffer;
+	State advance() {
+		this.segments.add(this.buffer.toString());
+		this.buffer = new StringBuilder();
+		return this;
 	}
 
-	public int getDepth() {
-		return this.depth;
+	boolean isShallow() {
+		return this.depth == 1;
 	}
 
-	public void setDepth(int depth) {
-		this.depth = depth;
+	State append(char c) {
+		this.buffer.append(c);
+		return this;
 	}
 
-	public String input() {
-		return this.input;
-	}
-
-	public ArrayList<String> segments() {
-		return this.segments;
+	boolean isLevel() {
+		return this.depth == 0;
 	}
 
 	public Optional<Character> pop() {
@@ -54,5 +56,9 @@ public class State {
 		} else {
 			return Optional.empty();
 		}
+	}
+
+	public Stream<String> stream() {
+		return this.segments.stream();
 	}
 }
