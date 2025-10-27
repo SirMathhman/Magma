@@ -11,7 +11,9 @@ public class Main {
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.cpp");
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
-			Files.writeString(target, "/*" + replaced + "*/");
+			Files.writeString(target,
+												"/*" + replaced + "*/" + System.lineSeparator() + "int main(){" + System.lineSeparator() +
+												"\treturn 0;" + System.lineSeparator() + "}");
 
 			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
 		} catch (IOException | InterruptedException e) {

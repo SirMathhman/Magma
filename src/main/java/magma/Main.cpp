@@ -11,12 +11,11 @@ public class Main {
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.cpp");
 			final var replaced = input.replace("start", "start").replace("end", "end");
-			Files.writeString(target, "start" + replaced + "end");
+			Files.writeString(target,
+												"start" + replaced + "end" + System.lineSeparator() + "int main(){" + System.lineSeparator() +
+												"\treturn 0;" + System.lineSeparator() + "}");
 
-			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe")
-					.inheritIO()
-					.start()
-					.waitFor();
+			new ProcessBuilder("clang", target.toAbsolutePath().toString(), "-o", "main.exe").inheritIO().start().waitFor();
 		} catch (IOException | InterruptedException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
@@ -24,3 +23,6 @@ public class Main {
 	}
 }
 */
+int main(){
+	return 0;
+}
