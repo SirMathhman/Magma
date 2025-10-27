@@ -558,21 +558,24 @@ public class App {
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
+
+				final var header = this
+						.compileDefinition(definition)
+						.or(() -> this.compileConstructor(definition))
+						.orElseGet(() -> Placeholder.wrap(definition));
+
+				final var s = header + "(" + this.compileParameters(params) + ")";
+				final String generated;
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					final var header = this
-							.compileDefinition(definition)
-							.or(() -> this.compileConstructor(definition))
-							.orElseGet(() -> Placeholder.wrap(definition));
-
-					final var generated =
-							header + "(" + this.compileParameters(params) + ") {" + this.compileMethodStatements(content) +
-							System.lineSeparator() + "}" + System.lineSeparator();
-
-					this.functions.add(generated);
-					return "";
+					generated = s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
+				} else {
+					generated = s + ";" + System.lineSeparator();
 				}
+
+				this.functions.add(generated);
+				return "";
 			}
 		}
 
