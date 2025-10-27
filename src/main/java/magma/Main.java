@@ -152,6 +152,14 @@ public class Main {
 						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 					}
 
+					final var i = beforeContent.indexOf("implements");
+					Optional<String> maybeInterfaceType = Optional.empty();
+					if (i >= 0) {
+						final var slice = beforeContent.substring(i + "implements".length()).strip();
+						maybeInterfaceType = Optional.of(compileType(slice));
+						beforeContent = beforeContent.substring(0, i).strip();
+					}
+
 					List<String> typeParameters = new ArrayList<String>();
 					if (beforeContent.endsWith(">")) {
 						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
@@ -195,6 +203,11 @@ public class Main {
 						fields = "";
 					} else {
 						fields = generateField(beforeContent + "Tag tag;") + generateField(beforeContent + "Data data");
+					}
+
+					if (maybeInterfaceType.isPresent()) {
+						final var interfaceType = maybeInterfaceType.get();
+						dependencies += interfaceType;
 					}
 
 					return Optional.of(
@@ -292,6 +305,28 @@ public class Main {
 
 		if (input.equals("String")) {
 			return "char*";
+		}
+
+		if (input.endsWith(">")) {
+			final var withoutEnd = input.substring(0, input.length() - 1);
+			final var i = withoutEnd.indexOf("<");
+			if (i >= 0) {
+				final var base = withoutEnd.substring(0, i);
+				final var typeArguments = withoutEnd.substring(i + 1);
+
+				final var joined = Arrays
+						.stream(typeArguments.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileType)
+						.collect(Collectors.joining(", "));
+
+				return base + "<" + joined + ">";
+			}
+		}
+
+		if (isIdentifier(input)) {
+			return input;
 		}
 
 		return wrap(input);

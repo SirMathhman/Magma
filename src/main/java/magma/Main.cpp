@@ -14,32 +14,30 @@ struct Result {
 	ResultTag tag;
 	ResultData data
 };
-/**/template <typename T, typename X>(X error) implements Result<T, typename X>
-struct Err {
+/**/Result<T, X>struct Err<T, X>(X error) {
 };
-/**/template <typename T, typename X>(T value) implements Result<T, typename X>
-struct Ok {
+/**/Result<T, X>struct Ok<T, X>(T value) {
 };
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
-	*/}/*private static*/ /*Optional<IOException>*/ run() {/*
+	*/}/*private static*/ Optional<IOException> run() {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
 		final var input = readString(source);*//*
 		return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> compilePath(source, v.value);
 		}*//*;*//*
-	*/}/*private static*/ /*Optional<IOException>*/ compilePath(/*Path source,*/ char* input) {/*
+	*/}/*private static*/ Optional<IOException> compilePath(/*Path source,*/ char* input) {/*
 		final var target = source.resolveSibling("Main.cpp");*//*
 		final var output = compile(input);*//*
 		return writeString(target, output).or(() -> compileNative(target));*//*
-	*/}/*private static Optional<? extends*/ /*IOException>*/ compileNative(/*Path*/ target) {/*
+	*/}/*private static Optional<? extends*/ /*IOException>*/ compileNative(Path target) {/*
 		final var clang = startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));*//*
 		return switch (clang) {
 			case Err<Process, IOException> v1 -> Optional.of(v1.error);
 			case Ok<Process, IOException> v1 -> waitForProcess(v1.value);
 		}*//*;*//*
-	*/}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(/*Process*/ process) {/*
+	*/}/*private static Optional<? extends*/ /*IOException>*/ waitForProcess(Process process) {/*
 		return switch (waitFor(process)) {
 			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
 			case Ok<Integer, IOException> v2 -> {
@@ -47,26 +45,26 @@ struct Ok {
 				yield Optional.empty();
 			}
 		}*//*;*//*
-	*/}/*private static Result<Integer,*/ /*IOException>*/ waitFor(/*Process*/ process) {/*
+	*/}/*private static Result<Integer,*/ /*IOException>*/ waitFor(Process process) {/*
 		try {
 			return new Ok<Integer, IOException>(process.waitFor());
 		}*//* catch (InterruptedException e) {
 			return new Err<Integer, IOException>(new IOException(e));
 		}*//*
-	*/}/*private static Result<Process,*/ /*IOException>*/ startCommand(/*List<String>*/ command) {/*
+	*/}/*private static Result<Process,*/ /*IOException>*/ startCommand(List<char*> command) {/*
 		try {
 			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
 		}*//* catch (IOException e) {
 			return new Err<Process, IOException>(e);
 		}*//*
-	*/}/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
+	*/}/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
 		try {
 			Files.writeString(target, output);
 			return Optional.empty();
 		}*//* catch (IOException e) {
 			return Optional.of(e);
 		}*//*
-	*/}/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
+	*/}/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
 		try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*//* catch (IOException e) {
@@ -113,74 +111,18 @@ struct Ok {
 	}*/struct Index = input.indexOf(type);
 		if (classIndex >= 0) {
 };
-/*final var afterKeyword = input.substring(classIndex + type.length());*//*
-			final var contentStart = afterKeyword.indexOf("{");
-			if (contentStart >= 0) {
-				var beforeContent = afterKeyword.substring(0, contentStart).strip();
-				final var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
-				if (withEnd.endsWith("}")) {
-					final var content = withEnd.substring(0, withEnd.length() - 1);
-
-					final var permitsIndex = beforeContent.indexOf("permits");
-					List<String> variants = Collections.emptyList();
-					if (permitsIndex >= 0) {
-						final var variantsArray =
-								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
-						beforeContent = beforeContent.substring(0, permitsIndex).strip();
-						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-					}
-
-					List<String> typeParameters = new ArrayList<String>();
-					if (beforeContent.endsWith(">")) {
-						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
-						final var typeParamStart = withoutEnd.indexOf("<");
-						if (typeParamStart >= 0) {
-							beforeContent = withoutEnd.substring(0, typeParamStart);
-							final var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-							typeParameters =
-									Arrays.stream(typeParamsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-						}
-					}
-
-
-					String templateString;
-					if (typeParameters.isEmpty()) {
-						templateString = "";
-					} else {
-						final var collect =
-								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
-						templateString = "template <" + collect + ">" + System.lineSeparator();
-					}
-
-					String dependencies;
-					if (variants.isEmpty()) {
-						dependencies = "";
-					} else {
-						final var enumFields = variants.stream().map(Main::generateField).collect(Collectors.joining(","));
-
-						final var unionFields = variants
-								.stream()
-								.map(slice -> System.lineSeparator() + "\t" + slice + " " + slice.toLowerCase() + ";")
-								.collect(Collectors.joining());
-
-						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
-													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
-													 System.lineSeparator() + "};" + System.lineSeparator();
-					}
-
-					final String fields;
-					if (variants.isEmpty()) {
-						fields = "";
-					} else {
-						fields = generateField(beforeContent + "Tag tag;") + generateField(beforeContent + "Data data");
+/*final var afterKeyword = input.substring(classIndex + type.length());*/struct Type = maybeInterfaceType.get();
+						dependencies += interfaceType;
 					}
 
 					return Optional.of(
-							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
+							dependencies + templateString + "struct " + beforeContent + " {
+};
+/*" + fields + System.lineSeparator() +
 							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
-		}*//*
+		*//*
 
 		return Optional.empty();*//*
 	}
@@ -265,6 +207,28 @@ struct Ok {
 
 		if (input.equals("String")) {
 			return "char*";
+		}*//*
+
+		if (input.endsWith(">")) {
+			final var withoutEnd = input.substring(0, input.length() - 1);
+			final var i = withoutEnd.indexOf("<");
+			if (i >= 0) {
+				final var base = withoutEnd.substring(0, i);
+				final var typeArguments = withoutEnd.substring(i + 1);
+
+				final var joined = Arrays
+						.stream(typeArguments.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileType)
+						.collect(Collectors.joining(", "));
+
+				return base + "<" + joined + ">";
+			}
+		}*//*
+
+		if (isIdentifier(input)) {
+			return input;
 		}*//*
 
 		return wrap(input);*//*
