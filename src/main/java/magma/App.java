@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -278,24 +279,24 @@ public class App {
 	}
 
 	private String compileStatements(String input, Function<String, String> mapper) {
-		return this.divide(new State(input)).map(mapper).collect(Collectors.joining());
+		return this.divide(input, this::foldStatement).map(mapper).collect(Collectors.joining());
 	}
 
-	private Stream<String> divide(State state) {
-		var current = state;
+	private Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
+		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
 				break;
 			}
 
-			current = this.foldEscaped(current, maybeNext.get());
+			current = this.foldEscaped(current, maybeNext.get(), folder);
 		}
 
 		return current.advance().stream();
 	}
 
-	private State foldEscaped(State current, char next) {
+	private State foldEscaped(State current, char next, BiFunction<State, Character, State> folder) {
 		if (next == '\'') {
 			return current
 					.append(next)
@@ -330,7 +331,7 @@ public class App {
 			return current0;
 		}
 
-		return this.fold(current, next);
+		return folder.apply(current, next);
 	}
 
 	private State foldSingleEscapeChar(Tuple<Character, State> tuple) {
@@ -340,7 +341,7 @@ public class App {
 		return tuple.right;
 	}
 
-	private State fold(State state, Character c) {
+	private State foldStatement(State state, Character c) {
 		final var appended = state.append(c);
 		if (c == ';' && appended.isLevel()) {
 			return appended.advance();
@@ -875,7 +876,21 @@ public class App {
 			return Optional.empty();
 		}
 
-		final var typeSeparator = beforeName.lastIndexOf(" ");
+		int typeSeparator = -1;
+		var depth = 0;
+		for (var i = 0; i < beforeName.length(); i++) {
+			final var c = beforeName.charAt(i);
+			if (c == ' ' && depth == 0) {
+				typeSeparator = i;
+			}
+			if (c == '<') {
+				depth++;
+			}
+			if (c == '>') {
+				depth--;
+			}
+		}
+
 		if (typeSeparator >= 0) {
 			final var type = beforeName.substring(typeSeparator + 1).strip();
 			return this.compileType(type).map(cppType -> cppType.generate() + " " + name);
@@ -907,8 +922,8 @@ public class App {
 				final var base = withoutEnd.substring(0, i);
 				final var typeArguments = withoutEnd.substring(i + 1);
 
-				final var list = Arrays
-						.stream(typeArguments.split(Pattern.quote(",")))
+				final var list = this
+						.divide(typeArguments, this::foldValue)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.map(this::compileType)
@@ -928,5 +943,20 @@ public class App {
 		}
 
 		return Optional.of(new Placeholder(stripped));
+	}
+
+	private State foldValue(State state, char next) {
+		if (next == ',' && state.isLevel()) {
+			return state.advance();
+		}
+
+		final var appended = state.append(next);
+		if (next == '<') {
+			return appended.enter();
+		}
+		if (next == '>') {
+			return appended.exit();
+		}
+		return appended;
 	}
 }
