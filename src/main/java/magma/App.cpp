@@ -76,9 +76,7 @@ struct CPPType {
 	CPPTypeData data;
 
 	char* generate();
-	/*
-
-		String*/ getSimpleName();};
+	char* getSimpleName();};
 CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
 CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
@@ -769,18 +767,19 @@ Optional<char*> compileDefinition(char* input) {
 	return this.compileType(/*beforeName)*/.map(cppType -> cppType.generate() + " " + name);
 }
 Optional<CPPType> compileType(char* input) {
-	if (input.equals("void")) {
+	/*final var stripped*/ = input.strip();
+	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
 	}
-	if (input.endsWith("[]")) {
-		/*final var slice*/ = input.substring(/*0, input*/.length() - 2);
+	if (stripped.endsWith("[]")) {
+		/*final var slice*/ = stripped.substring(/*0, stripped*/.length() - 2);
 			return this.compileType(slice).map(CPointerType::new);
 	}
-	if (input.equals("String")) {
+	if (stripped.equals("String")) {
 		return Optional.of(new_CPointerType(CPPPrimitiveType.Char));
 	}
-	if (input.endsWith(">")) {/*
-			final var withoutEnd = input.substring(0, input.length() - 1);
+	if (stripped.endsWith(">")) {/*
+			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 			final var i = withoutEnd.indexOf("<");
 			if (i >= 0) {
 				final var base = withoutEnd.substring(0, i);
@@ -798,15 +797,15 @@ Optional<CPPType> compileType(char* input) {
 			}
 		*/
 	}
-	if (this.isIdentifier(input)) {
-		if (input.equals("public")) 
+	if (this.isIdentifier(stripped)) {
+		if (stripped.equals("public")) 
 		/*{
 				return Optional.empty();
 			}
 
-			return Optional.of(new CIdentifier(input))*/;
+			return Optional.of(new CIdentifier(stripped))*/;
 	}
-	return Optional.of(new_Placeholder(input));
+	return Optional.of(new_Placeholder(stripped));
 }
 int main(){
 	return 0;
