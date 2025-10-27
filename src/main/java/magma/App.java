@@ -693,19 +693,14 @@ public class App {
 			return Optional.of("{" + compiled + this.generateIndent(this.depth) + "}");
 		}
 
-		if (stripped.startsWith("if")) {
-			final var substring = stripped.substring(2).strip();
-			if (substring.startsWith("(")) {
-				final var withCondition = substring.substring(1);
-				final var conditionEnd = this.findConditionEnd(withCondition);
+		final var maybeIf = this.compileConditional(stripped, "if");
+		if (maybeIf.isPresent()) {
+			return maybeIf;
+		}
 
-				if (conditionEnd >= 0) {
-					final var condition = withCondition.substring(0, conditionEnd).strip();
-					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Optional.of(this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
-														 this.compileMethodSegmentOrPlaceholder(substring2));
-				}
-			}
+		final var maybeWhile = this.compileConditional(stripped, "while");
+		if (maybeWhile.isPresent()) {
+			return maybeWhile;
 		}
 
 		if (stripped.endsWith(";")) {
@@ -716,6 +711,25 @@ public class App {
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring(5);
 			return Optional.of("else " + this.compileMethodSegmentOrPlaceholder(substring));
+		}
+
+		return Optional.empty();
+	}
+
+	private Optional<String> compileConditional(String input, String type) {
+		if (input.startsWith(type)) {
+			final var substring = input.substring(2).strip();
+			if (substring.startsWith("(")) {
+				final var withCondition = substring.substring(1);
+				final var conditionEnd = this.findConditionEnd(withCondition);
+
+				if (conditionEnd >= 0) {
+					final var condition = withCondition.substring(0, conditionEnd).strip();
+					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
+					return Optional.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+														 this.compileMethodSegmentOrPlaceholder(substring2));
+				}
+			}
 		}
 
 		return Optional.empty();

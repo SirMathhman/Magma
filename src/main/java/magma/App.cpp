@@ -586,19 +586,13 @@ Optional<char*> compileMethodSegment(char* input) {
 		/*this.depth--*/;
 		return Optional.of("{" + compiled + this.generateIndent(this.depth) + "}");
 	}
-	if (stripped.startsWith("if")) {
-		var substring = stripped.substring(2).strip();/*
-			if (substring.startsWith("(")) {
-				final var withCondition = substring.substring(1);
-				final var conditionEnd = this.findConditionEnd(withCondition);
-
-				if (conditionEnd >= 0) {
-					final var condition = withCondition.substring(0, conditionEnd).strip();
-					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Optional.of(this.generateIndent(this.depth) + "if (" + this.compileExpression(condition) + ") " +
-														 this.compileMethodSegmentOrPlaceholder(substring2));
-				}
-			}*/
+	var maybeIf = this.compileConditional(stripped, "if");
+	if (maybeIf.isPresent()) {
+		return maybeIf;
+	}
+	var maybeWhile = this.compileConditional(stripped, "while");
+	if (maybeWhile.isPresent()) {
+		return maybeWhile;
 	}
 	if (stripped.endsWith(";")) {
 		var slice = stripped.substring(0, stripped.length() - 1);
@@ -607,6 +601,23 @@ Optional<char*> compileMethodSegment(char* input) {
 	if (stripped.startsWith("else ")) {
 		var substring = stripped.substring(5);
 		return Optional.of("else " + this.compileMethodSegmentOrPlaceholder(substring));
+	}
+	return Optional.empty();
+}
+Optional<char*> compileConditional(char* type) {
+	if (input.startsWith(type)) {
+		var substring = input.substring(2).strip();/*
+			if (substring.startsWith("(")) {
+				final var withCondition = substring.substring(1);
+				final var conditionEnd = this.findConditionEnd(withCondition);
+
+				if (conditionEnd >= 0) {
+					final var condition = withCondition.substring(0, conditionEnd).strip();
+					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
+					return Optional.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+														 this.compileMethodSegmentOrPlaceholder(substring2));
+				}
+			}*/
 	}
 	return Optional.empty();
 }
