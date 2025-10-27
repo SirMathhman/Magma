@@ -526,7 +526,7 @@ public class App {
 	}
 
 	private String compileClassSegment(String input) {
-		if (input.isEmpty()) {
+		if (input.isBlank()) {
 			return "";
 		}
 
@@ -783,21 +783,23 @@ public class App {
 	}
 
 	private Optional<CPPType> compileType(String input) {
-		if (input.equals("void")) {
+		final var stripped = input.strip();
+
+		if (stripped.equals("void")) {
 			return Optional.of(CPPPrimitiveType.Void);
 		}
 
-		if (input.endsWith("[]")) {
-			final var slice = input.substring(0, input.length() - 2);
+		if (stripped.endsWith("[]")) {
+			final var slice = stripped.substring(0, stripped.length() - 2);
 			return this.compileType(slice).map(CPointerType::new);
 		}
 
-		if (input.equals("String")) {
+		if (stripped.equals("String")) {
 			return Optional.of(new CPointerType(CPPPrimitiveType.Char));
 		}
 
-		if (input.endsWith(">")) {
-			final var withoutEnd = input.substring(0, input.length() - 1);
+		if (stripped.endsWith(">")) {
+			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 			final var i = withoutEnd.indexOf("<");
 			if (i >= 0) {
 				final var base = withoutEnd.substring(0, i);
@@ -815,14 +817,14 @@ public class App {
 			}
 		}
 
-		if (this.isIdentifier(input)) {
-			if (input.equals("public")) {
+		if (this.isIdentifier(stripped)) {
+			if (stripped.equals("public")) {
 				return Optional.empty();
 			}
 
-			return Optional.of(new CIdentifier(input));
+			return Optional.of(new CIdentifier(stripped));
 		}
 
-		return Optional.of(new Placeholder(input));
+		return Optional.of(new Placeholder(stripped));
 	}
 }
