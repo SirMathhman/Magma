@@ -4,7 +4,8 @@ enum ResultTag {
 	Err,
 	Ok
 };
-union ResultTag {
+template <typename T, typename X>
+union ResultData {
 	Err err;
 	Ok ok;
 };
@@ -141,13 +142,13 @@ struct Ok {
 					}
 
 
-					String variantsString;
+					String templateString;
 					if (typeParameters.isEmpty()) {
-						variantsString = "";
+						templateString = "";
 					} else {
 						final var collect =
 								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
-						variantsString = "template <" + collect + ">" + System.lineSeparator();
+						templateString = "template <" + collect + ">" + System.lineSeparator();
 					}
 
 					String dependencies;
@@ -163,7 +164,7 @@ struct Ok {
 								.collect(Collectors.joining());
 
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
-													 System.lineSeparator() + "union " + beforeContent + "Tag {" + unionFields +
+													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
 													 System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
@@ -175,7 +176,7 @@ struct Ok {
 					}
 
 					return Optional.of(
-							dependencies + variantsString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
+							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							"};" + System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
