@@ -431,7 +431,7 @@ public class App {
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")
-								.map(this::generateWithIndent)
+								.map(content1 -> this.generateWithIndent(content1, 1))
 								.collect(Collectors.joining(","));
 
 						final var typeArguments = this.joinTypeArguments(typeParameters);
@@ -449,8 +449,8 @@ public class App {
 					if (variants.isEmpty()) {
 						fields = "";
 					} else {
-						fields = this.generateStatement(beforeContent + "Tag tag") +
-										 this.generateStatement(beforeContent + "Data " + "data");
+						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
+										 this.generateStatement(beforeContent + "Data " + "data", 1);
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -461,13 +461,13 @@ public class App {
 						this.functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() +
 															 "_" +
 															 beforeContent + "(void* _ref" + "){" +
-															 this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+															 this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
 															 this.generateStatement(
-																	 interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data") +
-															 this.generateStatement("data." + beforeContent.toLowerCase() + " = _this") +
+																	 interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data", 1) +
+															 this.generateStatement("data." + beforeContent.toLowerCase() + " = _this", 1) +
 															 this.generateStatement(
-																	 "return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }") +
-															 System.lineSeparator() + "}" + System.lineSeparator());
+																	 "return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }",
+																	 1) + System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
@@ -502,12 +502,12 @@ public class App {
 		return joinedTypeArguments;
 	}
 
-	private String generateStatement(String content) {
-		return this.generateWithIndent(content) + ";";
+	private String generateStatement(String content, int depth) {
+		return this.generateWithIndent(content, depth) + ";";
 	}
 
-	private String generateWithIndent(String content) {
-		return this.generateIndent(1) + content;
+	private String generateWithIndent(String content, int depth) {
+		return this.generateIndent(depth) + content;
 	}
 
 	private String generateIndent(int depth) {
@@ -576,7 +576,7 @@ public class App {
 					.compileEnumValues(slice)
 					.orElseGet(() -> this.generateStatement(this
 																											.compileDefinition(slice)
-																											.orElseGet(() -> Placeholder.wrap(slice))));
+																											.orElseGet(() -> Placeholder.wrap(slice)), 1));
 
 		}
 
@@ -653,7 +653,7 @@ public class App {
 			final var compiled = this.compileMethodSegment(content);
 			this.depth--;
 
-			return "{" + compiled + "}";
+			return "{" + compiled + this.generateIndent(this.depth) + "}";
 		}
 
 		if (stripped.startsWith("if")) {
@@ -673,7 +673,7 @@ public class App {
 
 		if (stripped.endsWith(";")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
-			return this.generateStatement(this.compileMethodStatement(slice));
+			return this.generateStatement(this.compileMethodStatement(slice), this.depth);
 		}
 
 		return Placeholder.wrap(input);
