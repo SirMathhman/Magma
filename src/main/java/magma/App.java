@@ -86,7 +86,8 @@ public class App {
 
 	private record Placeholder(String input) implements CPPType {
 		private static String wrap(String input) {
-			return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+			final var replaced = input.replace("/*", "start").replace("*/", "end");
+			return "/*" + replaced + "*/";
 		}
 
 		@Override
@@ -102,18 +103,19 @@ public class App {
 
 	private record Tuple<A, B>(A left, B right) {}
 
-	private class State {
+	private static class State {
 		public final String input;
 		public final ArrayList<String> segments;
 		private StringBuilder buffer;
 		private int depth;
-		private int index = 0;
+		private int index;
 
 		public State(String input) {
 			this.input = input;
 			this.buffer = new StringBuilder();
 			this.depth = 0;
 			this.segments = new ArrayList<String>();
+			this.index = 0;
 		}
 
 		State enter() {
@@ -550,6 +552,14 @@ public class App {
 			return maybeEnum.get();
 		}
 
+		if (input.endsWith(";")) {
+			final var slice = input.substring(0, input.length() - 1);
+			final var maybeClassStatement = this.compileEnumValues(slice).or(() -> this.compileDefinitionToField(slice));
+			if (maybeClassStatement.isPresent()) {
+				return maybeClassStatement.get();
+			}
+		}
+
 		final var paramStart = input.indexOf("(");
 		if (paramStart >= 0) {
 			final var definition = input.substring(0, paramStart).strip();
@@ -569,7 +579,8 @@ public class App {
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					generated = s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
+					generated =
+							s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
 				} else {
 					generated = s + ";" + System.lineSeparator();
 				}
@@ -579,17 +590,11 @@ public class App {
 			}
 		}
 
-		if (input.endsWith(";")) {
-			final var slice = input.substring(0, input.length() - 1);
-			return this
-					.compileEnumValues(slice)
-					.orElseGet(() -> this.generateStatement(this
-																											.compileDefinition(slice)
-																											.orElseGet(() -> Placeholder.wrap(slice)), 1));
-
-		}
-
 		return Placeholder.wrap(input);
+	}
+
+	private Optional<String> compileDefinitionToField(String slice) {
+		return this.compileDefinition(slice).map(content -> this.generateStatement(content, 1));
 	}
 
 	private String compileMethodStatements(String content) {
@@ -780,11 +785,10 @@ public class App {
 			return stripped;
 		}
 
-		final var i1 = stripped.indexOf("+");
-		if (i1 >= 0) {
-			final var substring = stripped.substring(0, i1);
-			final var substring1 = stripped.substring(i1 + "+".length());
-			return this.compileExpression(substring) + " + " + this.compileExpression(substring1);
+		final var maybeOperator = this.compileOperator(stripped, "+").or(() -> this.compileOperator(stripped, "-"));
+
+		if (maybeOperator.isPresent()) {
+			return maybeOperator.get();
 		}
 
 		final var i2 = stripped.lastIndexOf("::");
@@ -794,7 +798,34 @@ public class App {
 			return substring1 + "_" + this.compileType(substring).map(CPPType::generate).orElse("?");
 		}
 
+		if (this.isNumber(stripped)) {
+			return stripped;
+		}
+
 		return Placeholder.wrap(stripped);
+	}
+
+	private Optional<String> compileOperator(String stripped, String separator) {
+		final var i1 = stripped.indexOf(separator);
+		if (i1 >= 0) {
+			final var substring = stripped.substring(0, i1);
+			final var substring1 = stripped.substring(i1 + separator.length());
+			return Optional.of(
+					this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
+		}
+
+		return Optional.empty();
+	}
+
+	private boolean isNumber(String input) {
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			if (!Character.isDigit(c)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private String compileParameters(String input) {

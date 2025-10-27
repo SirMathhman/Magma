@@ -41,8 +41,7 @@ struct State {
 	ArrayList<char*> segments;
 	StringBuilder buffer;
 	int depth;
-	/*
-		private int index = 0*/;};
+	int index;};
 struct App {
 
 	List<char*> globals;
@@ -83,11 +82,7 @@ union CPPTypeData {
 struct CPPType {
 	CPPTypeTag tag;
 	CPPTypeData data;
-
-	/*String generate()*/;
-	/*
-
-		String getSimpleName()*/;};
+};
 CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
 CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
@@ -105,6 +100,8 @@ char* generate() {
 char* getSimpleName() {
 	return this.content;
 }
+char* generate();
+char* getSimpleName();
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -163,7 +160,8 @@ CPPType toCPPType_Placeholder(void* _ref){
 	return CPPType { PlaceholderTag, data };
 }
 char* wrap(char* input) {
-	return "/*" + input.replace("/*", "start").replace("*/", "end") + "*/";
+	var replaced = input.replace("/*", "start").replace("*/", "end");
+	return "/*" + replaced + "*/";
 }
 char* generate() {
 	return wrap(this.input);
@@ -174,11 +172,12 @@ char* getSimpleName() {
 State new_State(char* input) {
 	this.input = input;
 	this.buffer = new_StringBuilder();
-	this.depth = /*0*/;
+	this.depth = 0;
 	this.segments = new_ArrayList<char*>();
+	this.index = 0;
 }
 State enter() {
-	this.depth = this.depth + /*1*/;
+	this.depth = this.depth + 1;
 	return this;
 }
 State exit() {
@@ -230,7 +229,7 @@ App new_App() {
 	this.forwardDeclarations = new_ArrayList<char*>();
 	this.structures = new_ArrayList<char*>();
 	this.sealedStructures = new_ArrayList<char*>();
-	this.depth = /*1*/;
+	this.depth = 1;
 }
 void main(char** args) {
 	/*new App().run().ifPresent(Throwable::printStackTrace)*/;
@@ -527,7 +526,7 @@ char* generateIndent(int depth) {
 	return System.lineSeparator() + "\t".repeat(depth);
 }
 boolean isIdentifier(char* input) {
-	/*(var*/ i = /*0*/;
+	/*(var*/ i = 0;
 	/*i < input.length()*/;/* i++) {
 			if (!Character.isLetter(input.charAt(i))) {
 				return false;
@@ -555,6 +554,14 @@ char* compileClassSegment(char* input) {
 	if (maybeEnum.isPresent()) {
 		return maybeEnum.get();
 	}
+	if (input.endsWith(";")) {/*
+			final var slice = input.substring(0, input.length() - 1);
+			final var maybeClassStatement = this.compileEnumValues(slice).or(() -> this.compileDefinitionToField(slice));
+			if (maybeClassStatement.isPresent()) {
+				return maybeClassStatement.get();
+			}
+		*/
+	}
 	var paramStart = input.indexOf("(");
 	if (/*paramStart >= 0*/) {/*
 			final var definition = input.substring(0, paramStart).strip();
@@ -563,31 +570,32 @@ char* compileClassSegment(char* input) {
 			if (paramEnd >= 0) {
 				final var params = withParams.substring(0, paramEnd).strip();
 				final var withBraces = withParams.substring(paramEnd + 1).strip();
+
+				final var header = this
+						.compileDefinition(definition)
+						.or(() -> this.compileConstructor(definition))
+						.orElseGet(() -> Placeholder.wrap(definition));
+
+				final var s = header + "(" + this.compileParameters(params) + ")";
+				final String generated;
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					final var header = this
-							.compileDefinition(definition)
-							.or(() -> this.compileConstructor(definition))
-							.orElseGet(() -> Placeholder.wrap(definition));
-
-					final var generated =
-							header + "(" + this.compileParameters(params) + ") {" + this.compileMethodStatements(content) +
-							System.lineSeparator() + "}" + System.lineSeparator();
-
-					this.functions.add(generated);
-					return "";
+					generated =
+							s + " {" + this.compileMethodStatements(content) + System.lineSeparator() + "}" + System.lineSeparator();
+				} else {
+					generated = s + ";" + System.lineSeparator();
 				}
+
+				this.functions.add(generated);
+				return "";
 			}
 		*/
 	}
-	if (input.endsWith(";")) {
-		var slice = /*input.substring(0, input.length() - 1);
-			return this*/.compileEnumValues(slice).orElseGet(/*() -> this*/.generateStatement(/*this
-																											.compileDefinition(slice)
-																											.orElseGet(() -> Placeholder.wrap(slice)), 1*/));
-	}
 	return Placeholder.wrap(input);
+}
+Optional<char*> compileDefinitionToField(char* slice) {
+	return this.compileDefinition(slice).map(/*content -> this*/.generateStatement(/*content, 1*/));
 }
 char* compileMethodStatements(char* content) {
 	return this.compileStatements(compileMethodSegment_/*content, this*/);
@@ -676,8 +684,8 @@ char* compileMethodSegment(char* input) {
 }
 int findConditionEnd(char* withCondition) {
 	int conditionEnd = /*-1*/;
-	var depth = /*0*/;
-	/*(var*/ i = /*0*/;
+	var depth = 0;
+	/*(var*/ i = 0;
 	/*i < withCondition.length()*/;/* i++) {
 			final var c = withCondition.charAt(i);
 			if (c == ')') {
@@ -770,7 +778,20 @@ char* compileExpression(char* input) {
 			final var substring1 = stripped.substring(i2*/ + /*2);
 			return substring1*/ + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
 	}
+	if (this.isNumber(stripped)) {
+		return stripped;
+	}
 	return Placeholder.wrap(stripped);
+}
+boolean isNumber(char* input) {
+	/*(var*/ i = 0;
+	/*i < input.length()*/;/* i++) {
+			final var c = input.charAt(i);
+			if (!Character.isDigit(c)) {
+				return false;
+			}
+		}*/
+	return true;
 }
 char* compileParameters(char* input) {
 	if (input.isEmpty()) {
@@ -787,7 +808,7 @@ Optional<char*> compileDefinition(char* input) {
 		return Optional.empty();
 	}
 	var beforeName = input.substring(/*0, nameSeparator*/);
-	var name = input.substring(nameSeparator + /*1*/).strip();
+	var name = input.substring(nameSeparator + 1).strip();
 	if (/*!this*/.isIdentifier(name)) {
 		return Optional.empty();
 	}
