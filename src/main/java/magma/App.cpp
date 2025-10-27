@@ -351,24 +351,24 @@ auto _lambda5_(auto ()) Placeholderchar* compileRootSegment(char* input) {
 }
 auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _lambda8_(auto slice) "typename " + sliceauto _lambda9_(auto content1) thisauto _lambda10_(auto slice) slice + "Tag"auto _lambda11_(auto slice) System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";"Optional<char*> compileStructure(char* input) {
 	var classIndex = input.indexOf(type);
-	if (/*classIndex >= 0*/) {
+	if (classIndex >= 0) {
 		var afterKeyword = input.substring(classIndex + type.length());
 		var contentStart = afterKeyword.indexOf("{");
-		if (/*contentStart >= 0*/) {
+		if (contentStart >= 0) {
 			var beforeContent = afterKeyword.substring(0, contentStart).strip();
 			var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 			if (withEnd.endsWith("}")) {
 				var content = withEnd.substring(0, withEnd.length() - 1);
 				var permitsIndex = beforeContent.indexOf("permits");
 				List<char*> variants = Collections.emptyList();
-				if (/*permitsIndex >= 0*/) {
+				if (permitsIndex >= 0) {
 					var variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
 					variants = Arrays.stream(variantsArray).map(strip_char*).filter(_lambda6_.isEmpty()).toList();
 				}
 				var implementsIndex = beforeContent.indexOf("implements");
 				Optional<CPPType> maybeInterfaceType = Optional.empty();
-				if (/*implementsIndex >= 0*/) {
+				if (implementsIndex >= 0) {
 					var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 					maybeInterfaceType = this.compileType(slice);
 					beforeContent = beforeContent.substring(0, implementsIndex).strip();
@@ -385,7 +385,7 @@ auto _lambda6_(auto slice) /*!slice*/auto _lambda7_(auto slice) /*!slice*/auto _
 				if (beforeContent.endsWith(">")) {
 					var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
 					var typeParamStart = withoutEnd.indexOf("<");
-					if (/*typeParamStart >= 0*/) {
+					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
 						typeParameters = Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda7_.isEmpty()).toList();
@@ -493,11 +493,11 @@ auto _lambda12_(auto ()) thisauto _lambda13_(auto ()) Placeholderauto _lambda14_
 		}
 	}
 	var paramStart = input.indexOf("(");
-	if (/*paramStart >= 0*/) {
+	if (paramStart >= 0) {
 		var definition = input.substring(0, paramStart).strip();
 		var withParams = input.substring(paramStart + 1);
 		var paramEnd = withParams.indexOf(")");
-		if (/*paramEnd >= 0*/) {
+		if (paramEnd >= 0) {
 			var params = withParams.substring(0, paramEnd).strip();
 			var withBraces = withParams.substring(paramEnd + 1).strip();
 			var header = this.compileDefinition(definition).or(_lambda14_.compileConstructor(definition)).orElseGet(_lambda13_.wrap(definition));
@@ -523,7 +523,7 @@ char* compileMethodSegments(char* content) {
 }
 Optional<char*> compileConstructor(char* input) {
 	var i = input.lastIndexOf(" ");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		var name = input.substring(i + 1).strip();
 		if (this.isIdentifier(name)) {
 			var structName = this.structureNames.peek();
@@ -643,7 +643,7 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_
 		return "return " + this.compileExpression(slice);
 	}
 	var separator = stripped.indexOf('=');
-	if (/*separator >= 0*/) {
+	if (separator >= 0) {
 		var substring = stripped.substring(0, separator).strip();
 		var substring1 = stripped.substring(separator + 1).strip();
 		var s = this.compileDefinition(substring).orElseGet(_lambda18_.compileExpression(substring));
@@ -660,7 +660,7 @@ auto _lambda18_(auto ()) thisauto _lambda19_(auto ()) Placeholderauto _lambda20_
 	}
 	return this.compileInvocation(stripped).or(_lambda20_.compileDefinition(input)).orElseGet(_lambda19_.wrap(stripped));
 }
-auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thisauto _lambda24_(auto ()) thisauto _lambda25_(auto ()) thischar* compileExpression(char* input) {
+auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto ()) thisauto _lambda24_(auto ()) thisauto _lambda25_(auto ()) thisauto _lambda26_(auto ()) thischar* compileExpression(char* input) {
 	var stripped = input.strip();
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return stripped;
@@ -673,7 +673,7 @@ auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto (
 		return maybeInvocation.get();
 	}
 	var i = stripped.lastIndexOf(".");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		var child = stripped.substring(0, i).strip();
 		var name = stripped.substring(i + 1).strip();
 		if (this.isIdentifier(name)) {
@@ -687,19 +687,19 @@ auto _lambda21_(auto ()) thisauto _lambda22_(auto ()) thisauto _lambda23_(auto (
 		return this.createName("switch");
 	}
 	var arrowIndex = stripped.indexOf("->");
-	if (/*arrowIndex >= 0*/) {
+	if (arrowIndex >= 0) {
 		var name = stripped.substring(0, arrowIndex).strip();
 		var content = stripped.substring(arrowIndex + 2);
 		var functionName = this.createName("lambda");
 		this.functions.add("auto " + functionName + "(auto " + name + ") " + this.compileMethodSegment(content).orElseGet(_lambda21_.compileExpression(content)));
 		return functionName;
 	}
-	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda25_.compileOperator(stripped, "-")).or(_lambda24_.compileOperator(stripped, "&&")).or(_lambda23_.compileOperator(stripped, "==")).or(_lambda22_.compileOperator(stripped, "<"));
+	var maybeOperator = this.compileOperator(stripped, "+").or(_lambda26_.compileOperator(stripped, "-")).or(_lambda25_.compileOperator(stripped, "&&")).or(_lambda24_.compileOperator(stripped, "==")).or(_lambda23_.compileOperator(stripped, ">=")).or(_lambda22_.compileOperator(stripped, "<"));
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
 	var i2 = stripped.lastIndexOf("::");
-	if (/*i2 >= 0*/) {
+	if (i2 >= 0) {
 		var substring = stripped.substring(0, i2);
 		var substring1 = stripped.substring(i2 + 2);
 		return substring1 + "_" + this.compileType(substring).map(generate_CPPType).orElse("?");
@@ -763,7 +763,7 @@ Optional<char*> compileCaller(char* caller) {
 }
 Optional<char*> compileOperator(char* separator) {
 	var i1 = stripped.indexOf(separator);
-	if (/*i1 >= 0*/) {
+	if (i1 >= 0) {
 		var substring = stripped.substring(0, i1);
 		var substring1 = stripped.substring(i1 + separator.length());
 		return Optional.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
@@ -785,10 +785,10 @@ char* compileParameters(char* input) {
 	}
 	return this.compileDefinitionOrPlaceholder(input);
 }
-auto _lambda26_(auto ()) Placeholderchar* compileDefinitionOrPlaceholder(char* input) {
-	return this.compileDefinition(input).orElseGet(_lambda26_.wrap(input));
+auto _lambda27_(auto ()) Placeholderchar* compileDefinitionOrPlaceholder(char* input) {
+	return this.compileDefinition(input).orElseGet(_lambda27_.wrap(input));
 }
-auto _lambda27_(auto cppType) cppType.generate() + " " + nameauto _lambda28_(auto cppType) cppType.generate() + " " + nameOptional<char*> compileDefinition(char* input) {
+auto _lambda28_(auto cppType) cppType.generate() + " " + nameauto _lambda29_(auto cppType) cppType.generate() + " " + nameOptional<char*> compileDefinition(char* input) {
 	var nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return Optional.empty();
@@ -812,13 +812,13 @@ auto _lambda27_(auto cppType) cppType.generate() + " " + nameauto _lambda28_(aut
 				depth--;
 			}
 		}*/
-	if (/*typeSeparator >= 0*/) {
+	if (typeSeparator >= 0) {
 		var type = beforeName.substring(typeSeparator + 1).strip();
-		return this.compileType(type).map(_lambda27_);
+		return this.compileType(type).map(_lambda28_);
 	}
-	return this.compileType(beforeName).map(_lambda28_);
+	return this.compileType(beforeName).map(_lambda29_);
 }
-auto _lambda29_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input) {
+auto _lambda30_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input) {
 	var stripped = input.strip();
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
@@ -833,10 +833,10 @@ auto _lambda29_(auto slice) /*!slice*/Optional<CPPType> compileType(char* input)
 	if (stripped.endsWith(">")) {
 		var withoutEnd = stripped.substring(0, stripped.length() - 1);
 		var i = withoutEnd.indexOf("<");
-		if (/*i >= 0*/) {
+		if (i >= 0) {
 			var base = withoutEnd.substring(0, i);
 			var typeArguments = withoutEnd.substring(i + 1);
-			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda29_.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
+			var list = this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda30_.isEmpty()).map(compileType_this).flatMap(stream_Optional).toList();
 			return Optional.of(new_CTemplateType(base, list));
 		}
 	}

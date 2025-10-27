@@ -841,6 +841,7 @@ public class App {
 				.or(() -> this.compileOperator(stripped, "-"))
 				.or(() -> this.compileOperator(stripped, "&&"))
 				.or(() -> this.compileOperator(stripped, "=="))
+				.or(() -> this.compileOperator(stripped, ">="))
 				.or(() -> this.compileOperator(stripped, "<"));
 
 		if (maybeOperator.isPresent()) {
