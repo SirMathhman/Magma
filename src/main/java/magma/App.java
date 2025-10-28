@@ -1334,13 +1334,21 @@ public class App {
 
 		final var destinationString = stripped.substring(0, separator).strip();
 		final var sourceString = stripped.substring(separator + 1).strip();
-		return new Some<String>(this.compileAssignmentContent(destinationString, sourceString));
+		final var source = this.compileExpression(sourceString);
+		final var generated = this.compileAssignmentContent(destinationString) + " = " + source;
+		return new Some<String>(generated);
 	}
 
-	private String compileAssignmentContent(String destinationString, String sourceString) {
+	private String compileAssignmentContent(String destinationString) {
 		final var stringOption = this.compileDefinitionAsStatement(destinationString);
-		final var destination = stringOption.orElseGet(() -> this.compileExpression(destinationString));
-		return destination + " = " + this.compileExpression(sourceString);
+		return switch (stringOption) {
+			case None<String> v -> this.compileExpression(destinationString);
+			case Some<String> v -> {
+
+
+				yield v.value;
+			}
+		};
 	}
 
 	private Option<String> compileDefinitionAsStatement(String input) {
