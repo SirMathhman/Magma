@@ -1995,7 +1995,7 @@ public class App {
 																								return "{" +
 																											 new CStatement(new CContent("auto _this = _ref"), 1).generate() +
 																											 new CStatement(new CContent("return " + expression),
-																																			1).generate() + System.lineSeparator() + "};" +
+																																			1).generate() + System.lineSeparator() + "}" +
 																											 System.lineSeparator();
 																							}));
 
