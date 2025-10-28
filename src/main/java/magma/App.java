@@ -401,10 +401,10 @@ public class App {
 		}
 	}
 
-	public record CTemplateType(String base, ArrayList<CType> list) implements CType {
+	public record CTemplateType(String base, ArrayList<CType> typeArguments) implements CType {
 		@Override
 		public String generate() {
-			final var list = this.list;
+			final var list = this.typeArguments;
 			final var stream = list.stream();
 			final var map = stream.map(CType::generate);
 			final var collector = new Joiner(", ");
@@ -555,6 +555,10 @@ public class App {
 		public String generate() {
 			return App.createTemplateString(this.typeParameters()) + "struct " + this.name();
 		}
+
+		public CStructureType withFields(ArrayList<CDefinition> fields) {
+			return new CStructureType(this.name, this.typeParameters, fields);
+		}
 	}
 
 	private record CStructure(CStructureHeader CStructureHeader, String fields) {
@@ -688,25 +692,34 @@ public class App {
 	}
 
 	private static class Frames {
-		private record Frame(ArrayList<CDefinition> definitions, Option<CStructureHeader> maybeHeader) {
+		private record Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions,
+												 ArrayList<CStructureType> structures) {
 			public Frame() {
-				this(ArrayList.empty(), new None<CStructureHeader>());
+				this(new None<CStructureHeader>(), ArrayList.empty(), ArrayList.empty());
 			}
 
 			public Frame defineAll(ArrayList<CDefinition> params) {
-				return new Frame(this.definitions.addAllLast(params), this.maybeHeader);
+				return new Frame(this.maybeHeader, this.definitions.addAllLast(params), this.structures);
 			}
 
 			public Frame define(CDefinition definition) {
-				return new Frame(this.definitions.addLast(definition), this.maybeHeader);
+				return new Frame(this.maybeHeader, this.definitions.addLast(definition), this.structures);
 			}
 
 			public Frame withHeader(CStructureHeader header) {
-				return new Frame(this.definitions, new Some<CStructureHeader>(header));
+				return new Frame(new Some<CStructureHeader>(header), this.definitions, this.structures);
 			}
 
 			public Option<CDefinition> resolve(String name) {
 				return this.definitions.stream().filter(definition -> definition.name.equals(name)).head.next();
+			}
+
+			public Option<CStructureType> findStructure(String name) {
+				return this.structures.stream().filter(type -> type.name.equals(name)).head.next();
+			}
+
+			public Frame defineStructure(CStructureType type) {
+				return new Frame(this.maybeHeader, this.definitions, this.structures.addLast(type));
 			}
 		}
 
@@ -737,7 +750,7 @@ public class App {
 			return this.frames.stream().map(frame -> frame.resolve(name)).flatMap(Option::stream).head.next();
 		}
 
-		private Frames defineStructure(CStructureHeader header) {
+		private Frames withStructureHeader(CStructureHeader header) {
 			this.frames = this.frames.mapLast(last -> last.withHeader(header));
 			return this;
 		}
@@ -767,9 +780,19 @@ public class App {
 																																																						frame.definitions)))
 					.flatMap(Option::stream).head.next();
 		}
+
+		public Option<CStructureType> findStructure(String structName) {
+			return this.frames.stream().map(frame -> frame.findStructure(structName)).flatMap(Option::stream).head.next();
+		}
+
+		public Frames defineStructure(CStructureType type) {
+			this.frames = this.frames.mapLast(last -> last.defineStructure(type));
+			return this;
+		}
 	}
 
-	private record CStructureType(String name, ArrayList<CDefinition> fields) implements CType {
+	private record CStructureType(String name, ArrayList<String> typeParameters, ArrayList<CDefinition> fields)
+			implements CType {
 		@Override
 		public String generate() {
 			return this.name;
@@ -780,8 +803,12 @@ public class App {
 			return this.name;
 		}
 
-		public Option<CType> resolve(String name) {
+		public Option<CType> findField(String name) {
 			return this.fields.stream().filter(field -> field.name.equals(name)).map(field -> field.type).head.next();
+		}
+
+		public CStructureType withTypeArguments(ArrayList<CType> typeArguments) {
+			return new CStructureType(this.name, ArrayList.empty(), this.fields);
 		}
 	}
 
@@ -1022,12 +1049,12 @@ public class App {
 		}
 
 		return this
-				.compileStructure("class", stripped)
+				.parseStructure("class", stripped)
 				.map(CStructureSegment::generate)
 				.orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Option<CStructureSegment> compileStructure(String type, String input) {
+	private Option<CStructureSegment> parseStructure(String type, String input) {
 		final var classIndex = input.indexOf(type);
 		if (classIndex >= 0) {
 			final var afterKeyword = input.substring(classIndex + type.length());
@@ -1150,7 +1177,7 @@ public class App {
 					final var header = new CStructureHeader(typeParameters, beforeContent);
 					var finalRecordFields = recordFields;
 					final var within1 = this.frames.within(() -> {
-						this.frames = this.frames.defineStructure(header).defineAll(finalRecordFields);
+						this.frames = this.frames.withStructureHeader(header).defineAll(finalRecordFields);
 
 						final var members = this
 								.divide(content, this::foldStatement)
@@ -1164,7 +1191,7 @@ public class App {
 					});
 
 					final var generated = within1.left;
-					this.frames = within1.right;
+					this.frames = within1.right.defineStructure(header.withFields(finalRecordFields));
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.addLast(generated);
@@ -1205,22 +1232,22 @@ public class App {
 			return new EmptyCStructureSegment();
 		}
 
-		final var maybeClass = this.compileStructure("class", input);
+		final var maybeClass = this.parseStructure("class", input);
 		if (maybeClass.isPresent()) {
 			return maybeClass.get();
 		}
 
-		final var maybeInterface = this.compileStructure("interface", input);
+		final var maybeInterface = this.parseStructure("interface", input);
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
 		}
 
-		final var maybeRecord = this.compileStructure("record", input);
+		final var maybeRecord = this.parseStructure("record", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
 		}
 
-		final var maybeEnum = this.compileStructure("enum", input);
+		final var maybeEnum = this.parseStructure("enum", input);
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
 		}
@@ -1268,7 +1295,7 @@ public class App {
 
 		final var templateString = createTemplateString(typeParameters);
 
-		String generated = templateString + headerWithParameters + ";" + System.lineSeparator();
+		var generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
@@ -1534,7 +1561,7 @@ public class App {
 			case CFieldAccess fieldAccess -> {
 				final var childType = this.resolveExpression(fieldAccess.child);
 				if (childType instanceof CStructureType structureType) {
-					if (structureType.resolve(fieldAccess.name) instanceof Some<CType>(var type)) {
+					if (structureType.findField(fieldAccess.name) instanceof Some<CType>(var type)) {
 						yield type;
 					}
 
@@ -1562,14 +1589,22 @@ public class App {
 		if (identifier.value.equals("_this")) {
 			final var maybeCurrentScope = this.frames.findCurrentScope();
 			if (maybeCurrentScope instanceof Some(var currentScope)) {
-				return new CStructureType(currentScope.left.name, currentScope.right);
+				return new CStructureType(currentScope.left.name, currentScope.left.typeParameters, currentScope.right);
 			}
 		}
 
 		final var maybeDefinition = this.frames.resolve(identifier.value);
 
 		if (maybeDefinition instanceof Some<CDefinition>(var found)) {
-			return found.type;
+			final var foundType = found.type;
+			if (foundType instanceof CTemplateType(var base, var typeArguments)) {
+				final var maybeStructureType = this.frames.findStructure(base);
+				if (maybeStructureType instanceof Some<CStructureType>(var structureType)) {
+					return structureType.withTypeArguments(typeArguments);
+				}
+			}
+
+			return foundType;
 		}
 
 		return new Placeholder(identifier.value);
