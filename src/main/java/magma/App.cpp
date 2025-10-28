@@ -105,7 +105,7 @@ struct State {
 
 	char* input;
 	ArrayList<char*> segments;
-	StringBuilder buffer;
+	char* buffer;
 	int depth;
 	int index;};
 struct CDefinition {
@@ -144,7 +144,7 @@ struct Joiner {
 };
 struct App {
 
-	Stack<CStructureHeader> structureHeaders;
+	ArrayList<CStructureHeader> structureHeaders;
 	ArrayList<char*> globals;
 	ArrayList<char*> forwardDeclarations;
 	ArrayList<char*> structures;
@@ -420,6 +420,17 @@ ArrayList<T> addFirst_ArrayList(void* _ref, T element) {
 	_this.inner.addFirst(element);
 	return _this;
 }
+template <typename T>
+ArrayList<T> removeLast_ArrayList(void* _ref) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	_this.inner.removeLast();
+	return _this;
+}
+template <typename T>
+T getLast_ArrayList(void* _ref) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	return _this.inner.getLast();
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -610,7 +621,7 @@ char* getSimpleName_Placeholder(void* _ref) {
 State new_State(void* _ref, char* input) {
 	State _this = *((State*) _ref);
 	_this.input = input;
-	_this.buffer = new_StringBuilder();
+	_this.buffer = "";
 	_this.depth = 0;
 	_this.segments = new_ArrayList<char*>();
 	_this.index = 0;
@@ -627,8 +638,8 @@ State exit_State(void* _ref) {
 }
 State advance_State(void* _ref) {
 	State _this = *((State*) _ref);
-	_this.segments = _this.segments.addLast(_this.buffer.toString());
-	_this.buffer = new_StringBuilder();
+	_this.segments = _this.segments.addLast(_this.buffer);
+	_this.buffer = "";
 	return _this;
 }
 int isShallow_State(void* _ref) {
@@ -637,7 +648,7 @@ int isShallow_State(void* _ref) {
 }
 State append_State(void* _ref, char c) {
 	State _this = *((State*) _ref);
-	_this.buffer.append(c);
+	_this.buffer +  = c;
 	return _this;
 }
 int isLevel_State(void* _ref) {
@@ -812,7 +823,7 @@ char* fold_Joiner(void* _ref, char* current, char* element) {
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
 	_this.globals = new_ArrayList<char*>();
-	_this.structureHeaders = new_Stack<CStructureHeader>();
+	_this.structureHeaders = new_ArrayList<CStructureHeader>();
 	_this.functions = new_ArrayList<char*>();
 	_this.forwardDeclarations = new_ArrayList<char*>();
 	_this.structures = new_ArrayList<char*>();
@@ -1076,10 +1087,10 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 				CStructureHeader header = new_CStructureHeader(typeParameters, beforeContent);
-				_this.structureHeaders.push(header);
+				_this.structureHeaders = _this.structureHeaders.addLast(header);
 				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
 				char* generated = dependencies + new_CStructure(header, outputContent).generate() + System.lineSeparator();
-				_this.structureHeaders.pop();
+				_this.structureHeaders = _this.structureHeaders.removeLast();
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.addLast(generated);
 				}
@@ -1178,11 +1189,11 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	char* withBraces = withParams.substring(paramEnd + 1).strip();
 	CFunctionHeader header = _this.compileFunctionHeader(definition);
 	char* headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
-	char* templateString = _this.structureHeaders.peek().createTemplateString();
+	char* templateString = _this.structureHeaders.getLast().createTemplateString();
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
-		CStructureHeader currentStructureType = _this.structureHeaders.peek();
+		CStructureHeader currentStructureType = _this.structureHeaders.getLast();
 		char* thisDefinition = _this.generateStatement(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 		generated = templateString + headerWithParameters + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
@@ -1202,7 +1213,7 @@ auto _lambda51_(auto _ref) {
 };
 auto _lambda54_(auto _ref, auto item) {
 	auto _this = _ref;
-	return new_CDefinition(item.cType, item.name + "_" + _this.structureHeaders.peek().name);
+	return new_CDefinition(item.cType, item.name + "_" + _this.structureHeaders.getLast().name);
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1226,13 +1237,13 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	if (i >= 0) {
 		char* name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			CStructureHeader peek = _this.structureHeaders.peek();
+			CStructureHeader peek = _this.structureHeaders.getLast();
 			return Option.of(new_CDefinition(peek.toType(), "new_" + peek.name));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			char* structName = _this.structureHeaders.peek().name;
+			char* structName = _this.structureHeaders.getLast().name;
 			return Option.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
 		}
 	}
@@ -1266,7 +1277,7 @@ Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureHeaders.peek().name;
+					final String structureName = this.structureHeaders.getLast().name;
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}

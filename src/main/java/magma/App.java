@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Stack;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -194,6 +193,15 @@ public class App {
 			this.inner.addFirst(element);
 			return this;
 		}
+
+		public ArrayList<T> removeLast() {
+			this.inner.removeLast();
+			return this;
+		}
+
+		public T getLast() {
+			return this.inner.getLast();
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -368,13 +376,13 @@ public class App {
 	private static class State {
 		public final String input;
 		public ArrayList<String> segments;
-		private StringBuilder buffer;
+		private String buffer;
 		private int depth;
 		private int index;
 
 		public State(String input) {
 			this.input = input;
-			this.buffer = new StringBuilder();
+			this.buffer = "";
 			this.depth = 0;
 			this.segments = new ArrayList<String>();
 			this.index = 0;
@@ -391,8 +399,8 @@ public class App {
 		}
 
 		State advance() {
-			this.segments = this.segments.addLast(this.buffer.toString());
-			this.buffer = new StringBuilder();
+			this.segments = this.segments.addLast(this.buffer);
+			this.buffer = "";
 			return this;
 		}
 
@@ -401,7 +409,7 @@ public class App {
 		}
 
 		State append(char c) {
-			this.buffer.append(c);
+			this.buffer += c;
 			return this;
 		}
 
@@ -565,7 +573,7 @@ public class App {
 		}
 	}
 
-	private final Stack<CStructureHeader> structureHeaders;
+	private ArrayList<CStructureHeader> structureHeaders;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
 	private ArrayList<String> structures;
@@ -576,7 +584,7 @@ public class App {
 
 	public App() {
 		this.globals = new ArrayList<String>();
-		this.structureHeaders = new Stack<CStructureHeader>();
+		this.structureHeaders = new ArrayList<CStructureHeader>();
 		this.functions = new ArrayList<String>();
 		this.forwardDeclarations = new ArrayList<String>();
 		this.structures = new ArrayList<String>();
@@ -899,7 +907,7 @@ public class App {
 							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
-					this.structureHeaders.push(header);
+					this.structureHeaders = this.structureHeaders.addLast(header);
 
 					final String outputContent =
 							fields + System.lineSeparator() + this.compileStatements(content, this::compileClassSegment);
@@ -907,7 +915,7 @@ public class App {
 					final String generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
 
-					this.structureHeaders.pop();
+					this.structureHeaders = this.structureHeaders.removeLast();
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.addLast(generated);
@@ -1006,13 +1014,13 @@ public class App {
 		final CFunctionHeader header = this.compileFunctionHeader(definition);
 
 		final String headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
-		final String templateString = this.structureHeaders.peek().createTemplateString();
+		final String templateString = this.structureHeaders.getLast().createTemplateString();
 
 		final String generated;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
 
-			final CStructureHeader currentStructureType = this.structureHeaders.peek();
+			final CStructureHeader currentStructureType = this.structureHeaders.getLast();
 			final String thisDefinition = this.generateStatement(
 					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
@@ -1029,7 +1037,8 @@ public class App {
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this
 				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.cType, item.name + "_" + this.structureHeaders.peek().name))
+				.<CFunctionHeader>map(item -> new CDefinition(item.cType,
+																											item.name + "_" + this.structureHeaders.getLast().name))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
@@ -1047,12 +1056,12 @@ public class App {
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final CStructureHeader peek = this.structureHeaders.peek();
+				final CStructureHeader peek = this.structureHeaders.getLast();
 				return Option.of(new CDefinition(peek.toType(), "new_" + peek.name));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
-				final String structName = this.structureHeaders.peek().name;
+				final String structName = this.structureHeaders.getLast().name;
 				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		}
@@ -1088,7 +1097,7 @@ public class App {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureHeaders.peek().name;
+					final String structureName = this.structureHeaders.getLast().name;
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}
