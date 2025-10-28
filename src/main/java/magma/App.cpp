@@ -20,8 +20,6 @@ struct CDefinition;
 */struct CPPPrimitiveType {
 
 	char* content;};
-struct CFunctionHeader {
-};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -100,6 +98,18 @@ union CPPTypeData {
 struct CPPType {
 	CPPTypeTag tag;
 	CPPTypeData data;
+};
+enum CFunctionHeaderTag {
+	CDefinitionTag,
+	PlaceholderTag
+};
+union CFunctionHeaderData {
+	CDefinition cdefinition;
+	Placeholder placeholder;
+};
+struct CFunctionHeader {
+	CFunctionHeaderTag tag;
+	CFunctionHeaderData data;
 };
 CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
 CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
@@ -232,7 +242,7 @@ int isLevel_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.depth == 0;
 }
-Optional<Character> pop_State(void* _ref) {
+Optional<char> pop_State(void* _ref) {
 	State _this = *((State*) _ref);
 	if (_this.index < _this.input.length()) {
 		int counter = _this.index;
@@ -250,8 +260,8 @@ Stream<char*> stream_State(void* _ref) {
 }
 auto _lambda1_(auto _ref, auto next) {
 		State appended = _this.append(next);
-		return new_Tuple<Character, State>(next, appended);
-	}Optional<Tuple<Character, State>> popAndAppendToTuple_State(void* _ref) {
+		return new_Tuple<char, State>(next, appended);
+	}Optional<Tuple<char, State>> popAndAppendToTuple_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.pop().map(_lambda1_);
 }
@@ -340,11 +350,11 @@ char* compileStatements_App(void* _ref, char* input, Function<char*, char*> mapp
 	App _this = *((App*) _ref);
 	return _this.divide(input, foldStatement_this).map(mapper).collect(Collectors.joining());
 }
-Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, Character, State> folder) {
+Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, char, State> folder) {
 	App _this = *((App*) _ref);
 	State current = new_State(input);
 	while (true) {
-		Optional<Character> maybeNext = current.pop();
+		Optional<char> maybeNext = current.pop();
 		if (maybeNext.isEmpty()) {
 			break;
 		}
@@ -352,7 +362,7 @@ Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, Character, S
 	}
 	return current.advance().stream();
 }
-State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, Character, State> folder) {
+State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, char, State> folder) {
 	App _this = *((App*) _ref);
 	if (next == '\'') {
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
@@ -360,13 +370,13 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, Ch
 	if (next == '\"') {
 		State current0 = current.append(next);
 		while (true) {
-			Optional<Tuple<Character, State>> maybeTuple = current0.popAndAppendToTuple();
+			Optional<Tuple<char, State>> maybeTuple = current0.popAndAppendToTuple();
 			if (maybeTuple.isEmpty()) {
 				break;
 			}
-			Tuple<Character, State> tuple = maybeTuple.get();
+			Tuple<char, State> tuple = maybeTuple.get();
 			current0 = tuple.right;
-			Character nextInQuotes = tuple.left;
+			char nextInQuotes = tuple.left;
 			if (nextInQuotes == '\\') {
 				current0 = current0.popAndAppendToOption().orElse(current0);
 				continue;
@@ -379,14 +389,14 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, Ch
 	}
 	return folder.apply(current, next);
 }
-State foldSingleEscapeChar_App(void* _ref, Tuple<Character, State> tuple) {
+State foldSingleEscapeChar_App(void* _ref, Tuple<char, State> tuple) {
 	App _this = *((App*) _ref);
 	if (tuple.left == '\\') {
 		return tuple.right.popAndAppendToOption().orElse(tuple.right);
 	}
 	return tuple.right;
 }
-State foldStatement_App(void* _ref, State state, Character c) {
+State foldStatement_App(void* _ref, State state, char c) {
 	App _this = *((App*) _ref);
 	State appended = state.append(c);
 	if (c == ';' && appended.isLevel()) {
@@ -1091,6 +1101,9 @@ auto _lambda115_(auto _ref, auto slice) {
 Optional<CPPType> compileType_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	char* stripped = input.strip();
+	if (stripped.equals("Character")) {
+		return Optional.of(CPPPrimitiveType.Char);
+	}
 	if (stripped.equals("boolean")) {
 		return Optional.of(CPPPrimitiveType.Int);
 	}

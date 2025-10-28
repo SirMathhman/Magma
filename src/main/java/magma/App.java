@@ -43,7 +43,7 @@ public class App {
 		String getSimpleName();
 	}
 
-	private sealed interface CFunctionHeader {
+	private sealed interface CFunctionHeader permits CDefinition, Placeholder {
 		String generate();
 	}
 
@@ -1075,6 +1075,10 @@ public class App {
 
 	private Optional<CPPType> compileType(String input) {
 		final String stripped = input.strip();
+
+		if (stripped.equals("Character")) {
+			return Optional.of(CPPPrimitiveType.Char);
+		}
 
 		if (stripped.equals("boolean")) {
 			return Optional.of(CPPPrimitiveType.Int);
