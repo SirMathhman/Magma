@@ -24,6 +24,8 @@ template <typename A, typename B>
 struct Tuple;
 struct State;
 struct CDefinition;
+struct CStructureHeader;
+struct CStructure;
 /*
 */struct CPPPrimitiveType {
 
@@ -75,6 +77,14 @@ struct State {
 struct CDefinition {
 	CPPType cppType;
 	char* name;
+};
+struct CStructureHeader {
+	ArrayList<char*> typeParameters;
+	char* name;
+};
+struct CStructure {
+	CStructureHeader CStructureHeader;
+	char* fields;
 };
 struct App {
 
@@ -461,6 +471,14 @@ char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
 	return _this.cppType().generate() + " " + _this.name();
 }
+char* generate_CStructureHeader(void* _ref) {
+	CStructureHeader _this = *((CStructureHeader*) _ref);
+	return App.createTemplateString(_this.typeParameters()) + "struct " + _this.name();
+}
+char* generate_CStructure(void* _ref) {
+	CStructure _this = *((CStructure*) _ref);
+	return _this.CStructureHeader().generate() + " {" + this.fields() + "};";
+}
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
 	_this.globals = new_ArrayList<char*>();
@@ -476,13 +494,29 @@ void main_App(void* _ref, char** args) {
 	App _this = *((App*) _ref);
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
+auto _lambda5_(auto _ref, auto slice) {
+	auto _this = _ref;
+	return "typename " + slice;
+};
+char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
+	App _this = *((App*) _ref);
+	char* templateString;
+	if (typeParameters.isEmpty()) {
+		templateString = "";
+	}
+	else {
+		char* collect = typeParameters.stream().map(_lambda5_).collect(Collectors.joining(", "));
+		templateString = "template <" + collect + ">" + System.lineSeparator();
+	}
+	return templateString;
+}
 Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
 	Path source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	Result<char*, IOException> input = _this.readString(source);
-	return _switch3_;
+	return _switch7_;
 }
-auto _lambda5_(auto _ref) {
+auto _lambda9_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileNative(target);
 };
@@ -490,16 +524,16 @@ Option<IOException> compilePath_App(void* _ref, Path source, char* input) {
 	App _this = *((App*) _ref);
 	Path target = source.resolveSibling("App.cpp");
 	char* output = _this.compile(input);
-	return _this.writeString(target, output).or(_lambda5_);
+	return _this.writeString(target, output).or(_lambda9_);
 }
 Option<IOException> compileNative_App(void* _ref, Path target) {
 	App _this = *((App*) _ref);
 	Result<Process, IOException> clang = _this.startCommand(ArrayList.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _switch7_;
+	return _switch11_;
 }
 Option<IOException> waitForProcess_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
-	return _switch9_;
+	return _switch13_;
 }
 Result<Integer, IOException> waitFor_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
@@ -599,7 +633,7 @@ State foldStatement_App(void* _ref, State state, char c) {
 		}*/
 	return appended;
 }
-auto _lambda11_(auto _ref) {
+auto _lambda15_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
@@ -609,19 +643,15 @@ char* compileRootSegment_App(void* _ref, char* input) {
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return _this.compileStructure("class", stripped).orElseGet(_lambda11_);
+	return _this.compileStructure("class", stripped).orElseGet(_lambda15_);
 }
-auto _lambda16_(auto _ref, auto slice) {
-	auto _this = _ref;
-	return /*!slice*/.isEmpty();
-};
-auto _lambda21_(auto _ref, auto slice) {
+auto _lambda20_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 auto _lambda25_(auto _ref, auto slice) {
 	auto _this = _ref;
-	return "typename " + slice;
+	return /*!slice*/.isEmpty();
 };
 auto _lambda29_(auto _ref, auto content1) {
 	auto _this = _ref;
@@ -655,7 +685,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 				if (permitsIndex >= 0) {
 					char** variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
-					variants = new_ArrayList<char*>(Arrays.stream(variantsArray).map(strip_char*).filter(_lambda16_).toList());
+					variants = new_ArrayList<char*>(Arrays.stream(variantsArray).map(strip_char*).filter(_lambda20_).toList());
 				}
 				int implementsIndex = beforeContent.indexOf("implements");
 				Option<CPPType> maybeInterfaceType = Option.empty();
@@ -682,20 +712,13 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						char** typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-						typeParameters = new_ArrayList<char*>(Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda21_).toList());
+						typeParameters = new_ArrayList<char*>(Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda25_).toList());
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
 					return Option.empty();
 				}
-				char* templateString;
-				if (typeParameters.isEmpty()) {
-					templateString = "";
-				}
-				else {
-					char* collect = typeParameters.stream().map(_lambda25_).collect(Collectors.joining(", "));
-					templateString = "template <" + collect + ">" + System.lineSeparator();
-				}
+				char* templateString = App.createTemplateString(typeParameters);
 				char* dependencies;
 				if (variants.isEmpty()) {
 					dependencies = "";
@@ -731,7 +754,9 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					thisType = new_CTemplateType(beforeContent, list);
 				}
 				_this.structureTypes.push(thisType);
-				char* generated = dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this) + "};" + System.lineSeparator();
+				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
+				CStructureHeader header = new_CStructureHeader(typeParameters, beforeContent);
+				char* generated = dependencies + new_CStructure(header, outputContent).generate() + System.lineSeparator();
 				_this.structureTypes.pop();
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.add(generated);

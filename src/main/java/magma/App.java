@@ -360,6 +360,19 @@ public class App {
 		}
 	}
 
+	private record CStructureHeader(ArrayList<String> typeParameters, String name) {
+		private String generate() {
+			return App.createTemplateString(this.typeParameters()) + "struct " + this.name();
+		}
+	}
+
+	private record CStructure(CStructureHeader CStructureHeader, String fields) {
+		private String generate() {
+			return this.CStructureHeader().generate() + " {" + this.fields() + "};";
+		}
+
+	}
+
 	private final Stack<CPPType> structureTypes;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
@@ -382,6 +395,18 @@ public class App {
 
 	public static void main(String[] args) {
 		new App().run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static String createTemplateString(ArrayList<String> typeParameters) {
+		String templateString;
+		if (typeParameters.isEmpty()) {
+			templateString = "";
+		} else {
+			final String collect =
+					typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+			templateString = "template <" + collect + ">" + System.lineSeparator();
+		}
+		return templateString;
 	}
 
 	private Option<IOException> run() {
@@ -629,14 +654,7 @@ public class App {
 						return Option.empty();
 					}
 
-					String templateString;
-					if (typeParameters.isEmpty()) {
-						templateString = "";
-					} else {
-						final String collect =
-								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
-						templateString = "template <" + collect + ">" + System.lineSeparator();
-					}
+					final String templateString = App.createTemplateString(typeParameters);
 
 					String dependencies;
 					if (variants.isEmpty()) {
@@ -699,9 +717,14 @@ public class App {
 					}
 
 					this.structureTypes.push(thisType);
+
+					final String outputContent =
+							fields + System.lineSeparator() + this.compileStatements(content, this::compileClassSegment);
+
+					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
 					final String generated =
-							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
-							this.compileStatements(content, this::compileClassSegment) + "};" + System.lineSeparator();
+							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+
 					this.structureTypes.pop();
 
 					if (variants.isEmpty()) {
@@ -1181,8 +1204,7 @@ public class App {
 		if (i1 >= 0) {
 			final String substring = stripped.substring(0, i1);
 			final String substring1 = stripped.substring(i1 + separator.length());
-			return Option.of(
-					this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
+			return Option.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
 		}
 
 		return Option.empty();

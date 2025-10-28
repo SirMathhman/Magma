@@ -1,87 +1,87 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:33:2: error: no template named 'List'
-   33 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:35:2: error: no template named 'List'
+   35 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:51:10: error: field has incomplete type 'CPPType'
-   51 |         CPPType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:53:10: error: field has incomplete type 'CPPType'
+   53 |         CPPType type;
       |                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CPPType'
     5 | struct CPPType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:72:2: error: unknown type name 'StringBuilder'
-   72 |         StringBuilder buffer;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:74:2: error: unknown type name 'StringBuilder'
+   74 |         StringBuilder buffer;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:76:10: error: field has incomplete type 'CPPType'
-   76 |         CPPType cppType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:78:10: error: field has incomplete type 'CPPType'
+   78 |         CPPType cppType;
       |                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CPPType'
     5 | struct CPPType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:81:2: error: no template named 'Stack'
-   81 |         Stack<CPPType> structureTypes;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:91:2: error: no template named 'Stack'
+   91 |         Stack<CPPType> structureTypes;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:123:2: error: redefinition of enumerator 'PlaceholderTag'
-  123 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:133:2: error: redefinition of enumerator 'PlaceholderTag'
+  133 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:108:2: note: previous definition is here
-  108 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:118:2: note: previous definition is here
+  118 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:147:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  147 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:157:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  157 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:148:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  148 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  158 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:149:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  149 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:159:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  159 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
       |                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:171:8: error: use of undeclared identifier 'T'
-  171 | Option<T> of_Option(void* _ref, T element) {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:171:33: error: unknown type name 'T'
-  171 | Option<T> of_Option(void* _ref, T element) {
-      |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:172:9: error: use of undeclared identifier 'T'
-  172 |         Option<T> _this = *((Option*) _ref);
-      |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:172:23: error: use of class template 'Option' requires template arguments
-  172 |         Option<T> _this = *((Option*) _ref);
-      |                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:143:8: note: template is declared here
-  142 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-  143 | struct Option {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:173:18: error: use of undeclared identifier 'T'
-  173 |         return new_Some<T>(element);
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:175:8: error: use of undeclared identifier 'T'
-  175 | Option<T> empty_Option(void* _ref) {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:176:9: error: use of undeclared identifier 'T'
-  176 |         Option<T> _this = *((Option*) _ref);
-      |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:176:23: error: use of class template 'Option' requires template arguments
-  176 |         Option<T> _this = *((Option*) _ref);
-      |                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:143:8: note: template is declared here
-  142 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-  143 | struct Option {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:177:18: error: use of undeclared identifier 'T'
-  177 |         return new_None<T>();
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:179:8: error: use of undeclared identifier 'R'
-  179 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:179:43: error: use of undeclared identifier 'T'
-  179 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |                                           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:180:44: error: use of undeclared identifier 'T'
-  180 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
-      |                                            ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:181:8: error: use of undeclared identifier 'T'
-  181 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+  181 | Option<T> of_Option(void* _ref, T element) {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:181:33: error: unknown type name 'T'
+  181 | Option<T> of_Option(void* _ref, T element) {
+      |                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:182:9: error: use of undeclared identifier 'T'
+  182 |         Option<T> _this = *((Option*) _ref);
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:182:23: error: use of class template 'Option' requires template arguments
+  182 |         Option<T> _this = *((Option*) _ref);
+      |                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:153:8: note: template is declared here
+  152 | template <typename T>
+      | ~~~~~~~~~~~~~~~~~~~~~
+  153 | struct Option {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:183:18: error: use of undeclared identifier 'T'
+  183 |         return new_Some<T>(element);
+      |                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:185:8: error: use of undeclared identifier 'T'
+  185 | Option<T> empty_Option(void* _ref) {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:9: error: use of undeclared identifier 'T'
+  186 |         Option<T> _this = *((Option*) _ref);
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:23: error: use of class template 'Option' requires template arguments
+  186 |         Option<T> _this = *((Option*) _ref);
+      |                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:153:8: note: template is declared here
+  152 | template <typename T>
+      | ~~~~~~~~~~~~~~~~~~~~~
+  153 | struct Option {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:187:18: error: use of undeclared identifier 'T'
+  187 |         return new_None<T>();
+      |                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:189:8: error: use of undeclared identifier 'R'
+  189 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:189:43: error: use of undeclared identifier 'T'
+  189 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                           ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:190:44: error: use of undeclared identifier 'T'
+  190 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
+      |                                            ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:8: error: use of undeclared identifier 'T'
+  191 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
