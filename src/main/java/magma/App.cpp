@@ -320,7 +320,7 @@ template <typename T>
 SingleHead<T> new_SingleHead(void* _ref, T element) {
 	SingleHead<T> _this = *((SingleHead*) _ref);
 	_this.element = element;
-	_this.retrieved = /*false*/;
+	_this.retrieved = 0;
 }
 template <typename T>
 Option<T> next_SingleHead(void* _ref) {
@@ -328,7 +328,7 @@ Option<T> next_SingleHead(void* _ref) {
 	if (_this.retrieved) {
 		return new_None<T>();
 	}
-	_this.retrieved = /*true*/;
+	_this.retrieved = 1;
 	return new_Some<T>(_this.element);
 }
 template <typename T>
@@ -362,7 +362,7 @@ template <typename T, typename R>
 R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
 	Stream<T> _this = *((Stream*) _ref);
 	var current = initial;
-	while (/*true*/) {
+	while (1) {
 		var maybeNext = _this.head.next();
 		if (/*maybeNext instanceof Some*/ < /*T>*/(/*var next*/)) {
 			/*current*/ = folder.apply(/*current*/, /*next*/);
@@ -511,7 +511,7 @@ Option<T> or_Some(void* _ref, Supplier<Option<T>> other) {
 template <typename T>
 int isEmpty_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
-	return /*false*/;
+	return 0;
 }
 template <typename T>
 T get_Some(void* _ref) {
@@ -536,7 +536,7 @@ T orElseGet_Some(void* _ref, Supplier<T> other) {
 template <typename T>
 int isPresent_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
-	return /*true*/;
+	return 1;
 }
 template <typename T>
 Stream<T> stream_Some(void* _ref) {
@@ -567,7 +567,7 @@ Option<T> or_None(void* _ref, Supplier<Option<T>> other) {
 template <typename T>
 int isEmpty_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
-	return /*true*/;
+	return 1;
 }
 template <typename T>
 T get_None(void* _ref) {
@@ -592,7 +592,7 @@ T orElseGet_None(void* _ref, Supplier<T> other) {
 template <typename T>
 int isPresent_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
-	return /*false*/;
+	return 0;
 }
 template <typename T>
 Stream<T> stream_None(void* _ref) {
@@ -832,7 +832,7 @@ FlatMapHead<T, R> new_FlatMapHead(void* _ref, Head<T> head, Function<T, Stream<R
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref) {
 	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
-	while (/*true*/) {
+	while (1) {
 		var maybeNext = _this.current.next();
 		if (/*maybeNext*/.isPresent()) {
 			return /*maybeNext*/;
@@ -948,7 +948,7 @@ char* compileStatements_App(void* _ref, char* input, Function<char*, char*> mapp
 Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, char, State> folder) {
 	App _this = *((App*) _ref);
 	var current = new_State(input);
-	while (/*true*/) {
+	while (1) {
 		var maybeNext = /*current*/.pop();
 		if (/*maybeNext*/.isEmpty()) {
 			break;
@@ -964,7 +964,7 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, ch
 	}
 	if (next == '\"') {
 		var current0 = current.append(next);
-		while (/*true*/) {
+		while (1) {
 			var maybeTuple = /*current0*/.popAndAppendToTuple();
 			if (/*maybeTuple*/.isEmpty()) {
 				break;
@@ -1175,7 +1175,7 @@ int isIdentifier_App(void* _ref, char* input) {
 			if (Character.isLetter(next) || (i != 0 && Character.isDigit(next))) {continue;}
 			return false;
 		}*/
-	return /*true*/;
+	return 1;
 }
 auto _lambda44_(auto _ref) {
 	auto _this = _ref;
@@ -1479,6 +1479,12 @@ auto _lambda91_(auto _ref) {
 char* compileExpression_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	var stripped = input.strip();
+	if (/*stripped*/.equals("false")) {
+		return "0";
+	}
+	if (/*stripped*/.equals("true")) {
+		return "1";
+	}
 	if (/*stripped*/.startsWith("'") && /*stripped*/.endsWith("'")) {
 		return /*stripped*/;
 	}
@@ -1635,7 +1641,7 @@ int isNumber_App(void* _ref, char* input) {
 				return false;
 			}
 		}*/
-	return /*true*/;
+	return 1;
 }
 auto _lambda110_(auto _ref, auto slice) {
 	auto _this = _ref;

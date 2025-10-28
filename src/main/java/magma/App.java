@@ -1277,6 +1277,13 @@ public class App {
 
 	private String compileExpression(String input) {
 		final var stripped = input.strip();
+		if (stripped.equals("false")) {
+			return "0";
+		}
+
+		if (stripped.equals("true")) {
+			return "1";
+		}
 
 		if (stripped.startsWith("'") && stripped.endsWith("'")) {
 			return stripped;
