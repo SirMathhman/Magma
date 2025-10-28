@@ -586,7 +586,6 @@ public class App {
 	}
 
 	private record Joiner(String delimiter) implements Collector<String, String> {
-
 		@Override
 		public String createInitial() {
 			return "";
@@ -601,6 +600,7 @@ public class App {
 		}
 	}
 
+	private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty();
 	private ArrayList<CStructureHeader> structureHeaders;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
@@ -1034,12 +1034,20 @@ public class App {
 
 		final var paramEnd = withParams.indexOf(")");
 		if (paramEnd < 0) {return Option.empty();}
-		final var params = withParams.substring(0, paramEnd).strip();
+		final var inputParams = withParams.substring(0, paramEnd).strip();
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final var header = this.compileFunctionHeader(definition);
 
-		final var headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
+		final var params = this.compileParametersToList(inputParams);
+		final var outputParams = params
+				.copy()
+				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
+				.stream()
+				.map(CDefinition::generate)
+				.collect(new Joiner(", "));
+
+		final var headerWithParameters = header.generate() + "(" + outputParams + ")";
 
 		final ArrayList<String> typeParameters;
 		if (header instanceof CDefinition definition1) {
@@ -1058,8 +1066,12 @@ public class App {
 			final var thisDefinition = this.generateStatement(
 					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
+			this.definitions = this.definitions.addLast(params);
+
 			generated = templateString + headerWithParameters + " {" + thisDefinition + this.compileMethodSegments(content) +
 									System.lineSeparator() + "}" + System.lineSeparator();
+
+			this.definitions = this.definitions.removeLast();
 		} else {
 			generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		}
@@ -1297,7 +1309,15 @@ public class App {
 			if (stripped.equals("this")) {
 				return "_this";
 			}
-			return stripped;
+
+			if (this.definitions
+					.stream()
+					.flatMap(ArrayList::stream)
+					.filter(definition -> definition.name.endsWith(stripped)).head
+					.next()
+					.isPresent()) {
+				return stripped;
+			}
 		}
 
 		if (stripped.startsWith("switch")) {
@@ -1444,16 +1464,6 @@ public class App {
 		}
 
 		return true;
-	}
-
-	private String compileParameters(String input) {
-		return this
-				.compileParametersToList(input)
-				.copy()
-				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
-				.stream()
-				.map(CDefinition::generate)
-				.collect(new Joiner(", "));
 	}
 
 	private ArrayList<CDefinition> compileParametersToList(String input) {
