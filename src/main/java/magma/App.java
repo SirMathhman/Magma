@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Pattern;
@@ -208,15 +206,17 @@ public class App {
 	private static final class ArrayList<T> {
 		private final List<T> inner;
 
-		private ArrayList(List<T> inner) {this.inner = inner;}
-
 		private ArrayList() {
-			this(new java.util.ArrayList<T>());
+			this.inner = new java.util.ArrayList<T>();
 		}
 
 		@SafeVarargs
 		public static <T> ArrayList<T> of(T... elements) {
-			return new ArrayList<T>(new java.util.ArrayList<T>(Arrays.asList(elements)));
+			var current = new ArrayList<T>();
+			for (var i = 0; i < elements.length; i++) {
+				current = current.addLast(elements[i]);
+			}
+			return current;
 		}
 
 		public static <T> ArrayList<T> empty() {
@@ -246,7 +246,7 @@ public class App {
 		}
 
 		public ArrayList<T> copy() {
-			return new ArrayList<T>(new java.util.ArrayList<T>(this.inner));
+			return this.stream().collect(new ListCollector<T>());
 		}
 
 		public ArrayList<T> addFirst(T element) {
@@ -280,9 +280,11 @@ public class App {
 		}
 
 		public ArrayList<T> reverse() {
-			final var copy = new java.util.ArrayList<T>(this.inner);
-			Collections.reverse(copy);
-			return new ArrayList<T>(copy);
+			var current = new ArrayList<T>();
+			for (var i = 0; i < this.inner.size(); i++) {
+				current = current.addLast(this.inner.get(this.inner.size() - i - 1));
+			}
+			return current;
 		}
 	}
 
@@ -971,6 +973,24 @@ public class App {
 		}
 	}
 
+	private static class ArrayHead<T> implements Head<T> {
+		private final T[] array;
+		private int counter = 0;
+
+		public ArrayHead(T[] array) {this.array = array;}
+
+		@Override
+		public Option<T> next() {
+			if (this.counter >= this.array.length) {
+				return new None<T>();
+			}
+
+			final var element = this.array[this.counter];
+			this.counter++;
+			return new Some<T>(element);
+		}
+	}
+
 	private Frames frames;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
@@ -1218,11 +1238,10 @@ public class App {
 						final var variantsArray =
 								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 						beforeContent = beforeContent.substring(0, permitsIndex).strip();
-						variants = new ArrayList<String>(Arrays
-																								 .stream(variantsArray)
-																								 .map(String::strip)
-																								 .filter(slice -> !slice.isEmpty())
-																								 .toList());
+						variants = new Stream<String>(new ArrayHead<String>(variantsArray))
+								.map(String::strip)
+								.filter(slice -> !slice.isEmpty())
+								.toList();
 					}
 
 					final var implementsIndex = beforeContent.indexOf("implements");
@@ -1252,11 +1271,10 @@ public class App {
 						if (typeParamStart >= 0) {
 							beforeContent = withoutEnd.substring(0, typeParamStart);
 							final var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-							typeParameters = new ArrayList<String>(Arrays
-																												 .stream(typeParamsArray)
-																												 .map(String::strip)
-																												 .filter(slice -> !slice.isEmpty())
-																												 .toList());
+							typeParameters = new Stream<String>(new ArrayHead<String>(typeParamsArray))
+									.map(String::strip)
+									.filter(slice -> !slice.isEmpty())
+									.toList();
 						}
 					}
 
@@ -1576,11 +1594,10 @@ public class App {
 	}
 
 	private Option<CStructureMember> compileEnumValues(String input) {
-		final var segments = new ArrayList<String>(Arrays
-																									 .stream(input.split(Pattern.quote(",")))
-																									 .map(String::strip)
-																									 .filter(slice -> !slice.isEmpty())
-																									 .toList());
+		final var segments = new Stream<String>(new ArrayHead<String>(input.split(Pattern.quote(","))))
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.toList();
 
 		for (var segment : segments.inner) {
 			final var stripped = segment.strip();

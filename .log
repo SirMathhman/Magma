@@ -1,100 +1,100 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:2: error: no template named 'List'
-  192 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:194:2: error: no template named 'List'
+  194 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:234:8: error: field has incomplete type 'CType'
-  234 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:236:8: error: field has incomplete type 'CType'
+  236 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:285:8: error: field has incomplete type 'CType'
-  285 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:287:8: error: field has incomplete type 'CType'
+  287 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:376:2: error: unknown type name 'CExpression'
-  376 |         CExpression child;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:378:2: error: unknown type name 'CExpression'
+  378 |         CExpression child;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:392:2: error: unknown type name 'java'
-  392 |         java.util.HashMap<K, V> internal;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:394:2: error: unknown type name 'java'
+  394 |         java.util.HashMap<K, V> internal;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:392:6: error: expected member name or ';' after declaration specifiers
-  392 |         java.util.HashMap<K, V> internal;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:394:6: error: expected member name or ';' after declaration specifiers
+  394 |         java.util.HashMap<K, V> internal;
       |         ~~~~^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:416:8: error: field has incomplete type 'CType'
-  416 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:418:8: error: field has incomplete type 'CType'
+  418 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:423:10: error: field has incomplete type 'CCaller'
-  423 |         CCaller caller;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:425:10: error: field has incomplete type 'CCaller'
+  425 |         CCaller caller;
       |                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:25:8: note: forward declaration of 'CCaller'
    25 | struct CCaller;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:424:12: error: use of undeclared identifier 'CExpression'
-  424 |         ArrayList<CExpression> arguments;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:426:12: error: use of undeclared identifier 'CExpression'
+  426 |         ArrayList<CExpression> arguments;
       |                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:438:8: error: field has incomplete type 'CType'
-  438 |         CType returnType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:440:8: error: field has incomplete type 'CType'
+  440 |         CType returnType;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:446:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
-  446 |         Option<CStructureHeader> maybeHeader;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:448:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
+  448 |         Option<CStructureHeader> maybeHeader;
       |                                  ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:20:8: note: template is declared here
    20 | struct Option;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:466:2: error: unknown type name 'ResultTag'; did you mean 'Result'?
-  466 |         ResultTag tag;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:478:2: error: unknown type name 'ResultTag'; did you mean 'Result'?
+  478 |         ResultTag tag;
       |         ^~~~~~~~~
       |         Result
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:465:8: note: 'Result' declared here
-  465 | struct Result {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:477:8: note: 'Result' declared here
+  477 | struct Result {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:467:2: error: no template named 'ResultData'
-  467 |         ResultData<T, X> data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:479:2: error: no template named 'ResultData'
+  479 |         ResultData<T, X> data;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:470:2: error: unknown type name 'CTypeTag'
-  470 |         CTypeTag tag;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:482:2: error: unknown type name 'CTypeTag'
+  482 |         CTypeTag tag;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:471:2: error: unknown type name 'CTypeData'; did you mean 'CNodeData'?
-  471 |         CTypeData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:483:2: error: unknown type name 'CTypeData'; did you mean 'CNodeData'?
+  483 |         CTypeData data;
       |         ^~~~~~~~~
       |         CNodeData
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:144:7: note: 'CNodeData' declared here
-  144 | union CNodeData {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:146:7: note: 'CNodeData' declared here
+  146 | union CNodeData {
       |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:474:2: error: unknown type name 'CFunctionHeaderTag'; did you mean 'CFunctionHeader'?
-  474 |         CFunctionHeaderTag tag;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:486:2: error: unknown type name 'CFunctionHeaderTag'; did you mean 'CFunctionHeader'?
+  486 |         CFunctionHeaderTag tag;
       |         ^~~~~~~~~~~~~~~~~~
       |         CFunctionHeader
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:473:8: note: 'CFunctionHeader' declared here
-  473 | struct CFunctionHeader {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:485:8: note: 'CFunctionHeader' declared here
+  485 | struct CFunctionHeader {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:474:21: error: field has incomplete type 'CFunctionHeader'
-  474 |         CFunctionHeaderTag tag;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:486:21: error: field has incomplete type 'CFunctionHeader'
+  486 |         CFunctionHeaderTag tag;
       |                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:473:8: note: definition of 'CFunctionHeader' is not complete until the closing '}'
-  473 | struct CFunctionHeader {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:485:8: note: definition of 'CFunctionHeader' is not complete until the closing '}'
+  485 | struct CFunctionHeader {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:475:2: error: unknown type name 'CFunctionHeaderData'; did you mean 'CFunctionHeader'?
-  475 |         CFunctionHeaderData data;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:487:2: error: unknown type name 'CFunctionHeaderData'; did you mean 'CFunctionHeader'?
+  487 |         CFunctionHeaderData data;
       |         ^~~~~~~~~~~~~~~~~~~
       |         CFunctionHeader
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:473:8: note: 'CFunctionHeader' declared here
-  473 | struct CFunctionHeader {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:485:8: note: 'CFunctionHeader' declared here
+  485 | struct CFunctionHeader {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:479:2: error: unknown type name 'OptionTag'; did you mean 'Option'?
-  479 |         OptionTag tag;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:491:2: error: unknown type name 'OptionTag'; did you mean 'Option'?
+  491 |         OptionTag tag;
       |         ^~~~~~~~~
       |         Option
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:478:8: note: 'Option' declared here
-  478 | struct Option {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:490:8: note: 'Option' declared here
+  490 | struct Option {
       |        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 20 errors generated.
