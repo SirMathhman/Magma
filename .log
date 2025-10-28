@@ -1,165 +1,174 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:107:2: error: no template named 'List'
-  107 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:106:2: error: no template named 'List'
+  106 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:125:8: error: field has incomplete type 'CType'
-  125 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:124:8: error: field has incomplete type 'CType'
+  124 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:151:8: error: field has incomplete type 'CType'
-  151 |         CType cType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:150:8: error: field has incomplete type 'CType'
+  150 |         CType cType;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:237:2: error: redefinition of enumerator 'PlaceholderTag'
-  237 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:193:14: error: field has incomplete type 'CExpression'
+  193 |         CExpression child;
+      |                     ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:25:8: note: forward declaration of 'CExpression'
+   25 | struct CExpression;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:240:2: error: redefinition of enumerator 'PlaceholderTag'
+  240 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:2: note: previous definition is here
-  222 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:225:2: note: previous definition is here
+  225 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:264:2: error: redefinition of enumerator 'PlaceholderTag'
-  264 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:267:2: error: redefinition of enumerator 'PlaceholderTag'
+  267 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:2: note: previous definition is here
-  222 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:225:2: note: previous definition is here
+  225 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:275:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  275 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:281:2: error: redefinition of enumerator 'CIdentifierTag'
+  281 |         CIdentifierTag,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:221:2: note: previous definition is here
+  221 |         CIdentifierTag,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:282:2: error: redefinition of enumerator 'PlaceholderTag'
+  282 |         PlaceholderTag
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:225:2: note: previous definition is here
+  225 |         PlaceholderTag
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:294:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  294 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:276:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  276 | CPrimitiveType CharValue = CPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:295:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  295 | CPrimitiveType CharValue = CPrimitiveType { "char" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:277:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  277 | CPrimitiveType IntValue = CPrimitiveType { "int" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:296:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  296 | CPrimitiveType IntValue = CPrimitiveType { "int" };
       |                                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
+  332 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:20: note: template parameter is declared here
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:20: note: template parameter is declared here
+  332 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:314:8: error: reference to 'T' is ambiguous
-  314 | Option<T> of_Option(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:8: error: reference to 'T' is ambiguous
+  333 | Option<T> of_Option(void* _ref, T element) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:32: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:32: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:20: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:20: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:314:8: error: reference to 'T' is ambiguous
-  314 | Option<T> of_Option(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:8: error: reference to 'T' is ambiguous
+  333 | Option<T> of_Option(void* _ref, T element) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:32: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:32: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:20: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:20: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:314:33: error: reference to 'T' is ambiguous
-  314 | Option<T> of_Option(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:33: error: reference to 'T' is ambiguous
+  333 | Option<T> of_Option(void* _ref, T element) {
       |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:32: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:32: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:313:20: note: candidate found by name lookup is 'T'
-  313 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:332:20: note: candidate found by name lookup is 'T'
+  332 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
+  337 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:20: note: template parameter is declared here
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:20: note: template parameter is declared here
+  337 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:319:8: error: reference to 'T' is ambiguous
-  319 | Option<T> empty_Option(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:338:8: error: reference to 'T' is ambiguous
+  338 | Option<T> empty_Option(void* _ref) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:32: note: candidate found by name lookup is 'T'
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:32: note: candidate found by name lookup is 'T'
+  337 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:20: note: candidate found by name lookup is 'T'
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:20: note: candidate found by name lookup is 'T'
+  337 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:319:8: error: reference to 'T' is ambiguous
-  319 | Option<T> empty_Option(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:338:8: error: reference to 'T' is ambiguous
+  338 | Option<T> empty_Option(void* _ref) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:32: note: candidate found by name lookup is 'T'
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:32: note: candidate found by name lookup is 'T'
+  337 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:318:20: note: candidate found by name lookup is 'T'
-  318 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:20: note: candidate found by name lookup is 'T'
+  337 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
+  401 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:20: note: template parameter is declared here
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:20: note: template parameter is declared here
+  401 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:383:8: error: reference to 'T' is ambiguous
-  383 | Stream<T> of_Stream(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:402:8: error: reference to 'T' is ambiguous
+  402 | Stream<T> of_Stream(void* _ref, T element) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:32: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:32: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:20: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:20: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:383:8: error: reference to 'T' is ambiguous
-  383 | Stream<T> of_Stream(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:402:8: error: reference to 'T' is ambiguous
+  402 | Stream<T> of_Stream(void* _ref, T element) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:32: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:32: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:20: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:20: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:383:33: error: reference to 'T' is ambiguous
-  383 | Stream<T> of_Stream(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:402:33: error: reference to 'T' is ambiguous
+  402 | Stream<T> of_Stream(void* _ref, T element) {
       |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:32: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:32: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:382:20: note: candidate found by name lookup is 'T'
-  382 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:401:20: note: candidate found by name lookup is 'T'
+  401 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
+  406 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:20: note: template parameter is declared here
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:20: note: template parameter is declared here
+  406 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:388:8: error: reference to 'T' is ambiguous
-  388 | Stream<T> empty_Stream(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:407:8: error: reference to 'T' is ambiguous
+  407 | Stream<T> empty_Stream(void* _ref) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:32: note: candidate found by name lookup is 'T'
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:32: note: candidate found by name lookup is 'T'
+  406 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:20: note: candidate found by name lookup is 'T'
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:20: note: candidate found by name lookup is 'T'
+  406 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:388:8: error: reference to 'T' is ambiguous
-  388 | Stream<T> empty_Stream(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:407:8: error: reference to 'T' is ambiguous
+  407 | Stream<T> empty_Stream(void* _ref) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:32: note: candidate found by name lookup is 'T'
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:32: note: candidate found by name lookup is 'T'
+  406 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:20: note: candidate found by name lookup is 'T'
-  387 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:20: note: candidate found by name lookup is 'T'
+  406 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:421:16: error: 'auto' not allowed in function prototype
-  421 | auto _lambda1_(auto _ref, auto element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:441:16: error: 'auto' not allowed in function prototype
+  441 | auto _lambda1_(auto _ref, auto element) {
       |                ^~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:421:27: error: 'auto' not allowed in function prototype
-  421 | auto _lambda1_(auto _ref, auto element) {
-      |                           ^~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:423:49: error: expected expression
-  423 |         return _this.applyFilter(predicate, /*element*/);
-      |                                                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:423:27: error: use of undeclared identifier 'predicate'
-  423 |         return _this.applyFilter(predicate, /*element*/);
-      |                                  ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 7 warnings and 20 errors generated.
 Compilation failed with exit code: 1

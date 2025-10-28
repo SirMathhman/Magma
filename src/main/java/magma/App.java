@@ -107,7 +107,7 @@ public class App {
 		String generate();
 	}
 
-	private interface CExpression {
+	private sealed interface CExpression permits CContent, CFieldAccess, CIdentifier, Placeholder {
 		String generate();
 	}
 
@@ -153,7 +153,8 @@ public class App {
 		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
 			var current = initial;
 			while (true) {
-				final var maybeNext = this.head.next();
+				final var head1 = this.head;
+				final var maybeNext = head1.next();
 				if (maybeNext instanceof Some<T>(var next)) {
 					current = folder.apply(current, next);
 				} else {
@@ -645,12 +646,24 @@ public class App {
 		}
 	}
 
-	private record CContent(String generate) implements CNode, CExpression {}
+	private record CContent(String content) implements CNode, CExpression {
+		@Override
+		public String generate() {
+			return this.content;
+		}
+	}
 
 	private record CStatement(CNode content1, int depth) implements CStructureSegment {
 		@Override
 		public String generate() {
 			return App.generateWithIndent(this.content1().generate(), this.depth()) + ";";
+		}
+	}
+
+	private record CFieldAccess(CExpression child, String name) implements CExpression {
+		@Override
+		public String generate() {
+			return this.child.generate() + "." + this.name;
 		}
 	}
 
@@ -1371,9 +1384,15 @@ public class App {
 	private CType resolveExpression(CExpression expression) {
 		return switch (expression) {
 			case CIdentifier identifier -> this.resolveIdentifier(identifier);
-			default -> {
-				yield new Placeholder("???");
+			case CContent cContent -> new Placeholder(cContent.content);
+			case CFieldAccess cFieldAccess -> {
+				final var childType = this.resolveExpression(cFieldAccess.child);
+				if (childType instanceof CIdentifier identifier) {
+				}
+
+				yield new Placeholder("Not an identifier: '" + childType + "'");
 			}
+			case Placeholder placeholder -> placeholder;
 		};
 	}
 
@@ -1442,7 +1461,8 @@ public class App {
 			final var child = stripped.substring(0, i).strip();
 			final var name = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				return new CContent(this.compileExpression(child) + "." + name);
+				final var newChild = this.parseExpression(child);
+				return new CFieldAccess(newChild, name);
 			}
 		}
 
