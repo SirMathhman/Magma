@@ -1,78 +1,78 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:72:2: error: no template named 'List'
-   72 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:77:2: error: no template named 'List'
+   77 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:90:8: error: field has incomplete type 'CType'
-   90 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:95:8: error: field has incomplete type 'CType'
+   95 |         CType type;
       |               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:9:8: note: forward declaration of 'CType'
-    9 | struct CType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:11:8: note: forward declaration of 'CType'
+   11 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:115:8: error: field has incomplete type 'CType'
-  115 |         CType cType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:120:8: error: field has incomplete type 'CType'
+  120 |         CType cType;
       |               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:9:8: note: forward declaration of 'CType'
-    9 | struct CType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:11:8: note: forward declaration of 'CType'
+   11 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:2: error: no template named 'Function'
-  129 |         Function<T, R> mapper;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:197:2: error: redefinition of enumerator 'PlaceholderTag'
+  197 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:143:2: error: no template named 'Function'
-  143 |         Function<T, Stream<R>> mapper;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:182:2: note: previous definition is here
+  182 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:2: error: redefinition of enumerator 'PlaceholderTag'
-  192 |         PlaceholderTag
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:177:2: note: previous definition is here
-  177 |         PlaceholderTag
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:216:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  216 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:221:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  221 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:217:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  217 | CPrimitiveType CharValue = CPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  222 | CPrimitiveType CharValue = CPrimitiveType { "char" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:218:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  218 | CPrimitiveType IntValue = CPrimitiveType { "int" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:223:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  223 | CPrimitiveType IntValue = CPrimitiveType { "int" };
       |                                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:8: error: use of undeclared identifier 'R'
-  257 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:264:8: error: use of undeclared identifier 'R'
+  264 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:46: error: use of undeclared identifier 'R'
-  257 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:264:46: error: use of undeclared identifier 'R'
+  264 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:259:35: error: no template named 'Consumer'
-  259 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:266:35: error: no template named 'Consumer'
+  266 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
       |                                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:261:33: error: no template named 'Supplier'
-  261 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:268:33: error: no template named 'Supplier'
+  268 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:267:8: error: use of undeclared identifier 'R'
-  267 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:274:8: error: use of undeclared identifier 'R'
+  274 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:267:57: error: use of undeclared identifier 'R'
-  267 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:274:57: error: use of undeclared identifier 'R'
+  274 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
       |                                                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:271:32: error: no template named 'Supplier'
-  271 | T orElseGet_Option(void* _ref, Supplier<T> other);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:278:32: error: no template named 'Supplier'
+  278 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:321:8: error: use of undeclared identifier 'R'
-  321 | Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:328:8: error: use of undeclared identifier 'R'
+  328 | Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:321:46: error: use of undeclared identifier 'R'
-  321 | Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:328:46: error: use of undeclared identifier 'R'
+  328 | Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
       |                                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:326:1: error: unknown type name 'R'
-  326 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:1: error: unknown type name 'R'
+  333 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
       | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:326:27: error: unknown type name 'R'
-  326 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:27: error: unknown type name 'R'
+  333 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
       |                           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:326:49: error: use of undeclared identifier 'R'
-  326 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:333:49: error: use of undeclared identifier 'R'
+  333 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:340:1: error: unknown type name 'C'
-  340 | C collect_Stream(void* _ref, Collector<T, C> collector) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:347:1: error: unknown type name 'C'
+  347 | C collect_Stream(void* _ref, Collector<T, C> collector) {
       | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:347:43: error: use of undeclared identifier 'C'
+  347 | C collect_Stream(void* _ref, Collector<T, C> collector) {
+      |                                           ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:356:16: error: 'auto' not allowed in function prototype
+  356 | auto _lambda1_(auto _ref, auto element) {
+      |                ^~~~
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1
