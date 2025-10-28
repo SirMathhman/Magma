@@ -698,8 +698,10 @@ char* getSimpleName_CIdentifier(void* _ref) {
 }
 char* wrap_Placeholder(void* _ref, char* input) {
 	Placeholder _this = *((Placeholder*) _ref);
-	var replaced = input.replace("/*", "start").replace("*/", "end");
-	return "/*" + replaced + "*/";
+	var input1 = input;
+	var withoutStart = input1.replace("/*", "start");
+	var withoutEnd = withoutStart.replace("*/", "end");
+	return "/*" + withoutEnd + "*/";
 }
 char* generate_Placeholder(void* _ref) {
 	Placeholder _this = *((Placeholder*) _ref);
@@ -1190,12 +1192,12 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 					var unionFields = variants.stream().map(_lambda38_).collect(new_Joiner(""));
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
-				char* generatedMembers;
+				char* generatedFields;
 				if (variants.isEmpty()) {
-					generatedMembers = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
+					generatedFields = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
 				}
 				else {
-					generatedMembers = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
+					generatedFields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
 				}
 				if (maybeInterfaceType.isPresent()) {
 					var interfaceType = maybeInterfaceType.get();
@@ -1210,7 +1212,7 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 				_this.structureHeaders = _this.structureHeaders.addLast(header);
 				var members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>());
 				var joinedFields = members.stream().map(generate_CStructureSegment).collect(new_Joiner(""));
-				var outputContent = generatedMembers + joinedFields;
+				var outputContent = generatedFields + joinedFields;
 				var generated = dependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
 				_this.structureHeaders = _this.structureHeaders.removeLast();
 				if (variants.isEmpty()) {
@@ -1513,9 +1515,9 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	var separator = stripped.indexOf('=');
 	if (separator >= 0) {
 		var substring = stripped.substring(0, separator).strip();
-		var substring1 = stripped.substring(separator + 1).strip();
-		var s = _this.compileDefinitionAsStatement(substring).orElseGet(_lambda65_);
-		return s + " = " + _this.compileExpression(substring1);
+		var source = stripped.substring(separator + 1).strip();
+		var destination = _this.compileDefinitionAsStatement(substring).orElseGet(_lambda65_);
+		return destination + " = " + _this.compileExpression(source);
 	}
 	if (stripped.endsWith("++")) {
 		return _this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";

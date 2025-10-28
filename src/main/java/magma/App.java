@@ -407,8 +407,10 @@ public class App {
 
 	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment {
 		private static String wrap(String input) {
-			final var replaced = input.replace("/*", "start").replace("*/", "end");
-			return "/*" + replaced + "*/";
+			final var input1 = input;
+			final var withoutStart = input1.replace("/*", "start");
+			final var withoutEnd = withoutStart.replace("*/", "end");
+			return "/*" + withoutEnd + "*/";
 		}
 
 		@Override
@@ -954,18 +956,18 @@ public class App {
 													 System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
-					final String generatedMembers;
+					final String generatedFields;
 					if (variants.isEmpty()) {
-						generatedMembers = recordFields
+						generatedFields = recordFields
 								.stream()
 								.map(CDefinition::generate)
 								.map(slice -> new CStatement(new CContent(slice), 1).generate())
 								.collect(new Joiner(""));
 					} else {
-						generatedMembers = new CStatement(new CContent(beforeContent + "Tag tag"), 1).generate() +
-															 new CStatement(new CContent(
-																	 beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"),
-																							1).generate();
+						generatedFields = new CStatement(new CContent(beforeContent + "Tag tag"), 1).generate() +
+															new CStatement(new CContent(
+																	beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"),
+																						 1).generate();
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -997,7 +999,7 @@ public class App {
 							.collect(new ListCollector<CStructureSegment>());
 
 					final var joinedFields = members.stream().map(CStructureSegment::generate).collect(new Joiner(""));
-					final var outputContent = generatedMembers + joinedFields;
+					final var outputContent = generatedFields + joinedFields;
 
 					final var generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
@@ -1306,10 +1308,10 @@ public class App {
 		final var separator = stripped.indexOf('=');
 		if (separator >= 0) {
 			final var substring = stripped.substring(0, separator).strip();
-			final var substring1 = stripped.substring(separator + 1).strip();
-			final var s = this.compileDefinitionAsStatement(substring).orElseGet(() -> this.compileExpression(substring));
-
-			return s + " = " + this.compileExpression(substring1);
+			final var source = stripped.substring(separator + 1).strip();
+			final var destination =
+					this.compileDefinitionAsStatement(substring).orElseGet(() -> this.compileExpression(substring));
+			return destination + " = " + this.compileExpression(source);
 		}
 
 		if (stripped.endsWith("++")) {
