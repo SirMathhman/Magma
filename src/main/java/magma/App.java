@@ -6,7 +6,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.regex.Pattern;
 
 public class App {
@@ -96,6 +95,10 @@ public class App {
 		Stream<T> stream();
 	}
 
+	private interface Predicate<T> {
+		boolean test(T element);
+	}
+
 	private static final class SingleHead<T> implements Head<T> {
 		private final T element;
 		private boolean retrieved;
@@ -156,12 +159,14 @@ public class App {
 		}
 
 		public Stream<T> filter(Predicate<T> predicate) {
-			return this.flatMap(element -> {
-				if (predicate.test(element)) {
-					return Stream.of(element);
-				}
-				return Stream.empty();
-			});
+			return this.flatMap(element -> this.applyFilter(predicate, element));
+		}
+
+		private Stream<T> applyFilter(Predicate<T> predicate, T element) {
+			if (predicate.test(element)) {
+				return Stream.of(element);
+			}
+			return Stream.empty();
 		}
 
 		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {

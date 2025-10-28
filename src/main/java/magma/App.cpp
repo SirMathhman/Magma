@@ -19,6 +19,8 @@ struct CFunctionHeader;
 template <typename T>
 struct Option;
 template <typename T>
+struct Predicate;
+template <typename T>
 struct SingleHead;
 template <typename T>
 struct EmptyHead;
@@ -74,6 +76,9 @@ struct Collector {
 };
 template <typename T>
 struct Supplier {
+};
+template <typename T>
+struct Predicate {
 };
 template <typename T>
 struct SingleHead {
@@ -303,6 +308,8 @@ int isPresent_Option(void* _ref);
 template <typename T>
 Stream<T> stream_Option(void* _ref);
 template <typename T>
+int test_Predicate(void* _ref, T element);
+template <typename T>
 Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
 	HeadData<T> data;
@@ -376,14 +383,21 @@ ArrayList<T> toList_Stream(void* _ref) {
 	return _this.collect(new_ListCollector<T>());
 }
 auto _lambda1_(auto _ref, auto element) {
-		if (predicate.test(element)) {
-			return Stream.of(element);
-		}
-		return Stream.empty();
-	}template <typename T>
+	auto _this = _ref;
+	return _this.applyFilter(predicate, element);
+};
+template <typename T>
 Stream<T> filter_Stream(void* _ref, Predicate<T> predicate) {
 	Stream<T> _this = *((Stream*) _ref);
 	return _this.flatMap(_lambda1_);
+}
+template <typename T>
+Stream<T> applyFilter_Stream(void* _ref, Predicate<T> predicate, T element) {
+	Stream<T> _this = *((Stream*) _ref);
+	if (predicate.test(element)) {
+		return Stream.of(element);
+	}
+	return Stream.empty();
 }
 template <typename T, typename R>
 Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper) {
