@@ -705,10 +705,6 @@ public class App {
 	}
 
 	private record Joiner(String delimiter) implements Collector<String, String> {
-		public Joiner() {
-			this("");
-		}
-
 		@Override
 		public String createInitial() {
 			return "";
@@ -1331,7 +1327,7 @@ public class App {
 					final var assignments = recordParameters
 							.stream()
 							.map(parameter -> System.lineSeparator() + "\t_this." + parameter.name + " = " + parameter.name + ";")
-							.collect(new Joiner());
+							.collect(new Joiner(""));
 
 					final var constructorContent1 =
 							System.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + System.lineSeparator() +

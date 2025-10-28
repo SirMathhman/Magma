@@ -1295,10 +1295,6 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	data.joiner = _this;
 	return Collector<char*, char*> { JoinerTag, data };
 }
-Joiner new_Joiner(void* _ref) {
-	Joiner _this = *((Joiner*) _ref);
-	_this("");
-}
 char* createInitial_Joiner(void* _ref) {
 	Joiner _this = *((Joiner*) _ref);
 	return "";
@@ -2036,7 +2032,7 @@ auto _lambda137_(auto _ref) {
 				/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=typeof(stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end(&typeParameters). < startCType>mapend)]end]*/ types = toList_/*Not a function type: Placeholder[input=typeof(stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end(&typeParameters). < startCType>mapend)]*/(&stream_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/(&typeParameters). < /*CType>map*/(new_CIdentifier));
 				/*Not a function type: Placeholder[input=new_CTemplateType]*/ thisType = new_CTemplateType(beforeContent, types);
 				/*Not a function type: Placeholder[input=new_CDefinition]*/ constructorHeader = new_CDefinition(empty_/*ArrayList*/(&/*ArrayList*/), thisType, "new_" + beforeContent);
-				/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]*/(&stream_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/(&recordParameters), _lambda131_), new_Joiner());
+				/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]*/(&stream_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/(&recordParameters), _lambda131_), new_Joiner(""));
 				/*Not a function type: Placeholder[input=lineSeparator_starttypeof(lineSeparator_startSystemend(&startSystemend) + "\t" + generate_startNot a function type: Placeholder[input=new_CTemplateType]end(&thisType) + " _this;" + assignments + lineSeparator_startSystemend(&startSystemend) + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = lineSeparator_/*typeof(lineSeparator_startSystemend(&startSystemend) + "\t" + generate_startNot a function type: Placeholder[input=new_CTemplateType]end(&thisType) + " _this;" + assignments + lineSeparator_startSystemend(&startSystemend) + "\treturn _this;" + startSystemend)*/(&lineSeparator_/*System*/(&/*System*/) + "\t" + generate_/*Not a function type: Placeholder[input=new_CTemplateType]*/(&thisType) + " _this;" + assignments + lineSeparator_/*System*/(&/*System*/) + "\treturn _this;" + /*System*/);
 				_this.functions = addLast_ArrayList<char*>(&_this.functions, generateMethod_App(&_this, typeParameters, constructorHeader, constructorContent1, recordParameters));
 				char* generatedFields;
