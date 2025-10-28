@@ -2,12 +2,16 @@ struct App;
 struct CPrimitiveType;
 template <typename T, typename R>
 struct Function;
+template <typename A, typename B, typename R>
+struct BiFunction;
 template <typename T>
 struct Consumer;
 template <typename T>
 struct Head;
 template <typename T, typename C>
 struct Collector;
+template <typename T>
+struct Supplier;
 template <typename T, typename X>
 struct Result;
 struct CType;
@@ -56,6 +60,9 @@ struct Joiner;
 template <typename T, typename R>
 struct Function {
 };
+template <typename A, typename B, typename R>
+struct BiFunction {
+};
 template <typename T>
 struct Consumer {
 };
@@ -64,6 +71,9 @@ struct Head {
 };
 template <typename T, typename C>
 struct Collector {
+};
+template <typename T>
+struct Supplier {
 };
 template <typename T>
 struct SingleHead {
@@ -247,6 +257,8 @@ char* getSimpleName_CPrimitiveType(void* _ref) {
 }
 template <typename T, typename R>
 R apply_Function(void* _ref, T arg);
+template <typename A, typename B, typename R>
+R apply_BiFunction(void* _ref, A left, B right);
 template <typename T>
 void accept_Consumer(void* _ref, T value);
 template <typename T>
@@ -255,6 +267,8 @@ template <typename T, typename C>
 C createInitial_Collector(void* _ref);
 template <typename T, typename C>
 C fold_Collector(void* _ref, C current, T element);
+template <typename T>
+T get_Supplier(void* _ref);
 char* generate_CType(void* _ref);
 char* getSimpleName_CType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);

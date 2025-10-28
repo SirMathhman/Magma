@@ -6,9 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.BiFunction;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 
 public class App {
@@ -34,6 +32,10 @@ public class App {
 		R apply(T arg);
 	}
 
+	private interface BiFunction<A, B, R> {
+		R apply(A left, B right);
+	}
+
 	private interface Consumer<T> {
 		void accept(T value);
 	}
@@ -46,6 +48,10 @@ public class App {
 		C createInitial();
 
 		C fold(C current, T element);
+	}
+
+	private interface Supplier<T> {
+		T get();
 	}
 
 	private sealed interface Result<T, X> permits Err, Ok {}
