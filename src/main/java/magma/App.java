@@ -43,7 +43,7 @@ public class App {
 		String getSimpleName();
 	}
 
-	private interface CFunctionHeader {
+	private sealed interface CFunctionHeader {
 		String generate();
 	}
 
@@ -614,8 +614,9 @@ public class App {
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
 		final CFunctionHeader header = this.compileFunctionHeader(definition);
+		final CFunctionHeader transformed = this.transform(header);
 
-		final String beforeContent = header.generate() + "(" + this.compileParameters(params) + ")";
+		final String beforeContent = transformed.generate() + "(" + this.compileParameters(params) + ")";
 		final String generated;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
@@ -632,6 +633,14 @@ public class App {
 
 		this.functions.add(generated);
 		return Optional.of("");
+	}
+
+	private CFunctionHeader transform(CFunctionHeader header) {
+		return switch (header) {
+			case CDefinition cDefinition ->
+					new CDefinition(cDefinition.cppType(), cDefinition.name() + "_" + this.structureNames.peek());
+			case Placeholder placeholder -> placeholder;
+		};
 	}
 
 	private CFunctionHeader compileFunctionHeader(String input) {

@@ -50,21 +50,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:104:49: warning:
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   105 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:147:7: error: redefinition of 'generate'
-  147 | char* generate(void* _ref) {
-      |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:116:7: note: previous definition is here
-  116 | char* generate(void* _ref) {
-      |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:151:7: error: redefinition of 'getSimpleName'
-  151 | char* getSimpleName(void* _ref) {
-      |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:120:7: note: previous definition is here
-  120 | char* getSimpleName(void* _ref) {
-      |       ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:163:41: error: use of undeclared identifier 'generate_CPPType'
-  163 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
-      |                                                ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:163:67: error: use of undeclared identifier 'Collectors'
   163 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                                                                          ^
@@ -77,6 +62,15 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:24: error: m
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:187:14: error: invalid operands to binary expression ('const char[3]' and 'char *')
   187 |         return "/*" + replaced + "*/";
       |                ~~~~ ^ ~~~~~~~~
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:9: error: use of undeclared identifier 'wrap'
+  191 |         return wrap(_this.input);
+      |                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:15: error: no member named 'generate' in 'Placeholder'
+  195 |         return _this.generate();
+      |                ~~~~~ ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:200:17: error: use of undeclared identifier 'new_StringBuilder'
+  200 |         _this.buffer = new_StringBuilder();
+      |                        ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1
