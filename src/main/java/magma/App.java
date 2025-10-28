@@ -1307,7 +1307,7 @@ public class App {
 					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
-								.map(slice -> slice + "Tag")
+								.map(slice -> slice + "Type")
 								.map(content1 -> App.generateWithIndent(content1, 1))
 								.collect(new Joiner(","));
 

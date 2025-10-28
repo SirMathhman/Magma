@@ -55,29 +55,29 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:259:14: error: f
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: forward declaration of 'CExpression'
    26 | struct CExpression;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:309:2: error: redefinition of enumerator 'PlaceholderTag'
-  309 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:309:2: error: redefinition of enumerator 'PlaceholderType'
+  309 |         PlaceholderType
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
-  292 |         PlaceholderTag
+  292 |         PlaceholderType
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:336:2: error: redefinition of enumerator 'PlaceholderTag'
-  336 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:336:2: error: redefinition of enumerator 'PlaceholderType'
+  336 |         PlaceholderType
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
-  292 |         PlaceholderTag
+  292 |         PlaceholderType
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:362:2: error: redefinition of enumerator 'CIdentifierTag'
-  362 |         CIdentifierTag,
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:362:2: error: redefinition of enumerator 'CIdentifierType'
+  362 |         CIdentifierType,
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:286:2: note: previous definition is here
-  286 |         CIdentifierTag,
+  286 |         CIdentifierType,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:365:2: error: redefinition of enumerator 'PlaceholderTag'
-  365 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:365:2: error: redefinition of enumerator 'PlaceholderType'
+  365 |         PlaceholderType
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
-  292 |         PlaceholderTag
+  292 |         PlaceholderType
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:391:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   391 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
@@ -88,6 +88,13 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:392:45: warning:
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:393:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   393 | CPrimitiveType IntValue = CPrimitiveType { "int" };
       |                                            ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:406:17: error: use of undeclared identifier 'CPrimitiveTypeTag'; did you mean 'CPrimitiveTypeType'?
+  406 |         return CType { CPrimitiveTypeTag, data };
+      |                        ^~~~~~~~~~~~~~~~~
+      |                        CPrimitiveTypeType
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:288:2: note: 'CPrimitiveTypeType' declared here
+  288 |         CPrimitiveTypeType,
+      |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:422:9: error: no viable conversion from returned value of type 'CPrimitiveType' to function return type 'CType'
   422 |         return _this;
       |                ^~~~~
@@ -103,9 +110,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:643:16: error: '
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:643:27: error: 'auto' not allowed in function prototype
   643 | auto _lambda1_(auto _ref, auto element) {
       |                           ^~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:645:58: error: expected expression
-  645 |         return applyFilter_Stream(&_this, predicate, /*element*/);
-      |                                                                 ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1

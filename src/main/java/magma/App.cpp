@@ -269,8 +269,8 @@ struct App {
 	int depth;
 };
 enum ResultTag {
-	ErrTag,
-	OkTag
+	ErrType,
+	OkType
 };
 template <typename T, typename X>
 union ResultData {
@@ -283,13 +283,13 @@ struct Result {
 	ResultData<T, X> data;
 };
 enum CTypeTag {
-	CIdentifierTag,
-	CPointerTypeTag,
-	CPrimitiveTypeTag,
-	CStructureTypeTag,
-	CTemplateTypeTag,
-	CFunctionTypeTag,
-	PlaceholderTag
+	CIdentifierType,
+	CPointerTypeType,
+	CPrimitiveTypeType,
+	CStructureTypeType,
+	CTemplateTypeType,
+	CFunctionTypeType,
+	PlaceholderType
 };
 union CTypeData {
 	CIdentifier cidentifier;
@@ -305,8 +305,8 @@ struct CType {
 	CTypeData data;
 };
 enum CFunctionHeaderTag {
-	CDefinitionTag,
-	PlaceholderTag
+	CDefinitionType,
+	PlaceholderType
 };
 union CFunctionHeaderData {
 	CDefinition cdefinition;
@@ -317,8 +317,8 @@ struct CFunctionHeader {
 	CFunctionHeaderData data;
 };
 enum OptionTag {
-	NoneTag,
-	SomeTag
+	NoneType,
+	SomeType
 };
 template <typename T>
 union OptionData {
@@ -331,9 +331,9 @@ struct Option {
 	OptionData<T> data;
 };
 enum CStructureSegmentTag {
-	CStatementTag,
-	EmptyCStructureSegmentTag,
-	PlaceholderTag
+	CStatementType,
+	EmptyCStructureSegmentType,
+	PlaceholderType
 };
 union CStructureSegmentData {
 	CStatement cstatement;
@@ -345,8 +345,8 @@ struct CStructureSegment {
 	CStructureSegmentData data;
 };
 enum CStructureMemberTag {
-	CMethodMemberTag,
-	CStructureSegmentTag
+	CMethodMemberType,
+	CStructureSegmentType
 };
 union CStructureMemberData {
 	CMethodMember cmethodmember;
@@ -357,12 +357,12 @@ struct CStructureMember {
 	CStructureMemberData data;
 };
 enum CExpressionTag {
-	CContentTag,
-	CFieldAccessTag,
-	CIdentifierTag,
-	CInvocationTag,
-	CReferenceTag,
-	PlaceholderTag
+	CContentType,
+	CFieldAccessType,
+	CIdentifierType,
+	CInvocationType,
+	CReferenceType,
+	PlaceholderType
 };
 union CExpressionData {
 	CContent ccontent;
@@ -377,8 +377,8 @@ struct CExpression {
 	CExpressionData data;
 };
 enum CCallerTag {
-	CConstructionTag,
-	CExpressionTag
+	CConstructionType,
+	CExpressionType
 };
 union CCallerData {
 	CConstruction cconstruction;
@@ -1948,7 +1948,7 @@ auto _lambda120_(auto _ref, auto content1) {
 }
 auto _lambda123_(auto _ref, auto slice) {
 	auto _this = _ref;
-	return /*slice*/ + "Tag";
+	return /*slice*/ + "Type";
 }
 auto _lambda127_(auto _ref, auto slice) {
 	auto _this = _ref;
