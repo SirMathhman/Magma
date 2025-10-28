@@ -64,6 +64,7 @@ struct CStatement;
 struct CFieldAccess;
 struct Frames;
 struct Frame;
+struct CStructureType;
 /*
 */struct CPrimitiveType {
 	char* content;
@@ -149,7 +150,7 @@ struct State {
 };
 struct CDefinition {
 	ArrayList<char*> typeParameters;
-	CType cType;
+	CType type;
 	char* name;
 };
 struct CStructureHeader {
@@ -201,6 +202,10 @@ struct Frame {
 };
 struct Frames {
 };
+struct CStructureType {
+	char* name;
+	ArrayList<CDefinition> fields;
+};
 struct App {
 	Frames frames;
 	ArrayList<char*> globals;
@@ -227,15 +232,17 @@ struct Result {
 };
 enum CTypeTag {
 	CIdentifierTag,
-	CPrimitiveTypeTag,
 	CPointerTypeTag,
+	CPrimitiveTypeTag,
+	CStructureTypeTag,
 	CTemplateTypeTag,
 	PlaceholderTag
 };
 union CTypeData {
 	CIdentifier cidentifier;
-	CPrimitiveType cprimitivetype;
 	CPointerType cpointertype;
+	CPrimitiveType cprimitivetype;
+	CStructureType cstructuretype;
 	CTemplateType ctemplatetype;
 	Placeholder placeholder;
 };
@@ -426,7 +433,8 @@ R fold_App(void* _ref, R initial, BiFunction<R, T, R> folder) {
 	App _this = *((App*) _ref);
 	R current = initial;
 	while (1) {
-		/*_this.head.next()*/ maybeNext = _this.head.next();
+		Head<T> head = _this.head;
+		/*head.next()*/ maybeNext = head.next();
 		if (/*maybeNext instanceof Some*/ < /*T>*/(/*var next*/)) {
 			current = folder.apply(current, /*next*/);
 		}
@@ -486,6 +494,11 @@ template <typename T, typename T>
 ArrayList<T> empty_App(void* _ref) {
 	App _this = *((App*) _ref);
 	return new_ArrayList<T>();
+}
+template <typename T>
+char* toString_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.inner.stream().map(toString_Objects).collect(/*Collectors*/.joining(", ", "[", "]"));
 }
 template <typename T>
 int size_App(void* _ref) {
@@ -549,6 +562,13 @@ ArrayList<T> mapLast_App(void* _ref, Function<T, T> mapper) {
 	}
 	return _this.setLast(mapper.apply(_this.getLast()));
 }
+template <typename T>
+ArrayList<T> reverse_App(void* _ref) {
+	App _this = *((App*) _ref);
+	/*new_java.util.ArrayList<T>(_this.inner)*/ copy = new_java.util.ArrayList<T>(_this.inner);
+	/*Collections*/.reverse(copy);
+	return new_ArrayList<T>(copy);
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -574,6 +594,11 @@ template <typename T, typename R>
 Option<R> map_App(void* _ref, Function<T, R> mapper) {
 	App _this = *((App*) _ref);
 	return new_Some<R>(mapper.apply(_this.value));
+}
+template <typename T>
+char* toString_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.value.toString();
 }
 template <typename T>
 void ifPresent_App(void* _ref, Consumer<T> consumer) {
@@ -698,7 +723,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_App(void* _ref) {
 	App _this = *((App*) _ref);
-	/*Not an identifier: Placeholder[input=this type]*/ list = _this.list;
+	ArrayList<CType> list = _this.list;
 	/*list.stream()*/ stream = list.stream();
 	/*stream.map(generate_CType)*/ map = stream.map(generate_CType);
 	/*new_Joiner(", ")*/ collector = new_Joiner(", ");
@@ -771,7 +796,7 @@ int isLevel_App(void* _ref) {
 Option<char> pop_App(void* _ref) {
 	App _this = *((App*) _ref);
 	if (_this.index < _this.input.length()) {
-		/*Not an identifier: Placeholder[input=this type]*/ counter = _this.index;
+		int counter = _this.index;
 		_this.index++;
 		/*_this.input.charAt(counter)*/ element = _this.input.charAt(counter);
 		return /*Option*/.of(element);
@@ -801,7 +826,11 @@ char peek_App(void* _ref) {
 }
 char* generate_App(void* _ref) {
 	App _this = *((App*) _ref);
-	return _this.cType().generate() + " " + _this.name();
+	return _this.type().generate() + " " + _this.name();
+}
+char* toString_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.generate();
 }
 CDefinition withType_App(void* _ref, CType type) {
 	App _this = *((App*) _ref);
@@ -1052,6 +1081,44 @@ Stream<CStructureHeader> streamHeaders_App(void* _ref) {
 	App _this = *((App*) _ref);
 	return _this.frames.stream().map(_lambda31_).flatMap(stream_Option);
 }
+auto _lambda40_(auto _ref, auto header) {
+	auto _this = _ref;
+	return new_Tuple<CStructureHeader, ArrayList<CDefinition>>(/*header*/, /*frame*/.definitions);
+};
+auto _lambda38_(auto _ref, auto frame) {
+	auto _this = _ref;
+	return /*frame*/.maybeHeader.map(_lambda40_);
+};
+Option<Tuple<CStructureHeader, ArrayList<CDefinition>>> findCurrentScope_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.frames.copy().reverse().stream().map(_lambda38_).flatMap(stream_Option).head.next();
+}
+CType toCType_CStructureType(void* _ref){
+	CStructureType _this = *((CStructureType*) _ref);
+	CTypeData data;
+	data.cstructuretype = _this;
+	return CType { CStructureTypeTag, data };
+}
+char* generate_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.name;
+}
+char* getSimpleName_App(void* _ref) {
+	App _this = *((App*) _ref);
+	return _this.name;
+}
+auto _lambda45_(auto _ref, auto field) {
+	auto _this = _ref;
+	return /*field*/.type;
+};
+auto _lambda48_(auto _ref, auto field) {
+	auto _this = _ref;
+	return /*field*/.name.equals(name);
+};
+Option<CType> resolve_App(void* _ref, char* name) {
+	App _this = *((App*) _ref);
+	return _this.fields.stream().filter(_lambda48_).map(_lambda45_).head.next();
+}
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
 	_this.globals = /*ArrayList*/.empty();
@@ -1067,7 +1134,7 @@ void main_App(void* _ref, char** args) {
 	App _this = *((App*) _ref);
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
-auto _lambda35_(auto _ref, auto slice) {
+auto _lambda52_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return "typename " + /*slice*/;
 };
@@ -1078,7 +1145,7 @@ char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
 		templateString = "";
 	}
 	else {
-		/*typeParameters.stream().map(_lambda35_).collect(new_Joiner(", "))*/ collect = typeParameters.stream().map(_lambda35_).collect(new_Joiner(", "));
+		/*typeParameters.stream().map(_lambda52_).collect(new_Joiner(", "))*/ collect = typeParameters.stream().map(_lambda52_).collect(new_Joiner(", "));
 		templateString = "template <" + collect + ">" + /*System*/.lineSeparator();
 	}
 	return templateString;
@@ -1095,9 +1162,9 @@ Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
 	/*startPathsend.get(".", "src", "main", "java", "magma", "App.java")*/ source = /*Paths*/.get(".", "src", "main", "java", "magma", "App.java");
 	/*_this.readString(source)*/ input = _this.readString(source);
-	return _switch37_;
+	return _switch54_;
 }
-auto _lambda39_(auto _ref) {
+auto _lambda56_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileNative(target);
 };
@@ -1105,16 +1172,16 @@ Option<IOException> compilePath_App(void* _ref, Path source, char* input) {
 	App _this = *((App*) _ref);
 	/*source.resolveSibling("App.cpp")*/ target = source.resolveSibling("App.cpp");
 	/*_this.compile(input)*/ output = _this.compile(input);
-	return _this.writeString(target, output).or(_lambda39_);
+	return _this.writeString(target, output).or(_lambda56_);
 }
 Option<IOException> compileNative_App(void* _ref, Path target) {
 	App _this = *((App*) _ref);
 	/*_this.startCommand(startArrayListend.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"))*/ clang = _this.startCommand(/*ArrayList*/.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _switch41_;
+	return _switch58_;
 }
 Option<IOException> waitForProcess_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
-	return _switch43_;
+	return _switch60_;
 }
 Result<Integer, IOException> waitFor_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
@@ -1169,7 +1236,7 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, ch
 			}
 			/*maybeTuple.get()*/ tuple = maybeTuple.get();
 			current0 = tuple.right;
-			/*Not an identifier: CIdentifier[value=var]*/ nextInQuotes = tuple.left;
+			/*Not a structure: CIdentifier[value=var]*/ nextInQuotes = tuple.left;
 			if (nextInQuotes == '\\') {
 				current0 = current0.popAndAppendToOption().orElse(current0);
 				continue;
@@ -1214,7 +1281,7 @@ State foldStatement_App(void* _ref, State state, char c) {
 		}*/
 	return appended;
 }
-auto _lambda45_(auto _ref) {
+auto _lambda62_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(input);
 };
@@ -1224,34 +1291,34 @@ char* compileRootSegment_App(void* _ref, char* input) {
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return _this.compileStructure("class", stripped).map(generate_CStructureSegment).orElseGet(_lambda45_);
+	return _this.compileStructure("class", stripped).map(generate_CStructureSegment).orElseGet(_lambda62_);
 }
-auto _lambda50_(auto _ref, auto slice) {
+auto _lambda67_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda55_(auto _ref, auto slice) {
+auto _lambda72_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda59_(auto _ref, auto content1) {
+auto _lambda76_(auto _ref, auto content1) {
 	auto _this = _ref;
 	return /*App*/.generateWithIndent(/*content1*/, 1);
 };
-auto _lambda62_(auto _ref, auto slice) {
+auto _lambda79_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*slice*/ + "Tag";
 };
-auto _lambda66_(auto _ref, auto slice) {
+auto _lambda83_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*System*/.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
-auto _lambda70_(auto _ref, auto slice) {
+auto _lambda87_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return new_CStatement(new_CContent(/*slice*/), 1).generate();
 };
-auto _lambda72_(auto _ref) {
-					_this.frames = _this.frames.defineStructure(header);
+auto _lambda89_(auto _ref) {
+					_this.frames = _this.frames.defineStructure(header).defineAll(finalRecordFields);
 					/*_this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>())*/ members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>());
 					/*members.stream().map(generate_CStructureSegment).collect(new_Joiner(""))*/ joinedFields = members.stream().map(generate_CStructureSegment).collect(new_Joiner(""));
 					/*generatedFields + joinedFields*/ outputContent = generatedFields + joinedFields;
@@ -1272,7 +1339,7 @@ auto _lambda72_(auto _ref) {
 				if (permitsIndex >= 0) {
 					/*beforeContent.substring(permitsIndex + "permits".length()).split(startPatternend.quote(","))*/ variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(/*Pattern*/.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
-					variants = new_ArrayList<char*>(/*Arrays*/.stream(variantsArray).map(strip_char*).filter(_lambda50_).toList());
+					variants = new_ArrayList<char*>(/*Arrays*/.stream(variantsArray).map(strip_char*).filter(_lambda67_).toList());
 				}
 				/*beforeContent.indexOf("implements")*/ implementsIndex = beforeContent.indexOf("implements");
 				Option<CType> maybeInterfaceType = /*Option*/.empty();
@@ -1299,7 +1366,7 @@ auto _lambda72_(auto _ref) {
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						/*withoutEnd.substring(typeParamStart + 1).split(startPatternend.quote(","))*/ typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(/*Pattern*/.quote(","));
-						typeParameters = new_ArrayList<char*>(/*Arrays*/.stream(typeParamsArray).map(strip_char*).filter(_lambda55_).toList());
+						typeParameters = new_ArrayList<char*>(/*Arrays*/.stream(typeParamsArray).map(strip_char*).filter(_lambda72_).toList());
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
@@ -1311,14 +1378,14 @@ auto _lambda72_(auto _ref) {
 					dependencies = "";
 				}
 				else {
-					/*variants.stream().map(_lambda62_).map(_lambda59_).collect(new_Joiner(","))*/ enumFields = variants.stream().map(_lambda62_).map(_lambda59_).collect(new_Joiner(","));
+					/*variants.stream().map(_lambda79_).map(_lambda76_).collect(new_Joiner(","))*/ enumFields = variants.stream().map(_lambda79_).map(_lambda76_).collect(new_Joiner(","));
 					/*_this.joinTypeArguments(typeParameters)*/ typeArguments = _this.joinTypeArguments(typeParameters);
-					/*variants.stream().map(_lambda66_).collect(new_Joiner(""))*/ unionFields = variants.stream().map(_lambda66_).collect(new_Joiner(""));
+					/*variants.stream().map(_lambda83_).collect(new_Joiner(""))*/ unionFields = variants.stream().map(_lambda83_).collect(new_Joiner(""));
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
 				char* generatedFields;
 				if (variants.isEmpty()) {
-					generatedFields = recordFields.stream().map(generate_CDefinition).map(_lambda70_).collect(new_Joiner(""));
+					generatedFields = recordFields.stream().map(generate_CDefinition).map(_lambda87_).collect(new_Joiner(""));
 				}
 				else {
 					generatedFields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
@@ -1333,8 +1400,9 @@ auto _lambda72_(auto _ref) {
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + /*System*/.lineSeparator());
 				/*new_CStructureHeader(typeParameters, beforeContent)*/ header = new_CStructureHeader(typeParameters, beforeContent);
-				/*_this.frames.within(_lambda72_)*/ within1 = _this.frames.within(_lambda72_);
-				/*Not an identifier: CIdentifier[value=var]*/ generated = within1.left;
+				var finalRecordFields = recordFields;
+				/*_this.frames.within(_lambda89_)*/ within1 = _this.frames.within(_lambda89_);
+				/*Not a structure: CIdentifier[value=var]*/ generated = within1.left;
 				_this.frames = within1.right;
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.addLast(generated);
@@ -1368,11 +1436,11 @@ int isIdentifier_App(void* _ref, char* input) {
 		}*/
 	return 1;
 }
-auto _lambda74_(auto _ref) {
+auto _lambda91_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinitionToField0(slice);
 };
-auto _lambda76_(auto _ref) {
+auto _lambda93_(auto _ref) {
 	auto _this = _ref;
 	return new_Placeholder(input);
 };
@@ -1399,17 +1467,21 @@ CStructureSegment compileClassSegment_App(void* _ref, char* input) {
 	}
 	if (input.endsWith(";")) {
 		/*input.substring(0, input.length() - 1)*/ slice = input.substring(0, input.length() - 1);
-		/*_this.compileEnumValues(slice).or(_lambda74_)*/ maybeClassStatement = _this.compileEnumValues(slice).or(_lambda74_);
+		/*_this.compileEnumValues(slice).or(_lambda91_)*/ maybeClassStatement = _this.compileEnumValues(slice).or(_lambda91_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
 	}
-	return _this.compileMethod(input).orElseGet(_lambda76_);
+	return _this.compileMethod(input).orElseGet(_lambda93_);
 }
-auto _lambda78_(auto _ref) {
+auto _lambda97_(auto _ref) {
+					/*thisDefinition + _this.compileMethodSegments(content) + startSystemend.lineSeparator()*/ outputContent = thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator();
+					return templateString + headerWithParameters + " {" + outputContent + "}" + /*System*/.lineSeparator();
+				}auto _lambda95_(auto _ref) {
 				_this.frames = _this.frames.defineAll(params);
-				/*thisDefinition + _this.compileMethodSegments(content) + startSystemend.lineSeparator()*/ outputContent = thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator();
-				return templateString + headerWithParameters + " {" + outputContent + "}" + /*System*/.lineSeparator();
+				/*_this.frames.within(_lambda97_)*/ withBlock = _this.frames.within(_lambda97_);
+				_this.frames = withBlock.right;
+				return withBlock.left;
 			}Option<CStructureSegment> compileMethod_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	/*input.indexOf("(")*/ paramStart = input.indexOf("(");
@@ -1442,32 +1514,32 @@ auto _lambda78_(auto _ref) {
 		/*_this.frames.findCurrentStructure()*/ maybeCurrentStructure = _this.frames.findCurrentStructure();
 		if (/*maybeCurrentStructure instanceof Some*/ < /*CStructureHeader>*/(/*var currentStructure*/)) {
 			/*new_CStatement(new_CContent(startcurrentStructureend.toType().generate() + " _this = *((" + currentStructure.name() + "*) _ref)"), 1).generate()*/ thisDefinition = new_CStatement(new_CContent(/*currentStructure*/.toType().generate() + " _this = *((" + currentStructure.name() + "*) _ref)"), 1).generate();
-			/*_this.frames.within(_lambda78_)*/ within = _this.frames.within(_lambda78_);
-			generated = within.left;
-			_this.frames = within.right;
+			/*_this.frames.within(_lambda95_)*/ framesWithParams = _this.frames.within(_lambda95_);
+			generated = framesWithParams.left;
+			_this.frames = framesWithParams.right;
 		}
 	}
 	_this.functions = _this.functions.addLast(generated);
 	return /*Option*/.of(new_EmptyCStructureSegment());
 }
-auto _lambda80_(auto _ref) {
+auto _lambda99_(auto _ref) {
 	auto _this = _ref;
 	return new_Placeholder(input);
 };
-auto _lambda83_(auto _ref) {
+auto _lambda102_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileConstructor(input);
 };
-auto _lambda90_(auto _ref, auto header) {
+auto _lambda109_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.name;
 };
-auto _lambda86_(auto _ref, auto item) {
-		/*_this.frames.findCurrentStructure().map(_lambda90_).orElse("???")*/ currentStructureName = _this.frames.findCurrentStructure().map(_lambda90_).orElse("???");
-		return new_CDefinition(/*item*/.typeParameters, /*item*/.cType, /*item*/.name + "_" + currentStructureName);
+auto _lambda105_(auto _ref, auto item) {
+		/*_this.frames.findCurrentStructure().map(_lambda109_).orElse("???")*/ currentStructureName = _this.frames.findCurrentStructure().map(_lambda109_).orElse("???");
+		return new_CDefinition(/*item*/.typeParameters, /*item*/.type, /*item*/.name + "_" + currentStructureName);
 	}CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda86_).or(_lambda83_).orElseGet(_lambda80_);
+	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda105_).or(_lambda102_).orElseGet(_lambda99_);
 }
 Option<CStructureSegment> compileDefinitionToField0_App(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
@@ -1483,7 +1555,7 @@ char* compileMethodSegments_App(void* _ref, char* content) {
 	App _this = *((App*) _ref);
 	return _this.compileStatements(content, compileMethodSegmentOrPlaceholder_this);
 }
-auto _lambda94_(auto _ref, auto header) {
+auto _lambda113_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.name;
 };
@@ -1501,19 +1573,19 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			/*_this.frames.findCurrentStructure().map(_lambda94_).orElse("???")*/ structName = _this.frames.findCurrentStructure().map(_lambda94_).orElse("???");
+			/*_this.frames.findCurrentStructure().map(_lambda113_).orElse("???")*/ structName = _this.frames.findCurrentStructure().map(_lambda113_).orElse("???");
 			return /*Option*/.of(new_CDefinition(/*ArrayList*/.empty(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	return /*Option*/.empty();
 }
-auto _lambda99_(auto _ref, auto slice) {
+auto _lambda118_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 Option<CStructureSegment> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*new_ArrayList<char*>(startArraysend.stream(input.split(startPatternend.quote(","))).map(strip_char*).filter(_lambda99_).toList())*/ segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda99_).toList());/*
+	/*new_ArrayList<char*>(startArraysend.stream(input.split(startPatternend.quote(","))).map(strip_char*).filter(_lambda118_).toList())*/ segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda118_).toList());/*
 
 		for (var segment : segments.inner) {
 			final var stripped = segment.strip();
@@ -1543,15 +1615,15 @@ Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 		}*/
 	return /*Option*/.empty();
 }
-auto _lambda101_(auto _ref) {
+auto _lambda120_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileMethodSegment(input).orElseGet(_lambda101_);
+	return _this.compileMethodSegment(input).orElseGet(_lambda120_);
 }
-auto _lambda103_(auto _ref) {
+auto _lambda122_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileMethodSegments(content);
 };
@@ -1564,8 +1636,8 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	if (stripped.startsWith("{") && stripped.endsWith("}")) {
 		/*stripped.substring(1, stripped.length() - 1)*/ content = stripped.substring(1, stripped.length() - 1);
 		_this.depth++;
-		/*_this.frames.within(_lambda103_)*/ within = _this.frames.within(_lambda103_);
-		/*Not an identifier: CIdentifier[value=var]*/ compiled = within.left;
+		/*_this.frames.within(_lambda122_)*/ within = _this.frames.within(_lambda122_);
+		/*Not a structure: CIdentifier[value=var]*/ compiled = within.left;
 		_this.frames = within.right;
 		/*this.depth--*/;
 		return /*Option*/.of("{" + compiled + App.generateIndent(this.depth) + "}");
@@ -1626,11 +1698,11 @@ int findConditionEnd_App(void* _ref, char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda105_(auto _ref) {
+auto _lambda124_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(stripped);
 };
-auto _lambda108_(auto _ref) {
+auto _lambda127_(auto _ref) {
 	auto _this = _ref;
 	return _this.parseAndDefineDefinitionAsStatement(input);
 };
@@ -1654,7 +1726,7 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return _this.compileInvocation(stripped).or(_lambda108_).orElseGet(_lambda105_);
+	return _this.compileInvocation(stripped).or(_lambda127_).orElseGet(_lambda124_);
 }
 Option<char*> compileAssignment_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
@@ -1671,20 +1743,23 @@ Option<char*> compileAssignment_App(void* _ref, char* stripped) {
 char* compileAssignmentContent_App(void* _ref, char* destinationString, CExpression source) {
 	App _this = *((App*) _ref);
 	/*_this.parseAndDefineDefinition(destinationString)*/ stringOption = _this.parseAndDefineDefinition(destinationString);
-	return _switch110_;
+	return _switch129_;
 }
 CType resolveExpression_App(void* _ref, CExpression expression) {
 	App _this = *((App*) _ref);
-	return _switch112_;
+	return _switch131_;
 }
 CType resolveIdentifier_App(void* _ref, CIdentifier identifier) {
 	App _this = *((App*) _ref);
 	if (identifier.value.equals("_this")) {
-		return new_Placeholder("this type");
+		/*_this.frames.findCurrentScope()*/ maybeCurrentScope = _this.frames.findCurrentScope();
+		if (/*maybeCurrentScope instanceof Some*/(/*var currentScope*/)) {
+			return new_CStructureType(/*currentScope*/.left.name, /*currentScope*/.right);
+		}
 	}
 	/*_this.frames.resolve(identifier.value)*/ maybeDefinition = _this.frames.resolve(identifier.value);
 	if (/*maybeDefinition instanceof Some*/ < /*CDefinition>*/(/*var found*/)) {
-		return /*found*/.cType;
+		return /*found*/.type;
 	}
 	return new_Placeholder(identifier.value);
 }
@@ -1706,23 +1781,23 @@ char* compileExpression_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	return _this.parseExpression(input).generate();
 }
-auto _lambda114_(auto _ref) {
+auto _lambda133_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "<");
 };
-auto _lambda117_(auto _ref) {
+auto _lambda136_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, ">=");
 };
-auto _lambda120_(auto _ref) {
+auto _lambda139_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "==");
 };
-auto _lambda123_(auto _ref) {
+auto _lambda142_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "&&");
 };
-auto _lambda126_(auto _ref) {
+auto _lambda145_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "-");
 };
@@ -1769,7 +1844,7 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	if (stripped.startsWith("switch")) {
 		return new_CContent(_this.createName("switch"));
 	}
-	/*_this.compileOperator(stripped, "+").or(_lambda126_).or(_lambda123_).or(_lambda120_).or(_lambda117_).or(_lambda114_)*/ maybeOperator = _this.compileOperator(stripped, "+").or(_lambda126_).or(_lambda123_).or(_lambda120_).or(_lambda117_).or(_lambda114_);
+	/*_this.compileOperator(stripped, "+").or(_lambda145_).or(_lambda142_).or(_lambda139_).or(_lambda136_).or(_lambda133_)*/ maybeOperator = _this.compileOperator(stripped, "+").or(_lambda145_).or(_lambda142_).or(_lambda139_).or(_lambda136_).or(_lambda133_);
 	if (maybeOperator.isPresent()) {
 		return new_CContent(maybeOperator.get());
 	}
@@ -1784,15 +1859,15 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	}
 	return new_Placeholder(stripped);
 }
-auto _lambda131_(auto _ref, auto segment) {
+auto _lambda150_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return "auto " + /*segment*/;
 };
-auto _lambda134_(auto _ref, auto segment) {
+auto _lambda153_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda137_(auto _ref) {
+auto _lambda156_(auto _ref) {
 			/*_this.compileExpression(content)*/ expression = _this.compileExpression(content);
 			return "{" + new_CStatement(new_CContent("auto _this = _ref"), 1).generate() + /*new CStatement(new CContent("return "*/ + /*expression),
 																																			1).generate()*/ + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
@@ -1810,13 +1885,13 @@ auto _lambda137_(auto _ref) {
 		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			/*names.substring(1, names.length() - 1)*/ slice = names.substring(1, names.length() - 1);
-			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda134_).map(_lambda131_).toList();
+			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda153_).map(_lambda150_).toList();
 		}
 		else {
 			return /*Option*/.empty();
 		}
 		/*parameters.copy().addFirst("auto _ref")*/ copy = parameters.copy().addFirst("auto _ref");
-		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda137_));
+		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda156_));
 		return /*Option*/.of(functionName);
 	}
 	return /*Option*/.empty();
@@ -1895,23 +1970,23 @@ int isNumber_App(void* _ref, char* input) {
 		}*/
 	return 1;
 }
-auto _lambda145_(auto _ref, auto slice) {
+auto _lambda164_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda145_).map(compileDefinition_this).flatMap(stream_Option).toList();
+	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda164_).map(compileDefinition_this).flatMap(stream_Option).toList();
 }
-auto _lambda149_(auto _ref, auto segment) {
+auto _lambda168_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda151_(auto _ref, auto cType) {
+auto _lambda170_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(finalTypeParameters, /*cType*/, name);
 };
-auto _lambda153_(auto _ref, auto cType) {
+auto _lambda172_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(/*ArrayList*/.empty(), /*cType*/, name);
 };
@@ -1948,16 +2023,16 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 			/*slice.indexOf("<")*/ i = slice.indexOf("<");
 			if (i >= 0) {
 				/*slice.substring(i + 1)*/ typeParametersString = slice.substring(i + 1);
-				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda149_).collect(new_ListCollector<char*>());
+				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda168_).collect(new_ListCollector<char*>());
 			}
 		}
 		/*beforeName.substring(typeSeparator + 1).strip()*/ type = beforeName.substring(typeSeparator + 1).strip();
 		var finalTypeParameters = typeParameters;
-		return _this.compileType(type).map(_lambda151_);
+		return _this.compileType(type).map(_lambda170_);
 	}
-	return _this.compileType(beforeName).map(_lambda153_);
+	return _this.compileType(beforeName).map(_lambda172_);
 }
-auto _lambda161_(auto _ref, auto slice) {
+auto _lambda180_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
@@ -1989,7 +2064,7 @@ Option<CType> compileType_App(void* _ref, char* input) {
 		if (i >= 0) {
 			/*withoutEnd.substring(0, i)*/ base = withoutEnd.substring(0, i);
 			/*withoutEnd.substring(i + 1)*/ typeArguments = withoutEnd.substring(i + 1);
-			/*_this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda161_).map(compileType_this).flatMap(stream_Option).toList()*/ list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda161_).map(compileType_this).flatMap(stream_Option).toList();
+			/*_this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda180_).map(compileType_this).flatMap(stream_Option).toList()*/ list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda180_).map(compileType_this).flatMap(stream_Option).toList();
 			return /*Option*/.of(new_CTemplateType(base, list));
 		}
 	}

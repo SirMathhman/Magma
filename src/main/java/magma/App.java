@@ -5,8 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class App {
 	private enum CPrimitiveType implements CType {
@@ -55,7 +58,8 @@ public class App {
 
 	private sealed interface Result<T, X> permits Err, Ok {}
 
-	private sealed interface CType permits CIdentifier, CPrimitiveType, CPointerType, CTemplateType, Placeholder {
+	private sealed interface CType
+			permits CIdentifier, CPointerType, CPrimitiveType, CStructureType, CTemplateType, Placeholder {
 		String generate();
 
 		String getSimpleName();
@@ -153,7 +157,8 @@ public class App {
 		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
 			var current = initial;
 			while (true) {
-				final var maybeNext = this.head.next();
+				final var head = this.head;
+				final var maybeNext = head.next();
 				if (maybeNext instanceof Some<T>(var next)) {
 					current = folder.apply(current, next);
 				} else {
@@ -202,6 +207,11 @@ public class App {
 
 		public static <T> ArrayList<T> empty() {
 			return new ArrayList<T>();
+		}
+
+		@Override
+		public String toString() {
+			return this.inner.stream().map(Objects::toString).collect(Collectors.joining(", ", "[", "]"));
 		}
 
 		private int size() {
@@ -254,6 +264,12 @@ public class App {
 			}
 			return this.setLast(mapper.apply(this.getLast()));
 		}
+
+		public ArrayList<T> reverse() {
+			final var copy = new java.util.ArrayList<T>(this.inner);
+			Collections.reverse(copy);
+			return new ArrayList<T>(copy);
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -264,6 +280,11 @@ public class App {
 		@Override
 		public <R> Option<R> map(Function<T, R> mapper) {
 			return new Some<R>(mapper.apply(this.value));
+		}
+
+		@Override
+		public String toString() {
+			return this.value.toString();
 		}
 
 		@Override
@@ -499,11 +520,16 @@ public class App {
 		}
 	}
 
-	private record CDefinition(ArrayList<String> typeParameters, CType cType, String name)
+	private record CDefinition(ArrayList<String> typeParameters, CType type, String name)
 			implements CFunctionHeader, CNode {
 		@Override
 		public String generate() {
-			return this.cType().generate() + " " + this.name();
+			return this.type().generate() + " " + this.name();
+		}
+
+		@Override
+		public String toString() {
+			return this.generate();
 		}
 
 		public CDefinition withType(CType type) {
@@ -721,6 +747,32 @@ public class App {
 
 		private Stream<CStructureHeader> streamHeaders() {
 			return this.frames.stream().map(frame -> frame.maybeHeader).flatMap(Option::stream);
+		}
+
+		public Option<Tuple<CStructureHeader, ArrayList<CDefinition>>> findCurrentScope() {
+			return this.frames
+					.copy()
+					.reverse()
+					.stream()
+					.map(frame -> frame.maybeHeader.map(header -> new Tuple<CStructureHeader, ArrayList<CDefinition>>(header,
+																																																						frame.definitions)))
+					.flatMap(Option::stream).head.next();
+		}
+	}
+
+	private record CStructureType(String name, ArrayList<CDefinition> fields) implements CType {
+		@Override
+		public String generate() {
+			return this.name;
+		}
+
+		@Override
+		public String getSimpleName() {
+			return this.name;
+		}
+
+		public Option<CType> resolve(String name) {
+			return this.fields.stream().filter(field -> field.name.equals(name)).map(field -> field.type).head.next();
 		}
 	}
 
@@ -1072,8 +1124,9 @@ public class App {
 							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final var header = new CStructureHeader(typeParameters, beforeContent);
+					var finalRecordFields = recordFields;
 					final var within1 = this.frames.within(() -> {
-						this.frames = this.frames.defineStructure(header);
+						this.frames = this.frames.defineStructure(header).defineAll(finalRecordFields);
 
 						final var members = this
 								.divide(content, this::foldStatement)
@@ -1201,15 +1254,20 @@ public class App {
 						currentStructure.toType().generate() + " _this = *((" + currentStructure.name() + "*) _ref)"),
 																									1).generate();
 
-				final var within = this.frames.within(() -> {
+				final var framesWithParams = this.frames.within(() -> {
 					this.frames = this.frames.defineAll(params);
 
-					final var outputContent = thisDefinition + this.compileMethodSegments(content) + System.lineSeparator();
-					return templateString + headerWithParameters + " {" + outputContent + "}" + System.lineSeparator();
+					final var withBlock = this.frames.within(() -> {
+						final var outputContent = thisDefinition + this.compileMethodSegments(content) + System.lineSeparator();
+						return templateString + headerWithParameters + " {" + outputContent + "}" + System.lineSeparator();
+					});
+
+					this.frames = withBlock.right;
+					return withBlock.left;
 				});
 
-				generated = within.left;
-				this.frames = within.right;
+				generated = framesWithParams.left;
+				this.frames = framesWithParams.right;
 			}
 		}
 
@@ -1220,7 +1278,7 @@ public class App {
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this.compileDefinition(input).<CFunctionHeader>map(item -> {
 			final var currentStructureName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
-			return new CDefinition(item.typeParameters, item.cType, item.name + "_" + currentStructureName);
+			return new CDefinition(item.typeParameters, item.type, item.name + "_" + currentStructureName);
 		}).or(() -> this.compileConstructor(input)).orElseGet(() -> new Placeholder(input));
 	}
 
@@ -1434,7 +1492,7 @@ public class App {
 			case None<CDefinition> _ -> this.compileExpression(destinationString);
 			case Some<CDefinition> v -> {
 				final var definition = v.value;
-				if (definition.cType instanceof CIdentifier(var name) && name.equals("var")) {
+				if (definition.type instanceof CIdentifier(var name) && name.equals("var")) {
 					final var newType = this.resolveExpression(source);
 					yield definition.withType(newType).generate();
 				}
@@ -1450,13 +1508,15 @@ public class App {
 			case CContent cContent -> new Placeholder(cContent.content);
 			case CFieldAccess fieldAccess -> {
 				final var childType = this.resolveExpression(fieldAccess.child);
-				if (childType instanceof CIdentifier(var value)) {
-					if (value.equals("_this")) {
-						yield new Placeholder("Failed to find field: " + fieldAccess.name);
+				if (childType instanceof CStructureType structureType) {
+					if (structureType.resolve(fieldAccess.name) instanceof Some<CType>(var type)) {
+						yield type;
 					}
+
+					yield new Placeholder("Undefined field '" + fieldAccess.name + "' in '" + structureType.name + "'");
 				}
 
-				yield new Placeholder("Not an identifier: " + childType);
+				yield new Placeholder("Not a structure: " + childType);
 			}
 			case Placeholder placeholder -> placeholder;
 		};
@@ -1464,13 +1524,16 @@ public class App {
 
 	private CType resolveIdentifier(CIdentifier identifier) {
 		if (identifier.value.equals("_this")) {
-			return new Placeholder("this type");
+			final var maybeCurrentScope = this.frames.findCurrentScope();
+			if (maybeCurrentScope instanceof Some(var currentScope)) {
+				return new CStructureType(currentScope.left.name, currentScope.right);
+			}
 		}
 
 		final var maybeDefinition = this.frames.resolve(identifier.value);
 
 		if (maybeDefinition instanceof Some<CDefinition>(var found)) {
-			return found.cType;
+			return found.type;
 		}
 
 		return new Placeholder(identifier.value);
