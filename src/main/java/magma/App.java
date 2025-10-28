@@ -10,10 +10,9 @@ import java.util.Stack;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class App {
 	private enum CPrimitiveType implements CType {
@@ -32,6 +31,16 @@ public class App {
 		public String getSimpleName() {
 			return this.content;
 		}
+	}
+
+	private sealed interface Head<T> permits EmptyHead, ListHead, MapHead, SingleHead, FlatMapHead {
+		Option<T> next();
+	}
+
+	private interface Collector<T, C> {
+		C createInitial();
+
+		C fold(C current, T element);
 	}
 
 	private sealed interface Result<T, X> permits Err, Ok {}
@@ -76,7 +85,81 @@ public class App {
 		Stream<T> stream();
 	}
 
+	private static final class SingleHead<T> implements Head<T> {
+		private final T element;
+		private boolean retrieved;
+
+		private SingleHead(T element) {
+			this.element = element;
+			this.retrieved = false;
+		}
+
+		@Override
+		public Option<T> next() {
+			if (this.retrieved) {
+				return new None<T>();
+			}
+			this.retrieved = true;
+			return new Some<T>(this.element);
+		}
+	}
+
+	private static final class EmptyHead<T> implements Head<T> {
+		@Override
+		public Option<T> next() {
+			return new None<T>();
+		}
+	}
+
+	private record Stream<T>(Head<T> head) {
+		public static <T> Stream<T> of(T element) {
+			return new Stream<T>(new SingleHead<T>(element));
+		}
+
+		public static <T> Stream<T> empty() {
+			return new Stream<T>(new EmptyHead<T>());
+		}
+
+		public <R> Stream<R> map(Function<T, R> mapper) {
+			return new Stream<R>(new MapHead<T, R>(this.head, mapper));
+		}
+
+		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
+			R current = initial;
+			while (true) {
+				final Option<T> maybeNext = this.head.next();
+				if (maybeNext instanceof Some<T>(T next)) {
+					current = folder.apply(current, next);
+				} else {
+					return current;
+				}
+			}
+		}
+
+		public <C> C collect(Collector<T, C> collector) {
+			return this.fold(collector.createInitial(), collector::fold);
+		}
+
+		public ArrayList<T> toList() {
+			return this.collect(new ListCollector<T>());
+		}
+
+		public Stream<T> filter(Predicate<T> predicate) {
+			return this.flatMap(element -> {
+				if (predicate.test(element)) {
+					return Stream.of(element);
+				}
+				return Stream.empty();
+			});
+		}
+
+		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
+			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		}
+	}
+
 	private record ArrayList<T>(List<T> inner) {
+
 		public ArrayList() {
 			this(new java.util.ArrayList<T>());
 		}
@@ -86,11 +169,15 @@ public class App {
 			return new ArrayList<T>(new java.util.ArrayList<T>(Arrays.asList(elements)));
 		}
 
-		public Stream<T> stream() {
-			return this.inner.stream();
+		private int size() {
+			return this.inner.size();
 		}
 
-		public ArrayList<T> add(T element) {
+		public Stream<T> stream() {
+			return new Stream<T>(new ListHead<T>(this));
+		}
+
+		public ArrayList<T> addLast(T element) {
 			this.inner.add(element);
 			return this;
 		}
@@ -231,7 +318,7 @@ public class App {
 	public record CTemplateType(String base, ArrayList<CType> list) implements CType {
 		@Override
 		public String generate() {
-			final String joined = this.list.stream().map(CType::generate).collect(Collectors.joining(", "));
+			final String joined = this.list.stream().map(CType::generate).collect(new Collectors.Joiner(", "));
 
 			return this.base + "<" + joined + ">";
 		}
@@ -304,7 +391,7 @@ public class App {
 		}
 
 		State advance() {
-			this.segments = this.segments.add(this.buffer.toString());
+			this.segments = this.segments.addLast(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
@@ -366,8 +453,7 @@ public class App {
 				return new CIdentifier(this.name);
 			}
 
-			final ArrayList<CType> list =
-					new ArrayList<CType>(this.typeParameters.stream().<CType>map(CIdentifier::new).toList());
+			final ArrayList<CType> list = this.typeParameters.stream().<CType>map(CIdentifier::new).toList();
 			return new CTemplateType(this.name, list);
 		}
 
@@ -383,6 +469,93 @@ public class App {
 	private record CStructure(CStructureHeader CStructureHeader, String fields) {
 		private String generate() {
 			return this.CStructureHeader().generate() + " {" + this.fields() + "};";
+		}
+	}
+
+	private static final class MapHead<T, R> implements Head<R> {
+		private final Function<T, R> mapper;
+		private final Head<T> head;
+
+		public MapHead(Head<T> head, Function<T, R> mapper) {
+			this.mapper = mapper;
+			this.head = head;
+		}
+
+		@Override
+		public Option<R> next() {
+			return this.head.next().map(this.mapper);
+		}
+	}
+
+	private static final class ListHead<T> implements Head<T> {
+		private final ArrayList<T> list;
+		private int counter;
+
+		public ListHead(ArrayList<T> list) {
+			this.list = list;
+			this.counter = 0;
+		}
+
+		@Override
+		public Option<T> next() {
+			if (this.counter < this.list.size()) {
+				final T element = this.list.inner.get(this.counter);
+				this.counter++;
+				return Option.of(element);
+			}
+
+			return Option.empty();
+		}
+	}
+
+	private static class Collectors {
+		private static class Joiner implements Collector<String, String> {
+			private final String delimiter;
+
+			public Joiner(String delimiter) {this.delimiter = delimiter;}
+
+			@Override
+			public String createInitial() {
+				return "";
+			}
+
+			@Override
+			public String fold(String current, String element) {
+				if (current.isEmpty()) {
+					return element;
+				}
+				return current + this.delimiter + element;
+			}
+		}
+	}
+
+	private static class ListCollector<T> implements Collector<T, ArrayList<T>> {
+		@Override
+		public ArrayList<T> createInitial() {
+			return new ArrayList<T>();
+		}
+
+		@Override
+		public ArrayList<T> fold(ArrayList<T> current, T element) {
+			return current.addLast(element);
+		}
+	}
+
+	private static final class FlatMapHead<T, R> implements Head<R> {
+		private final Head<T> head;
+		private final Function<T, Stream<R>> mapper;
+		private final Option<Stream<R>> current = Option.empty();
+
+		private FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+		}
+
+		@Override
+		public Option<R> next() {
+			while (true) {
+				// TODO
+			}
 		}
 	}
 
@@ -416,7 +589,7 @@ public class App {
 			templateString = "";
 		} else {
 			final String collect =
-					typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+					typeParameters.stream().map(slice -> "typename " + slice).collect(new Collectors.Joiner(", "));
 			templateString = "template <" + collect + ">" + System.lineSeparator();
 		}
 		return templateString;
@@ -505,7 +678,7 @@ public class App {
 	}
 
 	private String compileStatements(String input, Function<String, String> mapper) {
-		return this.divide(input, this::foldStatement).map(mapper).collect(Collectors.joining());
+		return this.divide(input, this::foldStatement).map(mapper).collect(new Collectors.Joiner(null));
 	}
 
 	private Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -677,13 +850,13 @@ public class App {
 								.stream()
 								.map(slice -> slice + "Tag")
 								.map(content1 -> this.generateWithIndent(content1, 1))
-								.collect(Collectors.joining(","));
+								.collect(new Collectors.Joiner(","));
 
 						final String typeArguments = this.joinTypeArguments(typeParameters);
 						final String unionFields = variants
 								.stream()
 								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
-								.collect(Collectors.joining());
+								.collect(new Collectors.Joiner(null));
 
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
 													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
@@ -696,7 +869,7 @@ public class App {
 								.stream()
 								.map(CDefinition::generate)
 								.map(slice -> this.generateStatement(slice, 1))
-								.collect(Collectors.joining(""));
+								.collect(new Collectors.Joiner(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) + this.generateStatement(
 								beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
@@ -707,7 +880,7 @@ public class App {
 						final String joinedTypeArguments = this.joinTypeArguments(typeParameters);
 
 						final String thisType = beforeContent + joinedTypeArguments;
-						this.functions = this.functions.add(
+						this.functions = this.functions.addLast(
 								templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
 								beforeContent + "(void* _ref" + "){" +
 								this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
@@ -717,8 +890,8 @@ public class App {
 										1) + System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
-					this.forwardDeclarations =
-							this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
+					this.forwardDeclarations = this.forwardDeclarations.addLast(
+							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
 					this.structureHeaders.push(header);
@@ -732,9 +905,9 @@ public class App {
 					this.structureHeaders.pop();
 
 					if (variants.isEmpty()) {
-						this.structures = this.structures.add(generated);
+						this.structures = this.structures.addLast(generated);
 					} else {
-						this.sealedStructures = this.sealedStructures.add(generated);
+						this.sealedStructures = this.sealedStructures.addLast(generated);
 					}
 
 					return Option.of("");
@@ -844,7 +1017,7 @@ public class App {
 			generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		}
 
-		this.functions = this.functions.add(generated);
+		this.functions = this.functions.addLast(generated);
 		return Option.of("");
 	}
 
@@ -893,7 +1066,7 @@ public class App {
 			final String stripped = segment.strip();
 			final Option<String> maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
-				this.globals = this.globals.add(maybeEnumValue.get());
+				this.globals = this.globals.addLast(maybeEnumValue.get());
 			} else {
 				return Option.empty();
 			}
@@ -1121,24 +1294,24 @@ public class App {
 				parameters = ArrayList.of("auto " + names);
 			} else if (names.startsWith("(") && names.endsWith(")")) {
 				final String slice = names.substring(1, names.length() - 1);
-				parameters = new ArrayList<String>(this
-																							 .divide(slice, this::foldValue)
-																							 .map(String::strip)
-																							 .filter(segment -> !segment.isEmpty())
-																							 .map(segment -> "auto " + segment)
-																							 .toList());
+				parameters = this
+						.divide(slice, this::foldValue)
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(segment -> "auto " + segment)
+						.toList();
 			} else {
 				return Option.empty();
 			}
 
 			final ArrayList<String> copy = parameters.copy().addFirst("auto _ref");
-			this.functions = this.functions.add("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " +
-																					this.compileMethodSegment(content).orElseGet(() -> {
-																						final String expression = this.compileExpression(content);
-																						return "{" + this.generateStatement("auto _this = _ref", 1) +
-																									 this.generateStatement("return " + expression, 1) +
-																									 System.lineSeparator() + "};" + System.lineSeparator();
-																					}));
+			this.functions = this.functions.addLast("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " +
+																							this.compileMethodSegment(content).orElseGet(() -> {
+																								final String expression = this.compileExpression(content);
+																								return "{" + this.generateStatement("auto _this = _ref", 1) +
+																											 this.generateStatement("return " + expression, 1) +
+																											 System.lineSeparator() + "};" + System.lineSeparator();
+																							}));
 
 			return Option.of(functionName);
 		}
@@ -1173,13 +1346,12 @@ public class App {
 
 			if (argStart >= 0) {
 				final String caller = slice.substring(0, argStart).strip();
-				final ArrayList<String> arguments = new ArrayList<String>(this
-																																			.divide(slice.substring(argStart + 1),
-																																							this::foldValue)
-																																			.map(String::strip)
-																																			.filter(segment -> !segment.isEmpty())
-																																			.map(this::compileExpression)
-																																			.toList());
+				final ArrayList<String> arguments = this
+						.divide(slice.substring(argStart + 1), this::foldValue)
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(this::compileExpression)
+						.toList();
 
 				final Option<String> maybeCaller = this.compileCaller(caller);
 				if (maybeCaller.isPresent()) {
@@ -1232,17 +1404,17 @@ public class App {
 				.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"))
 				.stream()
 				.map(CDefinition::generate)
-				.collect(Collectors.joining(", "));
+				.collect(new Collectors.Joiner(", "));
 	}
 
 	private ArrayList<CDefinition> compileParametersToList(String input) {
-		return new ArrayList<CDefinition>(this
-																					.divide(input, this::foldValue)
-																					.map(String::strip)
-																					.filter(slice -> !slice.isEmpty())
-																					.map(this::compileDefinition)
-																					.flatMap(Option::stream)
-																					.toList());
+		return this
+				.divide(input, this::foldValue)
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.map(this::compileDefinition)
+				.flatMap(Option::stream)
+				.toList();
 	}
 
 	private Option<CDefinition> compileDefinition(String input) {
@@ -1311,13 +1483,13 @@ public class App {
 				final String base = withoutEnd.substring(0, i);
 				final String typeArguments = withoutEnd.substring(i + 1);
 
-				final ArrayList<CType> list = new ArrayList<CType>(this
-																															 .divide(typeArguments, this::foldValue)
-																															 .map(String::strip)
-																															 .filter(slice -> !slice.isEmpty())
-																															 .map(this::compileType)
-																															 .flatMap(Option::stream)
-																															 .toList());
+				final ArrayList<CType> list = this
+						.divide(typeArguments, this::foldValue)
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(this::compileType)
+						.flatMap(Option::stream)
+						.toList();
 
 				return Option.of(new CTemplateType(base, list));
 			}
