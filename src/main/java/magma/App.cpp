@@ -3,6 +3,8 @@ struct CPrimitiveType;
 template <typename T, typename R>
 struct Function;
 template <typename T>
+struct Consumer;
+template <typename T>
 struct Head;
 template <typename T, typename C>
 struct Collector;
@@ -53,6 +55,9 @@ struct Joiner;
 	char* content;};
 template <typename T, typename R>
 struct Function {
+};
+template <typename T>
+struct Consumer {
 };
 template <typename T>
 struct Head {
@@ -242,6 +247,8 @@ char* getSimpleName_CPrimitiveType(void* _ref) {
 }
 template <typename T, typename R>
 R apply_Function(void* _ref, T arg);
+template <typename T>
+void accept_Consumer(void* _ref, T value);
 template <typename T>
 Option<T> next_Head(void* _ref);
 template <typename T, typename C>
