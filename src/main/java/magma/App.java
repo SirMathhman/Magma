@@ -434,7 +434,13 @@ public class App {
 			final var map = stream.map(CType::generate);
 			final var collector = new Joiner(", ");
 			final var joined = map.collect(collector);
-			return this.base + "<" + joined + ">";
+			final String s;
+			if (this.typeArguments.isEmpty()) {
+				s = "";
+			} else {
+				s = "<" + joined + ">";
+			}
+			return this.base + s;
 		}
 
 		@Override
@@ -1343,7 +1349,8 @@ public class App {
 						this.functions = this.functions.addLast(
 								templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
 								beforeContent + "(void* _ref" + "){" +
-								new CStatement(new CContent(thisTypeString + " _this = *((" + thisTypeString + "*) _ref)"), 1).generate() +
+								new CStatement(new CContent(thisTypeString + " _this = *((" + thisTypeString + "*) _ref)"),
+															 1).generate() +
 								new CStatement(new CContent(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data"),
 															 1).generate() +
 								new CStatement(new CContent("data." + beforeContent.toLowerCase() + " = _this"), 1).generate() +
