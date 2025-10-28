@@ -509,10 +509,6 @@ public class App {
 		public CDefinition withType(CType type) {
 			return new CDefinition(this.typeParameters, type, this.name);
 		}
-
-		public boolean hasName(String name) {
-			return this.name.equals(name);
-		}
 	}
 
 	private record CStructureHeader(ArrayList<String> typeParameters, String name) {
@@ -656,16 +652,79 @@ public class App {
 		}
 	}
 
-	public static class ParseStack {
-		private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty();
-		private ArrayList<CStructureHeader> structureHeaders;
+	private static class Frames {
+		private record Frame(ArrayList<CDefinition> definitions, Option<CStructureHeader> maybeHeader) {
+			public Frame() {
+				this(ArrayList.empty(), new None<CStructureHeader>());
+			}
 
-		public ParseStack() {
+			public Frame defineAll(ArrayList<CDefinition> params) {
+				return new Frame(this.definitions.addAllLast(params), this.maybeHeader);
+			}
+
+			public Frame define(CDefinition definition) {
+				return new Frame(this.definitions.addLast(definition), this.maybeHeader);
+			}
+
+			public Frame withHeader(CStructureHeader header) {
+				return new Frame(this.definitions, new Some<CStructureHeader>(header));
+			}
+
+			public Option<CDefinition> resolve(String name) {
+				return this.definitions.stream().filter(definition -> definition.name.equals(name)).head.next();
+			}
+		}
+
+		private ArrayList<Frame> frames = ArrayList.empty();
+
+		public Frames() {
+		}
+
+		private Frames defineAll(ArrayList<CDefinition> params) {
+			this.frames = this.frames.mapLast(last -> last.defineAll(params));
+			return this;
+		}
+
+		private <T> Tuple<T, Frames> within(Supplier<T> mapper) {
+			this.frames = this.frames.addLast(new Frame());
+			final var result = mapper.get();
+			this.frames = this.frames.removeLast();
+
+			return new Tuple<T, Frames>(result, this);
+		}
+
+		private Frames define(CDefinition definition) {
+			this.frames = this.frames.mapLast(last -> last.define(definition));
+			return this;
+		}
+
+		private Option<CDefinition> resolve(String name) {
+			return this.frames.stream().map(frame -> frame.resolve(name)).flatMap(Option::stream).head.next();
+		}
+
+		private Frames defineStructure(CStructureHeader header) {
+			this.frames = this.frames.mapLast(last -> last.withHeader(header));
+			return this;
+		}
+
+		private ArrayList<String> collectTypeParameters() {
+			return this
+					.streamHeaders()
+					.map(header -> header.typeParameters)
+					.flatMap(ArrayList::stream)
+					.collect(new ListCollector<String>());
+		}
+
+		public Option<CStructureHeader> findCurrentStructure() {
+			return this.streamHeaders().head.next();
+		}
+
+		private Stream<CStructureHeader> streamHeaders() {
+			return this.frames.stream().map(frame -> frame.maybeHeader).flatMap(Option::stream);
 		}
 	}
 
-	private final ParseStack parseStack = new ParseStack();
-
+	private Frames frames;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
 	private ArrayList<String> structures;
@@ -676,7 +735,7 @@ public class App {
 
 	public App() {
 		this.globals = ArrayList.empty();
-		this.parseStack.structureHeaders = ArrayList.empty();
+		this.frames = new Frames();
 		this.functions = ArrayList.empty();
 		this.forwardDeclarations = ArrayList.empty();
 		this.structures = ArrayList.empty();
@@ -1013,20 +1072,22 @@ public class App {
 							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final var header = new CStructureHeader(typeParameters, beforeContent);
-					this.parseStack.structureHeaders = this.parseStack.structureHeaders.addLast(header);
+					final var within1 = this.frames.within(() -> {
+						this.frames = this.frames.defineStructure(header);
 
-					final var members = this
-							.divide(content, this::foldStatement)
-							.map(this::compileClassSegment)
-							.collect(new ListCollector<CStructureSegment>());
+						final var members = this
+								.divide(content, this::foldStatement)
+								.map(this::compileClassSegment)
+								.collect(new ListCollector<CStructureSegment>());
 
-					final var joinedFields = members.stream().map(CStructureSegment::generate).collect(new Joiner(""));
-					final var outputContent = generatedFields + joinedFields;
+						final var joinedFields = members.stream().map(CStructureSegment::generate).collect(new Joiner(""));
+						final var outputContent = generatedFields + joinedFields;
 
-					final var generated =
-							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+						return dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+					});
 
-					this.parseStack.structureHeaders = this.parseStack.structureHeaders.removeLast();
+					final var generated = within1.left;
+					this.frames = within1.right;
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.addLast(generated);
@@ -1123,31 +1184,33 @@ public class App {
 
 		final ArrayList<String> typeParameters;
 		if (header instanceof CDefinition definition1) {
-			typeParameters =
-					this.parseStack.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
+			typeParameters = this.frames.collectTypeParameters().copy().addAllLast(definition1.typeParameters);
 		} else {
-			typeParameters = this.parseStack.structureHeaders.getLast().typeParameters.copy().addAllLast(ArrayList.empty());
+			typeParameters = this.frames.collectTypeParameters().copy().addAllLast(ArrayList.empty());
 		}
 
 		final var templateString = createTemplateString(typeParameters);
 
-		final String generated;
+		String generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
-			final var currentStructureType = this.parseStack.structureHeaders.getLast();
-			final var thisDefinition = new CStatement(new CContent(
-					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"),
-																								1).generate();
+			final var maybeCurrentStructure = this.frames.findCurrentStructure();
+			if (maybeCurrentStructure instanceof Some<CStructureHeader>(var currentStructure)) {
+				final var thisDefinition = new CStatement(new CContent(
+						currentStructure.toType().generate() + " _this = *((" + currentStructure.name() + "*) _ref)"),
+																									1).generate();
 
-			this.parseStack.definitions = this.parseStack.definitions.addLast(params);
+				final var within = this.frames.within(() -> {
+					this.frames = this.frames.defineAll(params);
 
-			generated = templateString + headerWithParameters + " {" + thisDefinition + this.compileMethodSegments(content) +
-									System.lineSeparator() + "}" + System.lineSeparator();
+					final var outputContent = thisDefinition + this.compileMethodSegments(content) + System.lineSeparator();
+					return templateString + headerWithParameters + " {" + outputContent + "}" + System.lineSeparator();
+				});
 
-			this.parseStack.definitions = this.parseStack.definitions.removeLast();
-		} else {
-			generated = templateString + headerWithParameters + ";" + System.lineSeparator();
+				generated = within.left;
+				this.frames = within.right;
+			}
 		}
 
 		this.functions = this.functions.addLast(generated);
@@ -1155,14 +1218,10 @@ public class App {
 	}
 
 	private CFunctionHeader compileFunctionHeader(String input) {
-		return this
-				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.typeParameters,
-																											item.cType,
-																											item.name + "_" +
-																											this.parseStack.structureHeaders.getLast().name))
-				.or(() -> this.compileConstructor(input))
-				.orElseGet(() -> new Placeholder(input));
+		return this.compileDefinition(input).<CFunctionHeader>map(item -> {
+			final var currentStructureName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
+			return new CDefinition(item.typeParameters, item.cType, item.name + "_" + currentStructureName);
+		}).or(() -> this.compileConstructor(input)).orElseGet(() -> new Placeholder(input));
 	}
 
 	private Option<CStructureSegment> compileDefinitionToField0(String slice) {
@@ -1172,7 +1231,7 @@ public class App {
 		}
 
 		final var definition = maybeDefinition.get();
-		this.parseStack.definitions = this.parseStack.definitions.mapLast(last -> last.addLast(definition));
+		this.frames = this.frames.define(definition);
 		return new Some<CStructureSegment>(new CStatement(definition, 1));
 	}
 
@@ -1185,12 +1244,14 @@ public class App {
 		if (i >= 0) {
 			final var name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final var peek = this.parseStack.structureHeaders.getLast();
-				return Option.of(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
+				final var peek0 = this.frames.findCurrentStructure();
+				if (peek0 instanceof Some<CStructureHeader>(var peek)) {
+					return Option.of(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
+				}
 			}
 		} else {
 			if (this.isIdentifier(input)) {
-				final var structName = this.parseStack.structureHeaders.getLast().name;
+				final var structName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
 				return Option.of(new CDefinition(ArrayList.empty(), new CIdentifier(structName), "new_" + structName));
 			}
 		}
@@ -1226,7 +1287,7 @@ public class App {
 				final var name = slice.substring(0, i).strip();
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final var structureName = this.parseStack.structureHeaders.getLast().name;
+					final var structureName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}
@@ -1250,9 +1311,12 @@ public class App {
 			final var content = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
-			this.parseStack.definitions = this.parseStack.definitions.addLast(ArrayList.empty());
-			final var compiled = this.compileMethodSegments(content);
-			this.parseStack.definitions = this.parseStack.definitions.removeLast();
+
+			final var within = this.frames.within(() -> this.compileMethodSegments(content));
+
+			final var compiled = within.left;
+			this.frames = within.right;
+
 			this.depth--;
 
 			return Option.of("{" + compiled + App.generateIndent(this.depth) + "}");
@@ -1403,10 +1467,7 @@ public class App {
 			return new Placeholder("this type");
 		}
 
-		final var maybeDefinition = this.parseStack.definitions
-				.stream()
-				.flatMap(ArrayList::stream)
-				.filter(definition -> definition.hasName(identifier.value)).head.next();
+		final var maybeDefinition = this.frames.resolve(identifier.value);
 
 		if (maybeDefinition instanceof Some<CDefinition>(var found)) {
 			return found.cType;
@@ -1426,7 +1487,7 @@ public class App {
 		}
 
 		final var definition = maybeDefinition.get();
-		this.parseStack.definitions = this.parseStack.definitions.mapLast(last -> last.addLast(definition));
+		this.frames = this.frames.define(definition);
 		return new Some<CDefinition>(definition);
 	}
 
@@ -1477,12 +1538,7 @@ public class App {
 				return new CIdentifier("_this");
 			}
 
-			if (this.parseStack.definitions
-					.stream()
-					.flatMap(ArrayList::stream)
-					.filter(definition -> definition.name.endsWith(stripped)).head
-					.next()
-					.isPresent()) {
+			if (this.frames.resolve(stripped).isPresent()) {
 				return new CIdentifier(stripped);
 			}
 		}
