@@ -1250,7 +1250,7 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
-					var recordFields = ArrayList.<CDefinition>empty();
+					var recordParameters = ArrayList.<CDefinition>empty();
 					if (beforeContent.endsWith(")")) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i = slice.indexOf("(");
@@ -1258,7 +1258,7 @@ public class App {
 							final var params = slice.substring(i + 1);
 							beforeContent = slice.substring(0, i).strip();
 
-							recordFields = this.compileParametersToList(params);
+							recordParameters = this.compileParametersToList(params);
 						}
 					}
 
@@ -1283,10 +1283,8 @@ public class App {
 
 					final var templateString = App.createTemplateString(typeParameters);
 
-					String dependencies;
+					String dependencies = "";
 					if (variants.isEmpty()) {
-						dependencies = "";
-					} else {
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")
@@ -1299,14 +1297,34 @@ public class App {
 								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
 								.collect(new Joiner(""));
 
-						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
-													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
-													 System.lineSeparator() + "};" + System.lineSeparator();
+						dependencies += "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
+														System.lineSeparator() + templateString + "union " + beforeContent + "Data {" +
+														unionFields + System.lineSeparator() + "};" + System.lineSeparator();
+					}
+
+					if (!recordParameters.isEmpty()) {
+						final var types = typeParameters.stream().<CType>map(CIdentifier::new).toList();
+						final var thisType = new CTemplateType(beforeContent, types);
+						final var header = new CDefinition(ArrayList.empty(), thisType, "new_" + beforeContent);
+
+						final var assignments = recordParameters
+								.stream()
+								.map(parameter -> System.lineSeparator() + "\t_this." + parameter.name + " = " + parameter.name + ";")
+								.collect(new Joiner());
+
+						final var constructorContent1 =
+								System.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + System.lineSeparator() +
+								"\treturn _this;" + System.lineSeparator();
+
+						this.functions = this.functions.addLast(this.generateMethod(typeParameters,
+																																				recordParameters,
+																																				header,
+																																				constructorContent1));
 					}
 
 					final String generatedFields;
 					if (variants.isEmpty()) {
-						generatedFields = recordFields
+						generatedFields = recordParameters
 								.stream()
 								.map(CDefinition::generate)
 								.map(slice -> new CStatement(new CContent(slice), 1).generate())
@@ -1339,7 +1357,8 @@ public class App {
 							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final var header = new CStructureHeader(typeParameters, beforeContent);
-					var finalRecordFields = recordFields;
+					var finalRecordFields = recordParameters;
+					String finalDependencies = dependencies;
 					final var within1 = this.frames.within(() -> {
 						this.frames = this.frames.withStructureHeader(header).defineAll(finalRecordFields);
 
@@ -1354,7 +1373,7 @@ public class App {
 						final var outputContent = generatedFields + joinedFields;
 
 						final var generated =
-								dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+								finalDependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
 						return new Tuple<ArrayList<CStructureMember>, String>(members, generated);
 					});
 
@@ -1459,14 +1478,6 @@ public class App {
 
 		final var header = this.parseFunctionHeader(definition);
 		final var params = this.compileParametersToList(inputParams);
-		final var outputParams = params
-				.copy()
-				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
-				.stream()
-				.map(CDefinition::generate)
-				.collect(new Joiner(", "));
-
-		final var headerWithParameters = header.generate() + "(" + outputParams + ")";
 
 		final ArrayList<String> typeParameters;
 		if (header instanceof CDefinition definition1) {
@@ -1475,9 +1486,8 @@ public class App {
 			typeParameters = this.frames.collectTypeParameters().copy().addAllLast(ArrayList.empty());
 		}
 
-		final var templateString = createTemplateString(typeParameters);
-
-		var generated = templateString + headerWithParameters + ";" + System.lineSeparator();
+		var generated = createTemplateString(typeParameters) + this.generateHeaderWithParameters(params, header) + ";" +
+										System.lineSeparator();
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
@@ -1492,7 +1502,7 @@ public class App {
 
 					final var withBlock = this.frames.within(() -> {
 						final var outputContent = thisDefinition + this.compileMethodSegments(content) + System.lineSeparator();
-						return templateString + headerWithParameters + " {" + outputContent + "}" + System.lineSeparator();
+						return this.generateMethod(typeParameters, params, header, outputContent);
 					});
 
 					this.frames = withBlock.right;
@@ -1512,6 +1522,29 @@ public class App {
 		} else {
 			return Option.of(new EmptyCStructureSegment());
 		}
+	}
+
+	private String generateMethod(ArrayList<String> typeParameters,
+																ArrayList<CDefinition> params,
+																CFunctionHeader header,
+																String content) {
+		return createTemplateString(typeParameters) + this.generateHeaderWithParameters(params, header) + " {" + content +
+					 "}" + System.lineSeparator();
+	}
+
+	private String generateHeaderWithParameters(ArrayList<CDefinition> params, CFunctionHeader header) {
+		final var outputParams = params
+				.copy()
+				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
+				.stream()
+				.map(CDefinition::generate)
+				.collect(new Joiner(", "));
+
+		return header.generate() + "(" + outputParams + ")";
+	}
+
+	private String generateHeaderWithParameters(CFunctionHeader header, String outputParams) {
+		return header.generate() + "(" + outputParams + ")";
 	}
 
 	private CFunctionHeader parseFunctionHeader(String input) {
