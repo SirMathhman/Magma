@@ -1,95 +1,110 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:127:2: error: no template named 'List'
-  127 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:129:2: error: no template named 'List'
+  129 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:8: error: field has incomplete type 'CType'
-  145 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:147:8: error: field has incomplete type 'CType'
+  147 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:171:8: error: field has incomplete type 'CType'
-  171 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:173:8: error: field has incomplete type 'CType'
+  173 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:214:2: error: unknown type name 'CExpression'
-  214 |         CExpression child;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:216:14: error: field has incomplete type 'CExpression'
+  216 |         CExpression child;
+      |                     ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: forward declaration of 'CExpression'
+   26 | struct CExpression;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:224:2: error: unknown type name 'java'
+  224 |         java.util.HashMap<K, V> internal;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:2: error: unknown type name 'java'
-  222 |         java.util.HashMap<K, V> internal;
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:6: error: expected member name or ';' after declaration specifiers
-  222 |         java.util.HashMap<K, V> internal;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:224:6: error: expected member name or ';' after declaration specifiers
+  224 |         java.util.HashMap<K, V> internal;
       |         ~~~~^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:233:8: error: field has incomplete type 'CType'
-  233 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:235:8: error: field has incomplete type 'CType'
+  235 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:236:10: error: field has incomplete type 'CCaller'
-  236 |         CCaller caller;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:238:10: error: field has incomplete type 'CCaller'
+  238 |         CCaller caller;
       |                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:25:8: note: forward declaration of 'CCaller'
-   25 | struct CCaller;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:27:8: note: forward declaration of 'CCaller'
+   27 | struct CCaller;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:237:12: error: use of undeclared identifier 'CExpression'
-  237 |         ArrayList<CExpression> arguments;
-      |                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:243:8: error: field has incomplete type 'CType'
-  243 |         CType returnType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:245:8: error: field has incomplete type 'CType'
+  245 |         CType returnType;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:247:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
-  247 |         Option<CStructureHeader> maybeHeader;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:249:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
+  249 |         Option<CStructureHeader> maybeHeader;
       |                                  ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:20:8: note: template is declared here
    20 | struct Option;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:257:2: error: unknown type name 'CExpression'
-  257 |         CExpression child;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:259:14: error: field has incomplete type 'CExpression'
+  259 |         CExpression child;
+      |                     ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: forward declaration of 'CExpression'
+   26 | struct CExpression;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:309:2: error: redefinition of enumerator 'PlaceholderTag'
+  309 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:307:2: error: redefinition of enumerator 'PlaceholderTag'
-  307 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
+  292 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:290:2: note: previous definition is here
-  290 |         PlaceholderTag
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:336:2: error: redefinition of enumerator 'PlaceholderTag'
+  336 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:337:2: error: unknown type name 'CStructureSegment'
-  337 |         CStructureSegment cstructuresegment;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
+  292 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:349:2: error: unknown type name 'CExpression'
-  349 |         CExpression cexpression;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:362:2: error: redefinition of enumerator 'CIdentifierTag'
+  362 |         CIdentifierTag,
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:355:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  355 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:286:2: note: previous definition is here
+  286 |         CIdentifierTag,
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:365:2: error: redefinition of enumerator 'PlaceholderTag'
+  365 |         PlaceholderTag
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:292:2: note: previous definition is here
+  292 |         PlaceholderTag
+      |         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:391:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  391 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:356:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  356 | CPrimitiveType CharValue = CPrimitiveType { "char" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:392:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  392 | CPrimitiveType CharValue = CPrimitiveType { "char" };
       |                                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:357:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  357 | CPrimitiveType IntValue = CPrimitiveType { "int" };
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:393:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  393 | CPrimitiveType IntValue = CPrimitiveType { "int" };
       |                                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:386:9: error: no viable conversion from returned value of type 'CPrimitiveType' to function return type 'CType'
-  386 |         return _this;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:422:9: error: no viable conversion from returned value of type 'CPrimitiveType' to function return type 'CType'
+  422 |         return _this;
       |                ^~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:301:8: note: candidate constructor (the implicit copy constructor) not viable: no known conversion from 'CPrimitiveType' to 'const CType &' for 1st argument
-  301 | struct CType {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:303:8: note: candidate constructor (the implicit copy constructor) not viable: no known conversion from 'CPrimitiveType' to 'const CType &' for 1st argument
+  303 | struct CType {
       |        ^~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:301:8: note: candidate constructor (the implicit move constructor) not viable: no known conversion from 'CPrimitiveType' to 'CType &&' for 1st argument
-  301 | struct CType {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:303:8: note: candidate constructor (the implicit move constructor) not viable: no known conversion from 'CPrimitiveType' to 'CType &&' for 1st argument
+  303 | struct CType {
       |        ^~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:599:16: error: 'auto' not allowed in function prototype
-  599 | auto _lambda1_(auto _ref, auto element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:643:16: error: 'auto' not allowed in function prototype
+  643 | auto _lambda1_(auto _ref, auto element) {
       |                ^~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:599:27: error: 'auto' not allowed in function prototype
-  599 | auto _lambda1_(auto _ref, auto element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:643:27: error: 'auto' not allowed in function prototype
+  643 | auto _lambda1_(auto _ref, auto element) {
       |                           ^~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:601:58: error: expected expression
-  601 |         return applyFilter_Stream(&_this, predicate, /*element*/);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:645:58: error: expected expression
+  645 |         return applyFilter_Stream(&_this, predicate, /*element*/);
       |                                                                 ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.

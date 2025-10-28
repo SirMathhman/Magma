@@ -20,8 +20,10 @@ template <typename T>
 struct Option;
 template <typename T>
 struct Predicate;
+struct CStructureSegment;
 struct CStructureMember;
 struct CNode;
+struct CExpression;
 struct CCaller;
 template <typename T>
 struct SingleHead;
@@ -328,6 +330,20 @@ struct Option {
 	OptionTag tag;
 	OptionData<T> data;
 };
+enum CStructureSegmentTag {
+	CStatementTag,
+	EmptyCStructureSegmentTag,
+	PlaceholderTag
+};
+union CStructureSegmentData {
+	CStatement cstatement;
+	EmptyCStructureSegment emptycstructuresegment;
+	Placeholder placeholder;
+};
+struct CStructureSegment {
+	CStructureSegmentTag tag;
+	CStructureSegmentData data;
+};
 enum CStructureMemberTag {
 	CMethodMemberTag,
 	CStructureSegmentTag
@@ -339,6 +355,26 @@ union CStructureMemberData {
 struct CStructureMember {
 	CStructureMemberTag tag;
 	CStructureMemberData data;
+};
+enum CExpressionTag {
+	CContentTag,
+	CFieldAccessTag,
+	CIdentifierTag,
+	CInvocationTag,
+	CReferenceTag,
+	PlaceholderTag
+};
+union CExpressionData {
+	CContent ccontent;
+	CFieldAccess cfieldaccess;
+	CIdentifier cidentifier;
+	CInvocation cinvocation;
+	CReference creference;
+	Placeholder placeholder;
+};
+struct CExpression {
+	CExpressionTag tag;
+	CExpressionData data;
 };
 enum CCallerTag {
 	CConstructionTag,
@@ -480,7 +516,11 @@ Predicate<T> new_Predicate() {
 }
 template <typename T>
 int test_Predicate(void* _ref, T element);
-App new_App(void* _ref);
+CStructureSegment new_CStructureSegment() {
+	CStructureSegment _this;
+	return _this;
+}
+char* generate_CStructureSegment(void* _ref);
 CStructureMember new_CStructureMember() {
 	CStructureMember _this;
 	return _this;
@@ -491,7 +531,11 @@ CNode new_CNode() {
 	return _this;
 }
 char* generate_CNode(void* _ref);
-App new_App(void* _ref);
+CExpression new_CExpression() {
+	CExpression _this;
+	return _this;
+}
+char* generate_CExpression(void* _ref);
 CCaller new_CCaller() {
 	CCaller _this;
 	return _this;
@@ -1949,6 +1993,10 @@ auto _lambda137_(auto _ref) {
 					/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ slice = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, length_/*typeof(implementsIndex + "implements")*/(&implementsIndex + "implements")));
 					/*maybeInterfaceType*/ = compileType_App(&_this, slice);
 					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, implementsIndex));
+				}
+				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ i1 = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, "extends ");
+				if (i1 >= 0) {
+					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, i1));
 				}
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/ recordParameters = /*ArrayList*/. < /*CDefinition>empty*/();
 				if (/*beforeContent.endsWith(")"*/) /*) {

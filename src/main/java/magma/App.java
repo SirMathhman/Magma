@@ -1266,6 +1266,11 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
+					final var i1 = beforeContent.indexOf("extends ");
+					if (i1 >= 0) {
+						beforeContent = beforeContent.substring(0, i1).strip();
+					}
+
 					var recordParameters = ArrayList.<CDefinition>empty();
 					if (beforeContent.endsWith(")")) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
