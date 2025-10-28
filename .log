@@ -17,7 +17,7 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forwa
     5 | struct CPPType;
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:68:2: error: no template named 'Stack'
-   68 |         Stack<char*> structureNames;
+   68 |         Stack<CPPType> structureTypes;
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:110:2: error: redefinition of enumerator 'PlaceholderTag'
   110 |         PlaceholderTag
@@ -42,17 +42,12 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: temp
       | ~~~~~~~~~~~~~~~~~~~~~
    26 | struct ArrayList {
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:2: error: use of class template 'ArrayList' requires template arguments
-  145 |         ArrayList _this = *((ArrayList*) _ref);
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: template is declared here
-   25 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-   26 | struct ArrayList {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:23: error: use of class template 'ArrayList' requires template arguments
-  145 |         ArrayList _this = *((ArrayList*) _ref);
-      |                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:12: error: use of undeclared identifier 'T'
+  145 |         ArrayList<T> _this = *((ArrayList*) _ref);
+      |                   ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:145:26: error: use of class template 'ArrayList' requires template arguments
+  145 |         ArrayList<T> _this = *((ArrayList*) _ref);
+      |                                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: template is declared here
    25 | template <typename T>
       | ~~~~~~~~~~~~~~~~~~~~~
@@ -67,17 +62,12 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:146:8: error: us
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:148:11: error: use of undeclared identifier 'T'
   148 | ArrayList<T> of_ArrayList(void* _ref) {
       |           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:149:2: error: use of class template 'ArrayList' requires template arguments
-  149 |         ArrayList _this = *((ArrayList*) _ref);
-      |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: template is declared here
-   25 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-   26 | struct ArrayList {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:149:23: error: use of class template 'ArrayList' requires template arguments
-  149 |         ArrayList _this = *((ArrayList*) _ref);
-      |                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:149:12: error: use of undeclared identifier 'T'
+  149 |         ArrayList<T> _this = *((ArrayList*) _ref);
+      |                   ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:149:26: error: use of class template 'ArrayList' requires template arguments
+  149 |         ArrayList<T> _this = *((ArrayList*) _ref);
+      |                                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:26:8: note: template is declared here
    25 | template <typename T>
       | ~~~~~~~~~~~~~~~~~~~~~

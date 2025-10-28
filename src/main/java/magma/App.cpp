@@ -65,7 +65,7 @@ struct CDefinition {
 };
 struct App {
 
-	Stack<char*> structureNames;
+	Stack<CPPType> structureTypes;
 	ArrayList<char*> globals;
 	ArrayList<char*> forwardDeclarations;
 	ArrayList<char*> structures;
@@ -142,32 +142,32 @@ char* generate_CPPType(void* _ref);
 char* getSimpleName_CPPType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
 ArrayList new_ArrayList(void* _ref) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
 }
 ArrayList<T> of_ArrayList(void* _ref) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(Arrays.asList(elements)));
 }
 Stream<T> stream_ArrayList(void* _ref) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	return _this.inner.stream();
 }
 ArrayList<T> add_ArrayList(void* _ref, T element) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this.inner.add(element);
 	return _this;
 }
 int isEmpty_ArrayList(void* _ref) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	return _this.inner.isEmpty();
 }
 ArrayList<T> copy_ArrayList(void* _ref) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(_this.inner));
 }
 ArrayList<T> addFirst_ArrayList(void* _ref, T element) {
-	ArrayList _this = *((ArrayList*) _ref);
+	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this.inner.addFirst(element);
 	return _this;
 }
@@ -223,6 +223,10 @@ CPPType toCPPType_CIdentifier(void* _ref){
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
 	return _this.input;
+}
+char* toString_CIdentifier(void* _ref) {
+	CIdentifier _this = *((CIdentifier*) _ref);
+	return "";
 }
 char* getSimpleName_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -322,7 +326,7 @@ char* generate_CDefinition(void* _ref) {
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
 	_this.globals = new_ArrayList<char*>();
-	_this.structureNames = new_Stack<char*>();
+	_this.structureTypes = new_Stack<CPPType>();
 	_this.functions = new_ArrayList<char*>();
 	_this.forwardDeclarations = new_ArrayList<char*>();
 	_this.structures = new_ArrayList<char*>();
@@ -580,9 +584,17 @@ Optional<char*> compileStructure_App(void* _ref, char* type, char* input) {
 										1)*/ + System.lineSeparator() + "}" + System.lineSeparator());
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
-				_this.structureNames.push(beforeContent);
+				CPPType thisType;
+				if (typeParameters.isEmpty()) {
+					thisType = new_CIdentifier(beforeContent);
+				}
+				else {
+					ArrayList<CPPType> list = new_ArrayList<>(typeParameters.stream(). < /*CPPType>map*/(new_CIdentifier).toList());
+					thisType = new_CTemplateType(beforeContent, list);
+				}
+				_this.structureTypes.push(thisType);
 				char* generated = dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this) + "};" + System.lineSeparator();
-				_this.structureNames.pop();
+				_this.structureTypes.pop();
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.add(generated);
 				}
@@ -684,8 +696,8 @@ Optional<char*> compileMethod_App(void* _ref, char* input) {
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
-		char* currentStructureName = _this.structureNames.peek();
-		char* thisDefinition = _this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
+		CPPType currentStructureType = _this.structureTypes.peek();
+		char* thisDefinition = _this.generateStatement(currentStructureType.generate() + " _this = *((" + currentStructureType.getSimpleName() + "*) _ref)", 1);
 		generated = beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 	else {
@@ -704,7 +716,7 @@ auto _lambda49_(auto _ref) {
 };
 auto _lambda52_(auto _ref, auto item) {
 	auto _this = _ref;
-	return new_CDefinition(item.cppType, item.name + "_" + _this.structureNames.peek());
+	return new_CDefinition(item.cppType, item.name + "_" + _this.structureTypes.peek().getSimpleName());
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -728,13 +740,13 @@ Optional<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	if (i >= 0) {
 		char* name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			char* structName = _this.structureNames.peek();
+			char* structName = _this.structureTypes.peek().getSimpleName();
 			return Optional.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			char* structName = _this.structureNames.peek();
+			char* structName = _this.structureTypes.peek().getSimpleName();
 			return Optional.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
 		}
 	}
@@ -768,7 +780,7 @@ Optional<char*> compileEnumValue_App(void* _ref, char* stripped) {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureNames.peek();
+					final String structureName = this.structureTypes.peek().getSimpleName();
 					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 														 System.lineSeparator());
 				}

@@ -115,6 +115,11 @@ public class App {
 		}
 
 		@Override
+		public String toString() {
+			return "";
+		}
+
+		@Override
 		public String getSimpleName() {
 			return this.input;
 		}
@@ -221,7 +226,7 @@ public class App {
 		}
 	}
 
-	private final Stack<String> structureNames;
+	private final Stack<CPPType> structureTypes;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
 	private ArrayList<String> structures;
@@ -232,7 +237,7 @@ public class App {
 
 	public App() {
 		this.globals = new ArrayList<String>();
-		this.structureNames = new Stack<String>();
+		this.structureTypes = new Stack<CPPType>();
 		this.functions = new ArrayList<String>();
 		this.forwardDeclarations = new ArrayList<String>();
 		this.structures = new ArrayList<String>();
@@ -550,11 +555,20 @@ public class App {
 					this.forwardDeclarations =
 							this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
-					this.structureNames.push(beforeContent);
+					final CPPType thisType;
+					if (typeParameters.isEmpty()) {
+						thisType = new CIdentifier(beforeContent);
+					} else {
+						final ArrayList<CPPType> list =
+								new ArrayList<>(typeParameters.stream().<CPPType>map(CIdentifier::new).toList());
+						thisType = new CTemplateType(beforeContent, list);
+					}
+
+					this.structureTypes.push(thisType);
 					final String generated =
 							dependencies + templateString + "struct " + beforeContent + " {" + fields + System.lineSeparator() +
 							this.compileStatements(content, this::compileClassSegment) + "};" + System.lineSeparator();
-					this.structureNames.pop();
+					this.structureTypes.pop();
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.add(generated);
@@ -657,9 +671,10 @@ public class App {
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
 
-			final String currentStructureName = this.structureNames.peek();
-			final String thisDefinition =
-					this.generateStatement(currentStructureName + " _this = *((" + currentStructureName + "*) _ref)", 1);
+			final CPPType currentStructureType = this.structureTypes.peek();
+			final String thisDefinition = this.generateStatement(
+					currentStructureType.generate() + " _this = *((" + currentStructureType.getSimpleName() + "*) _ref)", 1);
+
 			generated =
 					beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
 					System.lineSeparator();
@@ -674,7 +689,7 @@ public class App {
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this
 				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.cppType, item.name + "_" + this.structureNames.peek()))
+				.<CFunctionHeader>map(item -> new CDefinition(item.cppType, item.name + "_" + this.structureTypes.peek().getSimpleName()))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
@@ -692,12 +707,12 @@ public class App {
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final String structName = this.structureNames.peek();
+				final String structName = this.structureTypes.peek().getSimpleName();
 				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
-				final String structName = this.structureNames.peek();
+				final String structName = this.structureTypes.peek().getSimpleName();
 				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		}
@@ -733,7 +748,7 @@ public class App {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureNames.peek();
+					final String structureName = this.structureTypes.peek().getSimpleName();
 					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 														 System.lineSeparator());
 				}
