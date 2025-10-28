@@ -528,7 +528,7 @@ public class App {
 
 	private record CStructure(CStructureHeader CStructureHeader, String fields) {
 		private String generate() {
-			return this.CStructureHeader().generate() + " {" + this.fields() + "};";
+			return this.CStructureHeader().generate() + " {" + this.fields() + System.lineSeparator() + "};";
 		}
 	}
 
@@ -954,17 +954,18 @@ public class App {
 													 System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
-					final String fields;
+					final String generatedMembers;
 					if (variants.isEmpty()) {
-						fields = recordFields
+						generatedMembers = recordFields
 								.stream()
 								.map(CDefinition::generate)
 								.map(slice -> new CStatement(new CContent(slice), 1).generate())
 								.collect(new Joiner(""));
 					} else {
-						fields = new CStatement(new CContent(beforeContent + "Tag tag"), 1).generate() +
-										 new CStatement(new CContent(
-												 beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
+						generatedMembers = new CStatement(new CContent(beforeContent + "Tag tag"), 1).generate() +
+															 new CStatement(new CContent(
+																	 beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"),
+																							1).generate();
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -990,13 +991,13 @@ public class App {
 					final var header = new CStructureHeader(typeParameters, beforeContent);
 					this.structureHeaders = this.structureHeaders.addLast(header);
 
-					final var joinedFields = this
+					final var members = this
 							.divide(content, this::foldStatement)
 							.map(this::compileClassSegment)
-							.map(CStructureSegment::generate)
-							.collect(new Joiner(""));
+							.collect(new ListCollector<CStructureSegment>());
 
-					final var outputContent = fields + System.lineSeparator() + joinedFields;
+					final var joinedFields = members.stream().map(CStructureSegment::generate).collect(new Joiner(""));
+					final var outputContent = generatedMembers + joinedFields;
 
 					final var generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();

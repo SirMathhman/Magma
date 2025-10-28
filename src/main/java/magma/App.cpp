@@ -62,8 +62,8 @@ struct CContent;
 struct CStatement;
 /*
 */struct CPrimitiveType {
-
-	char* content;};
+	char* content;
+};
 template <typename T, typename R>
 struct Function {
 };
@@ -89,9 +89,9 @@ struct CNode {
 };
 template <typename T>
 struct SingleHead {
-
 	T element;
-	int retrieved;};
+	int retrieved;
+};
 template <typename T>
 struct EmptyHead {
 };
@@ -101,8 +101,8 @@ struct Stream {
 };
 template <typename T>
 struct ArrayList {
-
-	List<T> inner;};
+	List<T> inner;
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -137,12 +137,12 @@ struct Tuple {
 	B right;
 };
 struct State {
-
 	char* input;
 	ArrayList<char*> segments;
 	char* buffer;
 	int depth;
-	int index;};
+	int index;
+};
 struct CDefinition {
 	ArrayList<char*> typeParameters;
 	CType cType;
@@ -158,23 +158,23 @@ struct CStructure {
 };
 template <typename T, typename R>
 struct MapHead {
-
 	Function<T, R> mapper;
-	Head<T> head;};
+	Head<T> head;
+};
 template <typename T>
 struct ListHead {
-
 	ArrayList<T> list;
-	int counter;};
+	int counter;
+};
 template <typename T>
 struct ListCollector {
 };
 template <typename T, typename R>
 struct FlatMapHead {
-
 	Head<T> head;
 	Function<T, Stream<R>> mapper;
-	Head<R> current;};
+	Head<R> current;
+};
 struct Joiner {
 	char* delimiter;
 };
@@ -188,7 +188,6 @@ struct CStatement {
 	int depth;
 };
 struct App {
-
 	ArrayList<CStructureHeader> structureHeaders;
 	ArrayList<char*> globals;
 	ArrayList<char*> forwardDeclarations;
@@ -196,7 +195,8 @@ struct App {
 	ArrayList<char*> sealedStructures;
 	ArrayList<char*> functions;
 	int counter;
-	int depth;};
+	int depth;
+};
 enum ResultTag {
 	ErrTag,
 	OkTag
@@ -799,7 +799,7 @@ char* createTemplateString_CStructureHeader(void* _ref) {
 }
 char* generate_CStructure(void* _ref) {
 	CStructure _this = *((CStructure*) _ref);
-	return _this.CStructureHeader().generate() + " {" + this.fields() + "};";
+	return _this.CStructureHeader().generate() + " {" + this.fields() + System.lineSeparator() + "};";
 }
 template <typename T, typename R>
 Head<R> toHead_MapHead(void* _ref){
@@ -1190,12 +1190,12 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 					var unionFields = variants.stream().map(_lambda38_).collect(new_Joiner(""));
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
-				char* fields;
+				char* generatedMembers;
 				if (variants.isEmpty()) {
-					fields = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
+					generatedMembers = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
 				}
 				else {
-					fields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
+					generatedMembers = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
 				}
 				if (maybeInterfaceType.isPresent()) {
 					var interfaceType = maybeInterfaceType.get();
@@ -1208,8 +1208,9 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + /*System*/.lineSeparator());
 				var header = new_CStructureHeader(typeParameters, beforeContent);
 				_this.structureHeaders = _this.structureHeaders.addLast(header);
-				var joinedFields = _this.divide(content, foldStatement_this).map(compileClassSegment_this).map(generate_CStructureSegment).collect(new_Joiner(""));
-				var outputContent = fields + /*System*/.lineSeparator() + joinedFields;
+				var members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>());
+				var joinedFields = members.stream().map(generate_CStructureSegment).collect(new_Joiner(""));
+				var outputContent = generatedMembers + joinedFields;
 				var generated = dependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
 				_this.structureHeaders = _this.structureHeaders.removeLast();
 				if (variants.isEmpty()) {

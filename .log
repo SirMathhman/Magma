@@ -1,5 +1,5 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:2: error: no template named 'List'
-  105 |         List<T> inner;};
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:104:2: error: no template named 'List'
+  104 |         List<T> inner;
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:122:8: error: field has incomplete type 'CType'
   122 |         CType type;
