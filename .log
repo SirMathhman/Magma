@@ -1,5 +1,5 @@
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:97:2: error: no template named 'List'
-   97 |         List<T> inner;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:98:2: error: no template named 'List'
+   98 |         List<T> inner;};
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:115:8: error: field has incomplete type 'CType'
   115 |         CType type;
@@ -151,29 +151,23 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:385:27: error: '
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:387:27: error: use of undeclared identifier 'predicate'
   387 |         return _this.applyFilter(predicate, element);
       |                                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
-  412 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:408:40: error: no template named 'List'
+  408 | ArrayList<T> new_ArrayList(void* _ref, List<T> inner) {
+      |                                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:417:32: warning: declaration of 'T' shadows template parameter [-Wmicrosoft-template-shadow]
+  417 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:20: note: template parameter is declared here
-  412 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:417:20: note: template parameter is declared here
+  417 | template <typename T, typename T>
       |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:413:11: error: reference to 'T' is ambiguous
-  413 | ArrayList<T> of_ArrayList(void* _ref) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:418:11: error: reference to 'T' is ambiguous
+  418 | ArrayList<T> of_ArrayList(void* _ref) {
       |           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:32: note: candidate found by name lookup is 'T'
-  412 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:417:32: note: candidate found by name lookup is 'T'
+  417 | template <typename T, typename T>
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:20: note: candidate found by name lookup is 'T'
-  412 | template <typename T, typename T>
-      |                    ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:413:11: error: reference to 'T' is ambiguous
-  413 | ArrayList<T> of_ArrayList(void* _ref) {
-      |           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:32: note: candidate found by name lookup is 'T'
-  412 | template <typename T, typename T>
-      |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:412:20: note: candidate found by name lookup is 'T'
-  412 | template <typename T, typename T>
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:417:20: note: candidate found by name lookup is 'T'
+  417 | template <typename T, typename T>
       |                    ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 8 warnings and 20 errors generated.

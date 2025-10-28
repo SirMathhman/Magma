@@ -94,8 +94,8 @@ struct Stream {
 };
 template <typename T>
 struct ArrayList {
-	List<T> inner;
-};
+
+	List<T> inner;};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -405,6 +405,11 @@ Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper) {
 	return new_Stream<R>(new_FlatMapHead<T, R>(_this.head, mapper));
 }
 template <typename T>
+ArrayList<T> new_ArrayList(void* _ref, List<T> inner) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	_this.inner = inner;
+}
+template <typename T>
 ArrayList<T> new_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
@@ -413,6 +418,11 @@ template <typename T, typename T>
 ArrayList<T> of_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(Arrays.asList(elements)));
+}
+template <typename T, typename T>
+ArrayList<T> empty_ArrayList(void* _ref) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	return new_ArrayList<T>();
 }
 template <typename T>
 int size_ArrayList(void* _ref) {
@@ -853,12 +863,12 @@ char* fold_Joiner(void* _ref, char* current, char* element) {
 }
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
-	_this.globals = new_ArrayList<char*>();
-	_this.structureHeaders = new_ArrayList<CStructureHeader>();
-	_this.functions = new_ArrayList<char*>();
-	_this.forwardDeclarations = new_ArrayList<char*>();
-	_this.structures = new_ArrayList<char*>();
-	_this.sealedStructures = new_ArrayList<char*>();
+	_this.globals = ArrayList.empty();
+	_this.structureHeaders = ArrayList.empty();
+	_this.functions = ArrayList.empty();
+	_this.forwardDeclarations = ArrayList.empty();
+	_this.structures = ArrayList.empty();
+	_this.sealedStructures = ArrayList.empty();
 	_this.depth = 1;
 	_this.counter = 0;
 }
@@ -1053,7 +1063,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 			if (withEnd.endsWith("}")) {
 				var content = withEnd.substring(0, withEnd.length() - 1);
 				var permitsIndex = beforeContent.indexOf("permits");
-				var variants = new_ArrayList<char*>();
+				var variants = ArrayList. < /*String>empty*/();
 				if (permitsIndex >= 0) {
 					var variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
@@ -1066,7 +1076,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					maybeInterfaceType = _this.compileType(slice);
 					beforeContent = beforeContent.substring(0, implementsIndex).strip();
 				}
-				var recordFields = new_ArrayList<CDefinition>();
+				var recordFields = ArrayList. < /*CDefinition>empty*/();
 				if (/*beforeContent.endsWith(")"*/) /*) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i = slice.indexOf("(");
@@ -1077,7 +1087,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 							recordFields = this.compileParametersToList(params);
 						}
 					}*/
-				var typeParameters = new_ArrayList<char*>();
+				var typeParameters = ArrayList. < /*String>empty*/();
 				if (beforeContent.endsWith(">")) {
 					var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
 					var typeParamStart = withoutEnd.indexOf("<");
@@ -1225,7 +1235,7 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
 	}
 	else {
-		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(new_ArrayList<char*>());
+		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(ArrayList.empty());
 	}
 	var templateString = createTemplateString(typeParameters);
 	char* generated;
@@ -1276,13 +1286,13 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 		var name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
 			var peek = _this.structureHeaders.getLast();
-			return Option.of(new_CDefinition(new_ArrayList<char*>(), peek.toType(), "new_" + peek.name));
+			return Option.of(new_CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
 			var structName = _this.structureHeaders.getLast().name;
-			return Option.of(new_CDefinition(new_ArrayList<char*>(), new_CIdentifier(structName), "new_" + structName));
+			return Option.of(new_CDefinition(ArrayList.empty(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	return Option.empty();
@@ -1618,7 +1628,7 @@ int isNumber_App(void* _ref, char* input) {
 }
 char* compileParameters_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_ArrayList<char*>(), new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
+	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(ArrayList.empty(), new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
 }
 auto _lambda103_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1638,7 +1648,7 @@ auto _lambda109_(auto _ref, auto cType) {
 };
 auto _lambda111_(auto _ref, auto cType) {
 	auto _this = _ref;
-	return new_CDefinition(new_ArrayList<char*>(), cType, name);
+	return new_CDefinition(ArrayList.empty(), cType, name);
 };
 Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1667,7 +1677,7 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 		}*/
 	if (typeSeparator >= 0) {
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
-		var typeParameters = new_ArrayList<char*>();
+		var typeParameters = ArrayList. < /*String>empty*/();
 		if (beforeType.endsWith(">")) {
 			var slice = beforeType.substring(0, beforeType.length() - 1);
 			var i = slice.indexOf("<");

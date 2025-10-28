@@ -174,15 +174,22 @@ public class App {
 		}
 	}
 
-	private record ArrayList<T>(List<T> inner) {
+	private static final class ArrayList<T> {
+		private final List<T> inner;
 
-		public ArrayList() {
+		private ArrayList(List<T> inner) {this.inner = inner;}
+
+		private ArrayList() {
 			this(new java.util.ArrayList<T>());
 		}
 
 		@SafeVarargs
 		public static <T> ArrayList<T> of(T... elements) {
 			return new ArrayList<T>(new java.util.ArrayList<T>(Arrays.asList(elements)));
+		}
+
+		public static <T> ArrayList<T> empty() {
+			return new ArrayList<T>();
 		}
 
 		private int size() {
@@ -604,12 +611,12 @@ public class App {
 	private int depth;
 
 	public App() {
-		this.globals = new ArrayList<String>();
-		this.structureHeaders = new ArrayList<CStructureHeader>();
-		this.functions = new ArrayList<String>();
-		this.forwardDeclarations = new ArrayList<String>();
-		this.structures = new ArrayList<String>();
-		this.sealedStructures = new ArrayList<String>();
+		this.globals = ArrayList.empty();
+		this.structureHeaders = ArrayList.empty();
+		this.functions = ArrayList.empty();
+		this.forwardDeclarations = ArrayList.empty();
+		this.structures = ArrayList.empty();
+		this.sealedStructures = ArrayList.empty();
 		this.depth = 1;
 		this.counter = 0;
 	}
@@ -822,7 +829,7 @@ public class App {
 					final var content = withEnd.substring(0, withEnd.length() - 1);
 
 					final var permitsIndex = beforeContent.indexOf("permits");
-					var variants = new ArrayList<String>();
+					var variants = ArrayList.<String>empty();
 					if (permitsIndex >= 0) {
 						final var variantsArray =
 								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
@@ -842,7 +849,7 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
-					var recordFields = new ArrayList<CDefinition>();
+					var recordFields = ArrayList.<CDefinition>empty();
 					if (beforeContent.endsWith(")")) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i = slice.indexOf("(");
@@ -854,7 +861,7 @@ public class App {
 						}
 					}
 
-					var typeParameters = new ArrayList<String>();
+					var typeParameters = ArrayList.<String>empty();
 					if (beforeContent.endsWith(">")) {
 						final var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
 						final var typeParamStart = withoutEnd.indexOf("<");
@@ -1038,7 +1045,7 @@ public class App {
 		if (header instanceof CDefinition definition1) {
 			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
 		} else {
-			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(new ArrayList<String>());
+			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(ArrayList.empty());
 		}
 
 		final var templateString = createTemplateString(typeParameters);
@@ -1085,12 +1092,12 @@ public class App {
 			final var name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
 				final var peek = this.structureHeaders.getLast();
-				return Option.of(new CDefinition(new ArrayList<String>(), peek.toType(), "new_" + peek.name));
+				return Option.of(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
 				final var structName = this.structureHeaders.getLast().name;
-				return Option.of(new CDefinition(new ArrayList<String>(), new CIdentifier(structName), "new_" + structName));
+				return Option.of(new CDefinition(ArrayList.empty(), new CIdentifier(structName), "new_" + structName));
 			}
 		}
 
@@ -1443,7 +1450,7 @@ public class App {
 		return this
 				.compileParametersToList(input)
 				.copy()
-				.addFirst(new CDefinition(new ArrayList<String>(), new CPointerType(CPrimitiveType.Void), "_ref"))
+				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
 				.stream()
 				.map(CDefinition::generate)
 				.collect(new Joiner(", "));
@@ -1488,7 +1495,7 @@ public class App {
 
 		if (typeSeparator >= 0) {
 			final var beforeType = beforeName.substring(0, typeSeparator).strip();
-			var typeParameters = new ArrayList<String>();
+			var typeParameters = ArrayList.<String>empty();
 			if (beforeType.endsWith(">")) {
 				final var slice = beforeType.substring(0, beforeType.length() - 1);
 				final var i = slice.indexOf("<");
@@ -1507,7 +1514,7 @@ public class App {
 			return this.compileType(type).map(cType -> new CDefinition(finalTypeParameters, cType, name));
 		}
 
-		return this.compileType(beforeName).map(cType -> new CDefinition(new ArrayList<String>(), cType, name));
+		return this.compileType(beforeName).map(cType -> new CDefinition(ArrayList.empty(), cType, name));
 	}
 
 	private Option<CType> compileType(String input) {
