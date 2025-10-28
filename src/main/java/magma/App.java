@@ -111,7 +111,12 @@ public class App {
 		String generate();
 	}
 
-	private sealed interface CExpression permits CContent, CFieldAccess, CIdentifier, Placeholder {
+	private sealed interface CExpression extends CCaller
+			permits CContent, CFieldAccess, CIdentifier, CInvocation, Placeholder {
+		String generate();
+	}
+
+	private sealed interface CCaller permits CConstruction, CExpression {
 		String generate();
 	}
 
@@ -636,6 +641,10 @@ public class App {
 	}
 
 	private record Joiner(String delimiter) implements Collector<String, String> {
+		public Joiner() {
+			this("");
+		}
+
 		@Override
 		public String createInitial() {
 			return "";
@@ -773,6 +782,21 @@ public class App {
 
 		public Option<CType> resolve(String name) {
 			return this.fields.stream().filter(field -> field.name.equals(name)).map(field -> field.type).head.next();
+		}
+	}
+
+	private record CConstruction(CType type) implements CCaller {
+		@Override
+		public String generate() {
+			return "new_" + this.type().generate();
+		}
+	}
+
+	private record CInvocation(CCaller caller, ArrayList<CExpression> arguments) implements CExpression {
+		@Override
+		public String generate() {
+			final var joinedArguments = this.arguments().stream().map(CExpression::generate).collect(new Joiner(", "));
+			return this.caller().generate() + "(" + joinedArguments + ")";
 		}
 	}
 
@@ -1470,6 +1494,7 @@ public class App {
 
 		return this
 				.compileInvocation(stripped)
+				.map(CExpression::generate)
 				.or(() -> this.parseAndDefineDefinitionAsStatement(input))
 				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
@@ -1516,9 +1541,20 @@ public class App {
 					yield new Placeholder("Undefined field '" + fieldAccess.name + "' in '" + structureType.name + "'");
 				}
 
-				yield new Placeholder("Not a structure: " + childType);
+				yield new Placeholder("Does not have a type of structure: " + childType.generate());
 			}
 			case Placeholder placeholder -> placeholder;
+			case CInvocation cInvocation -> {
+				final var callerType = this.resolveCaller(cInvocation.caller);
+				yield new Placeholder(callerType.toString());
+			}
+		};
+	}
+
+	private CType resolveCaller(CCaller caller) {
+		return switch (caller) {
+			case CConstruction cConstruction -> new Placeholder(cConstruction.generate());
+			case CExpression cExpression -> this.resolveExpression(cExpression);
 		};
 	}
 
@@ -1583,7 +1619,7 @@ public class App {
 
 		final var maybeInvocation = this.compileInvocation(stripped);
 		if (maybeInvocation.isPresent()) {
-			return new CContent(maybeInvocation.get());
+			return maybeInvocation.get();
 		}
 
 		final var i = stripped.lastIndexOf(".");
@@ -1682,7 +1718,7 @@ public class App {
 		return s;
 	}
 
-	private Option<String> compileInvocation(String stripped) {
+	private Option<CExpression> compileInvocation(String stripped) {
 		if (stripped.endsWith(")")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
 			var argStart = -1;
@@ -1702,17 +1738,17 @@ public class App {
 			}
 
 			if (argStart >= 0) {
-				final var caller = slice.substring(0, argStart).strip();
+				final var callerString = slice.substring(0, argStart).strip();
 				final var arguments = this
 						.divide(slice.substring(argStart + 1), this::foldValue)
 						.map(String::strip)
 						.filter(segment -> !segment.isEmpty())
-						.map(this::compileExpression)
+						.map(this::parseExpression)
 						.toList();
 
-				final var maybeCaller = this.compileCaller(caller);
+				final var maybeCaller = this.parseCaller(callerString);
 				if (maybeCaller.isPresent()) {
-					return Option.of(maybeCaller.get() + "(" + String.join(", ", arguments.inner) + ")");
+					return Option.of(new CInvocation(maybeCaller.get(), arguments));
 				}
 			}
 		}
@@ -1720,16 +1756,17 @@ public class App {
 		return Option.empty();
 	}
 
-	private Option<String> compileCaller(String caller) {
+	private Option<CCaller> parseCaller(String caller) {
 		if (caller.startsWith("new ")) {
 			final var substring = caller.substring("new ".length());
 			final var maybeType = this.compileType(substring);
 			if (maybeType.isPresent()) {
-				return Option.of("new_" + maybeType.get().generate());
+				final var type = maybeType.get();
+				return Option.of(new CConstruction(type));
 			}
 		}
 
-		return Option.of(this.compileExpression(caller));
+		return Option.of(this.parseExpression(caller));
 	}
 
 	private Option<String> compileOperator(String stripped, String separator) {
