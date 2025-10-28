@@ -17,7 +17,7 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forwa
     5 | struct CPPType;
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:91:2: error: no template named 'Stack'
-   91 |         Stack<CPPType> structureTypes;
+   91 |         Stack<CStructureHeader> structureHeaders;
       |         ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:133:2: error: redefinition of enumerator 'PlaceholderTag'
   133 |         PlaceholderTag

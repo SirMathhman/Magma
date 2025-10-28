@@ -88,7 +88,7 @@ struct CStructure {
 };
 struct App {
 
-	Stack<CPPType> structureTypes;
+	Stack<CStructureHeader> structureHeaders;
 	ArrayList<char*> globals;
 	ArrayList<char*> forwardDeclarations;
 	ArrayList<char*> structures;
@@ -471,6 +471,17 @@ char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
 	return _this.cppType().generate() + " " + _this.name();
 }
+char* generateAsType_CStructureHeader(void* _ref) {
+	CStructureHeader _this = *((CStructureHeader*) _ref);
+	char* generated;
+	if (_this.typeParameters.isEmpty()) {
+		generated = "";
+	}
+	else {
+		generated = "<" + String.join(", ", this.typeParameters.inner) + ">";
+	}
+	return _this.name + generated;
+}
 char* generate_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
 	return App.createTemplateString(_this.typeParameters()) + "struct " + _this.name();
@@ -482,7 +493,7 @@ char* generate_CStructure(void* _ref) {
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
 	_this.globals = new_ArrayList<char*>();
-	_this.structureTypes = new_Stack<CPPType>();
+	_this.structureHeaders = new_Stack<CStructureHeader>();
 	_this.functions = new_ArrayList<char*>();
 	_this.forwardDeclarations = new_ArrayList<char*>();
 	_this.structures = new_ArrayList<char*>();
@@ -753,11 +764,11 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					ArrayList<CPPType> list = new_ArrayList<CPPType>(typeParameters.stream(). < /*CPPType>map*/(new_CIdentifier).toList());
 					thisType = new_CTemplateType(beforeContent, list);
 				}
-				_this.structureTypes.push(thisType);
-				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
 				CStructureHeader header = new_CStructureHeader(typeParameters, beforeContent);
+				_this.structureHeaders.push(header);
+				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
 				char* generated = dependencies + new_CStructure(header, outputContent).generate() + System.lineSeparator();
-				_this.structureTypes.pop();
+				_this.structureHeaders.pop();
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.add(generated);
 				}
@@ -859,8 +870,8 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
-		CPPType currentStructureType = _this.structureTypes.peek();
-		char* thisDefinition = _this.generateStatement(currentStructureType.generate() + " _this = *((" + currentStructureType.getSimpleName() + "*) _ref)", 1);
+		CStructureHeader currentStructureType = _this.structureHeaders.peek();
+		char* thisDefinition = _this.generateStatement(currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 		generated = beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 	else {
@@ -879,7 +890,7 @@ auto _lambda49_(auto _ref) {
 };
 auto _lambda52_(auto _ref, auto item) {
 	auto _this = _ref;
-	return new_CDefinition(item.cppType, item.name + "_" + _this.structureTypes.peek().getSimpleName());
+	return new_CDefinition(item.cppType, item.name + "_" + _this.structureHeaders.peek().name);
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -903,13 +914,13 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	if (i >= 0) {
 		char* name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			char* structName = _this.structureTypes.peek().getSimpleName();
+			char* structName = _this.structureHeaders.peek().name;
 			return Option.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			char* structName = _this.structureTypes.peek().getSimpleName();
+			char* structName = _this.structureHeaders.peek().name;
 			return Option.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
 		}
 	}
@@ -943,7 +954,7 @@ Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureTypes.peek().getSimpleName();
+					final String structureName = this.structureHeaders.peek().name;
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}

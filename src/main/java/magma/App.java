@@ -361,7 +361,17 @@ public class App {
 	}
 
 	private record CStructureHeader(ArrayList<String> typeParameters, String name) {
-		private String generate() {
+		private String generateAsType() {
+			final String generated;
+			if (this.typeParameters.isEmpty()) {
+				generated = "";
+			} else {
+				generated = "<" + String.join(", ", this.typeParameters.inner) + ">";
+			}
+			return this.name + generated;
+		}
+
+		public String generate() {
 			return App.createTemplateString(this.typeParameters()) + "struct " + this.name();
 		}
 	}
@@ -370,10 +380,9 @@ public class App {
 		private String generate() {
 			return this.CStructureHeader().generate() + " {" + this.fields() + "};";
 		}
-
 	}
 
-	private final Stack<CPPType> structureTypes;
+	private final Stack<CStructureHeader> structureHeaders;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
 	private ArrayList<String> structures;
@@ -384,7 +393,7 @@ public class App {
 
 	public App() {
 		this.globals = new ArrayList<String>();
-		this.structureTypes = new Stack<CPPType>();
+		this.structureHeaders = new Stack<CStructureHeader>();
 		this.functions = new ArrayList<String>();
 		this.forwardDeclarations = new ArrayList<String>();
 		this.structures = new ArrayList<String>();
@@ -716,16 +725,16 @@ public class App {
 						thisType = new CTemplateType(beforeContent, list);
 					}
 
-					this.structureTypes.push(thisType);
+					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
+					this.structureHeaders.push(header);
 
 					final String outputContent =
 							fields + System.lineSeparator() + this.compileStatements(content, this::compileClassSegment);
 
-					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
 					final String generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
 
-					this.structureTypes.pop();
+					this.structureHeaders.pop();
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.add(generated);
@@ -828,9 +837,9 @@ public class App {
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
 
-			final CPPType currentStructureType = this.structureTypes.peek();
+			final CStructureHeader currentStructureType = this.structureHeaders.peek();
 			final String thisDefinition = this.generateStatement(
-					currentStructureType.generate() + " _this = *((" + currentStructureType.getSimpleName() + "*) _ref)", 1);
+					currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
 			generated =
 					beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
@@ -847,7 +856,7 @@ public class App {
 		return this
 				.compileDefinition(input)
 				.<CFunctionHeader>map(item -> new CDefinition(item.cppType,
-																											item.name + "_" + this.structureTypes.peek().getSimpleName()))
+																											item.name + "_" + this.structureHeaders.peek().name))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
@@ -865,12 +874,12 @@ public class App {
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final String structName = this.structureTypes.peek().getSimpleName();
+				final String structName = this.structureHeaders.peek().name;
 				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
-				final String structName = this.structureTypes.peek().getSimpleName();
+				final String structName = this.structureHeaders.peek().name;
 				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		}
@@ -906,7 +915,7 @@ public class App {
 				final String name = slice.substring(0, i).strip();
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final String structureName = this.structureTypes.peek().getSimpleName();
+					final String structureName = this.structureHeaders.peek().name;
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}
