@@ -237,6 +237,9 @@ public class App {
 		}
 
 		public ArrayList<T> mapLast(Function<T, T> mapper) {
+			if (this.isEmpty()) {
+				return this;
+			}
 			return this.setLast(mapper.apply(this.getLast()));
 		}
 	}
