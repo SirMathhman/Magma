@@ -318,7 +318,7 @@ public class App {
 	public record CTemplateType(String base, ArrayList<CType> list) implements CType {
 		@Override
 		public String generate() {
-			final String joined = this.list.stream().map(CType::generate).collect(new Collectors.Joiner(", "));
+			final String joined = this.list.stream().map(CType::generate).collect(new Joiner(", "));
 
 			return this.base + "<" + joined + ">";
 		}
@@ -508,27 +508,6 @@ public class App {
 		}
 	}
 
-	private static class Collectors {
-		private static class Joiner implements Collector<String, String> {
-			private final String delimiter;
-
-			public Joiner(String delimiter) {this.delimiter = delimiter;}
-
-			@Override
-			public String createInitial() {
-				return "";
-			}
-
-			@Override
-			public String fold(String current, String element) {
-				if (current.isEmpty()) {
-					return element;
-				}
-				return current + this.delimiter + element;
-			}
-		}
-	}
-
 	private static class ListCollector<T> implements Collector<T, ArrayList<T>> {
 		@Override
 		public ArrayList<T> createInitial() {
@@ -544,18 +523,45 @@ public class App {
 	private static final class FlatMapHead<T, R> implements Head<R> {
 		private final Head<T> head;
 		private final Function<T, Stream<R>> mapper;
-		private final Option<Stream<R>> current = Option.empty();
+		private Head<R> current;
 
 		private FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
 			this.head = head;
 			this.mapper = mapper;
+			this.current = new EmptyHead<R>();
 		}
 
 		@Override
 		public Option<R> next() {
 			while (true) {
-				// TODO
+				final Option<R> maybeNext = this.current.next();
+				if (maybeNext.isPresent()) {
+					return maybeNext;
+				}
+
+				final Option<T> maybeOuter = this.head.next();
+				if (maybeOuter.isEmpty()) {
+					return Option.empty();
+				}
+
+				this.current = this.mapper.apply(maybeOuter.get()).head;
 			}
+		}
+	}
+
+	private record Joiner(String delimiter) implements Collector<String, String> {
+
+		@Override
+		public String createInitial() {
+			return "";
+		}
+
+		@Override
+		public String fold(String current, String element) {
+			if (current.isEmpty()) {
+				return element;
+			}
+			return current + this.delimiter + element;
 		}
 	}
 
@@ -588,8 +594,7 @@ public class App {
 		if (typeParameters.isEmpty()) {
 			templateString = "";
 		} else {
-			final String collect =
-					typeParameters.stream().map(slice -> "typename " + slice).collect(new Collectors.Joiner(", "));
+			final String collect = typeParameters.stream().map(slice -> "typename " + slice).collect(new Joiner(", "));
 			templateString = "template <" + collect + ">" + System.lineSeparator();
 		}
 		return templateString;
@@ -678,7 +683,7 @@ public class App {
 	}
 
 	private String compileStatements(String input, Function<String, String> mapper) {
-		return this.divide(input, this::foldStatement).map(mapper).collect(new Collectors.Joiner(null));
+		return this.divide(input, this::foldStatement).map(mapper).collect(new Joiner(""));
 	}
 
 	private Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -850,13 +855,13 @@ public class App {
 								.stream()
 								.map(slice -> slice + "Tag")
 								.map(content1 -> this.generateWithIndent(content1, 1))
-								.collect(new Collectors.Joiner(","));
+								.collect(new Joiner(","));
 
 						final String typeArguments = this.joinTypeArguments(typeParameters);
 						final String unionFields = variants
 								.stream()
 								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
-								.collect(new Collectors.Joiner(null));
+								.collect(new Joiner(""));
 
 						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
 													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
@@ -869,7 +874,7 @@ public class App {
 								.stream()
 								.map(CDefinition::generate)
 								.map(slice -> this.generateStatement(slice, 1))
-								.collect(new Collectors.Joiner(""));
+								.collect(new Joiner(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) + this.generateStatement(
 								beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
@@ -1404,7 +1409,7 @@ public class App {
 				.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"))
 				.stream()
 				.map(CDefinition::generate)
-				.collect(new Collectors.Joiner(", "));
+				.collect(new Joiner(", "));
 	}
 
 	private ArrayList<CDefinition> compileParametersToList(String input) {

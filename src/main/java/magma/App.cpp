@@ -1,11 +1,21 @@
 struct App;
 struct CPrimitiveType;
+template <typename T>
+struct Head;
+template <typename T, typename C>
+struct Collector;
 template <typename T, typename X>
 struct Result;
 struct CType;
 struct CFunctionHeader;
 template <typename T>
 struct Option;
+template <typename T>
+struct SingleHead;
+template <typename T>
+struct EmptyHead;
+template <typename T>
+struct Stream;
 template <typename T>
 struct ArrayList;
 template <typename T, typename X>
@@ -26,10 +36,34 @@ struct State;
 struct CDefinition;
 struct CStructureHeader;
 struct CStructure;
+template <typename T, typename R>
+struct MapHead;
+template <typename T>
+struct ListHead;
+template <typename T>
+struct ListCollector;
+template <typename T, typename R>
+struct FlatMapHead;
+struct Joiner;
 /*
 */struct CPrimitiveType {
 
 	char* content;};
+template <typename T, typename C>
+struct Collector {
+};
+template <typename T>
+struct SingleHead {
+
+	T element;
+	int retrieved;};
+template <typename T>
+struct EmptyHead {
+};
+template <typename T>
+struct Stream {
+	Head<T> head;
+};
 template <typename T>
 struct ArrayList {
 	List<T> inner;
@@ -86,6 +120,28 @@ struct CStructure {
 	CStructureHeader CStructureHeader;
 	char* fields;
 };
+template <typename T, typename R>
+struct MapHead {
+
+	Function<T, R> mapper;
+	Head<T> head;};
+template <typename T>
+struct ListHead {
+
+	ArrayList<T> list;
+	int counter;};
+template <typename T>
+struct ListCollector {
+};
+template <typename T, typename R>
+struct FlatMapHead {
+
+	Head<T> head;
+	Function<T, Stream<R>> mapper;
+	Head<R> current;};
+struct Joiner {
+	char* delimiter;
+};
 struct App {
 
 	Stack<CStructureHeader> structureHeaders;
@@ -96,6 +152,26 @@ struct App {
 	ArrayList<char*> functions;
 	int counter;
 	int depth;};
+enum HeadTag {
+	EmptyHeadTag,
+	ListHeadTag,
+	MapHeadTag,
+	SingleHeadTag,
+	FlatMapHeadTag
+};
+template <typename T>
+union HeadData {
+	EmptyHead<T> emptyhead;
+	ListHead<T> listhead;
+	MapHead<T> maphead;
+	SingleHead<T> singlehead;
+	FlatMapHead<T> flatmaphead;
+};
+template <typename T>
+struct Head {
+	HeadTag tag;
+	HeadData<T> data;
+};
 enum ResultTag {
 	ErrTag,
 	OkTag
@@ -175,6 +251,12 @@ char* getSimpleName_CPrimitiveType(void* _ref) {
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	return _this.content;
 }
+template <typename T>
+Option<T> next_Head(void* _ref);
+template <typename T, typename C>
+C createInitial_Collector(void* _ref);
+template <typename T, typename C>
+C fold_Collector(void* _ref, C current, T element);
 char* generate_CType(void* _ref);
 char* getSimpleName_CType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
@@ -209,6 +291,94 @@ int isPresent_Option(void* _ref);
 template <typename T>
 Stream<T> stream_Option(void* _ref);
 template <typename T>
+Head<T> toHead_SingleHead(void* _ref){
+	SingleHead<T> _this = *((SingleHead<T>*) _ref);
+	HeadData<T> data;
+	data.singlehead = _this;
+	return Head<T> { SingleHeadTag, data };
+}
+template <typename T>
+private SingleHead_SingleHead(void* _ref, T element) {
+	SingleHead<T> _this = *((SingleHead*) _ref);
+	_this.element = element;
+	_this.retrieved = false;
+}
+template <typename T>
+Option<T> next_SingleHead(void* _ref) {
+	SingleHead<T> _this = *((SingleHead*) _ref);
+	if (_this.retrieved) {
+		return new_None<T>();
+	}
+	_this.retrieved = true;
+	return new_Some<T>(_this.element);
+}
+template <typename T>
+Head<T> toHead_EmptyHead(void* _ref){
+	EmptyHead<T> _this = *((EmptyHead<T>*) _ref);
+	HeadData<T> data;
+	data.emptyhead = _this;
+	return Head<T> { EmptyHeadTag, data };
+}
+template <typename T>
+Option<T> next_EmptyHead(void* _ref) {
+	EmptyHead<T> _this = *((EmptyHead*) _ref);
+	return new_None<T>();
+}
+template <typename T>
+Stream<T> of_Stream(void* _ref, T element) {
+	Stream<T> _this = *((Stream*) _ref);
+	return new_Stream<T>(new_SingleHead<T>(element));
+}
+template <typename T>
+Stream<T> empty_Stream(void* _ref) {
+	Stream<T> _this = *((Stream*) _ref);
+	return new_Stream<T>(new_EmptyHead<T>());
+}
+template <typename T>
+Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
+	Stream<T> _this = *((Stream*) _ref);
+	return new_Stream<R>(new_MapHead<T, R>(_this.head, mapper));
+}
+template <typename T>
+R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
+	Stream<T> _this = *((Stream*) _ref);
+	R current = initial;
+	while (true) {
+		Option<T> maybeNext = _this.head.next();
+		if (/*maybeNext instanceof Some*/ < /*T>*/(/*T next*/)) {
+			current = folder.apply(current, next);
+		}
+		else {
+			return current;
+		}
+	}
+}
+template <typename T>
+C collect_Stream(void* _ref, Collector<T, C> collector) {
+	Stream<T> _this = *((Stream*) _ref);
+	return _this.fold(collector.createInitial(), fold_collector);
+}
+template <typename T>
+ArrayList<T> toList_Stream(void* _ref) {
+	Stream<T> _this = *((Stream*) _ref);
+	return _this.collect(new_ListCollector<T>());
+}
+auto _lambda1_(auto _ref, auto element) {
+		if (predicate.test(element)) {
+			return Stream.of(element);
+		}
+		return Stream.empty();
+	}template <typename T>
+Stream<T> filter_Stream(void* _ref, Predicate<T> predicate) {
+	Stream<T> _this = *((Stream*) _ref);
+	return _this.flatMap(_lambda1_);
+}
+template <typename T>
+Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper) {
+	Stream<T> _this = *((Stream*) _ref);
+	return new_Stream<R>(new_FlatMapHead<T, R>(_this.head, mapper));
+}
+template <typename T>
 ArrayList<T> new_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
@@ -219,12 +389,17 @@ ArrayList<T> of_ArrayList(void* _ref) {
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(Arrays.asList(elements)));
 }
 template <typename T>
-Stream<T> stream_ArrayList(void* _ref) {
+int size_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return _this.inner.stream();
+	return _this.inner.size();
 }
 template <typename T>
-ArrayList<T> add_ArrayList(void* _ref, T element) {
+Stream<T> stream_ArrayList(void* _ref) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	return new_Stream<T>(new_ListHead<T>(_this));
+}
+template <typename T>
+ArrayList<T> addLast_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this.inner.add(element);
 	return _this;
@@ -394,7 +569,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	char* joined = _this.list.stream().map(generate_CType).collect(Collectors.joining(", "));
+	char* joined = _this.list.stream().map(generate_CType).collect(new_Joiner(", "));
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName_CTemplateType(void* _ref) {
@@ -452,7 +627,7 @@ State exit_State(void* _ref) {
 }
 State advance_State(void* _ref) {
 	State _this = *((State*) _ref);
-	_this.segments = _this.segments.add(_this.buffer.toString());
+	_this.segments = _this.segments.addLast(_this.buffer.toString());
 	_this.buffer = new_StringBuilder();
 	return _this;
 }
@@ -485,12 +660,12 @@ Stream<char*> stream_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.segments.stream();
 }
-auto _lambda1_(auto _ref, auto next) {
+auto _lambda3_(auto _ref, auto next) {
 		State appended = _this.append(next);
 		return new_Tuple<char, State>(next, appended);
 	}Option<Tuple<char, State>> popAndAppendToTuple_State(void* _ref) {
 	State _this = *((State*) _ref);
-	return _this.pop().map(_lambda1_);
+	return _this.pop().map(_lambda3_);
 }
 Option<State> popAndAppendToOption_State(void* _ref) {
 	State _this = *((State*) _ref);
@@ -515,7 +690,7 @@ CType toType_CStructureHeader(void* _ref) {
 	if (_this.typeParameters.isEmpty()) {
 		return new_CIdentifier(_this.name);
 	}
-	ArrayList<CType> list = new_ArrayList<CType>(_this.typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList());
+	ArrayList<CType> list = _this.typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
 	return new_CTemplateType(_this.name, list);
 }
 char* generate_CStructureHeader(void* _ref) {
@@ -529,6 +704,110 @@ char* createTemplateString_CStructureHeader(void* _ref) {
 char* generate_CStructure(void* _ref) {
 	CStructure _this = *((CStructure*) _ref);
 	return _this.CStructureHeader().generate() + " {" + this.fields() + "};";
+}
+template <typename T, typename R>
+Head<R> toHead_MapHead(void* _ref){
+	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
+	HeadData<T, R> data;
+	data.maphead = _this;
+	return Head<R> { MapHeadTag, data };
+}
+template <typename T, typename R>
+MapHead<T, R> new_MapHead(void* _ref, Head<T> head, Function<T, R> mapper) {
+	MapHead<T, R> _this = *((MapHead*) _ref);
+	_this.mapper = mapper;
+	_this.head = head;
+}
+template <typename T, typename R>
+Option<R> next_MapHead(void* _ref) {
+	MapHead<T, R> _this = *((MapHead*) _ref);
+	return _this.head.next().map(_this.mapper);
+}
+template <typename T>
+Head<T> toHead_ListHead(void* _ref){
+	ListHead<T> _this = *((ListHead<T>*) _ref);
+	HeadData<T> data;
+	data.listhead = _this;
+	return Head<T> { ListHeadTag, data };
+}
+template <typename T>
+ListHead<T> new_ListHead(void* _ref, ArrayList<T> list) {
+	ListHead<T> _this = *((ListHead*) _ref);
+	_this.list = list;
+	_this.counter = 0;
+}
+template <typename T>
+Option<T> next_ListHead(void* _ref) {
+	ListHead<T> _this = *((ListHead*) _ref);
+	if (_this.counter < _this.list.size()) {
+		T element = _this.list.inner.get(_this.counter);
+		_this.counter++;
+		return Option.of(element);
+	}
+	return Option.empty();
+}
+template <typename T>
+Collector<T, ArrayList<T>> toCollector_ListCollector(void* _ref){
+	ListCollector<T> _this = *((ListCollector<T>*) _ref);
+	CollectorData<T> data;
+	data.listcollector = _this;
+	return Collector<T, ArrayList<T>> { ListCollectorTag, data };
+}
+template <typename T>
+ArrayList<T> createInitial_ListCollector(void* _ref) {
+	ListCollector<T> _this = *((ListCollector*) _ref);
+	return new_ArrayList<T>();
+}
+template <typename T>
+ArrayList<T> fold_ListCollector(void* _ref, ArrayList<T> current, T element) {
+	ListCollector<T> _this = *((ListCollector*) _ref);
+	return current.addLast(element);
+}
+template <typename T, typename R>
+Head<R> toHead_FlatMapHead(void* _ref){
+	FlatMapHead<T, R> _this = *((FlatMapHead<T, R>*) _ref);
+	HeadData<T, R> data;
+	data.flatmaphead = _this;
+	return Head<R> { FlatMapHeadTag, data };
+}
+template <typename T, typename R>
+private FlatMapHead_FlatMapHead(void* _ref, Head<T> head, Function<T, Stream<R>> mapper) {
+	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
+	_this.head = head;
+	_this.mapper = mapper;
+	_this.current = new_EmptyHead<R>();
+}
+template <typename T, typename R>
+Option<R> next_FlatMapHead(void* _ref) {
+	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
+	while (true) {
+		Option<R> maybeNext = _this.current.next();
+		if (maybeNext.isPresent()) {
+			return maybeNext;
+		}
+		Option<T> maybeOuter = _this.head.next();
+		if (maybeOuter.isEmpty()) {
+			return Option.empty();
+		}
+		_this.current = _this.mapper.apply(maybeOuter.get()).head;
+	}
+}
+Collector<char*, char*> toCollector_Joiner(void* _ref){
+	Joiner _this = *((Joiner*) _ref);
+	CollectorData data;
+	data.joiner = _this;
+	return Collector<char*, char*> { JoinerTag, data };
+}
+char* createInitial_Joiner(void* _ref) {
+	Joiner _this = *((Joiner*) _ref);
+	return "";
+}
+char* fold_Joiner(void* _ref, char* current, char* element) {
+	Joiner _this = *((Joiner*) _ref);
+	if (current.isEmpty()) {
+		return element;
+	}
+	return current + _this.delimiter + element;
 }
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
@@ -545,7 +824,7 @@ void main_App(void* _ref, char** args) {
 	App _this = *((App*) _ref);
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
-auto _lambda5_(auto _ref, auto slice) {
+auto _lambda7_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return "typename " + slice;
 };
@@ -556,7 +835,7 @@ char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
 		templateString = "";
 	}
 	else {
-		char* collect = typeParameters.stream().map(_lambda5_).collect(Collectors.joining(", "));
+		char* collect = typeParameters.stream().map(_lambda7_).collect(new_Joiner(", "));
 		templateString = "template <" + collect + ">" + System.lineSeparator();
 	}
 	return templateString;
@@ -565,9 +844,9 @@ Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
 	Path source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 	Result<char*, IOException> input = _this.readString(source);
-	return _switch7_;
+	return _switch9_;
 }
-auto _lambda9_(auto _ref) {
+auto _lambda11_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileNative(target);
 };
@@ -575,16 +854,16 @@ Option<IOException> compilePath_App(void* _ref, Path source, char* input) {
 	App _this = *((App*) _ref);
 	Path target = source.resolveSibling("App.cpp");
 	char* output = _this.compile(input);
-	return _this.writeString(target, output).or(_lambda9_);
+	return _this.writeString(target, output).or(_lambda11_);
 }
 Option<IOException> compileNative_App(void* _ref, Path target) {
 	App _this = *((App*) _ref);
 	Result<Process, IOException> clang = _this.startCommand(ArrayList.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _switch11_;
+	return _switch13_;
 }
 Option<IOException> waitForProcess_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
-	return _switch13_;
+	return _switch15_;
 }
 Result<Integer, IOException> waitFor_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
@@ -611,7 +890,7 @@ char* compile_App(void* _ref, char* input) {
 }
 char* compileStatements_App(void* _ref, char* input, Function<char*, char*> mapper) {
 	App _this = *((App*) _ref);
-	return _this.divide(input, foldStatement_this).map(mapper).collect(Collectors.joining());
+	return _this.divide(input, foldStatement_this).map(mapper).collect(new_Joiner(""));
 }
 Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, char, State> folder) {
 	App _this = *((App*) _ref);
@@ -684,7 +963,7 @@ State foldStatement_App(void* _ref, State state, char c) {
 		}*/
 	return appended;
 }
-auto _lambda15_(auto _ref) {
+auto _lambda17_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
@@ -694,29 +973,29 @@ char* compileRootSegment_App(void* _ref, char* input) {
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return _this.compileStructure("class", stripped).orElseGet(_lambda15_);
+	return _this.compileStructure("class", stripped).orElseGet(_lambda17_);
 }
-auto _lambda20_(auto _ref, auto slice) {
+auto _lambda22_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda25_(auto _ref, auto slice) {
+auto _lambda27_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda29_(auto _ref, auto content1) {
+auto _lambda31_(auto _ref, auto content1) {
 	auto _this = _ref;
 	return _this.generateWithIndent(content1, 1);
 };
-auto _lambda32_(auto _ref, auto slice) {
+auto _lambda34_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return slice + "Tag";
 };
-auto _lambda36_(auto _ref, auto slice) {
+auto _lambda38_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
-auto _lambda40_(auto _ref, auto slice) {
+auto _lambda42_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return _this.generateStatement(slice, 1);
 };
@@ -736,7 +1015,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 				if (permitsIndex >= 0) {
 					char** variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
-					variants = new_ArrayList<char*>(Arrays.stream(variantsArray).map(strip_char*).filter(_lambda20_).toList());
+					variants = new_ArrayList<char*>(Arrays.stream(variantsArray).map(strip_char*).filter(_lambda22_).toList());
 				}
 				int implementsIndex = beforeContent.indexOf("implements");
 				Option<CType> maybeInterfaceType = Option.empty();
@@ -763,7 +1042,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						char** typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-						typeParameters = new_ArrayList<char*>(Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda25_).toList());
+						typeParameters = new_ArrayList<char*>(Arrays.stream(typeParamsArray).map(strip_char*).filter(_lambda27_).toList());
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
@@ -775,14 +1054,14 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					dependencies = "";
 				}
 				else {
-					char* enumFields = variants.stream().map(_lambda32_).map(_lambda29_).collect(Collectors.joining(","));
+					char* enumFields = variants.stream().map(_lambda34_).map(_lambda31_).collect(new_Joiner(","));
 					char* typeArguments = _this.joinTypeArguments(typeParameters);
-					char* unionFields = variants.stream().map(_lambda36_).collect(Collectors.joining());
+					char* unionFields = variants.stream().map(_lambda38_).collect(new_Joiner(""));
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 				}
 				char* fields;
 				if (variants.isEmpty()) {
-					fields = recordFields.stream().map(generate_CDefinition).map(_lambda40_).collect(Collectors.joining(""));
+					fields = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
 				}
 				else {
 					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
@@ -791,21 +1070,21 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					CType interfaceType = maybeInterfaceType.get();
 					char* joinedTypeArguments = _this.joinTypeArguments(typeParameters);
 					char* thisType = beforeContent + joinedTypeArguments;
-					_this.functions = _this.functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*this.generateStatement(thisType*/ + " _this = *((" + thisType + /*"*) _ref)", 1)*/ + _this.generateStatement(/*interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data", 1)*/ + /*this.generateStatement("data."*/ + beforeContent.toLowerCase() + /*" = _this", 1)*/ + /*this.generateStatement(
+					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*this.generateStatement(thisType*/ + " _this = *((" + thisType + /*"*) _ref)", 1)*/ + _this.generateStatement(/*interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data", 1)*/ + /*this.generateStatement("data."*/ + beforeContent.toLowerCase() + /*" = _this", 1)*/ + /*this.generateStatement(
 										"return "*/ + interfaceType.generate() + " { " + beforeContent + "Tag, " + /*"data }",
 										1)*/ + System.lineSeparator() + "}" + System.lineSeparator());
 				}
-				_this.forwardDeclarations = _this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
+				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 				CStructureHeader header = new_CStructureHeader(typeParameters, beforeContent);
 				_this.structureHeaders.push(header);
 				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
 				char* generated = dependencies + new_CStructure(header, outputContent).generate() + System.lineSeparator();
 				_this.structureHeaders.pop();
 				if (variants.isEmpty()) {
-					_this.structures = _this.structures.add(generated);
+					_this.structures = _this.structures.addLast(generated);
 				}
 				else {
-					_this.sealedStructures = _this.sealedStructures.add(generated);
+					_this.sealedStructures = _this.sealedStructures.addLast(generated);
 				}
 				return Option.of("");
 			}
@@ -845,11 +1124,11 @@ int isIdentifier_App(void* _ref, char* input) {
 		}*/
 	return true;
 }
-auto _lambda42_(auto _ref) {
+auto _lambda44_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinitionToField(slice);
 };
-auto _lambda44_(auto _ref) {
+auto _lambda46_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
@@ -876,12 +1155,12 @@ char* compileClassSegment_App(void* _ref, char* input) {
 	}
 	if (input.endsWith(";")) {
 		char* slice = input.substring(0, input.length() - 1);
-		Option<char*> maybeClassStatement = _this.compileEnumValues(slice).or(_lambda42_);
+		Option<char*> maybeClassStatement = _this.compileEnumValues(slice).or(_lambda44_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
 	}
-	return _this.compileMethod(input).orElseGet(_lambda44_);
+	return _this.compileMethod(input).orElseGet(_lambda46_);
 }
 Option<char*> compileMethod_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -910,32 +1189,32 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	else {
 		generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 	}
-	_this.functions = _this.functions.add(generated);
+	_this.functions = _this.functions.addLast(generated);
 	return Option.of("");
 }
-auto _lambda46_(auto _ref) {
+auto _lambda48_(auto _ref) {
 	auto _this = _ref;
 	return new_Placeholder(input);
 };
-auto _lambda49_(auto _ref) {
+auto _lambda51_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileConstructor(input);
 };
-auto _lambda52_(auto _ref, auto item) {
+auto _lambda54_(auto _ref, auto item) {
 	auto _this = _ref;
 	return new_CDefinition(item.cType, item.name + "_" + _this.structureHeaders.peek().name);
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda52_).or(_lambda49_).orElseGet(_lambda46_);
+	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda54_).or(_lambda51_).orElseGet(_lambda48_);
 }
-auto _lambda54_(auto _ref, auto content) {
+auto _lambda56_(auto _ref, auto content) {
 	auto _this = _ref;
 	return _this.generateStatement(content, 1);
 };
 Option<char*> compileDefinitionToField_App(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(slice).map(generate_CDefinition).map(_lambda54_);
+	return _this.compileDefinition(slice).map(generate_CDefinition).map(_lambda56_);
 }
 char* compileMethodSegments_App(void* _ref, char* content) {
 	App _this = *((App*) _ref);
@@ -959,19 +1238,19 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	}
 	return Option.empty();
 }
-auto _lambda59_(auto _ref, auto slice) {
+auto _lambda61_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 Option<char*> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	ArrayList<char*> segments = new_ArrayList<char*>(Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda59_).toList());/*
+	ArrayList<char*> segments = new_ArrayList<char*>(Arrays.stream(input.split(Pattern.quote(","))).map(strip_char*).filter(_lambda61_).toList());/*
 
 		for (String segment : segments.inner) {
 			final String stripped = segment.strip();
 			final Option<String> maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
-				this.globals = this.globals.add(maybeEnumValue.get());
+				this.globals = this.globals.addLast(maybeEnumValue.get());
 			} else {
 				return Option.empty();
 			}
@@ -995,13 +1274,13 @@ Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 		}*/
 	return Option.empty();
 }
-auto _lambda61_(auto _ref) {
+auto _lambda63_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileMethodSegment(input).orElseGet(_lambda61_);
+	return _this.compileMethodSegment(input).orElseGet(_lambda63_);
 }
 Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1072,15 +1351,15 @@ int findConditionEnd_App(void* _ref, char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda63_(auto _ref) {
+auto _lambda65_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileExpression(substring);
 };
-auto _lambda65_(auto _ref) {
+auto _lambda67_(auto _ref) {
 	auto _this = _ref;
 	return Placeholder.wrap(stripped);
 };
-auto _lambda68_(auto _ref) {
+auto _lambda70_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinition(input).map(generate_CDefinition);
 };
@@ -1095,7 +1374,7 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	if (separator >= 0) {
 		char* substring = stripped.substring(0, separator).strip();
 		char* substring1 = stripped.substring(separator + 1).strip();
-		char* s = _this.compileDefinition(substring).map(generate_CDefinition).orElseGet(_lambda63_);
+		char* s = _this.compileDefinition(substring).map(generate_CDefinition).orElseGet(_lambda65_);
 		return s + " = " + _this.compileExpression(substring1);
 	}
 	if (stripped.endsWith("++")) {
@@ -1107,25 +1386,25 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return _this.compileInvocation(stripped).or(_lambda68_).orElseGet(_lambda65_);
+	return _this.compileInvocation(stripped).or(_lambda70_).orElseGet(_lambda67_);
 }
-auto _lambda70_(auto _ref) {
+auto _lambda72_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "<");
 };
-auto _lambda73_(auto _ref) {
+auto _lambda75_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, ">=");
 };
-auto _lambda76_(auto _ref) {
+auto _lambda78_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "==");
 };
-auto _lambda79_(auto _ref) {
+auto _lambda81_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "&&");
 };
-auto _lambda82_(auto _ref) {
+auto _lambda84_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "-");
 };
@@ -1163,7 +1442,7 @@ char* compileExpression_App(void* _ref, char* input) {
 	if (stripped.startsWith("switch")) {
 		return _this.createName("switch");
 	}
-	Option<char*> maybeOperator = _this.compileOperator(stripped, "+").or(_lambda82_).or(_lambda79_).or(_lambda76_).or(_lambda73_).or(_lambda70_);
+	Option<char*> maybeOperator = _this.compileOperator(stripped, "+").or(_lambda84_).or(_lambda81_).or(_lambda78_).or(_lambda75_).or(_lambda72_);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator.get();
 	}
@@ -1178,15 +1457,15 @@ char* compileExpression_App(void* _ref, char* input) {
 	}
 	return Placeholder.wrap(stripped);
 }
-auto _lambda88_(auto _ref, auto segment) {
+auto _lambda89_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return "auto " + segment;
 };
-auto _lambda91_(auto _ref, auto segment) {
+auto _lambda92_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda94_(auto _ref) {
+auto _lambda95_(auto _ref) {
 			char* expression = _this.compileExpression(content);
 			return "{" + _this.generateStatement("auto _this = _ref", 1) + /*this.generateStatement("return "*/ + /*expression, 1)*/ + System.lineSeparator() + "};" + System.lineSeparator();
 		}Option<char*> compileLambda_App(void* _ref, char* stripped) {
@@ -1203,13 +1482,13 @@ auto _lambda94_(auto _ref) {
 		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			char* slice = names.substring(1, names.length() - 1);
-			parameters = new_ArrayList<char*>(_this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda91_).map(_lambda88_).toList());
+			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda92_).map(_lambda89_).toList();
 		}
 		else {
 			return Option.empty();
 		}
 		ArrayList<char*> copy = parameters.copy().addFirst("auto _ref");
-		_this.functions = _this.functions.add("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda94_));
+		_this.functions = _this.functions.addLast("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda95_));
 		return Option.of(functionName);
 	}
 	return Option.empty();
@@ -1242,13 +1521,12 @@ Option<char*> compileInvocation_App(void* _ref, char* stripped) {
 
 			if (argStart >= 0) {
 				final String caller = slice.substring(0, argStart).strip();
-				final ArrayList<String> arguments = new ArrayList<String>(this
-																																			.divide(slice.substring(argStart + 1),
-																																							this::foldValue)
-																																			.map(String::strip)
-																																			.filter(segment -> !segment.isEmpty())
-																																			.map(this::compileExpression)
-																																			.toList());
+				final ArrayList<String> arguments = this
+						.divide(slice.substring(argStart + 1), this::foldValue)
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(this::compileExpression)
+						.toList();
 
 				final Option<String> maybeCaller = this.compileCaller(caller);
 				if (maybeCaller.isPresent()) {
@@ -1291,7 +1569,7 @@ int isNumber_App(void* _ref, char* input) {
 }
 char* compileParameters_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(Collectors.joining(", "));
+	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
 }
 auto _lambda103_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1299,7 +1577,7 @@ auto _lambda103_(auto _ref, auto slice) {
 };
 ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return new_ArrayList<CDefinition>(_this.divide(input, foldValue_this).map(strip_char*).filter(_lambda103_).map(compileDefinition_this).flatMap(stream_Option).toList());
+	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda103_).map(compileDefinition_this).flatMap(stream_Option).toList();
 }
 auto _lambda105_(auto _ref, auto cType) {
 	auto _this = _ref;
@@ -1340,7 +1618,7 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	}
 	return _this.compileType(beforeName).map(_lambda107_);
 }
-auto _lambda116_(auto _ref, auto slice) {
+auto _lambda115_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
@@ -1372,7 +1650,7 @@ Option<CType> compileType_App(void* _ref, char* input) {
 		if (i >= 0) {
 			char* base = withoutEnd.substring(0, i);
 			char* typeArguments = withoutEnd.substring(i + 1);
-			ArrayList<CType> list = new_ArrayList<CType>(_this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda116_).map(compileType_this).flatMap(stream_Option).toList());
+			ArrayList<CType> list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda115_).map(compileType_this).flatMap(stream_Option).toList();
 			return Option.of(new_CTemplateType(base, list));
 		}
 	}
