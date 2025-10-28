@@ -77,14 +77,6 @@ public class App {
 	}
 
 	private sealed interface Option<T> permits None, Some {
-		static <T> Option<T> of(T element) {
-			return new Some<T>(element);
-		}
-
-		static <T> Option<T> empty() {
-			return new None<T>();
-		}
-
 		<R> Option<R> map(Function<T, R> mapper);
 
 		void ifPresent(Consumer<T> consumer);
@@ -564,9 +556,9 @@ public class App {
 				var counter = this.index;
 				this.index++;
 				final var element = this.input.charAt(counter);
-				return Option.of(element);
+				return new Some<Character>(element);
 			} else {
-				return Option.empty();
+				return new None<Character>();
 			}
 		}
 
@@ -665,10 +657,10 @@ public class App {
 			if (this.counter < this.list.size()) {
 				final var element = this.list.inner.get(this.counter);
 				this.counter++;
-				return Option.of(element);
+				return new Some<T>(element);
 			}
 
-			return Option.empty();
+			return new None<T>();
 		}
 	}
 
@@ -705,7 +697,7 @@ public class App {
 
 				final var maybeOuter = this.head.next();
 				if (maybeOuter.isEmpty()) {
-					return Option.empty();
+					return new None<R>();
 				}
 
 				this.current = this.mapper.apply(maybeOuter.get()).head;
@@ -1035,7 +1027,7 @@ public class App {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 		final var input = this.readString(source);
 		return switch (input) {
-			case Err<String, IOException> v -> Option.of(v.error);
+			case Err<String, IOException> v -> new Some<IOException>(v.error);
 			case Ok<String, IOException> v -> this.compilePath(source, v.value);
 		};
 	}
@@ -1049,17 +1041,17 @@ public class App {
 	private Option<IOException> compileNative(Path target) {
 		final var clang = this.startCommand(ArrayList.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 		return switch (clang) {
-			case Err<Process, IOException> v1 -> Option.of(v1.error);
+			case Err<Process, IOException> v1 -> new Some<IOException>(v1.error);
 			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
 		};
 	}
 
 	private Option<IOException> waitForProcess(Process process) {
 		return switch (this.waitFor(process)) {
-			case Err<Integer, IOException> v2 -> Option.of(v2.error);
+			case Err<Integer, IOException> v2 -> new Some<IOException>(v2.error);
 			case Ok<Integer, IOException> v2 -> {
 				System.out.println("Compilation failed with exit code: " + v2.value);
-				yield Option.empty();
+				yield new None<IOException>();
 			}
 		};
 	}
@@ -1083,9 +1075,9 @@ public class App {
 	private Option<IOException> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
-			return Option.empty();
+			return new None<IOException>();
 		} catch (IOException e) {
-			return Option.of(e);
+			return new Some<IOException>(e);
 		}
 	}
 
@@ -1243,7 +1235,7 @@ public class App {
 					}
 
 					final var implementsIndex = beforeContent.indexOf("implements");
-					Option<CType> maybeInterfaceType = Option.empty();
+					Option<CType> maybeInterfaceType = new None<CType>();
 					if (implementsIndex >= 0) {
 						final var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 						maybeInterfaceType = this.compileType(slice);
@@ -1278,7 +1270,7 @@ public class App {
 					}
 
 					if (!this.isIdentifier(beforeContent)) {
-						return Option.empty();
+						return new None<CStructureMember>();
 					}
 
 					final var templateString = App.createTemplateString(typeParameters);
@@ -1393,12 +1385,12 @@ public class App {
 						this.sealedStructures = this.sealedStructures.addLast(generated);
 					}
 
-					return Option.of(new EmptyCStructureSegment());
+					return new Some<CStructureMember>(new EmptyCStructureSegment());
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<CStructureMember>();
 	}
 
 	private Option<String> generateField(CStructureMember member) {
@@ -1467,12 +1459,16 @@ public class App {
 
 	private Option<CStructureMember> parseMethod(String input) {
 		final var paramStart = input.indexOf("(");
-		if (paramStart < 0) {return Option.empty();}
+		if (paramStart < 0) {
+			return new None<CStructureMember>();
+		}
 		final var definition = input.substring(0, paramStart).strip();
 		final var withParams = input.substring(paramStart + 1);
 
 		final var paramEnd = withParams.indexOf(")");
-		if (paramEnd < 0) {return Option.empty();}
+		if (paramEnd < 0) {
+			return new None<CStructureMember>();
+		}
 		final var inputParams = withParams.substring(0, paramEnd).strip();
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
@@ -1523,9 +1519,10 @@ public class App {
 
 		if (header instanceof CDefinition definition1) {
 			final var paramTypes = params.stream().map(CDefinition::type).collect(new ListCollector<CType>());
-			return Option.of(new CMethodMember(definition1.mapType(type -> new CFunctionType(type, paramTypes))));
+			return new Some<CStructureMember>(new CMethodMember(definition1.mapType(type -> new CFunctionType(type,
+																																																				paramTypes))));
 		} else {
-			return Option.of(new EmptyCStructureSegment());
+			return new Some<CStructureMember>(new EmptyCStructureSegment());
 		}
 	}
 
@@ -1576,17 +1573,19 @@ public class App {
 			if (this.isIdentifier(name)) {
 				final var peek0 = this.frames.findCurrentStructure();
 				if (peek0 instanceof Some<CStructureHeader>(var peek)) {
-					return Option.of(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
+					return new Some<CFunctionHeader>(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
 				}
 			}
 		} else {
 			if (this.isIdentifier(input)) {
 				final var structName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
-				return Option.of(new CDefinition(ArrayList.empty(), new CIdentifier(structName), "new_" + structName));
+				return new Some<CFunctionHeader>(new CDefinition(ArrayList.empty(),
+																												 new CIdentifier(structName),
+																												 "new_" + structName));
 			}
 		}
 
-		return Option.empty();
+		return new None<CFunctionHeader>();
 	}
 
 	private Option<CStructureMember> compileEnumValues(String input) {
@@ -1602,11 +1601,11 @@ public class App {
 			if (maybeEnumValue.isPresent()) {
 				this.globals = this.globals.addLast(maybeEnumValue.get());
 			} else {
-				return Option.empty();
+				return new None<CStructureMember>();
 			}
 		}
 
-		return Option.of(new EmptyCStructureSegment());
+		return new Some<CStructureMember>(new EmptyCStructureSegment());
 	}
 
 	private Option<String> compileEnumValue(String stripped) {
@@ -1618,13 +1617,13 @@ public class App {
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
 					final var structureName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
-					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
-													 System.lineSeparator());
+					return new Some<String>(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
+																	System.lineSeparator());
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private String compileMethodSegmentOrPlaceholder(String input) {
@@ -1634,7 +1633,7 @@ public class App {
 	private Option<String> compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty() || stripped.startsWith("try ") || stripped.startsWith("catch ")) {
-			return Option.of("");
+			return new Some<String>("");
 		}
 
 		if (stripped.startsWith("{") && stripped.endsWith("}")) {
@@ -1649,7 +1648,7 @@ public class App {
 
 			this.depth--;
 
-			return Option.of("{" + compiled + App.generateIndent(this.depth) + "}");
+			return new Some<String>("{" + compiled + App.generateIndent(this.depth) + "}");
 		}
 
 		final var maybeIf = this.compileConditional(stripped, "if");
@@ -1664,15 +1663,16 @@ public class App {
 
 		if (stripped.endsWith(";")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
-			return Option.of(new CStatement(new CContent(this.compileMethodStatement(slice)), this.depth).generate());
+			return new Some<String>(new CStatement(new CContent(this.compileMethodStatement(slice)), this.depth).generate());
 		}
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring(5);
-			return Option.of(App.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
+			return new Some<String>(
+					App.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private Option<String> compileConditional(String input, String type) {
@@ -1685,13 +1685,14 @@ public class App {
 				if (conditionEnd >= 0) {
 					final var condition = withCondition.substring(0, conditionEnd).strip();
 					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Option.of(App.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
-													 this.compileMethodSegmentOrPlaceholder(substring2));
+					return new Some<String>(
+							App.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+							this.compileMethodSegmentOrPlaceholder(substring2));
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private int findConditionEnd(String withCondition) {
@@ -1963,7 +1964,7 @@ public class App {
 						.map(segment -> "auto " + segment)
 						.toList();
 			} else {
-				return Option.empty();
+				return new None<String>();
 			}
 
 			final var copy = parameters.copy().addFirst("auto _ref");
@@ -1977,10 +1978,10 @@ public class App {
 																											 System.lineSeparator();
 																							}));
 
-			return Option.of(functionName);
+			return new Some<String>(functionName);
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private String createName(String type) {
@@ -2019,12 +2020,12 @@ public class App {
 
 				final var maybeCaller = this.parseCaller(callerString);
 				if (maybeCaller.isPresent()) {
-					return Option.of(new CInvocation(maybeCaller.get(), arguments));
+					return new Some<CExpression>(new CInvocation(maybeCaller.get(), arguments));
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<CExpression>();
 	}
 
 	private Option<CCaller> parseCaller(String caller) {
@@ -2033,11 +2034,11 @@ public class App {
 			final var maybeType = this.compileType(substring);
 			if (maybeType.isPresent()) {
 				final var type = maybeType.get();
-				return Option.of(new CConstruction(type));
+				return new Some<CCaller>(new CConstruction(type));
 			}
 		}
 
-		return Option.of(this.parseExpression(caller));
+		return new Some<CCaller>(this.parseExpression(caller));
 	}
 
 	private Option<String> compileOperator(String stripped, String separator) {
@@ -2045,10 +2046,11 @@ public class App {
 		if (i1 >= 0) {
 			final var substring = stripped.substring(0, i1);
 			final var substring1 = stripped.substring(i1 + separator.length());
-			return Option.of(this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
+			return new Some<String>(
+					this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private boolean isNumber(String input) {
@@ -2075,13 +2077,13 @@ public class App {
 	private Option<CDefinition> compileDefinition(String input) {
 		final var nameSeparator = input.lastIndexOf(" ");
 		if (nameSeparator < 0) {
-			return Option.empty();
+			return new None<CDefinition>();
 		}
 
 		final var beforeName = input.substring(0, nameSeparator);
 		final var name = input.substring(nameSeparator + 1).strip();
 		if (!this.isIdentifier(name)) {
-			return Option.empty();
+			return new None<CDefinition>();
 		}
 
 		var typeSeparator = -1;
@@ -2128,13 +2130,13 @@ public class App {
 
 		switch (stripped) {
 			case "Character" -> {
-				return Option.of(CPrimitiveType.Char);
+				return new Some<CType>(CPrimitiveType.Char);
 			}
 			case "boolean" -> {
-				return Option.of(CPrimitiveType.Int);
+				return new Some<CType>(CPrimitiveType.Int);
 			}
 			case "void" -> {
-				return Option.of(CPrimitiveType.Void);
+				return new Some<CType>(CPrimitiveType.Void);
 			}
 		}
 
@@ -2144,7 +2146,7 @@ public class App {
 		}
 
 		if (stripped.equals("String")) {
-			return Option.of(new CPointerType(CPrimitiveType.Char));
+			return new Some<CType>(new CPointerType(CPrimitiveType.Char));
 		}
 
 		if (stripped.endsWith(">")) {
@@ -2162,19 +2164,19 @@ public class App {
 						.flatMap(Option::stream)
 						.toList();
 
-				return Option.of(new CTemplateType(base, list));
+				return new Some<CType>(new CTemplateType(base, list));
 			}
 		}
 
 		if (this.isIdentifier(stripped)) {
 			if (stripped.equals("public") || stripped.equals("private")) {
-				return Option.empty();
+				return new None<CType>();
 			}
 
-			return Option.of(new CIdentifier(stripped));
+			return new Some<CType>(new CIdentifier(stripped));
 		}
 
-		return Option.empty();
+		return new None<CType>();
 	}
 
 	private State foldValue(State state, char next) {
