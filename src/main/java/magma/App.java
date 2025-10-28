@@ -16,12 +16,12 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class App {
-	private enum CPPPrimitiveType implements CPPType {
+	private enum CPrimitiveType implements CType {
 		Void("void"), Char("char"), Int("int");
 
 		private final String content;
 
-		CPPPrimitiveType(String content) {this.content = content;}
+		CPrimitiveType(String content) {this.content = content;}
 
 		@Override
 		public String generate() {
@@ -36,7 +36,7 @@ public class App {
 
 	private sealed interface Result<T, X> permits Err, Ok {}
 
-	private sealed interface CPPType permits CIdentifier, CPPPrimitiveType, CPointerType, CTemplateType, Placeholder {
+	private sealed interface CType permits CIdentifier, CPrimitiveType, CPointerType, CTemplateType, Placeholder {
 		String generate();
 
 		String getSimpleName();
@@ -216,7 +216,7 @@ public class App {
 		}
 	}
 
-	private record CPointerType(CPPType type) implements CPPType {
+	private record CPointerType(CType type) implements CType {
 		@Override
 		public String generate() {
 			return this.type.generate() + "*";
@@ -228,10 +228,10 @@ public class App {
 		}
 	}
 
-	public record CTemplateType(String base, ArrayList<CPPType> list) implements CPPType {
+	public record CTemplateType(String base, ArrayList<CType> list) implements CType {
 		@Override
 		public String generate() {
-			final String joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "));
+			final String joined = this.list.stream().map(CType::generate).collect(Collectors.joining(", "));
 
 			return this.base + "<" + joined + ">";
 		}
@@ -242,7 +242,7 @@ public class App {
 		}
 	}
 
-	private record CIdentifier(String input) implements CPPType {
+	private record CIdentifier(String input) implements CType {
 		@Override
 		public String generate() {
 			return this.input;
@@ -259,7 +259,7 @@ public class App {
 		}
 	}
 
-	private record Placeholder(String input) implements CPPType, CFunctionHeader {
+	private record Placeholder(String input) implements CType, CFunctionHeader {
 		private static String wrap(String input) {
 			final String replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -353,22 +353,22 @@ public class App {
 		}
 	}
 
-	private record CDefinition(CPPType cppType, String name) implements CFunctionHeader {
+	private record CDefinition(CType cType, String name) implements CFunctionHeader {
 		@Override
 		public String generate() {
-			return this.cppType().generate() + " " + this.name();
+			return this.cType().generate() + " " + this.name();
 		}
 	}
 
 	private record CStructureHeader(ArrayList<String> typeParameters, String name) {
-		private String generateAsType() {
-			final String generated;
+		private CType toType() {
 			if (this.typeParameters.isEmpty()) {
-				generated = "";
-			} else {
-				generated = "<" + String.join(", ", this.typeParameters.inner) + ">";
+				return new CIdentifier(this.name);
 			}
-			return this.name + generated;
+
+			final ArrayList<CType> list =
+					new ArrayList<CType>(this.typeParameters.stream().<CType>map(CIdentifier::new).toList());
+			return new CTemplateType(this.name, list);
 		}
 
 		public String generate() {
@@ -629,7 +629,7 @@ public class App {
 					}
 
 					final int implementsIndex = beforeContent.indexOf("implements");
-					Option<CPPType> maybeInterfaceType = Option.empty();
+					Option<CType> maybeInterfaceType = Option.empty();
 					if (implementsIndex >= 0) {
 						final String slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 						maybeInterfaceType = this.compileType(slice);
@@ -703,7 +703,7 @@ public class App {
 					}
 
 					if (maybeInterfaceType.isPresent()) {
-						final CPPType interfaceType = maybeInterfaceType.get();
+						final CType interfaceType = maybeInterfaceType.get();
 						final String joinedTypeArguments = this.joinTypeArguments(typeParameters);
 
 						final String thisType = beforeContent + joinedTypeArguments;
@@ -836,7 +836,7 @@ public class App {
 
 			final CStructureHeader currentStructureType = this.structureHeaders.peek();
 			final String thisDefinition = this.generateStatement(
-					currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
+					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
 			generated = templateString + headerWithParameters + " {" + thisDefinition + this.compileMethodSegments(content) +
 									System.lineSeparator() + "}" + System.lineSeparator();
@@ -851,8 +851,7 @@ public class App {
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this
 				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.cppType,
-																											item.name + "_" + this.structureHeaders.peek().name))
+				.<CFunctionHeader>map(item -> new CDefinition(item.cType, item.name + "_" + this.structureHeaders.peek().name))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
@@ -870,8 +869,8 @@ public class App {
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final String structName = this.structureHeaders.peek().name;
-				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
+				final CStructureHeader peek = this.structureHeaders.peek();
+				return Option.of(new CDefinition(peek.toType(), "new_" + peek.name));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
@@ -1099,7 +1098,7 @@ public class App {
 		if (i2 >= 0) {
 			final String substring = stripped.substring(0, i2);
 			final String substring1 = stripped.substring(i2 + 2);
-			return substring1 + "_" + this.compileType(substring).map(CPPType::generate).orElse("?");
+			return substring1 + "_" + this.compileType(substring).map(CType::generate).orElse("?");
 		}
 
 		if (this.isNumber(stripped)) {
@@ -1195,7 +1194,7 @@ public class App {
 	private Option<String> compileCaller(String caller) {
 		if (caller.startsWith("new ")) {
 			final String substring = caller.substring("new ".length());
-			final Option<CPPType> maybeType = this.compileType(substring);
+			final Option<CType> maybeType = this.compileType(substring);
 			if (maybeType.isPresent()) {
 				return Option.of("new_" + maybeType.get().generate());
 			}
@@ -1230,7 +1229,7 @@ public class App {
 		return this
 				.compileParametersToList(input)
 				.copy()
-				.addFirst(new CDefinition(new CPointerType(CPPPrimitiveType.Void), "_ref"))
+				.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"))
 				.stream()
 				.map(CDefinition::generate)
 				.collect(Collectors.joining(", "));
@@ -1275,24 +1274,24 @@ public class App {
 
 		if (typeSeparator >= 0) {
 			final String type = beforeName.substring(typeSeparator + 1).strip();
-			return this.compileType(type).map(cppType -> new CDefinition(cppType, name));
+			return this.compileType(type).map(cType -> new CDefinition(cType, name));
 		}
 
-		return this.compileType(beforeName).map(cppType -> new CDefinition(cppType, name));
+		return this.compileType(beforeName).map(cType -> new CDefinition(cType, name));
 	}
 
-	private Option<CPPType> compileType(String input) {
+	private Option<CType> compileType(String input) {
 		final String stripped = input.strip();
 
 		switch (stripped) {
 			case "Character" -> {
-				return Option.of(CPPPrimitiveType.Char);
+				return Option.of(CPrimitiveType.Char);
 			}
 			case "boolean" -> {
-				return Option.of(CPPPrimitiveType.Int);
+				return Option.of(CPrimitiveType.Int);
 			}
 			case "void" -> {
-				return Option.of(CPPPrimitiveType.Void);
+				return Option.of(CPrimitiveType.Void);
 			}
 		}
 
@@ -1302,7 +1301,7 @@ public class App {
 		}
 
 		if (stripped.equals("String")) {
-			return Option.of(new CPointerType(CPPPrimitiveType.Char));
+			return Option.of(new CPointerType(CPrimitiveType.Char));
 		}
 
 		if (stripped.endsWith(">")) {
@@ -1312,13 +1311,13 @@ public class App {
 				final String base = withoutEnd.substring(0, i);
 				final String typeArguments = withoutEnd.substring(i + 1);
 
-				final ArrayList<CPPType> list = new ArrayList<CPPType>(this
-																																	 .divide(typeArguments, this::foldValue)
-																																	 .map(String::strip)
-																																	 .filter(slice -> !slice.isEmpty())
-																																	 .map(this::compileType)
-																																	 .flatMap(Option::stream)
-																																	 .toList());
+				final ArrayList<CType> list = new ArrayList<CType>(this
+																															 .divide(typeArguments, this::foldValue)
+																															 .map(String::strip)
+																															 .filter(slice -> !slice.isEmpty())
+																															 .map(this::compileType)
+																															 .flatMap(Option::stream)
+																															 .toList());
 
 				return Option.of(new CTemplateType(base, list));
 			}

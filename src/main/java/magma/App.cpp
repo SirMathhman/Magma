@@ -1,8 +1,8 @@
 struct App;
-struct CPPPrimitiveType;
+struct CPrimitiveType;
 template <typename T, typename X>
 struct Result;
-struct CPPType;
+struct CType;
 struct CFunctionHeader;
 template <typename T>
 struct Option;
@@ -27,7 +27,7 @@ struct CDefinition;
 struct CStructureHeader;
 struct CStructure;
 /*
-*/struct CPPPrimitiveType {
+*/struct CPrimitiveType {
 
 	char* content;};
 template <typename T>
@@ -50,11 +50,11 @@ template <typename T>
 struct None {
 };
 struct CPointerType {
-	CPPType type;
+	CType type;
 };
 struct CTemplateType {
 	char* base;
-	ArrayList<CPPType> list;
+	ArrayList<CType> list;
 };
 struct CIdentifier {
 	char* input;
@@ -75,7 +75,7 @@ struct State {
 	int depth;
 	int index;};
 struct CDefinition {
-	CPPType cppType;
+	CType cType;
 	char* name;
 };
 struct CStructureHeader {
@@ -110,23 +110,23 @@ struct Result {
 	ResultTag tag;
 	ResultData<T, X> data;
 };
-enum CPPTypeTag {
+enum CTypeTag {
 	CIdentifierTag,
-	CPPPrimitiveTypeTag,
+	CPrimitiveTypeTag,
 	CPointerTypeTag,
 	CTemplateTypeTag,
 	PlaceholderTag
 };
-union CPPTypeData {
+union CTypeData {
 	CIdentifier cidentifier;
-	CPPPrimitiveType cppprimitivetype;
+	CPrimitiveType cprimitivetype;
 	CPointerType cpointertype;
 	CTemplateType ctemplatetype;
 	Placeholder placeholder;
 };
-struct CPPType {
-	CPPTypeTag tag;
-	CPPTypeData data;
+struct CType {
+	CTypeTag tag;
+	CTypeData data;
 };
 enum CFunctionHeaderTag {
 	CDefinitionTag,
@@ -154,29 +154,29 @@ struct Option {
 	OptionTag tag;
 	OptionData<T> data;
 };
-CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
-CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
-CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
-CPPType toCPPType_CPPPrimitiveType(void* _ref){
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
-	CPPTypeData data;
-	data.cppprimitivetype = _this;
-	return CPPType { CPPPrimitiveTypeTag, data };
+CPrimitiveType VoidValue = CPrimitiveType { "void" };
+CPrimitiveType CharValue = CPrimitiveType { "char" };
+CPrimitiveType IntValue = CPrimitiveType { "int" };
+CType toCType_CPrimitiveType(void* _ref){
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
+	CTypeData data;
+	data.cprimitivetype = _this;
+	return CType { CPrimitiveTypeTag, data };
 }
-CPPPrimitiveType new_CPPPrimitiveType(void* _ref, char* content) {
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+CPrimitiveType new_CPrimitiveType(void* _ref, char* content) {
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	_this.content = content;
 }
-char* generate_CPPPrimitiveType(void* _ref) {
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+char* generate_CPrimitiveType(void* _ref) {
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	return _this.content;
 }
-char* getSimpleName_CPPPrimitiveType(void* _ref) {
-	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
+char* getSimpleName_CPrimitiveType(void* _ref) {
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	return _this.content;
 }
-char* generate_CPPType(void* _ref);
-char* getSimpleName_CPPType(void* _ref);
+char* generate_CType(void* _ref);
+char* getSimpleName_CType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
 template <typename T>
 Option<T> of_Option(void* _ref, T element) {
@@ -209,7 +209,7 @@ int isPresent_Option(void* _ref);
 template <typename T>
 Stream<T> stream_Option(void* _ref);
 template <typename T>
-ArrayList new_ArrayList(void* _ref) {
+ArrayList<T> new_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
 }
@@ -372,11 +372,11 @@ Stream<T> stream_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return Stream.empty();
 }
-CPPType toCPPType_CPointerType(void* _ref){
+CType toCType_CPointerType(void* _ref){
 	CPointerType _this = *((CPointerType*) _ref);
-	CPPTypeData data;
+	CTypeData data;
 	data.cpointertype = _this;
-	return CPPType { CPointerTypeTag, data };
+	return CType { CPointerTypeTag, data };
 }
 char* generate_CPointerType(void* _ref) {
 	CPointerType _this = *((CPointerType*) _ref);
@@ -386,26 +386,26 @@ char* getSimpleName_CPointerType(void* _ref) {
 	CPointerType _this = *((CPointerType*) _ref);
 	return _this.type.getSimpleName() + "_ref";
 }
-CPPType toCPPType_CTemplateType(void* _ref){
+CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
-	CPPTypeData data;
+	CTypeData data;
 	data.ctemplatetype = _this;
-	return CPPType { CTemplateTypeTag, data };
+	return CType { CTemplateTypeTag, data };
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+	char* joined = _this.list.stream().map(generate_CType).collect(Collectors.joining(", "));
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	return _this.base;
 }
-CPPType toCPPType_CIdentifier(void* _ref){
+CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
-	CPPTypeData data;
+	CTypeData data;
 	data.cidentifier = _this;
-	return CPPType { CIdentifierTag, data };
+	return CType { CIdentifierTag, data };
 }
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -508,18 +508,15 @@ CFunctionHeader toCFunctionHeader_CDefinition(void* _ref){
 }
 char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
-	return _this.cppType().generate() + " " + _this.name();
+	return _this.cType().generate() + " " + _this.name();
 }
-char* generateAsType_CStructureHeader(void* _ref) {
+CType toType_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
-	char* generated;
 	if (_this.typeParameters.isEmpty()) {
-		generated = "";
+		return new_CIdentifier(_this.name);
 	}
-	else {
-		generated = "<" + String.join(", ", this.typeParameters.inner) + ">";
-	}
-	return _this.name + generated;
+	ArrayList<CType> list = new_ArrayList<CType>(_this.typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList());
+	return new_CTemplateType(_this.name, list);
 }
 char* generate_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
@@ -742,7 +739,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					variants = new_ArrayList<char*>(Arrays.stream(variantsArray).map(strip_char*).filter(_lambda20_).toList());
 				}
 				int implementsIndex = beforeContent.indexOf("implements");
-				Option<CPPType> maybeInterfaceType = Option.empty();
+				Option<CType> maybeInterfaceType = Option.empty();
 				if (implementsIndex >= 0) {
 					char* slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 					maybeInterfaceType = _this.compileType(slice);
@@ -791,7 +788,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
 				}
 				if (maybeInterfaceType.isPresent()) {
-					CPPType interfaceType = maybeInterfaceType.get();
+					CType interfaceType = maybeInterfaceType.get();
 					char* joinedTypeArguments = _this.joinTypeArguments(typeParameters);
 					char* thisType = beforeContent + joinedTypeArguments;
 					_this.functions = _this.functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*this.generateStatement(thisType*/ + " _this = *((" + thisType + /*"*) _ref)", 1)*/ + _this.generateStatement(/*interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data", 1)*/ + /*this.generateStatement("data."*/ + beforeContent.toLowerCase() + /*" = _this", 1)*/ + /*this.generateStatement(
@@ -901,17 +898,17 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	char* params = withParams.substring(0, paramEnd).strip();
 	char* withBraces = withParams.substring(paramEnd + 1).strip();
 	CFunctionHeader header = _this.compileFunctionHeader(definition);
-	char* beforeContent = header.generate() + "(" + this.compileParameters(params) + ")";
+	char* headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
 	char* templateString = _this.structureHeaders.peek().createTemplateString();
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
 		CStructureHeader currentStructureType = _this.structureHeaders.peek();
-		char* thisDefinition = _this.generateStatement(currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
-		generated = templateString + beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
+		char* thisDefinition = _this.generateStatement(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
+		generated = templateString + headerWithParameters + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 	else {
-		generated = templateString + beforeContent + ";" + System.lineSeparator();
+		generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 	}
 	_this.functions = _this.functions.add(generated);
 	return Option.of("");
@@ -926,7 +923,7 @@ auto _lambda49_(auto _ref) {
 };
 auto _lambda52_(auto _ref, auto item) {
 	auto _this = _ref;
-	return new_CDefinition(item.cppType, item.name + "_" + _this.structureHeaders.peek().name);
+	return new_CDefinition(item.cType, item.name + "_" + _this.structureHeaders.peek().name);
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -950,8 +947,8 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	if (i >= 0) {
 		char* name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			char* structName = _this.structureHeaders.peek().name;
-			return Option.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
+			CStructureHeader peek = _this.structureHeaders.peek();
+			return Option.of(new_CDefinition(peek.toType(), "new_" + peek.name));
 		}
 	}
 	else {
@@ -1174,7 +1171,7 @@ char* compileExpression_App(void* _ref, char* input) {
 	if (i2 >= 0) {
 		char* substring = stripped.substring(0, i2);
 		char* substring1 = stripped.substring(i2 + 2);
-		return substring1 + "_" + _this.compileType(substring).map(generate_CPPType).orElse("?");
+		return substring1 + "_" + _this.compileType(substring).map(generate_CType).orElse("?");
 	}
 	if (_this.isNumber(stripped)) {
 		return stripped;
@@ -1265,7 +1262,7 @@ Option<char*> compileCaller_App(void* _ref, char* caller) {
 	App _this = *((App*) _ref);
 	if (caller.startsWith("new ")) {
 		char* substring = caller.substring("new ".length());
-		Option<CPPType> maybeType = _this.compileType(substring);
+		Option<CType> maybeType = _this.compileType(substring);
 		if (maybeType.isPresent()) {
 			return Option.of("new_" + maybeType.get().generate());
 		}
@@ -1294,7 +1291,7 @@ int isNumber_App(void* _ref, char* input) {
 }
 char* compileParameters_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_CPointerType(CPPPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(Collectors.joining(", "));
+	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(Collectors.joining(", "));
 }
 auto _lambda103_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1304,13 +1301,13 @@ ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	return new_ArrayList<CDefinition>(_this.divide(input, foldValue_this).map(strip_char*).filter(_lambda103_).map(compileDefinition_this).flatMap(stream_Option).toList());
 }
-auto _lambda105_(auto _ref, auto cppType) {
+auto _lambda105_(auto _ref, auto cType) {
 	auto _this = _ref;
-	return new_CDefinition(cppType, name);
+	return new_CDefinition(cType, name);
 };
-auto _lambda107_(auto _ref, auto cppType) {
+auto _lambda107_(auto _ref, auto cType) {
 	auto _this = _ref;
-	return new_CDefinition(cppType, name);
+	return new_CDefinition(cType, name);
 };
 Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1347,19 +1344,19 @@ auto _lambda116_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-Option<CPPType> compileType_App(void* _ref, char* input) {
+Option<CType> compileType_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	char* stripped = input.strip();/*
 
 		switch (stripped) {
 			case "Character" -> {
-				return Option.of(CPPPrimitiveType.Char);
+				return Option.of(CPrimitiveType.Char);
 			}
 			case "boolean" -> {
-				return Option.of(CPPPrimitiveType.Int);
+				return Option.of(CPrimitiveType.Int);
 			}
 			case "void" -> {
-				return Option.of(CPPPrimitiveType.Void);
+				return Option.of(CPrimitiveType.Void);
 			}
 		}*/
 	if (stripped.endsWith("[]")) {
@@ -1367,7 +1364,7 @@ Option<CPPType> compileType_App(void* _ref, char* input) {
 		return _this.compileType(slice).map(new_CPointerType);
 	}
 	if (stripped.equals("String")) {
-		return Option.of(new_CPointerType(CPPPrimitiveType.Char));
+		return Option.of(new_CPointerType(CPrimitiveType.Char));
 	}
 	if (stripped.endsWith(">")) {
 		char* withoutEnd = stripped.substring(0, stripped.length() - 1);
@@ -1375,7 +1372,7 @@ Option<CPPType> compileType_App(void* _ref, char* input) {
 		if (i >= 0) {
 			char* base = withoutEnd.substring(0, i);
 			char* typeArguments = withoutEnd.substring(i + 1);
-			ArrayList<CPPType> list = new_ArrayList<CPPType>(_this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda116_).map(compileType_this).flatMap(stream_Option).toList());
+			ArrayList<CType> list = new_ArrayList<CType>(_this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda116_).map(compileType_this).flatMap(stream_Option).toList());
 			return Option.of(new_CTemplateType(base, list));
 		}
 	}

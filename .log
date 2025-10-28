@@ -1,20 +1,20 @@
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:35:2: error: no template named 'List'
    35 |         List<T> inner;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:53:10: error: field has incomplete type 'CPPType'
-   53 |         CPPType type;
-      |                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CPPType'
-    5 | struct CPPType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:53:8: error: field has incomplete type 'CType'
+   53 |         CType type;
+      |               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CType'
+    5 | struct CType;
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:74:2: error: unknown type name 'StringBuilder'
    74 |         StringBuilder buffer;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:78:10: error: field has incomplete type 'CPPType'
-   78 |         CPPType cppType;
-      |                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CPPType'
-    5 | struct CPPType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:78:8: error: field has incomplete type 'CType'
+   78 |         CType cType;
+      |               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:5:8: note: forward declaration of 'CType'
+    5 | struct CType;
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:91:2: error: no template named 'Stack'
    91 |         Stack<CStructureHeader> structureHeaders;
@@ -25,15 +25,15 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:133:2: error: re
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:118:2: note: previous definition is here
   118 |         PlaceholderTag
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:157:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  157 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
-      |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  158 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
-      |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:159:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
-  159 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
-      |                                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:157:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  157 | CPrimitiveType VoidValue = CPrimitiveType { "void" };
+      |                                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:45: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  158 | CPrimitiveType CharValue = CPrimitiveType { "char" };
+      |                                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:159:44: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  159 | CPrimitiveType IntValue = CPrimitiveType { "int" };
+      |                                            ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:8: error: use of undeclared identifier 'R'
   192 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
@@ -58,14 +58,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:206:32: error: n
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:210:1: error: no template named 'Stream'
   210 | Stream<T> stream_Option(void* _ref);
       | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:212:1: error: use of class template 'ArrayList' requires template arguments
-  212 | ArrayList new_ArrayList(void* _ref) {
-      | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:34:8: note: template is declared here
-   33 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-   34 | struct ArrayList {
-      |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:1: error: no template named 'Stream'
   222 | Stream<T> stream_ArrayList(void* _ref) {
       | ^
@@ -78,6 +70,9 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:270:44: error: u
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:275:33: error: no template named 'Consumer'
   275 | void ifPresent_Some(void* _ref, Consumer<T> consumer) {
       |                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:280:31: error: no template named 'Supplier'
+  280 | Option<T> or_Some(void* _ref, Supplier<Option<T>> other) {
+      |                               ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1
