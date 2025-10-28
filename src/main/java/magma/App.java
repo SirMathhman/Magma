@@ -59,7 +59,7 @@ public class App {
 	private sealed interface Result<T, X> permits Err, Ok {}
 
 	private sealed interface CType
-			permits CIdentifier, CPointerType, CPrimitiveType, CStructureType, CTemplateType, Placeholder {
+			permits CIdentifier, CPointerType, CPrimitiveType, CStructureType, CTemplateType, FunctionType, Placeholder {
 		String generate();
 
 		String getSimpleName();
@@ -103,8 +103,13 @@ public class App {
 		boolean test(T element);
 	}
 
-	private sealed interface CStructureSegment permits CStatement, EmptyCStructureSegment, Placeholder {
+	private sealed interface CStructureSegment extends CStructureMember
+			permits CStatement, EmptyCStructureSegment, Placeholder {
 		String generate();
+	}
+
+	private sealed interface CStructureMember permits CMethodMember, CStructureSegment {
+		Option<CDefinition> toDefinition();
 	}
 
 	private interface CNode {
@@ -430,7 +435,7 @@ public class App {
 		}
 	}
 
-	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment, CExpression {
+	private record Placeholder(String input) implements CType, CFunctionHeader, CExpression, CStructureSegment {
 		private static String wrap(String input) {
 			final var withoutStart = input.replace("/*", "start");
 			final var withoutEnd = withoutStart.replace("*/", "end");
@@ -445,6 +450,11 @@ public class App {
 		@Override
 		public String getSimpleName() {
 			return this.generate();
+		}
+
+		@Override
+		public Option<CDefinition> toDefinition() {
+			return new None<CDefinition>();
 		}
 	}
 
@@ -539,6 +549,10 @@ public class App {
 
 		public CDefinition withType(CType type) {
 			return new CDefinition(this.typeParameters, type, this.name);
+		}
+
+		public CDefinition mapType(Function<CType, CType> mapper) {
+			return new CDefinition(this.typeParameters, mapper.apply(this.type), this.name);
 		}
 	}
 
@@ -668,6 +682,11 @@ public class App {
 		public String generate() {
 			return "";
 		}
+
+		@Override
+		public Option<CDefinition> toDefinition() {
+			return new None<CDefinition>();
+		}
 	}
 
 	private record CContent(String content) implements CNode, CExpression {
@@ -677,10 +696,19 @@ public class App {
 		}
 	}
 
-	private record CStatement(CNode content1, int depth) implements CStructureSegment {
+	private record CStatement(CNode content, int depth) implements CStructureSegment {
 		@Override
 		public String generate() {
-			return App.generateWithIndent(this.content1().generate(), this.depth()) + ";";
+			return App.generateWithIndent(this.content().generate(), this.depth()) + ";";
+		}
+
+		@Override
+		public Option<CDefinition> toDefinition() {
+			if (this.content instanceof CDefinition definition) {
+				return new Some<CDefinition>(definition);
+			} else {
+				return new None<CDefinition>();
+			}
 		}
 	}
 
@@ -824,6 +852,25 @@ public class App {
 		public String generate() {
 			final var joinedArguments = this.arguments().stream().map(CExpression::generate).collect(new Joiner(", "));
 			return this.caller().generate() + "(" + joinedArguments + ")";
+		}
+	}
+
+	private record CMethodMember(CDefinition definition) implements CStructureMember {
+		@Override
+		public Option<CDefinition> toDefinition() {
+			return new Some<CDefinition>(this.definition);
+		}
+	}
+
+	private record FunctionType(CType returnType, ArrayList<CType> paramTypes) implements CType {
+		@Override
+		public String generate() {
+			return "???";
+		}
+
+		@Override
+		public String getSimpleName() {
+			return "???";
 		}
 	}
 
@@ -1048,13 +1095,16 @@ public class App {
 			return "";
 		}
 
-		return this
-				.parseStructure("class", stripped)
-				.map(CStructureSegment::generate)
-				.orElseGet(() -> Placeholder.wrap(input));
+		return this.parseStructure("class", stripped).map(member -> {
+			if (member instanceof CStructureSegment segment) {
+				return segment.generate();
+			} else {
+				return "???";
+			}
+		}).orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Option<CStructureSegment> parseStructure(String type, String input) {
+	private Option<CStructureMember> parseStructure(String type, String input) {
 		final var classIndex = input.indexOf(type);
 		if (classIndex >= 0) {
 			final var afterKeyword = input.substring(classIndex + type.length());
@@ -1182,16 +1232,27 @@ public class App {
 						final var members = this
 								.divide(content, this::foldStatement)
 								.map(this::compileClassSegment)
-								.collect(new ListCollector<CStructureSegment>());
+								.collect(new ListCollector<CStructureMember>());
 
-						final var joinedFields = members.stream().map(CStructureSegment::generate).collect(new Joiner(""));
+						final var joinedFields =
+								members.stream().map(this::generateField).flatMap(Option::stream).collect(new Joiner(""));
+
 						final var outputContent = generatedFields + joinedFields;
 
-						return dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+						final var generated =
+								dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
+						return new Tuple<ArrayList<CStructureMember>, String>(members, generated);
 					});
 
-					final var generated = within1.left;
-					this.frames = within1.right.defineStructure(header.withFields(finalRecordFields));
+					final var result = within1.left;
+					final var members = result.left;
+					final var generated = result.right;
+
+					final var memberDefinitions =
+							members.stream().map(CStructureMember::toDefinition).flatMap(Option::stream).toList();
+
+					final var allMembers = finalRecordFields.addAllLast(memberDefinitions);
+					this.frames = within1.right.defineStructure(header.withFields(allMembers));
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.addLast(generated);
@@ -1205,6 +1266,14 @@ public class App {
 		}
 
 		return Option.empty();
+	}
+
+	private Option<String> generateField(CStructureMember member) {
+		if (member instanceof CStructureSegment segment) {
+			return new Some<String>(segment.generate());
+		} else {
+			return new None<String>();
+		}
 	}
 
 	private String joinTypeArguments(ArrayList<String> typeParameters) {
@@ -1227,7 +1296,7 @@ public class App {
 		return true;
 	}
 
-	private CStructureSegment compileClassSegment(String input) {
+	private CStructureMember compileClassSegment(String input) {
 		if (input.isBlank()) {
 			return new EmptyCStructureSegment();
 		}
@@ -1260,10 +1329,10 @@ public class App {
 			}
 		}
 
-		return this.compileMethod(input).orElseGet(() -> new Placeholder(input));
+		return this.parseMethod(input).orElseGet(() -> new Placeholder(input));
 	}
 
-	private Option<CStructureSegment> compileMethod(String input) {
+	private Option<CStructureMember> parseMethod(String input) {
 		final var paramStart = input.indexOf("(");
 		if (paramStart < 0) {return Option.empty();}
 		final var definition = input.substring(0, paramStart).strip();
@@ -1274,8 +1343,7 @@ public class App {
 		final var inputParams = withParams.substring(0, paramEnd).strip();
 		final var withBraces = withParams.substring(paramEnd + 1).strip();
 
-		final var header = this.compileFunctionHeader(definition);
-
+		final var header = this.parseFunctionHeader(definition);
 		final var params = this.compileParametersToList(inputParams);
 		final var outputParams = params
 				.copy()
@@ -1323,25 +1391,31 @@ public class App {
 		}
 
 		this.functions = this.functions.addLast(generated);
-		return Option.of(new EmptyCStructureSegment());
+
+		if (header instanceof CDefinition definition1) {
+			final var paramTypes = params.stream().map(CDefinition::type).collect(new ListCollector<CType>());
+			return Option.of(new CMethodMember(definition1.mapType(type -> new FunctionType(type, paramTypes))));
+		} else {
+			return Option.of(new EmptyCStructureSegment());
+		}
 	}
 
-	private CFunctionHeader compileFunctionHeader(String input) {
+	private CFunctionHeader parseFunctionHeader(String input) {
 		return this.compileDefinition(input).<CFunctionHeader>map(item -> {
 			final var currentStructureName = this.frames.findCurrentStructure().map(header -> header.name).orElse("???");
 			return new CDefinition(item.typeParameters, item.type, item.name + "_" + currentStructureName);
 		}).or(() -> this.compileConstructor(input)).orElseGet(() -> new Placeholder(input));
 	}
 
-	private Option<CStructureSegment> compileDefinitionToField0(String slice) {
+	private Option<CStructureMember> compileDefinitionToField0(String slice) {
 		final var maybeDefinition = this.compileDefinition(slice);
 		if (!maybeDefinition.isPresent()) {
-			return new None<CStructureSegment>();
+			return new None<CStructureMember>();
 		}
 
 		final var definition = maybeDefinition.get();
 		this.frames = this.frames.define(definition);
-		return new Some<CStructureSegment>(new CStatement(definition, 1));
+		return new Some<CStructureMember>(new CStatement(definition, 1));
 	}
 
 	private String compileMethodSegments(String content) {
@@ -1368,7 +1442,7 @@ public class App {
 		return Option.empty();
 	}
 
-	private Option<CStructureSegment> compileEnumValues(String input) {
+	private Option<CStructureMember> compileEnumValues(String input) {
 		final var segments = new ArrayList<String>(Arrays
 																									 .stream(input.split(Pattern.quote(",")))
 																									 .map(String::strip)
