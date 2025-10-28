@@ -153,8 +153,7 @@ public class App {
 		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
 			var current = initial;
 			while (true) {
-				final var head1 = this.head;
-				final var maybeNext = head1.next();
+				final var maybeNext = this.head.next();
 				if (maybeNext instanceof Some<T>(var next)) {
 					current = folder.apply(current, next);
 				} else {
@@ -407,8 +406,7 @@ public class App {
 
 	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment, CExpression {
 		private static String wrap(String input) {
-			final var input1 = input;
-			final var withoutStart = input1.replace("/*", "start");
+			final var withoutStart = input.replace("/*", "start");
 			final var withoutEnd = withoutStart.replace("*/", "end");
 			return "/*" + withoutEnd + "*/";
 		}
@@ -529,10 +527,6 @@ public class App {
 
 		public String generate() {
 			return App.createTemplateString(this.typeParameters()) + "struct " + this.name();
-		}
-
-		public String createTemplateString() {
-			return App.createTemplateString(this.typeParameters);
 		}
 	}
 
@@ -662,8 +656,16 @@ public class App {
 		}
 	}
 
-	private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty();
-	private ArrayList<CStructureHeader> structureHeaders;
+	public static class ParseStack {
+		private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty();
+		private ArrayList<CStructureHeader> structureHeaders;
+
+		public ParseStack() {
+		}
+	}
+
+	private final ParseStack parseStack = new ParseStack();
+
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
 	private ArrayList<String> structures;
@@ -674,7 +676,7 @@ public class App {
 
 	public App() {
 		this.globals = ArrayList.empty();
-		this.structureHeaders = ArrayList.empty();
+		this.parseStack.structureHeaders = ArrayList.empty();
 		this.functions = ArrayList.empty();
 		this.forwardDeclarations = ArrayList.empty();
 		this.structures = ArrayList.empty();
@@ -1011,7 +1013,7 @@ public class App {
 							templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					final var header = new CStructureHeader(typeParameters, beforeContent);
-					this.structureHeaders = this.structureHeaders.addLast(header);
+					this.parseStack.structureHeaders = this.parseStack.structureHeaders.addLast(header);
 
 					final var members = this
 							.divide(content, this::foldStatement)
@@ -1024,7 +1026,7 @@ public class App {
 					final var generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
 
-					this.structureHeaders = this.structureHeaders.removeLast();
+					this.parseStack.structureHeaders = this.parseStack.structureHeaders.removeLast();
 
 					if (variants.isEmpty()) {
 						this.structures = this.structures.addLast(generated);
@@ -1121,9 +1123,10 @@ public class App {
 
 		final ArrayList<String> typeParameters;
 		if (header instanceof CDefinition definition1) {
-			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
+			typeParameters =
+					this.parseStack.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
 		} else {
-			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(ArrayList.empty());
+			typeParameters = this.parseStack.structureHeaders.getLast().typeParameters.copy().addAllLast(ArrayList.empty());
 		}
 
 		final var templateString = createTemplateString(typeParameters);
@@ -1132,17 +1135,17 @@ public class App {
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
-			final var currentStructureType = this.structureHeaders.getLast();
+			final var currentStructureType = this.parseStack.structureHeaders.getLast();
 			final var thisDefinition = new CStatement(new CContent(
 					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"),
 																								1).generate();
 
-			this.definitions = this.definitions.addLast(params);
+			this.parseStack.definitions = this.parseStack.definitions.addLast(params);
 
 			generated = templateString + headerWithParameters + " {" + thisDefinition + this.compileMethodSegments(content) +
 									System.lineSeparator() + "}" + System.lineSeparator();
 
-			this.definitions = this.definitions.removeLast();
+			this.parseStack.definitions = this.parseStack.definitions.removeLast();
 		} else {
 			generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		}
@@ -1156,7 +1159,8 @@ public class App {
 				.compileDefinition(input)
 				.<CFunctionHeader>map(item -> new CDefinition(item.typeParameters,
 																											item.cType,
-																											item.name + "_" + this.structureHeaders.getLast().name))
+																											item.name + "_" +
+																											this.parseStack.structureHeaders.getLast().name))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
@@ -1168,7 +1172,7 @@ public class App {
 		}
 
 		final var definition = maybeDefinition.get();
-		this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
+		this.parseStack.definitions = this.parseStack.definitions.mapLast(last -> last.addLast(definition));
 		return new Some<CStructureSegment>(new CStatement(definition, 1));
 	}
 
@@ -1181,12 +1185,12 @@ public class App {
 		if (i >= 0) {
 			final var name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				final var peek = this.structureHeaders.getLast();
+				final var peek = this.parseStack.structureHeaders.getLast();
 				return Option.of(new CDefinition(ArrayList.empty(), peek.toType(), "new_" + peek.name));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
-				final var structName = this.structureHeaders.getLast().name;
+				final var structName = this.parseStack.structureHeaders.getLast().name;
 				return Option.of(new CDefinition(ArrayList.empty(), new CIdentifier(structName), "new_" + structName));
 			}
 		}
@@ -1222,7 +1226,7 @@ public class App {
 				final var name = slice.substring(0, i).strip();
 				final var arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
-					final var structureName = this.structureHeaders.getLast().name;
+					final var structureName = this.parseStack.structureHeaders.getLast().name;
 					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
 													 System.lineSeparator());
 				}
@@ -1246,9 +1250,9 @@ public class App {
 			final var content = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
-			this.definitions = this.definitions.addLast(ArrayList.empty());
+			this.parseStack.definitions = this.parseStack.definitions.addLast(ArrayList.empty());
 			final var compiled = this.compileMethodSegments(content);
-			this.definitions = this.definitions.removeLast();
+			this.parseStack.definitions = this.parseStack.definitions.removeLast();
 			this.depth--;
 
 			return Option.of("{" + compiled + App.generateIndent(this.depth) + "}");
@@ -1382,26 +1386,24 @@ public class App {
 			case CContent cContent -> new Placeholder(cContent.content);
 			case CFieldAccess fieldAccess -> {
 				final var childType = this.resolveExpression(fieldAccess.child);
-				if (childType instanceof CIdentifier(String value)) {
+				if (childType instanceof CIdentifier(var value)) {
 					if (value.equals("_this")) {
 						yield new Placeholder("Failed to find field: " + fieldAccess.name);
-					} else {
-
 					}
 				}
 
-				yield new Placeholder("Not an identifier: " + childType + "");
+				yield new Placeholder("Not an identifier: " + childType);
 			}
 			case Placeholder placeholder -> placeholder;
 		};
 	}
 
 	private CType resolveIdentifier(CIdentifier identifier) {
-		if(identifier.value.equals("_this")) {
+		if (identifier.value.equals("_this")) {
 			return new Placeholder("this type");
 		}
 
-		final var maybeDefinition = this.definitions
+		final var maybeDefinition = this.parseStack.definitions
 				.stream()
 				.flatMap(ArrayList::stream)
 				.filter(definition -> definition.hasName(identifier.value)).head.next();
@@ -1424,7 +1426,7 @@ public class App {
 		}
 
 		final var definition = maybeDefinition.get();
-		this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
+		this.parseStack.definitions = this.parseStack.definitions.mapLast(last -> last.addLast(definition));
 		return new Some<CDefinition>(definition);
 	}
 
@@ -1475,7 +1477,7 @@ public class App {
 				return new CIdentifier("_this");
 			}
 
-			if (this.definitions
+			if (this.parseStack.definitions
 					.stream()
 					.flatMap(ArrayList::stream)
 					.filter(definition -> definition.name.endsWith(stripped)).head
