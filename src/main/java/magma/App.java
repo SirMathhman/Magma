@@ -4,9 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.Stack;
@@ -47,6 +45,39 @@ public class App {
 		String generate();
 	}
 
+	private record ArrayList<T>(List<T> inner) {
+		public ArrayList() {
+			this(new java.util.ArrayList<T>());
+		}
+
+		@SafeVarargs
+		public static <T> ArrayList<T> of(T... elements) {
+			return new ArrayList<T>(new java.util.ArrayList<T>(Arrays.asList(elements)));
+		}
+
+		public Stream<T> stream() {
+			return this.inner.stream();
+		}
+
+		public ArrayList<T> add(T element) {
+			this.inner.add(element);
+			return this;
+		}
+
+		public boolean isEmpty() {
+			return this.inner.isEmpty();
+		}
+
+		public ArrayList<T> copy() {
+			return new ArrayList<T>(new java.util.ArrayList<T>(this.inner));
+		}
+
+		public ArrayList<T> addFirst(T element) {
+			this.inner.addFirst(element);
+			return this;
+		}
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
@@ -63,7 +94,7 @@ public class App {
 		}
 	}
 
-	public record CTemplateType(String base, List<CPPType> list) implements CPPType {
+	public record CTemplateType(String base, ArrayList<CPPType> list) implements CPPType {
 		@Override
 		public String generate() {
 			final String joined = this.list.stream().map(CPPType::generate).collect(Collectors.joining(", "));
@@ -110,7 +141,7 @@ public class App {
 
 	private static class State {
 		public final String input;
-		public final ArrayList<String> segments;
+		public ArrayList<String> segments;
 		private StringBuilder buffer;
 		private int depth;
 		private int index;
@@ -134,7 +165,7 @@ public class App {
 		}
 
 		State advance() {
-			this.segments.add(this.buffer.toString());
+			this.segments = this.segments.add(this.buffer.toString());
 			this.buffer = new StringBuilder();
 			return this;
 		}
@@ -190,12 +221,12 @@ public class App {
 		}
 	}
 
-	private final List<String> globals;
-	private final List<String> forwardDeclarations;
-	private final List<String> functions;
-	private final List<String> structures;
-	private final List<String> sealedStructures;
 	private final Stack<String> structureNames;
+	private ArrayList<String> globals;
+	private ArrayList<String> forwardDeclarations;
+	private ArrayList<String> structures;
+	private ArrayList<String> sealedStructures;
+	private ArrayList<String> functions;
 	private int counter;
 	private int depth;
 
@@ -231,7 +262,7 @@ public class App {
 
 	private Optional<? extends IOException> compileNative(Path target) {
 		final Result<Process, IOException> clang =
-				this.startCommand(List.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
+				this.startCommand(ArrayList.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 		return switch (clang) {
 			case Err<Process, IOException> v1 -> Optional.of(v1.error);
 			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
@@ -256,9 +287,9 @@ public class App {
 		}
 	}
 
-	private Result<Process, IOException> startCommand(List<String> command) {
+	private Result<Process, IOException> startCommand(ArrayList<String> command) {
 		try {
-			return new Ok<Process, IOException>(new ProcessBuilder(command).inheritIO().start());
+			return new Ok<Process, IOException>(new ProcessBuilder(command.inner).inheritIO().start());
 		} catch (IOException e) {
 			return new Err<Process, IOException>(e);
 		}
@@ -284,12 +315,12 @@ public class App {
 	private String compile(String input) {
 		final String compiled = this.compileStatements(input, this::compileRootSegment);
 
-		final String joinedForwardDeclarations = String.join("", this.forwardDeclarations);
-		final String joinedFunctions = String.join("", this.functions);
+		final String joinedForwardDeclarations = String.join("", this.forwardDeclarations.inner);
+		final String joinedFunctions = String.join("", this.functions.inner);
 
-		final String joinedStructures = String.join("", this.structures);
-		final String joinedSealedStructures = String.join("", this.sealedStructures);
-		final String joinedGlobals = String.join("", this.globals);
+		final String joinedStructures = String.join("", this.structures.inner);
+		final String joinedSealedStructures = String.join("", this.sealedStructures.inner);
+		final String joinedGlobals = String.join("", this.globals.inner);
 
 		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals +
 					 joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
@@ -408,12 +439,16 @@ public class App {
 					final String content = withEnd.substring(0, withEnd.length() - 1);
 
 					final int permitsIndex = beforeContent.indexOf("permits");
-					List<String> variants = Collections.emptyList();
+					ArrayList<String> variants = new ArrayList<String>();
 					if (permitsIndex >= 0) {
 						final String[] variantsArray =
 								beforeContent.substring(permitsIndex + "permits".length()).split(Pattern.quote(","));
 						beforeContent = beforeContent.substring(0, permitsIndex).strip();
-						variants = Arrays.stream(variantsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+						variants = new ArrayList<String>(Arrays
+																								 .stream(variantsArray)
+																								 .map(String::strip)
+																								 .filter(slice -> !slice.isEmpty())
+																								 .toList());
 					}
 
 					final int implementsIndex = beforeContent.indexOf("implements");
@@ -424,7 +459,7 @@ public class App {
 						beforeContent = beforeContent.substring(0, implementsIndex).strip();
 					}
 
-					List<CDefinition> recordFields = new ArrayList<>();
+					ArrayList<CDefinition> recordFields = new ArrayList<CDefinition>();
 					if (beforeContent.endsWith(")")) {
 						final String slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final int i = slice.indexOf("(");
@@ -436,15 +471,18 @@ public class App {
 						}
 					}
 
-					List<String> typeParameters = new ArrayList<String>();
+					ArrayList<String> typeParameters = new ArrayList<String>();
 					if (beforeContent.endsWith(">")) {
 						final String withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
 						final int typeParamStart = withoutEnd.indexOf("<");
 						if (typeParamStart >= 0) {
 							beforeContent = withoutEnd.substring(0, typeParamStart);
 							final String[] typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(Pattern.quote(","));
-							typeParameters =
-									Arrays.stream(typeParamsArray).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+							typeParameters = new ArrayList<String>(Arrays
+																												 .stream(typeParamsArray)
+																												 .map(String::strip)
+																												 .filter(slice -> !slice.isEmpty())
+																												 .toList());
 						}
 					}
 
@@ -499,19 +537,18 @@ public class App {
 						final String joinedTypeArguments = this.joinTypeArguments(typeParameters);
 
 						final String thisType = beforeContent + joinedTypeArguments;
-						this.functions.add(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() +
-															 "_" +
-															 beforeContent + "(void* _ref" + "){" +
-															 this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
-															 this.generateStatement(
-																	 interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data", 1) +
-															 this.generateStatement("data." + beforeContent.toLowerCase() + " = _this", 1) +
-															 this.generateStatement(
-																	 "return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }",
-																	 1) + System.lineSeparator() + "}" + System.lineSeparator());
+						this.functions = this.functions.add(
+								templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
+								beforeContent + "(void* _ref" + "){" +
+								this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
+								this.generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data", 1) +
+								this.generateStatement("data." + beforeContent.toLowerCase() + " = _this", 1) + this.generateStatement(
+										"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }",
+										1) + System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
-					this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
+					this.forwardDeclarations =
+							this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
 					this.structureNames.push(beforeContent);
 					final String generated =
@@ -520,9 +557,9 @@ public class App {
 					this.structureNames.pop();
 
 					if (variants.isEmpty()) {
-						this.structures.add(generated);
+						this.structures = this.structures.add(generated);
 					} else {
-						this.sealedStructures.add(generated);
+						this.sealedStructures = this.sealedStructures.add(generated);
 					}
 
 					return Optional.of("");
@@ -533,12 +570,12 @@ public class App {
 		return Optional.empty();
 	}
 
-	private String joinTypeArguments(List<String> typeParameters) {
+	private String joinTypeArguments(ArrayList<String> typeParameters) {
 		String joinedTypeArguments;
 		if (typeParameters.isEmpty()) {
 			joinedTypeArguments = "";
 		} else {
-			joinedTypeArguments = "<" + String.join(", ", typeParameters) + ">";
+			joinedTypeArguments = "<" + String.join(", ", typeParameters.inner) + ">";
 		}
 		return joinedTypeArguments;
 	}
@@ -631,7 +668,7 @@ public class App {
 			generated = beforeContent + ";" + System.lineSeparator();
 		}
 
-		this.functions.add(generated);
+		this.functions = this.functions.add(generated);
 		return Optional.of("");
 	}
 
@@ -678,14 +715,17 @@ public class App {
 	}
 
 	private Optional<String> compileEnumValues(String input) {
-		final List<String> segments =
-				Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		final ArrayList<String> segments = new ArrayList<String>(Arrays
+																																 .stream(input.split(Pattern.quote(",")))
+																																 .map(String::strip)
+																																 .filter(slice -> !slice.isEmpty())
+																																 .toList());
 
-		for (String segment : segments) {
+		for (String segment : segments.inner) {
 			final String stripped = segment.strip();
 			final Optional<String> maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
-				this.globals.add(maybeEnumValue.get());
+				this.globals = this.globals.add(maybeEnumValue.get());
 			} else {
 				return Optional.empty();
 			}
@@ -908,31 +948,29 @@ public class App {
 
 			final String functionName = this.createName("lambda");
 
-			final List<String> parameters;
+			final ArrayList<String> parameters;
 			if (this.isIdentifier(names)) {
-				parameters = List.of("auto " + names);
+				parameters = ArrayList.of("auto " + names);
 			} else if (names.startsWith("(") && names.endsWith(")")) {
 				final String slice = names.substring(1, names.length() - 1);
-				parameters = this
-						.divide(slice, this::foldValue)
-						.map(String::strip)
-						.filter(segment -> !segment.isEmpty())
-						.map(segment -> "auto " + segment)
-						.toList();
+				parameters = new ArrayList<String>(this
+																							 .divide(slice, this::foldValue)
+																							 .map(String::strip)
+																							 .filter(segment -> !segment.isEmpty())
+																							 .map(segment -> "auto " + segment)
+																							 .toList());
 			} else {
 				return Optional.empty();
 			}
 
-			final ArrayList<String> copy = new ArrayList<String>(parameters);
-			copy.addFirst("auto _ref");
-
-			this.functions.add("auto " + functionName + "(" + String.join(", ", copy) + ") " +
-												 this.compileMethodSegment(content).orElseGet(() -> {
-													 final String expression = this.compileExpression(content);
-													 return "{" + this.generateStatement("auto _this = _ref", 1) +
-																	this.generateStatement("return " + expression, 1) + System.lineSeparator() + "};" +
-																	System.lineSeparator();
-												 }));
+			final ArrayList<String> copy = parameters.copy().addFirst("auto _ref");
+			this.functions = this.functions.add("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " +
+																					this.compileMethodSegment(content).orElseGet(() -> {
+																						final String expression = this.compileExpression(content);
+																						return "{" + this.generateStatement("auto _this = _ref", 1) +
+																									 this.generateStatement("return " + expression, 1) +
+																									 System.lineSeparator() + "};" + System.lineSeparator();
+																					}));
 
 			return Optional.of(functionName);
 		}
@@ -967,16 +1005,17 @@ public class App {
 
 			if (argStart >= 0) {
 				final String caller = slice.substring(0, argStart).strip();
-				final List<String> arguments = this
-						.divide(slice.substring(argStart + 1), this::foldValue)
-						.map(String::strip)
-						.filter(segment -> !segment.isEmpty())
-						.map(this::compileExpression)
-						.toList();
+				final ArrayList<String> arguments = new ArrayList<String>(this
+																																			.divide(slice.substring(argStart + 1),
+																																							this::foldValue)
+																																			.map(String::strip)
+																																			.filter(segment -> !segment.isEmpty())
+																																			.map(this::compileExpression)
+																																			.toList());
 
 				final Optional<String> maybeCaller = this.compileCaller(caller);
 				if (maybeCaller.isPresent()) {
-					return Optional.of(maybeCaller.get() + "(" + String.join(", ", arguments) + ")");
+					return Optional.of(maybeCaller.get() + "(" + String.join(", ", arguments.inner) + ")");
 				}
 			}
 		}
@@ -985,7 +1024,6 @@ public class App {
 	}
 
 	private Optional<String> compileCaller(String caller) {
-		final String newCaller;
 		if (caller.startsWith("new ")) {
 			final String substring = caller.substring("new ".length());
 			final Optional<CPPType> maybeType = this.compileType(substring);
@@ -1021,21 +1059,23 @@ public class App {
 	}
 
 	private String compileParameters(String input) {
-		final List<CDefinition> parameters = this.compileParametersToList(input);
-		final ArrayList<CDefinition> copy = new ArrayList<CDefinition>(parameters);
-		copy.addFirst(new CDefinition(new CPointerType(CPPPrimitiveType.Void), "_ref"));
-
-		return copy.stream().map(CDefinition::generate).collect(Collectors.joining(", "));
+		return this
+				.compileParametersToList(input)
+				.copy()
+				.addFirst(new CDefinition(new CPointerType(CPPPrimitiveType.Void), "_ref"))
+				.stream()
+				.map(CDefinition::generate)
+				.collect(Collectors.joining(", "));
 	}
 
-	private List<CDefinition> compileParametersToList(String input) {
-		return this
-				.divide(input, this::foldValue)
-				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
-				.map(this::compileDefinition)
-				.flatMap(Optional::stream)
-				.toList();
+	private ArrayList<CDefinition> compileParametersToList(String input) {
+		return new ArrayList<CDefinition>(this
+																					.divide(input, this::foldValue)
+																					.map(String::strip)
+																					.filter(slice -> !slice.isEmpty())
+																					.map(this::compileDefinition)
+																					.flatMap(Optional::stream)
+																					.toList());
 	}
 
 	private Optional<CDefinition> compileDefinition(String input) {
@@ -1076,16 +1116,16 @@ public class App {
 	private Optional<CPPType> compileType(String input) {
 		final String stripped = input.strip();
 
-		if (stripped.equals("Character")) {
-			return Optional.of(CPPPrimitiveType.Char);
-		}
-
-		if (stripped.equals("boolean")) {
-			return Optional.of(CPPPrimitiveType.Int);
-		}
-
-		if (stripped.equals("void")) {
-			return Optional.of(CPPPrimitiveType.Void);
+		switch (stripped) {
+			case "Character" -> {
+				return Optional.of(CPPPrimitiveType.Char);
+			}
+			case "boolean" -> {
+				return Optional.of(CPPPrimitiveType.Int);
+			}
+			case "void" -> {
+				return Optional.of(CPPPrimitiveType.Void);
+			}
 		}
 
 		if (stripped.endsWith("[]")) {
@@ -1104,13 +1144,13 @@ public class App {
 				final String base = withoutEnd.substring(0, i);
 				final String typeArguments = withoutEnd.substring(i + 1);
 
-				final List<CPPType> list = this
-						.divide(typeArguments, this::foldValue)
-						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
-						.map(this::compileType)
-						.flatMap(Optional::stream)
-						.toList();
+				final ArrayList<CPPType> list = new ArrayList<CPPType>(this
+																																	 .divide(typeArguments, this::foldValue)
+																																	 .map(String::strip)
+																																	 .filter(slice -> !slice.isEmpty())
+																																	 .map(this::compileType)
+																																	 .flatMap(Optional::stream)
+																																	 .toList());
 
 				return Optional.of(new CTemplateType(base, list));
 			}
