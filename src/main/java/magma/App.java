@@ -205,6 +205,10 @@ public class App {
 		public T getLast() {
 			return this.inner.getLast();
 		}
+
+		public ArrayList<T> addAllLast(ArrayList<T> others) {
+			return others.stream().fold(this, ArrayList::addLast);
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -451,7 +455,7 @@ public class App {
 		}
 	}
 
-	private record CDefinition(CType cType, String name) implements CFunctionHeader {
+	private record CDefinition(ArrayList<String> typeParameters, CType cType, String name) implements CFunctionHeader {
 		@Override
 		public String generate() {
 			return this.cType().generate() + " " + this.name();
@@ -1017,7 +1021,15 @@ public class App {
 		final CFunctionHeader header = this.compileFunctionHeader(definition);
 
 		final String headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
-		final String templateString = this.structureHeaders.getLast().createTemplateString();
+
+		final ArrayList<String> typeParameters;
+		if (header instanceof CDefinition definition1) {
+			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
+		} else {
+			typeParameters = this.structureHeaders.getLast().typeParameters.copy().addAllLast(new ArrayList<String>());
+		}
+
+		final String templateString = createTemplateString(typeParameters);
 
 		final String generated;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -1040,7 +1052,8 @@ public class App {
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this
 				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.cType,
+				.<CFunctionHeader>map(item -> new CDefinition(item.typeParameters,
+																											item.cType,
 																											item.name + "_" + this.structureHeaders.getLast().name))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
@@ -1060,12 +1073,12 @@ public class App {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
 				final CStructureHeader peek = this.structureHeaders.getLast();
-				return Option.of(new CDefinition(peek.toType(), "new_" + peek.name));
+				return Option.of(new CDefinition(new ArrayList<String>(), peek.toType(), "new_" + peek.name));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
 				final String structName = this.structureHeaders.getLast().name;
-				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
+				return Option.of(new CDefinition(new ArrayList<String>(), new CIdentifier(structName), "new_" + structName));
 			}
 		}
 
@@ -1418,7 +1431,7 @@ public class App {
 		return this
 				.compileParametersToList(input)
 				.copy()
-				.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"))
+				.addFirst(new CDefinition(new ArrayList<String>(), new CPointerType(CPrimitiveType.Void), "_ref"))
 				.stream()
 				.map(CDefinition::generate)
 				.collect(new Joiner(", "));
@@ -1462,11 +1475,27 @@ public class App {
 		}
 
 		if (typeSeparator >= 0) {
+			final String beforeType = beforeName.substring(0, typeSeparator).strip();
+			ArrayList<String> typeParameters = new ArrayList<String>();
+			if (beforeType.endsWith(">")) {
+				final String slice = beforeType.substring(0, beforeType.length() - 1);
+				final int i = slice.indexOf("<");
+				if (i >= 0) {
+					final String typeParametersString = slice.substring(i + 1);
+					typeParameters = this
+							.divide(typeParametersString, this::foldValue)
+							.map(String::strip)
+							.filter(segment -> !segment.isEmpty())
+							.collect(new ListCollector<String>());
+				}
+			}
+
 			final String type = beforeName.substring(typeSeparator + 1).strip();
-			return this.compileType(type).map(cType -> new CDefinition(cType, name));
+			ArrayList<String> finalTypeParameters = typeParameters;
+			return this.compileType(type).map(cType -> new CDefinition(finalTypeParameters, cType, name));
 		}
 
-		return this.compileType(beforeName).map(cType -> new CDefinition(cType, name));
+		return this.compileType(beforeName).map(cType -> new CDefinition(new ArrayList<String>(), cType, name));
 	}
 
 	private Option<CType> compileType(String input) {

@@ -117,6 +117,7 @@ struct State {
 	int depth;
 	int index;};
 struct CDefinition {
+	ArrayList<char*> typeParameters;
 	CType cType;
 	char* name;
 };
@@ -250,17 +251,17 @@ C fold_Collector(void* _ref, C current, T element);
 char* generate_CType(void* _ref);
 char* getSimpleName_CType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
-template <typename T>
+template <typename T, typename T>
 Option<T> of_Option(void* _ref, T element) {
 	Option<T> _this = *((Option*) _ref);
 	return new_Some<T>(element);
 }
-template <typename T>
+template <typename T, typename T>
 Option<T> empty_Option(void* _ref) {
 	Option<T> _this = *((Option*) _ref);
 	return new_None<T>();
 }
-template <typename T>
+template <typename T, typename R>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);
 template <typename T>
 void ifPresent_Option(void* _ref, Consumer<T> consumer);
@@ -270,7 +271,7 @@ template <typename T>
 int isEmpty_Option(void* _ref);
 template <typename T>
 T get_Option(void* _ref);
-template <typename T>
+template <typename T, typename R>
 Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
 template <typename T>
 T orElse_Option(void* _ref, T other);
@@ -314,22 +315,22 @@ Option<T> next_EmptyHead(void* _ref) {
 	EmptyHead<T> _this = *((EmptyHead*) _ref);
 	return new_None<T>();
 }
-template <typename T>
+template <typename T, typename T>
 Stream<T> of_Stream(void* _ref, T element) {
 	Stream<T> _this = *((Stream*) _ref);
 	return new_Stream<T>(new_SingleHead<T>(element));
 }
-template <typename T>
+template <typename T, typename T>
 Stream<T> empty_Stream(void* _ref) {
 	Stream<T> _this = *((Stream*) _ref);
 	return new_Stream<T>(new_EmptyHead<T>());
 }
-template <typename T>
+template <typename T, typename R>
 Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
 	Stream<T> _this = *((Stream*) _ref);
 	return new_Stream<R>(new_MapHead<T, R>(_this.head, mapper));
 }
-template <typename T>
+template <typename T, typename R>
 R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
 	Stream<T> _this = *((Stream*) _ref);
 	R current = initial;
@@ -343,7 +344,7 @@ R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
 		}
 	}
 }
-template <typename T>
+template <typename T, typename C>
 C collect_Stream(void* _ref, Collector<T, C> collector) {
 	Stream<T> _this = *((Stream*) _ref);
 	return _this.fold(collector.createInitial(), fold_collector);
@@ -363,7 +364,7 @@ Stream<T> filter_Stream(void* _ref, Predicate<T> predicate) {
 	Stream<T> _this = *((Stream*) _ref);
 	return _this.flatMap(_lambda1_);
 }
-template <typename T>
+template <typename T, typename R>
 Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper) {
 	Stream<T> _this = *((Stream*) _ref);
 	return new_Stream<R>(new_FlatMapHead<T, R>(_this.head, mapper));
@@ -373,7 +374,7 @@ ArrayList<T> new_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
 }
-template <typename T>
+template <typename T, typename T>
 ArrayList<T> of_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(Arrays.asList(elements)));
@@ -421,6 +422,11 @@ T getLast_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return _this.inner.getLast();
 }
+template <typename T>
+ArrayList<T> addAllLast_ArrayList(void* _ref, ArrayList<T> others) {
+	ArrayList<T> _this = *((ArrayList*) _ref);
+	return others.stream().fold(_this, addLast_ArrayList);
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -442,7 +448,7 @@ Option<T> toOption_Some(void* _ref){
 	data.some = _this;
 	return Option<T> { SomeTag, data };
 }
-template <typename T>
+template <typename T, typename R>
 Option<R> map_Some(void* _ref, Function<T, R> mapper) {
 	Some<T> _this = *((Some*) _ref);
 	return new_Some<R>(mapper.apply(_this.value));
@@ -467,7 +473,7 @@ T get_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
 	return _this.value;
 }
-template <typename T>
+template <typename T, typename R>
 Option<R> flatMap_Some(void* _ref, Function<T, Option<R>> mapper) {
 	Some<T> _this = *((Some*) _ref);
 	return mapper.apply(_this.value);
@@ -499,7 +505,7 @@ Option<T> toOption_None(void* _ref){
 	data.none = _this;
 	return Option<T> { NoneTag, data };
 }
-template <typename T>
+template <typename T, typename R>
 Option<R> map_None(void* _ref, Function<T, R> mapper) {
 	None<T> _this = *((None*) _ref);
 	return new_None<R>();
@@ -523,7 +529,7 @@ T get_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return null;
 }
-template <typename T>
+template <typename T, typename R>
 Option<R> flatMap_None(void* _ref, Function<T, Option<R>> mapper) {
 	None<T> _this = *((None*) _ref);
 	return new_None<R>();
@@ -1179,7 +1185,14 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	char* withBraces = withParams.substring(paramEnd + 1).strip();
 	CFunctionHeader header = _this.compileFunctionHeader(definition);
 	char* headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
-	char* templateString = _this.structureHeaders.getLast().createTemplateString();
+	ArrayList<char*> typeParameters;
+	if (/*header instanceof CDefinition definition1*/) {
+		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(definition1.typeParameters);
+	}
+	else {
+		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(new_ArrayList<char*>());
+	}
+	char* templateString = createTemplateString(typeParameters);
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
@@ -1203,7 +1216,7 @@ auto _lambda51_(auto _ref) {
 };
 auto _lambda54_(auto _ref, auto item) {
 	auto _this = _ref;
-	return new_CDefinition(item.cType, item.name + "_" + _this.structureHeaders.getLast().name);
+	return new_CDefinition(item.typeParameters, item.cType, item.name + "_" + _this.structureHeaders.getLast().name);
 };
 CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1228,13 +1241,13 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 		char* name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
 			CStructureHeader peek = _this.structureHeaders.getLast();
-			return Option.of(new_CDefinition(peek.toType(), "new_" + peek.name));
+			return Option.of(new_CDefinition(new_ArrayList<char*>(), peek.toType(), "new_" + peek.name));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
 			char* structName = _this.structureHeaders.getLast().name;
-			return Option.of(new_CDefinition(new_CIdentifier(structName), "new_" + structName));
+			return Option.of(new_CDefinition(new_ArrayList<char*>(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	return Option.empty();
@@ -1570,7 +1583,7 @@ int isNumber_App(void* _ref, char* input) {
 }
 char* compileParameters_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
+	return _this.compileParametersToList(input).copy().addFirst(new_CDefinition(new_ArrayList<char*>(), new_CPointerType(CPrimitiveType.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
 }
 auto _lambda103_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1580,13 +1593,17 @@ ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda103_).map(compileDefinition_this).flatMap(stream_Option).toList();
 }
-auto _lambda105_(auto _ref, auto cType) {
+auto _lambda107_(auto _ref, auto segment) {
 	auto _this = _ref;
-	return new_CDefinition(cType, name);
+	return /*!segment*/.isEmpty();
 };
-auto _lambda107_(auto _ref, auto cType) {
+auto _lambda109_(auto _ref, auto cType) {
 	auto _this = _ref;
-	return new_CDefinition(cType, name);
+	return new_CDefinition(finalTypeParameters, cType, name);
+};
+auto _lambda111_(auto _ref, auto cType) {
+	auto _this = _ref;
+	return new_CDefinition(new_ArrayList<char*>(), cType, name);
 };
 Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1614,12 +1631,23 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 			}
 		}*/
 	if (typeSeparator >= 0) {
+		char* beforeType = beforeName.substring(0, typeSeparator).strip();
+		ArrayList<char*> typeParameters = new_ArrayList<char*>();
+		if (beforeType.endsWith(">")) {
+			char* slice = beforeType.substring(0, beforeType.length() - 1);
+			int i = slice.indexOf("<");
+			if (i >= 0) {
+				char* typeParametersString = slice.substring(i + 1);
+				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda107_).collect(new_ListCollector<char*>());
+			}
+		}
 		char* type = beforeName.substring(typeSeparator + 1).strip();
-		return _this.compileType(type).map(_lambda105_);
+		ArrayList<char*> finalTypeParameters = typeParameters;
+		return _this.compileType(type).map(_lambda109_);
 	}
-	return _this.compileType(beforeName).map(_lambda107_);
+	return _this.compileType(beforeName).map(_lambda111_);
 }
-auto _lambda115_(auto _ref, auto slice) {
+auto _lambda119_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
@@ -1651,7 +1679,7 @@ Option<CType> compileType_App(void* _ref, char* input) {
 		if (i >= 0) {
 			char* base = withoutEnd.substring(0, i);
 			char* typeArguments = withoutEnd.substring(i + 1);
-			ArrayList<CType> list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda115_).map(compileType_this).flatMap(stream_Option).toList();
+			ArrayList<CType> list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda119_).map(compileType_this).flatMap(stream_Option).toList();
 			return Option.of(new_CTemplateType(base, list));
 		}
 	}
