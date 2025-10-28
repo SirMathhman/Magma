@@ -116,7 +116,7 @@ public class App {
 	}
 
 	private sealed interface CExpression extends CCaller
-			permits CContent, CFieldAccess, CIdentifier, CInvocation, Placeholder {
+			permits CContent, CFieldAccess, CIdentifier, CInvocation, CReference, Placeholder {
 		String generate();
 	}
 
@@ -998,6 +998,13 @@ public class App {
 		}
 	}
 
+	private record CReference(CExpression child) implements CExpression {
+		@Override
+		public String generate() {
+			return "&" + this.child.generate();
+		}
+	}
+
 	private Frames frames;
 	private ArrayList<String> globals;
 	private ArrayList<String> forwardDeclarations;
@@ -1823,6 +1830,7 @@ public class App {
 
 				yield new Placeholder("Not a function type: " + callerType.toString());
 			}
+			case CReference cReference -> new CPointerType(this.resolveExpression(expression));
 		};
 	}
 
@@ -2037,7 +2045,8 @@ public class App {
 					if (caller instanceof CFieldAccess(var child, var name)) {
 						final var childType = this.resolveExpression(child);
 						final var newCallerAlias = name + "_" + childType.generate();
-						return new Some<CExpression>(new CInvocation(new CIdentifier(newCallerAlias), arguments));
+						return new Some<CExpression>(new CInvocation(new CIdentifier(newCallerAlias),
+																												 arguments.addFirst(new CReference(child))));
 					}
 
 					return new Some<CExpression>(new CInvocation(caller, arguments));
