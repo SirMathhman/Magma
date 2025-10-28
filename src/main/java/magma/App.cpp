@@ -604,7 +604,7 @@ Option<T> next_EmptyHead(void* _ref) {
 	return new_None<T>();
 }
 template <typename T, typename R>
-ZipHead<T, R> new_ZipHead(void* _ref, Head<T> head, Head<R> otherHead) {
+ZipHead<T, R> new_ZipHead(Head<T> head, Head<R> otherHead) {
 	ZipHead<T, R> _this;
 	_this.head = head;
 	_this.otherHead = otherHead;
@@ -627,7 +627,7 @@ Option<Tuple<T, R>> next_ZipHead(void* _ref) {
 	return _this.head.next().and(_lambda1_);
 }
 template <typename T>
-Stream<T> new_Stream(void* _ref, Head<T> head) {
+Stream<T> new_Stream(Head<T> head) {
 	Stream<T> _this;
 	_this.head = head;
 	return _this;
@@ -794,7 +794,7 @@ ArrayList<T> reverse_ArrayList(void* _ref) {
 	return new_ArrayList<T>(copy);
 }
 template <typename T, typename X>
-Err<T, X> new_Err(void* _ref, X error) {
+Err<T, X> new_Err(X error) {
 	Err<T, X> _this;
 	_this.error = error;
 	return _this;
@@ -807,7 +807,7 @@ Result<T, X> toResult_Err(void* _ref){
 	return Result<T, X> { ErrTag, data };
 }
 template <typename T, typename X>
-Ok<T, X> new_Ok(void* _ref, T value) {
+Ok<T, X> new_Ok(T value) {
 	Ok<T, X> _this;
 	_this.value = value;
 	return _this;
@@ -820,7 +820,7 @@ Result<T, X> toResult_Ok(void* _ref){
 	return Result<T, X> { OkTag, data };
 }
 template <typename T>
-Some<T> new_Some(void* _ref, T value) {
+Some<T> new_Some(T value) {
 	Some<T> _this;
 	_this.value = value;
 	return _this;
@@ -957,7 +957,7 @@ Option<Tuple<T, R>> and_None(void* _ref, Supplier<Option<R>> other) {
 	None<T> _this = *((None*) _ref);
 	return new_None<Tuple<T, R>>();
 }
-CPointerType<> new_CPointerType(void* _ref, CType type) {
+CPointerType<> new_CPointerType(CType type) {
 	CPointerType<> _this;
 	_this.type = type;
 	return _this;
@@ -980,7 +980,7 @@ CType replaceIdentifiersWithMapping_CPointerType(void* _ref, HashMap<char*, CTyp
 	CPointerType _this = *((CPointerType*) _ref);
 	return new_CPointerType(_this.type.replaceIdentifiersWithMapping(mapping));
 }
-CTemplateType<> new_CTemplateType(void* _ref, char* base, ArrayList<CType> typeArguments) {
+CTemplateType<> new_CTemplateType(char* base, ArrayList<CType> typeArguments) {
 	CTemplateType<> _this;
 	_this.base = base;
 	_this.typeArguments = typeArguments;
@@ -1014,7 +1014,7 @@ CType replaceIdentifiersWithMapping_CTemplateType(void* _ref, HashMap<char*, CTy
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ collect = _this.typeArguments.stream().map(_lambda9_).collect(new_ListCollector<CType>());
 	return new_CTemplateType(_this.base, collect);
 }
-CIdentifier<> new_CIdentifier(void* _ref, char* value) {
+CIdentifier<> new_CIdentifier(char* value) {
 	CIdentifier<> _this;
 	_this.value = value;
 	return _this;
@@ -1031,7 +1031,7 @@ CType replaceIdentifiersWithMapping_CIdentifier(void* _ref, HashMap<char*, CType
 	CIdentifier _this = *((CIdentifier*) _ref);
 	return mapping.get(_this.value).orElse(_this);
 }
-Placeholder<> new_Placeholder(void* _ref, char* input) {
+Placeholder<> new_Placeholder(char* input) {
 	Placeholder<> _this;
 	_this.input = input;
 	return _this;
@@ -1059,7 +1059,7 @@ Option<CDefinition> toDefinition_Placeholder(void* _ref) {
 	return new_None<CDefinition>();
 }
 template <typename A, typename B>
-Tuple<A, B> new_Tuple(void* _ref, A left, B right) {
+Tuple<A, B> new_Tuple(A left, B right) {
 	Tuple<A, B> _this;
 	_this.left = left;
 	_this.right = right;
@@ -1133,7 +1133,7 @@ char peek_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.input.charAt(_this.index);
 }
-CDefinition<> new_CDefinition(void* _ref, ArrayList<char*> typeParameters, CType type, char* name) {
+CDefinition<> new_CDefinition(ArrayList<char*> typeParameters, CType type, char* name) {
 	CDefinition<> _this;
 	_this.typeParameters = typeParameters;
 	_this.type = type;
@@ -1156,7 +1156,7 @@ CDefinition mapType_CDefinition(void* _ref, Function<CType, CType> mapper) {
 	CDefinition _this = *((CDefinition*) _ref);
 	return new_CDefinition(_this.typeParameters, mapper.apply(_this.type), _this.name);
 }
-CStructureHeader<> new_CStructureHeader(void* _ref, ArrayList<char*> typeParameters, char* name) {
+CStructureHeader<> new_CStructureHeader(ArrayList<char*> typeParameters, char* name) {
 	CStructureHeader<> _this;
 	_this.typeParameters = typeParameters;
 	_this.name = name;
@@ -1178,7 +1178,7 @@ CStructureType withFields_CStructureHeader(void* _ref, ArrayList<CDefinition> fi
 	CStructureHeader _this = *((CStructureHeader*) _ref);
 	return new_CStructureType(_this.name, _this.typeParameters, fields);
 }
-CStructure<> new_CStructure(void* _ref, CStructureHeader CStructureHeader, char* fields) {
+CStructure<> new_CStructure(CStructureHeader CStructureHeader, char* fields) {
 	CStructure<> _this;
 	_this.CStructureHeader = CStructureHeader;
 	_this.fields = fields;
@@ -1275,7 +1275,7 @@ Option<R> next_FlatMapHead(void* _ref) {
 		_this.current = _this.mapper.apply(maybeOuter.get()).head;
 	}
 }
-Joiner<> new_Joiner(void* _ref, char* delimiter) {
+Joiner<> new_Joiner(char* delimiter) {
 	Joiner<> _this;
 	_this.delimiter = delimiter;
 	return _this;
@@ -1315,7 +1315,7 @@ Option<CDefinition> toDefinition_EmptyCStructureSegment(void* _ref) {
 	EmptyCStructureSegment _this = *((EmptyCStructureSegment*) _ref);
 	return new_None<CDefinition>();
 }
-CContent<> new_CContent(void* _ref, char* content) {
+CContent<> new_CContent(char* content) {
 	CContent<> _this;
 	_this.content = content;
 	return _this;
@@ -1324,7 +1324,7 @@ char* generate_CContent(void* _ref) {
 	CContent _this = *((CContent*) _ref);
 	return _this.content;
 }
-CStatement<> new_CStatement(void* _ref, CNode content, int depth) {
+CStatement<> new_CStatement(CNode content, int depth) {
 	CStatement<> _this;
 	_this.content = content;
 	_this.depth = depth;
@@ -1349,7 +1349,7 @@ Option<CDefinition> toDefinition_CStatement(void* _ref) {
 		return new_None<CDefinition>();
 	}
 }
-CFieldAccess<> new_CFieldAccess(void* _ref, CExpression child, char* name) {
+CFieldAccess<> new_CFieldAccess(CExpression child, char* name) {
 	CFieldAccess<> _this;
 	_this.child = child;
 	_this.name = name;
@@ -1466,7 +1466,7 @@ Frames defineStructure_Frames(void* _ref, CStructureType type) {
 	return _this;
 }
 template <typename K, typename V>
-HashMap<K, V> new_HashMap(void* _ref, java.util.HashMap<K, V> internal) {
+HashMap<K, V> new_HashMap(java.util.HashMap<K, V> internal) {
 	HashMap<K, V> _this;
 	_this.internal = internal;
 	return _this;
@@ -1507,7 +1507,7 @@ HashMap<K, V> fold_MapCollector(void* _ref, HashMap<K, V> current, Tuple<K, V> e
 	MapCollector<K, V> _this = *((MapCollector*) _ref);
 	return current.with(element.left, element.right);
 }
-CStructureType<> new_CStructureType(void* _ref, char* name, ArrayList<char*> typeParameters, ArrayList<CDefinition> fields) {
+CStructureType<> new_CStructureType(char* name, ArrayList<char*> typeParameters, ArrayList<CDefinition> fields) {
 	CStructureType<> _this;
 	_this.name = name;
 	_this.typeParameters = typeParameters;
@@ -1567,7 +1567,7 @@ CStructureType withTypeArguments_CStructureType(void* _ref, ArrayList<CType> typ
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ newFields = _this.fields.stream().map(_lambda77_).toList();
 	return new_CStructureType(_this.name, /*ArrayList*/.empty(), newFields);
 }
-CConstruction<> new_CConstruction(void* _ref, CType type) {
+CConstruction<> new_CConstruction(CType type) {
 	CConstruction<> _this;
 	_this.type = type;
 	return _this;
@@ -1582,7 +1582,7 @@ char* generate_CConstruction(void* _ref) {
 	CConstruction _this = *((CConstruction*) _ref);
 	return "new_" + _this.type().generate();
 }
-CInvocation<> new_CInvocation(void* _ref, CCaller caller, ArrayList<CExpression> arguments) {
+CInvocation<> new_CInvocation(CCaller caller, ArrayList<CExpression> arguments) {
 	CInvocation<> _this;
 	_this.caller = caller;
 	_this.arguments = arguments;
@@ -1599,7 +1599,7 @@ char* generate_CInvocation(void* _ref) {
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: CTemplateType[base=ArrayList, typeArguments=[CIdentifier[value=CExpression]]]end]end]end]*/ joinedArguments = _this.arguments().stream().map(generate_CExpression).collect(new_Joiner(", "));
 	return _this.caller().generate() + "(" + joinedArguments + ")";
 }
-CMethodMember<> new_CMethodMember(void* _ref, CDefinition definition) {
+CMethodMember<> new_CMethodMember(CDefinition definition) {
 	CMethodMember<> _this;
 	_this.definition = definition;
 	return _this;
@@ -1614,7 +1614,7 @@ Option<CDefinition> toDefinition_CMethodMember(void* _ref) {
 	CMethodMember _this = *((CMethodMember*) _ref);
 	return new_Some<CDefinition>(_this.definition);
 }
-CFunctionType<> new_CFunctionType(void* _ref, CType returnType, ArrayList<CType> paramTypes) {
+CFunctionType<> new_CFunctionType(CType returnType, ArrayList<CType> paramTypes) {
 	CFunctionType<> _this;
 	_this.returnType = returnType;
 	_this.paramTypes = paramTypes;
@@ -1643,7 +1643,7 @@ CType replaceIdentifiersWithMapping_CFunctionType(void* _ref, HashMap<char*, CTy
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ replacedParamTypes = _this.paramTypes.stream().map(_lambda83_).toList();
 	return new_CFunctionType(_this.returnType.replaceIdentifiersWithMapping(mapping), replacedParamTypes);
 }
-Frame<> new_Frame(void* _ref, Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions, ArrayList<CStructureType> structures) {
+Frame<> new_Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions, ArrayList<CStructureType> structures) {
 	Frame<> _this;
 	_this.maybeHeader = maybeHeader;
 	_this.definitions = definitions;
@@ -1968,7 +1968,7 @@ auto _lambda141_(auto _ref) {
 					/*Not a function type: Placeholder[input=new_CDefinition]*/ header = new_CDefinition(/*ArrayList*/.empty(), thisType, "new_" + beforeContent);
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = recordParameters.stream().map(_lambda135_).collect(new_Joiner());
 					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startSystemend.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + startSystemend.lineSeparator() + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = /*System*/.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + /*System*/.lineSeparator() + "\treturn _this;" + /*System*/.lineSeparator();
-					_this.functions = _this.functions.addLast(_this.generateMethod(typeParameters, recordParameters, header, constructorContent1));
+					_this.functions = _this.functions.addLast(_this.generateMethod(typeParameters, header, constructorContent1, recordParameters));
 				}
 				char* generatedFields;
 				if (variants.isEmpty()) {
@@ -2077,7 +2077,7 @@ CStructureMember compileClassSegment_App(void* _ref, char* input) {
 }
 auto _lambda149_(auto _ref) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(thisDefinition + _this.compileMethodSegments(content) + startSystemend)end]*/ outputContent = thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator();
-					return _this.generateMethod(typeParameters, params, header, outputContent);
+					return _this.generateMethod(typeParameters, header, outputContent, params.copy().addFirst(new_CDefinition(/*ArrayList*/.empty(), new_CPointerType(/*CPrimitiveType*/.Void), "_ref")));
 				}auto _lambda147_(auto _ref) {
 				_this.frames = _this.frames.defineAll(params);
 				/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ withBlock = _this.frames.within(_lambda149_);
@@ -2110,7 +2110,7 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 	else {
 		typeParameters = _this.frames.collectTypeParameters().copy().addAllLast(/*ArrayList*/.empty());
 	}
-	/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startcreateTemplateStringend(typeParameters) + _this.generateHeaderWithParameters(params, header) + ";" + startSystemend)end]*/ generated = /*createTemplateString*/(typeParameters) + _this.generateHeaderWithParameters(params, header) + ";" + /*System*/.lineSeparator();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startcreateTemplateStringend(typeParameters) + _this.generateHeaderWithParameters(header, params.copy().addFirst(new_CDefinition(startArrayListend.empty(), new_CPointerType(startCPrimitiveTypeend.Void), "_ref"))) + ";" + startSystemend)end]*/ generated = /*createTemplateString*/(typeParameters) + _this.generateHeaderWithParameters(header, params.copy().addFirst(new_CDefinition(/*ArrayList*/.empty(), new_CPointerType(/*CPrimitiveType*/.Void), "_ref"))) + ";" + /*System*/.lineSeparator();
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]*/ content = withBraces.substring(1, withBraces.length() - 1);
 		/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ maybeCurrentStructure = _this.frames.findCurrentStructure();
@@ -2130,13 +2130,13 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 		return /*Option*/.of(new_EmptyCStructureSegment());
 	}
 }
-char* generateMethod_App(void* _ref, ArrayList<char*> typeParameters, ArrayList<CDefinition> params, CFunctionHeader header, char* content) {
+char* generateMethod_App(void* _ref, ArrayList<char*> typeParameters, CFunctionHeader header, char* content, ArrayList<CDefinition> params) {
 	App _this = *((App*) _ref);
-	return /*createTemplateString*/(typeParameters) + _this.generateHeaderWithParameters(params, header) + " {" + content + "}" + /*System*/.lineSeparator();
+	return /*createTemplateString*/(typeParameters) + _this.generateHeaderWithParameters(header, params) + " {" + content + "}" + /*System*/.lineSeparator();
 }
-char* generateHeaderWithParameters_App(void* _ref, ArrayList<CDefinition> params, CFunctionHeader header) {
+char* generateHeaderWithParameters_App(void* _ref, CFunctionHeader header, ArrayList<CDefinition> params) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]end]*/ outputParams = params.copy().addFirst(new_CDefinition(/*ArrayList*/.empty(), new_CPointerType(/*CPrimitiveType*/.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Stream<CDefinition>]end]*/ outputParams = params.stream().map(generate_CDefinition).collect(new_Joiner(", "));
 	return header.generate() + "(" + outputParams + ")";
 }
 char* generateHeaderWithParameters_App(void* _ref, CFunctionHeader header, char* outputParams) {

@@ -1317,9 +1317,9 @@ public class App {
 								"\treturn _this;" + System.lineSeparator();
 
 						this.functions = this.functions.addLast(this.generateMethod(typeParameters,
-																																				recordParameters,
 																																				header,
-																																				constructorContent1));
+																																				constructorContent1,
+																																				recordParameters));
 					}
 
 					final String generatedFields;
@@ -1486,8 +1486,13 @@ public class App {
 			typeParameters = this.frames.collectTypeParameters().copy().addAllLast(ArrayList.empty());
 		}
 
-		var generated = createTemplateString(typeParameters) + this.generateHeaderWithParameters(params, header) + ";" +
-										System.lineSeparator();
+		final var paramsWithThis =
+				params.copy().addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"));
+
+		var generated =
+				createTemplateString(typeParameters) + this.generateHeaderWithParameters(header, paramsWithThis) + ";" +
+				System.lineSeparator();
+
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
@@ -1502,7 +1507,7 @@ public class App {
 
 					final var withBlock = this.frames.within(() -> {
 						final var outputContent = thisDefinition + this.compileMethodSegments(content) + System.lineSeparator();
-						return this.generateMethod(typeParameters, params, header, outputContent);
+						return this.generateMethod(typeParameters, header, outputContent, paramsWithThis);
 					});
 
 					this.frames = withBlock.right;
@@ -1525,20 +1530,15 @@ public class App {
 	}
 
 	private String generateMethod(ArrayList<String> typeParameters,
-																ArrayList<CDefinition> params,
 																CFunctionHeader header,
-																String content) {
-		return createTemplateString(typeParameters) + this.generateHeaderWithParameters(params, header) + " {" + content +
+																String content,
+																ArrayList<CDefinition> params) {
+		return createTemplateString(typeParameters) + this.generateHeaderWithParameters(header, params) + " {" + content +
 					 "}" + System.lineSeparator();
 	}
 
-	private String generateHeaderWithParameters(ArrayList<CDefinition> params, CFunctionHeader header) {
-		final var outputParams = params
-				.copy()
-				.addFirst(new CDefinition(ArrayList.empty(), new CPointerType(CPrimitiveType.Void), "_ref"))
-				.stream()
-				.map(CDefinition::generate)
-				.collect(new Joiner(", "));
+	private String generateHeaderWithParameters(CFunctionHeader header, ArrayList<CDefinition> params) {
+		final var outputParams = params.stream().map(CDefinition::generate).collect(new Joiner(", "));
 
 		return header.generate() + "(" + outputParams + ")";
 	}
