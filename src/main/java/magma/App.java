@@ -28,6 +28,11 @@ public class App {
 		public String getSimpleName() {
 			return this.content;
 		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			return this;
+		}
 	}
 
 	private interface Function<T, R> {
@@ -59,10 +64,12 @@ public class App {
 	private sealed interface Result<T, X> permits Err, Ok {}
 
 	private sealed interface CType
-			permits CIdentifier, CPointerType, CPrimitiveType, CStructureType, CTemplateType, FunctionType, Placeholder {
+			permits CIdentifier, CPointerType, CPrimitiveType, CStructureType, CTemplateType, CFunctionType, Placeholder {
 		String generate();
 
 		String getSimpleName();
+
+		CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping);
 	}
 
 	private sealed interface CFunctionHeader permits CDefinition, Placeholder {
@@ -97,6 +104,8 @@ public class App {
 		boolean isPresent();
 
 		Stream<T> stream();
+
+		<R> Option<Tuple<T, R>> and(Supplier<Option<R>> other);
 	}
 
 	private interface Predicate<T> {
@@ -151,6 +160,13 @@ public class App {
 		}
 	}
 
+	private record ZipHead<T, R>(Head<T> head, Head<R> otherHead) implements Head<Tuple<T, R>> {
+		@Override
+		public Option<Tuple<T, R>> next() {
+			return this.head.next().and(() -> this.otherHead.next());
+		}
+	}
+
 	private record Stream<T>(Head<T> head) {
 		public static <T> Stream<T> of(T element) {
 			return new Stream<T>(new SingleHead<T>(element));
@@ -198,6 +214,10 @@ public class App {
 
 		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
 			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		}
+
+		public <R> Stream<Tuple<T, R>> zip(Stream<R> other) {
+			return new Stream<Tuple<T, R>>(new ZipHead<T, R>(this.head, other.head));
 		}
 	}
 
@@ -341,6 +361,11 @@ public class App {
 		public Stream<T> stream() {
 			return Stream.of(this.value);
 		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+			return other.get().map(otherValue -> new Tuple<T, R>(this.value, otherValue));
+		}
 	}
 
 	private static final class None<T> implements Option<T> {
@@ -392,6 +417,11 @@ public class App {
 		public Stream<T> stream() {
 			return Stream.empty();
 		}
+
+		@Override
+		public <R> Option<Tuple<T, R>> and(Supplier<Option<R>> other) {
+			return new None<Tuple<T, R>>();
+		}
 	}
 
 	private record CPointerType(CType type) implements CType {
@@ -403,6 +433,11 @@ public class App {
 		@Override
 		public String getSimpleName() {
 			return this.type.getSimpleName() + "_ref";
+		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			return new CPointerType(this.type.replaceIdentifiersWithMapping(mapping));
 		}
 	}
 
@@ -421,6 +456,16 @@ public class App {
 		public String getSimpleName() {
 			return this.base;
 		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			final var collect = this.typeArguments
+					.stream()
+					.map(arg -> arg.replaceIdentifiersWithMapping(mapping))
+					.collect(new ListCollector<CType>());
+
+			return new CTemplateType(this.base, collect);
+		}
 	}
 
 	private record CIdentifier(String value) implements CType, CExpression {
@@ -432,6 +477,11 @@ public class App {
 		@Override
 		public String getSimpleName() {
 			return this.value;
+		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			return mapping.get(this.value).orElse(this);
 		}
 	}
 
@@ -450,6 +500,11 @@ public class App {
 		@Override
 		public String getSimpleName() {
 			return this.generate();
+		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			return this;
 		}
 
 		@Override
@@ -823,8 +878,39 @@ public class App {
 		}
 	}
 
+	private record HashMap<K, V>(java.util.HashMap<K, V> internal) {
+		public HashMap() {
+			this(new java.util.HashMap<K, V>());
+		}
+
+		public HashMap<K, V> with(K key, V value) {
+			this.internal.put(key, value);
+			return this;
+		}
+
+		public Option<V> get(K key) {
+			if (this.internal.containsKey(key)) {
+				return new Some<V>(this.internal.get(key));
+			}
+			return new None<V>();
+		}
+	}
+
+	private static class MapCollector<K, V> implements Collector<Tuple<K, V>, HashMap<K, V>> {
+		@Override
+		public HashMap<K, V> createInitial() {
+			return new HashMap<K, V>();
+		}
+
+		@Override
+		public HashMap<K, V> fold(HashMap<K, V> current, Tuple<K, V> element) {
+			return current.with(element.left, element.right);
+		}
+	}
+
 	private record CStructureType(String name, ArrayList<String> typeParameters, ArrayList<CDefinition> fields)
 			implements CType {
+
 		@Override
 		public String generate() {
 			return this.name;
@@ -835,12 +921,29 @@ public class App {
 			return this.name;
 		}
 
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			final var list = this.fields
+					.stream()
+					.map(field -> field.mapType(type -> type.replaceIdentifiersWithMapping(mapping)))
+					.toList();
+			return new CStructureType(this.name, this.typeParameters, list);
+		}
+
 		public Option<CType> findField(String name) {
 			return this.fields.stream().filter(field -> field.name.equals(name)).map(field -> field.type).head.next();
 		}
 
 		public CStructureType withTypeArguments(ArrayList<CType> typeArguments) {
-			return new CStructureType(this.name, ArrayList.empty(), this.fields);
+			final var mapping =
+					this.typeParameters.stream().zip(typeArguments.stream()).collect(new MapCollector<String, CType>());
+
+			final var newFields = this.fields
+					.stream()
+					.map(field -> field.mapType(type -> type.replaceIdentifiersWithMapping(mapping)))
+					.toList();
+
+			return new CStructureType(this.name, ArrayList.empty(), newFields);
 		}
 	}
 
@@ -866,7 +969,7 @@ public class App {
 		}
 	}
 
-	private record FunctionType(CType returnType, ArrayList<CType> paramTypes) implements CType {
+	private record CFunctionType(CType returnType, ArrayList<CType> paramTypes) implements CType {
 		@Override
 		public String generate() {
 			return "???";
@@ -875,6 +978,13 @@ public class App {
 		@Override
 		public String getSimpleName() {
 			return "???";
+		}
+
+		@Override
+		public CType replaceIdentifiersWithMapping(HashMap<String, CType> mapping) {
+			final var replacedParamTypes =
+					this.paramTypes.stream().map(type -> type.replaceIdentifiersWithMapping(mapping)).toList();
+			return new CFunctionType(this.returnType.replaceIdentifiersWithMapping(mapping), replacedParamTypes);
 		}
 	}
 
@@ -1398,7 +1508,7 @@ public class App {
 
 		if (header instanceof CDefinition definition1) {
 			final var paramTypes = params.stream().map(CDefinition::type).collect(new ListCollector<CType>());
-			return Option.of(new CMethodMember(definition1.mapType(type -> new FunctionType(type, paramTypes))));
+			return Option.of(new CMethodMember(definition1.mapType(type -> new CFunctionType(type, paramTypes))));
 		} else {
 			return Option.of(new EmptyCStructureSegment());
 		}
@@ -1661,7 +1771,7 @@ public class App {
 			case Placeholder placeholder -> placeholder;
 			case CInvocation cInvocation -> {
 				final var callerType = this.resolveCaller(cInvocation.caller);
-				if (callerType instanceof FunctionType functionType) {
+				if (callerType instanceof CFunctionType functionType) {
 					yield functionType.returnType;
 				}
 
