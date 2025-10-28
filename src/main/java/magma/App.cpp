@@ -81,7 +81,7 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 	ResultTag tag;
-	ResultData data;
+	ResultData<T, X> data;
 };
 enum CPPTypeTag {
 	CIdentifierTag,
@@ -522,7 +522,7 @@ Optional<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					fields = recordFields.stream().map(generate_CDefinition).map(_lambda38_).collect(Collectors.joining(""));
 				}
 				else {
-					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data " + "data", 1);
+					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
 				}
 				if (maybeInterfaceType.isPresent()) {
 					CPPType interfaceType = maybeInterfaceType.get();

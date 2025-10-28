@@ -491,7 +491,8 @@ public class App {
 								.collect(Collectors.joining(""));
 					} else {
 						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
-										 this.generateStatement(beforeContent + "Data " + "data", 1);
+										 this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data",
+																						1);
 					}
 
 					if (maybeInterfaceType.isPresent()) {

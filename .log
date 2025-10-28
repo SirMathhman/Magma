@@ -37,13 +37,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:68:2: error: no 
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:69:2: error: no template named 'Stack'
    69 |         Stack<char*> structureNames;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:84:2: error: unknown type name 'ResultData'; did you mean 'ResultTag'?
-   84 |         ResultData data;
-      |         ^~~~~~~~~~
-      |         ResultTag
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:72:6: note: 'ResultTag' declared here
-   72 | enum ResultTag {
-      |      ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:104:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   104 | CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
       |                                                 ^
@@ -71,6 +64,9 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:15: error: n
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:200:17: error: use of undeclared identifier 'new_StringBuilder'
   200 |         _this.buffer = new_StringBuilder();
       |                        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:202:19: error: use of undeclared identifier 'new_ArrayList'
+  202 |         _this.segments = new_ArrayList<char*>();
+      |                          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 2 warnings and 20 errors generated.
 Compilation failed with exit code: 1
