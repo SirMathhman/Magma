@@ -366,8 +366,11 @@ public class App {
 	public record CTemplateType(String base, ArrayList<CType> list) implements CType {
 		@Override
 		public String generate() {
-			final var joined = this.list.stream().map(CType::generate).collect(new Joiner(", "));
-
+			final var list = this.list;
+			final var stream = list.stream();
+			final var map = stream.map(CType::generate);
+			final var collector = new Joiner(", ");
+			final var joined = map.collect(collector);
 			return this.base + "<" + joined + ">";
 		}
 

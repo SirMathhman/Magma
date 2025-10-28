@@ -635,7 +635,11 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var joined = _this.list.stream().map(generate_CType).collect(new_Joiner(", "));
+	var list = _this.list;
+	var stream = list.stream();
+	var map = stream.map(generate_CType);
+	var collector = new_Joiner(", ");
+	var joined = map.collect(collector);
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName_CTemplateType(void* _ref) {
