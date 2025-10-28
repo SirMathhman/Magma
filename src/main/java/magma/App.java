@@ -1310,7 +1310,8 @@ public class App {
 			final var substring = stripped.substring(0, separator).strip();
 			final var source = stripped.substring(separator + 1).strip();
 			final var destination =
-					this.compileDefinitionAsStatement(substring).orElseGet(() -> this.compileExpression(substring));
+					this.compileDefinitionAsStatement(substring)
+							.orElseGet(() -> this.compileExpression(substring));
 			return destination + " = " + this.compileExpression(source);
 		}
 
