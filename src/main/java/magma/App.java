@@ -107,6 +107,10 @@ public class App {
 		String generate();
 	}
 
+	private interface CExpression {
+		String generate();
+	}
+
 	private static final class SingleHead<T> implements Head<T> {
 		private final T element;
 		private boolean retrieved;
@@ -388,10 +392,10 @@ public class App {
 		}
 	}
 
-	private record CIdentifier(String input) implements CType {
+	private record CIdentifier(String value) implements CType, CExpression {
 		@Override
 		public String generate() {
-			return this.input;
+			return this.value;
 		}
 
 		@Override
@@ -401,11 +405,11 @@ public class App {
 
 		@Override
 		public String getSimpleName() {
-			return this.input;
+			return this.value;
 		}
 	}
 
-	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment {
+	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment, CExpression {
 		private static String wrap(String input) {
 			final var input1 = input;
 			final var withoutStart = input1.replace("/*", "start");
@@ -506,6 +510,14 @@ public class App {
 		@Override
 		public String generate() {
 			return this.cType().generate() + " " + this.name();
+		}
+
+		public CDefinition withType(CType type) {
+			return new CDefinition(this.typeParameters, type, this.name);
+		}
+
+		public boolean hasName(String name) {
+			return this.name.equals(name);
 		}
 	}
 
@@ -633,7 +645,7 @@ public class App {
 		}
 	}
 
-	private record CContent(String generate) implements CNode {}
+	private record CContent(String generate) implements CNode, CExpression {}
 
 	private record CStatement(CNode content1, int depth) implements CStructureSegment {
 		@Override
@@ -1324,7 +1336,7 @@ public class App {
 
 		return this
 				.compileInvocation(stripped)
-				.or(() -> this.compileDefinitionAsStatement(input))
+				.or(() -> this.parseAndDefineDefinitionAsStatement(input))
 				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
@@ -1334,60 +1346,95 @@ public class App {
 
 		final var destinationString = stripped.substring(0, separator).strip();
 		final var sourceString = stripped.substring(separator + 1).strip();
-		final var source = this.compileExpression(sourceString);
-		final var generated = this.compileAssignmentContent(destinationString) + " = " + source;
+		final var source = this.parseExpression(sourceString);
+
+		final var generated = this.compileAssignmentContent(destinationString, source) + " = " + source.generate();
 		return new Some<String>(generated);
 	}
 
-	private String compileAssignmentContent(String destinationString) {
-		final var stringOption = this.compileDefinitionAsStatement(destinationString);
+	private String compileAssignmentContent(String destinationString, CExpression source) {
+		final var stringOption = this.parseAndDefineDefinition(destinationString);
 		return switch (stringOption) {
-			case None<String> v -> this.compileExpression(destinationString);
-			case Some<String> v -> {
+			case None<CDefinition> _ -> this.compileExpression(destinationString);
+			case Some<CDefinition> v -> {
+				final var definition = v.value;
+				if (definition.cType instanceof CIdentifier(var name) && name.equals("var")) {
+					final var newType = this.resolveExpression(source);
+					yield definition.withType(newType).generate();
+				}
 
-
-				yield v.value;
+				yield definition.generate();
 			}
 		};
 	}
 
-	private Option<String> compileDefinitionAsStatement(String input) {
+	private CType resolveExpression(CExpression expression) {
+		return switch (expression) {
+			case CIdentifier identifier -> this.resolveIdentifier(identifier);
+			default -> {
+				yield new Placeholder("???");
+			}
+		};
+	}
+
+	private CType resolveIdentifier(CIdentifier identifier) {
+		final var maybeDefinition = this.definitions
+				.stream()
+				.flatMap(ArrayList::stream)
+				.filter(definition -> definition.hasName(identifier.value)).head.next();
+
+		if (maybeDefinition instanceof Some<CDefinition>(var found)) {
+			return found.cType;
+		} else {
+			return new Placeholder(identifier.value);
+		}
+	}
+
+	private Option<String> parseAndDefineDefinitionAsStatement(String input) {
+		return this.parseAndDefineDefinition(input).map(CDefinition::generate);
+	}
+
+	private Option<CDefinition> parseAndDefineDefinition(String input) {
 		final var maybeDefinition = this.compileDefinition(input);
 		if (!maybeDefinition.isPresent()) {
-			return new None<String>();
+			return new None<CDefinition>();
 		}
 
 		final var definition = maybeDefinition.get();
 		this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
-		return new Some<String>(definition.generate());
+		return new Some<CDefinition>(definition);
 	}
 
 	private String compileExpression(String input) {
+		return this.parseExpression(input).generate();
+	}
+
+	private CExpression parseExpression(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("false")) {
-			return "0";
+			return new CContent("0");
 		}
 
 		if (stripped.equals("true")) {
-			return "1";
+			return new CContent("1");
 		}
 
 		if (stripped.startsWith("'") && stripped.endsWith("'")) {
-			return stripped;
+			return new CContent(stripped);
 		}
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-			return stripped;
+			return new CContent(stripped);
 		}
 
 		final var maybeLambda = this.compileLambda(stripped);
 		if (maybeLambda.isPresent()) {
-			return maybeLambda.get();
+			return new CContent(maybeLambda.get());
 		}
 
 		final var maybeInvocation = this.compileInvocation(stripped);
 		if (maybeInvocation.isPresent()) {
-			return maybeInvocation.get();
+			return new CContent(maybeInvocation.get());
 		}
 
 		final var i = stripped.lastIndexOf(".");
@@ -1395,13 +1442,13 @@ public class App {
 			final var child = stripped.substring(0, i).strip();
 			final var name = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
-				return this.compileExpression(child) + "." + name;
+				return new CContent(this.compileExpression(child) + "." + name);
 			}
 		}
 
 		if (this.isIdentifier(stripped)) {
 			if (stripped.equals("this")) {
-				return "_this";
+				return new CContent("_this");
 			}
 
 			if (this.definitions
@@ -1410,12 +1457,12 @@ public class App {
 					.filter(definition -> definition.name.endsWith(stripped)).head
 					.next()
 					.isPresent()) {
-				return stripped;
+				return new CIdentifier(stripped);
 			}
 		}
 
 		if (stripped.startsWith("switch")) {
-			return this.createName("switch");
+			return new CContent(this.createName("switch"));
 		}
 
 		final var maybeOperator = this
@@ -1427,21 +1474,21 @@ public class App {
 				.or(() -> this.compileOperator(stripped, "<"));
 
 		if (maybeOperator.isPresent()) {
-			return maybeOperator.get();
+			return new CContent(maybeOperator.get());
 		}
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var substring1 = stripped.substring(i2 + 2);
-			return substring1 + "_" + this.compileType(substring).map(CType::generate).orElse("?");
+			return new CContent(substring1 + "_" + this.compileType(substring).map(CType::generate).orElse("?"));
 		}
 
 		if (this.isNumber(stripped)) {
-			return stripped;
+			return new CContent(stripped);
 		}
 
-		return Placeholder.wrap(stripped);
+		return new Placeholder(stripped);
 	}
 
 	private Option<String> compileLambda(String stripped) {

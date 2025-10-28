@@ -22,6 +22,7 @@ template <typename T>
 struct Predicate;
 struct CStructureSegment;
 struct CNode;
+struct CExpression;
 template <typename T>
 struct SingleHead;
 template <typename T>
@@ -87,6 +88,8 @@ struct Predicate {
 };
 struct CNode {
 };
+struct CExpression {
+};
 template <typename T>
 struct SingleHead {
 	T element;
@@ -126,7 +129,7 @@ struct CTemplateType {
 	ArrayList<CType> list;
 };
 struct CIdentifier {
-	char* input;
+	char* value;
 };
 struct Placeholder {
 	char* input;
@@ -341,6 +344,7 @@ template <typename T>
 int test_Predicate(void* _ref, T element);
 char* generate_CStructureSegment(void* _ref);
 char* generate_CNode(void* _ref);
+char* generate_CExpression(void* _ref);
 template <typename T>
 Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
@@ -393,9 +397,9 @@ Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
 template <typename T, typename R>
 R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
 	Stream<T> _this = *((Stream*) _ref);
-	var current = initial;
+	R current = initial;
 	while (1) {
-		var maybeNext = _this.head.next();
+		/*???*/ maybeNext = _this.head.next();
 		if (/*maybeNext instanceof Some*/ < /*T>*/(/*var next*/)) {
 			current = folder.apply(current, /*next*/);
 		}
@@ -667,26 +671,20 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var list = _this.list;
-	var stream = list.stream();
-	var map = stream.map(generate_CType);
-	var collector = new_Joiner(", ");
-	var joined = map.collect(collector);
+	/*???*/ list = _this.list;
+	/*???*/ stream = list.stream();
+	/*???*/ map = stream.map(generate_CType);
+	/*???*/ collector = new_Joiner(", ");
+	/*???*/ joined = map.collect(collector);
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	return _this.base;
 }
-CType toCType_CIdentifier(void* _ref){
-	CIdentifier _this = *((CIdentifier*) _ref);
-	CTypeData data;
-	data.cidentifier = _this;
-	return CType { CIdentifierTag, data };
-}
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	return _this.input;
+	return _this.value;
 }
 char* toString_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -694,13 +692,13 @@ char* toString_CIdentifier(void* _ref) {
 }
 char* getSimpleName_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	return _this.input;
+	return _this.value;
 }
 char* wrap_Placeholder(void* _ref, char* input) {
 	Placeholder _this = *((Placeholder*) _ref);
-	var input1 = input;
-	var withoutStart = input1.replace("/*", "start");
-	var withoutEnd = withoutStart.replace("*/", "end");
+	char* input1 = input;
+	/*???*/ withoutStart = input1.replace("/*", "start");
+	/*???*/ withoutEnd = withoutStart.replace("*/", "end");
 	return "/*" + withoutEnd + "*/";
 }
 char* generate_Placeholder(void* _ref) {
@@ -751,9 +749,9 @@ int isLevel_State(void* _ref) {
 Option<char> pop_State(void* _ref) {
 	State _this = *((State*) _ref);
 	if (_this.index < _this.input.length()) {
-		var counter = _this.index;
+		/*???*/ counter = _this.index;
 		_this.index++;
-		var element = _this.input.charAt(counter);
+		/*???*/ element = _this.input.charAt(counter);
 		return /*Option*/.of(element);
 	}
 	else {
@@ -765,7 +763,7 @@ Stream<char*> stream_State(void* _ref) {
 	return _this.segments.stream();
 }
 auto _lambda3_(auto _ref, auto next) {
-		var appended = _this.append(/*next*/);
+		/*???*/ appended = _this.append(/*next*/);
 		return new_Tuple<char, State>(/*next*/, appended);
 	}Option<Tuple<char, State>> popAndAppendToTuple_State(void* _ref) {
 	State _this = *((State*) _ref);
@@ -783,12 +781,20 @@ char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
 	return _this.cType().generate() + " " + _this.name();
 }
+CDefinition withType_CDefinition(void* _ref, CType type) {
+	CDefinition _this = *((CDefinition*) _ref);
+	return new_CDefinition(_this.typeParameters, type, _this.name);
+}
+int hasName_CDefinition(void* _ref, char* name) {
+	CDefinition _this = *((CDefinition*) _ref);
+	return _this.name.equals(name);
+}
 CType toType_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
 	if (_this.typeParameters.isEmpty()) {
 		return new_CIdentifier(_this.name);
 	}
-	var list = _this.typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
+	/*???*/ list = _this.typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
 	return new_CTemplateType(_this.name, list);
 }
 char* generate_CStructureHeader(void* _ref) {
@@ -838,7 +844,7 @@ template <typename T>
 Option<T> next_ListHead(void* _ref) {
 	ListHead<T> _this = *((ListHead*) _ref);
 	if (_this.counter < _this.list.size()) {
-		var element = _this.list.inner.get(_this.counter);
+		/*???*/ element = _this.list.inner.get(_this.counter);
 		_this.counter++;
 		return /*Option*/.of(element);
 	}
@@ -879,11 +885,11 @@ template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref) {
 	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
 	while (1) {
-		var maybeNext = _this.current.next();
+		/*???*/ maybeNext = _this.current.next();
 		if (maybeNext.isPresent()) {
 			return maybeNext;
 		}
-		var maybeOuter = _this.head.next();
+		/*???*/ maybeOuter = _this.head.next();
 		if (maybeOuter.isEmpty()) {
 			return /*Option*/.empty();
 		}
@@ -916,12 +922,6 @@ CStructureSegment toCStructureSegment_EmptyCStructureSegment(void* _ref){
 char* generate_EmptyCStructureSegment(void* _ref) {
 	EmptyCStructureSegment _this = *((EmptyCStructureSegment*) _ref);
 	return "";
-}
-CNode toCNode_CContent(void* _ref){
-	CContent _this = *((CContent*) _ref);
-	CNodeData data;
-	data.ccontent = _this;
-	return CNode { CContentTag, data };
 }
 CStructureSegment toCStructureSegment_CStatement(void* _ref){
 	CStatement _this = *((CStatement*) _ref);
@@ -960,7 +960,7 @@ char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
 		templateString = "";
 	}
 	else {
-		var collect = typeParameters.stream().map(_lambda7_).collect(new_Joiner(", "));
+		/*???*/ collect = typeParameters.stream().map(_lambda7_).collect(new_Joiner(", "));
 		templateString = "template <" + collect + ">" + /*System*/.lineSeparator();
 	}
 	return templateString;
@@ -975,8 +975,8 @@ char* generateIndent_App(void* _ref, int depth) {
 }
 Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
-	var source = /*Paths*/.get(".", "src", "main", "java", "magma", "App.java");
-	var input = _this.readString(source);
+	/*???*/ source = /*Paths*/.get(".", "src", "main", "java", "magma", "App.java");
+	/*???*/ input = _this.readString(source);
 	return _switch9_;
 }
 auto _lambda11_(auto _ref) {
@@ -985,13 +985,13 @@ auto _lambda11_(auto _ref) {
 };
 Option<IOException> compilePath_App(void* _ref, Path source, char* input) {
 	App _this = *((App*) _ref);
-	var target = source.resolveSibling("App.cpp");
-	var output = _this.compile(input);
+	/*???*/ target = source.resolveSibling("App.cpp");
+	/*???*/ output = _this.compile(input);
 	return _this.writeString(target, output).or(_lambda11_);
 }
 Option<IOException> compileNative_App(void* _ref, Path target) {
 	App _this = *((App*) _ref);
-	var clang = _this.startCommand(/*ArrayList*/.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
+	/*???*/ clang = _this.startCommand(/*ArrayList*/.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 	return _switch13_;
 }
 Option<IOException> waitForProcess_App(void* _ref, Process process) {
@@ -1012,12 +1012,12 @@ Result<char*, IOException> readString_App(void* _ref, Path source) {
 }
 char* compile_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var compiled = _this.compileStatements(input, compileRootSegment_this);
-	var joinedForwardDeclarations = /*String*/.join("", _this.forwardDeclarations.inner);
-	var joinedFunctions = /*String*/.join("", _this.functions.inner);
-	var joinedStructures = /*String*/.join("", _this.structures.inner);
-	var joinedSealedStructures = /*String*/.join("", _this.sealedStructures.inner);
-	var joinedGlobals = /*String*/.join("", _this.globals.inner);
+	/*???*/ compiled = _this.compileStatements(input, compileRootSegment_this);
+	/*???*/ joinedForwardDeclarations = /*String*/.join("", _this.forwardDeclarations.inner);
+	/*???*/ joinedFunctions = /*String*/.join("", _this.functions.inner);
+	/*???*/ joinedStructures = /*String*/.join("", _this.structures.inner);
+	/*???*/ joinedSealedStructures = /*String*/.join("", _this.sealedStructures.inner);
+	/*???*/ joinedGlobals = /*String*/.join("", _this.globals.inner);
 	return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
 					 "}";
 }
@@ -1027,9 +1027,9 @@ char* compileStatements_App(void* _ref, char* input, Function<char*, char*> mapp
 }
 Stream<char*> divide_App(void* _ref, char* input, BiFunction<State, char, State> folder) {
 	App _this = *((App*) _ref);
-	var current = new_State(input);
+	/*???*/ current = new_State(input);
 	while (1) {
-		var maybeNext = current.pop();
+		/*???*/ maybeNext = current.pop();
 		if (maybeNext.isEmpty()) {
 			break;
 		}
@@ -1043,15 +1043,15 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, ch
 		return current.append(next).popAndAppendToTuple().map(foldSingleEscapeChar_this).flatMap(popAndAppendToOption_State).orElse(current);
 	}
 	if (next == '\"') {
-		var current0 = current.append(next);
+		/*???*/ current0 = current.append(next);
 		while (1) {
-			var maybeTuple = current0.popAndAppendToTuple();
+			/*???*/ maybeTuple = current0.popAndAppendToTuple();
 			if (maybeTuple.isEmpty()) {
 				break;
 			}
-			var tuple = maybeTuple.get();
+			/*???*/ tuple = maybeTuple.get();
 			current0 = tuple.right;
-			var nextInQuotes = tuple.left;
+			/*???*/ nextInQuotes = tuple.left;
 			if (nextInQuotes == '\\') {
 				current0 = current0.popAndAppendToOption().orElse(current0);
 				continue;
@@ -1073,7 +1073,7 @@ State foldSingleEscapeChar_App(void* _ref, Tuple<char, State> tuple) {
 }
 State foldStatement_App(void* _ref, State state, char c) {
 	App _this = *((App*) _ref);
-	var appended = state.append(c);
+	/*???*/ appended = state.append(c);
 	if (c == ';' && appended.isLevel()) {
 		return appended.advance();
 	}
@@ -1102,7 +1102,7 @@ auto _lambda17_(auto _ref) {
 };
 char* compileRootSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var stripped = input.strip();
+	/*???*/ stripped = input.strip();
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
@@ -1134,30 +1134,30 @@ auto _lambda42_(auto _ref, auto slice) {
 };
 Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* input) {
 	App _this = *((App*) _ref);
-	var classIndex = input.indexOf(type);
+	/*???*/ classIndex = input.indexOf(type);
 	if (classIndex >= 0) {
-		var afterKeyword = input.substring(classIndex + type.length());
-		var contentStart = afterKeyword.indexOf("{");
+		/*???*/ afterKeyword = input.substring(classIndex + type.length());
+		/*???*/ contentStart = afterKeyword.indexOf("{");
 		if (contentStart >= 0) {
-			var beforeContent = afterKeyword.substring(0, contentStart).strip();
-			var withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
+			/*???*/ beforeContent = afterKeyword.substring(0, contentStart).strip();
+			/*???*/ withEnd = afterKeyword.substring(contentStart + "{".length()).strip();
 			if (withEnd.endsWith("}")) {
-				var content = withEnd.substring(0, withEnd.length() - 1);
-				var permitsIndex = beforeContent.indexOf("permits");
-				var variants = /*ArrayList*/. < /*String>empty*/();
+				/*???*/ content = withEnd.substring(0, withEnd.length() - 1);
+				/*???*/ permitsIndex = beforeContent.indexOf("permits");
+				/*???*/ variants = /*ArrayList*/. < /*String>empty*/();
 				if (permitsIndex >= 0) {
-					var variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(/*Pattern*/.quote(","));
+					/*???*/ variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(/*Pattern*/.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
 					variants = new_ArrayList<char*>(/*Arrays*/.stream(variantsArray).map(strip_char*).filter(_lambda22_).toList());
 				}
-				var implementsIndex = beforeContent.indexOf("implements");
+				/*???*/ implementsIndex = beforeContent.indexOf("implements");
 				Option<CType> maybeInterfaceType = /*Option*/.empty();
 				if (implementsIndex >= 0) {
-					var slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
+					/*???*/ slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 					maybeInterfaceType = _this.compileType(slice);
 					beforeContent = beforeContent.substring(0, implementsIndex).strip();
 				}
-				var recordFields = /*ArrayList*/. < /*CDefinition>empty*/();
+				/*???*/ recordFields = /*ArrayList*/. < /*CDefinition>empty*/();
 				if (/*beforeContent.endsWith(")"*/) /*) {
 						final var slice = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i = slice.indexOf("(");
@@ -1168,28 +1168,28 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 							recordFields = this.compileParametersToList(params);
 						}
 					}*/
-				var typeParameters = /*ArrayList*/. < /*String>empty*/();
+				/*???*/ typeParameters = /*ArrayList*/. < /*String>empty*/();
 				if (beforeContent.endsWith(">")) {
-					var withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
-					var typeParamStart = withoutEnd.indexOf("<");
+					/*???*/ withoutEnd = beforeContent.substring(0, beforeContent.length() - 1);
+					/*???*/ typeParamStart = withoutEnd.indexOf("<");
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
-						var typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(/*Pattern*/.quote(","));
+						/*???*/ typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(/*Pattern*/.quote(","));
 						typeParameters = new_ArrayList<char*>(/*Arrays*/.stream(typeParamsArray).map(strip_char*).filter(_lambda27_).toList());
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
 					return /*Option*/.empty();
 				}
-				var templateString = /*App*/.createTemplateString(typeParameters);
+				/*???*/ templateString = /*App*/.createTemplateString(typeParameters);
 				char* dependencies;
 				if (variants.isEmpty()) {
 					dependencies = "";
 				}
 				else {
-					var enumFields = variants.stream().map(_lambda34_).map(_lambda31_).collect(new_Joiner(","));
-					var typeArguments = _this.joinTypeArguments(typeParameters);
-					var unionFields = variants.stream().map(_lambda38_).collect(new_Joiner(""));
+					/*???*/ enumFields = variants.stream().map(_lambda34_).map(_lambda31_).collect(new_Joiner(","));
+					/*???*/ typeArguments = _this.joinTypeArguments(typeParameters);
+					/*???*/ unionFields = variants.stream().map(_lambda38_).collect(new_Joiner(""));
 					dependencies = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
 				char* generatedFields;
@@ -1200,20 +1200,20 @@ Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* inp
 					generatedFields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
 				}
 				if (maybeInterfaceType.isPresent()) {
-					var interfaceType = maybeInterfaceType.get();
-					var joinedTypeArguments = _this.joinTypeArguments(typeParameters);
-					var thisType = beforeContent + joinedTypeArguments;
+					/*???*/ interfaceType = maybeInterfaceType.get();
+					/*???*/ joinedTypeArguments = _this.joinTypeArguments(typeParameters);
+					/*???*/ thisType = beforeContent + joinedTypeArguments;
 					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*new CStatement(new CContent(thisType*/ + " _this = *((" + thisType + /*"*) _ref)"), 1).generate()*/ + new_CStatement(/*new CContent(interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data"),
 															 1).generate()*/ + /*new CStatement(new CContent("data."*/ + beforeContent.toLowerCase() + /*" = _this"), 1).generate()*/ + /*new CStatement(new CContent(
 										"return "*/ + interfaceType.generate() + " { " + beforeContent + "Tag, " + /*"data }"), 1).generate()*/ + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator());
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + /*System*/.lineSeparator());
-				var header = new_CStructureHeader(typeParameters, beforeContent);
+				/*???*/ header = new_CStructureHeader(typeParameters, beforeContent);
 				_this.structureHeaders = _this.structureHeaders.addLast(header);
-				var members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>());
-				var joinedFields = members.stream().map(generate_CStructureSegment).collect(new_Joiner(""));
-				var outputContent = generatedFields + joinedFields;
-				var generated = dependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
+				/*???*/ members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureSegment>());
+				/*???*/ joinedFields = members.stream().map(generate_CStructureSegment).collect(new_Joiner(""));
+				/*???*/ outputContent = generatedFields + joinedFields;
+				/*???*/ generated = dependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
 				_this.structureHeaders = _this.structureHeaders.removeLast();
 				if (variants.isEmpty()) {
 					_this.structures = _this.structures.addLast(generated);
@@ -1260,25 +1260,25 @@ CStructureSegment compileClassSegment_App(void* _ref, char* input) {
 	if (input.isBlank()) {
 		return new_EmptyCStructureSegment();
 	}
-	var maybeClass = _this.compileStructure("class", input);
+	/*???*/ maybeClass = _this.compileStructure("class", input);
 	if (maybeClass.isPresent()) {
 		return maybeClass.get();
 	}
-	var maybeInterface = _this.compileStructure("interface", input);
+	/*???*/ maybeInterface = _this.compileStructure("interface", input);
 	if (maybeInterface.isPresent()) {
 		return maybeInterface.get();
 	}
-	var maybeRecord = _this.compileStructure("record", input);
+	/*???*/ maybeRecord = _this.compileStructure("record", input);
 	if (maybeRecord.isPresent()) {
 		return maybeRecord.get();
 	}
-	var maybeEnum = _this.compileStructure("enum", input);
+	/*???*/ maybeEnum = _this.compileStructure("enum", input);
 	if (maybeEnum.isPresent()) {
 		return maybeEnum.get();
 	}
 	if (input.endsWith(";")) {
-		var slice = input.substring(0, input.length() - 1);
-		var maybeClassStatement = _this.compileEnumValues(slice).or(_lambda44_);
+		/*???*/ slice = input.substring(0, input.length() - 1);
+		/*???*/ maybeClassStatement = _this.compileEnumValues(slice).or(_lambda44_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
@@ -1287,22 +1287,22 @@ CStructureSegment compileClassSegment_App(void* _ref, char* input) {
 }
 Option<CStructureSegment> compileMethod_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var paramStart = input.indexOf("(");
+	/*???*/ paramStart = input.indexOf("(");
 	if (paramStart < 0) {
 		return /*Option*/.empty();
 	}
-	var definition = input.substring(0, paramStart).strip();
-	var withParams = input.substring(paramStart + 1);
-	var paramEnd = withParams.indexOf(")");
+	/*???*/ definition = input.substring(0, paramStart).strip();
+	/*???*/ withParams = input.substring(paramStart + 1);
+	/*???*/ paramEnd = withParams.indexOf(")");
 	if (paramEnd < 0) {
 		return /*Option*/.empty();
 	}
-	var inputParams = withParams.substring(0, paramEnd).strip();
-	var withBraces = withParams.substring(paramEnd + 1).strip();
-	var header = _this.compileFunctionHeader(definition);
-	var params = _this.compileParametersToList(inputParams);
-	var outputParams = params.copy().addFirst(new_CDefinition(/*ArrayList*/.empty(), new_CPointerType(/*CPrimitiveType*/.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
-	var headerWithParameters = header.generate() + "(" + outputParams + ")";
+	/*???*/ inputParams = withParams.substring(0, paramEnd).strip();
+	/*???*/ withBraces = withParams.substring(paramEnd + 1).strip();
+	/*???*/ header = _this.compileFunctionHeader(definition);
+	/*???*/ params = _this.compileParametersToList(inputParams);
+	/*???*/ outputParams = params.copy().addFirst(new_CDefinition(/*ArrayList*/.empty(), new_CPointerType(/*CPrimitiveType*/.Void), "_ref")).stream().map(generate_CDefinition).collect(new_Joiner(", "));
+	/*???*/ headerWithParameters = header.generate() + "(" + outputParams + ")";
 	ArrayList<char*> typeParameters;
 	if (/*header instanceof CDefinition definition1*/) {
 		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(/*definition1*/.typeParameters);
@@ -1310,12 +1310,12 @@ Option<CStructureSegment> compileMethod_App(void* _ref, char* input) {
 	else {
 		typeParameters = _this.structureHeaders.getLast().typeParameters.copy().addAllLast(/*ArrayList*/.empty());
 	}
-	var templateString = /*createTemplateString*/(typeParameters);
+	/*???*/ templateString = /*createTemplateString*/(typeParameters);
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-		var content = withBraces.substring(1, withBraces.length() - 1);
-		var currentStructureType = _this.structureHeaders.getLast();
-		var thisDefinition = new_CStatement(new_CContent(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"), 1).generate();
+		/*???*/ content = withBraces.substring(1, withBraces.length() - 1);
+		/*???*/ currentStructureType = _this.structureHeaders.getLast();
+		/*???*/ thisDefinition = new_CStatement(new_CContent(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"), 1).generate();
 		_this.definitions = _this.definitions.addLast(params);
 		generated = templateString + headerWithParameters + " {" + thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator();
 		_this.definitions = _this.definitions.removeLast();
@@ -1348,11 +1348,11 @@ auto _lambda56_(auto _ref, auto last) {
 };
 Option<CStructureSegment> compileDefinitionToField0_App(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
-	var maybeDefinition = _this.compileDefinition(slice);
+	/*???*/ maybeDefinition = _this.compileDefinition(slice);
 	if (/*!maybeDefinition*/.isPresent()) {
 		return new_None<CStructureSegment>();
 	}
-	var definition = maybeDefinition.get();
+	/*???*/ definition = maybeDefinition.get();
 	_this.definitions = _this.definitions.mapLast(_lambda56_);
 	return new_Some<CStructureSegment>(new_CStatement(definition, 1));
 }
@@ -1362,17 +1362,17 @@ char* compileMethodSegments_App(void* _ref, char* content) {
 }
 Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var i = input.lastIndexOf(" ");
+	/*???*/ i = input.lastIndexOf(" ");
 	if (i >= 0) {
-		var name = input.substring(i + 1).strip();
+		/*???*/ name = input.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			var peek = _this.structureHeaders.getLast();
+			/*???*/ peek = _this.structureHeaders.getLast();
 			return /*Option*/.of(new_CDefinition(/*ArrayList*/.empty(), peek.toType(), "new_" + peek.name));
 		}
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			var structName = _this.structureHeaders.getLast().name;
+			/*???*/ structName = _this.structureHeaders.getLast().name;
 			return /*Option*/.of(new_CDefinition(/*ArrayList*/.empty(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
@@ -1384,7 +1384,7 @@ auto _lambda61_(auto _ref, auto slice) {
 };
 Option<CStructureSegment> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda61_).toList());/*
+	/*???*/ segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda61_).toList());/*
 
 		for (var segment : segments.inner) {
 			final var stripped = segment.strip();
@@ -1424,33 +1424,33 @@ char* compileMethodSegmentOrPlaceholder_App(void* _ref, char* input) {
 }
 Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var stripped = input.strip();
+	/*???*/ stripped = input.strip();
 	if (/*stripped.isEmpty() || stripped.startsWith("try ") || stripped*/.startsWith("catch ")) {
 		return /*Option*/.of("");
 	}
 	if (stripped.startsWith("{") && stripped.endsWith("}")) {
-		var content = stripped.substring(1, stripped.length() - 1);
+		/*???*/ content = stripped.substring(1, stripped.length() - 1);
 		_this.depth++;
 		_this.definitions = _this.definitions.addLast(/*ArrayList*/.empty());
-		var compiled = _this.compileMethodSegments(content);
+		/*???*/ compiled = _this.compileMethodSegments(content);
 		_this.definitions = _this.definitions.removeLast();
 		/*this.depth--*/;
 		return /*Option*/.of("{" + compiled + App.generateIndent(this.depth) + "}");
 	}
-	var maybeIf = _this.compileConditional(stripped, "if");
+	/*???*/ maybeIf = _this.compileConditional(stripped, "if");
 	if (maybeIf.isPresent()) {
 		return maybeIf;
 	}
-	var maybeWhile = _this.compileConditional(stripped, "while");
+	/*???*/ maybeWhile = _this.compileConditional(stripped, "while");
 	if (maybeWhile.isPresent()) {
 		return maybeWhile;
 	}
 	if (stripped.endsWith(";")) {
-		var slice = stripped.substring(0, stripped.length() - 1);
+		/*???*/ slice = stripped.substring(0, stripped.length() - 1);
 		return /*Option*/.of(new_CStatement(new_CContent(_this.compileMethodStatement(slice)), _this.depth).generate());
 	}
 	if (stripped.startsWith("else ")) {
-		var substring = stripped.substring(5);
+		/*???*/ substring = stripped.substring(5);
 		return /*Option*/.of(/*App*/.generateIndent(_this.depth) + "else " + _this.compileMethodSegmentOrPlaceholder(substring));
 	}
 	return /*Option*/.empty();
@@ -1458,7 +1458,7 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 Option<char*> compileConditional_App(void* _ref, char* input, char* type) {
 	App _this = *((App*) _ref);
 	if (input.startsWith(type)) {
-		var substring = input.substring(type.length()).strip();/*
+		/*???*/ substring = input.substring(type.length()).strip();/*
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
 				final var conditionEnd = this.findConditionEnd(withCondition);
@@ -1475,8 +1475,8 @@ Option<char*> compileConditional_App(void* _ref, char* input, char* type) {
 }
 int findConditionEnd_App(void* _ref, char* withCondition) {
 	App _this = *((App*) _ref);
-	var conditionEnd =  - 1;
-	var depth = 0;/*
+	/*???*/ conditionEnd =  - 1;
+	/*???*/ depth = 0;/*
 		for (var i = 0; i < withCondition.length(); i++) {
 			final var c = withCondition.charAt(i);
 			if (c == ')') {
@@ -1499,16 +1499,16 @@ auto _lambda65_(auto _ref) {
 };
 auto _lambda68_(auto _ref) {
 	auto _this = _ref;
-	return _this.compileDefinitionAsStatement(input);
+	return _this.parseAndDefineDefinitionAsStatement(input);
 };
 char* compileMethodStatement_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var stripped = input.strip();
+	/*???*/ stripped = input.strip();
 	if (stripped.startsWith("return ")) {
-		var slice = stripped.substring("return ".length()).strip();
+		/*???*/ slice = stripped.substring("return ".length()).strip();
 		return "return " + _this.compileExpression(slice);
 	}
-	var maybeAssignment = _this.compileAssignment(stripped);
+	/*???*/ maybeAssignment = _this.compileAssignment(stripped);
 	if (maybeAssignment.isPresent()) {
 		return maybeAssignment.get();
 	}
@@ -1523,157 +1523,184 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	}
 	return _this.compileInvocation(stripped).or(_lambda68_).orElseGet(_lambda65_);
 }
-auto _lambda70_(auto _ref) {
-	auto _this = _ref;
-	return _this.compileExpression(substring);
-};
 Option<char*> compileAssignment_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
-	var separator = stripped.indexOf('=');
+	/*???*/ separator = stripped.indexOf('=');
 	if (separator < 0) {
 		return new_None<char*>();
 	}
-	var substring = stripped.substring(0, separator).strip();
-	var source = stripped.substring(separator + 1).strip();
-	var stringOption = _this.compileDefinitionAsStatement(substring);
-	var destination = stringOption.orElseGet(_lambda70_);
-	return new_Some<char*>(destination + " = " + _this.compileExpression(source));
+	/*???*/ destinationString = stripped.substring(0, separator).strip();
+	/*???*/ sourceString = stripped.substring(separator + 1).strip();
+	/*???*/ source = _this.parseExpression(sourceString);
+	/*???*/ generated = _this.compileAssignmentContent(destinationString, source) + " = " + source.generate();
+	return new_Some<char*>(generated);
 }
-auto _lambda72_(auto _ref, auto last) {
+char* compileAssignmentContent_App(void* _ref, char* destinationString, CExpression source) {
+	App _this = *((App*) _ref);
+	/*???*/ stringOption = _this.parseAndDefineDefinition(destinationString);
+	return _switch70_;
+}
+CType resolveExpression_App(void* _ref, CExpression expression) {
+	App _this = *((App*) _ref);
+	return _switch72_;
+}
+auto _lambda77_(auto _ref, auto definition) {
+	auto _this = _ref;
+	return /*definition*/.hasName(identifier.value);
+};
+CType resolveIdentifier_App(void* _ref, CIdentifier identifier) {
+	App _this = *((App*) _ref);
+	/*???*/ maybeDefinition = _this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda77_).head.next();
+	if (/*maybeDefinition instanceof Some*/ < /*CDefinition>*/(/*var found*/)) {
+		return /*found*/.cType;
+	}
+	else {
+		return new_Placeholder(identifier.value);
+	}
+}
+Option<char*> parseAndDefineDefinitionAsStatement_App(void* _ref, char* input) {
+	App _this = *((App*) _ref);
+	return _this.parseAndDefineDefinition(input).map(generate_CDefinition);
+}
+auto _lambda79_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.addLast(definition);
 };
-Option<char*> compileDefinitionAsStatement_App(void* _ref, char* input) {
+Option<CDefinition> parseAndDefineDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var maybeDefinition = _this.compileDefinition(input);
+	/*???*/ maybeDefinition = _this.compileDefinition(input);
 	if (/*!maybeDefinition*/.isPresent()) {
-		return new_None<char*>();
+		return new_None<CDefinition>();
 	}
-	var definition = maybeDefinition.get();
-	_this.definitions = _this.definitions.mapLast(_lambda72_);
-	return new_Some<char*>(definition.generate());
+	/*???*/ definition = maybeDefinition.get();
+	_this.definitions = _this.definitions.mapLast(_lambda79_);
+	return new_Some<CDefinition>(definition);
 }
-auto _lambda79_(auto _ref, auto definition) {
+char* compileExpression_App(void* _ref, char* input) {
+	App _this = *((App*) _ref);
+	return _this.parseExpression(input).generate();
+}
+auto _lambda86_(auto _ref, auto definition) {
 	auto _this = _ref;
 	return /*definition*/.name.endsWith(stripped);
 };
-auto _lambda81_(auto _ref) {
+auto _lambda88_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "<");
 };
-auto _lambda84_(auto _ref) {
+auto _lambda91_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, ">=");
 };
-auto _lambda87_(auto _ref) {
+auto _lambda94_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "==");
 };
-auto _lambda90_(auto _ref) {
+auto _lambda97_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "&&");
 };
-auto _lambda93_(auto _ref) {
+auto _lambda100_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "-");
 };
-char* compileExpression_App(void* _ref, char* input) {
+CExpression parseExpression_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var stripped = input.strip();
+	/*???*/ stripped = input.strip();
 	if (stripped.equals("false")) {
-		return "0";
+		return new_CContent("0");
 	}
 	if (stripped.equals("true")) {
-		return "1";
+		return new_CContent("1");
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
-		return stripped;
+		return new_CContent(stripped);
 	}
 	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-		return stripped;
+		return new_CContent(stripped);
 	}
-	var maybeLambda = _this.compileLambda(stripped);
+	/*???*/ maybeLambda = _this.compileLambda(stripped);
 	if (maybeLambda.isPresent()) {
-		return maybeLambda.get();
+		return new_CContent(maybeLambda.get());
 	}
-	var maybeInvocation = _this.compileInvocation(stripped);
+	/*???*/ maybeInvocation = _this.compileInvocation(stripped);
 	if (maybeInvocation.isPresent()) {
-		return maybeInvocation.get();
+		return new_CContent(maybeInvocation.get());
 	}
-	var i = stripped.lastIndexOf(".");
+	/*???*/ i = stripped.lastIndexOf(".");
 	if (i >= 0) {
-		var child = stripped.substring(0, i).strip();
-		var name = stripped.substring(i + 1).strip();
+		/*???*/ child = stripped.substring(0, i).strip();
+		/*???*/ name = stripped.substring(i + 1).strip();
 		if (_this.isIdentifier(name)) {
-			return _this.compileExpression(child) + "." + name;
+			return new_CContent(_this.compileExpression(child) + "." + name);
 		}
 	}
 	if (_this.isIdentifier(stripped)) {
 		if (stripped.equals("this")) {
-			return "_this";
+			return new_CContent("_this");
 		}
-		if (_this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda79_).head.next().isPresent()) {
-			return stripped;
+		if (_this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda86_).head.next().isPresent()) {
+			return new_CIdentifier(stripped);
 		}
 	}
 	if (stripped.startsWith("switch")) {
-		return _this.createName("switch");
+		return new_CContent(_this.createName("switch"));
 	}
-	var maybeOperator = _this.compileOperator(stripped, "+").or(_lambda93_).or(_lambda90_).or(_lambda87_).or(_lambda84_).or(_lambda81_);
+	/*???*/ maybeOperator = _this.compileOperator(stripped, "+").or(_lambda100_).or(_lambda97_).or(_lambda94_).or(_lambda91_).or(_lambda88_);
 	if (maybeOperator.isPresent()) {
-		return maybeOperator.get();
+		return new_CContent(maybeOperator.get());
 	}
-	var i2 = stripped.lastIndexOf("::");
+	/*???*/ i2 = stripped.lastIndexOf("::");
 	if (i2 >= 0) {
-		var substring = stripped.substring(0, i2);
-		var substring1 = stripped.substring(i2 + 2);
-		return substring1 + "_" + _this.compileType(substring).map(generate_CType).orElse("?");
+		/*???*/ substring = stripped.substring(0, i2);
+		/*???*/ substring1 = stripped.substring(i2 + 2);
+		return new_CContent(substring1 + "_" + _this.compileType(substring).map(generate_CType).orElse("?"));
 	}
 	if (_this.isNumber(stripped)) {
-		return stripped;
+		return new_CContent(stripped);
 	}
-	return /*Placeholder*/.wrap(stripped);
+	return new_Placeholder(stripped);
 }
-auto _lambda98_(auto _ref, auto segment) {
+auto _lambda105_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return "auto " + /*segment*/;
 };
-auto _lambda101_(auto _ref, auto segment) {
+auto _lambda108_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda104_(auto _ref) {
-			var expression = _this.compileExpression(content);
+auto _lambda111_(auto _ref) {
+			/*???*/ expression = _this.compileExpression(content);
 			return "{" + new_CStatement(new_CContent("auto _this = _ref"), 1).generate() + /*new CStatement(new CContent("return "*/ + /*expression),
 																																			1).generate()*/ + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 		}Option<char*> compileLambda_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
-	var arrowIndex = stripped.indexOf("->");
+	/*???*/ arrowIndex = stripped.indexOf("->");
 	if (arrowIndex >= 0) {
-		var names = stripped.substring(0, arrowIndex).strip();
-		var content = stripped.substring(arrowIndex + 2);
-		var functionName = _this.createName("lambda");
+		/*???*/ names = stripped.substring(0, arrowIndex).strip();
+		/*???*/ content = stripped.substring(arrowIndex + 2);
+		/*???*/ functionName = _this.createName("lambda");
 		ArrayList<char*> parameters;
 		if (_this.isIdentifier(names)) {
 			parameters = /*ArrayList*/.of("auto " + names);
 		}
 		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
-			var slice = names.substring(1, names.length() - 1);
-			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda101_).map(_lambda98_).toList();
+			/*???*/ slice = names.substring(1, names.length() - 1);
+			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda108_).map(_lambda105_).toList();
 		}
 		else {
 			return /*Option*/.empty();
 		}
-		var copy = parameters.copy().addFirst("auto _ref");
-		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda104_));
+		/*???*/ copy = parameters.copy().addFirst("auto _ref");
+		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda111_));
 		return /*Option*/.of(functionName);
 	}
 	return /*Option*/.empty();
 }
 char* createName_App(void* _ref, char* type) {
 	App _this = *((App*) _ref);
-	var s = "_" + type + this.counter + "_";
+	/*???*/ s = "_" + type + this.counter + "_";
 	_this.counter++;
 	return s;
 }
@@ -1717,8 +1744,8 @@ Option<char*> compileInvocation_App(void* _ref, char* stripped) {
 Option<char*> compileCaller_App(void* _ref, char* caller) {
 	App _this = *((App*) _ref);
 	if (caller.startsWith("new ")) {
-		var substring = caller.substring("new ".length());
-		var maybeType = _this.compileType(substring);
+		/*???*/ substring = caller.substring("new ".length());
+		/*???*/ maybeType = _this.compileType(substring);
 		if (maybeType.isPresent()) {
 			return /*Option*/.of("new_" + maybeType.get().generate());
 		}
@@ -1727,10 +1754,10 @@ Option<char*> compileCaller_App(void* _ref, char* caller) {
 }
 Option<char*> compileOperator_App(void* _ref, char* stripped, char* separator) {
 	App _this = *((App*) _ref);
-	var i1 = stripped.indexOf(separator);
+	/*???*/ i1 = stripped.indexOf(separator);
 	if (i1 >= 0) {
-		var substring = stripped.substring(0, i1);
-		var substring1 = stripped.substring(i1 + separator.length());
+		/*???*/ substring = stripped.substring(0, i1);
+		/*???*/ substring1 = stripped.substring(i1 + separator.length());
 		return /*Option*/.of(_this.compileExpression(substring) + " " + separator + " " + _this.compileExpression(substring1));
 	}
 	return /*Option*/.empty();
@@ -1745,39 +1772,39 @@ int isNumber_App(void* _ref, char* input) {
 		}*/
 	return 1;
 }
-auto _lambda112_(auto _ref, auto slice) {
+auto _lambda119_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda112_).map(compileDefinition_this).flatMap(stream_Option).toList();
+	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda119_).map(compileDefinition_this).flatMap(stream_Option).toList();
 }
-auto _lambda116_(auto _ref, auto segment) {
+auto _lambda123_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda118_(auto _ref, auto cType) {
+auto _lambda125_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(finalTypeParameters, /*cType*/, name);
 };
-auto _lambda120_(auto _ref, auto cType) {
+auto _lambda127_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(/*ArrayList*/.empty(), /*cType*/, name);
 };
 Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var nameSeparator = input.lastIndexOf(" ");
+	/*???*/ nameSeparator = input.lastIndexOf(" ");
 	if (nameSeparator < 0) {
 		return /*Option*/.empty();
 	}
-	var beforeName = input.substring(0, nameSeparator);
-	var name = input.substring(nameSeparator + 1).strip();
+	/*???*/ beforeName = input.substring(0, nameSeparator);
+	/*???*/ name = input.substring(nameSeparator + 1).strip();
 	if (/*!this*/.isIdentifier(name)) {
 		return /*Option*/.empty();
 	}
-	var typeSeparator =  - 1;
-	var depth = 0;/*
+	/*???*/ typeSeparator =  - 1;
+	/*???*/ depth = 0;/*
 		for (var i = 0; i < beforeName.length(); i++) {
 			final var c = beforeName.charAt(i);
 			if (c == ' ' && depth == 0) {
@@ -1791,29 +1818,29 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 			}
 		}*/
 	if (typeSeparator >= 0) {
-		var beforeType = beforeName.substring(0, typeSeparator).strip();
-		var typeParameters = /*ArrayList*/. < /*String>empty*/();
+		/*???*/ beforeType = beforeName.substring(0, typeSeparator).strip();
+		/*???*/ typeParameters = /*ArrayList*/. < /*String>empty*/();
 		if (beforeType.endsWith(">")) {
-			var slice = beforeType.substring(0, beforeType.length() - 1);
-			var i = slice.indexOf("<");
+			/*???*/ slice = beforeType.substring(0, beforeType.length() - 1);
+			/*???*/ i = slice.indexOf("<");
 			if (i >= 0) {
-				var typeParametersString = slice.substring(i + 1);
-				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda116_).collect(new_ListCollector<char*>());
+				/*???*/ typeParametersString = slice.substring(i + 1);
+				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda123_).collect(new_ListCollector<char*>());
 			}
 		}
-		var type = beforeName.substring(typeSeparator + 1).strip();
+		/*???*/ type = beforeName.substring(typeSeparator + 1).strip();
 		var finalTypeParameters = typeParameters;
-		return _this.compileType(type).map(_lambda118_);
+		return _this.compileType(type).map(_lambda125_);
 	}
-	return _this.compileType(beforeName).map(_lambda120_);
+	return _this.compileType(beforeName).map(_lambda127_);
 }
-auto _lambda128_(auto _ref, auto slice) {
+auto _lambda135_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 Option<CType> compileType_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	var stripped = input.strip();/*
+	/*???*/ stripped = input.strip();/*
 
 		switch (stripped) {
 			case "Character" -> {
@@ -1827,19 +1854,19 @@ Option<CType> compileType_App(void* _ref, char* input) {
 			}
 		}*/
 	if (stripped.endsWith("[]")) {
-		var slice = stripped.substring(0, stripped.length() - 2);
+		/*???*/ slice = stripped.substring(0, stripped.length() - 2);
 		return _this.compileType(slice).map(new_CPointerType);
 	}
 	if (stripped.equals("String")) {
 		return /*Option*/.of(new_CPointerType(/*CPrimitiveType*/.Char));
 	}
 	if (stripped.endsWith(">")) {
-		var withoutEnd = stripped.substring(0, stripped.length() - 1);
-		var i = withoutEnd.indexOf("<");
+		/*???*/ withoutEnd = stripped.substring(0, stripped.length() - 1);
+		/*???*/ i = withoutEnd.indexOf("<");
 		if (i >= 0) {
-			var base = withoutEnd.substring(0, i);
-			var typeArguments = withoutEnd.substring(i + 1);
-			var list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda128_).map(compileType_this).flatMap(stream_Option).toList();
+			/*???*/ base = withoutEnd.substring(0, i);
+			/*???*/ typeArguments = withoutEnd.substring(i + 1);
+			/*???*/ list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda135_).map(compileType_this).flatMap(stream_Option).toList();
 			return /*Option*/.of(new_CTemplateType(base, list));
 		}
 	}
@@ -1856,7 +1883,7 @@ State foldValue_App(void* _ref, State state, char next) {
 	if (next == ',' && state.isLevel()) {
 		return state.advance();
 	}
-	var appended = state.append(next);
+	/*???*/ appended = state.append(next);
 	if (next == ' - ') {
 		if (appended.peek() == '>') {
 			return appended.popAndAppendToOption().orElse(appended);
