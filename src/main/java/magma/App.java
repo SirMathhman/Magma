@@ -1292,7 +1292,7 @@ public class App {
 					final var templateString = App.createTemplateString(typeParameters);
 
 					String dependencies;
-					if (variants.isEmpty()) {
+					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")

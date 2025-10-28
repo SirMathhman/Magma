@@ -78,198 +78,85 @@ struct Frame;
 template <typename T>
 struct ArrayHead;
 /*
-*/enum CPrimitiveTypeTag {
-};
-union CPrimitiveTypeData {
-};
-struct CPrimitiveType {
+*/struct CPrimitiveType {
 	char* content;
-};
-enum FunctionTag {
-};
-template <typename T, typename R>
-union FunctionData {
 };
 template <typename T, typename R>
 struct Function {
 };
-enum BiFunctionTag {
-};
-template <typename A, typename B, typename R>
-union BiFunctionData {
-};
 template <typename A, typename B, typename R>
 struct BiFunction {
-};
-enum ConsumerTag {
-};
-template <typename T>
-union ConsumerData {
 };
 template <typename T>
 struct Consumer {
 };
-enum HeadTag {
-};
-template <typename T>
-union HeadData {
-};
 template <typename T>
 struct Head {
-};
-enum CollectorTag {
-};
-template <typename T, typename C>
-union CollectorData {
 };
 template <typename T, typename C>
 struct Collector {
 };
-enum SupplierTag {
-};
-template <typename T>
-union SupplierData {
-};
 template <typename T>
 struct Supplier {
-};
-enum PredicateTag {
-};
-template <typename T>
-union PredicateData {
 };
 template <typename T>
 struct Predicate {
 };
-enum CNodeTag {
-};
-union CNodeData {
-};
 struct CNode {
-};
-enum SingleHeadTag {
-};
-template <typename T>
-union SingleHeadData {
 };
 template <typename T>
 struct SingleHead {
 	T element;
 	int retrieved;
 };
-enum EmptyHeadTag {
-};
-template <typename T>
-union EmptyHeadData {
-};
 template <typename T>
 struct EmptyHead {
-};
-enum ZipHeadTag {
-};
-template <typename T, typename R>
-union ZipHeadData {
 };
 template <typename T, typename R>
 struct ZipHead {
 	Head<T> head;
 	Head<R> otherHead;
 };
-enum StreamTag {
-};
-template <typename T>
-union StreamData {
-};
 template <typename T>
 struct Stream {
 	Head<T> head;
-};
-enum ArrayListTag {
-};
-template <typename T>
-union ArrayListData {
 };
 template <typename T>
 struct ArrayList {
 	List<T> inner;
 };
-enum ErrTag {
-};
-template <typename T, typename X>
-union ErrData {
-};
 template <typename T, typename X>
 struct Err {
 	X error;
-};
-enum OkTag {
-};
-template <typename T, typename X>
-union OkData {
 };
 template <typename T, typename X>
 struct Ok {
 	T value;
 };
-enum SomeTag {
-};
-template <typename T>
-union SomeData {
-};
 template <typename T>
 struct Some {
 	T value;
 };
-enum NoneTag {
-};
-template <typename T>
-union NoneData {
-};
 template <typename T>
 struct None {
 };
-enum CPointerTypeTag {
-};
-union CPointerTypeData {
-};
 struct CPointerType {
 	CType type;
-};
-enum CTemplateTypeTag {
-};
-union CTemplateTypeData {
 };
 struct CTemplateType {
 	char* base;
 	ArrayList<CType> typeArguments;
 };
-enum CIdentifierTag {
-};
-union CIdentifierData {
-};
 struct CIdentifier {
 	char* value;
 };
-enum PlaceholderTag {
-};
-union PlaceholderData {
-};
 struct Placeholder {
 	char* input;
-};
-enum TupleTag {
-};
-template <typename A, typename B>
-union TupleData {
 };
 template <typename A, typename B>
 struct Tuple {
 	A left;
 	B right;
-};
-enum StateTag {
-};
-union StateData {
 };
 struct State {
 	char* input;
@@ -278,63 +165,31 @@ struct State {
 	int depth;
 	int index;
 };
-enum CDefinitionTag {
-};
-union CDefinitionData {
-};
 struct CDefinition {
 	ArrayList<char*> typeParameters;
 	CType type;
 	char* name;
 };
-enum CStructureHeaderTag {
-};
-union CStructureHeaderData {
-};
 struct CStructureHeader {
 	ArrayList<char*> typeParameters;
 	char* name;
 };
-enum CStructureTag {
-};
-union CStructureData {
-};
 struct CStructure {
 	CStructureHeader CStructureHeader;
 	char* fields;
-};
-enum MapHeadTag {
-};
-template <typename T, typename R>
-union MapHeadData {
 };
 template <typename T, typename R>
 struct MapHead {
 	Function<T, R> mapper;
 	Head<T> head;
 };
-enum ListHeadTag {
-};
-template <typename T>
-union ListHeadData {
-};
 template <typename T>
 struct ListHead {
 	ArrayList<T> list;
 	int counter;
 };
-enum ListCollectorTag {
-};
-template <typename T>
-union ListCollectorData {
-};
 template <typename T>
 struct ListCollector {
-};
-enum FlatMapHeadTag {
-};
-template <typename T, typename R>
-union FlatMapHeadData {
 };
 template <typename T, typename R>
 struct FlatMapHead {
@@ -342,127 +197,60 @@ struct FlatMapHead {
 	Function<T, Stream<R>> mapper;
 	Head<R> current;
 };
-enum JoinerTag {
-};
-union JoinerData {
-};
 struct Joiner {
 	char* delimiter;
 };
-enum EmptyCStructureSegmentTag {
-};
-union EmptyCStructureSegmentData {
-};
 struct EmptyCStructureSegment {
-};
-enum CContentTag {
-};
-union CContentData {
 };
 struct CContent {
 	char* content;
-};
-enum CStatementTag {
-};
-union CStatementData {
 };
 struct CStatement {
 	CNode content;
 	int depth;
 };
-enum CFieldAccessTag {
-};
-union CFieldAccessData {
-};
 struct CFieldAccess {
 	CExpression child;
 	char* name;
 };
-enum FramesTag {
-};
-union FramesData {
-};
 struct Frames {
 	ArrayList<Frame> frames;
-};
-enum HashMapTag {
-};
-template <typename K, typename V>
-union HashMapData {
 };
 template <typename K, typename V>
 struct HashMap {
 	java.util.HashMap<K, V> internal;
 };
-enum MapCollectorTag {
-};
-template <typename K, typename V>
-union MapCollectorData {
-};
 template <typename K, typename V>
 struct MapCollector {
-};
-enum CStructureTypeTag {
-};
-union CStructureTypeData {
 };
 struct CStructureType {
 	char* name;
 	ArrayList<char*> typeParameters;
 	ArrayList<CDefinition> fields;
 };
-enum CConstructionTag {
-};
-union CConstructionData {
-};
 struct CConstruction {
 	CType type;
-};
-enum CInvocationTag {
-};
-union CInvocationData {
 };
 struct CInvocation {
 	CCaller caller;
 	ArrayList<CExpression> arguments;
 };
-enum CMethodMemberTag {
-};
-union CMethodMemberData {
-};
 struct CMethodMember {
 	CDefinition definition;
-};
-enum CFunctionTypeTag {
-};
-union CFunctionTypeData {
 };
 struct CFunctionType {
 	CType returnType;
 	ArrayList<CType> paramTypes;
-};
-enum FrameTag {
-};
-union FrameData {
 };
 struct Frame {
 	Option<CStructureHeader> maybeHeader;
 	ArrayList<CDefinition> definitions;
 	ArrayList<CStructureType> structures;
 };
-enum ArrayHeadTag {
-};
-template <typename T>
-union ArrayHeadData {
-};
 template <typename T>
 struct ArrayHead {
 	T* array;/*
 		private int counter = 0;*/
-};
-enum AppTag {
-};
-union AppData {
 };
 struct App {
 	Frames frames;
@@ -474,27 +262,87 @@ struct App {
 	int counter;
 	int depth;
 };
+enum ResultTag {
+	ErrTag,
+	OkTag
+};
+template <typename T, typename X>
+union ResultData {
+	Err<T, X> err;
+	Ok<T, X> ok;
+};
 template <typename T, typename X>
 struct Result {
 	ResultTag tag;
 	ResultData<T, X> data;
 };
+enum CTypeTag {
+	CIdentifierTag,
+	CPointerTypeTag,
+	CPrimitiveTypeTag,
+	CStructureTypeTag,
+	CTemplateTypeTag,
+	CFunctionTypeTag,
+	PlaceholderTag
+};
+union CTypeData {
+	CIdentifier cidentifier;
+	CPointerType cpointertype;
+	CPrimitiveType cprimitivetype;
+	CStructureType cstructuretype;
+	CTemplateType ctemplatetype;
+	CFunctionType cfunctiontype;
+	Placeholder placeholder;
+};
 struct CType {
 	CTypeTag tag;
 	CTypeData data;
 };
+enum CFunctionHeaderTag {
+	CDefinitionTag,
+	PlaceholderTag
+};
+union CFunctionHeaderData {
+	CDefinition cdefinition;
+	Placeholder placeholder;
+};
 struct CFunctionHeader {
 	CFunctionHeaderTag tag;
 	CFunctionHeaderData data;
+};
+enum OptionTag {
+	NoneTag,
+	SomeTag
+};
+template <typename T>
+union OptionData {
+	None<T> none;
+	Some<T> some;
 };
 template <typename T>
 struct Option {
 	OptionTag tag;
 	OptionData<T> data;
 };
+enum CStructureMemberTag {
+	CMethodMemberTag,
+	CStructureSegmentTag
+};
+union CStructureMemberData {
+	CMethodMember cmethodmember;
+	CStructureSegment cstructuresegment;
+};
 struct CStructureMember {
 	CStructureMemberTag tag;
 	CStructureMemberData data;
+};
+enum CCallerTag {
+	CConstructionTag,
+	CExpressionTag
+};
+union CCallerData {
+	CConstruction cconstruction;
+	CExpression cexpression;
 };
 struct CCaller {
 	CCallerTag tag;
@@ -2109,7 +1957,7 @@ auto _lambda137_(auto _ref) {
 				}
 				/*Not a function type: Placeholder[input=createTemplateString_startAppend]*/ templateString = createTemplateString_/*App*/(typeParameters);
 				char* dependencies;
-				if (isEmpty_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/()) {
+				if (isEmpty_/*!variants*/()) {
 					/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]end]*/ enumFields = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]*/(new_Joiner(","));
 					/*Not a function type: Placeholder[input=joinTypeArguments_App]*/ typeArguments = joinTypeArguments_App(typeParameters);
 					/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]*/ unionFields = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]*/(new_Joiner(""));
