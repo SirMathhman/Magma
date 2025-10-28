@@ -1495,13 +1495,9 @@ int findConditionEnd_App(void* _ref, char* withCondition) {
 }
 auto _lambda65_(auto _ref) {
 	auto _this = _ref;
-	return _this.compileExpression(substring);
-};
-auto _lambda67_(auto _ref) {
-	auto _this = _ref;
 	return /*Placeholder*/.wrap(stripped);
 };
-auto _lambda70_(auto _ref) {
+auto _lambda68_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinitionAsStatement(input);
 };
@@ -1512,12 +1508,9 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 		var slice = stripped.substring("return ".length()).strip();
 		return "return " + _this.compileExpression(slice);
 	}
-	var separator = stripped.indexOf('=');
-	if (separator >= 0) {
-		var substring = stripped.substring(0, separator).strip();
-		var source = stripped.substring(separator + 1).strip();
-		var destination = _this.compileDefinitionAsStatement(substring).orElseGet(_lambda65_);
-		return destination + " = " + _this.compileExpression(source);
+	var maybeAssignment = _this.compileAssignment(stripped);
+	if (maybeAssignment.isPresent()) {
+		return maybeAssignment.get();
 	}
 	if (stripped.endsWith("++")) {
 		return _this.compileExpression(stripped.substring(0, stripped.length() - 2)) + "++";
@@ -1528,7 +1521,23 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return _this.compileInvocation(stripped).or(_lambda70_).orElseGet(_lambda67_);
+	return _this.compileInvocation(stripped).or(_lambda68_).orElseGet(_lambda65_);
+}
+auto _lambda70_(auto _ref) {
+	auto _this = _ref;
+	return _this.compileExpression(substring);
+};
+Option<char*> compileAssignment_App(void* _ref, char* stripped) {
+	App _this = *((App*) _ref);
+	var separator = stripped.indexOf('=');
+	if (separator < 0) {
+		return new_None<char*>();
+	}
+	var substring = stripped.substring(0, separator).strip();
+	var source = stripped.substring(separator + 1).strip();
+	var stringOption = _this.compileDefinitionAsStatement(substring);
+	var destination = stringOption.orElseGet(_lambda70_);
+	return new_Some<char*>(destination + " = " + _this.compileExpression(source));
 }
 auto _lambda72_(auto _ref, auto last) {
 	auto _this = _ref;
@@ -1537,14 +1546,12 @@ auto _lambda72_(auto _ref, auto last) {
 Option<char*> compileDefinitionAsStatement_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	var maybeDefinition = _this.compileDefinition(input);
-	if (maybeDefinition.isPresent()) {
-		var definition = maybeDefinition.get();
-		_this.definitions = _this.definitions.mapLast(_lambda72_);
-		return new_Some<char*>(definition.generate());
-	}
-	else {
+	if (/*!maybeDefinition*/.isPresent()) {
 		return new_None<char*>();
 	}
+	var definition = maybeDefinition.get();
+	_this.definitions = _this.definitions.mapLast(_lambda72_);
+	return new_Some<char*>(definition.generate());
 }
 auto _lambda79_(auto _ref, auto definition) {
 	auto _this = _ref;

@@ -1305,14 +1305,9 @@ public class App {
 			return "return " + this.compileExpression(slice);
 		}
 
-		final var separator = stripped.indexOf('=');
-		if (separator >= 0) {
-			final var substring = stripped.substring(0, separator).strip();
-			final var source = stripped.substring(separator + 1).strip();
-			final var destination =
-					this.compileDefinitionAsStatement(substring)
-							.orElseGet(() -> this.compileExpression(substring));
-			return destination + " = " + this.compileExpression(source);
+		final var maybeAssignment = this.compileAssignment(stripped);
+		if (maybeAssignment.isPresent()) {
+			return maybeAssignment.get();
 		}
 
 		if (stripped.endsWith("++")) {
@@ -1333,17 +1328,30 @@ public class App {
 				.orElseGet(() -> Placeholder.wrap(stripped));
 	}
 
+	private Option<String> compileAssignment(String stripped) {
+		final var separator = stripped.indexOf('=');
+		if (separator < 0) {return new None<String>();}
+
+		final var destinationString = stripped.substring(0, separator).strip();
+		final var sourceString = stripped.substring(separator + 1).strip();
+		return new Some<String>(this.compileAssignmentContent(destinationString, sourceString));
+	}
+
+	private String compileAssignmentContent(String destinationString, String sourceString) {
+		final var stringOption = this.compileDefinitionAsStatement(destinationString);
+		final var destination = stringOption.orElseGet(() -> this.compileExpression(destinationString));
+		return destination + " = " + this.compileExpression(sourceString);
+	}
+
 	private Option<String> compileDefinitionAsStatement(String input) {
 		final var maybeDefinition = this.compileDefinition(input);
-		if (maybeDefinition.isPresent()) {
-			final var definition = maybeDefinition.get();
-
-			this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
-
-			return new Some<String>(definition.generate());
-		} else {
+		if (!maybeDefinition.isPresent()) {
 			return new None<String>();
 		}
+
+		final var definition = maybeDefinition.get();
+		this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
+		return new Some<String>(definition.generate());
 	}
 
 	private String compileExpression(String input) {
