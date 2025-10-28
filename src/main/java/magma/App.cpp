@@ -502,6 +502,14 @@ struct CCaller {
 CPrimitiveType VoidValue = CPrimitiveType { "void" };
 CPrimitiveType CharValue = CPrimitiveType { "char" };
 CPrimitiveType IntValue = CPrimitiveType { "int" };
+App<> new_App() {
+	App<> _this;
+	return _this;
+}
+CPrimitiveType<> new_CPrimitiveType() {
+	CPrimitiveType<> _this;
+	return _this;
+}
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	CTypeData data;
@@ -525,23 +533,71 @@ CType replaceIdentifiersWithMapping_CPrimitiveType(void* _ref, HashMap<char*, CT
 	return _this;
 }
 template <typename T, typename R>
+Function<T, R> new_Function() {
+	Function<T, R> _this;
+	return _this;
+}
+template <typename T, typename R>
 R apply_Function(void* _ref, T arg);
+template <typename A, typename B, typename R>
+BiFunction<A, B, R> new_BiFunction() {
+	BiFunction<A, B, R> _this;
+	return _this;
+}
 template <typename A, typename B, typename R>
 R apply_BiFunction(void* _ref, A left, B right);
 template <typename T>
+Consumer<T> new_Consumer() {
+	Consumer<T> _this;
+	return _this;
+}
+template <typename T>
 void accept_Consumer(void* _ref, T value);
 template <typename T>
+Head<T> new_Head() {
+	Head<T> _this;
+	return _this;
+}
+template <typename T>
 Option<T> next_Head(void* _ref);
+template <typename T, typename C>
+Collector<T, C> new_Collector() {
+	Collector<T, C> _this;
+	return _this;
+}
 template <typename T, typename C>
 C createInitial_Collector(void* _ref);
 template <typename T, typename C>
 C fold_Collector(void* _ref, C current, T element);
 template <typename T>
+Supplier<T> new_Supplier() {
+	Supplier<T> _this;
+	return _this;
+}
+template <typename T>
 T get_Supplier(void* _ref);
+template <typename T, typename X>
+Result<T, X> new_Result() {
+	Result<T, X> _this;
+	return _this;
+}
+CType<> new_CType() {
+	CType<> _this;
+	return _this;
+}
 char* generate_CType(void* _ref);
 char* getSimpleName_CType(void* _ref);
 CType replaceIdentifiersWithMapping_CType(void* _ref, HashMap<char*, CType> mapping);
+CFunctionHeader<> new_CFunctionHeader() {
+	CFunctionHeader<> _this;
+	return _this;
+}
 char* generate_CFunctionHeader(void* _ref);
+template <typename T>
+Option<T> new_Option() {
+	Option<T> _this;
+	return _this;
+}
 template <typename T, typename R>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);
 template <typename T>
@@ -565,12 +621,34 @@ Stream<T> stream_Option(void* _ref);
 template <typename T, typename R>
 Option<Tuple<T, R>> and_Option(void* _ref, Supplier<Option<R>> other);
 template <typename T>
+Predicate<T> new_Predicate() {
+	Predicate<T> _this;
+	return _this;
+}
+template <typename T>
 int test_Predicate(void* _ref, T element);
 App new_App(void* _ref);
+CStructureMember<> new_CStructureMember() {
+	CStructureMember<> _this;
+	return _this;
+}
 Option<CDefinition> toDefinition_CStructureMember(void* _ref);
+CNode<> new_CNode() {
+	CNode<> _this;
+	return _this;
+}
 char* generate_CNode(void* _ref);
 App new_App(void* _ref);
+CCaller<> new_CCaller() {
+	CCaller<> _this;
+	return _this;
+}
 char* generate_CCaller(void* _ref);
+template <typename T>
+SingleHead<T> new_SingleHead() {
+	SingleHead<T> _this;
+	return _this;
+}
 template <typename T>
 Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
@@ -592,6 +670,11 @@ Option<T> next_SingleHead(void* _ref) {
 	}
 	_this.retrieved = 1;
 	return new_Some<T>(_this.element);
+}
+template <typename T>
+EmptyHead<T> new_EmptyHead() {
+	EmptyHead<T> _this;
+	return _this;
 }
 template <typename T>
 Head<T> toHead_EmptyHead(void* _ref){
@@ -686,6 +769,11 @@ template <typename T, typename R>
 Stream<Tuple<T, R>> zip_Stream(void* _ref, Stream<R> other) {
 	Stream<T> _this = *((Stream*) _ref);
 	return new_Stream<Tuple<T, R>>(new_ZipHead<T, R>(_this.head, other.head));
+}
+template <typename T>
+ArrayList<T> new_ArrayList() {
+	ArrayList<T> _this;
+	return _this;
 }
 template <typename T>
 ArrayList<T> new_ArrayList(void* _ref) {
@@ -886,6 +974,11 @@ Option<Tuple<T, R>> and_Some(void* _ref, Supplier<Option<R>> other) {
 	return other.get().map(_lambda3_);
 }
 template <typename T>
+None<T> new_None() {
+	None<T> _this;
+	return _this;
+}
+template <typename T>
 Option<T> toOption_None(void* _ref){
 	None<T> _this = *((None<T>*) _ref);
 	OptionData<T> data;
@@ -1053,6 +1146,10 @@ Tuple<A, B> new_Tuple(A left, B right) {
 	_this.right = right;
 	return _this;
 }
+State<> new_State() {
+	State<> _this;
+	return _this;
+}
 State new_State(void* _ref, char* input) {
 	State _this = *((State*) _ref);
 	_this.input = input;
@@ -1177,6 +1274,11 @@ char* generate_CStructure(void* _ref) {
 	return _this.CStructureHeader().generate() + " {" + this.fields() + System.lineSeparator() + "};";
 }
 template <typename T, typename R>
+MapHead<T, R> new_MapHead() {
+	MapHead<T, R> _this;
+	return _this;
+}
+template <typename T, typename R>
 Head<R> toHead_MapHead(void* _ref){
 	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
 	HeadData<T, R> data;
@@ -1193,6 +1295,11 @@ template <typename T, typename R>
 Option<R> next_MapHead(void* _ref) {
 	MapHead<T, R> _this = *((MapHead*) _ref);
 	return _this.head.next().map(_this.mapper);
+}
+template <typename T>
+ListHead<T> new_ListHead() {
+	ListHead<T> _this;
+	return _this;
 }
 template <typename T>
 Head<T> toHead_ListHead(void* _ref){
@@ -1218,6 +1325,11 @@ Option<T> next_ListHead(void* _ref) {
 	return new_None<T>();
 }
 template <typename T>
+ListCollector<T> new_ListCollector() {
+	ListCollector<T> _this;
+	return _this;
+}
+template <typename T>
 Collector<T, ArrayList<T>> toCollector_ListCollector(void* _ref){
 	ListCollector<T> _this = *((ListCollector<T>*) _ref);
 	CollectorData<T> data;
@@ -1233,6 +1345,11 @@ template <typename T>
 ArrayList<T> fold_ListCollector(void* _ref, ArrayList<T> current, T element) {
 	ListCollector<T> _this = *((ListCollector*) _ref);
 	return current.addLast(element);
+}
+template <typename T, typename R>
+FlatMapHead<T, R> new_FlatMapHead() {
+	FlatMapHead<T, R> _this;
+	return _this;
 }
 template <typename T, typename R>
 Head<R> toHead_FlatMapHead(void* _ref){
@@ -1288,6 +1405,10 @@ char* fold_Joiner(void* _ref, char* current, char* element) {
 		return element;
 	}
 	return current + _this.delimiter + element;
+}
+EmptyCStructureSegment<> new_EmptyCStructureSegment() {
+	EmptyCStructureSegment<> _this;
+	return _this;
 }
 CStructureSegment toCStructureSegment_EmptyCStructureSegment(void* _ref){
 	EmptyCStructureSegment _this = *((EmptyCStructureSegment*) _ref);
@@ -1352,6 +1473,10 @@ CExpression toCExpression_CFieldAccess(void* _ref){
 char* generate_CFieldAccess(void* _ref) {
 	CFieldAccess _this = *((CFieldAccess*) _ref);
 	return _this.child.generate() + "." + _this.name;
+}
+Frames<> new_Frames() {
+	Frames<> _this;
+	return _this;
 }
 /*private ArrayList<Frame> frames = ArrayList.empty*/(void* _ref);
 Frames new_Frames(void* _ref) {
@@ -1477,6 +1602,11 @@ Option<V> get_HashMap(void* _ref, K key) {
 		return new_Some<V>(_this.internal.get(key));
 	}
 	return new_None<V>();
+}
+template <typename K, typename V>
+MapCollector<K, V> new_MapCollector() {
+	MapCollector<K, V> _this;
+	return _this;
 }
 template <typename K, typename V>
 Collector<Tuple<K, V>, HashMap<K, V>> toCollector_MapCollector(void* _ref){
@@ -1676,6 +1806,11 @@ Option<CStructureType> findStructure_Frame(void* _ref, char* name) {
 Frame defineStructure_Frame(void* _ref, CStructureType type) {
 	Frame _this = *((Frame*) _ref);
 	return new_Frame(_this.maybeHeader, _this.definitions, _this.structures.addLast(type));
+}
+template <typename T>
+ArrayHead<T> new_ArrayHead() {
+	ArrayHead<T> _this;
+	return _this;
 }
 template <typename T>
 Head<T> toHead_ArrayHead(void* _ref){
@@ -1972,14 +2107,12 @@ auto _lambda137_(auto _ref) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]*/ unionFields = variants.stream().map(_lambda127_).collect(new_Joiner(""));
 					dependencies +  = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
-				if (/*!recordParameters*/.isEmpty()) {
-					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(typeParameters.stream(). < startCType>mapend)]end]*/ types = typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
-					/*Not a function type: Placeholder[input=new_CTemplateType]*/ thisType = new_CTemplateType(beforeContent, types);
-					/*Not a function type: Placeholder[input=new_CDefinition]*/ header = new_CDefinition(/*ArrayList*/.empty(), thisType, "new_" + beforeContent);
-					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = recordParameters.stream().map(_lambda131_).collect(new_Joiner());
-					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startSystemend.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + startSystemend.lineSeparator() + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = /*System*/.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + /*System*/.lineSeparator() + "\treturn _this;" + /*System*/.lineSeparator();
-					_this.functions = _this.functions.addLast(_this.generateMethod(typeParameters, header, constructorContent1, recordParameters));
-				}
+				/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(typeParameters.stream(). < startCType>mapend)]end]*/ types = typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
+				/*Not a function type: Placeholder[input=new_CTemplateType]*/ thisType = new_CTemplateType(beforeContent, types);
+				/*Not a function type: Placeholder[input=new_CDefinition]*/ constructorHeader = new_CDefinition(/*ArrayList*/.empty(), thisType, "new_" + beforeContent);
+				/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = recordParameters.stream().map(_lambda131_).collect(new_Joiner());
+				/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startSystemend.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + startSystemend.lineSeparator() + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = /*System*/.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + /*System*/.lineSeparator() + "\treturn _this;" + /*System*/.lineSeparator();
+				_this.functions = _this.functions.addLast(_this.generateMethod(typeParameters, constructorHeader, constructorContent1, recordParameters));
 				char* generatedFields;
 				if (variants.isEmpty()) {
 					generatedFields = recordParameters.stream().map(generate_CDefinition).map(_lambda135_).collect(new_Joiner(""));
@@ -1990,8 +2123,8 @@ auto _lambda137_(auto _ref) {
 				if (/*maybeInterfaceType*/.isPresent()) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startmaybeInterfaceTypeend]*/ interfaceType = /*maybeInterfaceType*/.get();
 					/*Not a function type: Placeholder[input=Undefined field 'joinTypeArguments' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ joinedTypeArguments = _this.joinTypeArguments(typeParameters);
-					/*typeof(beforeContent + joinedTypeArguments)*/ thisType = beforeContent + joinedTypeArguments;
-					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*new CStatement(new CContent(thisType*/ + " _this = *((" + thisType + /*"*) _ref)"), 1).generate()*/ + new_CStatement(/*new CContent(interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data"),
+					/*typeof(beforeContent + joinedTypeArguments)*/ thisTypeString = beforeContent + joinedTypeArguments;
+					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*new CStatement(new CContent(thisTypeString*/ + " _this = *((" + thisTypeString + /*"*) _ref)"), 1).generate()*/ + new_CStatement(/*new CContent(interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data"),
 															 1).generate()*/ + /*new CStatement(new CContent("data."*/ + beforeContent.toLowerCase() + /*" = _this"), 1).generate()*/ + /*new CStatement(new CContent(
 										"return "*/ + interfaceType.generate() + " { " + beforeContent + "Tag, " + /*"data }"), 1).generate()*/ + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator());
 				}

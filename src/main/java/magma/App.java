@@ -1303,25 +1303,23 @@ public class App {
 														unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
-					if (!recordParameters.isEmpty()) {
-						final var types = typeParameters.stream().<CType>map(CIdentifier::new).toList();
-						final var thisType = new CTemplateType(beforeContent, types);
-						final var header = new CDefinition(ArrayList.empty(), thisType, "new_" + beforeContent);
+					final var types = typeParameters.stream().<CType>map(CIdentifier::new).toList();
+					final var thisType = new CTemplateType(beforeContent, types);
+					final var constructorHeader = new CDefinition(ArrayList.empty(), thisType, "new_" + beforeContent);
 
-						final var assignments = recordParameters
-								.stream()
-								.map(parameter -> System.lineSeparator() + "\t_this." + parameter.name + " = " + parameter.name + ";")
-								.collect(new Joiner());
+					final var assignments = recordParameters
+							.stream()
+							.map(parameter -> System.lineSeparator() + "\t_this." + parameter.name + " = " + parameter.name + ";")
+							.collect(new Joiner());
 
-						final var constructorContent1 =
-								System.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + System.lineSeparator() +
-								"\treturn _this;" + System.lineSeparator();
+					final var constructorContent1 =
+							System.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + System.lineSeparator() +
+							"\treturn _this;" + System.lineSeparator();
 
-						this.functions = this.functions.addLast(this.generateMethod(typeParameters,
-																																				header,
-																																				constructorContent1,
-																																				recordParameters));
-					}
+					this.functions = this.functions.addLast(this.generateMethod(typeParameters,
+																																			constructorHeader,
+																																			constructorContent1,
+																																			recordParameters));
 
 					final String generatedFields;
 					if (variants.isEmpty()) {
@@ -1341,11 +1339,11 @@ public class App {
 						final var interfaceType = maybeInterfaceType.get();
 						final var joinedTypeArguments = this.joinTypeArguments(typeParameters);
 
-						final var thisType = beforeContent + joinedTypeArguments;
+						final var thisTypeString = beforeContent + joinedTypeArguments;
 						this.functions = this.functions.addLast(
 								templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
 								beforeContent + "(void* _ref" + "){" +
-								new CStatement(new CContent(thisType + " _this = *((" + thisType + "*) _ref)"), 1).generate() +
+								new CStatement(new CContent(thisTypeString + " _this = *((" + thisTypeString + "*) _ref)"), 1).generate() +
 								new CStatement(new CContent(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data"),
 															 1).generate() +
 								new CStatement(new CContent("data." + beforeContent.toLowerCase() + " = _this"), 1).generate() +
