@@ -383,6 +383,7 @@ enum FramesTag {
 union FramesData {
 };
 struct Frames {
+	ArrayList<Frame> frames;
 };
 enum HashMapTag {
 };
@@ -1485,9 +1486,9 @@ Frames new_Frames() {
 	Frames _this;
 	return _this;
 }
-/*private ArrayList<Frame> frames = ArrayList.empty*/(void* _ref);
 Frames new_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
+	_this.frames = /*ArrayList*/.empty();
 }
 auto _lambda11_(auto _ref, auto last) {
 	auto _this = _ref;

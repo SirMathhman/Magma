@@ -766,9 +766,10 @@ public class App {
 	}
 
 	private static class Frames {
-		private ArrayList<Frame> frames = ArrayList.empty();
+		private ArrayList<Frame> frames;
 
-		public Frames() {
+		private Frames() {
+			this.frames = ArrayList.empty();
 		}
 
 		private Frames defineAll(ArrayList<CDefinition> params) {
