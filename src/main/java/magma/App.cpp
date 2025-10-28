@@ -178,10 +178,12 @@ char* getSimpleName_CPPPrimitiveType(void* _ref) {
 char* generate_CPPType(void* _ref);
 char* getSimpleName_CPPType(void* _ref);
 char* generate_CFunctionHeader(void* _ref);
+template <typename T>
 Option<T> of_Option(void* _ref, T element) {
 	Option<T> _this = *((Option*) _ref);
 	return new_Some<T>(element);
 }
+template <typename T>
 Option<T> empty_Option(void* _ref) {
 	Option<T> _this = *((Option*) _ref);
 	return new_None<T>();
@@ -196,31 +198,38 @@ T orElse_Option(void* _ref, T other);
 T orElseGet_Option(void* _ref, Supplier<T> other);
 int isPresent_Option(void* _ref);
 Stream<T> stream_Option(void* _ref);
+template <typename T>
 ArrayList new_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this(new_java.util.ArrayList<T>());
 }
+template <typename T>
 ArrayList<T> of_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(Arrays.asList(elements)));
 }
+template <typename T>
 Stream<T> stream_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return _this.inner.stream();
 }
+template <typename T>
 ArrayList<T> add_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this.inner.add(element);
 	return _this;
 }
+template <typename T>
 int isEmpty_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return _this.inner.isEmpty();
 }
+template <typename T>
 ArrayList<T> copy_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	return new_ArrayList<T>(new_java.util.ArrayList<T>(_this.inner));
 }
+template <typename T>
 ArrayList<T> addFirst_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
 	_this.inner.addFirst(element);
@@ -247,42 +256,52 @@ Option<T> toOption_Some(void* _ref){
 	data.some = _this;
 	return Option<T> { SomeTag, data };
 }
+template <typename T>
 Option<R> map_Some(void* _ref, Function<T, R> mapper) {
 	Some<T> _this = *((Some*) _ref);
 	return new_Some<R>(mapper.apply(_this.value));
 }
+template <typename T>
 void ifPresent_Some(void* _ref, Consumer<T> consumer) {
 	Some<T> _this = *((Some*) _ref);
 	consumer.accept(_this.value);
 }
+template <typename T>
 Option<T> or_Some(void* _ref, Supplier<Option<T>> other) {
 	Some<T> _this = *((Some*) _ref);
 	return _this;
 }
+template <typename T>
 int isEmpty_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
 	return false;
 }
+template <typename T>
 T get_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
 	return _this.value;
 }
+template <typename T>
 Option<R> flatMap_Some(void* _ref, Function<T, Option<R>> mapper) {
 	Some<T> _this = *((Some*) _ref);
 	return mapper.apply(_this.value);
 }
+template <typename T>
 T orElse_Some(void* _ref, T other) {
 	Some<T> _this = *((Some*) _ref);
 	return _this.value;
 }
+template <typename T>
 T orElseGet_Some(void* _ref, Supplier<T> other) {
 	Some<T> _this = *((Some*) _ref);
 	return _this.value;
 }
+template <typename T>
 int isPresent_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
 	return true;
 }
+template <typename T>
 Stream<T> stream_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
 	return Stream.of(_this.value);
@@ -294,41 +313,51 @@ Option<T> toOption_None(void* _ref){
 	data.none = _this;
 	return Option<T> { NoneTag, data };
 }
+template <typename T>
 Option<R> map_None(void* _ref, Function<T, R> mapper) {
 	None<T> _this = *((None*) _ref);
 	return new_None<R>();
 }
+template <typename T>
 void ifPresent_None(void* _ref, Consumer<T> consumer) {
 	None<T> _this = *((None*) _ref);
 }
+template <typename T>
 Option<T> or_None(void* _ref, Supplier<Option<T>> other) {
 	None<T> _this = *((None*) _ref);
 	return other.get();
 }
+template <typename T>
 int isEmpty_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return true;
 }
+template <typename T>
 T get_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return null;
 }
+template <typename T>
 Option<R> flatMap_None(void* _ref, Function<T, Option<R>> mapper) {
 	None<T> _this = *((None*) _ref);
 	return new_None<R>();
 }
+template <typename T>
 T orElse_None(void* _ref, T other) {
 	None<T> _this = *((None*) _ref);
 	return other;
 }
+template <typename T>
 T orElseGet_None(void* _ref, Supplier<T> other) {
 	None<T> _this = *((None*) _ref);
 	return other.get();
 }
+template <typename T>
 int isPresent_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return false;
 }
+template <typename T>
 Stream<T> stream_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
 	return Stream.empty();
@@ -485,6 +514,10 @@ char* generateAsType_CStructureHeader(void* _ref) {
 char* generate_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
 	return App.createTemplateString(_this.typeParameters()) + "struct " + _this.name();
+}
+char* createTemplateString_CStructureHeader(void* _ref) {
+	CStructureHeader _this = *((CStructureHeader*) _ref);
+	return App.createTemplateString(_this.typeParameters);
 }
 char* generate_CStructure(void* _ref) {
 	CStructure _this = *((CStructure*) _ref);
@@ -756,14 +789,6 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 										1)*/ + System.lineSeparator() + "}" + System.lineSeparator());
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
-				CPPType thisType;
-				if (typeParameters.isEmpty()) {
-					thisType = new_CIdentifier(beforeContent);
-				}
-				else {
-					ArrayList<CPPType> list = new_ArrayList<CPPType>(typeParameters.stream(). < /*CPPType>map*/(new_CIdentifier).toList());
-					thisType = new_CTemplateType(beforeContent, list);
-				}
 				CStructureHeader header = new_CStructureHeader(typeParameters, beforeContent);
 				_this.structureHeaders.push(header);
 				char* outputContent = fields + System.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
@@ -872,7 +897,8 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
 		CStructureHeader currentStructureType = _this.structureHeaders.peek();
 		char* thisDefinition = _this.generateStatement(currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
-		generated = beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
+		char* templateString = _this.structureHeaders.peek().createTemplateString();
+		generated = templateString + beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 	else {
 		generated = beforeContent + ";" + System.lineSeparator();

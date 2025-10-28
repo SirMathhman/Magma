@@ -374,6 +374,10 @@ public class App {
 		public String generate() {
 			return App.createTemplateString(this.typeParameters()) + "struct " + this.name();
 		}
+
+		public String createTemplateString() {
+			return App.createTemplateString(this.typeParameters);
+		}
 	}
 
 	private record CStructure(CStructureHeader CStructureHeader, String fields) {
@@ -716,15 +720,6 @@ public class App {
 					this.forwardDeclarations =
 							this.forwardDeclarations.add(templateString + "struct " + beforeContent + ";" + System.lineSeparator());
 
-					final CPPType thisType;
-					if (typeParameters.isEmpty()) {
-						thisType = new CIdentifier(beforeContent);
-					} else {
-						final ArrayList<CPPType> list =
-								new ArrayList<CPPType>(typeParameters.stream().<CPPType>map(CIdentifier::new).toList());
-						thisType = new CTemplateType(beforeContent, list);
-					}
-
 					final CStructureHeader header = new CStructureHeader(typeParameters, beforeContent);
 					this.structureHeaders.push(header);
 
@@ -841,9 +836,10 @@ public class App {
 			final String thisDefinition = this.generateStatement(
 					currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
-			generated =
-					beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) + System.lineSeparator() + "}" +
-					System.lineSeparator();
+			final String templateString = this.structureHeaders.peek().createTemplateString();
+
+			generated = templateString + beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) +
+									System.lineSeparator() + "}" + System.lineSeparator();
 		} else {
 			generated = beforeContent + ";" + System.lineSeparator();
 		}

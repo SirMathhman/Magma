@@ -34,55 +34,48 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:49: warning:
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:159:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   159 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
       |                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:181:8: error: use of undeclared identifier 'T'
-  181 | Option<T> of_Option(void* _ref, T element) {
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:8: error: use of undeclared identifier 'R'
+  191 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:181:33: error: unknown type name 'T'
-  181 | Option<T> of_Option(void* _ref, T element) {
-      |                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:182:9: error: use of undeclared identifier 'T'
-  182 |         Option<T> _this = *((Option*) _ref);
-      |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:182:23: error: use of class template 'Option' requires template arguments
-  182 |         Option<T> _this = *((Option*) _ref);
-      |                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:153:8: note: template is declared here
-  152 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-  153 | struct Option {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:183:18: error: use of undeclared identifier 'T'
-  183 |         return new_Some<T>(element);
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:185:8: error: use of undeclared identifier 'T'
-  185 | Option<T> empty_Option(void* _ref) {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:9: error: use of undeclared identifier 'T'
-  186 |         Option<T> _this = *((Option*) _ref);
-      |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:23: error: use of class template 'Option' requires template arguments
-  186 |         Option<T> _this = *((Option*) _ref);
-      |                              ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:153:8: note: template is declared here
-  152 | template <typename T>
-      | ~~~~~~~~~~~~~~~~~~~~~
-  153 | struct Option {
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:187:18: error: use of undeclared identifier 'T'
-  187 |         return new_None<T>();
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:189:8: error: use of undeclared identifier 'R'
-  189 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:189:43: error: use of undeclared identifier 'T'
-  189 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:43: error: use of undeclared identifier 'T'
+  191 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |                                           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:190:44: error: use of undeclared identifier 'T'
-  190 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:44: error: use of undeclared identifier 'T'
+  192 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
       |                                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:8: error: use of undeclared identifier 'T'
-  191 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:193:8: error: use of undeclared identifier 'T'
+  193 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
       |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:193:49: error: use of undeclared identifier 'T'
+  193 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:1: error: unknown type name 'T'
+  195 | T get_Option(void* _ref);
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:8: error: use of undeclared identifier 'R'
+  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:47: error: use of undeclared identifier 'T'
+  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                               ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:59: error: expected ')'
+  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                                           ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:25: note: to match this '('
+  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:197:1: error: unknown type name 'T'
+  197 | T orElse_Option(void* _ref, T other);
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:197:29: error: unknown type name 'T'
+  197 | T orElse_Option(void* _ref, T other);
+      |                             ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:198:1: error: unknown type name 'T'
+  198 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:198:41: error: use of undeclared identifier 'T'
+  198 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                         ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1
