@@ -1565,7 +1565,9 @@ public class App {
 						yield type;
 					}
 
-					yield new Placeholder("Undefined field '" + fieldAccess.name + "' in '" + structureType.name + "'");
+					yield new Placeholder(
+							"Undefined field '" + fieldAccess.name + "' in '" + structureType.name + "' of type '" + childType +
+							"'");
 				}
 
 				yield new Placeholder("Does not have a type of structure: " + childType.generate());
