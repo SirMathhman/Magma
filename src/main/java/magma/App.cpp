@@ -298,7 +298,7 @@ Head<T> toHead_SingleHead(void* _ref){
 	return Head<T> { SingleHeadTag, data };
 }
 template <typename T>
-private SingleHead_SingleHead(void* _ref, T element) {
+SingleHead<T> new_SingleHead(void* _ref, T element) {
 	SingleHead<T> _this = *((SingleHead*) _ref);
 	_this.element = element;
 	_this.retrieved = false;
@@ -782,7 +782,7 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	return Head<R> { FlatMapHeadTag, data };
 }
 template <typename T, typename R>
-private FlatMapHead_FlatMapHead(void* _ref, Head<T> head, Function<T, Stream<R>> mapper) {
+FlatMapHead<T, R> new_FlatMapHead(void* _ref, Head<T> head, Function<T, Stream<R>> mapper) {
 	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
 	_this.head = head;
 	_this.mapper = mapper;
@@ -1666,7 +1666,7 @@ Option<CType> compileType_App(void* _ref, char* input) {
 		}
 	}
 	if (_this.isIdentifier(stripped)) {
-		if (stripped.equals("public")) {
+		if (/*stripped.equals("public") || stripped*/.equals("private")) {
 			return Option.empty();
 		}
 		return Option.of(new_CIdentifier(stripped));

@@ -1510,7 +1510,7 @@ public class App {
 		}
 
 		if (this.isIdentifier(stripped)) {
-			if (stripped.equals("public")) {
+			if (stripped.equals("public") || stripped.equals("private")) {
 				return Option.empty();
 			}
 

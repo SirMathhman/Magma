@@ -71,9 +71,6 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:284:57: error: u
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:288:32: error: no template named 'Supplier'
   288 | T orElseGet_Option(void* _ref, Supplier<T> other);
       |                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:301:1: error: expected unqualified-id
-  301 | private SingleHead_SingleHead(void* _ref, T element) {
-      | ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:338:8: error: use of undeclared identifier 'R'
   338 | Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
       |        ^
@@ -83,6 +80,9 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:338:46: error: u
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:343:1: error: unknown type name 'R'
   343 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
       | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:343:27: error: unknown type name 'R'
+  343 | R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
+      |                           ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1
