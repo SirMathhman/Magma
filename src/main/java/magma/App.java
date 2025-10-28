@@ -1920,6 +1920,7 @@ public class App {
 				.compileOperator(stripped, "+")
 				.or(() -> this.compileOperator(stripped, "-"))
 				.or(() -> this.compileOperator(stripped, "&&"))
+				.or(() -> this.compileOperator(stripped, "||"))
 				.or(() -> this.compileOperator(stripped, "=="))
 				.or(() -> this.compileOperator(stripped, ">="))
 				.or(() -> this.compileOperator(stripped, "<"));
