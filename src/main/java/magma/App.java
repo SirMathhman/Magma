@@ -227,8 +227,17 @@ public class App {
 			return this.inner.getLast();
 		}
 
+		private ArrayList<T> setLast(T element) {
+			this.inner.set(this.inner.size() - 1, element);
+			return this;
+		}
+
 		public ArrayList<T> addAllLast(ArrayList<T> others) {
 			return others.stream().fold(this, ArrayList::addLast);
+		}
+
+		public ArrayList<T> mapLast(Function<T, T> mapper) {
+			return this.setLast(mapper.apply(this.getLast()));
 		}
 	}
 
@@ -1091,7 +1100,7 @@ public class App {
 	}
 
 	private Option<String> compileDefinitionToField(String slice) {
-		return this.compileDefinition(slice).map(CDefinition::generate).map(content -> this.generateStatement(content, 1));
+		return this.compileDefinitionAsStatement(slice).map(content -> this.generateStatement(content, 1));
 	}
 
 	private String compileMethodSegments(String content) {
@@ -1168,7 +1177,9 @@ public class App {
 			final var content = stripped.substring(1, stripped.length() - 1);
 
 			this.depth++;
+			this.definitions = this.definitions.addLast(ArrayList.empty());
 			final var compiled = this.compileMethodSegments(content);
+			this.definitions = this.definitions.removeLast();
 			this.depth--;
 
 			return Option.of("{" + compiled + this.generateIndent(this.depth) + "}");
@@ -1249,10 +1260,7 @@ public class App {
 		if (separator >= 0) {
 			final var substring = stripped.substring(0, separator).strip();
 			final var substring1 = stripped.substring(separator + 1).strip();
-			final var s = this
-					.compileDefinition(substring)
-					.map(CDefinition::generate)
-					.orElseGet(() -> this.compileExpression(substring));
+			final var s = this.compileDefinitionAsStatement(substring).orElseGet(() -> this.compileExpression(substring));
 
 			return s + " = " + this.compileExpression(substring1);
 		}
@@ -1271,8 +1279,21 @@ public class App {
 
 		return this
 				.compileInvocation(stripped)
-				.or(() -> this.compileDefinition(input).map(CDefinition::generate))
+				.or(() -> this.compileDefinitionAsStatement(input))
 				.orElseGet(() -> Placeholder.wrap(stripped));
+	}
+
+	private Option<String> compileDefinitionAsStatement(String input) {
+		final var maybeDefinition = this.compileDefinition(input);
+		if (maybeDefinition.isPresent()) {
+			final var definition = maybeDefinition.get();
+
+			this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
+
+			return new Some<String>(definition.generate());
+		} else {
+			return new None<String>();
+		}
 	}
 
 	private String compileExpression(String input) {
