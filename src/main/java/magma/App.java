@@ -1120,9 +1120,9 @@ public class App {
 		final var joinedSealedStructures = String.join("", this.sealedStructures.inner);
 		final var joinedGlobals = String.join("", this.globals.inner);
 
-		return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals +
-					 joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
-					 "}";
+		return "#include \"Native.h\"" + System.lineSeparator() + joinedForwardDeclarations + compiled + joinedStructures +
+					 joinedSealedStructures + joinedGlobals + joinedFunctions + "int main(){" + System.lineSeparator() +
+					 "\treturn " + "0;" + System.lineSeparator() + "}";
 	}
 
 	private String compileStatements(String input, Function<String, String> mapper) {
@@ -2045,7 +2045,7 @@ public class App {
 					final var caller = maybeCaller.get();
 					if (caller instanceof CFieldAccess(var child, var name)) {
 						final var childType = this.resolveExpression(child);
-						final var newCallerAlias = name + "_" + childType.generate();
+						final var newCallerAlias = name + "_" + childType.getSimpleName();
 						return new Some<CExpression>(new CInvocation(new CIdentifier(newCallerAlias),
 																												 arguments.addFirst(new CReference(child))));
 					}

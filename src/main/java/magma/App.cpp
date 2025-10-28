@@ -1,3 +1,4 @@
+#include "Native.h"
 struct App;
 struct CPrimitiveType;
 template <typename T, typename R>
@@ -602,7 +603,7 @@ Head<Tuple<T, R>> toHead_ZipHead(void* _ref){
 template <typename T, typename R>
 Option<Tuple<T, R>> next_ZipHead(void* _ref) {
 	ZipHead<T, R> _this = *((ZipHead*) _ref);
-	return and_/*Not a function type: Placeholder[input=next_Head<T>]*/(&next_Head<T>(&_this.head), next_?);
+	return and_/*Not a function type: Placeholder[input=next_Head]*/(&next_Head(&_this.head), next_?);
 }
 template <typename T>
 Stream<T> new_Stream(Head<T> head) {
@@ -694,12 +695,12 @@ ArrayList<T> empty_ArrayList(void* _ref) {
 template <typename T>
 char* toString_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_List<T>]end]*/(&map_/*Not a function type: Placeholder[input=stream_List<T>]*/(&stream_List<T>(&_this.inner), toString_Objects), joining_/*Collectors*/(&/*Collectors*/, ", ", "[", "]"));
+	return collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_List]end]*/(&map_/*Not a function type: Placeholder[input=stream_List]*/(&stream_List(&_this.inner), toString_Objects), joining_/*Collectors*/(&/*Collectors*/, ", ", "[", "]"));
 }
 template <typename T>
 int size_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return size_List<T>(&_this.inner);
+	return size_List(&_this.inner);
 }
 template <typename T>
 Stream<T> stream_ArrayList(void* _ref) {
@@ -709,13 +710,13 @@ Stream<T> stream_ArrayList(void* _ref) {
 template <typename T>
 ArrayList<T> addLast_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	add_List<T>(&_this.inner, element);
+	add_List(&_this.inner, element);
 	return _this;
 }
 template <typename T>
 int isEmpty_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return isEmpty_List<T>(&_this.inner);
+	return isEmpty_List(&_this.inner);
 }
 template <typename T>
 ArrayList<T> copy_ArrayList(void* _ref) {
@@ -725,30 +726,30 @@ ArrayList<T> copy_ArrayList(void* _ref) {
 template <typename T>
 ArrayList<T> addFirst_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	addFirst_List<T>(&_this.inner, element);
+	addFirst_List(&_this.inner, element);
 	return _this;
 }
 template <typename T>
 ArrayList<T> removeLast_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	removeLast_List<T>(&_this.inner);
+	removeLast_List(&_this.inner);
 	return _this;
 }
 template <typename T>
 T getLast_ArrayList(void* _ref) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return getLast_List<T>(&_this.inner);
+	return getLast_List(&_this.inner);
 }
 template <typename T>
 ArrayList<T> setLast_ArrayList(void* _ref, T element) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	set_List<T>(&_this.inner, size_List<T>(&_this.inner) - 1, element);
+	set_List(&_this.inner, size_List(&_this.inner) - 1, element);
 	return _this;
 }
 template <typename T>
 ArrayList<T> addAllLast_ArrayList(void* _ref, ArrayList<T> others) {
 	ArrayList<T> _this = *((ArrayList*) _ref);
-	return fold_/*Not a function type: Placeholder[input=stream_ArrayList<T>]*/(&stream_ArrayList<T>(&others), _this, addLast_ArrayList);
+	return fold_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&others), _this, addLast_ArrayList);
 }
 template <typename T>
 ArrayList<T> mapLast_ArrayList(void* _ref, Function<T, T> mapper) {
@@ -973,12 +974,12 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*Not a function type: Placeholder[input=stream_ArrayList<CType>]*/ stream = stream_ArrayList<CType>(&_this.typeArguments);
-	/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]*/ map = map_/*Not a function type: Placeholder[input=stream_ArrayList<CType>]*/(&stream, generate_CType);
+	/*Not a function type: Placeholder[input=stream_ArrayList]*/ stream = stream_ArrayList(&_this.typeArguments);
+	/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/ map = map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream, generate_CType);
 	/*Not a function type: Placeholder[input=new_Joiner]*/ collector = new_Joiner(", ");
-	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]end]*/ joined = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]*/(&map, collector);
+	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ joined = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map, collector);
 	char* s;
-	if (isEmpty_ArrayList<CType>(&_this.typeArguments)) {
+	if (isEmpty_ArrayList(&_this.typeArguments)) {
 		s = "";
 	}
 	else {
@@ -996,7 +997,7 @@ auto _lambda7_(auto _ref, auto arg) {
 }
 CType replaceIdentifiersWithMapping_CTemplateType(void* _ref, HashMap<char*, CType> mapping) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]end]*/ collect = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<CType>]*/(&stream_ArrayList<CType>(&_this.typeArguments), _lambda7_), new_ListCollector<CType>());
+	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ collect = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.typeArguments), _lambda7_), new_ListCollector<CType>());
 	return new_CTemplateType(_this.base, collect);
 }
 CIdentifier new_CIdentifier(char* value) {
@@ -1014,7 +1015,7 @@ char* getSimpleName_CIdentifier(void* _ref) {
 }
 CType replaceIdentifiersWithMapping_CIdentifier(void* _ref, HashMap<char*, CType> mapping) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	return orElse_/*Not a function type: Placeholder[input=get_HashMap<char*, CType>]*/(&get_HashMap<char*, CType>(&mapping, _this.value), _this);
+	return orElse_/*Not a function type: Placeholder[input=get_HashMap]*/(&get_HashMap(&mapping, _this.value), _this);
 }
 Placeholder new_Placeholder(char* input) {
 	Placeholder _this;
@@ -1023,8 +1024,8 @@ Placeholder new_Placeholder(char* input) {
 }
 char* wrap_Placeholder(void* _ref, char* input) {
 	Placeholder _this = *((Placeholder*) _ref);
-	/*Not a function type: Placeholder[input=replace_char*]*/ withoutStart = replace_char*(&input, "/*", "start");
-	/*Not a function type: Placeholder[input=replace_startNot a function type: Placeholder[input=replace_char*]end]*/ withoutEnd = replace_/*Not a function type: Placeholder[input=replace_char*]*/(&withoutStart, "*/", "end");
+	/*Not a function type: Placeholder[input=replace_char_ref]*/ withoutStart = replace_char_ref(&input, "/*", "start");
+	/*Not a function type: Placeholder[input=replace_startNot a function type: Placeholder[input=replace_char_ref]end]*/ withoutEnd = replace_/*Not a function type: Placeholder[input=replace_char_ref]*/(&withoutStart, "*/", "end");
 	return "/*" + withoutEnd + "*/";
 }
 char* generate_Placeholder(void* _ref) {
@@ -1074,7 +1075,7 @@ State exit_State(void* _ref) {
 }
 State advance_State(void* _ref) {
 	State _this = *((State*) _ref);
-	_this.segments = addLast_ArrayList<char*>(&_this.segments, _this.buffer);
+	_this.segments = addLast_ArrayList(&_this.segments, _this.buffer);
 	_this.buffer = "";
 	return _this;
 }
@@ -1096,7 +1097,7 @@ Option<char> pop_State(void* _ref) {
 	if (length_/*Does not have a type of structure: starttypeof(_this.index < _this)end*/(&_this.index < _this.input)) {
 		int counter = _this.index;
 		_this.index++;
-		/*Not a function type: Placeholder[input=charAt_char*]*/ element = charAt_char*(&_this.input, counter);
+		/*Not a function type: Placeholder[input=charAt_char_ref]*/ element = charAt_char_ref(&_this.input, counter);
 		return new_Some<char>(element);
 	}
 	else {
@@ -1105,7 +1106,7 @@ Option<char> pop_State(void* _ref) {
 }
 Stream<char*> stream_State(void* _ref) {
 	State _this = *((State*) _ref);
-	return stream_ArrayList<char*>(&_this.segments);
+	return stream_ArrayList(&_this.segments);
 }
 auto _lambda9_(auto _ref, auto next) {
 		/*Not a function type: Placeholder[input=append_State]*/ appended = append_State(&_this, /*next*/);
@@ -1120,7 +1121,7 @@ Option<State> popAndAppendToOption_State(void* _ref) {
 }
 char peek_State(void* _ref) {
 	State _this = *((State*) _ref);
-	return charAt_char*(&_this.input, _this.index);
+	return charAt_char_ref(&_this.input, _this.index);
 }
 CDefinition new_CDefinition(ArrayList<char*> typeParameters, CType type, char* name) {
 	CDefinition _this;
@@ -1153,10 +1154,10 @@ CStructureHeader new_CStructureHeader(ArrayList<char*> typeParameters, char* nam
 }
 CType toType_CStructureHeader(void* _ref) {
 	CStructureHeader _this = *((CStructureHeader*) _ref);
-	if (isEmpty_ArrayList<char*>(&_this.typeParameters)) {
+	if (isEmpty_ArrayList(&_this.typeParameters)) {
 		return new_CIdentifier(_this.name);
 	}
-	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=typeof(stream_ArrayList<char*>(&_this.typeParameters). < startCType>mapend)]end]*/ list = toList_/*Not a function type: Placeholder[input=typeof(stream_ArrayList<char*>(&_this.typeParameters). < startCType>mapend)]*/(&stream_ArrayList<char*>(&_this.typeParameters). < /*CType>map*/(new_CIdentifier));
+	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=typeof(stream_ArrayList(&_this.typeParameters). < startCType>mapend)]end]*/ list = toList_/*Not a function type: Placeholder[input=typeof(stream_ArrayList(&_this.typeParameters). < startCType>mapend)]*/(&stream_ArrayList(&_this.typeParameters). < /*CType>map*/(new_CIdentifier));
 	return new_CTemplateType(_this.name, list);
 }
 char* generate_CStructureHeader(void* _ref) {
@@ -1198,7 +1199,7 @@ MapHead<T, R> new_MapHead(void* _ref, Head<T> head, Function<T, R> mapper) {
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref) {
 	MapHead<T, R> _this = *((MapHead*) _ref);
-	return map_/*Not a function type: Placeholder[input=next_Head<T>]*/(&next_Head<T>(&_this.head), _this.mapper);
+	return map_/*Not a function type: Placeholder[input=next_Head]*/(&next_Head(&_this.head), _this.mapper);
 }
 template <typename T>
 ListHead<T> new_ListHead() {
@@ -1273,15 +1274,15 @@ template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref) {
 	FlatMapHead<T, R> _this = *((FlatMapHead*) _ref);
 	while (1) {
-		/*Not a function type: Placeholder[input=next_Head<R>]*/ maybeNext = next_Head<R>(&_this.current);
-		if (isPresent_/*Not a function type: Placeholder[input=next_Head<R>]*/(&maybeNext)) {
+		/*Not a function type: Placeholder[input=next_Head]*/ maybeNext = next_Head(&_this.current);
+		if (isPresent_/*Not a function type: Placeholder[input=next_Head]*/(&maybeNext)) {
 			return maybeNext;
 		}
-		/*Not a function type: Placeholder[input=next_Head<T>]*/ maybeOuter = next_Head<T>(&_this.head);
-		if (isEmpty_/*Not a function type: Placeholder[input=next_Head<T>]*/(&maybeOuter)) {
+		/*Not a function type: Placeholder[input=next_Head]*/ maybeOuter = next_Head(&_this.head);
+		if (isEmpty_/*Not a function type: Placeholder[input=next_Head]*/(&maybeOuter)) {
 			return new_None<R>();
 		}
-		_this.current = apply_Function<T, Stream<R>>(&_this.mapper, get_/*Not a function type: Placeholder[input=next_Head<T>]*/(&maybeOuter)).head;
+		_this.current = apply_Function(&_this.mapper, get_/*Not a function type: Placeholder[input=next_Head]*/(&maybeOuter)).head;
 	}
 }
 Joiner new_Joiner(char* delimiter) {
@@ -1301,7 +1302,7 @@ char* createInitial_Joiner(void* _ref) {
 }
 char* fold_Joiner(void* _ref, char* current, char* element) {
 	Joiner _this = *((Joiner*) _ref);
-	if (isEmpty_char*(&current)) {
+	if (isEmpty_char_ref(&current)) {
 		return element;
 	}
 	return current + _this.delimiter + element;
@@ -1388,15 +1389,15 @@ auto _lambda11_(auto _ref, auto last) {
 }
 Frames defineAll_Frames(void* _ref, ArrayList<CDefinition> params) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = mapLast_ArrayList<Frame>(&_this.frames, _lambda11_);
+	_this.frames = mapLast_ArrayList(&_this.frames, _lambda11_);
 	return _this;
 }
 template <typename T>
 Tuple<T, Frames> within_Frames(void* _ref, Supplier<T> mapper) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = addLast_ArrayList<Frame>(&_this.frames, new_Frame());
+	_this.frames = addLast_ArrayList(&_this.frames, new_Frame());
 	/*Not a function type: Placeholder[input=get_Supplier]*/ result = get_Supplier(&mapper);
-	_this.frames = removeLast_ArrayList<Frame>(&_this.frames);
+	_this.frames = removeLast_ArrayList(&_this.frames);
 	return new_Tuple<T, Frames>(result, _this);
 }
 auto _lambda13_(auto _ref, auto last) {
@@ -1405,7 +1406,7 @@ auto _lambda13_(auto _ref, auto last) {
 }
 Frames define_Frames(void* _ref, CDefinition definition) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = mapLast_ArrayList<Frame>(&_this.frames, _lambda13_);
+	_this.frames = mapLast_ArrayList(&_this.frames, _lambda13_);
 	return _this;
 }
 auto _lambda20_(auto _ref, auto frame) {
@@ -1414,7 +1415,7 @@ auto _lambda20_(auto _ref, auto frame) {
 }
 Option<CDefinition> resolve_Frames(void* _ref, char* name) {
 	Frames _this = *((Frames*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<Frame>]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<Frame>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<Frame>]*/(&stream_ArrayList<Frame>(&_this.frames), _lambda20_), stream_Option).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.frames), _lambda20_), stream_Option).head);
 }
 auto _lambda22_(auto _ref, auto last) {
 	auto _this = _ref;
@@ -1422,7 +1423,7 @@ auto _lambda22_(auto _ref, auto last) {
 }
 Frames withStructureHeader_Frames(void* _ref, CStructureHeader header) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = mapLast_ArrayList<Frame>(&_this.frames, _lambda22_);
+	_this.frames = mapLast_ArrayList(&_this.frames, _lambda22_);
 	return _this;
 }
 auto _lambda28_(auto _ref, auto header) {
@@ -1439,7 +1440,7 @@ auto _lambda35_(auto _ref, auto frame) {
 }
 Option<CStructureHeader> findCurrentStructure_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]*/(&stream_/*Not a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]*/(&reverse_/*Not a function type: Placeholder[input=copy_ArrayList<Frame>]*/(&copy_ArrayList<Frame>(&_this.frames))), _lambda35_), stream_Option).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]*/(&stream_/*Not a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]*/(&reverse_/*Not a function type: Placeholder[input=copy_ArrayList]*/(&copy_ArrayList(&_this.frames))), _lambda35_), stream_Option).head);
 }
 auto _lambda39_(auto _ref, auto frame) {
 	auto _this = _ref;
@@ -1447,7 +1448,7 @@ auto _lambda39_(auto _ref, auto frame) {
 }
 Stream<CStructureHeader> streamHeaders_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<Frame>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<Frame>]*/(&stream_ArrayList<Frame>(&_this.frames), _lambda39_), stream_Option);
+	return flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.frames), _lambda39_), stream_Option);
 }
 auto _lambda48_(auto _ref, auto header) {
 	auto _this = _ref;
@@ -1459,7 +1460,7 @@ auto _lambda46_(auto _ref, auto frame) {
 }
 Option<Tuple<CStructureHeader, ArrayList<CDefinition>>> findCurrentScope_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]end]*/(&stream_/*Not a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList<Frame>]end]*/(&reverse_/*Not a function type: Placeholder[input=copy_ArrayList<Frame>]*/(&copy_ArrayList<Frame>(&_this.frames))), _lambda46_), stream_Option).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]end]*/(&stream_/*Not a function type: Placeholder[input=reverse_startNot a function type: Placeholder[input=copy_ArrayList]end]*/(&reverse_/*Not a function type: Placeholder[input=copy_ArrayList]*/(&copy_ArrayList(&_this.frames))), _lambda46_), stream_Option).head);
 }
 auto _lambda55_(auto _ref, auto frame) {
 	auto _this = _ref;
@@ -1467,7 +1468,7 @@ auto _lambda55_(auto _ref, auto frame) {
 }
 Option<CStructureType> findStructure_Frames(void* _ref, char* structName) {
 	Frames _this = *((Frames*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<Frame>]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<Frame>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<Frame>]*/(&stream_ArrayList<Frame>(&_this.frames), _lambda55_), stream_Option).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]end*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.frames), _lambda55_), stream_Option).head);
 }
 auto _lambda57_(auto _ref, auto last) {
 	auto _this = _ref;
@@ -1475,7 +1476,7 @@ auto _lambda57_(auto _ref, auto last) {
 }
 Frames defineStructure_Frames(void* _ref, CStructureType type) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = mapLast_ArrayList<Frame>(&_this.frames, _lambda57_);
+	_this.frames = mapLast_ArrayList(&_this.frames, _lambda57_);
 	return _this;
 }
 template <typename K, typename V>
@@ -1492,14 +1493,14 @@ HashMap<K, V> new_HashMap(void* _ref) {
 template <typename K, typename V>
 HashMap<K, V> with_HashMap(void* _ref, K key, V value) {
 	HashMap<K, V> _this = *((HashMap*) _ref);
-	put_java.util.HashMap<K, V>(&_this.internal, key, value);
+	put_java.util.HashMap(&_this.internal, key, value);
 	return _this;
 }
 template <typename K, typename V>
 Option<V> get_HashMap(void* _ref, K key) {
 	HashMap<K, V> _this = *((HashMap*) _ref);
-	if (containsKey_java.util.HashMap<K, V>(&_this.internal, key)) {
-		return new_Some<V>(get_java.util.HashMap<K, V>(&_this.internal, key));
+	if (containsKey_java.util.HashMap(&_this.internal, key)) {
+		return new_Some<V>(get_java.util.HashMap(&_this.internal, key));
 	}
 	return new_None<V>();
 }
@@ -1556,7 +1557,7 @@ auto _lambda61_(auto _ref, auto field) {
 }
 CType replaceIdentifiersWithMapping_CStructureType(void* _ref, HashMap<char*, CType> mapping) {
 	CStructureType _this = *((CStructureType*) _ref);
-	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]end]*/ list = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<CDefinition>]*/(&stream_ArrayList<CDefinition>(&_this.fields), _lambda61_));
+	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ list = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.fields), _lambda61_));
 	return new_CStructureType(_this.name, _this.typeParameters, list);
 }
 auto _lambda68_(auto _ref, auto field) {
@@ -1569,7 +1570,7 @@ auto _lambda71_(auto _ref, auto field) {
 }
 Option<CType> findField_CStructureType(void* _ref, char* name) {
 	CStructureType _this = *((CStructureType*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]end]end*/(&map_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList<CDefinition>]*/(&stream_ArrayList<CDefinition>(&_this.fields), _lambda71_), _lambda68_).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList]end]end]end*/(&map_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.fields), _lambda71_), _lambda68_).head);
 }
 auto _lambda77_(auto _ref, auto type) {
 	auto _this = _ref;
@@ -1581,8 +1582,8 @@ auto _lambda75_(auto _ref, auto field) {
 }
 CStructureType withTypeArguments_CStructureType(void* _ref, ArrayList<CType> typeArguments) {
 	CStructureType _this = *((CStructureType*) _ref);
-	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=zip_startNot a function type: Placeholder[input=stream_ArrayList<char*>]end]end]*/ mapping = collect_/*Not a function type: Placeholder[input=zip_startNot a function type: Placeholder[input=stream_ArrayList<char*>]end]*/(&zip_/*Not a function type: Placeholder[input=stream_ArrayList<char*>]*/(&stream_ArrayList<char*>(&_this.typeParameters), stream_ArrayList(&typeArguments)), new_MapCollector<char*, CType>());
-	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]end]*/ newFields = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<CDefinition>]*/(&stream_ArrayList<CDefinition>(&_this.fields), _lambda75_));
+	/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=zip_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ mapping = collect_/*Not a function type: Placeholder[input=zip_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&zip_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.typeParameters), stream_ArrayList(&typeArguments)), new_MapCollector<char*, CType>());
+	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ newFields = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.fields), _lambda75_));
 	return new_CStructureType(_this.name, empty_/*ArrayList*/(&/*ArrayList*/), newFields);
 }
 CConstruction new_CConstruction(CType type) {
@@ -1658,7 +1659,7 @@ auto _lambda81_(auto _ref, auto type) {
 }
 CType replaceIdentifiersWithMapping_CFunctionType(void* _ref, HashMap<char*, CType> mapping) {
 	CFunctionType _this = *((CFunctionType*) _ref);
-	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]end]*/ replacedParamTypes = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList<CType>]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList<CType>]*/(&stream_ArrayList<CType>(&_this.paramTypes), _lambda81_));
+	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]end]*/ replacedParamTypes = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_ArrayList]end]*/(&map_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.paramTypes), _lambda81_));
 	return new_CFunctionType(replaceIdentifiersWithMapping_CType(&_this.returnType, mapping), replacedParamTypes);
 }
 Frame new_Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions, ArrayList<CStructureType> structures) {
@@ -1681,7 +1682,7 @@ Frame define_Frame(void* _ref, CDefinition definition) {
 	if (equals_/*typeof(startdefinition.type instanceof CIdentifierend(startvar valueend) && startvalueend)*/(&/*definition.type instanceof CIdentifier*/(/*var value*/) && /*value*/, "var")) {
 		/*throw new RuntimeException*/();
 	}
-	return new_Frame(_this.maybeHeader, addLast_ArrayList<CDefinition>(&_this.definitions, definition), _this.structures);
+	return new_Frame(_this.maybeHeader, addLast_ArrayList(&_this.definitions, definition), _this.structures);
 }
 Frame withHeader_Frame(void* _ref, CStructureHeader header) {
 	Frame _this = *((Frame*) _ref);
@@ -1693,7 +1694,7 @@ auto _lambda86_(auto _ref, auto definition) {
 }
 Option<CDefinition> resolve_Frame(void* _ref, char* name) {
 	Frame _this = *((Frame*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList<CDefinition>]end]end*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList<CDefinition>]*/(&stream_ArrayList<CDefinition>(&_this.definitions), _lambda86_).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList]end]end*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.definitions), _lambda86_).head);
 }
 auto _lambda91_(auto _ref, auto type) {
 	auto _this = _ref;
@@ -1701,11 +1702,11 @@ auto _lambda91_(auto _ref, auto type) {
 }
 Option<CStructureType> findStructure_Frame(void* _ref, char* name) {
 	Frame _this = *((Frame*) _ref);
-	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList<CStructureType>]end]end*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList<CStructureType>]*/(&stream_ArrayList<CStructureType>(&_this.structures), _lambda91_).head);
+	return next_/*Does not have a type of structure: startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=stream_ArrayList]end]end*/(&filter_/*Not a function type: Placeholder[input=stream_ArrayList]*/(&stream_ArrayList(&_this.structures), _lambda91_).head);
 }
 Frame defineStructure_Frame(void* _ref, CStructureType type) {
 	Frame _this = *((Frame*) _ref);
-	return new_Frame(_this.maybeHeader, _this.definitions, addLast_ArrayList<CStructureType>(&_this.structures, type));
+	return new_Frame(_this.maybeHeader, _this.definitions, addLast_ArrayList(&_this.structures, type));
 }
 template <typename T>
 ArrayHead<T> new_ArrayHead() {
@@ -1833,8 +1834,9 @@ char* compile_App(void* _ref, char* input) {
 	/*Not a function type: Placeholder[input=join_startStringend]*/ joinedStructures = join_/*String*/(&/*String*/, "", _this.structures.inner);
 	/*Not a function type: Placeholder[input=join_startStringend]*/ joinedSealedStructures = join_/*String*/(&/*String*/, "", _this.sealedStructures.inner);
 	/*Not a function type: Placeholder[input=join_startStringend]*/ joinedGlobals = join_/*String*/(&/*String*/, "", _this.globals.inner);
-	return joinedForwardDeclarations + compiled + joinedStructures + joinedSealedStructures + joinedGlobals + joinedFunctions + "int main(){" + System.lineSeparator() + "\treturn " + "0;" + System.lineSeparator() +
-					 "}";
+	return "#include \"Native.h\"" + System.lineSeparator() + joinedForwardDeclarations + compiled + joinedStructures +
+					 joinedSealedStructures + joinedGlobals + joinedFunctions + "int main(){" + System.lineSeparator() +
+					 "\treturn " + "0;" + System.lineSeparator() + "}";
 }
 char* compileStatements_App(void* _ref, char* input, Function<char*, char*> mapper) {
 	App _this = *((App*) _ref);
@@ -1924,8 +1926,8 @@ auto _lambda108_(auto _ref, auto member) {
 		}
 	}char* compileRootSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=strip_char*]*/ stripped = strip_char*(&input);
-	if (startsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "package ") || stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "package ") || stripped, "import ")) {
+	/*Not a function type: Placeholder[input=strip_char_ref]*/ stripped = strip_char_ref(&input);
+	if (startsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "package ") || stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "package ") || stripped, "import ")) {
 		return "";
 	}
 	return orElseGet_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=parseStructure_App]end]*/(&map_/*Not a function type: Placeholder[input=parseStructure_App]*/(&parseStructure_App(&_this, "class", stripped), _lambda108_), _lambda105_);
@@ -1967,32 +1969,32 @@ auto _lambda137_(auto _ref) {
 					return new_Tuple<ArrayList<CStructureMember>, char*>(members, generated);
 				}Option<CStructureMember> parseStructure_App(void* _ref, char* type, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=indexOf_char*]*/ classIndex = indexOf_char*(&input, type);
+	/*Not a function type: Placeholder[input=indexOf_char_ref]*/ classIndex = indexOf_char_ref(&input, type);
 	if (classIndex >= 0) {
-		/*Not a function type: Placeholder[input=substring_char*]*/ afterKeyword = substring_char*(&input, length_/*typeof(classIndex + type)*/(&classIndex + type));
-		/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_char*]end]*/ contentStart = indexOf_/*Not a function type: Placeholder[input=substring_char*]*/(&afterKeyword, "{");
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ afterKeyword = substring_char_ref(&input, length_/*typeof(classIndex + type)*/(&classIndex + type));
+		/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_char_ref]end]*/ contentStart = indexOf_/*Not a function type: Placeholder[input=substring_char_ref]*/(&afterKeyword, "{");
 		if (contentStart >= 0) {
-			/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&afterKeyword, 0, contentStart));
-			/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ withEnd = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&afterKeyword, length_/*typeof(contentStart + "{")*/(&contentStart + "{")));
-			if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withEnd, "}")) {
-				/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withEnd, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withEnd) - 1);
-				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ permitsIndex = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, "permits");
+			/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&afterKeyword, 0, contentStart));
+			/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ withEnd = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&afterKeyword, length_/*typeof(contentStart + "{")*/(&contentStart + "{")));
+			if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withEnd, "}")) {
+				/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withEnd, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withEnd) - 1);
+				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ permitsIndex = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, "permits");
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/ variants = /*ArrayList*/. < /*String>empty*/();
 				if (permitsIndex >= 0) {
-					/*Not a function type: Placeholder[input=split_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ variantsArray = split_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, length_/*typeof(permitsIndex + "permits")*/(&permitsIndex + "permits")), quote_/*Pattern*/(&/*Pattern*/, ","));
-					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, permitsIndex));
+					/*Not a function type: Placeholder[input=split_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/ variantsArray = split_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, length_/*typeof(permitsIndex + "permits")*/(&permitsIndex + "permits")), quote_/*Pattern*/(&/*Pattern*/, ","));
+					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, 0, permitsIndex));
 					variants = toList_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]*/(&map_/*Not a function type: Placeholder[input=new_Stream<char*>]*/(&new_Stream<char*>(new_ArrayHead<char*>(variantsArray)), strip_char*), _lambda112_));
 				}
-				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ implementsIndex = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, "implements");
+				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ implementsIndex = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, "implements");
 				Option<CType> maybeInterfaceType = new_None<CType>();
 				if (implementsIndex >= 0) {
-					/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ slice = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, length_/*typeof(implementsIndex + "implements")*/(&implementsIndex + "implements")));
+					/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/ slice = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, length_/*typeof(implementsIndex + "implements")*/(&implementsIndex + "implements")));
 					/*maybeInterfaceType*/ = compileType_App(&_this, slice);
-					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, implementsIndex));
+					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, 0, implementsIndex));
 				}
-				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ i1 = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, "extends ");
+				/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ i1 = indexOf_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, "extends ");
 				if (i1 >= 0) {
-					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, i1));
+					beforeContent = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, 0, i1));
 				}
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/ recordParameters = /*ArrayList*/. < /*CDefinition>empty*/();
 				if (/*beforeContent.endsWith(")"*/) /*) {
@@ -2006,12 +2008,12 @@ auto _lambda137_(auto _ref) {
 						}
 					}*/
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/ typeParameters = /*ArrayList*/. < /*String>empty*/();
-				if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, ">")) {
-					/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ withoutEnd = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent) - 1);
-					/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ typeParamStart = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&withoutEnd, "<");
+				if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, ">")) {
+					/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ withoutEnd = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent) - 1);
+					/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/ typeParamStart = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&withoutEnd, "<");
 					if (typeParamStart >= 0) {
-						beforeContent = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&withoutEnd, 0, typeParamStart);
-						/*Not a function type: Placeholder[input=split_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]end]*/ typeParamsArray = split_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&withoutEnd, typeParamStart + 1), quote_/*Pattern*/(&/*Pattern*/, ","));
+						beforeContent = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&withoutEnd, 0, typeParamStart);
+						/*Not a function type: Placeholder[input=split_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]end]*/ typeParamsArray = split_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/(&substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&withoutEnd, typeParamStart + 1), quote_/*Pattern*/(&/*Pattern*/, ","));
 						typeParameters = toList_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]*/(&map_/*Not a function type: Placeholder[input=new_Stream<char*>]*/(&new_Stream<char*>(new_ArrayHead<char*>(typeParamsArray)), strip_char*), _lambda116_));
 					}
 				}
@@ -2034,7 +2036,7 @@ auto _lambda137_(auto _ref) {
 				/*Not a function type: Placeholder[input=new_CDefinition]*/ constructorHeader = new_CDefinition(empty_/*ArrayList*/(&/*ArrayList*/), thisType, "new_" + beforeContent);
 				/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]*/(&stream_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/(&recordParameters), _lambda131_), new_Joiner(""));
 				/*Not a function type: Placeholder[input=lineSeparator_starttypeof(lineSeparator_startSystemend(&startSystemend) + "\t" + generate_startNot a function type: Placeholder[input=new_CTemplateType]end(&thisType) + " _this;" + assignments + lineSeparator_startSystemend(&startSystemend) + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = lineSeparator_/*typeof(lineSeparator_startSystemend(&startSystemend) + "\t" + generate_startNot a function type: Placeholder[input=new_CTemplateType]end(&thisType) + " _this;" + assignments + lineSeparator_startSystemend(&startSystemend) + "\treturn _this;" + startSystemend)*/(&lineSeparator_/*System*/(&/*System*/) + "\t" + generate_/*Not a function type: Placeholder[input=new_CTemplateType]*/(&thisType) + " _this;" + assignments + lineSeparator_/*System*/(&/*System*/) + "\treturn _this;" + /*System*/);
-				_this.functions = addLast_ArrayList<char*>(&_this.functions, generateMethod_App(&_this, typeParameters, constructorHeader, constructorContent1, recordParameters));
+				_this.functions = addLast_ArrayList(&_this.functions, generateMethod_App(&_this, typeParameters, constructorHeader, constructorContent1, recordParameters));
 				char* generatedFields;
 				if (isEmpty_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/(&variants)) {
 					generatedFields = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/(&map_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]*/(&stream_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/(&recordParameters), generate_CDefinition), _lambda135_), new_Joiner(""));
@@ -2046,15 +2048,15 @@ auto _lambda137_(auto _ref) {
 					/*Not a function type: Placeholder[input=get_startmaybeInterfaceTypeend]*/ interfaceType = get_/*maybeInterfaceType*/(&/*maybeInterfaceType*/);
 					/*Not a function type: Placeholder[input=joinTypeArguments_App]*/ joinedTypeArguments = joinTypeArguments_App(&_this, typeParameters);
 					/*typeof(beforeContent + joinedTypeArguments)*/ thisTypeString = beforeContent + joinedTypeArguments;
-					_this.functions = addLast_ArrayList<char*>(&_this.functions, lineSeparator_/*typeof(templateString + generate_startNot a function type: Placeholder[input=get_startmaybeInterfaceTypeend]end(&interfaceType) + " to" + getSimpleName_startNot a function type: Placeholder[input=get_startmaybeInterfaceTypeend]end(&interfaceType) + "_" + beforeContent + "(void* _ref" + "){" + startnew CStatement(new CContent(thisTypeStringend + " _this = *((" + thisTypeString + start"*) _ref)"),
+					_this.functions = addLast_ArrayList(&_this.functions, lineSeparator_/*typeof(templateString + generate_startNot a function type: Placeholder[input=get_startmaybeInterfaceTypeend]end(&interfaceType) + " to" + getSimpleName_startNot a function type: Placeholder[input=get_startmaybeInterfaceTypeend]end(&interfaceType) + "_" + beforeContent + "(void* _ref" + "){" + startnew CStatement(new CContent(thisTypeStringend + " _this = *((" + thisTypeString + start"*) _ref)"),
 															 1).generate()end + new_CStatement(startnew CContent(interfaceType.getSimpleName(end) + "Data" + joinedTypeArguments + start" data"),
-															 1).generate()end + startnew CStatement(new CContent("data."end + toLowerCase_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end(&beforeContent) + start" = _this"), 1).generate()end + startnew CStatement(new CContent(
+															 1).generate()end + startnew CStatement(new CContent("data."end + toLowerCase_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end(&beforeContent) + start" = _this"), 1).generate()end + startnew CStatement(new CContent(
 										"return "end + generate_startNot a function type: Placeholder[input=get_startmaybeInterfaceTypeend]end(&interfaceType) + " { " + beforeContent + "Tag, " + start"data }"), 1).generate()end + lineSeparator_startSystemend(&startSystemend) + "}" + startSystemend)*/(&templateString + generate_/*Not a function type: Placeholder[input=get_startmaybeInterfaceTypeend]*/(&interfaceType) + " to" + getSimpleName_/*Not a function type: Placeholder[input=get_startmaybeInterfaceTypeend]*/(&interfaceType) + "_" + beforeContent + "(void* _ref" + "){" + /*new CStatement(new CContent(thisTypeString*/ + " _this = *((" + thisTypeString + /*"*) _ref)"),
 															 1).generate()*/ + new_CStatement(/*new CContent(interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data"),
-															 1).generate()*/ + /*new CStatement(new CContent("data."*/ + toLowerCase_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeContent) + /*" = _this"), 1).generate()*/ + /*new CStatement(new CContent(
+															 1).generate()*/ + /*new CStatement(new CContent("data."*/ + toLowerCase_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeContent) + /*" = _this"), 1).generate()*/ + /*new CStatement(new CContent(
 										"return "*/ + generate_/*Not a function type: Placeholder[input=get_startmaybeInterfaceTypeend]*/(&interfaceType) + " { " + beforeContent + "Tag, " + /*"data }"), 1).generate()*/ + lineSeparator_/*System*/(&/*System*/) + "}" + /*System*/));
 				}
-				_this.forwardDeclarations = addLast_ArrayList<char*>(&_this.forwardDeclarations, lineSeparator_/*typeof(templateString + "struct " + beforeContent + ";" + startSystemend)*/(&templateString + "struct " + beforeContent + ";" + /*System*/));
+				_this.forwardDeclarations = addLast_ArrayList(&_this.forwardDeclarations, lineSeparator_/*typeof(templateString + "struct " + beforeContent + ";" + startSystemend)*/(&templateString + "struct " + beforeContent + ";" + /*System*/));
 				/*Not a function type: Placeholder[input=new_CStructureHeader]*/ header = new_CStructureHeader(typeParameters, beforeContent);
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/ finalRecordFields = recordParameters;
 				char* finalDependencies = dependencies;
@@ -2066,10 +2068,10 @@ auto _lambda137_(auto _ref) {
 				/*Not a function type: Placeholder[input=addAllLast_startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]*/ allMembers = addAllLast_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/(&finalRecordFields, memberDefinitions);
 				_this.frames = defineStructure_/*Does not have a type of structure: startNot a function type: Placeholder[input=within_Frames]end*/(&within1.right, withFields_/*Not a function type: Placeholder[input=new_CStructureHeader]*/(&header, allMembers));
 				if (isEmpty_/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/(&variants)) {
-					_this.structures = addLast_ArrayList<char*>(&_this.structures, generated);
+					_this.structures = addLast_ArrayList(&_this.structures, generated);
 				}
 				else {
-					_this.sealedStructures = addLast_ArrayList<char*>(&_this.sealedStructures, generated);
+					_this.sealedStructures = addLast_ArrayList(&_this.sealedStructures, generated);
 				}
 				return new_Some<CStructureMember>(new_EmptyCStructureSegment());
 			}
@@ -2116,7 +2118,7 @@ auto _lambda141_(auto _ref) {
 }
 CStructureMember compileClassSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	if (isBlank_char*(&input)) {
+	if (isBlank_char_ref(&input)) {
 		return new_EmptyCStructureSegment();
 	}
 	/*Not a function type: Placeholder[input=parseStructure_App]*/ maybeClass = parseStructure_App(&_this, "class", input);
@@ -2135,8 +2137,8 @@ CStructureMember compileClassSegment_App(void* _ref, char* input) {
 	if (isPresent_/*Not a function type: Placeholder[input=parseStructure_App]*/(&maybeEnum)) {
 		return get_/*Not a function type: Placeholder[input=parseStructure_App]*/(&maybeEnum);
 	}
-	if (endsWith_char*(&input, ";")) {
-		/*Not a function type: Placeholder[input=substring_char*]*/ slice = substring_char*(&input, 0, length_char*(&input) - 1);
+	if (endsWith_char_ref(&input, ";")) {
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ slice = substring_char_ref(&input, 0, length_char_ref(&input) - 1);
 		/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileEnumValues_App]end]*/ maybeClassStatement = or_/*Not a function type: Placeholder[input=compileEnumValues_App]*/(&compileEnumValues_App(&_this, slice), _lambda139_);
 		if (isPresent_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileEnumValues_App]end]*/(&maybeClassStatement)) {
 			return get_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileEnumValues_App]end]*/(&maybeClassStatement);
@@ -2158,18 +2160,18 @@ auto _lambda145_(auto _ref) {
 }
 Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=indexOf_char*]*/ paramStart = indexOf_char*(&input, "(");
+	/*Not a function type: Placeholder[input=indexOf_char_ref]*/ paramStart = indexOf_char_ref(&input, "(");
 	if (paramStart < 0) {
 		return new_None<CStructureMember>();
 	}
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ definition = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&input, 0, paramStart));
-	/*Not a function type: Placeholder[input=substring_char*]*/ withParams = substring_char*(&input, paramStart + 1);
-	/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_char*]end]*/ paramEnd = indexOf_/*Not a function type: Placeholder[input=substring_char*]*/(&withParams, ")");
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ definition = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&input, 0, paramStart));
+	/*Not a function type: Placeholder[input=substring_char_ref]*/ withParams = substring_char_ref(&input, paramStart + 1);
+	/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_char_ref]end]*/ paramEnd = indexOf_/*Not a function type: Placeholder[input=substring_char_ref]*/(&withParams, ")");
 	if (paramEnd < 0) {
 		return new_None<CStructureMember>();
 	}
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ inputParams = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&withParams, 0, paramEnd));
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ withBraces = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&withParams, paramEnd + 1));
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ inputParams = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&withParams, 0, paramEnd));
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ withBraces = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&withParams, paramEnd + 1));
 	/*Not a function type: Placeholder[input=parseFunctionHeader_App]*/ header = parseFunctionHeader_App(&_this, definition);
 	/*Not a function type: Placeholder[input=compileParametersToList_App]*/ params = compileParametersToList_App(&_this, inputParams);
 	ArrayList<char*> typeParameters;
@@ -2181,8 +2183,8 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 	}
 	/*Not a function type: Placeholder[input=addFirst_startNot a function type: Placeholder[input=copy_startNot a function type: Placeholder[input=compileParametersToList_App]end]end]*/ paramsWithThis = addFirst_/*Not a function type: Placeholder[input=copy_startNot a function type: Placeholder[input=compileParametersToList_App]end]*/(&copy_/*Not a function type: Placeholder[input=compileParametersToList_App]*/(&params), new_CDefinition(empty_/*ArrayList*/(&/*ArrayList*/), new_CPointerType(/*CPrimitiveType*/.Void), "_ref"));
 	/*Not a function type: Placeholder[input=lineSeparator_starttypeof(startcreateTemplateStringend(typeParameters) + generateHeaderWithParameters_App(&_this, header, paramsWithThis) + ";" + startSystemend)end]*/ generated = lineSeparator_/*typeof(startcreateTemplateStringend(typeParameters) + generateHeaderWithParameters_App(&_this, header, paramsWithThis) + ";" + startSystemend)*/(&/*createTemplateString*/(typeParameters) + generateHeaderWithParameters_App(&_this, header, paramsWithThis) + ";" + /*System*/);
-	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end(&withBraces, "{") && withBraces)*/(&startsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withBraces, "{") && withBraces, "}")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withBraces, 1, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&withBraces) - 1);
+	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end(&withBraces, "{") && withBraces)*/(&startsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withBraces, "{") && withBraces, "}")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withBraces, 1, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&withBraces) - 1);
 		/*Not a function type: Placeholder[input=findCurrentStructure_Frames]*/ maybeCurrentStructure = findCurrentStructure_Frames(&_this.frames);
 		if (/*maybeCurrentStructure instanceof Some*/ < /*CStructureHeader>*/(/*var currentStructure*/)) {
 			/*Not a function type: Placeholder[input=generate_startNot a function type: Placeholder[input=new_CStatement]end]*/ thisDefinition = generate_/*Not a function type: Placeholder[input=new_CStatement]*/(&new_CStatement(new_CContent(generate_/*Not a function type: Placeholder[input=toType_startcurrentStructureend]*/(&toType_/*currentStructure*/(&/*currentStructure*/)) + " _this = *((" + currentStructure.name() + "*) _ref)"), 1));
@@ -2191,7 +2193,7 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 			_this.frames = framesWithParams.right;
 		}
 	}
-	_this.functions = addLast_ArrayList<char*>(&_this.functions, generated);
+	_this.functions = addLast_ArrayList(&_this.functions, generated);
 	if (/*header instanceof CDefinition definition1*/) {
 		/*Not a function type: Placeholder[input=collect_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=compileParametersToList_App]end]end]end]*/ paramTypes = collect_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=compileParametersToList_App]end]end]*/(&map_/*Not a function type: Placeholder[input=stream_startNot a function type: Placeholder[input=compileParametersToList_App]end]*/(&stream_/*Not a function type: Placeholder[input=compileParametersToList_App]*/(&params), type_CDefinition), new_ListCollector<CType>());
 		return new_Some<CStructureMember>(new_CMethodMember(mapType_/*definition1*/(&/*definition1*/, _lambda149_)));
@@ -2248,9 +2250,9 @@ auto _lambda165_(auto _ref, auto header) {
 }
 Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=lastIndexOf_char*]*/ i = lastIndexOf_char*(&input, " ");
+	/*Not a function type: Placeholder[input=lastIndexOf_char_ref]*/ i = lastIndexOf_char_ref(&input, " ");
 	if (i >= 0) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&input, i + 1));
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&input, i + 1));
 		if (isIdentifier_App(&_this, name)) {
 			/*Not a function type: Placeholder[input=findCurrentStructure_Frames]*/ peek0 = findCurrentStructure_Frames(&_this.frames);
 			if (/*peek0 instanceof Some*/ < /*CStructureHeader>*/(/*var peek*/)) {
@@ -2272,7 +2274,7 @@ auto _lambda169_(auto _ref, auto slice) {
 }
 Option<CStructureMember> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]end]*/ segments = toList_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]*/(&map_/*Not a function type: Placeholder[input=new_Stream<char*>]*/(&new_Stream<char*>(new_ArrayHead<char*>(split_char*(&input, quote_/*Pattern*/(&/*Pattern*/, ",")))), strip_char*), _lambda169_));/*
+	/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]end]*/ segments = toList_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=new_Stream<char*>]end]*/(&map_/*Not a function type: Placeholder[input=new_Stream<char*>]*/(&new_Stream<char*>(new_ArrayHead<char*>(split_char_ref(&input, quote_/*Pattern*/(&/*Pattern*/, ",")))), strip_char*), _lambda169_));/*
 
 		for (var segment : segments.inner) {
 			final var stripped = segment.strip();
@@ -2316,12 +2318,12 @@ auto _lambda173_(auto _ref) {
 }
 Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=strip_char*]*/ stripped = strip_char*(&input);
-	if (startsWith_/*typeof(isEmpty_startNot a function type: Placeholder[input=strip_char*]end(&stripped) || startsWith_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "try ") || stripped)*/(&isEmpty_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) || startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "try ") || stripped, "catch ")) {
+	/*Not a function type: Placeholder[input=strip_char_ref]*/ stripped = strip_char_ref(&input);
+	if (startsWith_/*typeof(isEmpty_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped) || startsWith_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "try ") || stripped)*/(&isEmpty_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) || startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "try ") || stripped, "catch ")) {
 		return new_Some<char*>("");
 	}
-	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "{") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "{") && stripped, "}")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 1, length_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) - 1);
+	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "{") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "{") && stripped, "}")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ content = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 1, length_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) - 1);
 		_this.depth++;
 		/*Not a function type: Placeholder[input=within_Frames]*/ within = within_Frames(&_this.frames, _lambda173_);
 		/*Does not have a type of structure: startNot a function type: Placeholder[input=within_Frames]end*/ compiled = within.left;
@@ -2337,20 +2339,20 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	if (isPresent_/*Not a function type: Placeholder[input=compileConditional_App]*/(&maybeWhile)) {
 		return maybeWhile;
 	}
-	if (endsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, ";")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) - 1);
+	if (endsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, ";")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) - 1);
 		return new_Some<char*>(generate_/*Not a function type: Placeholder[input=new_CStatement]*/(&new_CStatement(new_CContent(compileMethodStatement_App(&_this, slice)), _this.depth)));
 	}
-	if (startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "else ")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ substring = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 5);
+	if (startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "else ")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ substring = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 5);
 		return new_Some<char*>(compileMethodSegmentOrPlaceholder_/*typeof(generateIndent_startAppend(&startAppend, _this.depth) + "else " + _this)*/(&generateIndent_/*App*/(&/*App*/, _this.depth) + "else " + _this, substring));
 	}
 	return new_None<char*>();
 }
 Option<char*> compileConditional_App(void* _ref, char* input, char* type) {
 	App _this = *((App*) _ref);
-	if (startsWith_char*(&input, type)) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ substring = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&input, length_char*(&type)));/*
+	if (startsWith_char_ref(&input, type)) {
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ substring = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&input, length_char_ref(&type)));/*
 			if (substring.startsWith("(")) {
 				final var withCondition = substring.substring(1);
 				final var conditionEnd = this.findConditionEnd(withCondition);
@@ -2396,34 +2398,34 @@ auto _lambda178_(auto _ref) {
 }
 char* compileMethodStatement_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=strip_char*]*/ stripped = strip_char*(&input);
-	if (startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "return ")) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ slice = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, length_/*typeof("return ")*/(&"return ")));
+	/*Not a function type: Placeholder[input=strip_char_ref]*/ stripped = strip_char_ref(&input);
+	if (startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "return ")) {
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ slice = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, length_/*typeof("return ")*/(&"return ")));
 		return compileExpression_/*typeof("return " + _this)*/(&"return " + _this, slice);
 	}
 	/*Not a function type: Placeholder[input=compileAssignment_App]*/ maybeAssignment = compileAssignment_App(&_this, stripped);
 	if (isPresent_/*Not a function type: Placeholder[input=compileAssignment_App]*/(&maybeAssignment)) {
 		return get_/*Not a function type: Placeholder[input=compileAssignment_App]*/(&maybeAssignment);
 	}
-	if (endsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "++")) {
-		return compileExpression_App(&_this, substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) - 2)) + "++";
+	if (endsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "++")) {
+		return compileExpression_App(&_this, substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) - 2)) + "++";
 	}
-	if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "break")) {
+	if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "break")) {
 		return "break";
 	}
-	if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "continue")) {
+	if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "continue")) {
 		return "continue";
 	}
 	return orElseGet_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=compileInvocation_App]end]end]*/(&or_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=compileInvocation_App]end]*/(&map_/*Not a function type: Placeholder[input=compileInvocation_App]*/(&compileInvocation_App(&_this, stripped), generate_CExpression), _lambda178_), _lambda175_);
 }
 Option<char*> compileAssignment_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=indexOf_char*]*/ separator = indexOf_char*(&stripped, '=');
+	/*Not a function type: Placeholder[input=indexOf_char_ref]*/ separator = indexOf_char_ref(&stripped, '=');
 	if (separator < 0) {
 		return new_None<char*>();
 	}
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ destinationString = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&stripped, 0, separator));
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ sourceString = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&stripped, separator + 1));
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ destinationString = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&stripped, 0, separator));
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ sourceString = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&stripped, separator + 1));
 	/*Not a function type: Placeholder[input=parseExpression_App]*/ source = parseExpression_App(&_this, sourceString);
 	/*Not a function type: Placeholder[input=generate_starttypeof(compileAssignmentContent_App(&_this, destinationString, source) + " = " + source)end]*/ generated = generate_/*typeof(compileAssignmentContent_App(&_this, destinationString, source) + " = " + source)*/(&compileAssignmentContent_App(&_this, destinationString, source) + " = " + source);
 	return new_Some<char*>(generated);
@@ -2516,17 +2518,17 @@ auto _lambda199_(auto _ref) {
 }
 CExpression parseExpression_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=strip_char*]*/ stripped = strip_char*(&input);
-	if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "false")) {
+	/*Not a function type: Placeholder[input=strip_char_ref]*/ stripped = strip_char_ref(&input);
+	if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "false")) {
 		return new_CContent("0");
 	}
-	if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "true")) {
+	if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "true")) {
 		return new_CContent("1");
 	}
-	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "'") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "'") && stripped, "'")) {
+	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "'") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "'") && stripped, "'")) {
 		return new_CContent(stripped);
 	}
-	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "\"") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "\"") && stripped, "\"")) {
+	if (endsWith_/*typeof(startsWith_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "\"") && stripped)*/(&startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "\"") && stripped, "\"")) {
 		return new_CContent(stripped);
 	}
 	/*Not a function type: Placeholder[input=compileLambda_App]*/ maybeLambda = compileLambda_App(&_this, stripped);
@@ -2537,34 +2539,34 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	if (isPresent_/*Not a function type: Placeholder[input=compileInvocation_App]*/(&maybeInvocation)) {
 		return get_/*Not a function type: Placeholder[input=compileInvocation_App]*/(&maybeInvocation);
 	}
-	/*Not a function type: Placeholder[input=lastIndexOf_startNot a function type: Placeholder[input=strip_char*]end]*/ i = lastIndexOf_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, ".");
+	/*Not a function type: Placeholder[input=lastIndexOf_startNot a function type: Placeholder[input=strip_char_ref]end]*/ i = lastIndexOf_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, ".");
 	if (i >= 0) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ child = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, i));
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, i + 1));
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ child = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, i));
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, i + 1));
 		if (isIdentifier_App(&_this, name)) {
 			/*Not a function type: Placeholder[input=parseExpression_App]*/ newChild = parseExpression_App(&_this, child);
 			return new_CFieldAccess(newChild, name);
 		}
 	}
 	if (isIdentifier_App(&_this, stripped)) {
-		if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "this")) {
+		if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "this")) {
 			return new_CIdentifier("_this");
 		}
 		if (isPresent_/*Not a function type: Placeholder[input=resolve_Frames]*/(&resolve_Frames(&_this.frames, stripped))) {
 			return new_CIdentifier(stripped);
 		}
 	}
-	if (startsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "switch")) {
+	if (startsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "switch")) {
 		return new_CContent(createName_App(&_this, "switch"));
 	}
 	/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]end]end]end]*/ maybeOperator = or_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]end]end]*/(&or_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]end]*/(&or_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]*/(&or_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]*/(&or_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]*/(&or_/*Not a function type: Placeholder[input=compileOperator_App]*/(&compileOperator_App(&_this, stripped, "+"), _lambda199_), _lambda196_), _lambda193_), _lambda190_), _lambda187_), _lambda184_);
 	if (isPresent_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]end]end]end]*/(&maybeOperator)) {
 		return new_CContent(get_/*Not a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=or_startNot a function type: Placeholder[input=compileOperator_App]end]end]end]end]end]end]*/(&maybeOperator));
 	}
-	/*Not a function type: Placeholder[input=lastIndexOf_startNot a function type: Placeholder[input=strip_char*]end]*/ i2 = lastIndexOf_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "::");
+	/*Not a function type: Placeholder[input=lastIndexOf_startNot a function type: Placeholder[input=strip_char_ref]end]*/ i2 = lastIndexOf_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "::");
 	if (i2 >= 0) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ substring = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, i2);
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ substring1 = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, i2 + 2);
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ substring = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, i2);
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ substring1 = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, i2 + 2);
 		/*Not a function type: Placeholder[input=orElse_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=compileType_App]end]end]*/ maybeType = orElse_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=compileType_App]end]*/(&map_/*Not a function type: Placeholder[input=compileType_App]*/(&compileType_App(&_this, substring), generate_CType), "?");
 		return new_CContent(substring1 + "_" + maybeType);
 	}
@@ -2588,25 +2590,25 @@ auto _lambda210_(auto _ref) {
 																																			1).generate()*/ + lineSeparator_/*System*/(&/*System*/) + "}" + /*System*/);
 		}Option<char*> compileLambda_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=indexOf_char*]*/ arrowIndex = indexOf_char*(&stripped, "->");
+	/*Not a function type: Placeholder[input=indexOf_char_ref]*/ arrowIndex = indexOf_char_ref(&stripped, "->");
 	if (arrowIndex >= 0) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ names = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&stripped, 0, arrowIndex));
-		/*Not a function type: Placeholder[input=substring_char*]*/ content = substring_char*(&stripped, arrowIndex + 2);
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ names = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&stripped, 0, arrowIndex));
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ content = substring_char_ref(&stripped, arrowIndex + 2);
 		/*Not a function type: Placeholder[input=createName_App]*/ functionName = createName_App(&_this, "lambda");
 		ArrayList<char*> parameters;
 		if (isIdentifier_App(&_this, names)) {
 			parameters = of_/*ArrayList*/(&/*ArrayList*/, "auto " + names);
 		}
 		else 
-		if (startsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/(&names, "(") && names.endsWith(")")) {
-			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/(&names, 1, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/(&names) - 1);
+		if (startsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&names, "(") && names.endsWith(")")) {
+			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&names, 1, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&names) - 1);
 			parameters = toList_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]end]*/(&map_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]*/(&map_/*Not a function type: Placeholder[input=divide_App]*/(&divide_App(&_this, slice, foldValue_this), strip_char*), _lambda207_), _lambda204_));
 		}
 		else {
 			return new_None<char*>();
 		}
 		/*Not a function type: Placeholder[input=addFirst_startNot a function type: Placeholder[input=copy_ArrayList]end]*/ copy = addFirst_/*Not a function type: Placeholder[input=copy_ArrayList]*/(&copy_ArrayList(&parameters), "auto _ref");
-		_this.functions = addLast_ArrayList<char*>(&_this.functions, orElseGet_/*Not a function type: Placeholder[input=compileMethodSegment_starttypeof("auto " + functionName + "(" + join_startStringend(&startStringend, ", ", copy.inner) + ") " + _this)end]*/(&compileMethodSegment_/*typeof("auto " + functionName + "(" + join_startStringend(&startStringend, ", ", copy.inner) + ") " + _this)*/(&"auto " + functionName + "(" + join_/*String*/(&/*String*/, ", ", copy.inner) + ") " + _this, content), _lambda210_));
+		_this.functions = addLast_ArrayList(&_this.functions, orElseGet_/*Not a function type: Placeholder[input=compileMethodSegment_starttypeof("auto " + functionName + "(" + join_startStringend(&startStringend, ", ", copy.inner) + ") " + _this)end]*/(&compileMethodSegment_/*typeof("auto " + functionName + "(" + join_startStringend(&startStringend, ", ", copy.inner) + ") " + _this)*/(&"auto " + functionName + "(" + join_/*String*/(&/*String*/, ", ", copy.inner) + ") " + _this, content), _lambda210_));
 		return new_Some<char*>(functionName);
 	}
 	return new_None<char*>();
@@ -2651,7 +2653,7 @@ Option<CExpression> compileInvocation_App(void* _ref, char* stripped) {
 					final var caller = maybeCaller.get();
 					if (caller instanceof CFieldAccess(var child, var name)) {
 						final var childType = this.resolveExpression(child);
-						final var newCallerAlias = name + "_" + childType.generate();
+						final var newCallerAlias = name + "_" + childType.getSimpleName();
 						return new Some<CExpression>(new CInvocation(new CIdentifier(newCallerAlias),
 																												 arguments.addFirst(new CReference(child))));
 					}
@@ -2664,8 +2666,8 @@ Option<CExpression> compileInvocation_App(void* _ref, char* stripped) {
 }
 Option<CCaller> parseCaller_App(void* _ref, char* caller) {
 	App _this = *((App*) _ref);
-	if (startsWith_char*(&caller, "new ")) {
-		/*Not a function type: Placeholder[input=substring_char*]*/ substring = substring_char*(&caller, length_/*typeof("new ")*/(&"new "));
+	if (startsWith_char_ref(&caller, "new ")) {
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ substring = substring_char_ref(&caller, length_/*typeof("new ")*/(&"new "));
 		/*Not a function type: Placeholder[input=compileType_App]*/ maybeType = compileType_App(&_this, substring);
 		if (isPresent_/*Not a function type: Placeholder[input=compileType_App]*/(&maybeType)) {
 			/*Not a function type: Placeholder[input=get_startNot a function type: Placeholder[input=compileType_App]end]*/ type = get_/*Not a function type: Placeholder[input=compileType_App]*/(&maybeType);
@@ -2676,10 +2678,10 @@ Option<CCaller> parseCaller_App(void* _ref, char* caller) {
 }
 Option<char*> compileOperator_App(void* _ref, char* stripped, char* separator) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=indexOf_char*]*/ i1 = indexOf_char*(&stripped, separator);
+	/*Not a function type: Placeholder[input=indexOf_char_ref]*/ i1 = indexOf_char_ref(&stripped, separator);
 	if (i1 >= 0) {
-		/*Not a function type: Placeholder[input=substring_char*]*/ substring = substring_char*(&stripped, 0, i1);
-		/*Not a function type: Placeholder[input=substring_char*]*/ substring1 = substring_char*(&stripped, length_/*typeof(i1 + separator)*/(&i1 + separator));
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ substring = substring_char_ref(&stripped, 0, i1);
+		/*Not a function type: Placeholder[input=substring_char_ref]*/ substring1 = substring_char_ref(&stripped, length_/*typeof(i1 + separator)*/(&i1 + separator));
 		return new_Some<char*>(compileExpression_/*typeof(compileExpression_App(&_this, substring) + " " + separator + " " + _this)*/(&compileExpression_App(&_this, substring) + " " + separator + " " + _this, substring1));
 	}
 	return new_None<char*>();
@@ -2716,12 +2718,12 @@ auto _lambda226_(auto _ref, auto cType) {
 }
 Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=lastIndexOf_char*]*/ nameSeparator = lastIndexOf_char*(&input, " ");
+	/*Not a function type: Placeholder[input=lastIndexOf_char_ref]*/ nameSeparator = lastIndexOf_char_ref(&input, " ");
 	if (nameSeparator < 0) {
 		return new_None<CDefinition>();
 	}
-	/*Not a function type: Placeholder[input=substring_char*]*/ beforeName = substring_char*(&input, 0, nameSeparator);
-	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char*]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_char*]*/(&substring_char*(&input, nameSeparator + 1));
+	/*Not a function type: Placeholder[input=substring_char_ref]*/ beforeName = substring_char_ref(&input, 0, nameSeparator);
+	/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_char_ref]end]*/ name = strip_/*Not a function type: Placeholder[input=substring_char_ref]*/(&substring_char_ref(&input, nameSeparator + 1));
 	if (isIdentifier_/*!this*/(&/*!this*/, name)) {
 		return new_None<CDefinition>();
 	}
@@ -2740,17 +2742,17 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 			}
 		}*/
 	if (typeSeparator >= 0) {
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ beforeType = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&beforeName, 0, typeSeparator));
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ beforeType = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&beforeName, 0, typeSeparator));
 		/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/ typeParameters = /*ArrayList*/. < /*String>empty*/();
-		if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeType, ">")) {
-			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeType, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/(&beforeType) - 1);
-			/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ i = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&slice, "<");
+		if (endsWith_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeType, ">")) {
+			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeType, 0, length_/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/(&beforeType) - 1);
+			/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/ i = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&slice, "<");
 			if (i >= 0) {
-				/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]end]*/ typeParametersString = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]end]*/(&slice, i + 1);
+				/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]end]*/ typeParametersString = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]end]*/(&slice, i + 1);
 				typeParameters = collect_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]*/(&map_/*Not a function type: Placeholder[input=divide_App]*/(&divide_App(&_this, typeParametersString, foldValue_this), strip_char*), _lambda222_), new_ListCollector<char*>());
 			}
 		}
-		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]end]*/ type = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char*]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char*]*/(&beforeName, typeSeparator + 1));
+		/*Not a function type: Placeholder[input=strip_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]end]*/ type = strip_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_char_ref]end]*/(&substring_/*Not a function type: Placeholder[input=substring_char_ref]*/(&beforeName, typeSeparator + 1));
 		/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/ finalTypeParameters = typeParameters;
 		return map_/*Not a function type: Placeholder[input=compileType_App]*/(&compileType_App(&_this, type), _lambda224_);
 	}
@@ -2762,7 +2764,7 @@ auto _lambda234_(auto _ref, auto slice) {
 }
 Option<CType> compileType_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=strip_char*]*/ stripped = strip_char*(&input);/*
+	/*Not a function type: Placeholder[input=strip_char_ref]*/ stripped = strip_char_ref(&input);/*
 
 		switch (stripped) {
 			case "Character" -> {
@@ -2775,25 +2777,25 @@ Option<CType> compileType_App(void* _ref, char* input) {
 				return new Some<CType>(CPrimitiveType.Void);
 			}
 		}*/
-	if (endsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "[]")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) - 2);
+	if (endsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "[]")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ slice = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) - 2);
 		return map_/*Not a function type: Placeholder[input=compileType_App]*/(&compileType_App(&_this, slice), new_CPointerType);
 	}
-	if (equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "String")) {
+	if (equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "String")) {
 		return new_Some<CType>(new_CPointerType(/*CPrimitiveType*/.Char));
 	}
-	if (endsWith_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, ">")) {
-		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/ withoutEnd = substring_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped) - 1);
-		/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ i = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&withoutEnd, "<");
+	if (endsWith_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, ">")) {
+		/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/ withoutEnd = substring_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, 0, length_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped) - 1);
+		/*Not a function type: Placeholder[input=indexOf_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ i = indexOf_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&withoutEnd, "<");
 		if (i >= 0) {
-			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ base = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&withoutEnd, 0, i);
-			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]end]*/ typeArguments = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char*]end]*/(&withoutEnd, i + 1);
+			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ base = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&withoutEnd, 0, i);
+			/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]end]*/ typeArguments = substring_/*Not a function type: Placeholder[input=substring_startNot a function type: Placeholder[input=strip_char_ref]end]*/(&withoutEnd, i + 1);
 			/*Not a function type: Placeholder[input=toList_startNot a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]end]end]end]*/ list = toList_/*Not a function type: Placeholder[input=flatMap_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]end]end]*/(&flatMap_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]end]*/(&map_/*Not a function type: Placeholder[input=filter_startNot a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]end]*/(&filter_/*Not a function type: Placeholder[input=map_startNot a function type: Placeholder[input=divide_App]end]*/(&map_/*Not a function type: Placeholder[input=divide_App]*/(&divide_App(&_this, typeArguments, foldValue_this), strip_char*), _lambda234_), compileType_this), stream_Option));
 			return new_Some<CType>(new_CTemplateType(base, list));
 		}
 	}
 	if (isIdentifier_App(&_this, stripped)) {
-		if (equals_/*typeof(equals_startNot a function type: Placeholder[input=strip_char*]end(&stripped, "public") || stripped)*/(&equals_/*Not a function type: Placeholder[input=strip_char*]*/(&stripped, "public") || stripped, "private")) {
+		if (equals_/*typeof(equals_startNot a function type: Placeholder[input=strip_char_ref]end(&stripped, "public") || stripped)*/(&equals_/*Not a function type: Placeholder[input=strip_char_ref]*/(&stripped, "public") || stripped, "private")) {
 			return new_None<CType>();
 		}
 		return new_Some<CType>(new_CIdentifier(stripped));
