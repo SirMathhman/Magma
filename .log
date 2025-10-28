@@ -16,38 +16,38 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forw
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:211:2: error: unknown type name 'CExpression'
   211 |         CExpression child;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:215:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
-  215 |         Option<CStructureHeader> maybeHeader;
-      |                                  ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:20:8: note: template is declared here
-   20 | struct Option;
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:223:2: error: unknown type name 'java'
-  223 |         java.util.HashMap<K, V> internal;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:218:2: error: unknown type name 'java'
+  218 |         java.util.HashMap<K, V> internal;
       |         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:223:6: error: expected member name or ';' after declaration specifiers
-  223 |         java.util.HashMap<K, V> internal;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:218:6: error: expected member name or ';' after declaration specifiers
+  218 |         java.util.HashMap<K, V> internal;
       |         ~~~~^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:234:8: error: field has incomplete type 'CType'
-  234 |         CType type;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:229:8: error: field has incomplete type 'CType'
+  229 |         CType type;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:237:10: error: field has incomplete type 'CCaller'
-  237 |         CCaller caller;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:232:10: error: field has incomplete type 'CCaller'
+  232 |         CCaller caller;
       |                 ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:25:8: note: forward declaration of 'CCaller'
    25 | struct CCaller;
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:238:12: error: use of undeclared identifier 'CExpression'
-  238 |         ArrayList<CExpression> arguments;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:233:12: error: use of undeclared identifier 'CExpression'
+  233 |         ArrayList<CExpression> arguments;
       |                   ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:244:8: error: field has incomplete type 'CType'
-  244 |         CType returnType;
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:239:8: error: field has incomplete type 'CType'
+  239 |         CType returnType;
       |               ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:17:8: note: forward declaration of 'CType'
    17 | struct CType;
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:243:27: error: implicit instantiation of undefined template 'Option<CStructureHeader>'
+  243 |         Option<CStructureHeader> maybeHeader;
+      |                                  ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:20:8: note: template is declared here
+   20 | struct Option;
       |        ^
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:295:2: error: redefinition of enumerator 'PlaceholderTag'
   295 |         PlaceholderTag

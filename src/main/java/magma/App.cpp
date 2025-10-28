@@ -65,7 +65,6 @@ struct CContent;
 struct CStatement;
 struct CFieldAccess;
 struct Frames;
-struct Frame;
 template <typename K, typename V>
 struct HashMap;
 template <typename K, typename V>
@@ -75,6 +74,7 @@ struct CConstruction;
 struct CInvocation;
 struct CMethodMember;
 struct CFunctionType;
+struct Frame;
 /*
 */struct CPrimitiveType {
 	char* content;
@@ -211,11 +211,6 @@ struct CFieldAccess {
 	CExpression child;
 	char* name;
 };
-struct Frame {
-	Option<CStructureHeader> maybeHeader;
-	ArrayList<CDefinition> definitions;
-	ArrayList<CStructureType> structures;
-};
 struct Frames {
 };
 template <typename K, typename V>
@@ -243,6 +238,11 @@ struct CMethodMember {
 struct CFunctionType {
 	CType returnType;
 	ArrayList<CType> paramTypes;
+};
+struct Frame {
+	Option<CStructureHeader> maybeHeader;
+	ArrayList<CDefinition> definitions;
+	ArrayList<CStructureType> structures;
 };
 struct App {
 	Frames frames;
@@ -1118,56 +1118,17 @@ char* generate_CFieldAccess(void* _ref) {
 	CFieldAccess _this = *((CFieldAccess*) _ref);
 	return _this.child.generate() + "." + _this.name;
 }
-Frame new_Frame(void* _ref) {
-	Frame _this = *((Frame*) _ref);
-	_this(new_None<CStructureHeader>(), /*ArrayList*/.empty(), /*ArrayList*/.empty());
-}
-Frame defineAll_Frame(void* _ref, ArrayList<CDefinition> params) {
-	Frame _this = *((Frame*) _ref);
-	return params.stream().fold(_this, define_Frame);
-}
-Frame define_Frame(void* _ref, CDefinition definition) {
-	Frame _this = *((Frame*) _ref);
-	if (/*definition.type instanceof CIdentifier*/(/*var value*/) && /*value*/.equals("var")) {
-		/*throw new RuntimeException*/();
-	}
-	return new_Frame(_this.maybeHeader, _this.definitions.addLast(definition), _this.structures);
-}
-Frame withHeader_Frame(void* _ref, CStructureHeader header) {
-	Frame _this = *((Frame*) _ref);
-	return new_Frame(new_Some<CStructureHeader>(header), _this.definitions, _this.structures);
-}
-auto _lambda16_(auto _ref, auto definition) {
-	auto _this = _ref;
-	return /*definition*/.name.equals(name);
-};
-Option<CDefinition> resolve_Frame(void* _ref, char* name) {
-	Frame _this = *((Frame*) _ref);
-	return _this.definitions.stream().filter(_lambda16_).head.next();
-}
-auto _lambda21_(auto _ref, auto type) {
-	auto _this = _ref;
-	return /*type*/.name.equals(name);
-};
-Option<CStructureType> findStructure_Frame(void* _ref, char* name) {
-	Frame _this = *((Frame*) _ref);
-	return _this.structures.stream().filter(_lambda21_).head.next();
-}
-Frame defineStructure_Frame(void* _ref, CStructureType type) {
-	Frame _this = *((Frame*) _ref);
-	return new_Frame(_this.maybeHeader, _this.definitions, _this.structures.addLast(type));
-}
 /*private ArrayList<Frame> frames = ArrayList.empty*/(void* _ref);
 Frames new_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
 }
-auto _lambda23_(auto _ref, auto last) {
+auto _lambda13_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.defineAll(params);
 };
 Frames defineAll_Frames(void* _ref, ArrayList<CDefinition> params) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda23_);
+	_this.frames = _this.frames.mapLast(_lambda13_);
 	return _this;
 }
 template <typename T>
@@ -1178,83 +1139,83 @@ Tuple<T, Frames> within_Frames(void* _ref, Supplier<T> mapper) {
 	_this.frames = _this.frames.removeLast();
 	return new_Tuple<T, Frames>(result, _this);
 }
-auto _lambda25_(auto _ref, auto last) {
+auto _lambda15_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.define(definition);
 };
 Frames define_Frames(void* _ref, CDefinition definition) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda25_);
+	_this.frames = _this.frames.mapLast(_lambda15_);
 	return _this;
 }
-auto _lambda32_(auto _ref, auto frame) {
+auto _lambda22_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.resolve(name);
 };
 Option<CDefinition> resolve_Frames(void* _ref, char* name) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda32_).flatMap(stream_Option).head.next();
+	return _this.frames.stream().map(_lambda22_).flatMap(stream_Option).head.next();
 }
-auto _lambda34_(auto _ref, auto last) {
+auto _lambda24_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.withHeader(header);
 };
 Frames withStructureHeader_Frames(void* _ref, CStructureHeader header) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda34_);
+	_this.frames = _this.frames.mapLast(_lambda24_);
 	return _this;
 }
-auto _lambda40_(auto _ref, auto header) {
+auto _lambda30_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.typeParameters;
 };
 ArrayList<char*> collectTypeParameters_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.streamHeaders().map(_lambda40_).flatMap(stream_ArrayList).collect(new_ListCollector<char*>());
+	return _this.streamHeaders().map(_lambda30_).flatMap(stream_ArrayList).collect(new_ListCollector<char*>());
 }
-auto _lambda47_(auto _ref, auto frame) {
+auto _lambda37_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.maybeHeader;
 };
 Option<CStructureHeader> findCurrentStructure_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.copy().reverse().stream().map(_lambda47_).flatMap(stream_Option).head.next();
+	return _this.frames.copy().reverse().stream().map(_lambda37_).flatMap(stream_Option).head.next();
 }
-auto _lambda51_(auto _ref, auto frame) {
+auto _lambda41_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.maybeHeader;
 };
 Stream<CStructureHeader> streamHeaders_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda51_).flatMap(stream_Option);
+	return _this.frames.stream().map(_lambda41_).flatMap(stream_Option);
 }
-auto _lambda60_(auto _ref, auto header) {
+auto _lambda50_(auto _ref, auto header) {
 	auto _this = _ref;
 	return new_Tuple<CStructureHeader, ArrayList<CDefinition>>(/*header*/, /*frame*/.definitions);
 };
-auto _lambda58_(auto _ref, auto frame) {
+auto _lambda48_(auto _ref, auto frame) {
 	auto _this = _ref;
-	return /*frame*/.maybeHeader.map(_lambda60_);
+	return /*frame*/.maybeHeader.map(_lambda50_);
 };
 Option<Tuple<CStructureHeader, ArrayList<CDefinition>>> findCurrentScope_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.copy().reverse().stream().map(_lambda58_).flatMap(stream_Option).head.next();
+	return _this.frames.copy().reverse().stream().map(_lambda48_).flatMap(stream_Option).head.next();
 }
-auto _lambda67_(auto _ref, auto frame) {
+auto _lambda57_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.findStructure(structName);
 };
 Option<CStructureType> findStructure_Frames(void* _ref, char* structName) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda67_).flatMap(stream_Option).head.next();
+	return _this.frames.stream().map(_lambda57_).flatMap(stream_Option).head.next();
 }
-auto _lambda69_(auto _ref, auto last) {
+auto _lambda59_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.defineStructure(type);
 };
 Frames defineStructure_Frames(void* _ref, CStructureType type) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda69_);
+	_this.frames = _this.frames.mapLast(_lambda59_);
 	return _this;
 }
 template <typename K, typename V>
@@ -1307,43 +1268,43 @@ char* getSimpleName_CStructureType(void* _ref) {
 	CStructureType _this = *((CStructureType*) _ref);
 	return _this.name;
 }
-auto _lambda75_(auto _ref, auto type) {
+auto _lambda65_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
-auto _lambda73_(auto _ref, auto field) {
+auto _lambda63_(auto _ref, auto field) {
 	auto _this = _ref;
-	return /*field*/.mapType(_lambda75_);
+	return /*field*/.mapType(_lambda65_);
 };
 CType replaceIdentifiersWithMapping_CStructureType(void* _ref, HashMap<char*, CType> mapping) {
 	CStructureType _this = *((CStructureType*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ list = _this.fields.stream().map(_lambda73_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ list = _this.fields.stream().map(_lambda63_).toList();
 	return new_CStructureType(_this.name, _this.typeParameters, list);
 }
-auto _lambda80_(auto _ref, auto field) {
+auto _lambda70_(auto _ref, auto field) {
 	auto _this = _ref;
 	return /*field*/.type;
 };
-auto _lambda83_(auto _ref, auto field) {
+auto _lambda73_(auto _ref, auto field) {
 	auto _this = _ref;
 	return /*field*/.name.equals(name);
 };
 Option<CType> findField_CStructureType(void* _ref, char* name) {
 	CStructureType _this = *((CStructureType*) _ref);
-	return _this.fields.stream().filter(_lambda83_).map(_lambda80_).head.next();
+	return _this.fields.stream().filter(_lambda73_).map(_lambda70_).head.next();
 }
-auto _lambda89_(auto _ref, auto type) {
+auto _lambda79_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
-auto _lambda87_(auto _ref, auto field) {
+auto _lambda77_(auto _ref, auto field) {
 	auto _this = _ref;
-	return /*field*/.mapType(_lambda89_);
+	return /*field*/.mapType(_lambda79_);
 };
 CStructureType withTypeArguments_CStructureType(void* _ref, ArrayList<CType> typeArguments) {
 	CStructureType _this = *((CStructureType*) _ref);
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<char*>]end]end]*/ mapping = _this.typeParameters.stream().zip(typeArguments.stream()).collect(new_MapCollector<char*, CType>());
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ newFields = _this.fields.stream().map(_lambda87_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ newFields = _this.fields.stream().map(_lambda77_).toList();
 	return new_CStructureType(_this.name, /*ArrayList*/.empty(), newFields);
 }
 CCaller toCCaller_CConstruction(void* _ref){
@@ -1391,14 +1352,53 @@ char* getSimpleName_CFunctionType(void* _ref) {
 	CFunctionType _this = *((CFunctionType*) _ref);
 	return "???";
 }
-auto _lambda93_(auto _ref, auto type) {
+auto _lambda83_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
 CType replaceIdentifiersWithMapping_CFunctionType(void* _ref, HashMap<char*, CType> mapping) {
 	CFunctionType _this = *((CFunctionType*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ replacedParamTypes = _this.paramTypes.stream().map(_lambda93_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ replacedParamTypes = _this.paramTypes.stream().map(_lambda83_).toList();
 	return new_CFunctionType(_this.returnType.replaceIdentifiersWithMapping(mapping), replacedParamTypes);
+}
+Frame new_Frame(void* _ref) {
+	Frame _this = *((Frame*) _ref);
+	_this(new_None<CStructureHeader>(), /*ArrayList*/.empty(), /*ArrayList*/.empty());
+}
+Frame defineAll_Frame(void* _ref, ArrayList<CDefinition> params) {
+	Frame _this = *((Frame*) _ref);
+	return params.stream().fold(_this, define_Frame);
+}
+Frame define_Frame(void* _ref, CDefinition definition) {
+	Frame _this = *((Frame*) _ref);
+	if (/*definition.type instanceof CIdentifier*/(/*var value*/) && /*value*/.equals("var")) {
+		/*throw new RuntimeException*/();
+	}
+	return new_Frame(_this.maybeHeader, _this.definitions.addLast(definition), _this.structures);
+}
+Frame withHeader_Frame(void* _ref, CStructureHeader header) {
+	Frame _this = *((Frame*) _ref);
+	return new_Frame(new_Some<CStructureHeader>(header), _this.definitions, _this.structures);
+}
+auto _lambda88_(auto _ref, auto definition) {
+	auto _this = _ref;
+	return /*definition*/.name.equals(name);
+};
+Option<CDefinition> resolve_Frame(void* _ref, char* name) {
+	Frame _this = *((Frame*) _ref);
+	return _this.definitions.stream().filter(_lambda88_).head.next();
+}
+auto _lambda93_(auto _ref, auto type) {
+	auto _this = _ref;
+	return /*type*/.name.equals(name);
+};
+Option<CStructureType> findStructure_Frame(void* _ref, char* name) {
+	Frame _this = *((Frame*) _ref);
+	return _this.structures.stream().filter(_lambda93_).head.next();
+}
+Frame defineStructure_Frame(void* _ref, CStructureType type) {
+	Frame _this = *((Frame*) _ref);
+	return new_Frame(_this.maybeHeader, _this.definitions, _this.structures.addLast(type));
 }
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);

@@ -775,41 +775,6 @@ public class App {
 	}
 
 	private static class Frames {
-		private record Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions,
-												 ArrayList<CStructureType> structures) {
-			public Frame() {
-				this(new None<CStructureHeader>(), ArrayList.empty(), ArrayList.empty());
-			}
-
-			public Frame defineAll(ArrayList<CDefinition> params) {
-				return params.stream().fold(this, Frame::define);
-			}
-
-			public Frame define(CDefinition definition) {
-				if (definition.type instanceof CIdentifier(var value) && value.equals("var")) {
-					throw new RuntimeException();
-				}
-
-				return new Frame(this.maybeHeader, this.definitions.addLast(definition), this.structures);
-			}
-
-			public Frame withHeader(CStructureHeader header) {
-				return new Frame(new Some<CStructureHeader>(header), this.definitions, this.structures);
-			}
-
-			public Option<CDefinition> resolve(String name) {
-				return this.definitions.stream().filter(definition -> definition.name.equals(name)).head.next();
-			}
-
-			public Option<CStructureType> findStructure(String name) {
-				return this.structures.stream().filter(type -> type.name.equals(name)).head.next();
-			}
-
-			public Frame defineStructure(CStructureType type) {
-				return new Frame(this.maybeHeader, this.definitions, this.structures.addLast(type));
-			}
-		}
-
 		private ArrayList<Frame> frames = ArrayList.empty();
 
 		public Frames() {
@@ -985,6 +950,41 @@ public class App {
 			final var replacedParamTypes =
 					this.paramTypes.stream().map(type -> type.replaceIdentifiersWithMapping(mapping)).toList();
 			return new CFunctionType(this.returnType.replaceIdentifiersWithMapping(mapping), replacedParamTypes);
+		}
+	}
+
+	private record Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions,
+											 ArrayList<CStructureType> structures) {
+		public Frame() {
+			this(new None<CStructureHeader>(), ArrayList.empty(), ArrayList.empty());
+		}
+
+		public Frame defineAll(ArrayList<CDefinition> params) {
+			return params.stream().fold(this, Frame::define);
+		}
+
+		public Frame define(CDefinition definition) {
+			if (definition.type instanceof CIdentifier(var value) && value.equals("var")) {
+				throw new RuntimeException();
+			}
+
+			return new Frame(this.maybeHeader, this.definitions.addLast(definition), this.structures);
+		}
+
+		public Frame withHeader(CStructureHeader header) {
+			return new Frame(new Some<CStructureHeader>(header), this.definitions, this.structures);
+		}
+
+		public Option<CDefinition> resolve(String name) {
+			return this.definitions.stream().filter(definition -> definition.name.equals(name)).head.next();
+		}
+
+		public Option<CStructureType> findStructure(String name) {
+			return this.structures.stream().filter(type -> type.name.equals(name)).head.next();
+		}
+
+		public Frame defineStructure(CStructureType type) {
+			return new Frame(this.maybeHeader, this.definitions, this.structures.addLast(type));
 		}
 	}
 
