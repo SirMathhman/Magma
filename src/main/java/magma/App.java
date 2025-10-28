@@ -6,10 +6,11 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.Stack;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -43,6 +44,36 @@ public class App {
 
 	private sealed interface CFunctionHeader permits CDefinition, Placeholder {
 		String generate();
+	}
+
+	private sealed interface Option<T> permits None, Some {
+		static <T> Option<T> of(T element) {
+			return new Some<T>(element);
+		}
+
+		static <T> Option<T> empty() {
+			return new None<T>();
+		}
+
+		<R> Option<R> map(Function<T, R> mapper);
+
+		void ifPresent(Consumer<T> consumer);
+
+		Option<T> or(Supplier<Option<T>> other);
+
+		boolean isEmpty();
+
+		T get();
+
+		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
+
+		T orElse(T other);
+
+		T orElseGet(Supplier<T> other);
+
+		boolean isPresent();
+
+		Stream<T> stream();
 	}
 
 	private record ArrayList<T>(List<T> inner) {
@@ -81,6 +112,109 @@ public class App {
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
+
+	private record Some<T>(T value) implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new Some<R>(mapper.apply(this.value));
+		}
+
+		@Override
+		public void ifPresent(Consumer<T> consumer) {
+			consumer.accept(this.value);
+		}
+
+		@Override
+		public Option<T> or(Supplier<Option<T>> other) {
+			return this;
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return false;
+		}
+
+		@Override
+		public T get() {
+			return this.value;
+		}
+
+		@Override
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+			return mapper.apply(this.value);
+		}
+
+		@Override
+		public T orElse(T other) {
+			return this.value;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return this.value;
+		}
+
+		@Override
+		public boolean isPresent() {
+			return true;
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return Stream.of(this.value);
+		}
+	}
+
+	private static final class None<T> implements Option<T> {
+		@Override
+		public <R> Option<R> map(Function<T, R> mapper) {
+			return new None<R>();
+		}
+
+		@Override
+		public void ifPresent(Consumer<T> consumer) {
+		}
+
+		@Override
+		public Option<T> or(Supplier<Option<T>> other) {
+			return other.get();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return true;
+		}
+
+		@Override
+		public T get() {
+			return null;
+		}
+
+		@Override
+		public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+			return new None<R>();
+		}
+
+		@Override
+		public T orElse(T other) {
+			return other;
+		}
+
+		@Override
+		public T orElseGet(Supplier<T> other) {
+			return other.get();
+		}
+
+		@Override
+		public boolean isPresent() {
+			return false;
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return Stream.empty();
+		}
+	}
 
 	private record CPointerType(CPPType type) implements CPPType {
 		@Override
@@ -188,14 +322,14 @@ public class App {
 			return this.depth == 0;
 		}
 
-		public Optional<Character> pop() {
+		public Option<Character> pop() {
 			if (this.index < this.input.length()) {
 				int counter = this.index;
 				this.index++;
 				final char element = this.input.charAt(counter);
-				return Optional.of(element);
+				return Option.of(element);
 			} else {
-				return Optional.empty();
+				return Option.empty();
 			}
 		}
 
@@ -203,14 +337,14 @@ public class App {
 			return this.segments.stream();
 		}
 
-		public Optional<Tuple<Character, State>> popAndAppendToTuple() {
+		public Option<Tuple<Character, State>> popAndAppendToTuple() {
 			return this.pop().map(next -> {
 				final State appended = this.append(next);
 				return new Tuple<Character, State>(next, appended);
 			});
 		}
 
-		public Optional<State> popAndAppendToOption() {
+		public Option<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(Tuple::right);
 		}
 
@@ -250,36 +384,36 @@ public class App {
 		new App().run().ifPresent(Throwable::printStackTrace);
 	}
 
-	private Optional<IOException> run() {
+	private Option<IOException> run() {
 		final Path source = Paths.get(".", "src", "main", "java", "magma", "App.java");
 		final Result<String, IOException> input = this.readString(source);
 		return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
+			case Err<String, IOException> v -> Option.of(v.error);
 			case Ok<String, IOException> v -> this.compilePath(source, v.value);
 		};
 	}
 
-	private Optional<IOException> compilePath(Path source, String input) {
+	private Option<IOException> compilePath(Path source, String input) {
 		final Path target = source.resolveSibling("App.cpp");
 		final String output = this.compile(input);
 		return this.writeString(target, output).or(() -> this.compileNative(target));
 	}
 
-	private Optional<? extends IOException> compileNative(Path target) {
+	private Option<IOException> compileNative(Path target) {
 		final Result<Process, IOException> clang =
 				this.startCommand(ArrayList.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
 		return switch (clang) {
-			case Err<Process, IOException> v1 -> Optional.of(v1.error);
+			case Err<Process, IOException> v1 -> Option.of(v1.error);
 			case Ok<Process, IOException> v1 -> this.waitForProcess(v1.value);
 		};
 	}
 
-	private Optional<IOException> waitForProcess(Process process) {
+	private Option<IOException> waitForProcess(Process process) {
 		return switch (this.waitFor(process)) {
-			case Err<Integer, IOException> v2 -> Optional.of(v2.error);
+			case Err<Integer, IOException> v2 -> Option.of(v2.error);
 			case Ok<Integer, IOException> v2 -> {
 				System.out.println("Compilation failed with exit code: " + v2.value);
-				yield Optional.empty();
+				yield Option.empty();
 			}
 		};
 	}
@@ -300,12 +434,12 @@ public class App {
 		}
 	}
 
-	private Optional<IOException> writeString(Path target, String output) {
+	private Option<IOException> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
-			return Optional.empty();
+			return Option.empty();
 		} catch (IOException e) {
-			return Optional.of(e);
+			return Option.of(e);
 		}
 	}
 
@@ -339,7 +473,7 @@ public class App {
 	private Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
 		State current = new State(input);
 		while (true) {
-			final Optional<Character> maybeNext = current.pop();
+			final Option<Character> maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
 				break;
 			}
@@ -363,7 +497,7 @@ public class App {
 		if (next == '\"') {
 			State current0 = current.append(next);
 			while (true) {
-				final Optional<Tuple<Character, State>> maybeTuple = current0.popAndAppendToTuple();
+				final Option<Tuple<Character, State>> maybeTuple = current0.popAndAppendToTuple();
 				if (maybeTuple.isEmpty()) {
 					break;
 				}
@@ -432,7 +566,7 @@ public class App {
 		return this.compileStructure("class", stripped).orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Optional<String> compileStructure(String type, String input) {
+	private Option<String> compileStructure(String type, String input) {
 		final int classIndex = input.indexOf(type);
 		if (classIndex >= 0) {
 			final String afterKeyword = input.substring(classIndex + type.length());
@@ -457,7 +591,7 @@ public class App {
 					}
 
 					final int implementsIndex = beforeContent.indexOf("implements");
-					Optional<CPPType> maybeInterfaceType = Optional.empty();
+					Option<CPPType> maybeInterfaceType = Option.empty();
 					if (implementsIndex >= 0) {
 						final String slice = beforeContent.substring(implementsIndex + "implements".length()).strip();
 						maybeInterfaceType = this.compileType(slice);
@@ -492,7 +626,7 @@ public class App {
 					}
 
 					if (!this.isIdentifier(beforeContent)) {
-						return Optional.empty();
+						return Option.empty();
 					}
 
 					String templateString;
@@ -560,7 +694,7 @@ public class App {
 						thisType = new CIdentifier(beforeContent);
 					} else {
 						final ArrayList<CPPType> list =
-								new ArrayList<>(typeParameters.stream().<CPPType>map(CIdentifier::new).toList());
+								new ArrayList<CPPType>(typeParameters.stream().<CPPType>map(CIdentifier::new).toList());
 						thisType = new CTemplateType(beforeContent, list);
 					}
 
@@ -576,12 +710,12 @@ public class App {
 						this.sealedStructures = this.sealedStructures.add(generated);
 					}
 
-					return Optional.of("");
+					return Option.of("");
 				}
 			}
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private String joinTypeArguments(ArrayList<String> typeParameters) {
@@ -621,29 +755,29 @@ public class App {
 			return "";
 		}
 
-		final Optional<String> maybeClass = this.compileStructure("class", input);
+		final Option<String> maybeClass = this.compileStructure("class", input);
 		if (maybeClass.isPresent()) {
 			return maybeClass.get();
 		}
 
-		final Optional<String> maybeInterface = this.compileStructure("interface", input);
+		final Option<String> maybeInterface = this.compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
 		}
 
-		final Optional<String> maybeRecord = this.compileStructure("record", input);
+		final Option<String> maybeRecord = this.compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
 		}
 
-		final Optional<String> maybeEnum = this.compileStructure("enum", input);
+		final Option<String> maybeEnum = this.compileStructure("enum", input);
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
 		}
 
 		if (input.endsWith(";")) {
 			final String slice = input.substring(0, input.length() - 1);
-			final Optional<String> maybeClassStatement =
+			final Option<String> maybeClassStatement =
 					this.compileEnumValues(slice).or(() -> this.compileDefinitionToField(slice));
 			if (maybeClassStatement.isPresent()) {
 				return maybeClassStatement.get();
@@ -653,14 +787,14 @@ public class App {
 		return this.compileMethod(input).orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Optional<String> compileMethod(String input) {
+	private Option<String> compileMethod(String input) {
 		final int paramStart = input.indexOf("(");
-		if (paramStart < 0) {return Optional.empty();}
+		if (paramStart < 0) {return Option.empty();}
 		final String definition = input.substring(0, paramStart).strip();
 		final String withParams = input.substring(paramStart + 1);
 
 		final int paramEnd = withParams.indexOf(")");
-		if (paramEnd < 0) {return Optional.empty();}
+		if (paramEnd < 0) {return Option.empty();}
 		final String params = withParams.substring(0, paramEnd).strip();
 		final String withBraces = withParams.substring(paramEnd + 1).strip();
 
@@ -683,18 +817,19 @@ public class App {
 		}
 
 		this.functions = this.functions.add(generated);
-		return Optional.of("");
+		return Option.of("");
 	}
 
 	private CFunctionHeader compileFunctionHeader(String input) {
 		return this
 				.compileDefinition(input)
-				.<CFunctionHeader>map(item -> new CDefinition(item.cppType, item.name + "_" + this.structureTypes.peek().getSimpleName()))
+				.<CFunctionHeader>map(item -> new CDefinition(item.cppType,
+																											item.name + "_" + this.structureTypes.peek().getSimpleName()))
 				.or(() -> this.compileConstructor(input))
 				.orElseGet(() -> new Placeholder(input));
 	}
 
-	private Optional<String> compileDefinitionToField(String slice) {
+	private Option<String> compileDefinitionToField(String slice) {
 		return this.compileDefinition(slice).map(CDefinition::generate).map(content -> this.generateStatement(content, 1));
 	}
 
@@ -702,25 +837,25 @@ public class App {
 		return this.compileStatements(content, this::compileMethodSegmentOrPlaceholder);
 	}
 
-	private Optional<CFunctionHeader> compileConstructor(String input) {
+	private Option<CFunctionHeader> compileConstructor(String input) {
 		final int i = input.lastIndexOf(" ");
 		if (i >= 0) {
 			final String name = input.substring(i + 1).strip();
 			if (this.isIdentifier(name)) {
 				final String structName = this.structureTypes.peek().getSimpleName();
-				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
+				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		} else {
 			if (this.isIdentifier(input)) {
 				final String structName = this.structureTypes.peek().getSimpleName();
-				return Optional.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
+				return Option.of(new CDefinition(new CIdentifier(structName), "new_" + structName));
 			}
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
-	private Optional<String> compileEnumValues(String input) {
+	private Option<String> compileEnumValues(String input) {
 		final ArrayList<String> segments = new ArrayList<String>(Arrays
 																																 .stream(input.split(Pattern.quote(",")))
 																																 .map(String::strip)
@@ -729,18 +864,18 @@ public class App {
 
 		for (String segment : segments.inner) {
 			final String stripped = segment.strip();
-			final Optional<String> maybeEnumValue = this.compileEnumValue(stripped);
+			final Option<String> maybeEnumValue = this.compileEnumValue(stripped);
 			if (maybeEnumValue.isPresent()) {
 				this.globals = this.globals.add(maybeEnumValue.get());
 			} else {
-				return Optional.empty();
+				return Option.empty();
 			}
 		}
 
-		return Optional.of("");
+		return Option.of("");
 	}
 
-	private Optional<String> compileEnumValue(String stripped) {
+	private Option<String> compileEnumValue(String stripped) {
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 			final int i = slice.indexOf("(");
@@ -749,23 +884,23 @@ public class App {
 				final String arguments = slice.substring(i + 1);
 				if (this.isIdentifier(name)) {
 					final String structureName = this.structureTypes.peek().getSimpleName();
-					return Optional.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
-														 System.lineSeparator());
+					return Option.of(structureName + " " + name + "Value = " + structureName + " { " + arguments + " };" +
+													 System.lineSeparator());
 				}
 			}
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private String compileMethodSegmentOrPlaceholder(String input) {
 		return this.compileMethodSegment(input).orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Optional<String> compileMethodSegment(String input) {
+	private Option<String> compileMethodSegment(String input) {
 		final String stripped = input.strip();
 		if (stripped.isEmpty() || stripped.startsWith("try ") || stripped.startsWith("catch ")) {
-			return Optional.of("");
+			return Option.of("");
 		}
 
 		if (stripped.startsWith("{") && stripped.endsWith("}")) {
@@ -775,33 +910,33 @@ public class App {
 			final String compiled = this.compileMethodSegments(content);
 			this.depth--;
 
-			return Optional.of("{" + compiled + this.generateIndent(this.depth) + "}");
+			return Option.of("{" + compiled + this.generateIndent(this.depth) + "}");
 		}
 
-		final Optional<String> maybeIf = this.compileConditional(stripped, "if");
+		final Option<String> maybeIf = this.compileConditional(stripped, "if");
 		if (maybeIf.isPresent()) {
 			return maybeIf;
 		}
 
-		final Optional<String> maybeWhile = this.compileConditional(stripped, "while");
+		final Option<String> maybeWhile = this.compileConditional(stripped, "while");
 		if (maybeWhile.isPresent()) {
 			return maybeWhile;
 		}
 
 		if (stripped.endsWith(";")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
-			return Optional.of(this.generateStatement(this.compileMethodStatement(slice), this.depth));
+			return Option.of(this.generateStatement(this.compileMethodStatement(slice), this.depth));
 		}
 
 		if (stripped.startsWith("else ")) {
 			final String substring = stripped.substring(5);
-			return Optional.of(this.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
+			return Option.of(this.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
-	private Optional<String> compileConditional(String input, String type) {
+	private Option<String> compileConditional(String input, String type) {
 		if (input.startsWith(type)) {
 			final String substring = input.substring(type.length()).strip();
 			if (substring.startsWith("(")) {
@@ -811,13 +946,13 @@ public class App {
 				if (conditionEnd >= 0) {
 					final String condition = withCondition.substring(0, conditionEnd).strip();
 					final String substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Optional.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
-														 this.compileMethodSegmentOrPlaceholder(substring2));
+					return Option.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+													 this.compileMethodSegmentOrPlaceholder(substring2));
 				}
 			}
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private int findConditionEnd(String withCondition) {
@@ -890,12 +1025,12 @@ public class App {
 			return stripped;
 		}
 
-		final Optional<String> maybeLambda = this.compileLambda(stripped);
+		final Option<String> maybeLambda = this.compileLambda(stripped);
 		if (maybeLambda.isPresent()) {
 			return maybeLambda.get();
 		}
 
-		final Optional<String> maybeInvocation = this.compileInvocation(stripped);
+		final Option<String> maybeInvocation = this.compileInvocation(stripped);
 		if (maybeInvocation.isPresent()) {
 			return maybeInvocation.get();
 		}
@@ -920,7 +1055,7 @@ public class App {
 			return this.createName("switch");
 		}
 
-		final Optional<String> maybeOperator = this
+		final Option<String> maybeOperator = this
 				.compileOperator(stripped, "+")
 				.or(() -> this.compileOperator(stripped, "-"))
 				.or(() -> this.compileOperator(stripped, "&&"))
@@ -946,7 +1081,7 @@ public class App {
 		return Placeholder.wrap(stripped);
 	}
 
-	private Optional<String> compileLambda(String stripped) {
+	private Option<String> compileLambda(String stripped) {
 		final int arrowIndex = stripped.indexOf("->");
 		if (arrowIndex >= 0) {
 			final String names = stripped.substring(0, arrowIndex).strip();
@@ -966,7 +1101,7 @@ public class App {
 																							 .map(segment -> "auto " + segment)
 																							 .toList());
 			} else {
-				return Optional.empty();
+				return Option.empty();
 			}
 
 			final ArrayList<String> copy = parameters.copy().addFirst("auto _ref");
@@ -978,10 +1113,10 @@ public class App {
 																									 System.lineSeparator() + "};" + System.lineSeparator();
 																					}));
 
-			return Optional.of(functionName);
+			return Option.of(functionName);
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private String createName(String type) {
@@ -990,7 +1125,7 @@ public class App {
 		return s;
 	}
 
-	private Optional<String> compileInvocation(String stripped) {
+	private Option<String> compileInvocation(String stripped) {
 		if (stripped.endsWith(")")) {
 			final String slice = stripped.substring(0, stripped.length() - 1);
 			int argStart = -1;
@@ -1019,38 +1154,38 @@ public class App {
 																																			.map(this::compileExpression)
 																																			.toList());
 
-				final Optional<String> maybeCaller = this.compileCaller(caller);
+				final Option<String> maybeCaller = this.compileCaller(caller);
 				if (maybeCaller.isPresent()) {
-					return Optional.of(maybeCaller.get() + "(" + String.join(", ", arguments.inner) + ")");
+					return Option.of(maybeCaller.get() + "(" + String.join(", ", arguments.inner) + ")");
 				}
 			}
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
-	private Optional<String> compileCaller(String caller) {
+	private Option<String> compileCaller(String caller) {
 		if (caller.startsWith("new ")) {
 			final String substring = caller.substring("new ".length());
-			final Optional<CPPType> maybeType = this.compileType(substring);
+			final Option<CPPType> maybeType = this.compileType(substring);
 			if (maybeType.isPresent()) {
-				return Optional.of("new_" + maybeType.get().generate());
+				return Option.of("new_" + maybeType.get().generate());
 			}
 		}
 
-		return Optional.of(this.compileExpression(caller));
+		return Option.of(this.compileExpression(caller));
 	}
 
-	private Optional<String> compileOperator(String stripped, String separator) {
+	private Option<String> compileOperator(String stripped, String separator) {
 		final int i1 = stripped.indexOf(separator);
 		if (i1 >= 0) {
 			final String substring = stripped.substring(0, i1);
 			final String substring1 = stripped.substring(i1 + separator.length());
-			return Optional.of(
+			return Option.of(
 					this.compileExpression(substring) + " " + separator + " " + this.compileExpression(substring1));
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private boolean isNumber(String input) {
@@ -1080,20 +1215,20 @@ public class App {
 																					.map(String::strip)
 																					.filter(slice -> !slice.isEmpty())
 																					.map(this::compileDefinition)
-																					.flatMap(Optional::stream)
+																					.flatMap(Option::stream)
 																					.toList());
 	}
 
-	private Optional<CDefinition> compileDefinition(String input) {
+	private Option<CDefinition> compileDefinition(String input) {
 		final int nameSeparator = input.lastIndexOf(" ");
 		if (nameSeparator < 0) {
-			return Optional.empty();
+			return Option.empty();
 		}
 
 		final String beforeName = input.substring(0, nameSeparator);
 		final String name = input.substring(nameSeparator + 1).strip();
 		if (!this.isIdentifier(name)) {
-			return Optional.empty();
+			return Option.empty();
 		}
 
 		int typeSeparator = -1;
@@ -1119,18 +1254,18 @@ public class App {
 		return this.compileType(beforeName).map(cppType -> new CDefinition(cppType, name));
 	}
 
-	private Optional<CPPType> compileType(String input) {
+	private Option<CPPType> compileType(String input) {
 		final String stripped = input.strip();
 
 		switch (stripped) {
 			case "Character" -> {
-				return Optional.of(CPPPrimitiveType.Char);
+				return Option.of(CPPPrimitiveType.Char);
 			}
 			case "boolean" -> {
-				return Optional.of(CPPPrimitiveType.Int);
+				return Option.of(CPPPrimitiveType.Int);
 			}
 			case "void" -> {
-				return Optional.of(CPPPrimitiveType.Void);
+				return Option.of(CPPPrimitiveType.Void);
 			}
 		}
 
@@ -1140,7 +1275,7 @@ public class App {
 		}
 
 		if (stripped.equals("String")) {
-			return Optional.of(new CPointerType(CPPPrimitiveType.Char));
+			return Option.of(new CPointerType(CPPPrimitiveType.Char));
 		}
 
 		if (stripped.endsWith(">")) {
@@ -1155,22 +1290,22 @@ public class App {
 																																	 .map(String::strip)
 																																	 .filter(slice -> !slice.isEmpty())
 																																	 .map(this::compileType)
-																																	 .flatMap(Optional::stream)
+																																	 .flatMap(Option::stream)
 																																	 .toList());
 
-				return Optional.of(new CTemplateType(base, list));
+				return Option.of(new CTemplateType(base, list));
 			}
 		}
 
 		if (this.isIdentifier(stripped)) {
 			if (stripped.equals("public")) {
-				return Optional.empty();
+				return Option.empty();
 			}
 
-			return Optional.of(new CIdentifier(stripped));
+			return Option.of(new CIdentifier(stripped));
 		}
 
-		return Optional.empty();
+		return Option.empty();
 	}
 
 	private State foldValue(State state, char next) {
