@@ -1291,7 +1291,7 @@ public class App {
 
 					final var templateString = App.createTemplateString(typeParameters);
 
-					var dependencies = "";
+					String dependencies;
 					if (variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
@@ -1305,9 +1305,11 @@ public class App {
 								.map(slice -> System.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";")
 								.collect(new Joiner(""));
 
-						dependencies += "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
-														System.lineSeparator() + templateString + "union " + beforeContent + "Data {" +
-														unionFields + System.lineSeparator() + "};" + System.lineSeparator();
+						dependencies = "enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" +
+													 System.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields +
+													 System.lineSeparator() + "};" + System.lineSeparator();
+					} else {
+						dependencies = "";
 					}
 
 					final var types = typeParameters.stream().<CType>map(CIdentifier::new).toList();
@@ -2031,7 +2033,14 @@ public class App {
 
 				final var maybeCaller = this.parseCaller(callerString);
 				if (maybeCaller.isPresent()) {
-					return new Some<CExpression>(new CInvocation(maybeCaller.get(), arguments));
+					final var caller = maybeCaller.get();
+					if (caller instanceof CFieldAccess(var child, var name)) {
+						final var childType = this.resolveExpression(child);
+						final var newCallerAlias = name + "_" + childType.generate();
+						return new Some<CExpression>(new CInvocation(new CIdentifier(newCallerAlias), arguments));
+					}
+
+					return new Some<CExpression>(new CInvocation(caller, arguments));
 				}
 			}
 		}
