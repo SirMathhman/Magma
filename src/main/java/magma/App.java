@@ -155,19 +155,11 @@ public class App {
 	private record ZipHead<T, R>(Head<T> head, Head<R> otherHead) implements Head<Tuple<T, R>> {
 		@Override
 		public Option<Tuple<T, R>> next() {
-			return this.head.next().and(() -> this.otherHead.next());
+			return this.head.next().and(this.otherHead::next);
 		}
 	}
 
 	private record Stream<T>(Head<T> head) {
-		public static <T> Stream<T> of(T element) {
-			return new Stream<T>(new SingleHead<T>(element));
-		}
-
-		public static <T> Stream<T> empty() {
-			return new Stream<T>(new EmptyHead<T>());
-		}
-
 		public <R> Stream<R> map(Function<T, R> mapper) {
 			return new Stream<R>(new MapHead<T, R>(this.head, mapper));
 		}
@@ -199,9 +191,9 @@ public class App {
 
 		private Stream<T> applyFilter(Predicate<T> predicate, T element) {
 			if (predicate.test(element)) {
-				return Stream.of(element);
+				return new Stream<T>(new SingleHead<T>(element));
 			}
-			return Stream.empty();
+			return new Stream<T>(new EmptyHead<T>());
 		}
 
 		public <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
@@ -351,7 +343,7 @@ public class App {
 
 		@Override
 		public Stream<T> stream() {
-			return Stream.of(this.value);
+			return new Stream<T>(new SingleHead<T>(this.value));
 		}
 
 		@Override
@@ -407,7 +399,7 @@ public class App {
 
 		@Override
 		public Stream<T> stream() {
-			return Stream.empty();
+			return new Stream<T>(new EmptyHead<T>());
 		}
 
 		@Override
@@ -433,11 +425,10 @@ public class App {
 		}
 	}
 
-	public record CTemplateType(String base, ArrayList<CType> typeArguments) implements CType {
+	private record CTemplateType(String base, ArrayList<CType> typeArguments) implements CType {
 		@Override
 		public String generate() {
-			final var list = this.typeArguments;
-			final var stream = list.stream();
+			final var stream = this.typeArguments.stream();
 			final var map = stream.map(CType::generate);
 			final var collector = new Joiner(", ");
 			final var joined = map.collect(collector);
@@ -1275,7 +1266,7 @@ public class App {
 
 					final var templateString = App.createTemplateString(typeParameters);
 
-					String dependencies = "";
+					var dependencies = "";
 					if (variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
@@ -1350,7 +1341,7 @@ public class App {
 
 					final var header = new CStructureHeader(typeParameters, beforeContent);
 					var finalRecordFields = recordParameters;
-					String finalDependencies = dependencies;
+					var finalDependencies = dependencies;
 					final var within1 = this.frames.within(() -> {
 						this.frames = this.frames.withStructureHeader(header).defineAll(finalRecordFields);
 
@@ -1537,10 +1528,6 @@ public class App {
 	private String generateHeaderWithParameters(CFunctionHeader header, ArrayList<CDefinition> params) {
 		final var outputParams = params.stream().map(CDefinition::generate).collect(new Joiner(", "));
 
-		return header.generate() + "(" + outputParams + ")";
-	}
-
-	private String generateHeaderWithParameters(CFunctionHeader header, String outputParams) {
 		return header.generate() + "(" + outputParams + ")";
 	}
 

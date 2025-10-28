@@ -607,30 +607,16 @@ Head<Tuple<T, R>> toHead_ZipHead(void* _ref){
 	data.ziphead = _this;
 	return Head<Tuple<T, R>> { ZipHeadTag, data };
 }
-auto _lambda1_(auto _ref) {
-	auto _this = _ref;
-	return _this.otherHead.next();
-};
 template <typename T, typename R>
 Option<Tuple<T, R>> next_ZipHead(void* _ref) {
 	ZipHead<T, R> _this = *((ZipHead*) _ref);
-	return _this.head.next().and(_lambda1_);
+	return _this.head.next().and(next_?);
 }
 template <typename T>
 Stream<T> new_Stream(Head<T> head) {
 	Stream<T> _this;
 	_this.head = head;
 	return _this;
-}
-template <typename T, typename T>
-Stream<T> of_Stream(void* _ref, T element) {
-	Stream<T> _this = *((Stream*) _ref);
-	return new_Stream<T>(new_SingleHead<T>(element));
-}
-template <typename T, typename T>
-Stream<T> empty_Stream(void* _ref) {
-	Stream<T> _this = *((Stream*) _ref);
-	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T, typename R>
 Stream<R> map_Stream(void* _ref, Function<T, R> mapper) {
@@ -662,22 +648,22 @@ ArrayList<T> toList_Stream(void* _ref) {
 	Stream<T> _this = *((Stream*) _ref);
 	return _this.collect(new_ListCollector<T>());
 }
-auto _lambda3_(auto _ref, auto element) {
+auto _lambda1_(auto _ref, auto element) {
 	auto _this = _ref;
 	return _this.applyFilter(predicate, /*element*/);
 };
 template <typename T>
 Stream<T> filter_Stream(void* _ref, Predicate<T> predicate) {
 	Stream<T> _this = *((Stream*) _ref);
-	return _this.flatMap(_lambda3_);
+	return _this.flatMap(_lambda1_);
 }
 template <typename T>
 Stream<T> applyFilter_Stream(void* _ref, Predicate<T> predicate, T element) {
 	Stream<T> _this = *((Stream*) _ref);
 	if (predicate.test(element)) {
-		return /*Stream*/.of(element);
+		return new_Stream<T>(new_SingleHead<T>(element));
 	}
-	return /*Stream*/.empty();
+	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T, typename R>
 Stream<R> flatMap_Stream(void* _ref, Function<T, Stream<R>> mapper) {
@@ -875,16 +861,16 @@ int isPresent_Some(void* _ref) {
 template <typename T>
 Stream<T> stream_Some(void* _ref) {
 	Some<T> _this = *((Some*) _ref);
-	return /*Stream*/.of(_this.value);
+	return new_Stream<T>(new_SingleHead<T>(_this.value));
 }
-auto _lambda5_(auto _ref, auto otherValue) {
+auto _lambda3_(auto _ref, auto otherValue) {
 	auto _this = _ref;
 	return new_Tuple<T, R>(_this.value, /*otherValue*/);
 };
 template <typename T, typename R>
 Option<Tuple<T, R>> and_Some(void* _ref, Supplier<Option<R>> other) {
 	Some<T> _this = *((Some*) _ref);
-	return other.get().map(_lambda5_);
+	return other.get().map(_lambda3_);
 }
 template <typename T>
 Option<T> toOption_None(void* _ref){
@@ -940,7 +926,7 @@ int isPresent_None(void* _ref) {
 template <typename T>
 Stream<T> stream_None(void* _ref) {
 	None<T> _this = *((None*) _ref);
-	return /*Stream*/.empty();
+	return new_Stream<T>(new_EmptyHead<T>());
 }
 template <typename T, typename R>
 Option<Tuple<T, R>> and_None(void* _ref, Supplier<Option<R>> other) {
@@ -984,24 +970,23 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	ArrayList<CType> list = _this.typeArguments;
-	Stream<CType> stream = list.stream();
-	Stream<R> map = stream.map(generate_CType);
+	/*Not a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]*/ stream = _this.typeArguments.stream();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]*/ map = stream.map(generate_CType);
 	/*Not a function type: Placeholder[input=new_Joiner]*/ collector = new_Joiner(", ");
-	C joined = map.collect(collector);
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ joined = map.collect(collector);
 	return _this.base + "<" + joined + ">";
 }
 char* getSimpleName_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	return _this.base;
 }
-auto _lambda9_(auto _ref, auto arg) {
+auto _lambda7_(auto _ref, auto arg) {
 	auto _this = _ref;
 	return /*arg*/.replaceIdentifiersWithMapping(mapping);
 };
 CType replaceIdentifiersWithMapping_CTemplateType(void* _ref, HashMap<char*, CType> mapping) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ collect = _this.typeArguments.stream().map(_lambda9_).collect(new_ListCollector<CType>());
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ collect = _this.typeArguments.stream().map(_lambda7_).collect(new_ListCollector<CType>());
 	return new_CTemplateType(_this.base, collect);
 }
 CIdentifier<> new_CIdentifier(char* value) {
@@ -1108,12 +1093,12 @@ Stream<char*> stream_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.segments.stream();
 }
-auto _lambda11_(auto _ref, auto next) {
+auto _lambda9_(auto _ref, auto next) {
 		/*Not a function type: Placeholder[input=Undefined field 'append' in 'State' of type 'CStructureType[name=State, typeParameters=[], fields=[char* input, ArrayList<char*> segments, char* buffer, int depth, int index]]']*/ appended = _this.append(/*next*/);
 		return new_Tuple<char, State>(/*next*/, appended);
 	}Option<Tuple<char, State>> popAndAppendToTuple_State(void* _ref) {
 	State _this = *((State*) _ref);
-	return _this.pop().map(_lambda11_);
+	return _this.pop().map(_lambda9_);
 }
 Option<State> popAndAppendToOption_State(void* _ref) {
 	State _this = *((State*) _ref);
@@ -1359,13 +1344,13 @@ char* generate_CFieldAccess(void* _ref) {
 Frames new_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
 }
-auto _lambda13_(auto _ref, auto last) {
+auto _lambda11_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.defineAll(params);
 };
 Frames defineAll_Frames(void* _ref, ArrayList<CDefinition> params) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda13_);
+	_this.frames = _this.frames.mapLast(_lambda11_);
 	return _this;
 }
 template <typename T>
@@ -1376,83 +1361,83 @@ Tuple<T, Frames> within_Frames(void* _ref, Supplier<T> mapper) {
 	_this.frames = _this.frames.removeLast();
 	return new_Tuple<T, Frames>(result, _this);
 }
-auto _lambda15_(auto _ref, auto last) {
+auto _lambda13_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.define(definition);
 };
 Frames define_Frames(void* _ref, CDefinition definition) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda15_);
+	_this.frames = _this.frames.mapLast(_lambda13_);
 	return _this;
 }
-auto _lambda22_(auto _ref, auto frame) {
+auto _lambda20_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.resolve(name);
 };
 Option<CDefinition> resolve_Frames(void* _ref, char* name) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda22_).flatMap(stream_Option).head.next();
+	return _this.frames.stream().map(_lambda20_).flatMap(stream_Option).head.next();
 }
-auto _lambda24_(auto _ref, auto last) {
+auto _lambda22_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.withHeader(header);
 };
 Frames withStructureHeader_Frames(void* _ref, CStructureHeader header) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda24_);
+	_this.frames = _this.frames.mapLast(_lambda22_);
 	return _this;
 }
-auto _lambda30_(auto _ref, auto header) {
+auto _lambda28_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.typeParameters;
 };
 ArrayList<char*> collectTypeParameters_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.streamHeaders().map(_lambda30_).flatMap(stream_ArrayList).collect(new_ListCollector<char*>());
+	return _this.streamHeaders().map(_lambda28_).flatMap(stream_ArrayList).collect(new_ListCollector<char*>());
 }
-auto _lambda37_(auto _ref, auto frame) {
+auto _lambda35_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.maybeHeader;
 };
 Option<CStructureHeader> findCurrentStructure_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.copy().reverse().stream().map(_lambda37_).flatMap(stream_Option).head.next();
+	return _this.frames.copy().reverse().stream().map(_lambda35_).flatMap(stream_Option).head.next();
 }
-auto _lambda41_(auto _ref, auto frame) {
+auto _lambda39_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.maybeHeader;
 };
 Stream<CStructureHeader> streamHeaders_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda41_).flatMap(stream_Option);
+	return _this.frames.stream().map(_lambda39_).flatMap(stream_Option);
 }
-auto _lambda50_(auto _ref, auto header) {
+auto _lambda48_(auto _ref, auto header) {
 	auto _this = _ref;
 	return new_Tuple<CStructureHeader, ArrayList<CDefinition>>(/*header*/, /*frame*/.definitions);
 };
-auto _lambda48_(auto _ref, auto frame) {
+auto _lambda46_(auto _ref, auto frame) {
 	auto _this = _ref;
-	return /*frame*/.maybeHeader.map(_lambda50_);
+	return /*frame*/.maybeHeader.map(_lambda48_);
 };
 Option<Tuple<CStructureHeader, ArrayList<CDefinition>>> findCurrentScope_Frames(void* _ref) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.copy().reverse().stream().map(_lambda48_).flatMap(stream_Option).head.next();
+	return _this.frames.copy().reverse().stream().map(_lambda46_).flatMap(stream_Option).head.next();
 }
-auto _lambda57_(auto _ref, auto frame) {
+auto _lambda55_(auto _ref, auto frame) {
 	auto _this = _ref;
 	return /*frame*/.findStructure(structName);
 };
 Option<CStructureType> findStructure_Frames(void* _ref, char* structName) {
 	Frames _this = *((Frames*) _ref);
-	return _this.frames.stream().map(_lambda57_).flatMap(stream_Option).head.next();
+	return _this.frames.stream().map(_lambda55_).flatMap(stream_Option).head.next();
 }
-auto _lambda59_(auto _ref, auto last) {
+auto _lambda57_(auto _ref, auto last) {
 	auto _this = _ref;
 	return /*last*/.defineStructure(type);
 };
 Frames defineStructure_Frames(void* _ref, CStructureType type) {
 	Frames _this = *((Frames*) _ref);
-	_this.frames = _this.frames.mapLast(_lambda59_);
+	_this.frames = _this.frames.mapLast(_lambda57_);
 	return _this;
 }
 template <typename K, typename V>
@@ -1518,43 +1503,43 @@ char* getSimpleName_CStructureType(void* _ref) {
 	CStructureType _this = *((CStructureType*) _ref);
 	return _this.name;
 }
-auto _lambda65_(auto _ref, auto type) {
+auto _lambda63_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
-auto _lambda63_(auto _ref, auto field) {
+auto _lambda61_(auto _ref, auto field) {
 	auto _this = _ref;
-	return /*field*/.mapType(_lambda65_);
+	return /*field*/.mapType(_lambda63_);
 };
 CType replaceIdentifiersWithMapping_CStructureType(void* _ref, HashMap<char*, CType> mapping) {
 	CStructureType _this = *((CStructureType*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ list = _this.fields.stream().map(_lambda63_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ list = _this.fields.stream().map(_lambda61_).toList();
 	return new_CStructureType(_this.name, _this.typeParameters, list);
 }
-auto _lambda70_(auto _ref, auto field) {
+auto _lambda68_(auto _ref, auto field) {
 	auto _this = _ref;
 	return /*field*/.type;
 };
-auto _lambda73_(auto _ref, auto field) {
+auto _lambda71_(auto _ref, auto field) {
 	auto _this = _ref;
 	return /*field*/.name.equals(name);
 };
 Option<CType> findField_CStructureType(void* _ref, char* name) {
 	CStructureType _this = *((CStructureType*) _ref);
-	return _this.fields.stream().filter(_lambda73_).map(_lambda70_).head.next();
+	return _this.fields.stream().filter(_lambda71_).map(_lambda68_).head.next();
 }
-auto _lambda79_(auto _ref, auto type) {
+auto _lambda77_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
-auto _lambda77_(auto _ref, auto field) {
+auto _lambda75_(auto _ref, auto field) {
 	auto _this = _ref;
-	return /*field*/.mapType(_lambda79_);
+	return /*field*/.mapType(_lambda77_);
 };
 CStructureType withTypeArguments_CStructureType(void* _ref, ArrayList<CType> typeArguments) {
 	CStructureType _this = *((CStructureType*) _ref);
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<char*>]end]end]*/ mapping = _this.typeParameters.stream().zip(typeArguments.stream()).collect(new_MapCollector<char*, CType>());
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ newFields = _this.fields.stream().map(_lambda77_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CDefinition>]end]end]*/ newFields = _this.fields.stream().map(_lambda75_).toList();
 	return new_CStructureType(_this.name, /*ArrayList*/.empty(), newFields);
 }
 CConstruction<> new_CConstruction(CType type) {
@@ -1624,13 +1609,13 @@ char* getSimpleName_CFunctionType(void* _ref) {
 	CFunctionType _this = *((CFunctionType*) _ref);
 	return "???";
 }
-auto _lambda83_(auto _ref, auto type) {
+auto _lambda81_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.replaceIdentifiersWithMapping(mapping);
 };
 CType replaceIdentifiersWithMapping_CFunctionType(void* _ref, HashMap<char*, CType> mapping) {
 	CFunctionType _this = *((CFunctionType*) _ref);
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ replacedParamTypes = _this.paramTypes.stream().map(_lambda83_).toList();
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: ArrayList<CType>]end]end]*/ replacedParamTypes = _this.paramTypes.stream().map(_lambda81_).toList();
 	return new_CFunctionType(_this.returnType.replaceIdentifiersWithMapping(mapping), replacedParamTypes);
 }
 Frame<> new_Frame(Option<CStructureHeader> maybeHeader, ArrayList<CDefinition> definitions, ArrayList<CStructureType> structures) {
@@ -1659,21 +1644,21 @@ Frame withHeader_Frame(void* _ref, CStructureHeader header) {
 	Frame _this = *((Frame*) _ref);
 	return new_Frame(new_Some<CStructureHeader>(header), _this.definitions, _this.structures);
 }
-auto _lambda88_(auto _ref, auto definition) {
+auto _lambda86_(auto _ref, auto definition) {
 	auto _this = _ref;
 	return /*definition*/.name.equals(name);
 };
 Option<CDefinition> resolve_Frame(void* _ref, char* name) {
 	Frame _this = *((Frame*) _ref);
-	return _this.definitions.stream().filter(_lambda88_).head.next();
+	return _this.definitions.stream().filter(_lambda86_).head.next();
 }
-auto _lambda93_(auto _ref, auto type) {
+auto _lambda91_(auto _ref, auto type) {
 	auto _this = _ref;
 	return /*type*/.name.equals(name);
 };
 Option<CStructureType> findStructure_Frame(void* _ref, char* name) {
 	Frame _this = *((Frame*) _ref);
-	return _this.structures.stream().filter(_lambda93_).head.next();
+	return _this.structures.stream().filter(_lambda91_).head.next();
 }
 Frame defineStructure_Frame(void* _ref, CStructureType type) {
 	Frame _this = *((Frame*) _ref);
@@ -1694,7 +1679,7 @@ void main_App(void* _ref, char** args) {
 	App _this = *((App*) _ref);
 	new_App().run().ifPresent(printStackTrace_Throwable);
 }
-auto _lambda97_(auto _ref, auto slice) {
+auto _lambda95_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return "typename " + /*slice*/;
 };
@@ -1705,7 +1690,7 @@ char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
 		templateString = "";
 	}
 	else {
-		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Stream<char*>]end]*/ collect = typeParameters.stream().map(_lambda97_).collect(new_Joiner(", "));
+		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Stream<char*>]end]*/ collect = typeParameters.stream().map(_lambda95_).collect(new_Joiner(", "));
 		templateString = "template <" + collect + ">" + /*System*/.lineSeparator();
 	}
 	return templateString;
@@ -1722,9 +1707,9 @@ Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startPathsend]*/ source = /*Paths*/.get(".", "src", "main", "java", "magma", "App.java");
 	/*Not a function type: Placeholder[input=Undefined field 'readString' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ input = _this.readString(source);
-	return _switch99_;
+	return _switch97_;
 }
-auto _lambda101_(auto _ref) {
+auto _lambda99_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileNative(target);
 };
@@ -1732,16 +1717,16 @@ Option<IOException> compilePath_App(void* _ref, Path source, char* input) {
 	App _this = *((App*) _ref);
 	/*Not a function type: Placeholder[input=Does not have a type of structure: Path]*/ target = source.resolveSibling("App.cpp");
 	/*Not a function type: Placeholder[input=Undefined field 'compile' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ output = _this.compile(input);
-	return _this.writeString(target, output).or(_lambda101_);
+	return _this.writeString(target, output).or(_lambda99_);
 }
 Option<IOException> compileNative_App(void* _ref, Path target) {
 	App _this = *((App*) _ref);
 	/*Not a function type: Placeholder[input=Undefined field 'startCommand' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ clang = _this.startCommand(/*ArrayList*/.of("clang", target.toAbsolutePath().toString(), "-o", "main.exe"));
-	return _switch103_;
+	return _switch101_;
 }
 Option<IOException> waitForProcess_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
-	return _switch105_;
+	return _switch103_;
 }
 Result<Integer, IOException> waitFor_App(void* _ref, Process process) {
 	App _this = *((App*) _ref);
@@ -1841,11 +1826,11 @@ State foldStatement_App(void* _ref, State state, char c) {
 		}*/
 	return appended;
 }
-auto _lambda107_(auto _ref) {
+auto _lambda105_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(input);
 };
-auto _lambda110_(auto _ref, auto member) {
+auto _lambda108_(auto _ref, auto member) {
 		if (/*member instanceof CStructureSegment segment*/) {
 			return /*segment*/.generate();
 		}
@@ -1858,42 +1843,42 @@ auto _lambda110_(auto _ref, auto member) {
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
-	return _this.parseStructure("class", stripped).map(_lambda110_).orElseGet(_lambda107_);
+	return _this.parseStructure("class", stripped).map(_lambda108_).orElseGet(_lambda105_);
 }
-auto _lambda115_(auto _ref, auto slice) {
+auto _lambda113_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda120_(auto _ref, auto slice) {
+auto _lambda118_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-auto _lambda124_(auto _ref, auto content1) {
+auto _lambda122_(auto _ref, auto content1) {
 	auto _this = _ref;
 	return /*App*/.generateWithIndent(/*content1*/, 1);
 };
-auto _lambda127_(auto _ref, auto slice) {
+auto _lambda125_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*slice*/ + "Tag";
 };
-auto _lambda131_(auto _ref, auto slice) {
+auto _lambda129_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*System*/.lineSeparator() + "\t" + slice + typeArguments + " " + slice.toLowerCase() + ";";
 };
-auto _lambda135_(auto _ref, auto parameter) {
+auto _lambda133_(auto _ref, auto parameter) {
 	auto _this = _ref;
 	return /*System*/.lineSeparator() + "\t_this." + parameter.name + " = " + parameter.name + ";";
 };
-auto _lambda139_(auto _ref, auto slice) {
+auto _lambda137_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return new_CStatement(new_CContent(/*slice*/), 1).generate();
 };
-auto _lambda141_(auto _ref) {
+auto _lambda139_(auto _ref) {
 					_this.frames = _this.frames.withStructureHeader(header).defineAll(finalRecordFields);
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'divide' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]*/ members = _this.divide(content, foldStatement_this).map(compileClassSegment_this).collect(new_ListCollector<CStructureMember>());
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'divide' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]end]end]end]*/ joinedFields = members.stream().map(generateField_this).flatMap(stream_Option).collect(new_Joiner(""));
 					/*typeof(generatedFields + joinedFields)*/ outputContent = generatedFields + joinedFields;
-					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startfinalDependenciesend + new_CStructure(header, outputContent).generate() + startSystemend)end]*/ generated = /*finalDependencies*/ + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
+					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(finalDependencies + new_CStructure(header, outputContent).generate() + startSystemend)end]*/ generated = finalDependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
 					return new_Tuple<ArrayList<CStructureMember>, char*>(members, generated);
 				}Option<CStructureMember> parseStructure_App(void* _ref, char* type, char* input) {
 	App _this = *((App*) _ref);
@@ -1911,7 +1896,7 @@ auto _lambda141_(auto _ref) {
 				if (permitsIndex >= 0) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]end]*/ variantsArray = beforeContent.substring(permitsIndex + "permits".length()).split(/*Pattern*/.quote(","));
 					beforeContent = beforeContent.substring(0, permitsIndex).strip();
-					variants = new_ArrayList<char*>(/*Arrays*/.stream(variantsArray).map(strip_char*).filter(_lambda115_).toList());
+					variants = new_ArrayList<char*>(/*Arrays*/.stream(variantsArray).map(strip_char*).filter(_lambda113_).toList());
 				}
 				/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]*/ implementsIndex = beforeContent.indexOf("implements");
 				Option<CType> maybeInterfaceType = new_None<CType>();
@@ -1938,31 +1923,31 @@ auto _lambda141_(auto _ref) {
 					if (typeParamStart >= 0) {
 						beforeContent = withoutEnd.substring(0, typeParamStart);
 						/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]end]end]*/ typeParamsArray = withoutEnd.substring(typeParamStart + 1).split(/*Pattern*/.quote(","));
-						typeParameters = new_ArrayList<char*>(/*Arrays*/.stream(typeParamsArray).map(strip_char*).filter(_lambda120_).toList());
+						typeParameters = new_ArrayList<char*>(/*Arrays*/.stream(typeParamsArray).map(strip_char*).filter(_lambda118_).toList());
 					}
 				}
 				if (/*!this*/.isIdentifier(beforeContent)) {
 					return new_None<CStructureMember>();
 				}
 				/*Not a function type: Placeholder[input=Does not have a type of structure: startAppend]*/ templateString = /*App*/.createTemplateString(typeParameters);
-				char* dependencies = "";
+				/*typeof("")*/ dependencies = "";
 				if (variants.isEmpty()) {
-					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]end]*/ enumFields = variants.stream().map(_lambda127_).map(_lambda124_).collect(new_Joiner(","));
+					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]end]*/ enumFields = variants.stream().map(_lambda125_).map(_lambda122_).collect(new_Joiner(","));
 					/*Not a function type: Placeholder[input=Undefined field 'joinTypeArguments' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ typeArguments = _this.joinTypeArguments(typeParameters);
-					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]*/ unionFields = variants.stream().map(_lambda131_).collect(new_Joiner(""));
-					/*dependencies*/ +  = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
+					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]end]end]end]*/ unionFields = variants.stream().map(_lambda129_).collect(new_Joiner(""));
+					dependencies +  = "enum " + beforeContent + "Tag {" + enumFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator() + templateString + "union " + beforeContent + "Data {" + unionFields + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 				}
 				if (/*!recordParameters*/.isEmpty()) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(typeParameters.stream(). < startCType>mapend)]end]*/ types = typeParameters.stream(). < /*CType>map*/(new_CIdentifier).toList();
 					/*Not a function type: Placeholder[input=new_CTemplateType]*/ thisType = new_CTemplateType(beforeContent, types);
 					/*Not a function type: Placeholder[input=new_CDefinition]*/ header = new_CDefinition(/*ArrayList*/.empty(), thisType, "new_" + beforeContent);
-					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = recordParameters.stream().map(_lambda135_).collect(new_Joiner());
+					/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]end]end]end]*/ assignments = recordParameters.stream().map(_lambda133_).collect(new_Joiner());
 					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(startSystemend.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + startSystemend.lineSeparator() + "\treturn _this;" + startSystemend)end]*/ constructorContent1 = /*System*/.lineSeparator() + "\t" + thisType.generate() + " _this;" + assignments + /*System*/.lineSeparator() + "\treturn _this;" + /*System*/.lineSeparator();
 					_this.functions = _this.functions.addLast(_this.generateMethod(typeParameters, header, constructorContent1, recordParameters));
 				}
 				char* generatedFields;
 				if (variants.isEmpty()) {
-					generatedFields = recordParameters.stream().map(generate_CDefinition).map(_lambda139_).collect(new_Joiner(""));
+					generatedFields = recordParameters.stream().map(generate_CDefinition).map(_lambda137_).collect(new_Joiner(""));
 				}
 				else {
 					generatedFields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
@@ -1978,8 +1963,8 @@ auto _lambda141_(auto _ref) {
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + /*System*/.lineSeparator());
 				/*Not a function type: Placeholder[input=new_CStructureHeader]*/ header = new_CStructureHeader(typeParameters, beforeContent);
 				/*Not a function type: Placeholder[input=typeof(startArrayListend. < startCDefinition>emptyend)]*/ finalRecordFields = recordParameters;
-				char* finalDependencies = /*dependencies*/;
-				/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ within1 = _this.frames.within(_lambda141_);
+				/*typeof("")*/ finalDependencies = dependencies;
+				/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ within1 = _this.frames.within(_lambda139_);
 				/*Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end*/ result = within1.left;
 				/*Does not have a type of structure: startDoes not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]endend*/ members = result.left;
 				/*Does not have a type of structure: startDoes not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]endend*/ generated = result.right;
@@ -2027,11 +2012,11 @@ int isIdentifier_App(void* _ref, char* input) {
 		}*/
 	return 1;
 }
-auto _lambda143_(auto _ref) {
+auto _lambda141_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileDefinitionToField0(slice);
 };
-auto _lambda145_(auto _ref) {
+auto _lambda143_(auto _ref) {
 	auto _this = _ref;
 	return new_Placeholder(input);
 };
@@ -2058,22 +2043,22 @@ CStructureMember compileClassSegment_App(void* _ref, char* input) {
 	}
 	if (input.endsWith(";")) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: char*]*/ slice = input.substring(0, input.length() - 1);
-		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileEnumValues' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]*/ maybeClassStatement = _this.compileEnumValues(slice).or(_lambda143_);
+		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileEnumValues' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]*/ maybeClassStatement = _this.compileEnumValues(slice).or(_lambda141_);
 		if (maybeClassStatement.isPresent()) {
 			return maybeClassStatement.get();
 		}
 	}
-	return _this.parseMethod(input).orElseGet(_lambda145_);
+	return _this.parseMethod(input).orElseGet(_lambda143_);
 }
-auto _lambda149_(auto _ref) {
+auto _lambda147_(auto _ref) {
 					/*Not a function type: Placeholder[input=Does not have a type of structure: starttypeof(thisDefinition + _this.compileMethodSegments(content) + startSystemend)end]*/ outputContent = thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator();
 					return _this.generateMethod(typeParameters, header, outputContent, paramsWithThis);
-				}auto _lambda147_(auto _ref) {
+				}auto _lambda145_(auto _ref) {
 				_this.frames = _this.frames.defineAll(params);
-				/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ withBlock = _this.frames.within(_lambda149_);
+				/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ withBlock = _this.frames.within(_lambda147_);
 				_this.frames = withBlock.right;
 				return withBlock.left;
-			}auto _lambda153_(auto _ref, auto type) {
+			}auto _lambda151_(auto _ref, auto type) {
 	auto _this = _ref;
 	return new_CFunctionType(/*type*/, paramTypes);
 };
@@ -2107,7 +2092,7 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ maybeCurrentStructure = _this.frames.findCurrentStructure();
 		if (/*maybeCurrentStructure instanceof Some*/ < /*CStructureHeader>*/(/*var currentStructure*/)) {
 			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=new_CStatement]end]*/ thisDefinition = new_CStatement(new_CContent(/*currentStructure*/.toType().generate() + " _this = *((" + currentStructure.name() + "*) _ref)"), 1).generate();
-			/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ framesWithParams = _this.frames.within(_lambda147_);
+			/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ framesWithParams = _this.frames.within(_lambda145_);
 			generated = framesWithParams.left;
 			_this.frames = framesWithParams.right;
 		}
@@ -2115,7 +2100,7 @@ Option<CStructureMember> parseMethod_App(void* _ref, char* input) {
 	_this.functions = _this.functions.addLast(generated);
 	if (/*header instanceof CDefinition definition1*/) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileParametersToList' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]*/ paramTypes = params.stream().map(type_CDefinition).collect(new_ListCollector<CType>());
-		return new_Some<CStructureMember>(new_CMethodMember(/*definition1*/.mapType(_lambda153_)));
+		return new_Some<CStructureMember>(new_CMethodMember(/*definition1*/.mapType(_lambda151_)));
 	}
 	else {
 		return new_Some<CStructureMember>(new_EmptyCStructureSegment());
@@ -2130,28 +2115,24 @@ char* generateHeaderWithParameters_App(void* _ref, CFunctionHeader header, Array
 	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Stream<CDefinition>]end]*/ outputParams = params.stream().map(generate_CDefinition).collect(new_Joiner(", "));
 	return header.generate() + "(" + outputParams + ")";
 }
-char* generateHeaderWithParameters_App(void* _ref, CFunctionHeader header, char* outputParams) {
-	App _this = *((App*) _ref);
-	return header.generate() + "(" + outputParams + ")";
-}
-auto _lambda155_(auto _ref) {
+auto _lambda153_(auto _ref) {
 	auto _this = _ref;
 	return new_Placeholder(input);
 };
-auto _lambda158_(auto _ref) {
+auto _lambda156_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileConstructor(input);
 };
-auto _lambda165_(auto _ref, auto header) {
+auto _lambda163_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.name;
 };
-auto _lambda161_(auto _ref, auto item) {
-		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end]end]*/ currentStructureName = _this.frames.findCurrentStructure().map(_lambda165_).orElse("???");
+auto _lambda159_(auto _ref, auto item) {
+		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end]end]*/ currentStructureName = _this.frames.findCurrentStructure().map(_lambda163_).orElse("???");
 		return new_CDefinition(/*item*/.typeParameters, /*item*/.type, /*item*/.name + "_" + currentStructureName);
 	}CFunctionHeader parseFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda161_).or(_lambda158_).orElseGet(_lambda155_);
+	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda159_).or(_lambda156_).orElseGet(_lambda153_);
 }
 Option<CStructureMember> compileDefinitionToField0_App(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
@@ -2167,7 +2148,7 @@ char* compileMethodSegments_App(void* _ref, char* content) {
 	App _this = *((App*) _ref);
 	return _this.compileStatements(content, compileMethodSegmentOrPlaceholder_this);
 }
-auto _lambda169_(auto _ref, auto header) {
+auto _lambda167_(auto _ref, auto header) {
 	auto _this = _ref;
 	return /*header*/.name;
 };
@@ -2185,19 +2166,19 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end]end]*/ structName = _this.frames.findCurrentStructure().map(_lambda169_).orElse("???");
+			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end]end]*/ structName = _this.frames.findCurrentStructure().map(_lambda167_).orElse("???");
 			return new_Some<CFunctionHeader>(new_CDefinition(/*ArrayList*/.empty(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
 	return new_None<CFunctionHeader>();
 }
-auto _lambda174_(auto _ref, auto slice) {
+auto _lambda172_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 Option<CStructureMember> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	/*Not a function type: Placeholder[input=new_ArrayList<char*>]*/ segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda174_).toList());/*
+	/*Not a function type: Placeholder[input=new_ArrayList<char*>]*/ segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda172_).toList());/*
 
 		for (var segment : segments.inner) {
 			final var stripped = segment.strip();
@@ -2227,15 +2208,15 @@ Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 		}*/
 	return new_None<char*>();
 }
-auto _lambda176_(auto _ref) {
+auto _lambda174_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(input);
 };
 char* compileMethodSegmentOrPlaceholder_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.compileMethodSegment(input).orElseGet(_lambda176_);
+	return _this.compileMethodSegment(input).orElseGet(_lambda174_);
 }
-auto _lambda178_(auto _ref) {
+auto _lambda176_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileMethodSegments(content);
 };
@@ -2248,7 +2229,7 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	if (stripped.startsWith("{") && stripped.endsWith("}")) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]*/ content = stripped.substring(1, stripped.length() - 1);
 		_this.depth++;
-		/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ within = _this.frames.within(_lambda178_);
+		/*Not a function type: Placeholder[input=Does not have a type of structure: Frames]*/ within = _this.frames.within(_lambda176_);
 		/*Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: Frames]end*/ compiled = within.left;
 		_this.frames = within.right;
 		/*this.depth--*/;
@@ -2311,11 +2292,11 @@ int findConditionEnd_App(void* _ref, char* withCondition) {
 		}*/
 	return conditionEnd;
 }
-auto _lambda180_(auto _ref) {
+auto _lambda178_(auto _ref) {
 	auto _this = _ref;
 	return /*Placeholder*/.wrap(stripped);
 };
-auto _lambda183_(auto _ref) {
+auto _lambda181_(auto _ref) {
 	auto _this = _ref;
 	return _this.parseAndDefineDefinitionAsStatement(input);
 };
@@ -2339,7 +2320,7 @@ char* compileMethodStatement_App(void* _ref, char* input) {
 	if (stripped.equals("continue")) {
 		return "continue";
 	}
-	return _this.compileInvocation(stripped).map(generate_CExpression).or(_lambda183_).orElseGet(_lambda180_);
+	return _this.compileInvocation(stripped).map(generate_CExpression).or(_lambda181_).orElseGet(_lambda178_);
 }
 Option<char*> compileAssignment_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
@@ -2370,11 +2351,11 @@ char* compileAssignmentContent_App(void* _ref, char* destinationString, CExpress
 }
 CType resolveExpression_App(void* _ref, CExpression expression) {
 	App _this = *((App*) _ref);
-	return _switch185_;
+	return _switch183_;
 }
 CType resolveCaller_App(void* _ref, CCaller caller) {
 	App _this = *((App*) _ref);
-	return _switch187_;
+	return _switch185_;
 }
 CType resolveIdentifier_App(void* _ref, CIdentifier identifier) {
 	App _this = *((App*) _ref);
@@ -2415,27 +2396,27 @@ char* compileExpression_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	return _this.parseExpression(input).generate();
 }
-auto _lambda189_(auto _ref) {
+auto _lambda187_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "<");
 };
-auto _lambda192_(auto _ref) {
+auto _lambda190_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, ">=");
 };
-auto _lambda195_(auto _ref) {
+auto _lambda193_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "==");
 };
-auto _lambda198_(auto _ref) {
+auto _lambda196_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "||");
 };
-auto _lambda201_(auto _ref) {
+auto _lambda199_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "&&");
 };
-auto _lambda204_(auto _ref) {
+auto _lambda202_(auto _ref) {
 	auto _this = _ref;
 	return _this.compileOperator(stripped, "-");
 };
@@ -2482,7 +2463,7 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	if (stripped.startsWith("switch")) {
 		return new_CContent(_this.createName("switch"));
 	}
-	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileOperator' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]end]end]end]*/ maybeOperator = _this.compileOperator(stripped, "+").or(_lambda204_).or(_lambda201_).or(_lambda198_).or(_lambda195_).or(_lambda192_).or(_lambda189_);
+	/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileOperator' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]end]end]end]*/ maybeOperator = _this.compileOperator(stripped, "+").or(_lambda202_).or(_lambda199_).or(_lambda196_).or(_lambda193_).or(_lambda190_).or(_lambda187_);
 	if (maybeOperator.isPresent()) {
 		return new_CContent(maybeOperator.get());
 	}
@@ -2497,15 +2478,15 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	}
 	return new_Placeholder(stripped);
 }
-auto _lambda209_(auto _ref, auto segment) {
+auto _lambda207_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return "auto " + /*segment*/;
 };
-auto _lambda212_(auto _ref, auto segment) {
+auto _lambda210_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda215_(auto _ref) {
+auto _lambda213_(auto _ref) {
 			/*Not a function type: Placeholder[input=Undefined field 'compileExpression' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']*/ expression = _this.compileExpression(content);
 			return "{" + new_CStatement(new_CContent("auto _this = _ref"), 1).generate() + /*new CStatement(new CContent("return "*/ + /*expression),
 																																			1).generate()*/ + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
@@ -2523,13 +2504,13 @@ auto _lambda215_(auto _ref) {
 		else 
 		if (names.startsWith("(") && names.endsWith(")")) {
 			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]*/ slice = names.substring(1, names.length() - 1);
-			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda212_).map(_lambda209_).toList();
+			parameters = _this.divide(slice, foldValue_this).map(strip_char*).filter(_lambda210_).map(_lambda207_).toList();
 		}
 		else {
 			return new_None<char*>();
 		}
 		/*Not a function type: Placeholder[input=Does not have a type of structure: ArrayList<char*>]*/ copy = parameters.copy().addFirst("auto _ref");
-		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda215_));
+		_this.functions = _this.functions.addLast("auto " + functionName + "(" + /*String*/.join(", ", copy.inner) + ") " + _this.compileMethodSegment(content).orElseGet(_lambda213_));
 		return new_Some<char*>(functionName);
 	}
 	return new_None<char*>();
@@ -2609,23 +2590,23 @@ int isNumber_App(void* _ref, char* input) {
 		}*/
 	return 1;
 }
-auto _lambda223_(auto _ref, auto slice) {
+auto _lambda221_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
 ArrayList<CDefinition> compileParametersToList_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
-	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda223_).map(compileDefinition_this).flatMap(stream_Option).toList();
+	return _this.divide(input, foldValue_this).map(strip_char*).filter(_lambda221_).map(compileDefinition_this).flatMap(stream_Option).toList();
 }
-auto _lambda227_(auto _ref, auto segment) {
+auto _lambda225_(auto _ref, auto segment) {
 	auto _this = _ref;
 	return /*!segment*/.isEmpty();
 };
-auto _lambda229_(auto _ref, auto cType) {
+auto _lambda227_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(finalTypeParameters, /*cType*/, name);
 };
-auto _lambda231_(auto _ref, auto cType) {
+auto _lambda229_(auto _ref, auto cType) {
 	auto _this = _ref;
 	return new_CDefinition(/*ArrayList*/.empty(), /*cType*/, name);
 };
@@ -2662,16 +2643,16 @@ Option<CDefinition> compileDefinition_App(void* _ref, char* input) {
 			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]end]*/ i = slice.indexOf("<");
 			if (i >= 0) {
 				/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]end]end]*/ typeParametersString = slice.substring(i + 1);
-				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda227_).collect(new_ListCollector<char*>());
+				typeParameters = _this.divide(typeParametersString, foldValue_this).map(strip_char*).filter(_lambda225_).collect(new_ListCollector<char*>());
 			}
 		}
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]*/ type = beforeName.substring(typeSeparator + 1).strip();
 		/*Not a function type: Placeholder[input=typeof(startArrayListend. < startString>emptyend)]*/ finalTypeParameters = typeParameters;
-		return _this.compileType(type).map(_lambda229_);
+		return _this.compileType(type).map(_lambda227_);
 	}
-	return _this.compileType(beforeName).map(_lambda231_);
+	return _this.compileType(beforeName).map(_lambda229_);
 }
-auto _lambda239_(auto _ref, auto slice) {
+auto _lambda237_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
@@ -2703,7 +2684,7 @@ Option<CType> compileType_App(void* _ref, char* input) {
 		if (i >= 0) {
 			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]*/ base = withoutEnd.substring(0, i);
 			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]end]*/ typeArguments = withoutEnd.substring(i + 1);
-			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'divide' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]end]end]*/ list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda239_).map(compileType_this).flatMap(stream_Option).toList();
+			/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'divide' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]end]end]end]*/ list = _this.divide(typeArguments, foldValue_this).map(strip_char*).filter(_lambda237_).map(compileType_this).flatMap(stream_Option).toList();
 			return new_Some<CType>(new_CTemplateType(base, list));
 		}
 	}
