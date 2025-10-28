@@ -1505,7 +1505,7 @@ public class App {
 	private CType resolveExpression(CExpression expression) {
 		return switch (expression) {
 			case CIdentifier identifier -> this.resolveIdentifier(identifier);
-			case CContent cContent -> new Placeholder(cContent.content);
+			case CContent cContent -> new Placeholder("typeof(" + cContent.content + ")");
 			case CFieldAccess fieldAccess -> {
 				final var childType = this.resolveExpression(fieldAccess.child);
 				if (childType instanceof CStructureType structureType) {
