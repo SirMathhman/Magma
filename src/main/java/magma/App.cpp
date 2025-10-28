@@ -20,6 +20,8 @@ template <typename T>
 struct Option;
 template <typename T>
 struct Predicate;
+struct CStructureSegment;
+struct CNode;
 template <typename T>
 struct SingleHead;
 template <typename T>
@@ -55,6 +57,9 @@ struct ListCollector;
 template <typename T, typename R>
 struct FlatMapHead;
 struct Joiner;
+struct EmptyCStructureSegment;
+struct CContent;
+struct CStatement;
 /*
 */struct CPrimitiveType {
 
@@ -79,6 +84,8 @@ struct Supplier {
 };
 template <typename T>
 struct Predicate {
+};
+struct CNode {
 };
 template <typename T>
 struct SingleHead {
@@ -171,6 +178,15 @@ struct FlatMapHead {
 struct Joiner {
 	char* delimiter;
 };
+struct EmptyCStructureSegment {
+};
+struct CContent {
+	char* generate;
+};
+struct CStatement {
+	CNode content1;
+	int depth;
+};
 struct App {
 
 	ArrayList<CStructureHeader> structureHeaders;
@@ -238,6 +254,20 @@ template <typename T>
 struct Option {
 	OptionTag tag;
 	OptionData<T> data;
+};
+enum CStructureSegmentTag {
+	CStatementTag,
+	EmptyCStructureSegmentTag,
+	PlaceholderTag
+};
+union CStructureSegmentData {
+	CStatement cstatement;
+	EmptyCStructureSegment emptycstructuresegment;
+	Placeholder placeholder;
+};
+struct CStructureSegment {
+	CStructureSegmentTag tag;
+	CStructureSegmentData data;
 };
 CPrimitiveType VoidValue = CPrimitiveType { "void" };
 CPrimitiveType CharValue = CPrimitiveType { "char" };
@@ -309,6 +339,8 @@ template <typename T>
 Stream<T> stream_Option(void* _ref);
 template <typename T>
 int test_Predicate(void* _ref, T element);
+char* generate_CStructureSegment(void* _ref);
+char* generate_CNode(void* _ref);
 template <typename T>
 Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
@@ -745,12 +777,6 @@ char peek_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.input.charAt(_this.index);
 }
-CFunctionHeader toCFunctionHeader_CDefinition(void* _ref){
-	CDefinition _this = *((CDefinition*) _ref);
-	CFunctionHeaderData data;
-	data.cdefinition = _this;
-	return CFunctionHeader { CDefinitionTag, data };
-}
 char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
 	return _this.cType().generate() + " " + _this.name();
@@ -879,6 +905,32 @@ char* fold_Joiner(void* _ref, char* current, char* element) {
 	}
 	return current + _this.delimiter + element;
 }
+CStructureSegment toCStructureSegment_EmptyCStructureSegment(void* _ref){
+	EmptyCStructureSegment _this = *((EmptyCStructureSegment*) _ref);
+	CStructureSegmentData data;
+	data.emptycstructuresegment = _this;
+	return CStructureSegment { EmptyCStructureSegmentTag, data };
+}
+char* generate_EmptyCStructureSegment(void* _ref) {
+	EmptyCStructureSegment _this = *((EmptyCStructureSegment*) _ref);
+	return "";
+}
+CNode toCNode_CContent(void* _ref){
+	CContent _this = *((CContent*) _ref);
+	CNodeData data;
+	data.ccontent = _this;
+	return CNode { CContentTag, data };
+}
+CStructureSegment toCStructureSegment_CStatement(void* _ref){
+	CStatement _this = *((CStatement*) _ref);
+	CStructureSegmentData data;
+	data.cstatement = _this;
+	return CStructureSegment { CStatementTag, data };
+}
+char* generate_CStatement(void* _ref) {
+	CStatement _this = *((CStatement*) _ref);
+	return /*App*/.generateWithIndent(_this.content1().generate(), _this.depth()) + ";";
+}
 /*private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty*/(void* _ref);
 App new_App(void* _ref) {
 	App _this = *((App*) _ref);
@@ -910,6 +962,14 @@ char* createTemplateString_App(void* _ref, ArrayList<char*> typeParameters) {
 		templateString = "template <" + collect + ">" + /*System*/.lineSeparator();
 	}
 	return templateString;
+}
+char* generateWithIndent_App(void* _ref, char* content, int depth) {
+	App _this = *((App*) _ref);
+	return /*App*/.generateIndent(depth) + content;
+}
+char* generateIndent_App(void* _ref, int depth) {
+	App _this = *((App*) _ref);
+	return /*System*/.lineSeparator() + "\t".repeat(depth);
 }
 Option<IOException> run_App(void* _ref) {
 	App _this = *((App*) _ref);
@@ -1044,7 +1104,7 @@ char* compileRootSegment_App(void* _ref, char* input) {
 	if (/*stripped.startsWith("package ") || stripped*/.startsWith("import ")) {
 		return "";
 	}
-	return _this.compileStructure("class", stripped).orElseGet(_lambda17_);
+	return _this.compileStructure("class", stripped).map(generate_CStructureSegment).orElseGet(_lambda17_);
 }
 auto _lambda22_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1056,7 +1116,7 @@ auto _lambda27_(auto _ref, auto slice) {
 };
 auto _lambda31_(auto _ref, auto content1) {
 	auto _this = _ref;
-	return _this.generateWithIndent(/*content1*/, 1);
+	return /*App*/.generateWithIndent(/*content1*/, 1);
 };
 auto _lambda34_(auto _ref, auto slice) {
 	auto _this = _ref;
@@ -1068,9 +1128,9 @@ auto _lambda38_(auto _ref, auto slice) {
 };
 auto _lambda42_(auto _ref, auto slice) {
 	auto _this = _ref;
-	return _this.generateStatement(/*slice*/, 1);
+	return new_CStatement(new_CContent(/*slice*/), 1).generate();
 };
-Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
+Option<CStructureSegment> compileStructure_App(void* _ref, char* type, char* input) {
 	App _this = *((App*) _ref);
 	var classIndex = input.indexOf(type);
 	if (classIndex >= 0) {
@@ -1135,20 +1195,21 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 					fields = recordFields.stream().map(generate_CDefinition).map(_lambda42_).collect(new_Joiner(""));
 				}
 				else {
-					fields = /*this.generateStatement(beforeContent*/ + /*"Tag tag", 1)*/ + _this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
+					fields = /*new CStatement(new CContent(beforeContent*/ + /*"Tag tag"), 1).generate()*/ + /*new CStatement*/(new_CContent(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
 				}
 				if (maybeInterfaceType.isPresent()) {
 					var interfaceType = maybeInterfaceType.get();
 					var joinedTypeArguments = _this.joinTypeArguments(typeParameters);
 					var thisType = beforeContent + joinedTypeArguments;
-					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*this.generateStatement(thisType*/ + " _this = *((" + thisType + /*"*) _ref)", 1)*/ + _this.generateStatement(/*interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data", 1)*/ + /*this.generateStatement("data."*/ + beforeContent.toLowerCase() + /*" = _this", 1)*/ + /*this.generateStatement(
-										"return "*/ + interfaceType.generate() + " { " + beforeContent + "Tag, " + /*"data }",
-										1)*/ + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator());
+					_this.functions = _this.functions.addLast(templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" + beforeContent + "(void* _ref" + "){" + /*new CStatement(new CContent(thisType*/ + " _this = *((" + thisType + /*"*) _ref)"), 1).generate()*/ + new_CStatement(/*new CContent(interfaceType.getSimpleName(*/) + "Data" + joinedTypeArguments + /*" data"),
+															 1).generate()*/ + /*new CStatement(new CContent("data."*/ + beforeContent.toLowerCase() + /*" = _this"), 1).generate()*/ + /*new CStatement(new CContent(
+										"return "*/ + interfaceType.generate() + " { " + beforeContent + "Tag, " + /*"data }"), 1).generate()*/ + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator());
 				}
 				_this.forwardDeclarations = _this.forwardDeclarations.addLast(templateString + "struct " + beforeContent + ";" + /*System*/.lineSeparator());
 				var header = new_CStructureHeader(typeParameters, beforeContent);
 				_this.structureHeaders = _this.structureHeaders.addLast(header);
-				var outputContent = fields + /*System*/.lineSeparator() + _this.compileStatements(content, compileClassSegment_this);
+				var joinedFields = _this.divide(content, foldStatement_this).map(compileClassSegment_this).map(generate_CStructureSegment).collect(new_Joiner(""));
+				var outputContent = fields + /*System*/.lineSeparator() + joinedFields;
 				var generated = dependencies + new_CStructure(header, outputContent).generate() + /*System*/.lineSeparator();
 				_this.structureHeaders = _this.structureHeaders.removeLast();
 				if (variants.isEmpty()) {
@@ -1157,7 +1218,7 @@ Option<char*> compileStructure_App(void* _ref, char* type, char* input) {
 				else {
 					_this.sealedStructures = _this.sealedStructures.addLast(generated);
 				}
-				return /*Option*/.of("");
+				return /*Option*/.of(new_EmptyCStructureSegment());
 			}
 		}
 	}
@@ -1174,18 +1235,6 @@ char* joinTypeArguments_App(void* _ref, ArrayList<char*> typeParameters) {
 	}
 	return joinedTypeArguments;
 }
-char* generateStatement_App(void* _ref, char* content, int depth) {
-	App _this = *((App*) _ref);
-	return _this.generateWithIndent(content, depth) + ";";
-}
-char* generateWithIndent_App(void* _ref, char* content, int depth) {
-	App _this = *((App*) _ref);
-	return _this.generateIndent(depth) + content;
-}
-char* generateIndent_App(void* _ref, int depth) {
-	App _this = *((App*) _ref);
-	return /*System*/.lineSeparator() + "\t".repeat(depth);
-}
 int isIdentifier_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);/*
 		for (var i = 0; i < input.length(); i++) {
@@ -1197,16 +1246,16 @@ int isIdentifier_App(void* _ref, char* input) {
 }
 auto _lambda44_(auto _ref) {
 	auto _this = _ref;
-	return _this.compileDefinitionToField(slice);
+	return _this.compileDefinitionToField0(slice);
 };
 auto _lambda46_(auto _ref) {
 	auto _this = _ref;
-	return /*Placeholder*/.wrap(input);
+	return new_Placeholder(input);
 };
-char* compileClassSegment_App(void* _ref, char* input) {
+CStructureSegment compileClassSegment_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	if (input.isBlank()) {
-		return "";
+		return new_EmptyCStructureSegment();
 	}
 	var maybeClass = _this.compileStructure("class", input);
 	if (maybeClass.isPresent()) {
@@ -1233,7 +1282,7 @@ char* compileClassSegment_App(void* _ref, char* input) {
 	}
 	return _this.compileMethod(input).orElseGet(_lambda46_);
 }
-Option<char*> compileMethod_App(void* _ref, char* input) {
+Option<CStructureSegment> compileMethod_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	var paramStart = input.indexOf("(");
 	if (paramStart < 0) {
@@ -1263,7 +1312,7 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		var content = withBraces.substring(1, withBraces.length() - 1);
 		var currentStructureType = _this.structureHeaders.getLast();
-		var thisDefinition = _this.generateStatement(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
+		var thisDefinition = new_CStatement(new_CContent(currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"), 1).generate();
 		_this.definitions = _this.definitions.addLast(params);
 		generated = templateString + headerWithParameters + " {" + thisDefinition + _this.compileMethodSegments(content) + /*System*/.lineSeparator() + "}" + /*System*/.lineSeparator();
 		_this.definitions = _this.definitions.removeLast();
@@ -1272,7 +1321,7 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 		generated = templateString + headerWithParameters + ";" + /*System*/.lineSeparator();
 	}
 	_this.functions = _this.functions.addLast(generated);
-	return /*Option*/.of("");
+	return /*Option*/.of(new_EmptyCStructureSegment());
 }
 auto _lambda48_(auto _ref) {
 	auto _this = _ref;
@@ -1290,13 +1339,19 @@ CFunctionHeader compileFunctionHeader_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	return _this.compileDefinition(input). < /*CFunctionHeader>map*/(_lambda54_).or(_lambda51_).orElseGet(_lambda48_);
 }
-auto _lambda56_(auto _ref, auto content) {
+auto _lambda56_(auto _ref, auto last) {
 	auto _this = _ref;
-	return _this.generateStatement(/*content*/, 1);
+	return /*last*/.addLast(definition);
 };
-Option<char*> compileDefinitionToField_App(void* _ref, char* slice) {
+Option<CStructureSegment> compileDefinitionToField0_App(void* _ref, char* slice) {
 	App _this = *((App*) _ref);
-	return _this.compileDefinitionAsStatement(slice).map(_lambda56_);
+	var maybeDefinition = _this.compileDefinition(slice);
+	if (/*!maybeDefinition*/.isPresent()) {
+		return new_None<CStructureSegment>();
+	}
+	var definition = maybeDefinition.get();
+	_this.definitions = _this.definitions.mapLast(_lambda56_);
+	return new_Some<CStructureSegment>(new_CStatement(definition, 1));
 }
 char* compileMethodSegments_App(void* _ref, char* content) {
 	App _this = *((App*) _ref);
@@ -1324,7 +1379,7 @@ auto _lambda61_(auto _ref, auto slice) {
 	auto _this = _ref;
 	return /*!slice*/.isEmpty();
 };
-Option<char*> compileEnumValues_App(void* _ref, char* input) {
+Option<CStructureSegment> compileEnumValues_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	var segments = new_ArrayList<char*>(/*Arrays*/.stream(input.split(/*Pattern*/.quote(","))).map(strip_char*).filter(_lambda61_).toList());/*
 
@@ -1337,7 +1392,7 @@ Option<char*> compileEnumValues_App(void* _ref, char* input) {
 				return Option.empty();
 			}
 		}*/
-	return /*Option*/.of("");
+	return /*Option*/.of(new_EmptyCStructureSegment());
 }
 Option<char*> compileEnumValue_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
@@ -1377,7 +1432,7 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 		var compiled = _this.compileMethodSegments(content);
 		_this.definitions = _this.definitions.removeLast();
 		/*this.depth--*/;
-		return /*Option*/.of("{" + compiled + this.generateIndent(this.depth) + "}");
+		return /*Option*/.of("{" + compiled + App.generateIndent(this.depth) + "}");
 	}
 	var maybeIf = _this.compileConditional(stripped, "if");
 	if (maybeIf.isPresent()) {
@@ -1389,11 +1444,11 @@ Option<char*> compileMethodSegment_App(void* _ref, char* input) {
 	}
 	if (stripped.endsWith(";")) {
 		var slice = stripped.substring(0, stripped.length() - 1);
-		return /*Option*/.of(_this.generateStatement(_this.compileMethodStatement(slice), _this.depth));
+		return /*Option*/.of(new_CStatement(new_CContent(_this.compileMethodStatement(slice)), _this.depth).generate());
 	}
 	if (stripped.startsWith("else ")) {
 		var substring = stripped.substring(5);
-		return /*Option*/.of(_this.generateIndent(_this.depth) + "else " + _this.compileMethodSegmentOrPlaceholder(substring));
+		return /*Option*/.of(/*App*/.generateIndent(_this.depth) + "else " + _this.compileMethodSegmentOrPlaceholder(substring));
 	}
 	return /*Option*/.empty();
 }
@@ -1408,7 +1463,7 @@ Option<char*> compileConditional_App(void* _ref, char* input, char* type) {
 				if (conditionEnd >= 0) {
 					final var condition = withCondition.substring(0, conditionEnd).strip();
 					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Option.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+					return Option.of(App.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
 													 this.compileMethodSegmentOrPlaceholder(substring2));
 				}
 			}*/
@@ -1579,7 +1634,8 @@ auto _lambda101_(auto _ref, auto segment) {
 };
 auto _lambda104_(auto _ref) {
 			var expression = _this.compileExpression(content);
-			return "{" + _this.generateStatement("auto _this = _ref", 1) + /*this.generateStatement("return "*/ + /*expression, 1)*/ + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
+			return "{" + new_CStatement(new_CContent("auto _this = _ref"), 1).generate() + /*new CStatement(new CContent("return "*/ + /*expression),
+																																			1).generate()*/ + /*System*/.lineSeparator() + "};" + /*System*/.lineSeparator();
 		}Option<char*> compileLambda_App(void* _ref, char* stripped) {
 	App _this = *((App*) _ref);
 	var arrowIndex = stripped.indexOf("->");

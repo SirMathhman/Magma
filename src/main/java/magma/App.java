@@ -99,6 +99,14 @@ public class App {
 		boolean test(T element);
 	}
 
+	private sealed interface CStructureSegment permits CStatement, EmptyCStructureSegment, Placeholder {
+		String generate();
+	}
+
+	private interface CNode {
+		String generate();
+	}
+
 	private static final class SingleHead<T> implements Head<T> {
 		private final T element;
 		private boolean retrieved;
@@ -397,7 +405,7 @@ public class App {
 		}
 	}
 
-	private record Placeholder(String input) implements CType, CFunctionHeader {
+	private record Placeholder(String input) implements CType, CFunctionHeader, CStructureSegment {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -491,7 +499,8 @@ public class App {
 		}
 	}
 
-	private record CDefinition(ArrayList<String> typeParameters, CType cType, String name) implements CFunctionHeader {
+	private record CDefinition(ArrayList<String> typeParameters, CType cType, String name)
+			implements CFunctionHeader, CNode {
 		@Override
 		public String generate() {
 			return this.cType().generate() + " " + this.name();
@@ -615,6 +624,22 @@ public class App {
 		}
 	}
 
+	private static final class EmptyCStructureSegment implements CStructureSegment {
+		@Override
+		public String generate() {
+			return "";
+		}
+	}
+
+	private record CContent(String generate) implements CNode {}
+
+	private record CStatement(CNode content1, int depth) implements CStructureSegment {
+		@Override
+		public String generate() {
+			return App.generateWithIndent(this.content1().generate(), this.depth()) + ";";
+		}
+	}
+
 	private ArrayList<ArrayList<CDefinition>> definitions = ArrayList.empty();
 	private ArrayList<CStructureHeader> structureHeaders;
 	private ArrayList<String> globals;
@@ -649,6 +674,14 @@ public class App {
 			templateString = "template <" + collect + ">" + System.lineSeparator();
 		}
 		return templateString;
+	}
+
+	private static String generateWithIndent(String content, int depth) {
+		return App.generateIndent(depth) + content;
+	}
+
+	private static String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private Option<IOException> run() {
@@ -829,10 +862,13 @@ public class App {
 			return "";
 		}
 
-		return this.compileStructure("class", stripped).orElseGet(() -> Placeholder.wrap(input));
+		return this
+				.compileStructure("class", stripped)
+				.map(CStructureSegment::generate)
+				.orElseGet(() -> Placeholder.wrap(input));
 	}
 
-	private Option<String> compileStructure(String type, String input) {
+	private Option<CStructureSegment> compileStructure(String type, String input) {
 		final var classIndex = input.indexOf(type);
 		if (classIndex >= 0) {
 			final var afterKeyword = input.substring(classIndex + type.length());
@@ -904,7 +940,7 @@ public class App {
 						final var enumFields = variants
 								.stream()
 								.map(slice -> slice + "Tag")
-								.map(content1 -> this.generateWithIndent(content1, 1))
+								.map(content1 -> App.generateWithIndent(content1, 1))
 								.collect(new Joiner(","));
 
 						final var typeArguments = this.joinTypeArguments(typeParameters);
@@ -923,11 +959,12 @@ public class App {
 						fields = recordFields
 								.stream()
 								.map(CDefinition::generate)
-								.map(slice -> this.generateStatement(slice, 1))
+								.map(slice -> new CStatement(new CContent(slice), 1).generate())
 								.collect(new Joiner(""));
 					} else {
-						fields = this.generateStatement(beforeContent + "Tag tag", 1) + this.generateStatement(
-								beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
+						fields = new CStatement(new CContent(beforeContent + "Tag tag"), 1).generate() +
+										 new CStatement(new CContent(
+												 beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data"), 1).generate();
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -938,11 +975,13 @@ public class App {
 						this.functions = this.functions.addLast(
 								templateString + interfaceType.generate() + " to" + interfaceType.getSimpleName() + "_" +
 								beforeContent + "(void* _ref" + "){" +
-								this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)", 1) +
-								this.generateStatement(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data", 1) +
-								this.generateStatement("data." + beforeContent.toLowerCase() + " = _this", 1) + this.generateStatement(
-										"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }",
-										1) + System.lineSeparator() + "}" + System.lineSeparator());
+								new CStatement(new CContent(thisType + " _this = *((" + thisType + "*) _ref)"), 1).generate() +
+								new CStatement(new CContent(interfaceType.getSimpleName() + "Data" + joinedTypeArguments + " data"),
+															 1).generate() +
+								new CStatement(new CContent("data." + beforeContent.toLowerCase() + " = _this"), 1).generate() +
+								new CStatement(new CContent(
+										"return " + interfaceType.generate() + " { " + beforeContent + "Tag, " + "data }"), 1).generate() +
+								System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					this.forwardDeclarations = this.forwardDeclarations.addLast(
@@ -951,8 +990,13 @@ public class App {
 					final var header = new CStructureHeader(typeParameters, beforeContent);
 					this.structureHeaders = this.structureHeaders.addLast(header);
 
-					final var outputContent =
-							fields + System.lineSeparator() + this.compileStatements(content, this::compileClassSegment);
+					final var joinedFields = this
+							.divide(content, this::foldStatement)
+							.map(this::compileClassSegment)
+							.map(CStructureSegment::generate)
+							.collect(new Joiner(""));
+
+					final var outputContent = fields + System.lineSeparator() + joinedFields;
 
 					final var generated =
 							dependencies + new CStructure(header, outputContent).generate() + System.lineSeparator();
@@ -965,7 +1009,7 @@ public class App {
 						this.sealedStructures = this.sealedStructures.addLast(generated);
 					}
 
-					return Option.of("");
+					return Option.of(new EmptyCStructureSegment());
 				}
 			}
 		}
@@ -983,18 +1027,6 @@ public class App {
 		return joinedTypeArguments;
 	}
 
-	private String generateStatement(String content, int depth) {
-		return this.generateWithIndent(content, depth) + ";";
-	}
-
-	private String generateWithIndent(String content, int depth) {
-		return this.generateIndent(depth) + content;
-	}
-
-	private String generateIndent(int depth) {
-		return System.lineSeparator() + "\t".repeat(depth);
-	}
-
 	private boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var next = input.charAt(i);
@@ -1005,9 +1037,9 @@ public class App {
 		return true;
 	}
 
-	private String compileClassSegment(String input) {
+	private CStructureSegment compileClassSegment(String input) {
 		if (input.isBlank()) {
-			return "";
+			return new EmptyCStructureSegment();
 		}
 
 		final var maybeClass = this.compileStructure("class", input);
@@ -1032,16 +1064,16 @@ public class App {
 
 		if (input.endsWith(";")) {
 			final var slice = input.substring(0, input.length() - 1);
-			final var maybeClassStatement = this.compileEnumValues(slice).or(() -> this.compileDefinitionToField(slice));
+			final var maybeClassStatement = this.compileEnumValues(slice).or(() -> this.compileDefinitionToField0(slice));
 			if (maybeClassStatement.isPresent()) {
 				return maybeClassStatement.get();
 			}
 		}
 
-		return this.compileMethod(input).orElseGet(() -> Placeholder.wrap(input));
+		return this.compileMethod(input).orElseGet(() -> new Placeholder(input));
 	}
 
-	private Option<String> compileMethod(String input) {
+	private Option<CStructureSegment> compileMethod(String input) {
 		final var paramStart = input.indexOf("(");
 		if (paramStart < 0) {return Option.empty();}
 		final var definition = input.substring(0, paramStart).strip();
@@ -1078,8 +1110,9 @@ public class App {
 			final var content = withBraces.substring(1, withBraces.length() - 1);
 
 			final var currentStructureType = this.structureHeaders.getLast();
-			final var thisDefinition = this.generateStatement(
-					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
+			final var thisDefinition = new CStatement(new CContent(
+					currentStructureType.toType().generate() + " _this = *((" + currentStructureType.name() + "*) _ref)"),
+																								1).generate();
 
 			this.definitions = this.definitions.addLast(params);
 
@@ -1092,7 +1125,7 @@ public class App {
 		}
 
 		this.functions = this.functions.addLast(generated);
-		return Option.of("");
+		return Option.of(new EmptyCStructureSegment());
 	}
 
 	private CFunctionHeader compileFunctionHeader(String input) {
@@ -1105,8 +1138,15 @@ public class App {
 				.orElseGet(() -> new Placeholder(input));
 	}
 
-	private Option<String> compileDefinitionToField(String slice) {
-		return this.compileDefinitionAsStatement(slice).map(content -> this.generateStatement(content, 1));
+	private Option<CStructureSegment> compileDefinitionToField0(String slice) {
+		final var maybeDefinition = this.compileDefinition(slice);
+		if (!maybeDefinition.isPresent()) {
+			return new None<CStructureSegment>();
+		}
+
+		final var definition = maybeDefinition.get();
+		this.definitions = this.definitions.mapLast(last -> last.addLast(definition));
+		return new Some<CStructureSegment>(new CStatement(definition, 1));
 	}
 
 	private String compileMethodSegments(String content) {
@@ -1131,7 +1171,7 @@ public class App {
 		return Option.empty();
 	}
 
-	private Option<String> compileEnumValues(String input) {
+	private Option<CStructureSegment> compileEnumValues(String input) {
 		final var segments = new ArrayList<String>(Arrays
 																									 .stream(input.split(Pattern.quote(",")))
 																									 .map(String::strip)
@@ -1148,7 +1188,7 @@ public class App {
 			}
 		}
 
-		return Option.of("");
+		return Option.of(new EmptyCStructureSegment());
 	}
 
 	private Option<String> compileEnumValue(String stripped) {
@@ -1188,7 +1228,7 @@ public class App {
 			this.definitions = this.definitions.removeLast();
 			this.depth--;
 
-			return Option.of("{" + compiled + this.generateIndent(this.depth) + "}");
+			return Option.of("{" + compiled + App.generateIndent(this.depth) + "}");
 		}
 
 		final var maybeIf = this.compileConditional(stripped, "if");
@@ -1203,12 +1243,12 @@ public class App {
 
 		if (stripped.endsWith(";")) {
 			final var slice = stripped.substring(0, stripped.length() - 1);
-			return Option.of(this.generateStatement(this.compileMethodStatement(slice), this.depth));
+			return Option.of(new CStatement(new CContent(this.compileMethodStatement(slice)), this.depth).generate());
 		}
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring(5);
-			return Option.of(this.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
+			return Option.of(App.generateIndent(this.depth) + "else " + this.compileMethodSegmentOrPlaceholder(substring));
 		}
 
 		return Option.empty();
@@ -1224,7 +1264,7 @@ public class App {
 				if (conditionEnd >= 0) {
 					final var condition = withCondition.substring(0, conditionEnd).strip();
 					final var substring2 = withCondition.substring(conditionEnd + 1).strip();
-					return Option.of(this.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
+					return Option.of(App.generateIndent(this.depth) + type + " (" + this.compileExpression(condition) + ") " +
 													 this.compileMethodSegmentOrPlaceholder(substring2));
 				}
 			}
@@ -1411,9 +1451,11 @@ public class App {
 			this.functions = this.functions.addLast("auto " + functionName + "(" + String.join(", ", copy.inner) + ") " +
 																							this.compileMethodSegment(content).orElseGet(() -> {
 																								final var expression = this.compileExpression(content);
-																								return "{" + this.generateStatement("auto _this = _ref", 1) +
-																											 this.generateStatement("return " + expression, 1) +
-																											 System.lineSeparator() + "};" + System.lineSeparator();
+																								return "{" +
+																											 new CStatement(new CContent("auto _this = _ref"), 1).generate() +
+																											 new CStatement(new CContent("return " + expression),
+																																			1).generate() + System.lineSeparator() + "};" +
+																											 System.lineSeparator();
 																							}));
 
 			return Option.of(functionName);
