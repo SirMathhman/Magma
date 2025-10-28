@@ -727,10 +727,14 @@ public class App {
 			}
 
 			public Frame defineAll(ArrayList<CDefinition> params) {
-				return new Frame(this.maybeHeader, this.definitions.addAllLast(params), this.structures);
+				return params.stream().fold(this, Frame::define);
 			}
 
 			public Frame define(CDefinition definition) {
+				if (definition.type instanceof CIdentifier(var value) && value.equals("var")) {
+					throw new RuntimeException();
+				}
+
 				return new Frame(this.maybeHeader, this.definitions.addLast(definition), this.structures);
 			}
 
@@ -1613,19 +1617,21 @@ public class App {
 	}
 
 	private String compileAssignmentContent(String destinationString, CExpression source) {
-		final var stringOption = this.parseAndDefineDefinition(destinationString);
-		return switch (stringOption) {
-			case None<CDefinition> _ -> this.compileExpression(destinationString);
-			case Some<CDefinition> v -> {
-				final var definition = v.value;
-				if (definition.type instanceof CIdentifier(var name) && name.equals("var")) {
-					final var newType = this.resolveExpression(source);
-					yield definition.withType(newType).generate();
-				}
+		final var maybeDefinition = this.compileDefinition(destinationString);
+		if (!maybeDefinition.isPresent()) {
+			return this.compileExpression(destinationString);
+		}
 
-				yield definition.generate();
-			}
-		};
+		final var definition = maybeDefinition.get();
+		if (definition.type instanceof CIdentifier(var name) && name.equals("var")) {
+			final var newType = this.resolveExpression(source);
+			var withNewType = definition.withType(newType);
+			this.frames = this.frames.define(withNewType);
+			return withNewType.generate();
+		}
+
+		return definition.generate();
+
 	}
 
 	private CType resolveExpression(CExpression expression) {
