@@ -792,7 +792,7 @@ public class App {
 		}
 
 		public Option<CStructureHeader> findCurrentStructure() {
-			return this.streamHeaders().head.next();
+			return this.frames.copy().reverse().stream().map(frame -> frame.maybeHeader).flatMap(Option::stream).head.next();
 		}
 
 		private Stream<CStructureHeader> streamHeaders() {
@@ -1635,8 +1635,14 @@ public class App {
 			case CFieldAccess fieldAccess -> {
 				final var childType = this.resolveExpression(fieldAccess.child);
 				if (childType instanceof CStructureType structureType) {
-					if (structureType.findField(fieldAccess.name) instanceof Some<CType>(var type)) {
-						yield type;
+					if (structureType.findField(fieldAccess.name) instanceof Some<CType>(var memberType)) {
+						yield memberType;
+					}
+
+					if (structureType.findField(fieldAccess.name + "_" + structureType.name) instanceof Some<CType>(
+							var memberType
+					)) {
+						yield memberType;
 					}
 
 					yield new Placeholder(
@@ -1649,7 +1655,11 @@ public class App {
 			case Placeholder placeholder -> placeholder;
 			case CInvocation cInvocation -> {
 				final var callerType = this.resolveCaller(cInvocation.caller);
-				yield new Placeholder(callerType.toString());
+				if (callerType instanceof FunctionType functionType) {
+					yield functionType.returnType;
+				}
+
+				yield new Placeholder("Not a function type: " + callerType.toString());
 			}
 		};
 	}
