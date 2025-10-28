@@ -34,48 +34,50 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:158:49: warning:
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:159:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   159 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
       |                                                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:8: error: use of undeclared identifier 'R'
-  191 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:8: error: use of undeclared identifier 'R'
+  192 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
       |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:43: error: use of undeclared identifier 'T'
-  191 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
-      |                                           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:44: error: use of undeclared identifier 'T'
-  192 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:46: error: use of undeclared identifier 'R'
+  192 | Option<R> map_Option(void* _ref, Function<T, R> mapper);
+      |                                              ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:194:35: error: no template named 'Consumer'
+  194 | void ifPresent_Option(void* _ref, Consumer<T> consumer);
+      |                                   ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:33: error: no template named 'Supplier'
+  196 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+      |                                 ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:202:8: error: use of undeclared identifier 'R'
+  202 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:202:57: error: use of undeclared identifier 'R'
+  202 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+      |                                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:206:32: error: no template named 'Supplier'
+  206 | T orElseGet_Option(void* _ref, Supplier<T> other);
+      |                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:210:1: error: no template named 'Stream'
+  210 | Stream<T> stream_Option(void* _ref);
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:212:1: error: use of class template 'ArrayList' requires template arguments
+  212 | ArrayList new_ArrayList(void* _ref) {
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:34:8: note: template is declared here
+   33 | template <typename T>
+      | ~~~~~~~~~~~~~~~~~~~~~
+   34 | struct ArrayList {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:222:1: error: no template named 'Stream'
+  222 | Stream<T> stream_ArrayList(void* _ref) {
+      | ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:270:8: error: use of undeclared identifier 'R'
+  270 | Option<R> map_Some(void* _ref, Function<T, R> mapper) {
+      |        ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:270:44: error: use of undeclared identifier 'R'
+  270 | Option<R> map_Some(void* _ref, Function<T, R> mapper) {
       |                                            ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:193:8: error: use of undeclared identifier 'T'
-  193 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:193:49: error: use of undeclared identifier 'T'
-  193 | Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
-      |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:1: error: unknown type name 'T'
-  195 | T get_Option(void* _ref);
-      | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:8: error: use of undeclared identifier 'R'
-  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:47: error: use of undeclared identifier 'T'
-  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |                                               ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:59: error: expected ')'
-  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |                                                           ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:25: note: to match this '('
-  196 | Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
-      |                         ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:197:1: error: unknown type name 'T'
-  197 | T orElse_Option(void* _ref, T other);
-      | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:197:29: error: unknown type name 'T'
-  197 | T orElse_Option(void* _ref, T other);
-      |                             ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:198:1: error: unknown type name 'T'
-  198 | T orElseGet_Option(void* _ref, Supplier<T> other);
-      | ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:198:41: error: use of undeclared identifier 'T'
-  198 | T orElseGet_Option(void* _ref, Supplier<T> other);
-      |                                         ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:275:33: error: no template named 'Consumer'
+  275 | void ifPresent_Some(void* _ref, Consumer<T> consumer) {
+      |                                 ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 3 warnings and 20 errors generated.
 Compilation failed with exit code: 1

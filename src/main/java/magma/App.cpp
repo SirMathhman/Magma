@@ -188,15 +188,25 @@ Option<T> empty_Option(void* _ref) {
 	Option<T> _this = *((Option*) _ref);
 	return new_None<T>();
 }
+template <typename T>
 Option<R> map_Option(void* _ref, Function<T, R> mapper);
+template <typename T>
 void ifPresent_Option(void* _ref, Consumer<T> consumer);
+template <typename T>
 Option<T> or_Option(void* _ref, Supplier<Option<T>> other);
+template <typename T>
 int isEmpty_Option(void* _ref);
+template <typename T>
 T get_Option(void* _ref);
+template <typename T>
 Option<R> flatMap_Option(void* _ref, Function<T, Option<R>> mapper);
+template <typename T>
 T orElse_Option(void* _ref, T other);
+template <typename T>
 T orElseGet_Option(void* _ref, Supplier<T> other);
+template <typename T>
 int isPresent_Option(void* _ref);
+template <typename T>
 Stream<T> stream_Option(void* _ref);
 template <typename T>
 ArrayList new_ArrayList(void* _ref) {
@@ -892,16 +902,16 @@ Option<char*> compileMethod_App(void* _ref, char* input) {
 	char* withBraces = withParams.substring(paramEnd + 1).strip();
 	CFunctionHeader header = _this.compileFunctionHeader(definition);
 	char* beforeContent = header.generate() + "(" + this.compileParameters(params) + ")";
+	char* templateString = _this.structureHeaders.peek().createTemplateString();
 	char* generated;
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		char* content = withBraces.substring(1, withBraces.length() - 1);
 		CStructureHeader currentStructureType = _this.structureHeaders.peek();
 		char* thisDefinition = _this.generateStatement(currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
-		char* templateString = _this.structureHeaders.peek().createTemplateString();
 		generated = templateString + beforeContent + " {" + thisDefinition + _this.compileMethodSegments(content) + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 	else {
-		generated = beforeContent + ";" + System.lineSeparator();
+		generated = templateString + beforeContent + ";" + System.lineSeparator();
 	}
 	_this.functions = _this.functions.add(generated);
 	return Option.of("");

@@ -827,7 +827,9 @@ public class App {
 
 		final CFunctionHeader header = this.compileFunctionHeader(definition);
 
-		final String beforeContent = header.generate() + "(" + this.compileParameters(params) + ")";
+		final String headerWithParameters = header.generate() + "(" + this.compileParameters(params) + ")";
+		final String templateString = this.structureHeaders.peek().createTemplateString();
+
 		final String generated;
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final String content = withBraces.substring(1, withBraces.length() - 1);
@@ -836,12 +838,10 @@ public class App {
 			final String thisDefinition = this.generateStatement(
 					currentStructureType.generateAsType() + " _this = *((" + currentStructureType.name() + "*) _ref)", 1);
 
-			final String templateString = this.structureHeaders.peek().createTemplateString();
-
-			generated = templateString + beforeContent + " {" + thisDefinition + this.compileMethodSegments(content) +
+			generated = templateString + headerWithParameters + " {" + thisDefinition + this.compileMethodSegments(content) +
 									System.lineSeparator() + "}" + System.lineSeparator();
 		} else {
-			generated = beforeContent + ";" + System.lineSeparator();
+			generated = templateString + headerWithParameters + ";" + System.lineSeparator();
 		}
 
 		this.functions = this.functions.add(generated);
