@@ -418,7 +418,7 @@ R fold_Stream(void* _ref, R initial, BiFunction<R, T, R> folder) {
 	Stream<T> _this = *((Stream*) _ref);
 	R current = initial;
 	while (1) {
-		/*Not an identifier: 'Placeholder[input=_this]'*/ head1 = _this.head;
+		/*Not an identifier: Placeholder[input=this type]*/ head1 = _this.head;
 		/*head1.next()*/ maybeNext = head1.next();
 		if (/*maybeNext instanceof Some*/ < /*T>*/(/*var next*/)) {
 			current = folder.apply(current, /*next*/);
@@ -691,7 +691,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*Not an identifier: 'Placeholder[input=_this]'*/ list = _this.list;
+	/*Not an identifier: Placeholder[input=this type]*/ list = _this.list;
 	/*list.stream()*/ stream = list.stream();
 	/*stream.map(generate_CType)*/ map = stream.map(generate_CType);
 	/*new_Joiner(", ")*/ collector = new_Joiner(", ");
@@ -705,10 +705,6 @@ char* getSimpleName_CTemplateType(void* _ref) {
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
 	return _this.value;
-}
-char* toString_CIdentifier(void* _ref) {
-	CIdentifier _this = *((CIdentifier*) _ref);
-	return "";
 }
 char* getSimpleName_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -769,7 +765,7 @@ int isLevel_State(void* _ref) {
 Option<char> pop_State(void* _ref) {
 	State _this = *((State*) _ref);
 	if (_this.index < _this.input.length()) {
-		/*Not an identifier: 'Placeholder[input=_this]'*/ counter = _this.index;
+		/*Not an identifier: Placeholder[input=this type]*/ counter = _this.index;
 		_this.index++;
 		/*_this.input.charAt(counter)*/ element = _this.input.charAt(counter);
 		return /*Option*/.of(element);
@@ -1085,7 +1081,7 @@ State foldEscaped_App(void* _ref, State current, char next, BiFunction<State, ch
 			}
 			/*maybeTuple.get()*/ tuple = maybeTuple.get();
 			current0 = tuple.right;
-			/*Not an identifier: ''*/ nextInQuotes = tuple.left;
+			/*Not an identifier: CIdentifier[value=var]*/ nextInQuotes = tuple.left;
 			if (nextInQuotes == '\\') {
 				current0 = current0.popAndAppendToOption().orElse(current0);
 				continue;
@@ -1406,7 +1402,7 @@ Option<CFunctionHeader> compileConstructor_App(void* _ref, char* input) {
 	}
 	else {
 		if (_this.isIdentifier(input)) {
-			/*Not an identifier: 'Placeholder[input=_this.structureHeaders.getLast()]'*/ structName = _this.structureHeaders.getLast().name;
+			/*Not an identifier: Placeholder[input=_this.structureHeaders.getLast()]*/ structName = _this.structureHeaders.getLast().name;
 			return /*Option*/.of(new_CDefinition(/*ArrayList*/.empty(), new_CIdentifier(structName), "new_" + structName));
 		}
 	}
@@ -1584,13 +1580,14 @@ auto _lambda77_(auto _ref, auto definition) {
 };
 CType resolveIdentifier_App(void* _ref, CIdentifier identifier) {
 	App _this = *((App*) _ref);
+	if (identifier.value.equals("_this")) {
+		return new_Placeholder("this type");
+	}
 	/*_this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda77_).head.next()*/ maybeDefinition = _this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda77_).head.next();
 	if (/*maybeDefinition instanceof Some*/ < /*CDefinition>*/(/*var found*/)) {
 		return /*found*/.cType;
 	}
-	else {
-		return new_Placeholder(identifier.value);
-	}
+	return new_Placeholder(identifier.value);
 }
 Option<char*> parseAndDefineDefinitionAsStatement_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
@@ -1672,7 +1669,7 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	}
 	if (_this.isIdentifier(stripped)) {
 		if (stripped.equals("this")) {
-			return new_CContent("_this");
+			return new_CIdentifier("_this");
 		}
 		if (_this.definitions.stream().flatMap(stream_ArrayList).filter(_lambda86_).head.next().isPresent()) {
 			return new_CIdentifier(stripped);

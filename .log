@@ -171,4 +171,3 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:441:16: error: '
       |                ^~~~
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
 7 warnings and 20 errors generated.
-Compilation failed with exit code: 1

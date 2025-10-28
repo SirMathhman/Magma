@@ -400,11 +400,6 @@ public class App {
 		}
 
 		@Override
-		public String toString() {
-			return "";
-		}
-
-		@Override
 		public String getSimpleName() {
 			return this.value;
 		}
@@ -1385,18 +1380,27 @@ public class App {
 		return switch (expression) {
 			case CIdentifier identifier -> this.resolveIdentifier(identifier);
 			case CContent cContent -> new Placeholder(cContent.content);
-			case CFieldAccess cFieldAccess -> {
-				final var childType = this.resolveExpression(cFieldAccess.child);
-				if (childType instanceof CIdentifier identifier) {
+			case CFieldAccess fieldAccess -> {
+				final var childType = this.resolveExpression(fieldAccess.child);
+				if (childType instanceof CIdentifier(String value)) {
+					if (value.equals("_this")) {
+						yield new Placeholder("Failed to find field: " + fieldAccess.name);
+					} else {
+
+					}
 				}
 
-				yield new Placeholder("Not an identifier: '" + childType + "'");
+				yield new Placeholder("Not an identifier: " + childType + "");
 			}
 			case Placeholder placeholder -> placeholder;
 		};
 	}
 
 	private CType resolveIdentifier(CIdentifier identifier) {
+		if(identifier.value.equals("_this")) {
+			return new Placeholder("this type");
+		}
+
 		final var maybeDefinition = this.definitions
 				.stream()
 				.flatMap(ArrayList::stream)
@@ -1404,9 +1408,9 @@ public class App {
 
 		if (maybeDefinition instanceof Some<CDefinition>(var found)) {
 			return found.cType;
-		} else {
-			return new Placeholder(identifier.value);
 		}
+
+		return new Placeholder(identifier.value);
 	}
 
 	private Option<String> parseAndDefineDefinitionAsStatement(String input) {
@@ -1468,7 +1472,7 @@ public class App {
 
 		if (this.isIdentifier(stripped)) {
 			if (stripped.equals("this")) {
-				return new CContent("_this");
+				return new CIdentifier("_this");
 			}
 
 			if (this.definitions
