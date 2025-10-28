@@ -103,6 +103,7 @@ struct CPPType {
 };
 CPPPrimitiveType VoidValue = CPPPrimitiveType { "void" };
 CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
+CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
 CPPType toCPPType_CPPPrimitiveType(void* _ref){
 	CPPPrimitiveType _this = *((CPPPrimitiveType*) _ref);
 	CPPTypeData data;
@@ -218,7 +219,7 @@ State advance_State(void* _ref) {
 	_this.buffer = new_StringBuilder();
 	return _this;
 }
-boolean isShallow_State(void* _ref) {
+int isShallow_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.depth == 1;
 }
@@ -227,7 +228,7 @@ State append_State(void* _ref, char c) {
 	_this.buffer.append(c);
 	return _this;
 }
-boolean isLevel_State(void* _ref) {
+int isLevel_State(void* _ref) {
 	State _this = *((State*) _ref);
 	return _this.depth == 0;
 }
@@ -571,7 +572,7 @@ char* generateIndent_App(void* _ref, int depth) {
 	App _this = *((App*) _ref);
 	return System.lineSeparator() + "\t".repeat(depth);
 }
-boolean isIdentifier_App(void* _ref, char* input) {
+int isIdentifier_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);/*
 		for (int i = 0; i < input.length(); i++) {
 			final char next = input.charAt(i);
@@ -1019,7 +1020,7 @@ Optional<char*> compileOperator_App(void* _ref, char* stripped, char* separator)
 	}
 	return Optional.empty();
 }
-boolean isNumber_App(void* _ref, char* input) {
+int isNumber_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);/*
 		for (int i = 0; i < input.length(); i++) {
 			final char c = input.charAt(i);
@@ -1090,6 +1091,9 @@ auto _lambda115_(auto _ref, auto slice) {
 Optional<CPPType> compileType_App(void* _ref, char* input) {
 	App _this = *((App*) _ref);
 	char* stripped = input.strip();
+	if (stripped.equals("boolean")) {
+		return Optional.of(CPPPrimitiveType.Int);
+	}
 	if (stripped.equals("void")) {
 		return Optional.of(CPPPrimitiveType.Void);
 	}

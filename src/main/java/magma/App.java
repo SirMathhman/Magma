@@ -18,7 +18,7 @@ import java.util.stream.Stream;
 
 public class App {
 	private enum CPPPrimitiveType implements CPPType {
-		Void("void"), Char("char");
+		Void("void"), Char("char"), Int("int");
 
 		private final String content;
 
@@ -490,9 +490,8 @@ public class App {
 								.map(slice -> this.generateStatement(slice, 1))
 								.collect(Collectors.joining(""));
 					} else {
-						fields = this.generateStatement(beforeContent + "Tag tag", 1) +
-										 this.generateStatement(beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data",
-																						1);
+						fields = this.generateStatement(beforeContent + "Tag tag", 1) + this.generateStatement(
+								beforeContent + "Data" + this.joinTypeArguments(typeParameters) + " " + "data", 1);
 					}
 
 					if (maybeInterfaceType.isPresent()) {
@@ -1076,6 +1075,10 @@ public class App {
 
 	private Optional<CPPType> compileType(String input) {
 		final String stripped = input.strip();
+
+		if (stripped.equals("boolean")) {
+			return Optional.of(CPPPrimitiveType.Int);
+		}
 
 		if (stripped.equals("void")) {
 			return Optional.of(CPPPrimitiveType.Void);

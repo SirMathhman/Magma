@@ -43,30 +43,33 @@ C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:104:49: warning:
 C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:105:49: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
   105 | CPPPrimitiveType CharValue = CPPPrimitiveType { "char" };
       |                                                 ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:163:67: error: use of undeclared identifier 'Collectors'
-  163 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:106:48: warning: ISO C++11 does not allow conversion from string literal to 'char *' [-Wwritable-strings]
+  106 | CPPPrimitiveType IntValue = CPPPrimitiveType { "int" };
+      |                                                ^
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:164:67: error: use of undeclared identifier 'Collectors'
+  164 |         char* joined = _this.list.stream().map(generate_CPPType).collect(Collectors.joining(", "));
       |                                                                          ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:164:20: error: invalid operands to binary expression ('char *' and 'const char[2]')
-  164 |         return _this.base + "<" + joined + ">";
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:165:20: error: invalid operands to binary expression ('char *' and 'const char[2]')
+  165 |         return _this.base + "<" + joined + ">";
       |                ~~~~~~~~~~ ^ ~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:186:24: error: member reference base type 'char *' is not a structure or union
-  186 |         char* replaced = input.replace("/*", "start").replace("*/", "end");
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:187:24: error: member reference base type 'char *' is not a structure or union
+  187 |         char* replaced = input.replace("/*", "start").replace("*/", "end");
       |                          ~~~~~^~~~~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:187:14: error: invalid operands to binary expression ('const char[3]' and 'char *')
-  187 |         return "/*" + replaced + "*/";
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:188:14: error: invalid operands to binary expression ('const char[3]' and 'char *')
+  188 |         return "/*" + replaced + "*/";
       |                ~~~~ ^ ~~~~~~~~
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:191:9: error: use of undeclared identifier 'wrap'
-  191 |         return wrap(_this.input);
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:192:9: error: use of undeclared identifier 'wrap'
+  192 |         return wrap(_this.input);
       |                ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:195:15: error: no member named 'generate' in 'Placeholder'
-  195 |         return _this.generate();
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:196:15: error: no member named 'generate' in 'Placeholder'
+  196 |         return _this.generate();
       |                ~~~~~ ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:200:17: error: use of undeclared identifier 'new_StringBuilder'
-  200 |         _this.buffer = new_StringBuilder();
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:201:17: error: use of undeclared identifier 'new_StringBuilder'
+  201 |         _this.buffer = new_StringBuilder();
       |                        ^
-C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:202:19: error: use of undeclared identifier 'new_ArrayList'
-  202 |         _this.segments = new_ArrayList<char*>();
+C:\Users\mathm\IdeaProjects\Magma\.\src\main\java\magma\App.cpp:203:19: error: use of undeclared identifier 'new_ArrayList'
+  203 |         _this.segments = new_ArrayList<char*>();
       |                          ^
 fatal error: too many errors emitted, stopping now [-ferror-limit=]
-2 warnings and 20 errors generated.
+3 warnings and 20 errors generated.
 Compilation failed with exit code: 1
