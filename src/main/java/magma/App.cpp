@@ -49,6 +49,9 @@ struct Joiner;
 */struct CPrimitiveType {
 
 	char* content;};
+template <typename T>
+struct Head {
+};
 template <typename T, typename C>
 struct Collector {
 };
@@ -152,26 +155,6 @@ struct App {
 	ArrayList<char*> functions;
 	int counter;
 	int depth;};
-enum HeadTag {
-	EmptyHeadTag,
-	ListHeadTag,
-	MapHeadTag,
-	SingleHeadTag,
-	FlatMapHeadTag
-};
-template <typename T>
-union HeadData {
-	EmptyHead<T> emptyhead;
-	ListHead<T> listhead;
-	MapHead<T> maphead;
-	SingleHead<T> singlehead;
-	FlatMapHead<T> flatmaphead;
-};
-template <typename T>
-struct Head {
-	HeadTag tag;
-	HeadData<T> data;
-};
 enum ResultTag {
 	ErrTag,
 	OkTag

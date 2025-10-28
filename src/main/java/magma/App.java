@@ -32,7 +32,7 @@ public class App {
 		}
 	}
 
-	private sealed interface Head<T> permits EmptyHead, ListHead, MapHead, SingleHead, FlatMapHead {
+	private interface Head<T> {
 		Option<T> next();
 	}
 
