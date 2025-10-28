@@ -1921,7 +1921,8 @@ public class App {
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var substring1 = stripped.substring(i2 + 2);
-			return new CContent(substring1 + "_" + this.compileType(substring).map(CType::generate).orElse("?"));
+			final var maybeType = this.compileType(substring).map(CType::generate).orElse("?");
+			return new CContent(substring1 + "_" + maybeType);
 		}
 
 		if (this.isNumber(stripped)) {

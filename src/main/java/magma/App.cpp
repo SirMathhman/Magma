@@ -2471,7 +2471,8 @@ CExpression parseExpression_App(void* _ref, char* input) {
 	if (i2 >= 0) {
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]*/ substring = stripped.substring(0, i2);
 		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: char*]end]*/ substring1 = stripped.substring(i2 + 2);
-		return new_CContent(substring1 + "_" + _this.compileType(substring).map(generate_CType).orElse("?"));
+		/*Not a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Does not have a type of structure: startNot a function type: Placeholder[input=Undefined field 'compileType' in 'App' of type 'CStructureType[name=App, typeParameters=[], fields=[Frames frames, ArrayList<char*> globals, ArrayList<char*> forwardDeclarations, ArrayList<char*> structures, ArrayList<char*> sealedStructures, ArrayList<char*> functions, int counter, int depth]]']end]end]*/ maybeType = _this.compileType(substring).map(generate_CType).orElse("?");
+		return new_CContent(substring1 + "_" + maybeType);
 	}
 	if (_this.isNumber(stripped)) {
 		return new_CContent(stripped);
