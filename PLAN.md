@@ -57,9 +57,47 @@ Codegen Dispatch
 
 1. **Project setup and specification lock**
    - Create Cargo workspace with modules: `lexer/`, `parser/`, `ast/`, `semantic/`, `codegen_ts/`, `codegen_js/`, `codegen_llvm/`, `driver/`, `diagnostics/`
-   - Add dependencies: `nom` (parser combinators), `inkwell` (LLVM IR), `serde` (serialization), error reporting libraries
+   - Add dependencies: `nom` (parser combinators), `inkwell` (LLVM IR), `serde` (serialization), `quote` + `proc-macro2` (code generation), `miette` (diagnostics), `clap` (CLI)
    - Freeze Magma grammar in BNF/EBNF form
    - Document all language semantics in `LANGUAGE.md`
+
+#### Recommended Crates for Accelerated Development
+
+**Core Dependencies (Priority 1 - Immediate Impact):**
+
+- **`quote` + `proc-macro2` (Code Generation):** Accelerates backend code generation by 40-50%. The `quote!` macro dramatically simplifies emitting readable TypeScript, JavaScript, and LLVM IR. Eliminates manual string concatenation; type-safe code emission. Widely trusted in Rust ecosystem.
+- **`miette` (Diagnostics):** Professional-grade error reporting with rich terminal output, source spans, nested diagnostics, and code highlighting. Reduces manual error handling code by ~70%. Integrates seamlessly with `nom` errors.
+- **`nom` (Parser Combinators):** Already planned; zero-copy, composable parsing with excellent error recovery. Chosen over `lalrpop` to preserve full control over custom parsing logic and simplify eventual self-hosting.
+
+**Supporting Dependencies (Priority 2 - Recommended):**
+
+- **`clap` (CLI Argument Parsing):** Professional CLI framework with auto-generated help, subcommands, and argument validation. Significantly faster than manual parsing.
+- **`serde` + `serde_json` (Serialization):** Serialize HIR/AST for debugging, testing, and intermediate representation exchange between compiler stages.
+- **`tempfile` (Testing):** For generating temporary output files during backend tests without manual cleanup.
+
+**LLVM & Runtime (Already Planned):**
+
+- **`inkwell` (LLVM IR):** Safe Rust wrapper; use over raw `llvm-sys` for reliability and ease of use.
+
+**Why Not `lalrpop`?**
+While `lalrpop` (LR(1) parser generator) could reduce grammar boilerplate, `nom` is preferred:
+
+1. Magma's custom error recovery and lookahead needs are better served by combinators
+2. Handwritten parsers simplify self-hosting (fewer bootstrapping dependencies)
+3. `nom` has proven track record in major Rust compiler projects (rust-analyzer ecosystem)
+4. Better alignment with eventual Magma rewrite (combinators are easier to reimplement in Magma)
+
+**Implementation Sequencing:**
+
+1. **Week 0:** Add all crates to `Cargo.toml`; set up `miette` error infrastructure
+2. **Weeks 1-2:** Lexer/parser with `nom` + `miette` error handling
+3. **Weeks 5-6:** Integrate `quote` + `proc-macro2` into TypeScript backend (major speedup)
+4. **Week 7:** JavaScript backend benefits from same `quote` infrastructure
+5. **Weeks 8-9:** LLVM backend uses `inkwell` for IR generation
+6. **Week 10:** Add `clap`-based CLI driver with subcommands
+7. **Weeks 11-13:** Add `serde` serialization as needed for testing/debugging
+
+**Expected Time Savings:** 2-4 weeks across the entire project (primarily in backend code generation and error handling).
 
 ### Phase 1: Frontend Implementation (Weeks 1–4, Month 1)
 
@@ -287,13 +325,15 @@ Rewrite the entire Rust compiler in Magma, targeting all three backends simultan
 
 ## Risk Mitigation
 
-| Risk                                                  | Mitigation                                                          |
-| ----------------------------------------------------- | ------------------------------------------------------------------- |
-| Self-hosting three backends simultaneously is complex | Implement all backends in Rust first; port one at a time to Magma   |
-| LLVM integration unfamiliar                           | Use `inkwell` (safe Rust wrapper); study existing compiler backends |
-| Semantic divergence between targets                   | Extensive cross-target equivalence tests; same HIR for all backends |
-| 15–18 month timeline aggressive                       | No performance optimization; focus on correctness; phased approach  |
-| Borrow checker complexity                             | Start simple (affine types); expand gradually; extensive testing    |
+| Risk                                                  | Mitigation                                                                           |
+| ----------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| Self-hosting three backends simultaneously is complex | Implement all backends in Rust first; port one at a time to Magma                    |
+| LLVM integration unfamiliar                           | Use `inkwell` (safe Rust wrapper); study existing compiler backends                  |
+| Semantic divergence between targets                   | Extensive cross-target equivalence tests; same HIR for all backends                  |
+| 15–18 month timeline aggressive                       | Leverage crate ecosystem: `quote`, `miette`, `nom`, `clap` save 2-4 weeks            |
+| Borrow checker complexity                             | Start simple (affine types); expand gradually; extensive testing                     |
+| Backend code generation error-prone                   | Use `quote!` macro for type-safe code emission; eliminates string concatenation bugs |
+| Manual error reporting tedious                        | Use `miette` for rich diagnostics; reduces manual formatting by ~70%                 |
 
 ---
 
