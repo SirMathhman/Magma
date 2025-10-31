@@ -1,0 +1,4 @@
+error: failed to parse manifest at `C:\Users\mathm\IdeaProjects\Magma\Cargo.toml`
+
+Caused by:
+  manifest is missing either a `[package]` or a `[workspace]`
