@@ -101,15 +101,21 @@ While `lalrpop` (LR(1) parser generator) could reduce grammar boilerplate, `nom`
 
 ### Phase 1: Frontend Implementation (Weeks 1–4, Month 1)
 
-2. **Implement Rust lexer (Week 1)**
+2. **Implement Rust lexer (Week 1)** ✅ COMPLETE
 
    - Hand-written tokenizer producing `Token` stream with source spans
    - Handle all token types: keywords, operators, identifiers, integer/string literals, punctuation
    - Generate rich error diagnostics with source context
    - Create standalone CLI tool: `magma-lex <file.mg>`
    - Comprehensive unit tests covering all token types
+   - **Status**: All 16 tests passing. Lexer handles all token types including keywords, operators, literals, comments.
+   - **Deliverables**:
+     - `src/token.rs` - Token and Span definitions
+     - `src/lexer.rs` - Lexer implementation with 16 unit tests
+     - `src/bin/lex.rs` - CLI tool
+     - `test_sample.mg` - Sample Magma file
 
-3. **Implement Rust parser (Week 2)**
+3. **Implement Rust parser (Week 2)** ⏳ IN PROGRESS
 
    - Hand-written recursive descent parser using `nom` combinators or custom combinator library
    - Emit immutable AST capturing all syntax with source locations
