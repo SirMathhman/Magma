@@ -4,6 +4,8 @@
 /// Source Code → [Lexer] → Tokens → [Parser] → AST → [Semantic Analysis] → HIR
 /// → [Codegen] → (TypeScript | JavaScript | LLVM IR)
 pub mod ast;
+pub mod codegen_javascript;
+pub mod codegen_llvm;
 pub mod codegen_typescript;
 pub mod diagnostics;
 pub mod driver;
