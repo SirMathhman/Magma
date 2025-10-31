@@ -131,6 +131,26 @@ pub enum HirExprKind {
         else_expr: Option<Box<HirExpr>>,
     },
 
+    /// While loop
+    While {
+        cond: Box<HirExpr>,
+        body: Box<HirExpr>,
+    },
+
+    /// For loop (range-based)
+    For {
+        var: String,
+        start: Box<HirExpr>,
+        end: Box<HirExpr>,
+        body: Box<HirExpr>,
+    },
+
+    /// Break statement
+    Break,
+
+    /// Continue statement
+    Continue,
+
     /// Block (sequence of expressions, last is result)
     Block(Vec<HirExpr>),
 

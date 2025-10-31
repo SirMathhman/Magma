@@ -161,7 +161,7 @@ impl JavaScriptBackend {
                 self.writeln(&format!("{}[{}];", expr_code, index_code));
             }
             HirExprKind::Constructor { name: _, fields } => {
-                self.writeln("const obj = {");
+                self.writeln(&format!("const obj = {{"));
                 self.indent();
                 for (field_name, field_expr) in fields {
                     let field_code = self.expr_to_string(field_expr)?;
@@ -169,6 +169,37 @@ impl JavaScriptBackend {
                 }
                 self.dedent();
                 self.writeln("};");
+            }
+            HirExprKind::While { cond, body } => {
+                let cond_code = self.expr_to_string(cond)?;
+                self.writeln(&format!("while ({}) {{", cond_code));
+                self.indent();
+                self.generate_expr(body)?;
+                self.dedent();
+                self.writeln("}");
+            }
+            HirExprKind::For {
+                var,
+                start,
+                end,
+                body,
+            } => {
+                let start_code = self.expr_to_string(start)?;
+                let end_code = self.expr_to_string(end)?;
+                self.writeln(&format!(
+                    "for (let {} = {}; {} < {}; {}++) {{",
+                    var, start_code, var, end_code, var
+                ));
+                self.indent();
+                self.generate_expr(body)?;
+                self.dedent();
+                self.writeln("}");
+            }
+            HirExprKind::Break => {
+                self.writeln("break;");
+            }
+            HirExprKind::Continue => {
+                self.writeln("continue;");
             }
         }
         Ok(())
@@ -245,6 +276,26 @@ impl JavaScriptBackend {
                 obj.push_str(" }");
                 Ok(obj)
             }
+            HirExprKind::While { .. } => Err(CompilationError::error(
+                "Loops cannot be expressions in JavaScript backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::For { .. } => Err(CompilationError::error(
+                "Loops cannot be expressions in JavaScript backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::Break => Err(CompilationError::error(
+                "Break cannot be used as an expression in JavaScript backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::Continue => Err(CompilationError::error(
+                "Continue cannot be used as an expression in JavaScript backend",
+                expr.span,
+                "",
+            )),
         }
     }
 

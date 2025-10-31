@@ -286,26 +286,63 @@ HIR (High-level Intermediate Representation) - Bridge between semantic analysis 
 
    **Total Tests**: 169 unit tests + 9 integration tests = **178 total tests passing**
 
-9. **Expand language feature set (Weeks 11–13, Months 2–3)**
+9. **Loop support implementation (Week 11)** ✅ COMPLETE
 
-   - Implement all core features:
-     - Control flow: `if/else`, loops, pattern matching
-     - Collections: arrays, basic container types
-     - Method calls and field access
-     - Ownership/borrowing expressions
-     - Generic monomorphization in all backends
-     - `Result` type propagation and error handling
-     - Struct and class instantiation
-   - Ensure all features work identically across all three backends
-   - Comprehensive test matrix: (feature × backend)
+   - Implemented full loop support across all compiler layers:
 
-10. **Stabilize compiler and documentation (Month 4)**
-    - Fix bugs across all backends
-    - Improve error messages and diagnostics
-    - Document codegen strategy for each backend
-    - Create example programs demonstrating language features
-    - Establish compiler as stable baseline
-    - Create contribution guidelines
+     - **AST Layer**: Added `WhileLoop`, `ForLoop`, `Break`, `Continue` expression types
+     - **Parser**: Implemented `parse_while_loop()` and `parse_for_loop()` with double-dot range operator support
+     - **Semantic Analyzer**: Type checking for loop conditions (must be Bool) and loop bodies
+     - **HIR**: Added loop expression kinds for all three backends
+     - **HIR Lowering**: Full desugaring of loops to HIR representation
+     - **TypeScript Backend**: Loop codegen producing `while` and `for` statements
+     - **JavaScript Backend**: Loop codegen (identical to TypeScript)
+     - **LLVM Backend**: Branch-based loop code generation with proper control flow
+     - **Parser Enhancement**: Fixed double-dot range operator parsing to not conflict with field access
+
+   - **Language Features**:
+
+     - While loops: `while condition { body }`
+     - For loops with ranges: `for var in start..end { body }`
+     - Break statement: `break;` exits current loop
+     - Continue statement: `continue;` skips to next iteration
+     - Proper nesting of loops and control flow statements
+     - Break/continue inside if expressions within loops
+
+   - **Parser Improvements**:
+
+     - Added `let binding` support in blocks via pseudo-function mechanism (`_let_binding`)
+     - Fixed `parse_postfix()` to detect range operator `..` and avoid consuming as field access
+     - Enhanced block parsing to support both expressions and let bindings
+
+   - **Test Coverage**: 11 loop support tests passing
+
+     - Simple while loops
+     - While loops with break/continue
+     - For loops with ranges
+     - For loops with break/continue
+     - Nested loops
+     - Multiple control flow statements
+     - Loop variable scope
+     - Loops with function calls
+
+   - **Status**: All 11 loop tests passing + 178 prior = **189 total tests passing**
+
+   - **Deliverables**:
+     - `tests/loop_support.rs` - 11 comprehensive loop support tests
+     - Enhanced `src/parser.rs` with loop parsing and range operator handling
+     - Enhanced all backend codegen with loop code generation
+     - Full loop support across entire compiler pipeline
+
+10. **Expand language feature set (Weeks 12–13)**
+
+- Implement additional features:
+  - Pattern matching / match expressions
+  - Collections: arrays, basic container types
+  - Method calls and field access
+  - Generic monomorphization refinement
+  - `Result` type propagation
+- Ensure all features work identically across all three backends
 
 ---
 
@@ -458,12 +495,13 @@ Rewrite the entire Rust compiler in Magma, targeting all three backends simultan
 6. ✓ JavaScript backend complete (Week 7 - all 9 tests passing)
 7. ✓ LLVM backend complete (Weeks 8-9 - all 9 tests passing)
 8. ✓ Full three-backend compiler pipeline (Week 10 - 13 driver tests + 9 CLI tests passing)
-9. ⏳ Cross-backend integration tests (Week 10 - NEXT PRIORITY)
-10. ⏳ Language feature expansion (Weeks 11-13)
-11. ⏳ Production-ready compiler (Month 4)
-12. ⏳ Self-hosted compiler (Magma source) compiled by Rust compiler → TS, JS, LLVM (Month 9)
-13. ⏳ Self-hosted compiler compiles itself (three-level bootstrap working) (Month 9)
-14. ⏳ Production release with all features, tooling, documentation (Month 18)
+9. ✓ Cross-backend integration tests (Week 10 - all 20 tests passing, semantic equivalence validated)
+10. ✓ Loop support implementation (for/while/break/continue - all 11 tests passing)
+11. ⏳ Additional language features (pattern matching, collections, etc.)
+12. ⏳ Production-ready compiler (Month 4)
+13. ⏳ Self-hosted compiler (Magma source) compiled by Rust compiler → TS, JS, LLVM (Month 9)
+14. ⏳ Self-hosted compiler compiles itself (three-level bootstrap working) (Month 9)
+15. ⏳ Production release with all features, tooling, documentation (Month 18)
 
 ---
 

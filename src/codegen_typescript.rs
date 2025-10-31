@@ -1,3 +1,4 @@
+use crate::diagnostics::CompilationError;
 /// TypeScript Code Generation Backend
 ///
 /// Lowers HIR to idiomatic, human-readable TypeScript code.
@@ -7,10 +8,8 @@
 /// - .ts files: TypeScript source code
 /// - .d.ts files: Type declaration files
 /// - Source maps: Debugging support
-
 use crate::hir::*;
 use crate::semantic::ResolvedType;
-use crate::diagnostics::CompilationError;
 
 /// TypeScript code generator
 pub struct TypeScriptBackend {
@@ -29,7 +28,7 @@ impl TypeScriptBackend {
     /// Generate TypeScript code from HIR program
     pub fn generate(&mut self, program: &HirProgram) -> Result<String, CompilationError> {
         self.output.clear();
-        
+
         // Generate header comments
         self.writeln("// Generated from Magma compiler");
         self.writeln("// DO NOT EDIT MANUALLY");
@@ -50,7 +49,7 @@ impl TypeScriptBackend {
 
     fn generate_function(&mut self, func: &HirFunction) -> Result<(), CompilationError> {
         let return_type = self.type_to_typescript(&func.return_type);
-        
+
         // Function signature
         let mut sig = format!("function {}(", func.name);
         for (i, param) in func.params.iter().enumerate() {
@@ -67,7 +66,7 @@ impl TypeScriptBackend {
         self.indent();
         self.generate_expr(&func.body)?;
         self.dedent();
-        
+
         self.writeln("}");
         Ok(())
     }
@@ -75,12 +74,12 @@ impl TypeScriptBackend {
     fn generate_struct(&mut self, struct_def: &HirStruct) -> Result<(), CompilationError> {
         self.writeln(&format!("interface {} {{", struct_def.name));
         self.indent();
-        
+
         for field in &struct_def.fields {
             let ty = self.type_to_typescript(&field.ty);
             self.writeln(&format!("{}: {};", field.name, ty));
         }
-        
+
         self.dedent();
         self.writeln("}");
         Ok(())
@@ -134,7 +133,7 @@ impl TypeScriptBackend {
                 self.indent();
                 self.generate_expr(then_expr)?;
                 self.dedent();
-                
+
                 if let Some(else_branch) = else_expr {
                     self.writeln("} else {");
                     self.indent();
@@ -175,20 +174,49 @@ impl TypeScriptBackend {
                 self.dedent();
                 self.writeln("};");
             }
+            HirExprKind::While { cond, body } => {
+                let cond_code = self.expr_to_string(cond)?;
+                self.writeln(&format!("while ({}) {{", cond_code));
+                self.indent();
+                self.generate_expr(body)?;
+                self.dedent();
+                self.writeln("}");
+            }
+            HirExprKind::For {
+                var,
+                start,
+                end,
+                body,
+            } => {
+                let start_code = self.expr_to_string(start)?;
+                let end_code = self.expr_to_string(end)?;
+                self.writeln(&format!(
+                    "for (let {} = {}; {} < {}; {}++) {{",
+                    var, start_code, var, end_code, var
+                ));
+                self.indent();
+                self.generate_expr(body)?;
+                self.dedent();
+                self.writeln("}");
+            }
+            HirExprKind::Break => {
+                self.writeln("break;");
+            }
+            HirExprKind::Continue => {
+                self.writeln("continue;");
+            }
         }
         Ok(())
     }
 
     fn expr_to_string(&self, expr: &HirExpr) -> Result<String, CompilationError> {
         match &expr.kind {
-            HirExprKind::Literal(lit) => {
-                Ok(match lit {
-                    HirLiteral::Integer(n) => n.to_string(),
-                    HirLiteral::Float(f) => f.to_string(),
-                    HirLiteral::String(s) => format!("\"{}\"", s),
-                    HirLiteral::Bool(b) => b.to_string(),
-                })
-            }
+            HirExprKind::Literal(lit) => Ok(match lit {
+                HirLiteral::Integer(n) => n.to_string(),
+                HirLiteral::Float(f) => f.to_string(),
+                HirLiteral::String(s) => format!("\"{}\"", s),
+                HirLiteral::Bool(b) => b.to_string(),
+            }),
             HirExprKind::Var(name) => Ok(name.clone()),
             HirExprKind::Binary { op, left, right } => {
                 let left_code = self.expr_to_string(left)?;
@@ -254,6 +282,17 @@ impl TypeScriptBackend {
                 }
                 obj.push_str(" }");
                 Ok(obj)
+            }
+            HirExprKind::While { .. }
+            | HirExprKind::For { .. }
+            | HirExprKind::Break
+            | HirExprKind::Continue => {
+                // Loops cannot be used in expression context
+                Err(CompilationError::error(
+                    "Loop constructs cannot be used as expressions in TypeScript backend",
+                    expr.span,
+                    "",
+                ))
             }
         }
     }
@@ -337,10 +376,10 @@ impl TypeScriptBackend {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::hir_lowering::HirLowering;
     use crate::lexer::Lexer;
     use crate::parser::Parser;
     use crate::semantic::TypeChecker;
-    use crate::hir_lowering::HirLowering;
 
     fn generate_typescript(input: &str) -> Result<String, String> {
         let lexer = Lexer::new(input);
@@ -348,7 +387,7 @@ mod tests {
             Ok(t) => t,
             Err(e) => return Err(format!("Lex error: {:?}", e)),
         };
-        
+
         let parser = Parser::new(tokens);
         let program = match parser.parse_program() {
             Ok(p) => p,

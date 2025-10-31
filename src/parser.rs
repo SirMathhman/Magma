@@ -1,12 +1,11 @@
+use crate::ast::*;
+use crate::diagnostics::CompilationError;
 /// Parser for the Magma language
 ///
 /// Converts a token stream into an Abstract Syntax Tree (AST).
 /// Uses recursive descent parsing with operator precedence climbing.
 /// Week 2 Implementation
-
-use crate::token::{Token, TokenKind, Span};
-use crate::ast::*;
-use crate::diagnostics::CompilationError;
+use crate::token::{Span, Token, TokenKind};
 
 pub struct Parser {
     tokens: Vec<Token>,
@@ -116,11 +115,7 @@ impl Parser {
 
         let span = Span::merge(start_span, ty_span(&ty));
 
-        Ok(Parameter {
-            name,
-            ty,
-            span,
-        })
+        Ok(Parameter { name, ty, span })
     }
 
     fn parse_struct(&mut self) -> Result<StructDef, CompilationError> {
@@ -157,11 +152,7 @@ impl Parser {
         self.consume_kind(TokenKind::RightBrace)?;
 
         let span = Span::merge(start_span, self.prev_span());
-        Ok(StructDef {
-            name,
-            fields,
-            span,
-        })
+        Ok(StructDef { name, fields, span })
     }
 
     fn parse_class(&mut self) -> Result<ClassDef, CompilationError> {
@@ -250,12 +241,7 @@ impl Parser {
             self.advance();
             let right = self.parse_logical_and()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                BinaryOp::Or,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(BinaryOp::Or, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -269,12 +255,7 @@ impl Parser {
             self.advance();
             let right = self.parse_bitwise_or()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                BinaryOp::And,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(BinaryOp::And, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -288,12 +269,7 @@ impl Parser {
             self.advance();
             let right = self.parse_bitwise_xor()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                BinaryOp::BitwiseOr,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(BinaryOp::BitwiseOr, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -307,12 +283,7 @@ impl Parser {
             self.advance();
             let right = self.parse_bitwise_and()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                BinaryOp::BitwiseXor,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(BinaryOp::BitwiseXor, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -321,17 +292,15 @@ impl Parser {
     fn parse_bitwise_and(&mut self) -> Result<Expression, CompilationError> {
         let mut expr = self.parse_equality()?;
 
-        while self.peek().kind == TokenKind::Ampersand && self.peek_ahead(1).kind != TokenKind::Ampersand && self.peek_ahead(1).kind != TokenKind::Mut {
+        while self.peek().kind == TokenKind::Ampersand
+            && self.peek_ahead(1).kind != TokenKind::Ampersand
+            && self.peek_ahead(1).kind != TokenKind::Mut
+        {
             let op_span = self.current_span();
             self.advance();
             let right = self.parse_equality()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                BinaryOp::BitwiseAnd,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(BinaryOp::BitwiseAnd, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -351,12 +320,7 @@ impl Parser {
             self.advance();
             let right = self.parse_comparison()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                op,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(op, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -378,12 +342,7 @@ impl Parser {
             self.advance();
             let right = self.parse_shift()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                op,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(op, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -403,12 +362,7 @@ impl Parser {
             self.advance();
             let right = self.parse_additive()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                op,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(op, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -428,12 +382,7 @@ impl Parser {
             self.advance();
             let right = self.parse_multiplicative()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                op,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(op, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -454,12 +403,7 @@ impl Parser {
             self.advance();
             let right = self.parse_unary()?;
             let span = Span::merge(expr.span(), op_span);
-            expr = Expression::Binary(
-                op,
-                Box::new(expr),
-                Box::new(right),
-                span,
-            );
+            expr = Expression::Binary(op, Box::new(expr), Box::new(right), span);
         }
 
         Ok(expr)
@@ -472,22 +416,14 @@ impl Parser {
                 self.advance();
                 let expr = self.parse_unary()?;
                 let span = Span::merge(op_span, expr.span());
-                Ok(Expression::Unary(
-                    UnaryOp::Neg,
-                    Box::new(expr),
-                    span,
-                ))
+                Ok(Expression::Unary(UnaryOp::Neg, Box::new(expr), span))
             }
             TokenKind::Bang => {
                 let op_span = self.current_span();
                 self.advance();
                 let expr = self.parse_unary()?;
                 let span = Span::merge(op_span, expr.span());
-                Ok(Expression::Unary(
-                    UnaryOp::Not,
-                    Box::new(expr),
-                    span,
-                ))
+                Ok(Expression::Unary(UnaryOp::Not, Box::new(expr), span))
             }
             TokenKind::Ampersand => {
                 if self.peek_ahead(1).kind == TokenKind::Mut {
@@ -506,11 +442,7 @@ impl Parser {
                     self.advance();
                     let expr = self.parse_unary()?;
                     let span = Span::merge(op_span, expr.span());
-                    Ok(Expression::Unary(
-                        UnaryOp::Reference,
-                        Box::new(expr),
-                        span,
-                    ))
+                    Ok(Expression::Unary(UnaryOp::Reference, Box::new(expr), span))
                 }
             }
             TokenKind::Star => {
@@ -545,32 +477,25 @@ impl Parser {
                     }
                     let close_span = self.consume_kind(TokenKind::RightParen)?;
                     let span = Span::merge(expr.span(), close_span);
-                    expr = Expression::Call(
-                        Box::new(expr),
-                        args,
-                        span,
-                    );
+                    expr = Expression::Call(Box::new(expr), args, span);
                 }
                 TokenKind::Dot => {
+                    // Check if this is a range operator (..) by peeking ahead
+                    if self.peek_ahead(1).kind == TokenKind::Dot {
+                        // This is a range operator, don't consume it as field access
+                        break;
+                    }
                     self.advance();
                     let field = self.consume_identifier()?;
                     let span = expr.span();
-                    expr = Expression::FieldAccess(
-                        Box::new(expr),
-                        field,
-                        span,
-                    );
+                    expr = Expression::FieldAccess(Box::new(expr), field, span);
                 }
                 TokenKind::LeftBracket => {
                     self.advance();
                     let index = self.parse_expression()?;
                     let close_span = self.consume_kind(TokenKind::RightBracket)?;
                     let span = Span::merge(expr.span(), close_span);
-                    expr = Expression::Index(
-                        Box::new(expr),
-                        Box::new(index),
-                        span,
-                    );
+                    expr = Expression::Index(Box::new(expr), Box::new(index), span);
                 }
                 _ => break,
             }
@@ -618,6 +543,16 @@ impl Parser {
                 Ok(expr)
             }
             TokenKind::If => self.parse_if_expression(),
+            TokenKind::While => self.parse_while_loop(),
+            TokenKind::For => self.parse_for_loop(),
+            TokenKind::Break => {
+                self.advance();
+                Ok(Expression::Break(span))
+            }
+            TokenKind::Continue => {
+                self.advance();
+                Ok(Expression::Continue(span))
+            }
             TokenKind::LeftBrace => self.parse_block(),
             _ => Err(CompilationError::error(
                 format!("Unexpected token: {}", self.peek().kind),
@@ -655,16 +590,155 @@ impl Parser {
         })
     }
 
+    fn parse_while_loop(&mut self) -> Result<Expression, CompilationError> {
+        let start_span = self.consume_kind(TokenKind::While)?;
+        let condition = Box::new(self.parse_expression()?);
+        let body = Box::new(self.parse_primary()?);
+
+        let span = Span::merge(start_span, body.span());
+        Ok(Expression::WhileLoop {
+            condition,
+            body,
+            span,
+        })
+    }
+
+    fn parse_for_loop(&mut self) -> Result<Expression, CompilationError> {
+        let start_span = self.consume_kind(TokenKind::For)?;
+
+        // Parse loop variable
+        let variable = match &self.peek().kind {
+            TokenKind::Identifier(name) => {
+                let name = name.clone();
+                self.advance();
+                name
+            }
+            _ => {
+                return Err(CompilationError::error(
+                    "Expected identifier in for loop".to_string(),
+                    self.peek().span,
+                    "",
+                ))
+            }
+        };
+
+        // Expect 'in' keyword
+        if self.peek().kind != TokenKind::In {
+            return Err(CompilationError::error(
+                "Expected 'in' in for loop".to_string(),
+                self.peek().span,
+                "",
+            ));
+        }
+        self.advance();
+
+        // Parse range: start..end
+        let range_start = Box::new(self.parse_comparison()?);
+
+        // Expect '..' (two dots in sequence)
+        if self.peek().kind != TokenKind::Dot {
+            return Err(CompilationError::error(
+                "Expected '..' in for loop range".to_string(),
+                self.peek().span,
+                "",
+            ));
+        }
+        self.advance();
+
+        if self.peek().kind != TokenKind::Dot {
+            return Err(CompilationError::error(
+                "Expected '..' in for loop range".to_string(),
+                self.peek().span,
+                "",
+            ));
+        }
+        self.advance();
+
+        // Parse range end
+        let range_end = Box::new(self.parse_comparison()?);
+
+        // Parse body
+        let body = Box::new(self.parse_primary()?);
+
+        let span = Span::merge(start_span, body.span());
+        Ok(Expression::ForLoop {
+            variable,
+            range_start,
+            range_end,
+            body,
+            span,
+        })
+    }
+
     fn parse_block(&mut self) -> Result<Expression, CompilationError> {
         let start_span = self.consume_kind(TokenKind::LeftBrace)?;
         let mut exprs = Vec::new();
 
         while self.peek().kind != TokenKind::RightBrace && !self.is_at_end() {
-            exprs.push(self.parse_expression()?);
-            if self.peek().kind == TokenKind::Semicolon {
+            // Check if this is a let binding
+            if self.peek().kind == TokenKind::Let {
+                self.advance(); // consume 'let'
+
+                // Check for 'mut' keyword
+                let _is_mutable = if self.peek().kind == TokenKind::Mut {
+                    self.advance();
+                    true
+                } else {
+                    false
+                };
+
+                // Parse variable name
+                let var_name = match &self.peek().kind {
+                    TokenKind::Identifier(name) => {
+                        let n = name.clone();
+                        self.advance();
+                        n
+                    }
+                    _ => {
+                        return Err(CompilationError::error(
+                            "Expected identifier after 'let'".to_string(),
+                            self.peek().span,
+                            "",
+                        ))
+                    }
+                };
+
+                // Expect '='
+                if self.peek().kind != TokenKind::Equal {
+                    return Err(CompilationError::error(
+                        "Expected '=' in let binding".to_string(),
+                        self.peek().span,
+                        "",
+                    ));
+                }
                 self.advance();
-            } else if self.peek().kind != TokenKind::RightBrace {
-                break;
+
+                // Parse the value expression
+                let value = self.parse_expression()?;
+                let span = Span::merge(start_span, value.span());
+
+                // Create a synthetic literal expression with the variable name and value
+                // This is a temporary solution to support let bindings while parsing
+                // The semantic analyzer will need to handle this properly
+                let let_expr = Expression::Call(
+                    Box::new(Expression::Identifier("_let_binding".to_string(), span)),
+                    vec![Expression::Identifier(var_name, span), value],
+                    span,
+                );
+                exprs.push(let_expr);
+
+                // Handle optional semicolon
+                if self.peek().kind == TokenKind::Semicolon {
+                    self.advance();
+                }
+            } else {
+                // Parse regular expression
+                exprs.push(self.parse_expression()?);
+                if self.peek().kind == TokenKind::Semicolon {
+                    self.advance();
+                } else if self.peek().kind != TokenKind::RightBrace {
+                    break;
+                }
             }
         }
 
@@ -1133,9 +1207,7 @@ mod tests {
 
     #[test]
     fn test_simple_struct() {
-        let prog = parse_prog(
-            "struct Point {\n  x : I32,\n  y : I32\n}"
-        ).unwrap();
+        let prog = parse_prog("struct Point {\n  x : I32,\n  y : I32\n}").unwrap();
         assert_eq!(prog.items.len(), 1);
         if let Item::StructDef(struct_def) = &prog.items[0] {
             assert_eq!(struct_def.name, "Point");

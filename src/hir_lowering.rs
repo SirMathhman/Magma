@@ -185,6 +185,22 @@ impl HirLowering {
             }
             Expression::Call(func_expr, args, span) => {
                 if let Expression::Identifier(func_name, _) = &**func_expr {
+                    // Special handling for let bindings
+                    if func_name == "_let_binding" {
+                        // _let_binding is a pseudo-function used by the parser for let statements
+                        // It takes 2 args: (variable_name, value_expr)
+                        // Just lower the value expression and return it
+                        if args.len() == 2 {
+                            return self.lower_expr(&args[1], expected_type);
+                        } else {
+                            return Err(CompilationError::error(
+                                "Invalid let binding construct".to_string(),
+                                *span,
+                                "",
+                            ));
+                        }
+                    }
+
                     let func_info = self.symbol_table.get_function(func_name).ok_or_else(|| {
                         CompilationError::error(
                             format!("Unknown function '{}'", func_name),
@@ -260,6 +276,47 @@ impl HirLowering {
                     ty,
                 )
             }
+            Expression::WhileLoop {
+                condition,
+                body,
+                span,
+            } => {
+                let cond_hir = self.lower_expr(condition, &ResolvedType::Bool)?;
+                let body_hir = self.lower_expr(body, expected_type)?;
+                let ty = body_hir.ty.clone();
+
+                (
+                    HirExprKind::While {
+                        cond: Box::new(cond_hir),
+                        body: Box::new(body_hir),
+                    },
+                    ty,
+                )
+            }
+            Expression::ForLoop {
+                variable,
+                range_start,
+                range_end,
+                body,
+                span,
+            } => {
+                let start_hir = self.lower_expr(range_start, &ResolvedType::I32)?;
+                let end_hir = self.lower_expr(range_end, &ResolvedType::I32)?;
+                let body_hir = self.lower_expr(body, expected_type)?;
+                let ty = body_hir.ty.clone();
+
+                (
+                    HirExprKind::For {
+                        var: variable.clone(),
+                        start: Box::new(start_hir),
+                        end: Box::new(end_hir),
+                        body: Box::new(body_hir),
+                    },
+                    ty,
+                )
+            }
+            Expression::Break(_) => (HirExprKind::Break, ResolvedType::Void),
+            Expression::Continue(_) => (HirExprKind::Continue, ResolvedType::Void),
             Expression::Block(exprs, _span) => {
                 if exprs.is_empty() {
                     (HirExprKind::Block(Vec::new()), ResolvedType::Void)

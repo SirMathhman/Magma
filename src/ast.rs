@@ -111,6 +111,20 @@ pub enum Expression {
         else_branch: Option<Box<Expression>>,
         span: Span,
     },
+    WhileLoop {
+        condition: Box<Expression>,
+        body: Box<Expression>,
+        span: Span,
+    },
+    ForLoop {
+        variable: String,
+        range_start: Box<Expression>,
+        range_end: Box<Expression>,
+        body: Box<Expression>,
+        span: Span,
+    },
+    Break(Span),
+    Continue(Span),
     Block(Vec<Expression>, Span),
 }
 
@@ -125,6 +139,10 @@ impl Expression {
             Expression::FieldAccess(_, _, span) => *span,
             Expression::Index(_, _, span) => *span,
             Expression::IfExpr { span, .. } => *span,
+            Expression::WhileLoop { span, .. } => *span,
+            Expression::ForLoop { span, .. } => *span,
+            Expression::Break(span) => *span,
+            Expression::Continue(span) => *span,
             Expression::Block(_, span) => *span,
         }
     }

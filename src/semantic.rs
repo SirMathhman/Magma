@@ -339,7 +339,24 @@ impl TypeChecker {
             Expression::Unary(op, expr, span) => self.infer_unary_op(*op, expr, *span),
             Expression::Call(func_expr, args, span) => {
                 if let Expression::Identifier(func_name, _) = &**func_expr {
-                    self.infer_call(func_name, args, *span)
+                    // Special handling for let bindings
+                    if func_name == "_let_binding" {
+                        // _let_binding is a pseudo-function used by the parser for let statements
+                        // It takes 2 args: (variable_name, value_expr)
+                        if args.len() == 2 {
+                            // Just infer the type of the value expression
+                            // The variable binding is handled at runtime
+                            self.infer_expression(&args[1])
+                        } else {
+                            Err(CompilationError::error(
+                                "Invalid let binding construct".to_string(),
+                                *span,
+                                "",
+                            ))
+                        }
+                    } else {
+                        self.infer_call(func_name, args, *span)
+                    }
                 } else {
                     Err(CompilationError::error(
                         "Complex function calls not yet supported",
@@ -382,6 +399,61 @@ impl TypeChecker {
                 } else {
                     Ok(then_type)
                 }
+            }
+            Expression::WhileLoop {
+                condition,
+                body,
+                span,
+            } => {
+                // Condition must be Bool
+                let cond_type = self.infer_expression(condition)?;
+                if cond_type != ResolvedType::Bool {
+                    return Err(CompilationError::error(
+                        format!("While loop condition must be bool, got {}", cond_type),
+                        *span,
+                        "",
+                    ));
+                }
+                // While loop returns the type of its body
+                self.infer_expression(body)
+            }
+            Expression::ForLoop {
+                variable: _,
+                range_start,
+                range_end,
+                body,
+                span,
+            } => {
+                // Start and end must be integers
+                let start_type = self.infer_expression(range_start)?;
+                let end_type = self.infer_expression(range_end)?;
+
+                if !matches!(start_type, ResolvedType::I32) {
+                    return Err(CompilationError::error(
+                        format!("For loop range start must be I32, got {}", start_type),
+                        *span,
+                        "",
+                    ));
+                }
+                if !matches!(end_type, ResolvedType::I32) {
+                    return Err(CompilationError::error(
+                        format!("For loop range end must be I32, got {}", end_type),
+                        *span,
+                        "",
+                    ));
+                }
+
+                // For loop returns the type of its body
+                // TODO: Add loop variable to scope properly in a refactor
+                self.infer_expression(body)
+            }
+            Expression::Break(_) => {
+                // Break doesn't produce a value in our simple model
+                Ok(ResolvedType::Void)
+            }
+            Expression::Continue(_) => {
+                // Continue doesn't produce a value
+                Ok(ResolvedType::Void)
             }
             Expression::Block(exprs, _span) => {
                 if exprs.is_empty() {

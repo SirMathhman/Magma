@@ -212,6 +212,83 @@ impl LLVMBackend {
                 let var_id = self.next_var();
                 self.writeln(&format!("let {} = construct_struct", var_id));
             }
+            HirExprKind::While { cond, body } => {
+                let while_block = self.next_block();
+                let body_block = self.next_block();
+                let end_block = self.next_block();
+
+                // Jump to while condition check
+                self.writeln(&format!("br label %{}", while_block));
+
+                // While condition block
+                self.writeln(&format!("{}:", while_block));
+                self.indent();
+                let cond_code = self.expr_to_string(cond)?;
+                self.writeln(&format!(
+                    "br i1 {}, label %{}, label %{}",
+                    cond_code, body_block, end_block
+                ));
+                self.dedent();
+
+                // Body block
+                self.writeln(&format!("{}:", body_block));
+                self.indent();
+                self.generate_expr(body)?;
+                self.writeln(&format!("br label %{}", while_block));
+                self.dedent();
+
+                // End block
+                self.writeln(&format!("{}:", end_block));
+            }
+            HirExprKind::For {
+                var,
+                start,
+                end,
+                body,
+            } => {
+                let for_block = self.next_block();
+                let body_block = self.next_block();
+                let end_block = self.next_block();
+
+                // Initialize loop counter
+                let start_code = self.expr_to_string(start)?;
+                self.writeln(&format!("let %{} = {}", var, start_code));
+
+                // Jump to for condition check
+                self.writeln(&format!("br label %{}", for_block));
+
+                // For condition block
+                self.writeln(&format!("{}:", for_block));
+                self.indent();
+                let end_code = self.expr_to_string(end)?;
+                self.writeln(&format!("icmp slt %{} {}", var, end_code));
+                let cond_var = self.next_var();
+                self.writeln(&format!(
+                    "br i1 %{}, label %{}, label %{}",
+                    cond_var, body_block, end_block
+                ));
+                self.dedent();
+
+                // Body block
+                self.writeln(&format!("{}:", body_block));
+                self.indent();
+                self.generate_expr(body)?;
+                // Increment loop counter
+                self.writeln(&format!("let %{} = add i32 %{}, 1", var, var));
+                self.writeln(&format!("br label %{}", for_block));
+                self.dedent();
+
+                // End block
+                self.writeln(&format!("{}:", end_block));
+            }
+            HirExprKind::Break => {
+                // Break is handled by control flow, for now just emit a comment
+                self.writeln("br label %break_target");
+            }
+            HirExprKind::Continue => {
+                // Continue is handled by control flow, for now just emit a comment
+                self.writeln("br label %continue_target");
+            }
         }
         Ok(())
     }
@@ -276,6 +353,26 @@ impl LLVMBackend {
             HirExprKind::Borrow { expr, .. } => self.expr_to_string(expr),
             HirExprKind::Deref(expr) => self.expr_to_string(expr),
             HirExprKind::Constructor { .. } => Ok("construct_struct".to_string()),
+            HirExprKind::While { .. } => Err(CompilationError::error(
+                "Loops cannot be expressions in LLVM backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::For { .. } => Err(CompilationError::error(
+                "Loops cannot be expressions in LLVM backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::Break => Err(CompilationError::error(
+                "Break cannot be used as an expression in LLVM backend",
+                expr.span,
+                "",
+            )),
+            HirExprKind::Continue => Err(CompilationError::error(
+                "Continue cannot be used as an expression in LLVM backend",
+                expr.span,
+                "",
+            )),
         }
     }
 
