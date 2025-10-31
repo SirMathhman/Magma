@@ -49,7 +49,10 @@ fn compile_command(args: &[String]) {
                 if let Some(t) = CompilationTarget::from_string(&args[i]) {
                     target = t;
                 } else {
-                    eprintln!("Error: invalid target '{}'. Must be 'ts', 'js', or 'llvm'", args[i]);
+                    eprintln!(
+                        "Error: invalid target '{}'. Must be 'ts', 'js', or 'llvm'",
+                        args[i]
+                    );
                     std::process::exit(1);
                 }
             }
@@ -108,9 +111,17 @@ fn compile_command(args: &[String]) {
     match MagmaDriver::compile(request) {
         Ok(result) => {
             if let Some(path) = output_path {
-                println!("✓ Successfully compiled {} to {}", input_file, path.display());
+                println!(
+                    "✓ Successfully compiled {} to {}",
+                    input_file,
+                    path.display()
+                );
             } else {
-                println!("✓ Successfully compiled {} to {}", input_file, target.name());
+                println!(
+                    "✓ Successfully compiled {} to {}",
+                    input_file,
+                    target.name()
+                );
             }
             println!(
                 "  Stats: {} tokens, {} AST nodes, {} HIR exprs, {} bytes output",

@@ -2,12 +2,11 @@
 ///
 /// Unified entry point for the complete compilation pipeline.
 /// Coordinates lexing, parsing, semantic analysis, HIR generation, and code generation.
-/// 
+///
 /// Supports three backends:
 /// - TypeScript (.ts with .d.ts declarations)
 /// - JavaScript (.js for Node.js and bundlers)
 /// - LLVM IR (.ll human-readable text format)
-
 use crate::codegen_javascript::JavaScriptBackend;
 use crate::codegen_llvm::LLVMBackend;
 use crate::codegen_typescript::TypeScriptBackend;
@@ -98,7 +97,9 @@ pub struct MagmaDriver;
 
 impl MagmaDriver {
     /// Compile Magma source to target backend
-    pub fn compile(request: CompilationRequest) -> Result<CompilationResult, Vec<CompilationError>> {
+    pub fn compile(
+        request: CompilationRequest,
+    ) -> Result<CompilationResult, Vec<CompilationError>> {
         // Phase 1: Lexical Analysis
         let lexer = Lexer::new(&request.source);
         let tokens = lexer.tokenize()?;
@@ -138,14 +139,13 @@ impl MagmaDriver {
 
         // Write to file if requested
         if let Some(output_path) = &request.output_path {
-            fs::write(output_path, &code)
-                .map_err(|e| {
-                    vec![CompilationError::error(
-                        format!("Failed to write output file: {}", e),
-                        crate::token::Span::new(0, 0, 0, 0),
-                        "",
-                    )]
-                })?;
+            fs::write(output_path, &code).map_err(|e| {
+                vec![CompilationError::error(
+                    format!("Failed to write output file: {}", e),
+                    crate::token::Span::new(0, 0, 0, 0),
+                    "",
+                )]
+            })?;
         }
 
         Ok(CompilationResult {
@@ -314,7 +314,7 @@ mod tests {
             output_path: None,
         };
         let result = MagmaDriver::compile(request).unwrap();
-        
+
         assert!(result.stats.token_count > 0);
         assert!(result.stats.ast_node_count > 0);
         assert!(result.stats.hir_expr_count > 0);
@@ -330,7 +330,7 @@ mod tests {
         let results = MagmaDriver::compile_all_targets(source);
         assert!(results.is_ok());
         let results = results.unwrap();
-        
+
         // All backends should produce output
         for result in &results {
             assert!(result.stats.output_bytes > 0);
@@ -343,13 +343,13 @@ mod tests {
         let source = "struct Point { x : I32, y : I32 }";
         let results = MagmaDriver::compile_all_targets(source);
         assert!(results.is_ok());
-        
+
         let results = results.unwrap();
         assert_eq!(results.len(), 3);
-        
+
         // TypeScript should have interface
         assert!(results[0].code.contains("interface Point"));
-        
+
         // JavaScript should have constructor
         assert!(results[1].code.contains("function Point"));
     }

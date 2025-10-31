@@ -44,6 +44,7 @@ magma lex input.mg
 ```
 
 Shows all tokens with location information:
+
 ```
 Tokens from 'input.mg':
   fn at line 1 col 1
@@ -59,6 +60,7 @@ magma parse input.mg
 ```
 
 Shows abstract syntax tree structure:
+
 ```
 AST from 'input.mg':
   Items: 2
@@ -92,6 +94,7 @@ Displays full usage documentation.
 ### Example 1: Simple Function
 
 **hello.mg:**
+
 ```magma
 fn add(x : I32, y : I32) : I32 => x + y;
 
@@ -99,24 +102,27 @@ fn main() : I32 => add(5, 3);
 ```
 
 **Compile:**
+
 ```bash
 magma compile hello.mg --target ts
 ```
 
 **Generated TypeScript (hello.ts):**
+
 ```typescript
 function add(x: number, y: number): number {
-    x + y;
+  x + y;
 }
 
 function main(): number {
-    add(5, 3);
+  add(5, 3);
 }
 ```
 
 ### Example 2: Struct Definition
 
 **point.mg:**
+
 ```magma
 struct Point { x : I32, y : I32 }
 
@@ -124,6 +130,7 @@ fn distance(p : Point) : I32 => p.x + p.y;
 ```
 
 **Compile to all backends:**
+
 ```bash
 magma compile point.mg --target ts --output point.ts
 magma compile point.mg --target js --output point.js
@@ -131,30 +138,33 @@ magma compile point.mg --target llvm --output point.ll
 ```
 
 **TypeScript output:**
+
 ```typescript
 interface Point {
-    x: number;
-    y: number;
+  x: number;
+  y: number;
 }
 
 function distance(p: Point): number {
-    p.x + p.y;
+  p.x + p.y;
 }
 ```
 
 **JavaScript output:**
+
 ```javascript
 function Point(x, y) {
-    this.x = x;
-    this.y = y;
+  this.x = x;
+  this.y = y;
 }
 
 function distance(p) {
-    p.x + p.y;
+  p.x + p.y;
 }
 ```
 
 **LLVM IR output:**
+
 ```llvm
 %Point = type { i32, i32 }
 
@@ -192,12 +202,13 @@ $ magma compile bad.mg
 
 By default, the output filename matches the input with a different extension:
 
-| Input | TypeScript Output | JavaScript Output | LLVM IR Output |
-|-------|-------------------|--------------------|----------------|
-| `hello.mg` | `hello.ts` | `hello.js` | `hello.ll` |
-| `src/main.mg` | `src/main.ts` | `src/main.js` | `src/main.ll` |
+| Input         | TypeScript Output | JavaScript Output | LLVM IR Output |
+| ------------- | ----------------- | ----------------- | -------------- |
+| `hello.mg`    | `hello.ts`        | `hello.js`        | `hello.ll`     |
+| `src/main.mg` | `src/main.ts`     | `src/main.js`     | `src/main.ll`  |
 
 All generated files include:
+
 ```
 // Generated from Magma compiler
 // DO NOT EDIT MANUALLY
@@ -214,6 +225,7 @@ $ magma compile hello.mg
 ```
 
 Meaning:
+
 - **33 tokens**: Total tokens produced by lexer
 - **2 AST nodes**: Function definitions in AST
 - **2 HIR exprs**: High-level IR expressions after lowering
@@ -283,11 +295,13 @@ Output sizes:
 ### "magma: command not found"
 
 Add the compiler to your PATH:
+
 ```bash
 export PATH="$PATH:/path/to/magma/target/release"
 ```
 
 Or use the full path:
+
 ```bash
 /path/to/magma/target/release/magma compile input.mg
 ```
@@ -295,11 +309,13 @@ Or use the full path:
 ### Output not created
 
 Ensure you have write permissions in the output directory:
+
 ```bash
 ls -l .  # Check directory permissions
 ```
 
 Specify an explicit output path:
+
 ```bash
 magma compile input.mg --output /tmp/output.ts
 ```
@@ -313,6 +329,7 @@ Check your Magma syntax. Common issues:
 - Undefined functions or structs
 
 For more details, use the lex and parse commands to debug:
+
 ```bash
 magma lex input.mg    # Check tokenization
 magma parse input.mg  # Check AST structure
@@ -365,6 +382,7 @@ if x > 0 then y else z  # Ternary-style conditional
 ## Support
 
 For issues or questions:
+
 1. Check the error message from `magma --help`
 2. Run `magma lex` and `magma parse` for debugging
 3. Review language specification in `LANGUAGE.md`
