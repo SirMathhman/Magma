@@ -115,16 +115,28 @@ While `lalrpop` (LR(1) parser generator) could reduce grammar boilerplate, `nom`
      - `src/bin/lex.rs` - CLI tool
      - `test_sample.mg` - Sample Magma file
 
-3. **Implement Rust parser (Week 2)** ⏳ IN PROGRESS
+3. **Implement Rust parser (Week 2)** ✅ COMPLETE
 
-   - Hand-written recursive descent parser using `nom` combinators or custom combinator library
+   - Hand-written recursive descent parser using precedence climbing
    - Emit immutable AST capturing all syntax with source locations
    - Handle operator precedence and associativity correctly
    - Implement error recovery for better diagnostics
    - Create parser CLI tool: `magma-parse <file.mg>`
    - Exhaustive tests covering entire grammar
+   - **Status**: All 42 tests passing. Parser handles all expressions, operators, function/struct definitions
+   - **Features**:
+     - Proper operator precedence (multiplication before addition, etc.)
+     - Unary operators (negation, logical not, references, dereference)
+     - Binary operators (arithmetic, comparison, logical, bitwise, shifts)
+     - Postfix operations (function calls, field access, array indexing)
+     - If expressions
+     - Function and struct definitions with type annotations
+   - **Deliverables**:
+     - `src/parser.rs` - Parser implementation with 42 unit tests
+     - `src/bin/parse.rs` - CLI tool
+     - Enhanced `src/ast.rs` with Display trait and extended expressions
 
-4. **Implement Rust semantic analyzer (Weeks 3–4)**
+4. **Implement Rust semantic analyzer (Weeks 3–4)** ⏳ NEXT
    - Build symbol table with package/module resolution
    - Implement bidirectional type checker:
      - Required annotations for function signatures/parameters

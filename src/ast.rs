@@ -3,6 +3,7 @@
 /// The AST is produced by the parser and represents the syntactic structure
 /// of a Magma program with full source location information.
 use crate::token::Span;
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub struct Program {
@@ -64,15 +65,72 @@ pub enum Type {
     Array(Box<Type>),
 }
 
-#[derive(Debug, Clone)]
+impl fmt::Display for Type {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match self {
+            Type::Named(s) => write!(f, "{}", s),
+            Type::Reference(t) => write!(f, "&{}", t),
+            Type::MutableReference(t) => write!(f, "&mut {}", t),
+            Type::Generic(name, args) => {
+                write!(f, "{}<", name)?;
+                for (i, arg) in args.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", arg)?;
+                }
+                write!(f, ">")
+            }
+            Type::Tuple(types) => {
+                write!(f, "(")?;
+                for (i, ty) in types.iter().enumerate() {
+                    if i > 0 {
+                        write!(f, ", ")?;
+                    }
+                    write!(f, "{}", ty)?;
+                }
+                write!(f, ")")
+            }
+            Type::Array(t) => write!(f, "[{}]", t),
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal(Literal, Span),
     Identifier(String, Span),
     Binary(BinaryOp, Box<Expression>, Box<Expression>, Span),
     Unary(UnaryOp, Box<Expression>, Span),
+    Call(Box<Expression>, Vec<Expression>, Span),
+    FieldAccess(Box<Expression>, String, Span),
+    Index(Box<Expression>, Box<Expression>, Span),
+    IfExpr {
+        condition: Box<Expression>,
+        then_branch: Box<Expression>,
+        else_branch: Option<Box<Expression>>,
+        span: Span,
+    },
+    Block(Vec<Expression>, Span),
 }
 
-#[derive(Debug, Clone)]
+impl Expression {
+    pub fn span(&self) -> Span {
+        match self {
+            Expression::Literal(_, span) => *span,
+            Expression::Identifier(_, span) => *span,
+            Expression::Binary(_, _, _, span) => *span,
+            Expression::Unary(_, _, span) => *span,
+            Expression::Call(_, _, span) => *span,
+            Expression::FieldAccess(_, _, span) => *span,
+            Expression::Index(_, _, span) => *span,
+            Expression::IfExpr { span, .. } => *span,
+            Expression::Block(_, span) => *span,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub enum Literal {
     Integer(i64),
     Float(f64),
@@ -110,4 +168,18 @@ pub enum UnaryOp {
     Reference,
     MutableReference,
     Dereference,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_type_display() {
+        assert_eq!(Type::Named("I32".to_string()).to_string(), "I32");
+        assert_eq!(
+            Type::Reference(Box::new(Type::Named("String".to_string()))).to_string(),
+            "&String"
+        );
+    }
 }
