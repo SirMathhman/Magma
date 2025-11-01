@@ -113,6 +113,10 @@ public class Main {
 		public CDefinable toCDefinition() {
 			return new CDefinition(this.type.toCType(), this.name);
 		}
+
+		public JDefinition mapType(Function<JType, JType> mapper) {
+			return new JDefinition(this.beforeType, mapper.apply(this.type), this.name);
+		}
 	}
 
 	private record JConstructor(String input) implements JMethodHeader {
@@ -606,15 +610,19 @@ public class Main {
 			return parseDefinition(destination).map(definition -> {
 				scope.peek().add(definition);
 
-				return getCDefinition(definition).generate() + " = " + source;
+				return withResolvedType(definition).toCDefinition().generate() + " = " + source;
 			}).orElseGet(() -> compileExpression(destination) + " = " + source);
 		}
 
 		return CPlaceholder.wrap(input);
 	}
 
-	private static CDefinable getCDefinition(JDefinition definition) {
-		return definition.toCDefinition();
+	private static JDefinition withResolvedType(JDefinition definition) {
+		return definition.mapType(Main::resolveType);
+	}
+
+	private static JType resolveType(JType type) {
+		return type;
 	}
 
 	private static Optional<String> compileDefinition(String input) {
