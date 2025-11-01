@@ -1,5 +1,5 @@
 struct Main {};
-/*public static void main(String[] args) {
+/*public static void main*/(/*String[] args*/)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
@@ -9,11 +9,11 @@ struct Main {};
 		}
 	}*//*
 
-	private static String compile(String input) {
+	private static String compile*/(/*String input*/)/* {
 		return compileStatements(input, Main::compileRootSegment);
 	}*//*
 
-	private static String compileStatements(String input, Function<String, String> mapper) {
+	private static String compileStatements*/(/*String input, Function<String, String> mapper*/)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuffer();
 		var depth = 0;
@@ -33,9 +33,9 @@ struct Main {};
 				depth--;
 			}
 		}*//*
-		segments.add(buffer.toString());*//*
+		segments.add*/(/*buffer.toString(*/)/*);*//*
 
-		return segments.stream().map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
+		return segments.stream*/(/**/)/*.map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -66,9 +66,21 @@ struct Main {};
 				return false;
 			}
 		}
-		
+
 		return true;
 	}*//*private static String compileClassSegment(String input) {
+		final var i = input.indexOf("(");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			final var i1 = substring1.indexOf(")");
+			if (i1 >= 0) {
+				final var substring2 = substring1.substring(0, i1);
+				final var substring3 = substring1.substring(i1 + 1);
+				return wrap(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+			}
+		}
+
 		return wrap(input);
 	}*//*private static String wrap(String input) {
 		final var replaced = input.replace("start", "start").replace("end", "end");

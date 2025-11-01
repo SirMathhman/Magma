@@ -85,6 +85,18 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		final var i = input.indexOf("(");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			final var i1 = substring1.indexOf(")");
+			if (i1 >= 0) {
+				final var substring2 = substring1.substring(0, i1);
+				final var substring3 = substring1.substring(i1 + 1);
+				return wrap(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+			}
+		}
+
 		return wrap(input);
 	}
 
