@@ -187,7 +187,14 @@ public class Main {
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							structureFields = generateStatement(compileDefinitionOrPlaceholder(substring4));
+							structureFields += Arrays
+									.stream(substring4.split(Pattern.quote(",")))
+									.map(String::strip)
+									.filter(slice -> !slice.isEmpty())
+									.map(Main::compileDefinition)
+									.flatMap(Optional::stream)
+									.map(Main::generateStatement)
+									.collect(Collectors.joining());
 
 							beforeContent = substring2.substring(0, i3);
 						}
