@@ -1,5 +1,3 @@
-CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
-CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
 struct CPrimitiveType {
 	/*private final*/ char* content;
 };
@@ -33,7 +31,7 @@ union CTypeData {
 }
 struct CType {
 	CTypeTag _tag;
-	CTypeData _data;/*String generate()*/
+	CTypeData _data;
 };
 template <typename T, typename X>
 struct Err {
@@ -55,7 +53,7 @@ struct CIdentifier {
 struct CPlaceholder {
 	char* input;
 };
-struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<String>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*/
+struct Main {
 };
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
@@ -63,11 +61,13 @@ CType toCType_CPrimitiveType(void* _ref){
 	data.err = this;
 	return CType { CPrimitiveTypeType, data };
 }
+/*Char*/(/*"char"*/);
 /*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
 /*@Override
 		public*/ char* generate(/**/) {/*
 			return this.content;*//*
 		*/}
+char* generate(/**/);
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -125,6 +125,10 @@ CType toCType_CPlaceholder(void* _ref){
 		public*/ char* generate(/**/) {/*
 			return wrap(this.input);*//*
 		*/}
+/*public static final List<String> functions = new ArrayList<String>*/(/**/);
+/*public static final List<String> structures = new ArrayList<String>*/(/**/);
+/*private static final List<String> globals = new ArrayList<String>*/(/**/);
+/*private static final Stack<String> structureNames = new Stack<String>*/(/**/);
 /*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -181,6 +185,8 @@ CType toCType_CPlaceholder(void* _ref){
 				depth--;
 			}*//*
 		*/}
+/*segments.add*/(/*buffer.toString(*/);
+/*return segments.stream*/(/**/);
 /*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -359,13 +365,18 @@ CType toCType_CPlaceholder(void* _ref){
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
+				final var header =
+						compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var outputContent = compileStatements(content, Main::compileMethodSegment);
 
-					final var generated =
-							compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ") {" +
-							outputContent + "}" + System.lineSeparator();
+					final var generated = header + " {" + outputContent + "}" + System.lineSeparator();
+					functions.add(generated);
+					return Optional.of("");
+				} else {
+					final var generated = header + ";" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				}

@@ -330,13 +330,18 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
+				final var header =
+						compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var outputContent = compileStatements(content, Main::compileMethodSegment);
 
-					final var generated =
-							compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ") {" +
-							outputContent + "}" + System.lineSeparator();
+					final var generated = header + " {" + outputContent + "}" + System.lineSeparator();
+					functions.add(generated);
+					return Optional.of("");
+				} else {
+					final var generated = header + ";" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				}
