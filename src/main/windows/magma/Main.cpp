@@ -1,21 +1,7 @@
-struct Main {
-};
-CType toCType_CPrimitiveType(void* _ref){
-	CPrimitiveType _this = *((CPrimitiveType*) _ref);
-	CTypeData data;
-	data.err = this;
-	return CType { CPrimitiveTypeType, data };
-}
 struct CPrimitiveType {
+	/*private final*/ char* content;/**/
 };
-/*Char("char"), Void("void");*//*
-
-		private final String content;*//*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
-/*@Override
-		public*/ char* generate(/**/) {/*
-			return this.content;*//*
-		*/}
-/**/enum ResultTag {
+enum ResultTag {
 	ErrType,
 	OkType
 };
@@ -27,9 +13,9 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 	ResultTag _tag;
-	ResultData<T, X> _data;
+	ResultData<T, X> _data;/**/
 };
-/**/enum CTypeTag {
+enum CTypeTag {
 	CIdentifierType,
 	CPlaceholderType,
 	CPointerTypeType,
@@ -45,77 +31,90 @@ union CTypeData {
 }
 struct CType {
 	CTypeTag _tag;
-	CTypeData _data;
+	CTypeData _data;/**/
 };
-/*String generate();*//**/Result<T, X> toResult<T, X>_Err(void* _ref){
+template <typename T, typename X>
+struct Err {
+	X error;/**/
+};
+template <typename T, typename X>
+struct Ok {
+	T value;/**/
+};
+struct CPointerType {
+	CType child;/**/
+};
+struct CTemplateType {
+	/*String base,*/ List<CType> typeArguments;/**/
+};
+struct CIdentifier {
+	char* input;/**/
+};
+struct CPlaceholder {
+	char* input;/**/
+};
+struct Main {/**/
+};
+CType toCType_CPrimitiveType(void* _ref){
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CPrimitiveTypeType, data };
+}
+/*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+/*@Override
+		public*/ char* generate(/**/) {/*
+			return this.content;*//*
+		*/}
+Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
 	data.err = this;
 	return Result<T, X> { ErrType, data };
 }
-template <typename T, typename X>
-struct Err {
-	X error;
-};
-/**/Result<T, X> toResult<T, X>_Ok(void* _ref){
+Result<T, X> toResult<T, X>_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
 	Result<T, X>Data data;
 	data.err = this;
 	return Result<T, X> { OkType, data };
 }
-template <typename T, typename X>
-struct Ok {
-	T value;
-};
-/**/CType toCType_CPointerType(void* _ref){
+CType toCType_CPointerType(void* _ref){
 	CPointerType _this = *((CPointerType*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CPointerTypeType, data };
 }
-struct CPointerType {
-	CType child;
-};
 /*@Override
 		public*/ char* generate(/**/) {/*
 			return this.child.generate() + "*";*//*
 		*/}
-/**/CType toCType_CTemplateType(void* _ref){
+CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CTemplateTypeType, data };
 }
-struct CTemplateType {
-	/*String base,*/ List<CType> typeArguments;
-};
 /*@Override
 		public*/ char* generate(/**/) {/*
 			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));*//*
 			return this.base + "<" + joined + ">";*//*
 		*/}
-/**/CType toCType_CIdentifier(void* _ref){
+CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CIdentifierType, data };
 }
-struct CIdentifier {
-	char* input;
-};
 /*@Override
 		public*/ char* generate(/**/) {/*
 			return this.input;*//*
 		*/}
-/**/CType toCType_CPlaceholder(void* _ref){
+CType toCType_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CPlaceholderType, data };
 }
-struct CPlaceholder {
-	char* input;
-};
 /*private static*/ char* wrap(char* input) {/*
 			final var replaced = input.replace("start", "start").replace("end", "end");*//*
 			return "start" + replaced + "end";*//*
@@ -124,7 +123,7 @@ struct CPlaceholder {
 		public*/ char* generate(/**/) {/*
 			return wrap(this.input);*//*
 		*/}
-/**//*public static*/ void main(char** args) {/*
+/*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
 /*private static*/ Optional<IOException> run(/**/) {/*
@@ -154,7 +153,11 @@ struct CPlaceholder {
 		}*//*
 	*/}
 /*private static*/ char* compile(char* input) {/*
-		return compileStatements(input, Main::compileRootSegment);*//*
+		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
+		final var joinedGlobals = String.join("", globals);*//*
+		final var joinedStructures = String.join("", structures);*//*
+		final var joinedFunctions = String.join("", functions);*//*
+		return joinedGlobals + joinedStructures + joinedFunctions + compiled;*//*
 	*/}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*
@@ -176,10 +179,7 @@ struct CPlaceholder {
 				depth--;
 			}*//*
 		*/}
-/*
-		segments.add(buffer.toString());*//*
-
-		return segments.stream().map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
+/*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -216,13 +216,13 @@ struct CPlaceholder {
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					String structureFields = "";
+					var structureFields = "";
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							structureFields = generateStatement(compileDefinition(substring4));
+							structureFields = generateStatement(compileDefinitionOrPlaceholder(substring4));
 
 							beforeContent = substring2.substring(0, i3);
 						}
@@ -240,7 +240,7 @@ struct CPlaceholder {
 						}
 					}
 
-					String templateString = "";
+					var templateString = "";
 					if (!typeParameters.isEmpty()) {
 						final var joined =
 								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
@@ -255,15 +255,15 @@ struct CPlaceholder {
 						typeArguments = "<" + String.join(", ", typeParameters) + ">";
 					}
 
-					String beforeStruct = "";
+					var beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
 						final var thisType = beforeContent + typeArguments;
-						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement(superType + "Data data") + generateStatement("data.err = this") +
-														generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
-														System.lineSeparator() + "}" + System.lineSeparator();
+						functions.add(superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
+													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+													generateStatement(superType + "Data data") + generateStatement("data.err = this") +
+													generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
+													System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					if (!variants.isEmpty()) {
@@ -292,9 +292,12 @@ struct CPlaceholder {
 								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
-					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
-														 System.lineSeparator() + "};" + System.lineSeparator() +
-														 compileStatements(content, Main::compileClassSegment));
+					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
+																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
+																System.lineSeparator();
+
+					structures.add(generated);
+					return Optional.of("");
 				}
 			}
 		}
@@ -312,25 +315,26 @@ struct CPlaceholder {
 
 		return true;
 	}*//*private static String compileClassSegment(String input) {
-		final var maybeInterface = compileStructure(input, "interface");
+		final var stripped = input.strip();
+		final var maybeInterface = compileStructure(stripped, "interface");
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
 		}
 
-		final var maybeRecord = compileStructure(input, "record");
+		final var maybeRecord = compileStructure(stripped, "record");
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
 		}
 
-		final var maybeEnum = compileStructure(input, "enum");
+		final var maybeEnum = compileStructure(stripped, "enum");
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
 		}
 
-		final var i = input.indexOf("(");
+		final var i = stripped.indexOf("(");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
-			final var substring1 = input.substring(i + 1);
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
@@ -339,32 +343,51 @@ struct CPlaceholder {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var outputContent = compileStatements(content, Main::compileMethodSegment);
 
-					return compileDefinition(substring) + "(" + compileDefinition(substring2) + ") {" + outputContent + "}" +
-								 System.lineSeparator();
+					final var generated =
+							compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ") {" +
+							outputContent + "}" + System.lineSeparator();
+					functions.add(generated);
+					return "";
 				}
 			}
 		}
 
-		return CPlaceholder.wrap(input);
-	}*//*private static String compileMethodSegment(String input) {
-		return CPlaceholder.wrap(input);
-	}*//*private static String compileDefinition(String input) {
-		final var stripped = input.strip();
-		final var i = stripped.lastIndexOf(" ");
-		if (i >= 0) {
-			final var substring = stripped.substring(0, i).strip();
-			final var name = stripped.substring(i + 1);
-			final var i1 = substring.lastIndexOf(" ");
-			if (i1 >= 0) {
-				final var substring1 = substring.substring(0, i1);
-				final var substring2 = substring.substring(i1 + 1);
-				return CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name;
-			} else {
-				return compileTypeToString(substring) + " " + name;
-			}
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return compileClassStatement(substring);
 		}
 
 		return CPlaceholder.wrap(stripped);
+	}*//*private static String compileClassStatement(String input) {
+		return compileDefinition(input).map(Main::generateStatement).or(() -> {
+			final var list =
+					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+
+			return Optional.of("");
+		}).orElseGet(() -> CPlaceholder.wrap(input));
+	}*//*private static String compileMethodSegment(String input) {
+		return CPlaceholder.wrap(input);
+	}*//*private static String compileDefinitionOrPlaceholder(String input) {
+		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
+	}*//*private static Optional<String> compileDefinition(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if (i < 0) {return Optional.empty();}
+		final var substring = stripped.substring(0, i).strip();
+		final var name = stripped.substring(i + 1).strip();
+
+		if (!isIdentifier(name)) {
+			return Optional.empty();
+		}
+
+		final var i1 = substring.lastIndexOf(" ");
+		if (i1 >= 0) {
+			final var substring1 = substring.substring(0, i1);
+			final var substring2 = substring.substring(i1 + 1);
+			return Optional.of(CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name);
+		} else {
+			return Optional.of(compileTypeToString(substring) + " " + name);
+		}
 	}*//*private static String compileTypeToString(String input) {
 		return compileType(input).generate();
 	}*//*private static CType compileType(String input) {

@@ -70,6 +70,10 @@ public class Main {
 		}
 	}
 
+	public static final List<String> functions = new ArrayList<String>();
+	public static final List<String> structures = new ArrayList<String>();
+	private static final List<String> globals = new ArrayList<String>();
+
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
 	}
@@ -104,7 +108,11 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return compileStatements(input, Main::compileRootSegment);
+		final var compiled = compileStatements(input, Main::compileRootSegment);
+		final var joinedGlobals = String.join("", globals);
+		final var joinedStructures = String.join("", structures);
+		final var joinedFunctions = String.join("", functions);
+		return joinedGlobals + joinedStructures + joinedFunctions + compiled;
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
@@ -171,13 +179,13 @@ public class Main {
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					String structureFields = "";
+					var structureFields = "";
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							structureFields = generateStatement(compileDefinition(substring4));
+							structureFields = generateStatement(compileDefinitionOrPlaceholder(substring4));
 
 							beforeContent = substring2.substring(0, i3);
 						}
@@ -195,7 +203,7 @@ public class Main {
 						}
 					}
 
-					String templateString = "";
+					var templateString = "";
 					if (!typeParameters.isEmpty()) {
 						final var joined =
 								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
@@ -210,15 +218,15 @@ public class Main {
 						typeArguments = "<" + String.join(", ", typeParameters) + ">";
 					}
 
-					String beforeStruct = "";
+					var beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
 						final var thisType = beforeContent + typeArguments;
-						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement(superType + "Data data") + generateStatement("data.err = this") +
-														generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
-														System.lineSeparator() + "}" + System.lineSeparator();
+						functions.add(superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
+													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+													generateStatement(superType + "Data data") + generateStatement("data.err = this") +
+													generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
+													System.lineSeparator() + "}" + System.lineSeparator());
 					}
 
 					if (!variants.isEmpty()) {
@@ -247,9 +255,12 @@ public class Main {
 								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
-					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
-														 System.lineSeparator() + "};" + System.lineSeparator() +
-														 compileStatements(content, Main::compileClassSegment));
+					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
+																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
+																System.lineSeparator();
+
+					structures.add(generated);
+					return Optional.of("");
 				}
 			}
 		}
@@ -273,25 +284,26 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
-		final var maybeInterface = compileStructure(input, "interface");
+		final var stripped = input.strip();
+		final var maybeInterface = compileStructure(stripped, "interface");
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
 		}
 
-		final var maybeRecord = compileStructure(input, "record");
+		final var maybeRecord = compileStructure(stripped, "record");
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
 		}
 
-		final var maybeEnum = compileStructure(input, "enum");
+		final var maybeEnum = compileStructure(stripped, "enum");
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
 		}
 
-		final var i = input.indexOf("(");
+		final var i = stripped.indexOf("(");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
-			final var substring1 = input.substring(i + 1);
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
@@ -300,36 +312,59 @@ public class Main {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var outputContent = compileStatements(content, Main::compileMethodSegment);
 
-					return compileDefinition(substring) + "(" + compileDefinition(substring2) + ") {" + outputContent + "}" +
-								 System.lineSeparator();
+					final var generated =
+							compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ") {" +
+							outputContent + "}" + System.lineSeparator();
+					functions.add(generated);
+					return "";
 				}
 			}
 		}
 
-		return CPlaceholder.wrap(input);
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return compileClassStatement(substring);
+		}
+
+		return CPlaceholder.wrap(stripped);
+	}
+
+	private static String compileClassStatement(String input) {
+		return compileDefinition(input).map(Main::generateStatement).or(() -> {
+			final var list =
+					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+
+			return Optional.of("");
+		}).orElseGet(() -> CPlaceholder.wrap(input));
 	}
 
 	private static String compileMethodSegment(String input) {
 		return CPlaceholder.wrap(input);
 	}
 
-	private static String compileDefinition(String input) {
+	private static String compileDefinitionOrPlaceholder(String input) {
+		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
+	}
+
+	private static Optional<String> compileDefinition(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(" ");
-		if (i >= 0) {
-			final var substring = stripped.substring(0, i).strip();
-			final var name = stripped.substring(i + 1);
-			final var i1 = substring.lastIndexOf(" ");
-			if (i1 >= 0) {
-				final var substring1 = substring.substring(0, i1);
-				final var substring2 = substring.substring(i1 + 1);
-				return CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name;
-			} else {
-				return compileTypeToString(substring) + " " + name;
-			}
+		if (i < 0) {return Optional.empty();}
+		final var substring = stripped.substring(0, i).strip();
+		final var name = stripped.substring(i + 1).strip();
+
+		if (!isIdentifier(name)) {
+			return Optional.empty();
 		}
 
-		return CPlaceholder.wrap(stripped);
+		final var i1 = substring.lastIndexOf(" ");
+		if (i1 >= 0) {
+			final var substring1 = substring.substring(0, i1);
+			final var substring2 = substring.substring(i1 + 1);
+			return Optional.of(CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name);
+		} else {
+			return Optional.of(compileTypeToString(substring) + " " + name);
+		}
 	}
 
 	private static String compileTypeToString(String input) {
