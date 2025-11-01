@@ -14,26 +14,26 @@ struct Result {
 	ResultTag _tag;
 	ResultData<T, X> _data;
 };
-/**//*Result<T, X>*/ to/*Result<T, X>*/_Err(void* _ref){
+/**/Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
-	return /*Result<T, X>*/ {};
+	return Result<T, X> {};
 }
 template <typename T, typename X>
 struct Err {
-	/*X*/ error;
+	X error;
 };
-/**//*Result<T, X>*/ to/*Result<T, X>*/_Ok(void* _ref){
+/**/Result<T, X> toResult<T, X>_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
-	return /*Result<T, X>*/ {};
+	return Result<T, X> {};
 }
 template <typename T, typename X>
 struct Ok {
-	/*T*/ value;
+	T value;
 };
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
-/*private static*/ /*Optional<IOException>*/ run(/**/) {/*
+/*private static*/ Optional<IOException> run(/**/) {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
 		return switch (readString(source)) {
 			case Ok(var input) -> {
@@ -44,7 +44,7 @@ struct Ok {
 			case Err<String, IOException> v -> Optional.of(v.error);
 		}*//*;*//*
 	*/}
-/*private static*/ /*Optional<IOException>*/ writeString(/*Path target,*/ char* output) {/*
+/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
 		try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -52,7 +52,7 @@ struct Ok {
 			return Optional.of(e);
 		}*//*
 	*/}
-/*private static Result<String,*/ /*IOException>*/ readString(/*Path*/ source) {/*
+/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
 		try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*//* catch (IOException e) {
@@ -270,6 +270,29 @@ struct Ok {
 
 		if (stripped.equals("String")) {
 			return "char*";
+		}
+
+		if (stripped.endsWith(">")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i = substring.indexOf("<");
+			if (i >= 0) {
+				final var base = substring.substring(0, i);
+				final var typeArgumentsArray = substring.substring(i + 1).split(Pattern.quote(","));
+
+				final var typeArguments = Arrays
+						.stream(typeArgumentsArray)
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileType)
+						.toList();
+
+				final var joined = String.join(", ", typeArguments);
+				return base + "<" + joined + ">";
+			}
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
 		}
 
 		return wrap(stripped);

@@ -282,6 +282,29 @@ public class Main {
 			return "char*";
 		}
 
+		if (stripped.endsWith(">")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i = substring.indexOf("<");
+			if (i >= 0) {
+				final var base = substring.substring(0, i);
+				final var typeArgumentsArray = substring.substring(i + 1).split(Pattern.quote(","));
+
+				final var typeArguments = Arrays
+						.stream(typeArgumentsArray)
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileType)
+						.toList();
+
+				final var joined = String.join(", ", typeArguments);
+				return base + "<" + joined + ">";
+			}
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
+		}
+
 		return wrap(stripped);
 	}
 
