@@ -116,6 +116,7 @@ public class Main {
 	public static final List<String> structures = new ArrayList<String>();
 	private static final List<String> globals = new ArrayList<String>();
 	private static final Stack<String> structureNames = new Stack<String>();
+	private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -491,7 +492,18 @@ public class Main {
 	private static String compileExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			return stripped;
+			final var isDefined = definitions
+					.stream()
+					.map(frame -> frame.stream().filter(definition -> definition.name.equals(stripped)).findFirst())
+					.flatMap(Optional::stream)
+					.findFirst()
+					.isPresent();
+
+			if (isDefined) {
+				return stripped;
+			} else {
+				return CPlaceholder.wrap("Undefined identifier: " + stripped);
+			}
 		}
 
 		final var i = stripped.lastIndexOf(".");

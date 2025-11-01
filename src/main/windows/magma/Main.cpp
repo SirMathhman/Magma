@@ -109,12 +109,12 @@ CType toCType_CPrimitiveType(void* _ref){
 }
 CPrimitiveType new_CPrimitiveType(char* content) {
 	CPrimitiveType this;
-	this.content = content;
+	/*Undefined identifier: this*/.content = /*Undefined identifier: content*/;
 	return this;
 }
 char* generate_CPrimitiveType(void* _ref) {
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
-	return this.content;
+	return /*Undefined identifier: this*/.content;
 }
 char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
@@ -139,7 +139,7 @@ CType toCType_CPointerType(void* _ref){
 }
 char* generate_CPointerType(void* _ref) {
 	CPointerType _this = *((CPointerType*) _ref);
-	return this.child.generate() + "*";
+	return /*Undefined identifier: this*/.child.generate() + "*";
 }
 CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
@@ -149,11 +149,11 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var typeArguments1 = this.typeArguments;
-	var stream = typeArguments1.stream();
-	var stringStream = stream.map(CType::generate);
-	var joined = stringStream.collect(Collectors.joining(", "));
-	return this.base + "<" + joined + ">";
+	var typeArguments1 = /*Undefined identifier: this*/.typeArguments;
+	var stream = /*Undefined identifier: typeArguments1*/.stream();
+	var stringStream = /*Undefined identifier: stream*/.map(CType::generate);
+	var joined = /*Undefined identifier: stringStream*/.collect(Collectors.joining(", "));
+	return /*Undefined identifier: this*/.base + "<" + joined + ">";
 }
 CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -163,7 +163,7 @@ CType toCType_CIdentifier(void* _ref){
 }
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	return this.input;
+	return /*Undefined identifier: this*/.input;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
@@ -173,7 +173,7 @@ char* generate_CIdentifier(void* _ref) {
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	var replaced = input.replace("/*", "start").replace("*/", "end");
+	var replaced = /*Undefined identifier: input*/.replace("/*", "start").replace("*/", "end");
 	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
@@ -188,7 +188,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 }
 char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
-	return this.type.generate() + " " + this.name;
+	return /*Undefined identifier: this*/.type.generate() + " " + this.name;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	JDefinition _this = *((JDefinition*) _ref);
@@ -225,13 +225,14 @@ public static final List<String> functions = new ArrayList<String> new_public st
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
+private static final Stack<List<JDefinition>> definitions = new Stack<> new_private static final Stack<List<JDefinition>> definitions = new Stack<>();
 void main_Main(void* _ref, char** args) {
 	Main _this = *((Main*) _ref);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
+	var source = /*Undefined identifier: Paths*/.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -259,9 +260,9 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
 	var compiled = /*compileStatements(input, Main::compileRootSegment)*/;
-	var joinedGlobals = String.join("", globals);
-	var joinedStructures = String.join("", structures);
-	var joinedFunctions = String.join("", functions);
+	var joinedGlobals = /*Undefined identifier: String*/.join("", globals);
+	var joinedStructures = /*Undefined identifier: String*/.join("", structures);
+	var joinedFunctions = /*Undefined identifier: String*/.join("", functions);
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
@@ -574,7 +575,18 @@ return segments.stream new_return segments.stream();
 	}*//*private static String compileExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			return stripped;
+			final var isDefined = definitions
+					.stream()
+					.map(frame -> frame.stream().filter(definition -> definition.name.equals(stripped)).findFirst())
+					.flatMap(Optional::stream)
+					.findFirst()
+					.isPresent();
+
+			if (isDefined) {
+				return stripped;
+			} else {
+				return CPlaceholder.wrap("Undefined identifier: " + stripped);
+			}
 		}
 
 		final var i = stripped.lastIndexOf(".");
