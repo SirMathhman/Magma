@@ -1,3 +1,5 @@
+CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
+CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
 struct CPrimitiveType {
 	/*private final*/ char* content;
 };
@@ -62,7 +64,6 @@ CType toCType_CPrimitiveType(void* _ref){
 	data.err = this;
 	return CType { CPrimitiveTypeType, data };
 }
-/*Char*/(/*"char"*/);
 /*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
 /*@Override
 		public*/ char* generate(/**/) {/*
@@ -353,17 +354,16 @@ CType toCType_CPlaceholder(void* _ref){
 			return maybeEnum.get();
 		}
 
-		final var maybeFunction = compileMethod(stripped);
-		if (maybeFunction.isPresent()) {
-			return maybeFunction.get();
-		}
-
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			return compileClassStatement(substring);
+			final var maybeClassStatement = compileClassStatement(substring);
+			if (maybeClassStatement.isPresent()) {
+				return maybeClassStatement.get();
+			}
 		}
 
-		return CPlaceholder.wrap(stripped);
+		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
+
 	}*//*private static Optional<String> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
@@ -392,7 +392,7 @@ CType toCType_CPlaceholder(void* _ref){
 		}
 
 		return Optional.empty();
-	}*//*private static String compileClassStatement(String input) {
+	}*//*private static Optional<String> compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
 			final var list =
 					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
@@ -405,7 +405,7 @@ CType toCType_CPlaceholder(void* _ref){
 			}
 
 			return Optional.of("");
-		}).orElseGet(() -> CPlaceholder.wrap(input));
+		});
 	}*//*private static boolean compileEnumValue(String segment, String enumName) {
 		final var stripped = segment.strip();
 		if (stripped.endsWith(")")) {

@@ -315,17 +315,16 @@ public class Main {
 			return maybeEnum.get();
 		}
 
-		final var maybeFunction = compileMethod(stripped);
-		if (maybeFunction.isPresent()) {
-			return maybeFunction.get();
-		}
-
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			return compileClassStatement(substring);
+			final var maybeClassStatement = compileClassStatement(substring);
+			if (maybeClassStatement.isPresent()) {
+				return maybeClassStatement.get();
+			}
 		}
 
-		return CPlaceholder.wrap(stripped);
+		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
+
 	}
 
 	private static Optional<String> compileMethod(String stripped) {
@@ -358,7 +357,7 @@ public class Main {
 		return Optional.empty();
 	}
 
-	private static String compileClassStatement(String input) {
+	private static Optional<String> compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
 			final var list =
 					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
@@ -371,7 +370,7 @@ public class Main {
 			}
 
 			return Optional.of("");
-		}).orElseGet(() -> CPlaceholder.wrap(input));
+		});
 	}
 
 	private static boolean compileEnumValue(String segment, String enumName) {
