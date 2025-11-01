@@ -71,6 +71,34 @@ struct CFunctionHeader {
 };
 struct JType {
 };
+enum JExpressionTag {
+	JIdentifierType,
+	JMemberAccessType,
+	JPlaceholderType
+};
+union JExpressionData {
+	JIdentifier jidentifier;
+	JMemberAccess jmemberaccess;
+	JPlaceholder jplaceholder;
+}
+struct JExpression {
+	JExpressionTag _tag;
+	JExpressionData _data;
+};
+enum CExpressionTag {
+	CFieldAccessType,
+	CIdentifierType,
+	CPlaceholderType
+};
+union CExpressionData {
+	CFieldAccess cfieldaccess;
+	CIdentifier cidentifier;
+	CPlaceholder cplaceholder;
+}
+struct CExpression {
+	CExpressionTag _tag;
+	CExpressionData _data;
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -117,6 +145,14 @@ struct JGenericType {
 struct JIdentifier {
 	char* input;
 };
+struct CFieldAccess {
+	CExpression child;
+	char* name;
+};
+struct JMemberAccess {
+	JExpression child;
+	char* name;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -153,6 +189,8 @@ char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
 CDefinable toCDefinition_JMethodHeader(void* _ref);
 CType toCType_JType(void* _ref);
+CExpression toCExpression_JExpression(void* _ref);
+char* generate_CExpression(void* _ref);
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -183,32 +221,32 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var cTemplateType = this;
-	var typeArguments1 = cTemplateType.typeArguments;
-	var stream = typeArguments1.stream();
-	var stringStream = stream.map(CType::generate);
-	var joined = stringStream.collect(Collectors.joining(", "));
+	/*JIdentifier[input=this]*/ cTemplateType = this;
+	/*JMemberAccess[child=JIdentifier[input=cTemplateType], name=typeArguments]*/ typeArguments1 = cTemplateType.typeArguments;
+	/*JMemberAccess[child=JIdentifier[input=typeArguments1], name=stream()]*/ stream = typeArguments1.stream();
+	/*JMemberAccess[child=JIdentifier[input=stream], name=map(CType::generate)]*/ stringStream = stream.map(CType::generate);
+	/*JMemberAccess[child=JMemberAccess[child=JIdentifier[input=stringStream], name=collect(Collectors], name=joining(", "))]*/ joined = stringStream.collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
-CType toCType_CIdentifier(void* _ref){
+/*CType, CExpression*/ to/*CType, CExpression*/_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
-	CTypeData data;
+	/*CType, CExpression*/Data data;
 	data.err = this;
-	return CType { CIdentifierType, data };
+	return /*CType, CExpression*/ { CIdentifierType, data };
 }
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
 	return this.input;
 }
-/*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
+/*CType, CDefinable, CExpression*/ to/*CType, CDefinable, CExpression*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	/*CType, CDefinable*/Data data;
+	/*CType, CDefinable, CExpression*/Data data;
 	data.err = this;
-	return /*CType, CDefinable*/ { CPlaceholderType, data };
+	return /*CType, CDefinable, CExpression*/ { CPlaceholderType, data };
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	var replaced = input.replace("/*", "start").replace("*/", "end");
+	/*JMemberAccess[child=JMemberAccess[child=JIdentifier[input=input], name=replace("start", "start")], name=replace("end", "end")]*/ replaced = input.replace("/*", "start").replace("*/", "end");
 	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
@@ -235,6 +273,10 @@ CDefinable toCDefinition_JDefinition(void* _ref) {
 	JDefinition _this = *((JDefinition*) _ref);
 	return /*new CDefinition(this*/.type.toCType(), this.name);
 }
+JDefinition mapType_JDefinition(void* _ref, /*JType>*/ mapper) {
+	JDefinition _this = *((JDefinition*) _ref);
+	return /*new JDefinition(this*/.beforeType, mapper.apply(this.type), this.name);
+}
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
 	JMethodHeaderData data;
@@ -243,20 +285,24 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 }
 CDefinable toCDefinition_JConstructor(void* _ref) {
 	JConstructor _this = *((JConstructor*) _ref);
-	var type = /*new CIdentifier(this*/.input);
+	/*JMemberAccess[child=JPlaceholder[input=new CIdentifier(this], name=input)]*/ type = /*new CIdentifier(this*/.input);
 	return /*new CDefinition(type, "new_" + this*/.input);
 }
-/*JMethodHeader, JType*/ to/*JMethodHeader, JType*/_JPlaceholder(void* _ref){
+/*JMethodHeader, JType, JExpression*/ to/*JMethodHeader, JType, JExpression*/_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	/*JMethodHeader, JType*/Data data;
+	/*JMethodHeader, JType, JExpression*/Data data;
 	data.err = this;
-	return /*JMethodHeader, JType*/ { JPlaceholderType, data };
+	return /*JMethodHeader, JType, JExpression*/ { JPlaceholderType, data };
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder(this*/.input);
 }
 CType toCType_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	return /*new CPlaceholder(this*/.input);
+}
+CExpression toCExpression_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder(this*/.input);
 }
@@ -280,15 +326,39 @@ CType toCType_JGenericType(void* _ref) {
 	JGenericType _this = *((JGenericType*) _ref);
 	return /*new CTemplateType(this*/.base, this.typeArguments.stream().map(JType::toCType).toList());
 }
-JType toJType_JIdentifier(void* _ref){
+/*JType, JExpression*/ to/*JType, JExpression*/_JIdentifier(void* _ref){
 	JIdentifier _this = *((JIdentifier*) _ref);
-	JTypeData data;
+	/*JType, JExpression*/Data data;
 	data.err = this;
-	return JType { JIdentifierType, data };
+	return /*JType, JExpression*/ { JIdentifierType, data };
 }
 CType toCType_JIdentifier(void* _ref) {
 	JIdentifier _this = *((JIdentifier*) _ref);
 	return /*new CIdentifier(this*/.input);
+}
+CExpression toCExpression_JIdentifier(void* _ref) {
+	JIdentifier _this = *((JIdentifier*) _ref);
+	return /*new CIdentifier(this*/.input);
+}
+CExpression toCExpression_CFieldAccess(void* _ref){
+	CFieldAccess _this = *((CFieldAccess*) _ref);
+	CExpressionData data;
+	data.err = this;
+	return CExpression { CFieldAccessType, data };
+}
+char* generate_CFieldAccess(void* _ref) {
+	CFieldAccess _this = *((CFieldAccess*) _ref);
+	return this.child.generate() + "." + this.name;
+}
+JExpression toJExpression_JMemberAccess(void* _ref){
+	JMemberAccess _this = *((JMemberAccess*) _ref);
+	JExpressionData data;
+	data.err = this;
+	return JExpression { JMemberAccessType, data };
+}
+CExpression toCExpression_JMemberAccess(void* _ref) {
+	JMemberAccess _this = *((JMemberAccess*) _ref);
+	return /*new CFieldAccess(this*/.child.toCExpression(), this.name);
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
@@ -301,7 +371,7 @@ void main_Main(void* _ref, char** args) {
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	var source = /*Undefined identifier: Paths*/.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
+	/*JMemberAccess[child=JMemberAccess[child=JMemberAccess[child=JPlaceholder[input=Undefined identifier: Paths], name=get("], name=", "src", "main", "java", "magma", "Main], name=java")]*/ source = /*Undefined identifier: Paths*/.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -329,17 +399,17 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
 	/*scope.push(new ArrayList<JDefinition>())*/;
-	var compiled = /*compileStatements(input, Main::compileRootSegment)*/;
-	var joinedGlobals = /*Undefined identifier: String*/.join("", globals);
-	var joinedStructures = /*Undefined identifier: String*/.join("", structures);
-	var joinedFunctions = /*Undefined identifier: String*/.join("", functions);
+	/*JPlaceholder[input=compileStatements(input, Main::compileRootSegment)]*/ compiled = /*compileStatements(input, Main::compileRootSegment)*/;
+	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", globals)]*/ joinedGlobals = /*Undefined identifier: String*/.join("", globals);
+	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", structures)]*/ joinedStructures = /*Undefined identifier: String*/.join("", structures);
+	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", functions)]*/ joinedFunctions = /*Undefined identifier: String*/.join("", functions);
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
-	var segments = /*new ArrayList<String>()*/;
-	var buffer = /*new StringBuilder()*/;
-	var depth = /*0*/;
+	/*JPlaceholder[input=new ArrayList<String>()]*/ segments = /*new ArrayList<String>()*/;
+	/*JPlaceholder[input=new StringBuilder()]*/ buffer = /*new StringBuilder()*/;
+	/*JPlaceholder[input=0]*/ depth = /*0*/;
 	/*(var*/ i = /*0*/;
 	/*i < input.length()*/;/*i++) {
 			final var c = input.charAt(i);
@@ -652,23 +722,26 @@ return segments.stream new_return segments.stream();
 
 		return false;
 	}*//*private static String compileExpression(String input) {
+		return parseExpression(input).toCExpression().generate();
+	}*//*private static JExpression parseExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
 			if (isDefined(stripped)) {
-				return stripped;
+				return new JIdentifier(stripped);
 			} else {
-				return CPlaceholder.wrap("Undefined identifier: " + stripped);
+				return new JPlaceholder("Undefined identifier: " + stripped);
 			}
 		}
 
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i).strip();
-			final var substring1 = stripped.substring(i + 1).strip();
-			return compileExpression(substring) + "." + substring1;
+			final var name = stripped.substring(i + 1).strip();
+			final var child = parseExpression(substring);
+			return new JMemberAccess(child, name);
 		}
 
-		return CPlaceholder.wrap(stripped);
+		return new JPlaceholder(stripped);
 	}*//*private static boolean isDefined(String input) {
 		if (input.equals("this")) {
 			return true;
@@ -702,18 +775,27 @@ return segments.stream new_return segments.stream();
 		if (i >= 0) {
 			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			final var source = compileExpression(substring1);
+			final var source = parseExpression(substring1);
+			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
 				scope.peek().add(definition);
 
-				return getCDefinition(definition).generate() + " = " + source;
-			}).orElseGet(() -> compileExpression(destination) + " = " + source);
+				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
+			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
 		}
 
 		return CPlaceholder.wrap(input);
-	}*//*private static CDefinable getCDefinition(JDefinition definition) {
-		return definition.toCDefinition();
+	}*//*private static JDefinition withResolvedType(JDefinition definition, JExpression source) {
+		return definition.mapType(type -> {
+			if (type instanceof JIdentifier(var value) && value.equals("var")) {
+				return resolveType(source);
+			}
+
+			return type;
+		});
+	}*//*private static JType resolveType(JExpression type) {
+		return new JPlaceholder(type.toString());
 	}*//*private static Optional<String> compileDefinition(String input) {
 		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);
 	}*//*private static Optional<JDefinition> parseDefinition(String input) {

@@ -60,6 +60,14 @@ public class Main {
 		CType toCType();
 	}
 
+	private sealed interface JExpression permits JIdentifier, JMemberAccess, JPlaceholder {
+		CExpression toCExpression();
+	}
+
+	private sealed interface CExpression permits CFieldAccess, CIdentifier, CPlaceholder {
+		String generate();
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
@@ -83,14 +91,14 @@ public class Main {
 		}
 	}
 
-	private record CIdentifier(String input) implements CType {
+	private record CIdentifier(String input) implements CType, CExpression {
 		@Override
 		public String generate() {
 			return this.input;
 		}
 	}
 
-	private record CPlaceholder(String input) implements CType, CDefinable {
+	private record CPlaceholder(String input) implements CType, CDefinable, CExpression {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -127,7 +135,7 @@ public class Main {
 		}
 	}
 
-	private record JPlaceholder(String input) implements JMethodHeader, JType {
+	private record JPlaceholder(String input) implements JMethodHeader, JType, JExpression {
 		@Override
 		public CDefinable toCDefinition() {
 			return new CPlaceholder(this.input);
@@ -135,6 +143,11 @@ public class Main {
 
 		@Override
 		public CType toCType() {
+			return new CPlaceholder(this.input);
+		}
+
+		@Override
+		public CExpression toCExpression() {
 			return new CPlaceholder(this.input);
 		}
 	}
@@ -153,10 +166,30 @@ public class Main {
 		}
 	}
 
-	private record JIdentifier(String input) implements JType {
+	private record JIdentifier(String input) implements JType, JExpression {
 		@Override
 		public CType toCType() {
 			return new CIdentifier(this.input);
+		}
+
+		@Override
+		public CExpression toCExpression() {
+			return new CIdentifier(this.input);
+		}
+	}
+
+	private record CFieldAccess(CExpression child, String name) implements CExpression {
+		@Override
+		public String generate() {
+			return this.child.generate() + "." + this.name;
+		}
+	}
+
+
+	private record JMemberAccess(JExpression child, String name) implements JExpression {
+		@Override
+		public CExpression toCExpression() {
+			return new CFieldAccess(this.child.toCExpression(), this.name);
 		}
 	}
 
@@ -549,23 +582,28 @@ public class Main {
 	}
 
 	private static String compileExpression(String input) {
+		return parseExpression(input).toCExpression().generate();
+	}
+
+	private static JExpression parseExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
 			if (isDefined(stripped)) {
-				return stripped;
+				return new JIdentifier(stripped);
 			} else {
-				return CPlaceholder.wrap("Undefined identifier: " + stripped);
+				return new JPlaceholder("Undefined identifier: " + stripped);
 			}
 		}
 
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i).strip();
-			final var substring1 = stripped.substring(i + 1).strip();
-			return compileExpression(substring) + "." + substring1;
+			final var name = stripped.substring(i + 1).strip();
+			final var child = parseExpression(substring);
+			return new JMemberAccess(child, name);
 		}
 
-		return CPlaceholder.wrap(stripped);
+		return new JPlaceholder(stripped);
 	}
 
 	private static boolean isDefined(String input) {
@@ -605,24 +643,31 @@ public class Main {
 		if (i >= 0) {
 			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			final var source = compileExpression(substring1);
+			final var source = parseExpression(substring1);
+			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
 				scope.peek().add(definition);
 
-				return withResolvedType(definition).toCDefinition().generate() + " = " + source;
-			}).orElseGet(() -> compileExpression(destination) + " = " + source);
+				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
+			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
 		}
 
 		return CPlaceholder.wrap(input);
 	}
 
-	private static JDefinition withResolvedType(JDefinition definition) {
-		return definition.mapType(Main::resolveType);
+	private static JDefinition withResolvedType(JDefinition definition, JExpression source) {
+		return definition.mapType(type -> {
+			if (type instanceof JIdentifier(var value) && value.equals("var")) {
+				return resolveType(source);
+			}
+
+			return type;
+		});
 	}
 
-	private static JType resolveType(JType type) {
-		return type;
+	private static JType resolveType(JExpression type) {
+		return new JPlaceholder(type.toString());
 	}
 
 	private static Optional<String> compileDefinition(String input) {
