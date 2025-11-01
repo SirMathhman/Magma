@@ -492,14 +492,7 @@ public class Main {
 	private static String compileExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			final var isDefined = definitions
-					.stream()
-					.map(frame -> frame.stream().filter(definition -> definition.name.equals(stripped)).findFirst())
-					.flatMap(Optional::stream)
-					.findFirst()
-					.isPresent();
-
-			if (isDefined) {
+			if (isDefined(stripped)) {
 				return stripped;
 			} else {
 				return CPlaceholder.wrap("Undefined identifier: " + stripped);
@@ -514,6 +507,19 @@ public class Main {
 		}
 
 		return CPlaceholder.wrap(stripped);
+	}
+
+	private static boolean isDefined(String input) {
+		if (input.equals("this")) {
+			return true;
+		}
+
+		return definitions
+				.stream()
+				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
+				.flatMap(Optional::stream)
+				.findFirst()
+				.isPresent();
 	}
 
 	private static String compileMethodSegment(String input) {

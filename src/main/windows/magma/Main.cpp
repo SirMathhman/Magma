@@ -109,12 +109,12 @@ CType toCType_CPrimitiveType(void* _ref){
 }
 CPrimitiveType new_CPrimitiveType(char* content) {
 	CPrimitiveType this;
-	/*Undefined identifier: this*/.content = /*Undefined identifier: content*/;
+	this.content = /*Undefined identifier: content*/;
 	return this;
 }
 char* generate_CPrimitiveType(void* _ref) {
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
-	return /*Undefined identifier: this*/.content;
+	return this.content;
 }
 char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
@@ -139,7 +139,7 @@ CType toCType_CPointerType(void* _ref){
 }
 char* generate_CPointerType(void* _ref) {
 	CPointerType _this = *((CPointerType*) _ref);
-	return /*Undefined identifier: this*/.child.generate() + "*";
+	return this.child.generate() + "*";
 }
 CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
@@ -149,11 +149,11 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var typeArguments1 = /*Undefined identifier: this*/.typeArguments;
+	var typeArguments1 = this.typeArguments;
 	var stream = /*Undefined identifier: typeArguments1*/.stream();
 	var stringStream = /*Undefined identifier: stream*/.map(CType::generate);
 	var joined = /*Undefined identifier: stringStream*/.collect(Collectors.joining(", "));
-	return /*Undefined identifier: this*/.base + "<" + joined + ">";
+	return this.base + "<" + joined + ">";
 }
 CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -163,7 +163,7 @@ CType toCType_CIdentifier(void* _ref){
 }
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	return /*Undefined identifier: this*/.input;
+	return this.input;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
@@ -188,7 +188,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 }
 char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
-	return /*Undefined identifier: this*/.type.generate() + " " + this.name;
+	return this.type.generate() + " " + this.name;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	JDefinition _this = *((JDefinition*) _ref);
@@ -225,7 +225,7 @@ public static final List<String> functions = new ArrayList<String> new_public st
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
-private static final Stack<List<JDefinition>> definitions = new Stack<> new_private static final Stack<List<JDefinition>> definitions = new Stack<>();
+private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>> new_private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>>();
 void main_Main(void* _ref, char** args) {
 	Main _this = *((Main*) _ref);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
@@ -575,14 +575,7 @@ return segments.stream new_return segments.stream();
 	}*//*private static String compileExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			final var isDefined = definitions
-					.stream()
-					.map(frame -> frame.stream().filter(definition -> definition.name.equals(stripped)).findFirst())
-					.flatMap(Optional::stream)
-					.findFirst()
-					.isPresent();
-
-			if (isDefined) {
+			if (isDefined(stripped)) {
 				return stripped;
 			} else {
 				return CPlaceholder.wrap("Undefined identifier: " + stripped);
@@ -597,6 +590,15 @@ return segments.stream new_return segments.stream();
 		}
 
 		return CPlaceholder.wrap(stripped);
+	}*//*private static boolean isDefined(String input) {
+		if(input.equals("this")) return true;
+
+		return definitions
+				.stream()
+				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
+				.flatMap(Optional::stream)
+				.findFirst()
+				.isPresent();
 	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
