@@ -289,6 +289,10 @@ public class Main {
 
 	private static String compileClassSegment(String input) {
 		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
 		final var maybeInterface = compileStructure(stripped, "interface");
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();

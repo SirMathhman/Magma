@@ -1,7 +1,7 @@
 CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
 CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
 struct CPrimitiveType {
-	/*private final*/ char* content;/**/
+	/*private final*/ char* content;
 };
 enum ResultTag {
 	ErrType,
@@ -15,7 +15,7 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 	ResultTag _tag;
-	ResultData<T, X> _data;/**/
+	ResultData<T, X> _data;
 };
 enum CTypeTag {
 	CIdentifierType,
@@ -33,29 +33,29 @@ union CTypeData {
 }
 struct CType {
 	CTypeTag _tag;
-	CTypeData _data;/*String generate()*//**/
+	CTypeData _data;/*String generate()*/
 };
 template <typename T, typename X>
 struct Err {
-	X error;/**/
+	X error;
 };
 template <typename T, typename X>
 struct Ok {
-	T value;/**/
+	T value;
 };
 struct CPointerType {
-	CType child;/**/
+	CType child;
 };
 struct CTemplateType {
-	/*String base,*/ List<CType> typeArguments;/**/
+	/*String base,*/ List<CType> typeArguments;
 };
 struct CIdentifier {
-	char* input;/**/
+	char* input;
 };
 struct CPlaceholder {
-	char* input;/**/
+	char* input;
 };
-struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<String>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*//**/
+struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<String>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*/
 };
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
@@ -320,6 +320,10 @@ CType toCType_CPlaceholder(void* _ref){
 		return true;
 	}*//*private static String compileClassSegment(String input) {
 		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
 		final var maybeInterface = compileStructure(stripped, "interface");
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
