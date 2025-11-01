@@ -108,12 +108,12 @@ CType toCType_CPrimitiveType(void* _ref){
 	return CType { CPrimitiveTypeType, data };
 }
 CPrimitiveType new_CPrimitiveType(char* content) {
-	CPrimitiveType this;/*this.content = content;*//**/
+	CPrimitiveType this;
+	this.content = content;
 	return this;
 }
-char* generate(/**/) {/*
-			return this.content;*//*
-		*/
+char* generate(/**/) {
+	/*return this.content*/;
 }
 char* generate(/**/);
 char* generate(/**/);
@@ -136,9 +136,8 @@ CType toCType_CPointerType(void* _ref){
 	data.err = this;
 	return CType { CPointerTypeType, data };
 }
-char* generate(/**/) {/*
-			return this.child.generate() + "*";*//*
-		*/
+char* generate(/**/) {
+	/*return this.child.generate() + "*"*/;
 }
 CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
@@ -146,10 +145,9 @@ CType toCType_CTemplateType(void* _ref){
 	data.err = this;
 	return CType { CTemplateTypeType, data };
 }
-char* generate(/**/) {/*
-			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));*//*
-			return this.base + "<" + joined + ">";*//*
-		*/
+char* generate(/**/) {
+	final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
+	/*return this.base + "<" + joined + ">"*/;
 }
 CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -157,9 +155,8 @@ CType toCType_CIdentifier(void* _ref){
 	data.err = this;
 	return CType { CIdentifierType, data };
 }
-char* generate(/**/) {/*
-			return this.input;*//*
-		*/
+char* generate(/**/) {
+	/*return this.input*/;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
@@ -167,14 +164,12 @@ char* generate(/**/) {/*
 	data.err = this;
 	return /*CType, CDefinable*/ { CPlaceholderType, data };
 }
-char* wrap(char* input) {/*
-			final var replaced = input.replace("start", "start").replace("end", "end");*//*
-			return "start" + replaced + "end";*//*
-		*/
+char* wrap(char* input) {
+	final var replaced = input.replace("/*", "start").replace("*/", "end");
+	/*return "start" + replaced + "end"*/;
 }
-char* generate(/**/) {/*
-			return wrap(this.input);*//*
-		*/
+char* generate(/**/) {
+	/*return wrap(this.input)*/;
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
 	CDefinition _this = *((CDefinition*) _ref);
@@ -182,9 +177,8 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 	data.err = this;
 	return CDefinable { CDefinitionType, data };
 }
-char* generate(/**/) {/*
-			return this.type.generate() + " " + this.name;*//*
-		*/
+char* generate(/**/) {
+	/*return this.type.generate() + " " + this.name*/;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	JDefinition _this = *((JDefinition*) _ref);
@@ -192,9 +186,8 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	data.err = this;
 	return JMethodHeader { JDefinitionType, data };
 }
-CDefinable toCDefinition(/**/) {/*
-			return new CDefinition(this.type, this.name);*//*
-		*/
+CDefinable toCDefinition(/**/) {
+	/*return new CDefinition(this.type, this.name)*/;
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
@@ -202,10 +195,9 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	data.err = this;
 	return JMethodHeader { JConstructorType, data };
 }
-CDefinable toCDefinition(/**/) {/*
-			final var type = new CIdentifier(this.input);*//*
-			return new CDefinition(type, "new_" + this.input);*//*
-		*/
+CDefinable toCDefinition(/**/) {
+	final var type = new CIdentifier(this.input);
+	/*return new CDefinition(type, "new_" + this.input)*/;
 }
 JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -213,60 +205,53 @@ JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	data.err = this;
 	return JMethodHeader { JPlaceholderType, data };
 }
-CDefinable toCDefinition(/**/) {/*
-			return new CPlaceholder(this.input);*//*
-		*/
+CDefinable toCDefinition(/**/) {
+	/*return new CPlaceholder(this.input)*/;
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>(/**/);
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>(/**/);
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>(/**/);
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>(/**/);
-void main(char** args) {/*
-		run().ifPresent(Throwable::printStackTrace);*//*
-	*/
+void main(char** args) {
+	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
-Optional<IOException> run(/**/) {/*
-		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
-		return switch (readString(source)) {
+Optional<IOException> run(/**/) {
+	final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
 				yield writeString(target, output);
 			}
 			case Err<String, IOException> v -> Optional.of(v.error);
-		}*//*;*//*
-	*/
+		}*/
+	/**/;
 }
-Optional<IOException> writeString(char* output) {/*
-		try {
+Optional<IOException> writeString(char* output) {/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
-		}*//* catch (IOException e) {
+		}*//*catch (IOException e) {
 			return Optional.of(e);
-		}*//*
-	*/
+		}*/
 }
-/*IOException>*/ readString(Path source) {/*
-		try {
+/*IOException>*/ readString(Path source) {/*try {
 			return new Ok<String, IOException>(Files.readString(source));
-		}*//* catch (IOException e) {
+		}*//*catch (IOException e) {
 			return new Err<String, IOException>(e);
-		}*//*
-	*/
+		}*/
 }
-char* compile(char* input) {/*
-		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
-		final var joinedGlobals = String.join("", globals);*//*
-		final var joinedStructures = String.join("", structures);*//*
-		final var joinedFunctions = String.join("", functions);*//*
-		return joinedGlobals + joinedStructures + joinedFunctions + compiled;*//*
-	*/
+char* compile(char* input) {
+	final var compiled = compileStatements(input, Main::compileRootSegment);
+	final var joinedGlobals = String.join("", globals);
+	final var joinedStructures = String.join("", structures);
+	final var joinedFunctions = String.join("", functions);
+	/*return joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
-char* compileStatements(/*String>*/ mapper) {/*
-		final var segments = new ArrayList<String>();*//*
-		var buffer = new StringBuilder();*//*
-		var depth = 0;*//*
-		for (var i = 0;*//* i < input.length();*//* i++) {
+char* compileStatements(/*String>*/ mapper) {
+	final var segments = new ArrayList<String>();
+	var buffer = new StringBuilder();
+	var depth = 0;
+	for (var i = 0;
+	/*i < input.length()*/;/*i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
@@ -276,12 +261,11 @@ char* compileStatements(/*String>*/ mapper) {/*
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
 				depth--;
-			}*//* else if (c == '{') {
+			}*//*else if (c == '{') {
 				depth++;
 			} else if (c == '}*//*') {
 				depth--;
-			}*//*
-		*/
+			}*/
 }
 segments.add new_segments.add(/*buffer.toString(*/);
 return segments.stream new_return segments.stream(/**/);
@@ -499,11 +483,6 @@ return segments.stream new_return segments.stream(/**/);
 		}
 
 		return Optional.empty();
-	}*//*private static JMethodHeader compileMethodHeader(String input) {
-		return parseDefinition(input)
-				.<JMethodHeader>map(definition -> definition)
-				.or(() -> parseConstructor(input))
-				.orElseGet(() -> new JPlaceholder(input));
 	}*//*private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
 		return Optional.of(new JConstructor(stripped));
@@ -543,6 +522,25 @@ return segments.stream new_return segments.stream(/**/);
 	}*//*private static String compileExpression(String input) {
 		return input.strip();
 	}*//*private static String compileMethodSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return generateStatement(compileMethodSegmentValue(substring));
+		}
+
+		return CPlaceholder.wrap(stripped);
+	}*//*private static String compileMethodSegmentValue(String input) {
+		final var i = input.indexOf("=");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			return compileExpression(substring) + " = " + compileExpression(substring1);
+		}
+
 		return CPlaceholder.wrap(input);
 	}*//*private static String compileDefinitionOrPlaceholder(String input) {
 		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));

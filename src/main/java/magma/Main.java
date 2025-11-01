@@ -407,13 +407,6 @@ public class Main {
 	}
 
 
-	private static JMethodHeader compileMethodHeader(String input) {
-		return parseDefinition(input)
-				.<JMethodHeader>map(definition -> definition)
-				.or(() -> parseConstructor(input))
-				.orElseGet(() -> new JPlaceholder(input));
-	}
-
 	private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
 		return Optional.of(new JConstructor(stripped));
@@ -461,6 +454,27 @@ public class Main {
 	}
 
 	private static String compileMethodSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return generateStatement(compileMethodSegmentValue(substring));
+		}
+
+		return CPlaceholder.wrap(stripped);
+	}
+
+	private static String compileMethodSegmentValue(String input) {
+		final var i = input.indexOf("=");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			return compileExpression(substring) + " = " + compileExpression(substring1);
+		}
+
 		return CPlaceholder.wrap(input);
 	}
 
