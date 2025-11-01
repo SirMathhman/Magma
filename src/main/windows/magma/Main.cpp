@@ -1,17 +1,21 @@
 struct Main {
 };
-/*private enum CPrimitiveType implements CType {
-		Char("char"), Void("void");
+CType toCType_CPrimitiveType(void* _ref){
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CPrimitiveTypeType, data };
+}
+struct CPrimitiveType {
+};
+/*Char("char"), Void("void");*//*
 
-		private final String content;
-
-		CPrimitiveType(String content) {this.content = content;}
-
-		@Override
-		public String generate() {
-			return this.content;
-		}
-	}*/enum ResultTag {
+		private final String content;*//*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+/*@Override
+		public*/ char* generate(/**/) {/*
+			return this.content;*//*
+		*/}
+/**/enum ResultTag {
 	ErrType,
 	OkType
 };
@@ -316,6 +320,11 @@ struct CPlaceholder {
 		final var maybeRecord = compileStructure(input, "record");
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
+		}
+
+		final var maybeEnum = compileStructure(input, "enum");
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
 		}
 
 		final var i = input.indexOf("(");

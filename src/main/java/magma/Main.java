@@ -283,6 +283,11 @@ public class Main {
 			return maybeRecord.get();
 		}
 
+		final var maybeEnum = compileStructure(input, "enum");
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
+		}
+
 		final var i = input.indexOf("(");
 		if (i >= 0) {
 			final var substring = input.substring(0, i);
