@@ -93,7 +93,7 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3) + System.lineSeparator();
 			}
 		}
 

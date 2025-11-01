@@ -7,9 +7,11 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static String*/ compile(/*String input*/)/* {
+	}*/
+/*private static String*/ compile(/*String input*/)/* {
 		return compileStatements(input, Main::compileRootSegment);
-	}*//*private static String*/ compileStatements(/*String input, Function<String, String> mapper*/)/* {
+	}*/
+/*private static String*/ compileStatements(/*String input, Function<String, String> mapper*/)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuffer();
 		var depth = 0;
@@ -28,7 +30,10 @@ struct Main {};
 			} else if (c == '}') {
 				depth--;
 			}
-		}*//*segments.add*/(/*buffer.toString(*/)/*);*//*return*/ segments.stream(/**/)/*.map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
+		}*/
+/*segments.add*/(/*buffer.toString(*/)/*);*/
+/*return*/ segments.stream(/**/)/*.map(mapper).collect(Collectors.joining());*/
+/**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -70,7 +75,7 @@ struct Main {};
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3) + System.lineSeparator();
 			}
 		}
 
