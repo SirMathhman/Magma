@@ -109,7 +109,7 @@ CType toCType_CPrimitiveType(void* _ref){
 }
 CPrimitiveType new_CPrimitiveType(char* content) {
 	CPrimitiveType this;
-	this.content = /*Undefined identifier: content*/;
+	this.content = content;
 	return this;
 }
 char* generate_CPrimitiveType(void* _ref) {
@@ -173,7 +173,7 @@ char* generate_CIdentifier(void* _ref) {
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	var replaced = /*Undefined identifier: input*/.replace("/*", "start").replace("*/", "end");
+	var replaced = input.replace("/*", "start").replace("*/", "end");
 	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
@@ -225,7 +225,7 @@ public static final List<String> functions = new ArrayList<String> new_public st
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
-private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>> new_private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>>();
+private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>> new_private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>>();
 void main_Main(void* _ref, char** args) {
 	Main _this = *((Main*) _ref);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
@@ -487,19 +487,21 @@ return segments.stream new_return segments.stream();
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var parameters = new ArrayList<CDefinable>(Arrays
-																														 .stream(paramString.split(Pattern.quote(",")))
-																														 .map(String::strip)
-																														 .filter(slice -> !slice.isEmpty())
-																														 .map(Main::parseDefinition)
-																														 .flatMap(Optional::stream)
-																														 .map(JDefinition::toCDefinition)
-																														 .toList());
+				final var jParameters = Arrays
+						.stream(paramString.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::parseDefinition)
+						.flatMap(Optional::stream)
+						.toList();
+
+				final var cParameters =
+						new ArrayList<CDefinable>(jParameters.stream().map(JDefinition::toCDefinition).toList());
 
 				CDefinable outputDefinition;
 				switch (header) {
 					case JDefinition jDefinition:
-						parameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
 						outputDefinition = new CDefinition(jDefinition.type, jDefinition.name + "_" + structureNames.peek());
 						break;
 					default:
@@ -507,12 +509,15 @@ return segments.stream new_return segments.stream();
 						break;
 				}
 
-				final var joinedParameters = parameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
+				final var joinedParameters = cParameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
 				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
+
+					scope.push(jParameters);
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					scope.pop();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
@@ -525,6 +530,7 @@ return segments.stream new_return segments.stream();
 
 					final var generated =
 							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+
 					functions.add(generated);
 					return Optional.of("");
 				} else {
@@ -591,9 +597,11 @@ return segments.stream new_return segments.stream();
 
 		return CPlaceholder.wrap(stripped);
 	}*//*private static boolean isDefined(String input) {
-		if(input.equals("this")) return true;
+		if (input.equals("this")) {
+			return true;
+		}
 
-		return definitions
+		return scope
 				.stream()
 				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
 				.flatMap(Optional::stream)

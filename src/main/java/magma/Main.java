@@ -116,7 +116,7 @@ public class Main {
 	public static final List<String> structures = new ArrayList<String>();
 	private static final List<String> globals = new ArrayList<String>();
 	private static final Stack<String> structureNames = new Stack<String>();
-	private static final Stack<List<JDefinition>> definitions = new Stack<List<JDefinition>>();
+	private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -396,19 +396,21 @@ public class Main {
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var parameters = new ArrayList<CDefinable>(Arrays
-																														 .stream(paramString.split(Pattern.quote(",")))
-																														 .map(String::strip)
-																														 .filter(slice -> !slice.isEmpty())
-																														 .map(Main::parseDefinition)
-																														 .flatMap(Optional::stream)
-																														 .map(JDefinition::toCDefinition)
-																														 .toList());
+				final var jParameters = Arrays
+						.stream(paramString.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::parseDefinition)
+						.flatMap(Optional::stream)
+						.toList();
+
+				final var cParameters =
+						new ArrayList<CDefinable>(jParameters.stream().map(JDefinition::toCDefinition).toList());
 
 				CDefinable outputDefinition;
 				switch (header) {
 					case JDefinition jDefinition:
-						parameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
 						outputDefinition = new CDefinition(jDefinition.type, jDefinition.name + "_" + structureNames.peek());
 						break;
 					default:
@@ -416,12 +418,15 @@ public class Main {
 						break;
 				}
 
-				final var joinedParameters = parameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
+				final var joinedParameters = cParameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
 				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
+
+					scope.push(jParameters);
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					scope.pop();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
@@ -434,6 +439,7 @@ public class Main {
 
 					final var generated =
 							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+
 					functions.add(generated);
 					return Optional.of("");
 				} else {
@@ -514,7 +520,7 @@ public class Main {
 			return true;
 		}
 
-		return definitions
+		return scope
 				.stream()
 				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
 				.flatMap(Optional::stream)
