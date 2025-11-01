@@ -44,6 +44,20 @@ public class Main {
 			return "";
 		}
 
+		final var i = stripped.indexOf("class ");
+		if (i >= 0) {
+			final var substring = stripped.substring(i + "class ".length()).strip();
+			if (substring.endsWith("}")) {
+				final var substring1 = substring.substring(0, substring.length() - 1);
+				final var i1 = substring1.indexOf("{");
+				if (i1 >= 0) {
+					final var name = substring1.substring(0, i1).strip();
+					final var content = substring1.substring(i1 + 1).strip();
+					return "struct " + name + " {};" + System.lineSeparator() + wrap(content);
+				}
+			}
+		}
+
 		return wrap(stripped);
 	}
 
