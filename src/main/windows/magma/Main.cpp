@@ -153,6 +153,12 @@ struct JMemberAccess {
 	JExpression child;
 	char* name;
 };
+struct Frame {
+	List<JDefinition> definitions;
+};
+struct Scope {
+	List<Frame> frames;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -221,7 +227,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*JIdentifier[input=this]*/ cTemplateType = this;
+	/*Undefined identifier: this*/ cTemplateType = this;
 	/*JMemberAccess[child=JIdentifier[input=cTemplateType], name=typeArguments]*/ typeArguments1 = cTemplateType.typeArguments;
 	/*JMemberAccess[child=JIdentifier[input=typeArguments1], name=stream()]*/ stream = typeArguments1.stream();
 	/*JMemberAccess[child=JIdentifier[input=stream], name=map(CType::generate)]*/ stringStream = stream.map(CType::generate);
@@ -360,11 +366,52 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 	JMemberAccess _this = *((JMemberAccess*) _ref);
 	return /*new CFieldAccess(this*/.child.toCExpression(), this.name);
 }
+public Frame_Frame(void* _ref) {
+	Frame _this = *((Frame*) _ref);
+	/*this(new ArrayList<>())*/;
+}
+void defineAll_Frame(void* _ref, List<JDefinition> definitions) {
+	Frame _this = *((Frame*) _ref);
+	/*this.definitions.addAll(definitions)*/;
+}
+void define_Frame(void* _ref, JDefinition definition) {
+	Frame _this = *((Frame*) _ref);
+	/*this.definitions.addLast(definition)*/;
+}
+public Scope_Scope(void* _ref) {
+	Scope _this = *((Scope*) _ref);
+	/*this(new ArrayList<>())*/;
+	/*this.enter()*/;
+}
+Optional<JDefinition> resolve_Scope(void* _ref, char* input) {
+	Scope _this = *((Scope*) _ref);
+	return this.frames.stream().map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst()).flatMap(Optional::stream).findFirst();
+}
+Scope enter_Scope(void* _ref) {
+	Scope _this = *((Scope*) _ref);
+	/*this.frames.addLast(new Frame())*/;
+	return this;
+}
+Scope defineAll_Scope(void* _ref, List<JDefinition> definitions) {
+	Scope _this = *((Scope*) _ref);
+	/*this.frames.getLast().defineAll(definitions)*/;
+	return this;
+}
+Scope pop_Scope(void* _ref) {
+	Scope _this = *((Scope*) _ref);
+	/*this.frames.removeLast()*/;
+	return this;
+}
+Scope define_Scope(void* _ref, JDefinition definition) {
+	Scope _this = *((Scope*) _ref);
+	/*this.frames.getLast().define(definition)*/;
+	return this;
+}
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
-private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>> new_private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>>();
+new Scope_Main(void* _ref);
 void main_Main(void* _ref, char** args) {
 	Main _this = *((Main*) _ref);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
@@ -398,7 +445,7 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
-	/*scope.push(new ArrayList<JDefinition>())*/;
+	/*scope.enter()*/;
 	/*JPlaceholder[input=compileStatements(input, Main::compileRootSegment)]*/ compiled = /*compileStatements(input, Main::compileRootSegment)*/;
 	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", globals)]*/ joinedGlobals = /*Undefined identifier: String*/.join("", globals);
 	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", structures)]*/ joinedStructures = /*Undefined identifier: String*/.join("", structures);
@@ -656,11 +703,9 @@ return segments.stream new_return segments.stream();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					scope.push(jParameters);
-					scope.push(new ArrayList<JDefinition>());
+					scope = scope.enter().defineAll(jParameters).enter();
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope.pop();
-					scope.pop();
+					scope = scope.pop().pop();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
@@ -747,12 +792,7 @@ return segments.stream new_return segments.stream();
 			return true;
 		}
 
-		return scope
-				.stream()
-				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
-				.flatMap(Optional::stream)
-				.findFirst()
-				.isPresent();
+		return scope.resolve(input).isPresent();
 	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
@@ -779,7 +819,7 @@ return segments.stream new_return segments.stream();
 			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
-				scope.peek().add(definition);
+				scope = scope.define(definition);
 
 				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
 			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
@@ -795,6 +835,15 @@ return segments.stream new_return segments.stream();
 			return type;
 		});
 	}*//*private static JType resolveType(JExpression type) {
+		if (type instanceof JIdentifier(String input)) {
+			if (input.equals("this")) {
+				return scope
+						.resolve(input)
+						.map(definition -> definition.type)
+						.orElseGet(() -> new JPlaceholder("Undefined identifier: " + input));
+			}
+		}
+
 		return new JPlaceholder(type.toString());
 	}*//*private static Optional<String> compileDefinition(String input) {
 		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);

@@ -193,11 +193,60 @@ public class Main {
 		}
 	}
 
+	private record Frame(List<JDefinition> definitions) {
+		public Frame() {
+			this(new ArrayList<JDefinition>());
+		}
+
+		public void defineAll(List<JDefinition> definitions) {
+			this.definitions.addAll(definitions);
+		}
+
+		public void define(JDefinition definition) {
+			this.definitions.addLast(definition);
+		}
+	}
+
+	private record Scope(List<Frame> frames) {
+		public Scope() {
+			this(new ArrayList<Frame>());
+			this.enter();
+		}
+
+		private Optional<JDefinition> resolve(String input) {
+			return this.frames
+					.stream()
+					.map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst())
+					.flatMap(Optional::stream)
+					.findFirst();
+		}
+
+		public Scope enter() {
+			this.frames.addLast(new Frame());
+			return this;
+		}
+
+		public Scope defineAll(List<JDefinition> definitions) {
+			this.frames.getLast().defineAll(definitions);
+			return this;
+		}
+
+		public Scope pop() {
+			this.frames.removeLast();
+			return this;
+		}
+
+		public Scope define(JDefinition definition) {
+			this.frames.getLast().define(definition);
+			return this;
+		}
+	}
+
 	public static final List<String> functions = new ArrayList<String>();
 	public static final List<String> structures = new ArrayList<String>();
 	private static final List<String> globals = new ArrayList<String>();
 	private static final Stack<String> structureNames = new Stack<String>();
-	private static final Stack<List<JDefinition>> scope = new Stack<List<JDefinition>>();
+	private static Scope scope = new Scope();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -233,7 +282,7 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		scope.push(new ArrayList<JDefinition>());
+		scope.enter();
 
 		final var compiled = compileStatements(input, Main::compileRootSegment);
 		final var joinedGlobals = String.join("", globals);
@@ -508,11 +557,9 @@ public class Main {
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
-					scope.push(jParameters);
-					scope.push(new ArrayList<JDefinition>());
+					scope = scope.enter().defineAll(jParameters).enter();
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope.pop();
-					scope.pop();
+					scope = scope.pop().pop();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
@@ -611,12 +658,7 @@ public class Main {
 			return true;
 		}
 
-		return scope
-				.stream()
-				.map(frame -> frame.stream().filter(definition -> definition.name.equals(input)).findFirst())
-				.flatMap(Optional::stream)
-				.findFirst()
-				.isPresent();
+		return scope.resolve(input).isPresent();
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -647,7 +689,7 @@ public class Main {
 			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
-				scope.peek().add(definition);
+				scope = scope.define(definition);
 
 				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
 			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
@@ -667,6 +709,15 @@ public class Main {
 	}
 
 	private static JType resolveType(JExpression type) {
+		if (type instanceof JIdentifier(String input)) {
+			if (input.equals("this")) {
+				return scope
+						.resolve(input)
+						.map(definition -> definition.type)
+						.orElseGet(() -> new JPlaceholder("Undefined identifier: " + input));
+			}
+		}
+
 		return new JPlaceholder(type.toString());
 	}
 
