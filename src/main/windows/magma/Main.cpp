@@ -15,7 +15,7 @@ struct Result<T, X> {};
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
 		return switch (readString(source)) {
 			case Ok(var input) -> {
-				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.c");
+				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
 				yield writeString(target, output);
 			}
@@ -82,7 +82,7 @@ struct Result<T, X> {};
 					final var content = substring1.substring(i1 + 1).strip();
 
 					final var i2 = beforeContent.indexOf("permits");
-					List<String> variants = new ArrayList<>();
+					List<String> variants = new ArrayList<String>();
 					if (i2 >= 0) {
 						final var stripped1 = beforeContent.substring(i2 + "permits".length()).strip().split(Pattern.quote(","));
 

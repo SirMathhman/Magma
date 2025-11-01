@@ -27,7 +27,7 @@ public class Main {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		return switch (readString(source)) {
 			case Ok(var input) -> {
-				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.c");
+				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
 				yield writeString(target, output);
 			}
