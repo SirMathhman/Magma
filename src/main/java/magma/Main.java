@@ -183,6 +183,11 @@ public class Main {
 			return maybeInterface.get();
 		}
 
+		final var maybeRecord = compileStructure(input, "record");
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
+		}
+
 		final var i = input.indexOf("(");
 		if (i >= 0) {
 			final var substring = input.substring(0, i);

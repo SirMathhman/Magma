@@ -10,11 +10,11 @@ union ResultData {
 }
 template <typename T, typename X>
 struct Result {};
-/**//*
-
-	private record Err<T, X>(X error) implements Result<T, X> {}*//*
-
-	private record Ok<T, X>(T value) implements Result<T, X> {}*//*public static*/ void main(char** args) {/*
+/**/template <typename T, typename X>(X error) implements Result<T, typename X>
+struct Err {};
+/**/template <typename T, typename X>(T value) implements Result<T, typename X>
+struct Ok {};
+/**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
 /*private static*/ /*Optional<IOException>*/ run(/**/) {/*
@@ -163,6 +163,11 @@ struct Result {};
 		final var maybeInterface = compileStructure(input, "interface");
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
+		}
+
+		final var maybeRecord = compileStructure(input, "record");
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
 		}
 
 		final var i = input.indexOf("(");
