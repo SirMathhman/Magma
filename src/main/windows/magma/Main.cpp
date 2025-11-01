@@ -4,6 +4,11 @@ enum ResultTag {
 	OkType
 };
 template <typename T, typename X>
+union ResultData {
+	Err<T, X> Err;
+	Ok<T, X> Ok;
+}
+template <typename T, typename X>
 struct Result {};
 /**//*
 
@@ -105,20 +110,36 @@ struct Result {};
 						}
 					}
 
-					String beforeStruct = "";
-					if (!variants.isEmpty()) {
-						beforeStruct = "enum " + beforeContent + "Tag {" + variants
-								.stream()
-								.map(segment -> System.lineSeparator() + "\t" + segment + "Type")
-								.collect(Collectors.joining(",")) + System.lineSeparator() + "};" + System.lineSeparator();
-					}
-
 					String templateString = "";
 					if (!typeParameters.isEmpty()) {
 						final var joined =
 								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
+					}
+
+
+					String beforeStruct = "";
+					if (!variants.isEmpty()) {
+						final var enumFields = variants
+								.stream()
+								.map(segment -> System.lineSeparator() + "\t" + segment + "Type")
+								.collect(Collectors.joining(","));
+
+						final var generatedEnum =
+								"enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+
+						final var typeArguments = "<" + String.join(", ", typeParameters) + ">";
+
+						final var unionFields = variants
+								.stream()
+								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
+								.collect(Collectors.joining());
+
+						final var generatedUnion =
+								templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "}" +
+								System.lineSeparator();
+						beforeStruct = generatedEnum + generatedUnion;
 					}
 
 					return Optional.of(
