@@ -8,10 +8,19 @@ public class Main {
 	public static void main(String[] args) {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
-			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), input);
+			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
 		} catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
+	}
+
+	private static String compile(String input) {
+		return wrap(input);
+	}
+
+	private static String wrap(String input) {
+		final var replaced = input.replace("/*", "start").replace("*/", "end");
+		return "/*" + replaced + "*/";
 	}
 }
