@@ -151,12 +151,17 @@ public class Main {
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
+					final var typeArguments = typeParameters.isEmpty() ? "" : "<" + String.join(", ", typeParameters) + ">";
 
 					String beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
+						final var thisType = beforeContent + typeArguments;
 						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-														generateStatement(beforeContent + " _this = *((" + beforeContent + "*) _ref)") +
+														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+														generateStatement("return " + superType + " {" +
+																							"" +
+																							"}") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
@@ -169,8 +174,6 @@ public class Main {
 						final var generatedEnum =
 								"enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 
-						final var typeArguments = "<" + String.join(", ", typeParameters) + ">";
-
 						final var unionFields = variants
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
@@ -182,9 +185,9 @@ public class Main {
 						beforeStruct += generatedEnum + generatedUnion;
 					}
 
-					return Optional.of(
-							beforeStruct + templateString + "struct " + beforeContent + " {};" + System.lineSeparator() +
-							compileStatements(content, Main::compileClassSegment));
+					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" +
+														 recordFields.map(Main::generateStatement).orElse("") + System.lineSeparator() + "};" +
+														 System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}

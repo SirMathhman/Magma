@@ -1,4 +1,5 @@
-struct Main {};
+struct Main {
+};
 enum ResultTag {
 	ErrType,
 	OkType
@@ -9,17 +10,24 @@ union ResultData {
 	Ok<T, X> Ok;
 }
 template <typename T, typename X>
-struct Result {};
+struct Result {
+};
 /**//*Result<T, X>*/ to/*Result<T, X>*/_Err(void* _ref){
-	Err _this = *((Err*) _ref);
+	Err<T, X> _this = *((Err<T, X>*) _ref);
+	return /*Result<T, X>*/ {};
 }
 template <typename T, typename X>
-struct Err {};
+struct Err {
+	/*X*/ error;
+};
 /**//*Result<T, X>*/ to/*Result<T, X>*/_Ok(void* _ref){
-	Ok _this = *((Ok*) _ref);
+	Ok<T, X> _this = *((Ok<T, X>*) _ref);
+	return /*Result<T, X>*/ {};
 }
 template <typename T, typename X>
-struct Ok {};
+struct Ok {
+	/*T*/ value;
+};
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -143,12 +151,15 @@ struct Ok {};
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
+					final var typeArguments = typeParameters.isEmpty() ? "" : "<" + String.join(", ", typeParameters) + ">";
 
 					String beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
+						final var thisType = beforeContent + typeArguments;
 						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-														generateStatement(beforeContent + " _this = *((" + beforeContent + "*) _ref)") +
+														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
+														generateStatement("return " + superType + " {}") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
@@ -161,8 +172,6 @@ struct Ok {};
 						final var generatedEnum =
 								"enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 
-						final var typeArguments = "<" + String.join(", ", typeParameters) + ">";
-
 						final var unionFields = variants
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
@@ -174,9 +183,9 @@ struct Ok {};
 						beforeStruct += generatedEnum + generatedUnion;
 					}
 
-					return Optional.of(
-							beforeStruct + templateString + "struct " + beforeContent + " {};" + System.lineSeparator() +
-							compileStatements(content, Main::compileClassSegment));
+					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" +
+														 recordFields.map(Main::generateStatement).orElse("") + System.lineSeparator() + "};" +
+														 System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}
