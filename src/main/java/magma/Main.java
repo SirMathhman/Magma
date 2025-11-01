@@ -487,7 +487,10 @@ public class Main {
 	}
 
 	private static String compileExpression(String input) {
-		return input.strip();
+		final var stripped = input.strip();
+
+
+		return CPlaceholder.wrap(stripped);
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -505,6 +508,11 @@ public class Main {
 	}
 
 	private static String compileMethodSegmentValue(String input) {
+		if (input.startsWith("return ")) {
+			final var slice = input.substring("return ".length());
+			return "return " + compileExpression(slice);
+		}
+
 		final var i = input.indexOf("=");
 		if (i >= 0) {
 			final var substring = input.substring(0, i);

@@ -1,5 +1,5 @@
-CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
-CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
+CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType(/*"char"*/);
+CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType(/*"void"*/);
 struct CPrimitiveType {
 	char* content;
 };
@@ -109,12 +109,12 @@ CType toCType_CPrimitiveType(void* _ref){
 }
 CPrimitiveType new_CPrimitiveType(char* content) {
 	CPrimitiveType this;
-	this.content = content;
+	/*this.content*/ = /*content*/;
 	return this;
 }
 char* generate_CPrimitiveType(void* _ref) {
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
-	/*return this.content*/;
+	return /*this.content*/;
 }
 char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
@@ -139,7 +139,7 @@ CType toCType_CPointerType(void* _ref){
 }
 char* generate_CPointerType(void* _ref) {
 	CPointerType _this = *((CPointerType*) _ref);
-	/*return this.child.generate() + "*"*/;
+	return /*this.child.generate() + "*"*/;
 }
 CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
@@ -149,8 +149,8 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
-	/*return this.base + "<" + joined + ">"*/;
+	/*final var joined*/ = /*this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "))*/;
+	return /*this.base + "<" + joined + ">"*/;
 }
 CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
@@ -160,7 +160,7 @@ CType toCType_CIdentifier(void* _ref){
 }
 char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
-	/*return this.input*/;
+	return /*this.input*/;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
@@ -170,12 +170,12 @@ char* generate_CIdentifier(void* _ref) {
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	final var replaced = input.replace("/*", "start").replace("*/", "end");
-	/*return "start" + replaced + "end"*/;
+	/*final var replaced*/ = /*input.replace("start", "start").replace("end", "end")*/;
+	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	/*return wrap(this.input)*/;
+	return /*wrap(this.input)*/;
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
 	CDefinition _this = *((CDefinition*) _ref);
@@ -185,7 +185,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 }
 char* generate_CDefinition(void* _ref) {
 	CDefinition _this = *((CDefinition*) _ref);
-	/*return this.type.generate() + " " + this.name*/;
+	return /*this.type.generate() + " " + this.name*/;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	JDefinition _this = *((JDefinition*) _ref);
@@ -195,7 +195,7 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 }
 CDefinable toCDefinition_JDefinition(void* _ref) {
 	JDefinition _this = *((JDefinition*) _ref);
-	/*return new CDefinition(this.type, this.name)*/;
+	return /*new CDefinition(this.type, this.name)*/;
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
@@ -205,8 +205,8 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 }
 CDefinable toCDefinition_JConstructor(void* _ref) {
 	JConstructor _this = *((JConstructor*) _ref);
-	final var type = new CIdentifier(this.input);
-	/*return new CDefinition(type, "new_" + this.input)*/;
+	/*final var type*/ = /*new CIdentifier(this.input)*/;
+	return /*new CDefinition(type, "new_" + this.input)*/;
 }
 JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -216,7 +216,7 @@ JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	/*return new CPlaceholder(this.input)*/;
+	return /*new CPlaceholder(this.input)*/;
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
@@ -228,7 +228,7 @@ void main_Main(void* _ref, char** args) {
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
+	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -255,18 +255,18 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
-	final var compiled = compileStatements(input, Main::compileRootSegment);
-	final var joinedGlobals = String.join("", globals);
-	final var joinedStructures = String.join("", structures);
-	final var joinedFunctions = String.join("", functions);
-	/*return joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
+	/*final var compiled*/ = /*compileStatements(input, Main::compileRootSegment)*/;
+	/*final var joinedGlobals*/ = /*String.join("", globals)*/;
+	/*final var joinedStructures*/ = /*String.join("", structures)*/;
+	/*final var joinedFunctions*/ = /*String.join("", functions)*/;
+	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
-	final var segments = new ArrayList<String>();
-	var buffer = new StringBuilder();
-	var depth = 0;
-	for (var i = 0;
+	/*final var segments*/ = /*new ArrayList<String>()*/;
+	/*var buffer*/ = /*new StringBuilder()*/;
+	/*var depth*/ = /*0*/;
+	/*for (var i*/ = /*0*/;
 	/*i < input.length()*/;/*i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
@@ -570,7 +570,8 @@ return segments.stream new_return segments.stream();
 
 		return false;
 	}*//*private static String compileExpression(String input) {
-		return input.strip();
+		final var stripped = input.strip();
+		return CPlaceholder.wrap(stripped);
 	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
@@ -584,6 +585,11 @@ return segments.stream new_return segments.stream();
 
 		return CPlaceholder.wrap(stripped);
 	}*//*private static String compileMethodSegmentValue(String input) {
+		if (input.startsWith("return ")) {
+			final var slice = input.substring("return ".length());
+			return "return " + compileExpression(slice);
+		}
+
 		final var i = input.indexOf("=");
 		if (i >= 0) {
 			final var substring = input.substring(0, i);
