@@ -1,5 +1,5 @@
 struct Main {};
-/*public static void main*/(/*String[] args*/)/* {
+/*public static void*/ main(/*String[] args*/)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
@@ -7,13 +7,9 @@ struct Main {};
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*
-
-	private static String compile*/(/*String input*/)/* {
+	}*//*private static String*/ compile(/*String input*/)/* {
 		return compileStatements(input, Main::compileRootSegment);
-	}*//*
-
-	private static String compileStatements*/(/*String input, Function<String, String> mapper*/)/* {
+	}*//*private static String*/ compileStatements(/*String input, Function<String, String> mapper*/)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuffer();
 		var depth = 0;
@@ -32,10 +28,7 @@ struct Main {};
 			} else if (c == '}') {
 				depth--;
 			}
-		}*//*
-		segments.add*/(/*buffer.toString(*/)/*);*//*
-
-		return segments.stream*/(/**/)/*.map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
+		}*//*segments.add*/(/*buffer.toString(*/)/*);*//*return*/ segments.stream(/**/)/*.map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -77,11 +70,21 @@ struct Main {};
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return wrap(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
 			}
 		}
 
 		return wrap(input);
+	}*//*private static String compileDefinition(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if(i >= 0) {
+			final var substring = stripped.substring(0, i);
+			final var name = stripped.substring(i + 1);
+			return wrap(substring) + " " + name;
+		}
+
+		return wrap(stripped);
 	}*//*private static String wrap(String input) {
 		final var replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";

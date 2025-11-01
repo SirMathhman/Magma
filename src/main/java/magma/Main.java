@@ -93,11 +93,23 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return wrap(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
+				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3);
 			}
 		}
 
 		return wrap(input);
+	}
+
+	private static String compileDefinition(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if(i >= 0) {
+			final var substring = stripped.substring(0, i);
+			final var name = stripped.substring(i + 1);
+			return wrap(substring) + " " + name;
+		}
+
+		return wrap(stripped);
 	}
 
 	private static String wrap(String input) {
