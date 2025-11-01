@@ -10,14 +10,16 @@ union ResultData {
 }
 template <typename T, typename X>
 struct Result {};
-/**//*Result<T, X>*/ Err<T, X>(X error)to/*Result<T, X>*/(void* _ref){
-	Err<T, X>(X error) _this = *((Err<T, X>(X error)*) _ref);
+/**//*Result<T, X>*/ to/*Result<T, X>*/_Err(void* _ref){
+	Err _this = *((Err*) _ref);
 }
-struct Err<T, X>(X error) {};
-/**//*Result<T, X>*/ Ok<T, X>(T value)to/*Result<T, X>*/(void* _ref){
-	Ok<T, X>(T value) _this = *((Ok<T, X>(T value)*) _ref);
+template <typename T, typename X>
+struct Err {};
+/**//*Result<T, X>*/ to/*Result<T, X>*/_Ok(void* _ref){
+	Ok _this = *((Ok*) _ref);
 }
-struct Ok<T, X>(T value) {};
+template <typename T, typename X>
+struct Ok {};
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -110,6 +112,18 @@ struct Ok<T, X>(T value) {};
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
+					Optional<String> recordFields = Optional.empty();
+					if (beforeContent.endsWith(")")) {
+						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
+						final var i3 = substring2.indexOf("(");
+						if (i3 >= 0) {
+							final var substring4 = substring2.substring(i3 + 1);
+							recordFields = Optional.of(compileDefinition(substring4));
+
+							beforeContent = substring2.substring(0, i3);
+						}
+					}
+
 					List<String> typeParameters = new ArrayList<String>();
 					if (beforeContent.endsWith(">")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
@@ -133,9 +147,7 @@ struct Ok<T, X>(T value) {};
 					String beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
-						beforeStruct += superType + " " + beforeContent + "to" +
-														superType +
-														"(void* _ref){" +
+						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
 														generateStatement(beforeContent + " _this = *((" + beforeContent + "*) _ref)") +
 														System.lineSeparator() + "}" + System.lineSeparator();
 					}
