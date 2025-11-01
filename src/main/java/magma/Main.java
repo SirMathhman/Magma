@@ -5,8 +5,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -84,9 +87,7 @@ public class Main {
 			return "";
 		}
 
-		return compileStructure(stripped, "class")
-				.or(() -> compileStructure(stripped, "interface"))
-				.orElseGet(() -> wrap(stripped));
+		return compileStructure(stripped, "class").orElseGet(() -> wrap(stripped));
 	}
 
 	private static Optional<String> compileStructure(String stripped, String type) {
@@ -97,12 +98,29 @@ public class Main {
 				final var substring1 = substring.substring(0, substring.length() - 1);
 				final var i1 = substring1.indexOf("{");
 				if (i1 >= 0) {
-					final var name = substring1.substring(0, i1).strip();
+					var beforeContent = substring1.substring(0, i1).strip();
 					final var content = substring1.substring(i1 + 1).strip();
-					if (isIdentifier(name)) {
-						return Optional.of("struct " + name + " {};" + System.lineSeparator() +
-															 compileStatements(content, Main::compileClassSegment));
+
+					final var i2 = beforeContent.indexOf("permits");
+					List<String> variants = new ArrayList<String>();
+					if (i2 >= 0) {
+						final var stripped1 = beforeContent.substring(i2 + "permits".length()).strip().split(Pattern.quote(","));
+
+						variants = Arrays.stream(stripped1).map(String::strip).filter(segment -> !segment.isEmpty()).toList();
+
+						beforeContent = beforeContent.substring(0, i2).strip();
 					}
+
+					String beforeStruct = "";
+					if (!variants.isEmpty()) {
+						beforeStruct = "enum " + beforeContent + "Tag {" + variants
+								.stream()
+								.map(segment -> System.lineSeparator() + "\t" + segment + "Type")
+								.collect(Collectors.joining(",")) + System.lineSeparator() + "};" + System.lineSeparator();
+					}
+
+					return Optional.of(beforeStruct + "struct " + beforeContent + " {};" + System.lineSeparator() +
+														 compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}
@@ -122,6 +140,11 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		final var maybeInterface = compileStructure(input, "interface");
+		if (maybeInterface.isPresent()) {
+			return maybeInterface.get();
+		}
+
 		final var i = input.indexOf("(");
 		if (i >= 0) {
 			final var substring = input.substring(0, i);
