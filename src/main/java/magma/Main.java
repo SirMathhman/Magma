@@ -93,7 +93,8 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3) + System.lineSeparator();
+				return compileDefinition(substring) + "(" + compileDefinition(substring2) + ")" + wrap(substring3) +
+							 System.lineSeparator();
 			}
 		}
 
@@ -111,6 +112,8 @@ public class Main {
 				final var substring1 = substring.substring(0, i1);
 				final var substring2 = substring.substring(i1 + 1);
 				return wrap(substring1) + " " + compileType(substring2) + " " + name;
+			} else {
+				return compileType(substring) + " " + name;
 			}
 		}
 
@@ -121,6 +124,10 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
 			return "void";
+		}
+
+		if(stripped.endsWith("[]")) {
+			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
 		}
 
 		return wrap(stripped);

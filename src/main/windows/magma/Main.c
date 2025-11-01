@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ void main(/*String[] args*/)/* {
+/*public static*/ void main(/*String*/* args)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
@@ -8,10 +8,10 @@ struct Main {};
 			e.printStackTrace();
 		}
 	}*/
-/*private static*/ /*String*/ compile(/*String input*/)/* {
+/*private static*/ /*String*/ compile(/*String*/ input)/* {
 		return compileStatements(input, Main::compileRootSegment);
 	}*/
-/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/)/* {
+/*private static*/ /*String*/ compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuffer();
 		var depth = 0;
@@ -32,7 +32,7 @@ struct Main {};
 			}
 		}*/
 /*segments.add*/(/*buffer.toString(*/)/*);*/
-/*return segments.stream*/(/**/)/*.map(mapper).collect(Collectors.joining());*/
+/*return*/ segments.stream(/**/)/*.map(mapper).collect(Collectors.joining());*/
 /**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -75,7 +75,8 @@ struct Main {};
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + wrap(substring2) + ")" + wrap(substring3) + System.lineSeparator();
+				return compileDefinition(substring) + "(" + compileDefinition(substring2) + ")" + wrap(substring3) +
+							 System.lineSeparator();
 			}
 		}
 
@@ -91,6 +92,8 @@ struct Main {};
 				final var substring1 = substring.substring(0, i1);
 				final var substring2 = substring.substring(i1 + 1);
 				return wrap(substring1) + " " + compileType(substring2) + " " + name;
+			} else {
+				return compileType(substring) + " " + name;
 			}
 		}
 
@@ -99,6 +102,10 @@ struct Main {};
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
 			return "void";
+		}
+
+		if(stripped.endsWith("[]")) {
+			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
 		}
 
 		return wrap(stripped);
