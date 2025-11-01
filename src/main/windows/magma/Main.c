@@ -1,39 +1,40 @@
 struct Main {};
-/*public static*/ void main(char** args)/* {
+/*public static*/ void main(char** args) {/*
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
-		} catch (IOException e) {
+		}*//* catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}
-	}*/
-/*private static*/ char* compile(char* input)/* {
-		return compileStatements(input, Main::compileRootSegment);
-	}*/
-/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuffer();
-		var depth = 0;
-		for (var i = 0; i < input.length(); i++) {
+		}*//*
+	*/}
+/*private static*/ char* compile(char* input) {/*
+		return compileStatements(input, Main::compileRootSegment);*//*
+	*/}
+/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+		final var segments = new ArrayList<String>();*//*
+		var buffer = new StringBuffer();*//*
+		var depth = 0;*//*
+		for (var i = 0;*//* i < input.length();*//* i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuffer();
-			} else if (c == '}' && depth == 1) {
+			} else if (c == '}*//*' && depth == 1) {
 				segments.add(buffer.toString());
 				buffer = new StringBuffer();
 				depth--;
-			} else if (c == '{') {
+			}*//* else if (c == '{') {
 				depth++;
-			} else if (c == '}') {
+			} else if (c == '}*//*') {
 				depth--;
-			}
-		}*/
-/*segments.add*/(/*buffer.toString(*/)/*);*/
-/*return*/ segments.stream(/**/)/*.map(mapper).collect(Collectors.joining());*/
-/**//*private static String compileRootSegment(String input) {
+			}*//*
+		*/}
+/*
+		segments.add(buffer.toString());*//*
+
+		return segments.stream().map(mapper).collect(Collectors.joining());*//**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -74,12 +75,19 @@ struct Main {};
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
-				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + compileDefinition(substring2) + ")" + wrap(substring3) +
-							 System.lineSeparator();
+				final var withBraces = substring1.substring(i1 + 1).strip();
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					final var outputContent = compileStatements(content, Main::compileMethodSegment);
+
+					return compileDefinition(substring) + "(" + compileDefinition(substring2) + ") {" + outputContent + "}" +
+								 System.lineSeparator();
+				}
 			}
 		}
 
+		return wrap(input);
+	}*//*private static String compileMethodSegment(String input) {
 		return wrap(input);
 	}*//*private static String compileDefinition(String input) {
 		final var stripped = input.strip();

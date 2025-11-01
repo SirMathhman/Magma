@@ -92,12 +92,21 @@ public class Main {
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
-				final var substring3 = substring1.substring(i1 + 1);
-				return compileDefinition(substring) + "(" + compileDefinition(substring2) + ")" + wrap(substring3) +
-							 System.lineSeparator();
+				final var withBraces = substring1.substring(i1 + 1).strip();
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					final var outputContent = compileStatements(content, Main::compileMethodSegment);
+
+					return compileDefinition(substring) + "(" + compileDefinition(substring2) + ") {" + outputContent + "}" +
+								 System.lineSeparator();
+				}
 			}
 		}
 
+		return wrap(input);
+	}
+
+	private static String compileMethodSegment(String input) {
 		return wrap(input);
 	}
 
