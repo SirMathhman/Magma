@@ -111,6 +111,19 @@ public class Main {
 						beforeContent = beforeContent.substring(0, i2).strip();
 					}
 
+
+					List<String> typeParameters = new ArrayList<String>();
+					if (beforeContent.endsWith(">")) {
+						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
+						final var i3 = substring2.indexOf("<");
+						if (i3 >= 0) {
+							final var substring3 = substring2.substring(i3 + 1).strip().split(Pattern.quote(","));
+							typeParameters = Arrays.stream(substring3).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+
+							beforeContent = beforeContent.substring(0, i3).strip();
+						}
+					}
+
 					String beforeStruct = "";
 					if (!variants.isEmpty()) {
 						beforeStruct = "enum " + beforeContent + "Tag {" + variants
@@ -119,8 +132,17 @@ public class Main {
 								.collect(Collectors.joining(",")) + System.lineSeparator() + "};" + System.lineSeparator();
 					}
 
-					return Optional.of(beforeStruct + "struct " + beforeContent + " {};" + System.lineSeparator() +
-														 compileStatements(content, Main::compileClassSegment));
+					String templateString = "";
+					if (!typeParameters.isEmpty()) {
+						final var joined =
+								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+
+						templateString = "template <" + joined + ">" + System.lineSeparator();
+					}
+
+					return Optional.of(
+							beforeStruct + templateString + "struct " + beforeContent + " {};" + System.lineSeparator() +
+							compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}
