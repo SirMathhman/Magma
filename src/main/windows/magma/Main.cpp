@@ -184,10 +184,10 @@ CType toCType_CTemplateType(void* _ref){
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	var cTemplateType = this;
-	var typeArguments1 = /*Undefined identifier: cTemplateType*/.typeArguments;
-	var stream = /*Undefined identifier: typeArguments1*/.stream();
-	var stringStream = /*Undefined identifier: stream*/.map(CType::generate);
-	var joined = /*Undefined identifier: stringStream*/.collect(Collectors.joining(", "));
+	var typeArguments1 = cTemplateType.typeArguments;
+	var stream = typeArguments1.stream();
+	var stringStream = stream.map(CType::generate);
+	var joined = stringStream.collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
 CType toCType_CIdentifier(void* _ref){
@@ -328,6 +328,7 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
+	/*scope.push(new ArrayList<JDefinition>())*/;
 	var compiled = /*compileStatements(input, Main::compileRootSegment)*/;
 	var joinedGlobals = /*Undefined identifier: String*/.join("", globals);
 	var joinedStructures = /*Undefined identifier: String*/.join("", structures);
@@ -586,7 +587,9 @@ return segments.stream new_return segments.stream();
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
 					scope.push(jParameters);
+					scope.push(new ArrayList<JDefinition>());
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					scope.pop();
 					scope.pop();
 
 					final String outputContent;
@@ -701,16 +704,16 @@ return segments.stream new_return segments.stream();
 			final var substring1 = input.substring(i + 1);
 			final var source = compileExpression(substring1);
 
-			return parseDefinition(destination).map(s -> {
-				return getCDefinition(s).generate() + " = " + source;
+			return parseDefinition(destination).map(definition -> {
+				scope.peek().add(definition);
+
+				return getCDefinition(definition).generate() + " = " + source;
 			}).orElseGet(() -> compileExpression(destination) + " = " + source);
 		}
 
 		return CPlaceholder.wrap(input);
 	}*//*private static CDefinable getCDefinition(JDefinition definition) {
 		return definition.toCDefinition();
-	}*//*private static String compileDefinitionOrPlaceholder(String input) {
-		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
 	}*//*private static Optional<String> compileDefinition(String input) {
 		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);
 	}*//*private static Optional<JDefinition> parseDefinition(String input) {

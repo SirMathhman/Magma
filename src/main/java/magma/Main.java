@@ -196,6 +196,8 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		scope.push(new ArrayList<JDefinition>());
+
 		final var compiled = compileStatements(input, Main::compileRootSegment);
 		final var joinedGlobals = String.join("", globals);
 		final var joinedStructures = String.join("", structures);
@@ -470,7 +472,9 @@ public class Main {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
 					scope.push(jParameters);
+					scope.push(new ArrayList<JDefinition>());
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					scope.pop();
 					scope.pop();
 
 					final String outputContent;
@@ -599,8 +603,10 @@ public class Main {
 			final var substring1 = input.substring(i + 1);
 			final var source = compileExpression(substring1);
 
-			return parseDefinition(destination).map(s -> {
-				return getCDefinition(s).generate() + " = " + source;
+			return parseDefinition(destination).map(definition -> {
+				scope.peek().add(definition);
+
+				return getCDefinition(definition).generate() + " = " + source;
 			}).orElseGet(() -> compileExpression(destination) + " = " + source);
 		}
 
@@ -609,10 +615,6 @@ public class Main {
 
 	private static CDefinable getCDefinition(JDefinition definition) {
 		return definition.toCDefinition();
-	}
-
-	private static String compileDefinitionOrPlaceholder(String input) {
-		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
 	}
 
 	private static Optional<String> compileDefinition(String input) {
