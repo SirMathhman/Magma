@@ -103,10 +103,24 @@ public class Main {
 	private static String compileDefinition(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(" ");
-		if(i >= 0) {
-			final var substring = stripped.substring(0, i);
+		if (i >= 0) {
+			final var substring = stripped.substring(0, i).strip();
 			final var name = stripped.substring(i + 1);
-			return wrap(substring) + " " + name;
+			final var i1 = substring.lastIndexOf(" ");
+			if (i1 >= 0) {
+				final var substring1 = substring.substring(0, i1);
+				final var substring2 = substring.substring(i1 + 1);
+				return wrap(substring1) + " " + compileType(substring2) + " " + name;
+			}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static String compileType(String input) {
+		final var stripped = input.strip();
+		if (stripped.equals("void")) {
+			return "void";
 		}
 
 		return wrap(stripped);
