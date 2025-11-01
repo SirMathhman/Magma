@@ -378,15 +378,28 @@ public class Main {
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var joinedParameters = Arrays
-						.stream(paramString.split(Pattern.quote(",")))
-						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
-						.map(Main::compileDefinition)
-						.flatMap(Optional::stream)
-						.collect(Collectors.joining(", "));
+				final var parameters = new ArrayList<CDefinable>(Arrays
+																														 .stream(paramString.split(Pattern.quote(",")))
+																														 .map(String::strip)
+																														 .filter(slice -> !slice.isEmpty())
+																														 .map(Main::parseDefinition)
+																														 .flatMap(Optional::stream)
+																														 .map(JDefinition::toCDefinition)
+																														 .toList());
 
-				final var headerWithString = transformHeader(header).generate() + "(" + joinedParameters + ")";
+				CDefinable outputDefinition;
+				switch (header) {
+					case JDefinition jDefinition:
+						parameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+						outputDefinition = new CDefinition(jDefinition.type, jDefinition.name + "_" + structureNames.peek());
+						break;
+					default:
+						outputDefinition = header.toCDefinition();
+						break;
+				}
+
+				final var joinedParameters = parameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
+				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -411,14 +424,6 @@ public class Main {
 		}
 
 		return Optional.empty();
-	}
-
-	private static CDefinable transformHeader(JMethodHeader header) {
-		return switch (header) {
-			case JDefinition jDefinition -> new CDefinition(jDefinition.type,
-																											jDefinition.name + "_" + structureNames.peek());
-			default -> header.toCDefinition();
-		};
 	}
 
 	private static Optional<JMethodHeader> parseConstructor(String input) {
