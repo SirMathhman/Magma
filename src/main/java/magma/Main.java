@@ -33,6 +33,16 @@ public class Main {
 		String generate();
 	}
 
+	private sealed interface CDefinable permits CDefinition, CPlaceholder {
+		String generate();
+	}
+
+	private sealed interface JMethodHeader permits JConstructor, JDefinition, JPlaceholder {
+		CDefinable toCDefinition();
+	}
+
+	private interface CFunctionHeader {}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
@@ -59,7 +69,7 @@ public class Main {
 		}
 	}
 
-	private record CPlaceholder(String input) implements CType {
+	private record CPlaceholder(String input) implements CType, CDefinable {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -68,6 +78,34 @@ public class Main {
 		@Override
 		public String generate() {
 			return wrap(this.input);
+		}
+	}
+
+	private record CDefinition(CType type, String name) implements CDefinable {
+		public String generate() {
+			return this.type.generate() + " " + this.name;
+		}
+	}
+
+	private record JDefinition(Optional<String> beforeType, CType type, String name) implements JMethodHeader {
+		@Override
+		public CDefinable toCDefinition() {
+			return new CDefinition(this.type, this.name);
+		}
+	}
+
+	private record JConstructor(String input) implements JMethodHeader {
+		@Override
+		public CDefinable toCDefinition() {
+			final var type = new CIdentifier(this.input);
+			return new CDefinition(type, "new_" + this.input);
+		}
+	}
+
+	private record JPlaceholder(String input) implements JMethodHeader {
+		@Override
+		public CDefinable toCDefinition() {
+			return new CPlaceholder(this.input);
 		}
 	}
 
@@ -335,17 +373,30 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				final var header = compileMethodHeader(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var header = parseDefinition(substring)
+						.<JMethodHeader>map(definition -> definition)
+						.or(() -> parseConstructor(substring))
+						.orElseGet(() -> new JPlaceholder(substring));
+
+				final var headerWithString =
+						header.toCDefinition().generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
-					final var outputContent = compileStatements(content, Main::compileMethodSegment);
+					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					final String outputContent;
+					if (header instanceof JConstructor(var name)) {
+						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+					} else {
+						outputContent = compiledContent;
+					}
 
-					final var generated = header + " {" + outputContent + "}" + System.lineSeparator();
+					final var generated =
+							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				} else {
-					final var generated = header + ";" + System.lineSeparator();
+					final var generated = headerWithString + ";" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				}
@@ -355,13 +406,17 @@ public class Main {
 		return Optional.empty();
 	}
 
-	private static String compileMethodHeader(String input) {
-		return compileDefinition(input).or(() -> compileConstructor(input)).orElseGet(() -> CPlaceholder.wrap(input));
+
+	private static JMethodHeader compileMethodHeader(String input) {
+		return parseDefinition(input)
+				.<JMethodHeader>map(definition -> definition)
+				.or(() -> parseConstructor(input))
+				.orElseGet(() -> new JPlaceholder(input));
 	}
 
-	private static Optional<String> compileConstructor(String input) {
+	private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
-		return Optional.of(stripped + " new_" + stripped);
+		return Optional.of(new JConstructor(stripped));
 	}
 
 	private static Optional<String> compileClassStatement(String input) {
@@ -414,23 +469,27 @@ public class Main {
 	}
 
 	private static Optional<String> compileDefinition(String input) {
+		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);
+	}
+
+	private static Optional<JDefinition> parseDefinition(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(" ");
 		if (i < 0) {return Optional.empty();}
-		final var substring = stripped.substring(0, i).strip();
+		final var beforeName = stripped.substring(0, i).strip();
 		final var name = stripped.substring(i + 1).strip();
 
 		if (!isIdentifier(name)) {
 			return Optional.empty();
 		}
 
-		final var i1 = substring.lastIndexOf(" ");
+		final var i1 = beforeName.lastIndexOf(" ");
 		if (i1 >= 0) {
-			final var substring1 = substring.substring(0, i1);
-			final var substring2 = substring.substring(i1 + 1);
-			return Optional.of(CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name);
+			final var beforeType = beforeName.substring(0, i1);
+			final var type = beforeName.substring(i1 + 1);
+			return Optional.of(new JDefinition(Optional.of(beforeType), compileType(type), name));
 		} else {
-			return Optional.of(compileTypeToString(substring) + " " + name);
+			return Optional.of(new JDefinition(Optional.empty(), compileType(beforeName), name));
 		}
 	}
 

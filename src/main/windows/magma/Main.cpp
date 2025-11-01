@@ -1,7 +1,7 @@
 CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
 CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
 struct CPrimitiveType {
-	/*private final*/ char* content;
+	char* content;
 };
 enum ResultTag {
 	ErrType,
@@ -35,6 +35,34 @@ struct CType {
 	CTypeTag _tag;
 	CTypeData _data;
 };
+enum CDefinableTag {
+	CDefinitionType,
+	CPlaceholderType
+};
+union CDefinableData {
+	CDefinition cdefinition;
+	CPlaceholder cplaceholder;
+}
+struct CDefinable {
+	CDefinableTag _tag;
+	CDefinableData _data;
+};
+enum JMethodHeaderTag {
+	JConstructorType,
+	JDefinitionType,
+	JPlaceholderType
+};
+union JMethodHeaderData {
+	JConstructor jconstructor;
+	JDefinition jdefinition;
+	JPlaceholder jplaceholder;
+}
+struct JMethodHeader {
+	JMethodHeaderTag _tag;
+	JMethodHeaderData _data;
+};
+struct CFunctionHeader {
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -56,6 +84,21 @@ struct CIdentifier {
 struct CPlaceholder {
 	char* input;
 };
+struct CDefinition {
+	CType type;
+	char* name;
+};
+struct JDefinition {
+	Optional<char*> beforeType;
+	CType type;
+	char* name;
+};
+struct JConstructor {
+	char* input;
+};
+struct JPlaceholder {
+	char* input;
+};
 struct Main {
 };
 CType toCType_CPrimitiveType(void* _ref){
@@ -64,12 +107,17 @@ CType toCType_CPrimitiveType(void* _ref){
 	data.err = this;
 	return CType { CPrimitiveTypeType, data };
 }
-CPrimitiveType new_CPrimitiveType(char* content) {/*this.content = content;*//**/}
-/*@Override
-		public*/ char* generate(/**/) {/*
+CPrimitiveType new_CPrimitiveType(char* content) {
+	CPrimitiveType this;/*this.content = content;*//**/
+	return this;
+}
+char* generate(/**/) {/*
 			return this.content;*//*
-		*/}
+		*/
+}
 char* generate(/**/);
+char* generate(/**/);
+CDefinable toCDefinition(/**/);
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -88,53 +136,96 @@ CType toCType_CPointerType(void* _ref){
 	data.err = this;
 	return CType { CPointerTypeType, data };
 }
-/*@Override
-		public*/ char* generate(/**/) {/*
+char* generate(/**/) {/*
 			return this.child.generate() + "*";*//*
-		*/}
+		*/
+}
 CType toCType_CTemplateType(void* _ref){
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CTemplateTypeType, data };
 }
-/*@Override
-		public*/ char* generate(/**/) {/*
+char* generate(/**/) {/*
 			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));*//*
 			return this.base + "<" + joined + ">";*//*
-		*/}
+		*/
+}
 CType toCType_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
 	CTypeData data;
 	data.err = this;
 	return CType { CIdentifierType, data };
 }
-/*@Override
-		public*/ char* generate(/**/) {/*
+char* generate(/**/) {/*
 			return this.input;*//*
-		*/}
-CType toCType_CPlaceholder(void* _ref){
-	CPlaceholder _this = *((CPlaceholder*) _ref);
-	CTypeData data;
-	data.err = this;
-	return CType { CPlaceholderType, data };
+		*/
 }
-/*private static*/ char* wrap(char* input) {/*
+/*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
+	CPlaceholder _this = *((CPlaceholder*) _ref);
+	/*CType, CDefinable*/Data data;
+	data.err = this;
+	return /*CType, CDefinable*/ { CPlaceholderType, data };
+}
+char* wrap(char* input) {/*
 			final var replaced = input.replace("start", "start").replace("end", "end");*//*
 			return "start" + replaced + "end";*//*
-		*/}
-/*@Override
-		public*/ char* generate(/**/) {/*
+		*/
+}
+char* generate(/**/) {/*
 			return wrap(this.input);*//*
-		*/}
+		*/
+}
+CDefinable toCDefinable_CDefinition(void* _ref){
+	CDefinition _this = *((CDefinition*) _ref);
+	CDefinableData data;
+	data.err = this;
+	return CDefinable { CDefinitionType, data };
+}
+char* generate(/**/) {/*
+			return this.type.generate() + " " + this.name;*//*
+		*/
+}
+JMethodHeader toJMethodHeader_JDefinition(void* _ref){
+	JDefinition _this = *((JDefinition*) _ref);
+	JMethodHeaderData data;
+	data.err = this;
+	return JMethodHeader { JDefinitionType, data };
+}
+CDefinable toCDefinition(/**/) {/*
+			return new CDefinition(this.type, this.name);*//*
+		*/
+}
+JMethodHeader toJMethodHeader_JConstructor(void* _ref){
+	JConstructor _this = *((JConstructor*) _ref);
+	JMethodHeaderData data;
+	data.err = this;
+	return JMethodHeader { JConstructorType, data };
+}
+CDefinable toCDefinition(/**/) {/*
+			final var type = new CIdentifier(this.input);*//*
+			return new CDefinition(type, "new_" + this.input);*//*
+		*/
+}
+JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	JMethodHeaderData data;
+	data.err = this;
+	return JMethodHeader { JPlaceholderType, data };
+}
+CDefinable toCDefinition(/**/) {/*
+			return new CPlaceholder(this.input);*//*
+		*/
+}
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>(/**/);
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>(/**/);
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>(/**/);
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>(/**/);
-/*public static*/ void main(char** args) {/*
+void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
-	*/}
-/*private static*/ Optional<IOException> run(/**/) {/*
+	*/
+}
+Optional<IOException> run(/**/) {/*
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*//*
 		return switch (readString(source)) {
 			case Ok(var input) -> {
@@ -144,30 +235,34 @@ private static final Stack<String> structureNames = new Stack<String> new_privat
 			}
 			case Err<String, IOException> v -> Optional.of(v.error);
 		}*//*;*//*
-	*/}
-/*private static*/ Optional<IOException> writeString(/*Path target,*/ char* output) {/*
+	*/
+}
+Optional<IOException> writeString(char* output) {/*
 		try {
 			Files.writeString(target, output);
 			return Optional.empty();
 		}*//* catch (IOException e) {
 			return Optional.of(e);
 		}*//*
-	*/}
-/*private static Result<String,*/ /*IOException>*/ readString(Path source) {/*
+	*/
+}
+/*IOException>*/ readString(Path source) {/*
 		try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*//* catch (IOException e) {
 			return new Err<String, IOException>(e);
 		}*//*
-	*/}
-/*private static*/ char* compile(char* input) {/*
+	*/
+}
+char* compile(char* input) {/*
 		final var compiled = compileStatements(input, Main::compileRootSegment);*//*
 		final var joinedGlobals = String.join("", globals);*//*
 		final var joinedStructures = String.join("", structures);*//*
 		final var joinedFunctions = String.join("", functions);*//*
 		return joinedGlobals + joinedStructures + joinedFunctions + compiled;*//*
-	*/}
-/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
+	*/
+}
+char* compileStatements(/*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*
 		var buffer = new StringBuilder();*//*
 		var depth = 0;*//*
@@ -186,7 +281,8 @@ private static final Stack<String> structureNames = new Stack<String> new_privat
 			} else if (c == '}*//*') {
 				depth--;
 			}*//*
-		*/}
+		*/
+}
 segments.add new_segments.add(/*buffer.toString(*/);
 return segments.stream new_return segments.stream(/**/);
 /*private static String compileRootSegment(String input) {
@@ -372,17 +468,30 @@ return segments.stream new_return segments.stream(/**/);
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				final var header = compileMethodHeader(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var header = parseDefinition(substring)
+						.<JMethodHeader>map(definition -> definition)
+						.or(() -> parseConstructor(substring))
+						.orElseGet(() -> new JPlaceholder(substring));
+
+				final var headerWithString =
+						header.toCDefinition().generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
-					final var outputContent = compileStatements(content, Main::compileMethodSegment);
+					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+					final String outputContent;
+					if (header instanceof JConstructor(var name)) {
+						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+					} else {
+						outputContent = compiledContent;
+					}
 
-					final var generated = header + " {" + outputContent + "}" + System.lineSeparator();
+					final var generated =
+							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				} else {
-					final var generated = header + ";" + System.lineSeparator();
+					final var generated = headerWithString + ";" + System.lineSeparator();
 					functions.add(generated);
 					return Optional.of("");
 				}
@@ -390,11 +499,14 @@ return segments.stream new_return segments.stream(/**/);
 		}
 
 		return Optional.empty();
-	}*//*private static String compileMethodHeader(String input) {
-		return compileDefinition(input).or(() -> {
-			final var stripped = input.strip();
-			return Optional.of(stripped + " new_" + stripped);
-		}).orElseGet(() -> CPlaceholder.wrap(input));
+	}*//*private static JMethodHeader compileMethodHeader(String input) {
+		return parseDefinition(input)
+				.<JMethodHeader>map(definition -> definition)
+				.or(() -> parseConstructor(input))
+				.orElseGet(() -> new JPlaceholder(input));
+	}*//*private static Optional<JMethodHeader> parseConstructor(String input) {
+		final var stripped = input.strip();
+		return Optional.of(new JConstructor(stripped));
 	}*//*private static Optional<String> compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
 			final var list =
@@ -435,23 +547,25 @@ return segments.stream new_return segments.stream(/**/);
 	}*//*private static String compileDefinitionOrPlaceholder(String input) {
 		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
 	}*//*private static Optional<String> compileDefinition(String input) {
+		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);
+	}*//*private static Optional<JDefinition> parseDefinition(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(" ");
 		if (i < 0) {return Optional.empty();}
-		final var substring = stripped.substring(0, i).strip();
+		final var beforeName = stripped.substring(0, i).strip();
 		final var name = stripped.substring(i + 1).strip();
 
 		if (!isIdentifier(name)) {
 			return Optional.empty();
 		}
 
-		final var i1 = substring.lastIndexOf(" ");
+		final var i1 = beforeName.lastIndexOf(" ");
 		if (i1 >= 0) {
-			final var substring1 = substring.substring(0, i1);
-			final var substring2 = substring.substring(i1 + 1);
-			return Optional.of(CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name);
+			final var beforeType = beforeName.substring(0, i1);
+			final var type = beforeName.substring(i1 + 1);
+			return Optional.of(new JDefinition(Optional.of(beforeType), compileType(type), name));
 		} else {
-			return Optional.of(compileTypeToString(substring) + " " + name);
+			return Optional.of(new JDefinition(Optional.empty(), compileType(beforeName), name));
 		}
 	}*//*private static String compileTypeToString(String input) {
 		return compileType(input).generate();
