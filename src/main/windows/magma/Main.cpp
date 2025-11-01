@@ -64,7 +64,7 @@ CType toCType_CPrimitiveType(void* _ref){
 	data.err = this;
 	return CType { CPrimitiveTypeType, data };
 }
-/*CPrimitiveType*/(char* content) {/*this.content = content;*//**/}
+CPrimitiveType new_CPrimitiveType(char* content) {/*this.content = content;*//**/}
 /*@Override
 		public*/ char* generate(/**/) {/*
 			return this.content;*//*
@@ -127,10 +127,10 @@ CType toCType_CPlaceholder(void* _ref){
 		public*/ char* generate(/**/) {/*
 			return wrap(this.input);*//*
 		*/}
-/*public static final List<String> functions = new ArrayList<String>*/(/**/);
-/*public static final List<String> structures = new ArrayList<String>*/(/**/);
-/*private static final List<String> globals = new ArrayList<String>*/(/**/);
-/*private static final Stack<String> structureNames = new Stack<String>*/(/**/);
+public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>(/**/);
+public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>(/**/);
+private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>(/**/);
+private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>(/**/);
 /*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -187,8 +187,8 @@ CType toCType_CPlaceholder(void* _ref){
 				depth--;
 			}*//*
 		*/}
-/*segments.add*/(/*buffer.toString(*/);
-/*return segments.stream*/(/**/);
+segments.add new_segments.add(/*buffer.toString(*/);
+return segments.stream new_return segments.stream(/**/);
 /*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -363,7 +363,6 @@ CType toCType_CPlaceholder(void* _ref){
 		}
 
 		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
-
 	}*//*private static Optional<String> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
@@ -373,8 +372,7 @@ CType toCType_CPlaceholder(void* _ref){
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				final var header =
-						compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var header = compileMethodHeader(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -392,6 +390,11 @@ CType toCType_CPlaceholder(void* _ref){
 		}
 
 		return Optional.empty();
+	}*//*private static String compileMethodHeader(String input) {
+		return compileDefinition(input).or(() -> {
+			final var stripped = input.strip();
+			return Optional.of(stripped + " new_" + stripped);
+		}).orElseGet(() -> CPlaceholder.wrap(input));
 	}*//*private static Optional<String> compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
 			final var list =

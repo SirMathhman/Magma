@@ -324,7 +324,6 @@ public class Main {
 		}
 
 		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
-
 	}
 
 	private static Optional<String> compileMethod(String stripped) {
@@ -336,8 +335,7 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring2 = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				final var header =
-						compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var header = compileMethodHeader(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -355,6 +353,15 @@ public class Main {
 		}
 
 		return Optional.empty();
+	}
+
+	private static String compileMethodHeader(String input) {
+		return compileDefinition(input).or(() -> compileConstructor(input)).orElseGet(() -> CPlaceholder.wrap(input));
+	}
+
+	private static Optional<String> compileConstructor(String input) {
+		final var stripped = input.strip();
+		return Optional.of(stripped + " new_" + stripped);
 	}
 
 	private static Optional<String> compileClassStatement(String input) {
