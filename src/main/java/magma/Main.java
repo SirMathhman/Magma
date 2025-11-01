@@ -57,7 +57,10 @@ public class Main {
 	private record CTemplateType(String base, List<CType> typeArguments) implements CType {
 		@Override
 		public String generate() {
-			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
+			final var typeArguments1 = this.typeArguments;
+			final var stream = typeArguments1.stream();
+			final var stringStream = stream.map(CType::generate);
+			final var joined = stringStream.collect(Collectors.joining(", "));
 			return this.base + "<" + joined + ">";
 		}
 	}
@@ -339,9 +342,8 @@ public class Main {
 	private static boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
-			if (!Character.isLetter(c)) {
-				return false;
-			}
+			if (Character.isLetter(c) || (i != 0 && Character.isDigit(c))) {continue;}
+			return false;
 		}
 
 		return true;

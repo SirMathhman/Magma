@@ -149,7 +149,10 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
+	var typeArguments1 = this.typeArguments;
+	var stream = typeArguments1.stream();
+	var stringStream = stream.map(CType::generate);
+	var joined = stringStream.collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
 CType toCType_CIdentifier(void* _ref){
@@ -434,9 +437,8 @@ return segments.stream new_return segments.stream();
 	}*//*private static boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
-			if (!Character.isLetter(c)) {
-				return false;
-			}
+			if (Character.isLetter(c) || (i != 0 && Character.isDigit(c))) {continue;}
+			return false;
 		}
 
 		return true;
