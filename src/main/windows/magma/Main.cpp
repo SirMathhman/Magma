@@ -1,3 +1,5 @@
+CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType("char");
+CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType("void");
 struct CPrimitiveType {
 	/*private final*/ char* content;/**/
 };
@@ -31,7 +33,7 @@ union CTypeData {
 }
 struct CType {
 	CTypeTag _tag;
-	CTypeData _data;/**/
+	CTypeData _data;/*String generate()*//**/
 };
 template <typename T, typename X>
 struct Err {
@@ -53,7 +55,7 @@ struct CIdentifier {
 struct CPlaceholder {
 	char* input;/**/
 };
-struct Main {/**/
+struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*//**/
 };
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
@@ -292,9 +294,11 @@ CType toCType_CPlaceholder(void* _ref){
 								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
+					structureNames.push(beforeContent);
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
+					structureNames.pop();
 
 					structures.add(generated);
 					return Optional.of("");
@@ -363,8 +367,37 @@ CType toCType_CPlaceholder(void* _ref){
 			final var list =
 					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 
+			final var name = structureNames.peek();
+			for (var segment : list) {
+				if (!compileEnumValue(segment, name)) {
+					return Optional.empty();
+				}
+			}
+
 			return Optional.of("");
 		}).orElseGet(() -> CPlaceholder.wrap(input));
+	}*//*private static boolean compileEnumValue(String segment, String enumName) {
+		final var stripped = segment.strip();
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+
+			final var i = substring.indexOf("(");
+			if (i >= 0) {
+				final var memberName = substring.substring(0, i);
+				final var substring2 = substring.substring(i + 1);
+
+				if (isIdentifier(memberName)) {
+					globals.add(
+							enumName + " " + enumName + "_" + memberName + " = new_" + enumName + "(" + compileExpression(substring2) +
+							");" + System.lineSeparator());
+					return true;
+				}
+			}
+		}
+
+		return false;
+	}*//*private static String compileExpression(String input) {
+		return input.strip();
 	}*//*private static String compileMethodSegment(String input) {
 		return CPlaceholder.wrap(input);
 	}*//*private static String compileDefinitionOrPlaceholder(String input) {
