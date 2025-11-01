@@ -339,6 +339,18 @@ CType toCType_CPlaceholder(void* _ref){
 			return maybeEnum.get();
 		}
 
+		final var maybeFunction = compileMethod(stripped);
+		if (maybeFunction.isPresent()) {
+			return maybeFunction.get();
+		}
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return compileClassStatement(substring);
+		}
+
+		return CPlaceholder.wrap(stripped);
+	}*//*private static Optional<String> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
@@ -355,17 +367,12 @@ CType toCType_CPlaceholder(void* _ref){
 							compileDefinitionOrPlaceholder(substring) + "(" + compileDefinitionOrPlaceholder(substring2) + ") {" +
 							outputContent + "}" + System.lineSeparator();
 					functions.add(generated);
-					return "";
+					return Optional.of("");
 				}
 			}
 		}
 
-		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			return compileClassStatement(substring);
-		}
-
-		return CPlaceholder.wrap(stripped);
+		return Optional.empty();
 	}*//*private static String compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
 			final var list =
