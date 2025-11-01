@@ -10,10 +10,14 @@ union ResultData {
 }
 template <typename T, typename X>
 struct Result {};
-/**/template <typename T, typename X>(X error) implements Result<T, typename X>
-struct Err {};
-/**/template <typename T, typename X>(T value) implements Result<T, typename X>
-struct Ok {};
+/**//*Result<T, X>*/ Err<T, X>(X error)to/*Result<T, X>*/(void* _ref){
+	Err<T, X>(X error) _this = *((Err<T, X>(X error)*) _ref);
+}
+struct Err<T, X>(X error) {};
+/**//*Result<T, X>*/ Ok<T, X>(T value)to/*Result<T, X>*/(void* _ref){
+	Ok<T, X>(T value) _this = *((Ok<T, X>(T value)*) _ref);
+}
+struct Ok<T, X>(T value) {};
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -97,6 +101,14 @@ struct Ok {};
 						beforeContent = beforeContent.substring(0, i2).strip();
 					}
 
+					Optional<String> maybeImplements = Optional.empty();
+					final var i4 = beforeContent.indexOf("implements ");
+					if (i4 >= 0) {
+						final var substring2 = beforeContent.substring(i4 + "implements ".length());
+						maybeImplements = Optional.of(compileType(substring2.strip()));
+
+						beforeContent = beforeContent.substring(0, i4).strip();
+					}
 
 					List<String> typeParameters = new ArrayList<String>();
 					if (beforeContent.endsWith(">")) {
@@ -118,8 +130,16 @@ struct Ok {};
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
 
-
 					String beforeStruct = "";
+					if (maybeImplements.isPresent()) {
+						final var superType = maybeImplements.get();
+						beforeStruct += superType + " " + beforeContent + "to" +
+														superType +
+														"(void* _ref){" +
+														generateStatement(beforeContent + " _this = *((" + beforeContent + "*) _ref)") +
+														System.lineSeparator() + "}" + System.lineSeparator();
+					}
+
 					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
@@ -139,7 +159,7 @@ struct Ok {};
 						final var generatedUnion =
 								templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "}" +
 								System.lineSeparator();
-						beforeStruct = generatedEnum + generatedUnion;
+						beforeStruct += generatedEnum + generatedUnion;
 					}
 
 					return Optional.of(
@@ -150,6 +170,8 @@ struct Ok {};
 		}
 
 		return Optional.empty();
+	}*//*private static String generateStatement(String content) {
+		return System.lineSeparator() + "\t" + content + ";";
 	}*//*private static boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
