@@ -371,15 +371,22 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
-				final var substring2 = substring1.substring(0, i1);
+				final var paramString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				final var header = parseDefinition(substring)
 						.<JMethodHeader>map(definition -> definition)
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var headerWithString =
-						transformHeader(header).generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var joinedParameters = Arrays
+						.stream(paramString.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileDefinition)
+						.flatMap(Optional::stream)
+						.collect(Collectors.joining(", "));
+
+				final var headerWithString = transformHeader(header).generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);

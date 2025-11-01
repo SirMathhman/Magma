@@ -112,12 +112,12 @@ CPrimitiveType new_CPrimitiveType(char* content) {
 	this.content = content;
 	return this;
 }
-char* generate_CPrimitiveType(/**/) {
+char* generate_CPrimitiveType() {
 	/*return this.content*/;
 }
-char* generate_CType(/**/);
-char* generate_CDefinable(/**/);
-CDefinable toCDefinition_JMethodHeader(/**/);
+char* generate_CType();
+char* generate_CDefinable();
+CDefinable toCDefinition_JMethodHeader();
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -136,7 +136,7 @@ CType toCType_CPointerType(void* _ref){
 	data.err = this;
 	return CType { CPointerTypeType, data };
 }
-char* generate_CPointerType(/**/) {
+char* generate_CPointerType() {
 	/*return this.child.generate() + "*"*/;
 }
 CType toCType_CTemplateType(void* _ref){
@@ -145,7 +145,7 @@ CType toCType_CTemplateType(void* _ref){
 	data.err = this;
 	return CType { CTemplateTypeType, data };
 }
-char* generate_CTemplateType(/**/) {
+char* generate_CTemplateType() {
 	final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
 	/*return this.base + "<" + joined + ">"*/;
 }
@@ -155,7 +155,7 @@ CType toCType_CIdentifier(void* _ref){
 	data.err = this;
 	return CType { CIdentifierType, data };
 }
-char* generate_CIdentifier(/**/) {
+char* generate_CIdentifier() {
 	/*return this.input*/;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
@@ -168,7 +168,7 @@ char* wrap_CPlaceholder(char* input) {
 	final var replaced = input.replace("/*", "start").replace("*/", "end");
 	/*return "start" + replaced + "end"*/;
 }
-char* generate_CPlaceholder(/**/) {
+char* generate_CPlaceholder() {
 	/*return wrap(this.input)*/;
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
@@ -177,7 +177,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 	data.err = this;
 	return CDefinable { CDefinitionType, data };
 }
-char* generate_CDefinition(/**/) {
+char* generate_CDefinition() {
 	/*return this.type.generate() + " " + this.name*/;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
@@ -186,7 +186,7 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	data.err = this;
 	return JMethodHeader { JDefinitionType, data };
 }
-CDefinable toCDefinition_JDefinition(/**/) {
+CDefinable toCDefinition_JDefinition() {
 	/*return new CDefinition(this.type, this.name)*/;
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
@@ -195,7 +195,7 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	data.err = this;
 	return JMethodHeader { JConstructorType, data };
 }
-CDefinable toCDefinition_JConstructor(/**/) {
+CDefinable toCDefinition_JConstructor() {
 	final var type = new CIdentifier(this.input);
 	/*return new CDefinition(type, "new_" + this.input)*/;
 }
@@ -205,17 +205,17 @@ JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	data.err = this;
 	return JMethodHeader { JPlaceholderType, data };
 }
-CDefinable toCDefinition_JPlaceholder(/**/) {
+CDefinable toCDefinition_JPlaceholder() {
 	/*return new CPlaceholder(this.input)*/;
 }
-public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>(/**/);
-public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>(/**/);
-private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>(/**/);
-private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>(/**/);
+public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
+public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
+private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
+private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
 void main_Main(char** args) {
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
-Optional<IOException> run_Main(/**/) {
+Optional<IOException> run_Main() {
 	final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
@@ -226,7 +226,7 @@ Optional<IOException> run_Main(/**/) {
 		}*/
 	/**/;
 }
-Optional<IOException> writeString_Main(char* output) {/*try {
+Optional<IOException> writeString_Main(Path target, char* output) {/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
 		}*//*catch (IOException e) {
@@ -246,7 +246,7 @@ char* compile_Main(char* input) {
 	final var joinedFunctions = String.join("", functions);
 	/*return joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
-char* compileStatements_Main(/*String>*/ mapper) {
+char* compileStatements_Main(char* input, /*String>*/ mapper) {
 	final var segments = new ArrayList<String>();
 	var buffer = new StringBuilder();
 	var depth = 0;
@@ -267,8 +267,8 @@ char* compileStatements_Main(/*String>*/ mapper) {
 				depth--;
 			}*/
 }
-segments.add new_segments.add(/*buffer.toString(*/);
-return segments.stream new_return segments.stream(/**/);
+segments.add new_segments.add();
+return segments.stream new_return segments.stream();
 /*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -450,15 +450,22 @@ return segments.stream new_return segments.stream(/**/);
 			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
-				final var substring2 = substring1.substring(0, i1);
+				final var paramString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				final var header = parseDefinition(substring)
 						.<JMethodHeader>map(definition -> definition)
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var headerWithString =
-						transformHeader(header).generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+				final var joinedParameters = Arrays
+						.stream(paramString.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.map(Main::compileDefinition)
+						.flatMap(Optional::stream)
+						.collect(Collectors.joining(", "));
+
+				final var headerWithString = transformHeader(header).generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
