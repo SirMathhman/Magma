@@ -112,12 +112,12 @@ CPrimitiveType new_CPrimitiveType(char* content) {
 	this.content = content;
 	return this;
 }
-char* generate(/**/) {
+char* generate_CPrimitiveType(/**/) {
 	/*return this.content*/;
 }
-char* generate(/**/);
-char* generate(/**/);
-CDefinable toCDefinition(/**/);
+char* generate_CType(/**/);
+char* generate_CDefinable(/**/);
+CDefinable toCDefinition_JMethodHeader(/**/);
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -136,7 +136,7 @@ CType toCType_CPointerType(void* _ref){
 	data.err = this;
 	return CType { CPointerTypeType, data };
 }
-char* generate(/**/) {
+char* generate_CPointerType(/**/) {
 	/*return this.child.generate() + "*"*/;
 }
 CType toCType_CTemplateType(void* _ref){
@@ -145,7 +145,7 @@ CType toCType_CTemplateType(void* _ref){
 	data.err = this;
 	return CType { CTemplateTypeType, data };
 }
-char* generate(/**/) {
+char* generate_CTemplateType(/**/) {
 	final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
 	/*return this.base + "<" + joined + ">"*/;
 }
@@ -155,7 +155,7 @@ CType toCType_CIdentifier(void* _ref){
 	data.err = this;
 	return CType { CIdentifierType, data };
 }
-char* generate(/**/) {
+char* generate_CIdentifier(/**/) {
 	/*return this.input*/;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
@@ -164,11 +164,11 @@ char* generate(/**/) {
 	data.err = this;
 	return /*CType, CDefinable*/ { CPlaceholderType, data };
 }
-char* wrap(char* input) {
+char* wrap_CPlaceholder(char* input) {
 	final var replaced = input.replace("/*", "start").replace("*/", "end");
 	/*return "start" + replaced + "end"*/;
 }
-char* generate(/**/) {
+char* generate_CPlaceholder(/**/) {
 	/*return wrap(this.input)*/;
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
@@ -177,7 +177,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 	data.err = this;
 	return CDefinable { CDefinitionType, data };
 }
-char* generate(/**/) {
+char* generate_CDefinition(/**/) {
 	/*return this.type.generate() + " " + this.name*/;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
@@ -186,7 +186,7 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	data.err = this;
 	return JMethodHeader { JDefinitionType, data };
 }
-CDefinable toCDefinition(/**/) {
+CDefinable toCDefinition_JDefinition(/**/) {
 	/*return new CDefinition(this.type, this.name)*/;
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
@@ -195,7 +195,7 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	data.err = this;
 	return JMethodHeader { JConstructorType, data };
 }
-CDefinable toCDefinition(/**/) {
+CDefinable toCDefinition_JConstructor(/**/) {
 	final var type = new CIdentifier(this.input);
 	/*return new CDefinition(type, "new_" + this.input)*/;
 }
@@ -205,17 +205,17 @@ JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	data.err = this;
 	return JMethodHeader { JPlaceholderType, data };
 }
-CDefinable toCDefinition(/**/) {
+CDefinable toCDefinition_JPlaceholder(/**/) {
 	/*return new CPlaceholder(this.input)*/;
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>(/**/);
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>(/**/);
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>(/**/);
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>(/**/);
-void main(char** args) {
+void main_Main(char** args) {
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
-Optional<IOException> run(/**/) {
+Optional<IOException> run_Main(/**/) {
 	final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
@@ -226,27 +226,27 @@ Optional<IOException> run(/**/) {
 		}*/
 	/**/;
 }
-Optional<IOException> writeString(char* output) {/*try {
+Optional<IOException> writeString_Main(char* output) {/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
 		}*//*catch (IOException e) {
 			return Optional.of(e);
 		}*/
 }
-/*IOException>*/ readString(Path source) {/*try {
+/*IOException>*/ readString_Main(Path source) {/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*//*catch (IOException e) {
 			return new Err<String, IOException>(e);
 		}*/
 }
-char* compile(char* input) {
+char* compile_Main(char* input) {
 	final var compiled = compileStatements(input, Main::compileRootSegment);
 	final var joinedGlobals = String.join("", globals);
 	final var joinedStructures = String.join("", structures);
 	final var joinedFunctions = String.join("", functions);
 	/*return joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
-char* compileStatements(/*String>*/ mapper) {
+char* compileStatements_Main(/*String>*/ mapper) {
 	final var segments = new ArrayList<String>();
 	var buffer = new StringBuilder();
 	var depth = 0;
@@ -458,7 +458,7 @@ return segments.stream new_return segments.stream(/**/);
 						.orElseGet(() -> new JPlaceholder(substring));
 
 				final var headerWithString =
-						header.toCDefinition().generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+						transformHeader(header).generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -483,6 +483,12 @@ return segments.stream new_return segments.stream(/**/);
 		}
 
 		return Optional.empty();
+	}*//*private static CDefinable transformHeader(JMethodHeader header) {
+		return switch (header) {
+			case JDefinition jDefinition -> new CDefinition(jDefinition.type,
+																											jDefinition.name + "_" + structureNames.peek());
+			default -> header.toCDefinition();
+		};
 	}*//*private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
 		return Optional.of(new JConstructor(stripped));

@@ -379,7 +379,7 @@ public class Main {
 						.orElseGet(() -> new JPlaceholder(substring));
 
 				final var headerWithString =
-						header.toCDefinition().generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
+						transformHeader(header).generate() + "(" + compileDefinitionOrPlaceholder(substring2) + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -406,6 +406,13 @@ public class Main {
 		return Optional.empty();
 	}
 
+	private static CDefinable transformHeader(JMethodHeader header) {
+		return switch (header) {
+			case JDefinition jDefinition -> new CDefinition(jDefinition.type,
+																											jDefinition.name + "_" + structureNames.peek());
+			default -> header.toCDefinition();
+		};
+	}
 
 	private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
