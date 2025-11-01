@@ -126,8 +126,12 @@ public class Main {
 			return "void";
 		}
 
-		if(stripped.endsWith("[]")) {
+		if (stripped.endsWith("[]")) {
 			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
+		}
+
+		if (stripped.equals("String")) {
+			return "char*";
 		}
 
 		return wrap(stripped);

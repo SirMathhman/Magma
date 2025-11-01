@@ -1,5 +1,5 @@
 struct Main {};
-/*public static*/ void main(/*String*/* args)/* {
+/*public static*/ void main(char** args)/* {
 		try {
 			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
 			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
@@ -8,10 +8,10 @@ struct Main {};
 			e.printStackTrace();
 		}
 	}*/
-/*private static*/ /*String*/ compile(/*String*/ input)/* {
+/*private static*/ char* compile(char* input)/* {
 		return compileStatements(input, Main::compileRootSegment);
 	}*/
-/*private static*/ /*String*/ compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
+/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper)/* {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuffer();
 		var depth = 0;
@@ -104,8 +104,12 @@ struct Main {};
 			return "void";
 		}
 
-		if(stripped.endsWith("[]")) {
+		if (stripped.endsWith("[]")) {
 			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
+		}
+
+		if (stripped.equals("String")) {
+			return "char*";
 		}
 
 		return wrap(stripped);
