@@ -113,6 +113,7 @@ CPrimitiveType new_CPrimitiveType(char* content) {
 	return this;
 }
 char* generate_CPrimitiveType(void* _ref) {
+	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	/*return this.content*/;
 }
 char* generate_CType(void* _ref);
@@ -137,6 +138,7 @@ CType toCType_CPointerType(void* _ref){
 	return CType { CPointerTypeType, data };
 }
 char* generate_CPointerType(void* _ref) {
+	CPointerType _this = *((CPointerType*) _ref);
 	/*return this.child.generate() + "*"*/;
 }
 CType toCType_CTemplateType(void* _ref){
@@ -146,6 +148,7 @@ CType toCType_CTemplateType(void* _ref){
 	return CType { CTemplateTypeType, data };
 }
 char* generate_CTemplateType(void* _ref) {
+	CTemplateType _this = *((CTemplateType*) _ref);
 	final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
 	/*return this.base + "<" + joined + ">"*/;
 }
@@ -156,6 +159,7 @@ CType toCType_CIdentifier(void* _ref){
 	return CType { CIdentifierType, data };
 }
 char* generate_CIdentifier(void* _ref) {
+	CIdentifier _this = *((CIdentifier*) _ref);
 	/*return this.input*/;
 }
 /*CType, CDefinable*/ to/*CType, CDefinable*/_CPlaceholder(void* _ref){
@@ -165,10 +169,12 @@ char* generate_CIdentifier(void* _ref) {
 	return /*CType, CDefinable*/ { CPlaceholderType, data };
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
+	CPlaceholder _this = *((CPlaceholder*) _ref);
 	final var replaced = input.replace("/*", "start").replace("*/", "end");
 	/*return "start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
+	CPlaceholder _this = *((CPlaceholder*) _ref);
 	/*return wrap(this.input)*/;
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
@@ -178,6 +184,7 @@ CDefinable toCDefinable_CDefinition(void* _ref){
 	return CDefinable { CDefinitionType, data };
 }
 char* generate_CDefinition(void* _ref) {
+	CDefinition _this = *((CDefinition*) _ref);
 	/*return this.type.generate() + " " + this.name*/;
 }
 JMethodHeader toJMethodHeader_JDefinition(void* _ref){
@@ -187,6 +194,7 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 	return JMethodHeader { JDefinitionType, data };
 }
 CDefinable toCDefinition_JDefinition(void* _ref) {
+	JDefinition _this = *((JDefinition*) _ref);
 	/*return new CDefinition(this.type, this.name)*/;
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
@@ -196,6 +204,7 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	return JMethodHeader { JConstructorType, data };
 }
 CDefinable toCDefinition_JConstructor(void* _ref) {
+	JConstructor _this = *((JConstructor*) _ref);
 	final var type = new CIdentifier(this.input);
 	/*return new CDefinition(type, "new_" + this.input)*/;
 }
@@ -206,6 +215,7 @@ JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
 	return JMethodHeader { JPlaceholderType, data };
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
 	/*return new CPlaceholder(this.input)*/;
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
@@ -213,9 +223,11 @@ public static final List<String> structures = new ArrayList<String> new_public s
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
 private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
 void main_Main(void* _ref, char** args) {
+	Main _this = *((Main*) _ref);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
 Optional<IOException> run_Main(void* _ref) {
+	Main _this = *((Main*) _ref);
 	final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
@@ -226,20 +238,23 @@ Optional<IOException> run_Main(void* _ref) {
 		}*/
 	/**/;
 }
-Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {/*try {
+Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
+	Main _this = *((Main*) _ref);/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
 		}*//*catch (IOException e) {
 			return Optional.of(e);
 		}*/
 }
-/*IOException>*/ readString_Main(void* _ref, Path source) {/*try {
+/*IOException>*/ readString_Main(void* _ref, Path source) {
+	Main _this = *((Main*) _ref);/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*//*catch (IOException e) {
 			return new Err<String, IOException>(e);
 		}*/
 }
 char* compile_Main(void* _ref, char* input) {
+	Main _this = *((Main*) _ref);
 	final var compiled = compileStatements(input, Main::compileRootSegment);
 	final var joinedGlobals = String.join("", globals);
 	final var joinedStructures = String.join("", structures);
@@ -247,6 +262,7 @@ char* compile_Main(void* _ref, char* input) {
 	/*return joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
+	Main _this = *((Main*) _ref);
 	final var segments = new ArrayList<String>();
 	var buffer = new StringBuilder();
 	var depth = 0;
@@ -356,11 +372,13 @@ return segments.stream new_return segments.stream();
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
 						final var thisType = beforeContent + typeArguments;
-						functions.add(superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-													generateStatement(superType + "Data data") + generateStatement("data.err = this") +
-													generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
-													System.lineSeparator() + "}" + System.lineSeparator());
+						functions.add(generateFunction(thisType,
+																					 superType,
+																					 "to" + superType + "_" + beforeContent,
+																					 "void* _ref",
+																					 generateStatement(superType + "Data data") +
+																					 generateStatement("data.err = this") + generateStatement(
+																							 "return " + superType + " { " + beforeContent + "Type, data }")));
 					}
 
 					if (!variants.isEmpty()) {
@@ -402,6 +420,15 @@ return segments.stream new_return segments.stream();
 		}
 
 		return Optional.empty();
+	}*//*private static String generateFunction(String thisType,
+																				 String returnType,
+																				 String name,
+																				 String params,
+																				 String content) {
+		return returnType + " " + name + "(" + params + "){" + generateDereferenceThis(thisType) + content +
+					 System.lineSeparator() + "}" + System.lineSeparator();
+	}*//*private static String generateDereferenceThis(String thisType) {
+		return generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 	}*//*private static String generateStatement(String content) {
 		return System.lineSeparator() + "\t" + content + ";";
 	}*//*private static boolean isIdentifier(String input) {
@@ -483,9 +510,12 @@ return segments.stream new_return segments.stream();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
 						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+					} else if (header instanceof JDefinition) {
+						outputContent = generateDereferenceThis(structureNames.peek()) + compiledContent;
 					} else {
 						outputContent = compiledContent;
 					}

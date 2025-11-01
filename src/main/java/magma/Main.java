@@ -269,11 +269,13 @@ public class Main {
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
 						final var thisType = beforeContent + typeArguments;
-						functions.add(superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
-													generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-													generateStatement(superType + "Data data") + generateStatement("data.err = this") +
-													generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
-													System.lineSeparator() + "}" + System.lineSeparator());
+						functions.add(generateFunction(thisType,
+																					 superType,
+																					 "to" + superType + "_" + beforeContent,
+																					 "void* _ref",
+																					 generateStatement(superType + "Data data") +
+																					 generateStatement("data.err = this") + generateStatement(
+																							 "return " + superType + " { " + beforeContent + "Type, data }")));
 					}
 
 					if (!variants.isEmpty()) {
@@ -315,6 +317,19 @@ public class Main {
 		}
 
 		return Optional.empty();
+	}
+
+	private static String generateFunction(String thisType,
+																				 String returnType,
+																				 String name,
+																				 String params,
+																				 String content) {
+		return returnType + " " + name + "(" + params + "){" + generateDereferenceThis(thisType) + content +
+					 System.lineSeparator() + "}" + System.lineSeparator();
+	}
+
+	private static String generateDereferenceThis(String thisType) {
+		return generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 	}
 
 	private static String generateStatement(String content) {
@@ -404,9 +419,12 @@ public class Main {
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
+
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
 						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+					} else if (header instanceof JDefinition) {
+						outputContent = generateDereferenceThis(structureNames.peek()) + compiledContent;
 					} else {
 						outputContent = compiledContent;
 					}
