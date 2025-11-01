@@ -11,6 +11,8 @@ union ResultData {
 }
 template <typename T, typename X>
 struct Result {
+	ResultTag _tag;
+	ResultData<T, X> _data;
 };
 /**//*Result<T, X>*/ to/*Result<T, X>*/_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -120,13 +122,13 @@ struct Ok {
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					Optional<String> recordFields = Optional.empty();
+					String structureFields = "";
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							recordFields = Optional.of(compileDefinition(substring4));
+							structureFields = generateStatement(compileDefinition(substring4));
 
 							beforeContent = substring2.substring(0, i3);
 						}
@@ -159,8 +161,8 @@ struct Ok {
 						final var thisType = beforeContent + typeArguments;
 						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
 														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement("return " + superType + " {}") +
-														System.lineSeparator() + "}" + System.lineSeparator();
+														generateStatement("return " + superType + " {" + "}") + System.lineSeparator() + "}" +
+														System.lineSeparator();
 					}
 
 					if (!variants.isEmpty()) {
@@ -169,23 +171,28 @@ struct Ok {
 								.map(segment -> System.lineSeparator() + "\t" + segment + "Type")
 								.collect(Collectors.joining(","));
 
+						final var tagType = beforeContent + "Tag";
 						final var generatedEnum =
-								"enum " + beforeContent + "Tag {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+								"enum " + tagType + " {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 
 						final var unionFields = variants
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
 								.collect(Collectors.joining());
 
+						final var unionType = beforeContent + "Data";
 						final var generatedUnion =
-								templateString + "union " + beforeContent + "Data {" + unionFields + System.lineSeparator() + "}" +
+								templateString + "union " + unionType + " {" + unionFields + System.lineSeparator() + "}" +
 								System.lineSeparator();
+
 						beforeStruct += generatedEnum + generatedUnion;
+						structureFields +=
+								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
-					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" +
-														 recordFields.map(Main::generateStatement).orElse("") + System.lineSeparator() + "};" +
-														 System.lineSeparator() + compileStatements(content, Main::compileClassSegment));
+					return Optional.of(beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
+														 System.lineSeparator() + "};" + System.lineSeparator() +
+														 compileStatements(content, Main::compileClassSegment));
 				}
 			}
 		}
