@@ -1,5 +1,11 @@
+JPrimitiveType JPrimitiveType_Char = new_JPrimitiveType(/*Undefined identifier: CPrimitiveType*/.Char);
+JPrimitiveType JPrimitiveType_Void = new_JPrimitiveType(/*Undefined identifier: CPrimitiveType*/.Void);
+JPrimitiveType JPrimitiveType_String = new_JPrimitiveType(/*new CPointerType(CPrimitiveType*/.Char));
 CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType(/*"char"*/);
 CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType(/*"void"*/);
+struct JPrimitiveType {
+	CType cType;
+};
 struct CPrimitiveType {
 	char* content;
 };
@@ -63,6 +69,8 @@ struct JMethodHeader {
 };
 struct CFunctionHeader {
 };
+struct JType {
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -90,7 +98,7 @@ struct CDefinition {
 };
 struct JDefinition {
 	Optional<char*> beforeType;
-	CType type;
+	JType type;
 	char* name;
 };
 struct JConstructor {
@@ -99,8 +107,33 @@ struct JConstructor {
 struct JPlaceholder {
 	char* input;
 };
+struct JArrayType {
+	JType type;
+};
+struct JGenericType {
+	char* base;
+	List<JType> typeArguments;
+};
+struct JIdentifier {
+	char* input;
+};
 struct Main {
 };
+JType toJType_JPrimitiveType(void* _ref){
+	JPrimitiveType _this = *((JPrimitiveType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JPrimitiveTypeType, data };
+}
+JPrimitiveType new_JPrimitiveType(CType cType) {
+	JPrimitiveType this;
+	this.cType = cType;
+	return this;
+}
+CType toCType_JPrimitiveType(void* _ref) {
+	JPrimitiveType _this = *((JPrimitiveType*) _ref);
+	return this.cType;
+}
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
 	CTypeData data;
@@ -119,6 +152,7 @@ char* generate_CPrimitiveType(void* _ref) {
 char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
 CDefinable toCDefinition_JMethodHeader(void* _ref);
+CType toCType_JType(void* _ref);
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -149,7 +183,8 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	var typeArguments1 = this.typeArguments;
+	var cTemplateType = this;
+	var typeArguments1 = /*Undefined identifier: cTemplateType*/.typeArguments;
 	var stream = /*Undefined identifier: typeArguments1*/.stream();
 	var stringStream = /*Undefined identifier: stream*/.map(CType::generate);
 	var joined = /*Undefined identifier: stringStream*/.collect(Collectors.joining(", "));
@@ -198,7 +233,7 @@ JMethodHeader toJMethodHeader_JDefinition(void* _ref){
 }
 CDefinable toCDefinition_JDefinition(void* _ref) {
 	JDefinition _this = *((JDefinition*) _ref);
-	return /*new CDefinition(this*/.type, this.name);
+	return /*new CDefinition(this*/.type.toCType(), this.name);
 }
 JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 	JConstructor _this = *((JConstructor*) _ref);
@@ -211,15 +246,49 @@ CDefinable toCDefinition_JConstructor(void* _ref) {
 	var type = /*new CIdentifier(this*/.input);
 	return /*new CDefinition(type, "new_" + this*/.input);
 }
-JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
+/*JMethodHeader, JType*/ to/*JMethodHeader, JType*/_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	JMethodHeaderData data;
+	/*JMethodHeader, JType*/Data data;
 	data.err = this;
-	return JMethodHeader { JPlaceholderType, data };
+	return /*JMethodHeader, JType*/ { JPlaceholderType, data };
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder(this*/.input);
+}
+CType toCType_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	return /*new CPlaceholder(this*/.input);
+}
+JType toJType_JArrayType(void* _ref){
+	JArrayType _this = *((JArrayType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JArrayTypeType, data };
+}
+CType toCType_JArrayType(void* _ref) {
+	JArrayType _this = *((JArrayType*) _ref);
+	return /*new CPointerType(this*/.type.toCType());
+}
+JType toJType_JGenericType(void* _ref){
+	JGenericType _this = *((JGenericType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JGenericTypeType, data };
+}
+CType toCType_JGenericType(void* _ref) {
+	JGenericType _this = *((JGenericType*) _ref);
+	return /*new CTemplateType(this*/.base, this.typeArguments.stream().map(JType::toCType).toList());
+}
+JType toJType_JIdentifier(void* _ref){
+	JIdentifier _this = *((JIdentifier*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JIdentifierType, data };
+}
+CType toCType_JIdentifier(void* _ref) {
+	JIdentifier _this = *((JIdentifier*) _ref);
+	return /*new CIdentifier(this*/.input);
 }
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
@@ -502,7 +571,8 @@ return segments.stream new_return segments.stream();
 				switch (header) {
 					case JDefinition jDefinition:
 						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
-						outputDefinition = new CDefinition(jDefinition.type, jDefinition.name + "_" + structureNames.peek());
+						outputDefinition =
+								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + structureNames.peek());
 						break;
 					default:
 						outputDefinition = header.toCDefinition();
@@ -629,12 +699,16 @@ return segments.stream new_return segments.stream();
 		if (i >= 0) {
 			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			final var s = compileDefinition(destination).orElseGet(() -> compileExpression(destination));
+			final var source = compileExpression(substring1);
 
-			return s + " = " + compileExpression(substring1);
+			return parseDefinition(destination).map(s -> {
+				return getCDefinition(s).generate() + " = " + source;
+			}).orElseGet(() -> compileExpression(destination) + " = " + source);
 		}
 
 		return CPlaceholder.wrap(input);
+	}*//*private static CDefinable getCDefinition(JDefinition definition) {
+		return definition.toCDefinition();
 	}*//*private static String compileDefinitionOrPlaceholder(String input) {
 		return compileDefinition(input).orElseGet(() -> CPlaceholder.wrap(input));
 	}*//*private static Optional<String> compileDefinition(String input) {
@@ -654,25 +728,25 @@ return segments.stream new_return segments.stream();
 		if (i1 >= 0) {
 			final var beforeType = beforeName.substring(0, i1);
 			final var type = beforeName.substring(i1 + 1);
-			return Optional.of(new JDefinition(Optional.of(beforeType), compileType(type), name));
+			return Optional.of(new JDefinition(Optional.of(beforeType), parseType(type), name));
 		} else {
-			return Optional.of(new JDefinition(Optional.empty(), compileType(beforeName), name));
+			return Optional.of(new JDefinition(Optional.empty(), parseType(beforeName), name));
 		}
 	}*//*private static String compileTypeToString(String input) {
-		return compileType(input).generate();
-	}*//*private static CType compileType(String input) {
+		return parseType(input).toCType().generate();
+	}*//*private static JType parseType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return CPrimitiveType.Void;
+			return JPrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
-			final var cType = compileType(stripped.substring(0, stripped.length() - 2));
-			return new CPointerType(cType);
+			final var cType = parseType(stripped.substring(0, stripped.length() - 2));
+			return new JArrayType(cType);
 		}
 
 		if (stripped.equals("String")) {
-			return new CPointerType(CPrimitiveType.Char);
+			return JPrimitiveType.String;
 		}
 
 		if (stripped.endsWith(">")) {
@@ -686,16 +760,16 @@ return segments.stream new_return segments.stream();
 						.stream(typeArgumentsArray)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(Main::compileType)
+						.map(Main::parseType)
 						.toList();
 
-				return new CTemplateType(base, typeArguments);
+				return new JGenericType(base, typeArguments);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return new CIdentifier(stripped);
+			return new JIdentifier(stripped);
 		}
 
-		return new CPlaceholder(stripped);
+		return new JPlaceholder(stripped);
 	}*//*}*/

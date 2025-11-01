@@ -14,6 +14,19 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
+	private enum JPrimitiveType implements JType {
+		Char(CPrimitiveType.Char), Void(CPrimitiveType.Void), String(new CPointerType(CPrimitiveType.Char));
+
+		private final CType cType;
+
+		JPrimitiveType(CType cType) {this.cType = cType;}
+
+		@Override
+		public CType toCType() {
+			return this.cType;
+		}
+	}
+
 	private enum CPrimitiveType implements CType {
 		Char("char"), Void("void");
 
@@ -43,6 +56,10 @@ public class Main {
 
 	private interface CFunctionHeader {}
 
+	private interface JType {
+		CType toCType();
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
@@ -57,7 +74,8 @@ public class Main {
 	private record CTemplateType(String base, List<CType> typeArguments) implements CType {
 		@Override
 		public String generate() {
-			final var typeArguments1 = this.typeArguments;
+			final var cTemplateType = this;
+			final var typeArguments1 = cTemplateType.typeArguments;
 			final var stream = typeArguments1.stream();
 			final var stringStream = stream.map(CType::generate);
 			final var joined = stringStream.collect(Collectors.joining(", "));
@@ -90,10 +108,10 @@ public class Main {
 		}
 	}
 
-	private record JDefinition(Optional<String> beforeType, CType type, String name) implements JMethodHeader {
+	private record JDefinition(Optional<String> beforeType, JType type, String name) implements JMethodHeader {
 		@Override
 		public CDefinable toCDefinition() {
-			return new CDefinition(this.type, this.name);
+			return new CDefinition(this.type.toCType(), this.name);
 		}
 	}
 
@@ -105,10 +123,36 @@ public class Main {
 		}
 	}
 
-	private record JPlaceholder(String input) implements JMethodHeader {
+	private record JPlaceholder(String input) implements JMethodHeader, JType {
 		@Override
 		public CDefinable toCDefinition() {
 			return new CPlaceholder(this.input);
+		}
+
+		@Override
+		public CType toCType() {
+			return new CPlaceholder(this.input);
+		}
+	}
+
+	private record JArrayType(JType type) implements JType {
+		@Override
+		public CType toCType() {
+			return new CPointerType(this.type.toCType());
+		}
+	}
+
+	private record JGenericType(String base, List<JType> typeArguments) implements JType {
+		@Override
+		public CType toCType() {
+			return new CTemplateType(this.base, this.typeArguments.stream().map(JType::toCType).toList());
+		}
+	}
+
+	private record JIdentifier(String input) implements JType {
+		@Override
+		public CType toCType() {
+			return new CIdentifier(this.input);
 		}
 	}
 
@@ -411,7 +455,8 @@ public class Main {
 				switch (header) {
 					case JDefinition jDefinition:
 						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
-						outputDefinition = new CDefinition(jDefinition.type, jDefinition.name + "_" + structureNames.peek());
+						outputDefinition =
+								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + structureNames.peek());
 						break;
 					default:
 						outputDefinition = header.toCDefinition();
@@ -552,12 +597,18 @@ public class Main {
 		if (i >= 0) {
 			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			final var s = compileDefinition(destination).orElseGet(() -> compileExpression(destination));
+			final var source = compileExpression(substring1);
 
-			return s + " = " + compileExpression(substring1);
+			return parseDefinition(destination).map(s -> {
+				return getCDefinition(s).generate() + " = " + source;
+			}).orElseGet(() -> compileExpression(destination) + " = " + source);
 		}
 
 		return CPlaceholder.wrap(input);
+	}
+
+	private static CDefinable getCDefinition(JDefinition definition) {
+		return definition.toCDefinition();
 	}
 
 	private static String compileDefinitionOrPlaceholder(String input) {
@@ -583,29 +634,29 @@ public class Main {
 		if (i1 >= 0) {
 			final var beforeType = beforeName.substring(0, i1);
 			final var type = beforeName.substring(i1 + 1);
-			return Optional.of(new JDefinition(Optional.of(beforeType), compileType(type), name));
+			return Optional.of(new JDefinition(Optional.of(beforeType), parseType(type), name));
 		} else {
-			return Optional.of(new JDefinition(Optional.empty(), compileType(beforeName), name));
+			return Optional.of(new JDefinition(Optional.empty(), parseType(beforeName), name));
 		}
 	}
 
 	private static String compileTypeToString(String input) {
-		return compileType(input).generate();
+		return parseType(input).toCType().generate();
 	}
 
-	private static CType compileType(String input) {
+	private static JType parseType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return CPrimitiveType.Void;
+			return JPrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
-			final var cType = compileType(stripped.substring(0, stripped.length() - 2));
-			return new CPointerType(cType);
+			final var cType = parseType(stripped.substring(0, stripped.length() - 2));
+			return new JArrayType(cType);
 		}
 
 		if (stripped.equals("String")) {
-			return new CPointerType(CPrimitiveType.Char);
+			return JPrimitiveType.String;
 		}
 
 		if (stripped.endsWith(">")) {
@@ -619,17 +670,17 @@ public class Main {
 						.stream(typeArgumentsArray)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
-						.map(Main::compileType)
+						.map(Main::parseType)
 						.toList();
 
-				return new CTemplateType(base, typeArguments);
+				return new JGenericType(base, typeArguments);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return new CIdentifier(stripped);
+			return new JIdentifier(stripped);
 		}
 
-		return new CPlaceholder(stripped);
+		return new JPlaceholder(stripped);
 	}
 }
