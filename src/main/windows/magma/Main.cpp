@@ -1,6 +1,17 @@
 struct Main {
 };
-enum ResultTag {
+/*private enum CPrimitiveType implements CType {
+		Char("char"), Void("void");
+
+		private final String content;
+
+		CPrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+	}*/enum ResultTag {
 	ErrType,
 	OkType
 };
@@ -14,7 +25,25 @@ struct Result {
 	ResultTag _tag;
 	ResultData<T, X> _data;
 };
-/**/Result<T, X> toResult<T, X>_Err(void* _ref){
+/**/enum CTypeTag {
+	CIdentifierType,
+	CPlaceholderType,
+	CPointerTypeType,
+	CPrimitiveTypeType,
+	CTemplateTypeType
+};
+union CTypeData {
+	CIdentifier cidentifier;
+	CPlaceholder cplaceholder;
+	CPointerType cpointertype;
+	CPrimitiveType cprimitivetype;
+	CTemplateType ctemplatetype;
+}
+struct CType {
+	CTypeTag _tag;
+	CTypeData _data;
+};
+/*String generate();*//**/Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
 	data.err = this;
@@ -34,6 +63,63 @@ template <typename T, typename X>
 struct Ok {
 	T value;
 };
+/**/CType toCType_CPointerType(void* _ref){
+	CPointerType _this = *((CPointerType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CPointerTypeType, data };
+}
+struct CPointerType {
+	CType child;
+};
+/*@Override
+		public*/ char* generate(/**/) {/*
+			return this.child.generate() + "*";*//*
+		*/}
+/**/CType toCType_CTemplateType(void* _ref){
+	CTemplateType _this = *((CTemplateType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CTemplateTypeType, data };
+}
+struct CTemplateType {
+	/*String base,*/ List<CType> typeArguments;
+};
+/*@Override
+		public*/ char* generate(/**/) {/*
+			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));*//*
+			return this.base + "<" + joined + ">";*//*
+		*/}
+/**/CType toCType_CIdentifier(void* _ref){
+	CIdentifier _this = *((CIdentifier*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CIdentifierType, data };
+}
+struct CIdentifier {
+	char* input;
+};
+/*@Override
+		public*/ char* generate(/**/) {/*
+			return this.input;*//*
+		*/}
+/**/CType toCType_CPlaceholder(void* _ref){
+	CPlaceholder _this = *((CPlaceholder*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CPlaceholderType, data };
+}
+struct CPlaceholder {
+	char* input;
+};
+/*private static*/ char* wrap(char* input) {/*
+			final var replaced = input.replace("start", "start").replace("end", "end");*//*
+			return "start" + replaced + "end";*//*
+		*/}
+/*@Override
+		public*/ char* generate(/**/) {/*
+			return wrap(this.input);*//*
+		*/}
 /**//*public static*/ void main(char** args) {/*
 		run().ifPresent(Throwable::printStackTrace);*//*
 	*/}
@@ -95,7 +181,7 @@ struct Ok {
 			return "";
 		}
 
-		return compileStructure(stripped, "class").orElseGet(() -> wrap(stripped));
+		return compileStructure(stripped, "class").orElseGet(() -> CPlaceholder.wrap(stripped));
 	}*//*private static Optional<String> compileStructure(String stripped, String type) {
 		final var i = stripped.indexOf(type + " ");
 		if (i >= 0) {
@@ -121,7 +207,7 @@ struct Ok {
 					final var i4 = beforeContent.indexOf("implements ");
 					if (i4 >= 0) {
 						final var substring2 = beforeContent.substring(i4 + "implements ".length());
-						maybeImplements = Optional.of(compileType(substring2.strip()));
+						maybeImplements = Optional.of(compileTypeToString(substring2.strip()));
 
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
@@ -188,7 +274,8 @@ struct Ok {
 
 						final var unionFields = variants
 								.stream()
-								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() + ";")
+								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() +
+																";")
 								.collect(Collectors.joining());
 
 						final var unionType = beforeContent + "Data";
@@ -249,9 +336,9 @@ struct Ok {
 			}
 		}
 
-		return wrap(input);
+		return CPlaceholder.wrap(input);
 	}*//*private static String compileMethodSegment(String input) {
-		return wrap(input);
+		return CPlaceholder.wrap(input);
 	}*//*private static String compileDefinition(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(" ");
@@ -262,25 +349,28 @@ struct Ok {
 			if (i1 >= 0) {
 				final var substring1 = substring.substring(0, i1);
 				final var substring2 = substring.substring(i1 + 1);
-				return wrap(substring1) + " " + compileType(substring2) + " " + name;
+				return CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name;
 			} else {
-				return compileType(substring) + " " + name;
+				return compileTypeToString(substring) + " " + name;
 			}
 		}
 
-		return wrap(stripped);
-	}*//*private static String compileType(String input) {
+		return CPlaceholder.wrap(stripped);
+	}*//*private static String compileTypeToString(String input) {
+		return compileType(input).generate();
+	}*//*private static CType compileType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return "void";
+			return CPrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
-			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
+			final var cType = compileType(stripped.substring(0, stripped.length() - 2));
+			return new CPointerType(cType);
 		}
 
 		if (stripped.equals("String")) {
-			return "char*";
+			return new CPointerType(CPrimitiveType.Char);
 		}
 
 		if (stripped.endsWith(">")) {
@@ -297,17 +387,13 @@ struct Ok {
 						.map(Main::compileType)
 						.toList();
 
-				final var joined = String.join(", ", typeArguments);
-				return base + "<" + joined + ">";
+				return new CTemplateType(base, typeArguments);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return stripped;
+			return new CIdentifier(stripped);
 		}
 
-		return wrap(stripped);
-	}*//*private static String wrap(String input) {
-		final var replaced = input.replace("start", "start").replace("end", "end");
-		return "start" + replaced + "end";
+		return new CPlaceholder(stripped);
 	}*//*}*/

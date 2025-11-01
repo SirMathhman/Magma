@@ -13,11 +13,62 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class Main {
+	private enum CPrimitiveType implements CType {
+		Char("char"), Void("void");
+
+		private final String content;
+
+		CPrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+	}
+
 	private sealed interface Result<T, X> permits Err, Ok {}
+
+	private sealed interface CType permits CIdentifier, CPlaceholder, CPointerType, CPrimitiveType, CTemplateType {
+		String generate();
+	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {}
+
+	private record CPointerType(CType child) implements CType {
+		@Override
+		public String generate() {
+			return this.child.generate() + "*";
+		}
+	}
+
+	private record CTemplateType(String base, List<CType> typeArguments) implements CType {
+		@Override
+		public String generate() {
+			final var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
+			return this.base + "<" + joined + ">";
+		}
+	}
+
+	private record CIdentifier(String input) implements CType {
+		@Override
+		public String generate() {
+			return this.input;
+		}
+	}
+
+	private record CPlaceholder(String input) implements CType {
+		private static String wrap(String input) {
+			final var replaced = input.replace("/*", "start").replace("*/", "end");
+			return "/*" + replaced + "*/";
+		}
+
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+	}
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -87,7 +138,7 @@ public class Main {
 			return "";
 		}
 
-		return compileStructure(stripped, "class").orElseGet(() -> wrap(stripped));
+		return compileStructure(stripped, "class").orElseGet(() -> CPlaceholder.wrap(stripped));
 	}
 
 	private static Optional<String> compileStructure(String stripped, String type) {
@@ -115,7 +166,7 @@ public class Main {
 					final var i4 = beforeContent.indexOf("implements ");
 					if (i4 >= 0) {
 						final var substring2 = beforeContent.substring(i4 + "implements ".length());
-						maybeImplements = Optional.of(compileType(substring2.strip()));
+						maybeImplements = Optional.of(compileTypeToString(substring2.strip()));
 
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
@@ -182,7 +233,8 @@ public class Main {
 
 						final var unionFields = variants
 								.stream()
-								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() + ";")
+								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() +
+																";")
 								.collect(Collectors.joining());
 
 						final var unionType = beforeContent + "Data";
@@ -249,11 +301,11 @@ public class Main {
 			}
 		}
 
-		return wrap(input);
+		return CPlaceholder.wrap(input);
 	}
 
 	private static String compileMethodSegment(String input) {
-		return wrap(input);
+		return CPlaceholder.wrap(input);
 	}
 
 	private static String compileDefinition(String input) {
@@ -266,27 +318,32 @@ public class Main {
 			if (i1 >= 0) {
 				final var substring1 = substring.substring(0, i1);
 				final var substring2 = substring.substring(i1 + 1);
-				return wrap(substring1) + " " + compileType(substring2) + " " + name;
+				return CPlaceholder.wrap(substring1) + " " + compileTypeToString(substring2) + " " + name;
 			} else {
-				return compileType(substring) + " " + name;
+				return compileTypeToString(substring) + " " + name;
 			}
 		}
 
-		return wrap(stripped);
+		return CPlaceholder.wrap(stripped);
 	}
 
-	private static String compileType(String input) {
+	private static String compileTypeToString(String input) {
+		return compileType(input).generate();
+	}
+
+	private static CType compileType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return "void";
+			return CPrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
-			return compileType(stripped.substring(0, stripped.length() - 2)) + "*";
+			final var cType = compileType(stripped.substring(0, stripped.length() - 2));
+			return new CPointerType(cType);
 		}
 
 		if (stripped.equals("String")) {
-			return "char*";
+			return new CPointerType(CPrimitiveType.Char);
 		}
 
 		if (stripped.endsWith(">")) {
@@ -303,20 +360,14 @@ public class Main {
 						.map(Main::compileType)
 						.toList();
 
-				final var joined = String.join(", ", typeArguments);
-				return base + "<" + joined + ">";
+				return new CTemplateType(base, typeArguments);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return stripped;
+			return new CIdentifier(stripped);
 		}
 
-		return wrap(stripped);
-	}
-
-	private static String wrap(String input) {
-		final var replaced = input.replace("/*", "start").replace("*/", "end");
-		return "/*" + replaced + "*/";
+		return new CPlaceholder(stripped);
 	}
 }
