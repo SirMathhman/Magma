@@ -64,9 +64,13 @@ struct Main {};
 			return "";
 		}
 
-		final var i = stripped.indexOf("class ");
+		return compileStructure(stripped, "class")
+				.or(() -> compileStructure(stripped, "interface"))
+				.orElseGet(() -> wrap(stripped));
+	}*//*private static Optional<String> compileStructure(String stripped, String type) {
+		final var i = stripped.indexOf(type + " ");
 		if (i >= 0) {
-			final var substring = stripped.substring(i + "class ".length()).strip();
+			final var substring = stripped.substring(i + (type + " ").length()).strip();
 			if (substring.endsWith("}")) {
 				final var substring1 = substring.substring(0, substring.length() - 1);
 				final var i1 = substring1.indexOf("{");
@@ -74,14 +78,14 @@ struct Main {};
 					final var name = substring1.substring(0, i1).strip();
 					final var content = substring1.substring(i1 + 1).strip();
 					if (isIdentifier(name)) {
-						return "struct " + name + " {};" + System.lineSeparator() +
-									 compileStatements(content, Main::compileClassSegment);
+						return Optional.of("struct " + name + " {};" + System.lineSeparator() +
+															 compileStatements(content, Main::compileClassSegment));
 					}
 				}
 			}
 		}
 
-		return wrap(stripped);
+		return Optional.empty();
 	}*//*private static boolean isIdentifier(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
