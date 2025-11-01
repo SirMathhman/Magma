@@ -55,7 +55,7 @@ struct CIdentifier {
 struct CPlaceholder {
 	char* input;/**/
 };
-struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*//**/
+struct Main {/*public static final List<String> functions = new ArrayList<String>()*//*public static final List<String> structures = new ArrayList<String>()*//*private static final List<String> globals = new ArrayList<String>()*//*private static final Stack<String> structureNames = new Stack<String>()*//*segments.add(buffer.toString())*//*return segments.stream().map(mapper).collect(Collectors.joining())*//**/
 };
 CType toCType_CPrimitiveType(void* _ref){
 	CPrimitiveType _this = *((CPrimitiveType*) _ref);
@@ -163,17 +163,17 @@ CType toCType_CPlaceholder(void* _ref){
 	*/}
 /*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper) {/*
 		final var segments = new ArrayList<String>();*//*
-		var buffer = new StringBuffer();*//*
+		var buffer = new StringBuilder();*//*
 		var depth = 0;*//*
 		for (var i = 0;*//* i < input.length();*//* i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
-				buffer = new StringBuffer();
+				buffer = new StringBuilder();
 			} else if (c == '}*//*' && depth == 1) {
 				segments.add(buffer.toString());
-				buffer = new StringBuffer();
+				buffer = new StringBuilder();
 				depth--;
 			}*//* else if (c == '{') {
 				depth++;
@@ -387,9 +387,8 @@ CType toCType_CPlaceholder(void* _ref){
 				final var substring2 = substring.substring(i + 1);
 
 				if (isIdentifier(memberName)) {
-					globals.add(
-							enumName + " " + enumName + "_" + memberName + " = new_" + enumName + "(" + compileExpression(substring2) +
-							");" + System.lineSeparator());
+					globals.add(enumName + " " + enumName + "_" + memberName + " = new_" + enumName + "(" +
+											compileExpression(substring2) + ");" + System.lineSeparator());
 					return true;
 				}
 			}
