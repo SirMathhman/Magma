@@ -149,7 +149,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*final var joined*/ = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
+	var joined = this.typeArguments.stream().map(CType::generate).collect(Collectors.joining(", "));
 	return this.base + "<" + joined + ">";
 }
 CType toCType_CIdentifier(void* _ref){
@@ -170,7 +170,7 @@ char* generate_CIdentifier(void* _ref) {
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	/*final var replaced*/ = input.replace("/*", "start").replace("*/", "end");
+	var replaced = input.replace("/*", "start").replace("*/", "end");
 	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
@@ -205,7 +205,7 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 }
 CDefinable toCDefinition_JConstructor(void* _ref) {
 	JConstructor _this = *((JConstructor*) _ref);
-	/*final var type*/ = /*new CIdentifier(this*/.input);
+	var type = /*new CIdentifier(this*/.input);
 	return /*new CDefinition(type, "new_" + this*/.input);
 }
 JMethodHeader toJMethodHeader_JPlaceholder(void* _ref){
@@ -228,7 +228,7 @@ void main_Main(void* _ref, char** args) {
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	/*final var source*/ = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
+	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -255,18 +255,18 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
-	/*final var compiled*/ = /*compileStatements(input, Main::compileRootSegment)*/;
-	/*final var joinedGlobals*/ = String.join("", globals);
-	/*final var joinedStructures*/ = String.join("", structures);
-	/*final var joinedFunctions*/ = String.join("", functions);
+	var compiled = /*compileStatements(input, Main::compileRootSegment)*/;
+	var joinedGlobals = String.join("", globals);
+	var joinedStructures = String.join("", structures);
+	var joinedFunctions = String.join("", functions);
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
-	/*final var segments*/ = /*new ArrayList<String>()*/;
-	/*var buffer*/ = /*new StringBuilder()*/;
-	/*var depth*/ = /*0*/;
-	/*for (var i*/ = /*0*/;
+	var segments = /*new ArrayList<String>()*/;
+	var buffer = /*new StringBuilder()*/;
+	var depth = /*0*/;
+	/*(var*/ i = /*0*/;
 	/*i < input.length()*/;/*i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
@@ -603,9 +603,11 @@ return segments.stream new_return segments.stream();
 
 		final var i = input.indexOf("=");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
+			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			return compileExpression(substring) + " = " + compileExpression(substring1);
+			final var s = compileDefinition(destination).orElseGet(() -> compileExpression(destination));
+
+			return s + " = " + compileExpression(substring1);
 		}
 
 		return CPlaceholder.wrap(input);

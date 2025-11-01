@@ -524,9 +524,11 @@ public class Main {
 
 		final var i = input.indexOf("=");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
+			final var destination = input.substring(0, i);
 			final var substring1 = input.substring(i + 1);
-			return compileExpression(substring) + " = " + compileExpression(substring1);
+			final var s = compileDefinition(destination).orElseGet(() -> compileExpression(destination));
+
+			return s + " = " + compileExpression(substring1);
 		}
 
 		return CPlaceholder.wrap(input);
