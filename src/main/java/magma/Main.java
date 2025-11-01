@@ -151,7 +151,13 @@ public class Main {
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
-					final var typeArguments = typeParameters.isEmpty() ? "" : "<" + String.join(", ", typeParameters) + ">";
+
+					final String typeArguments;
+					if (typeParameters.isEmpty()) {
+						typeArguments = "";
+					} else {
+						typeArguments = "<" + String.join(", ", typeParameters) + ">";
+					}
 
 					String beforeStruct = "";
 					if (maybeImplements.isPresent()) {
@@ -159,8 +165,9 @@ public class Main {
 						final var thisType = beforeContent + typeArguments;
 						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
 														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement("return " + superType + " {" + "}") + System.lineSeparator() + "}" +
-														System.lineSeparator();
+														generateStatement(superType + "Data data") + generateStatement("data.err = this") +
+														generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
+														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
 					if (!variants.isEmpty()) {
@@ -175,7 +182,7 @@ public class Main {
 
 						final var unionFields = variants
 								.stream()
-								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
+								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() + ";")
 								.collect(Collectors.joining());
 
 						final var unionType = beforeContent + "Data";

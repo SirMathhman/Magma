@@ -6,8 +6,8 @@ enum ResultTag {
 };
 template <typename T, typename X>
 union ResultData {
-	Err<T, X> Err;
-	Ok<T, X> Ok;
+	Err<T, X> err;
+	Ok<T, X> ok;
 }
 template <typename T, typename X>
 struct Result {
@@ -16,7 +16,9 @@ struct Result {
 };
 /**/Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
-	return Result<T, X> {};
+	Result<T, X>Data data;
+	data.err = this;
+	return Result<T, X> { ErrType, data };
 }
 template <typename T, typename X>
 struct Err {
@@ -24,7 +26,9 @@ struct Err {
 };
 /**/Result<T, X> toResult<T, X>_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
-	return Result<T, X> {};
+	Result<T, X>Data data;
+	data.err = this;
+	return Result<T, X> { OkType, data };
 }
 template <typename T, typename X>
 struct Ok {
@@ -153,7 +157,13 @@ struct Ok {
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
-					final var typeArguments = typeParameters.isEmpty() ? "" : "<" + String.join(", ", typeParameters) + ">";
+
+					final String typeArguments;
+					if (typeParameters.isEmpty()) {
+						typeArguments = "";
+					} else {
+						typeArguments = "<" + String.join(", ", typeParameters) + ">";
+					}
 
 					String beforeStruct = "";
 					if (maybeImplements.isPresent()) {
@@ -161,8 +171,9 @@ struct Ok {
 						final var thisType = beforeContent + typeArguments;
 						beforeStruct += superType + " to" + superType + "_" + beforeContent + "(void* _ref){" +
 														generateStatement(thisType + " _this = *((" + thisType + "*) _ref)") +
-														generateStatement("return " + superType + " {" + "}") + System.lineSeparator() + "}" +
-														System.lineSeparator();
+														generateStatement(superType + "Data data") + generateStatement("data.err = this") +
+														generateStatement("return " + superType + " { " + beforeContent + "Type, data }") +
+														System.lineSeparator() + "}" + System.lineSeparator();
 					}
 
 					if (!variants.isEmpty()) {
@@ -177,7 +188,7 @@ struct Ok {
 
 						final var unionFields = variants
 								.stream()
-								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment + ";")
+								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() + ";")
 								.collect(Collectors.joining());
 
 						final var unionType = beforeContent + "Data";
