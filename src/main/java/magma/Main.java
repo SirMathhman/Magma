@@ -2,19 +2,50 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+	private sealed interface Result<T, X> permits Err, Ok {}
+
+	private record Err<T, X>(X error) implements Result<T, X> {}
+
+	private record Ok<T, X>(T value) implements Result<T, X> {}
+
 	public static void main(String[] args) {
+		run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> run() {
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		return switch (readString(source)) {
+			case Ok(var input) -> {
+				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.c");
+				final var output = compile(input);
+				yield writeString(target, output);
+			}
+			case Err<String, IOException> v -> Optional.of(v.error);
+		};
+	}
+
+	private static Optional<IOException> writeString(Path target, String output) {
 		try {
-			final var input = Files.readString(Paths.get(".", "src", "main", "java", "magma", "Main.java"));
-			Files.writeString(Paths.get(".", "src", "main", "windows", "magma", "Main.c"), compile(input));
+			Files.writeString(target, output);
+			return Optional.empty();
 		} catch (IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(Path source) {
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<String, IOException>(e);
 		}
 	}
 
