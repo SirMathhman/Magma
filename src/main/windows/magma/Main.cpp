@@ -239,7 +239,7 @@ CType toCType_CTemplateType(void* _ref){
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
-	/*JMemberAccess[child=JIdentifier[input=cTemplateType], name=typeArguments]*/ typeArguments1 = cTemplateType.typeArguments;
+	/*Not a structure type: JIdentifier[input=var]*/ typeArguments1 = cTemplateType.typeArguments;
 	/*JPlaceholder[input=typeArguments1.stream()]*/ stream = /*typeArguments1.stream()*/;
 	/*JPlaceholder[input=stream.map(CType::generate)]*/ stringStream = /*stream.map(CType::generate)*/;
 	/*JPlaceholder[input=stringStream.collect(Collectors.joining(", "))]*/ joined = /*stringStream.collect(Collectors.joining(", "))*/;
@@ -420,6 +420,14 @@ CType toCType_JClassType(void* _ref) {
 																		.stream()
 																		.map(definition -> new CDefinition(definition.type.toCType(), definition.name))
 																		.toList())*/;
+}
+Optional<JType> resolve_JClassType(void* _ref, char* name) {
+	JClassType _this = *((JClassType*) _ref);
+	return /*this.definitions
+					.stream()
+					.filter(definition -> definition.name.equals(name))
+					.map(definition -> definition.type)
+					.findFirst()*/;
 }
 public Scope_Scope(void* _ref) {
 	Scope _this = *((Scope*) _ref);
@@ -901,16 +909,23 @@ return segments.stream new_return segments.stream();
 	}*//*private static JDefinition withResolvedType(JDefinition definition, JExpression source) {
 		return definition.mapType(type -> {
 			if (type instanceof JIdentifier(var value) && value.equals("var")) {
-				return resolveType(source);
+				return resolveExpression(source);
 			}
 
 			return type;
 		});
-	}*//*private static JType resolveType(JExpression type) {
-		if (type instanceof JIdentifier(String input)) {
-			if (input.equals("this")) {
-				return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+	}*//*private static JType resolveExpression(JExpression type) {
+		if (type instanceof JIdentifier(var input)) {
+			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+		}
+
+		if (type instanceof JMemberAccess(JExpression child, String name)) {
+			final var resolved = resolveExpression(child);
+			if (resolved instanceof JClassType type0) {
+				final var found = type0.resolve(name);
+				return found.orElseGet(() -> new JPlaceholder("Property not present: " + name));
 			}
+			return new JPlaceholder("Not a structure type: " + resolved);
 		}
 
 		return new JPlaceholder(type.toString());

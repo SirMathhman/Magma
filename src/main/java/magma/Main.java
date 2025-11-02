@@ -231,6 +231,14 @@ public class Main {
 																		.map(definition -> new CDefinition(definition.type.toCType(), definition.name))
 																		.toList());
 		}
+
+		public Optional<JType> resolve(String name) {
+			return this.definitions
+					.stream()
+					.filter(definition -> definition.name.equals(name))
+					.map(definition -> definition.type)
+					.findFirst();
+		}
 	}
 
 	private record Scope(List<Frame> frames) {
@@ -754,18 +762,25 @@ public class Main {
 	private static JDefinition withResolvedType(JDefinition definition, JExpression source) {
 		return definition.mapType(type -> {
 			if (type instanceof JIdentifier(var value) && value.equals("var")) {
-				return resolveType(source);
+				return resolveExpression(source);
 			}
 
 			return type;
 		});
 	}
 
-	private static JType resolveType(JExpression type) {
-		if (type instanceof JIdentifier(String input)) {
-			if (input.equals("this")) {
-				return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+	private static JType resolveExpression(JExpression type) {
+		if (type instanceof JIdentifier(var input)) {
+			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+		}
+
+		if (type instanceof JMemberAccess(JExpression child, String name)) {
+			final var resolved = resolveExpression(child);
+			if (resolved instanceof JClassType type0) {
+				final var found = type0.resolve(name);
+				return found.orElseGet(() -> new JPlaceholder("Property not present: " + name));
 			}
+			return new JPlaceholder("Not a structure type: " + resolved);
 		}
 
 		return new JPlaceholder(type.toString());
