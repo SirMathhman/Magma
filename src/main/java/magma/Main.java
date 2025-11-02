@@ -245,6 +245,10 @@ public class Main {
 		public List<T> addAllLast(List<T> others) {
 			return others.stream().fold(this, List::addLast);
 		}
+
+		public boolean contains(T element) {
+			return this.nativeList.contains(element);
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -403,6 +407,12 @@ public class Main {
 	private record JMemberAccess(JExpression child, String name) implements JExpression {
 		@Override
 		public CExpression toCExpression() {
+			if (this.child instanceof JIdentifier(String enumName)) {
+				if (enumNames.contains(enumName)) {
+					return new CIdentifier(enumName + "_" + this.name);
+				}
+			}
+
 			return new CFieldAccess(this.child.toCExpression(), this.name);
 		}
 	}
@@ -803,6 +813,7 @@ public class Main {
 		}
 	}
 
+	public static final List<String> enumNames = new List<String>();
 	private static List<String> structures = new List<String>();
 	private static List<CFunction> functions = new List<CFunction>();
 	private static List<String> globals = new List<String>();
@@ -1189,11 +1200,7 @@ public class Main {
 	private static JExpression parseExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			if (isDefined(stripped)) {
-				return new JIdentifier(stripped);
-			} else {
-				return new JPlaceholder("Undefined identifier: " + stripped);
-			}
+			return new JIdentifier(stripped);
 		}
 
 		final var i = stripped.lastIndexOf(".");

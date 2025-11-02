@@ -1,5 +1,5 @@
-JPrimitiveType JPrimitiveType_Void = new_JPrimitiveType(/*Undefined identifier: CPrimitiveType*/.Void);
-JPrimitiveType JPrimitiveType_String = new_JPrimitiveType(/*new CPointerType*/(/*Undefined identifier: CPrimitiveType*/.Char));
+JPrimitiveType JPrimitiveType_Void = new_JPrimitiveType(CPrimitiveType.Void);
+JPrimitiveType JPrimitiveType_String = new_JPrimitiveType(/*new CPointerType*/(CPrimitiveType.Char));
 CPrimitiveType CPrimitiveType_Char = new_CPrimitiveType(/*"char"*/);
 CPrimitiveType CPrimitiveType_Void = new_CPrimitiveType(/*"void"*/);
 struct JPrimitiveType {
@@ -312,7 +312,7 @@ Stream<T> fromArray_Stream(void* _ref, T* array) {
 }
 Stream<T> concat_Stream(void* _ref, Stream<T> second) {
 	Stream _this = *((Stream*) _ref);
-	return /*new Stream<T>*/(/*Undefined identifier: */(/*) -> this.next().or(second::next*/));
+	return /*new Stream<T>*/((/*) -> this.next().or(second::next*/));
 }
 Optional<T> next_Stream(void* _ref) {
 	Stream _this = *((Stream*) _ref);
@@ -365,7 +365,7 @@ public List_List(void* _ref) {
 }
 List<T> of_List(void* _ref, /*T...*/ elements) {
 	List _this = *((List*) _ref);
-	return /*new List<T>*/(/*new ArrayList<T>*/(/*Undefined identifier: Arrays*/.asList(elements)));
+	return /*new List<T>*/(/*new ArrayList<T>*/(Arrays.asList(elements)));
 }
 void forEach_List(void* _ref, Consumer<T> consumer) {
 	List _this = *((List*) _ref);
@@ -423,6 +423,10 @@ List<T> mapLast_List(void* _ref, /*T>*/ mapper) {
 List<T> addAllLast_List(void* _ref, List<T> others) {
 	List _this = *((List*) _ref);
 	return others.stream(/*).fold(this*/, /*List::addLast*/);
+}
+boolean contains_List(void* _ref, T element) {
+	List _this = *((List*) _ref);
+	return this.nativeList.contains(element);
 }
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
@@ -483,7 +487,7 @@ char* wrap_CPlaceholder(void* _ref, char* input) {
 }
 char* generate_CPlaceholder(void* _ref) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	return /*Undefined identifier: wrap*/(this.input);
+	return wrap(this.input);
 }
 CDefinable toCDefinable_CDefinition(void* _ref){
 	CDefinition _this = *((CDefinition*) _ref);
@@ -544,7 +548,7 @@ JClassSegment complete_JPlaceholder(void* _ref) {
 }
 Optional<JDefinition> createDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	return /*Undefined identifier: Optional*/.empty();
+	return Optional.empty();
 }
 CStructureSegment toCStructureSegment_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -601,7 +605,11 @@ JExpression toJExpression_JMemberAccess(void* _ref){
 	return JExpression { JMemberAccessType, data };
 }
 CExpression toCExpression_JMemberAccess(void* _ref) {
-	JMemberAccess _this = *((JMemberAccess*) _ref);
+	JMemberAccess _this = *((JMemberAccess*) _ref);/*if (this.child instanceof JIdentifier(String enumName)) {
+				if (enumNames.contains(enumName)) {
+					return new CIdentifier(enumName + "_" + this.name);
+				}
+			}*/
 	return /*new CFieldAccess*/(this.child.toCExpression(), this.name);
 }
 CType toCType_CStructureType(void* _ref){
@@ -686,7 +694,7 @@ Collector<T, Boolean> toCollector<T, Boolean>_AllMatch(void* _ref){
 }
 Boolean createInitial_AllMatch(void* _ref) {
 	AllMatch _this = *((AllMatch*) _ref);
-	return /*Undefined identifier: true*/;
+	return true;
 }
 Boolean fold_AllMatch(void* _ref, Boolean current, T element) {
 	AllMatch _this = *((AllMatch*) _ref);
@@ -724,7 +732,7 @@ JClassSegment complete_JClassSegmentWrapper(void* _ref) {
 }
 Optional<JDefinition> createDefinition_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
-	return /*Undefined identifier: Optional*/.empty();
+	return Optional.empty();
 }
 CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
@@ -745,7 +753,7 @@ JIncompleteClassSegment toJIncompleteClassSegment_JIncompleteMethod(void* _ref){
 JClassSegment complete_JIncompleteMethod(void* _ref) {
 	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
 	/*Failed to resolve caller: JPlaceholder[input=Property not present: completeWithParameters]*/ function = this.completeWithParameters();
-	/*Undefined identifier: functions*/ = /*Undefined identifier: functions*/.addLast(function);
+	functions = functions.addLast(function);
 	return /*new JClassSegmentWrapper*/(/*""*/);
 }
 Optional<JDefinition> createDefinition_JIncompleteMethod(void* _ref) {
@@ -770,9 +778,9 @@ CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 				return new CFunction(outputDefinition, cParameters, ";");
 			}*/
 	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: String]]*/ content1 = withBraces.substring(/*1*/, /*withBraces.length() - 1*/);
-	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.enter(/*).defineAll(this.parameters()).enter(*/);
-	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=Undefined identifier: compileStatements]]*/ compiledContent = /*Undefined identifier: compileStatements*/(content1, /*Main::compileMethodSegment*/);
-	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.exit(/*).exit(*/);
+	scope = scope.enter(/*).defineAll(this.parameters()).enter(*/);
+	/*Failed to resolve caller: JPlaceholder[input=Unresolved identifier: compileStatements]*/ compiledContent = compileStatements(content1, /*Main::compileMethodSegment*/);
+	scope = scope.exit(/*).exit(*/);
 	/*final String outputContent*/;/*if (this.header instanceof JConstructor(var name)) {
 				outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
 			}*//*else if (this.header instanceof JDefinition) {
@@ -781,7 +789,7 @@ CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 				outputContent = compiledContent;
 			}*//*final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}*/
 	/*"*/;
-	return /*new CFunction*/(/*Undefined identifier: outputDefinition*/, cParameters, /*Undefined identifier: contentWithBraces*/);
+	return /*new CFunction*/(outputDefinition, cParameters, contentWithBraces);
 }
 /*0;
 
@@ -841,8 +849,8 @@ CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 
 		public void defineExpression(JDefinition definition) {
 			assert !this.isVar(definition)*/;
-	this.definedMembers = this.definedMembers.addLast(/*Undefined identifier: definition*/);
-	/*Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: definition]]*/ type = /*Undefined identifier: definition*/.type;
+	this.definedMembers = this.definedMembers.addLast(definition);
+	/*Not a structure type: JPlaceholder[input=Unresolved identifier: definition]*/ type = definition.type;
 	return /*type instanceof JIdentifier*/(/*var value) && value.equals("var"*/);
 	/*}
 
@@ -982,12 +990,12 @@ List<T> createInitial_Main(void* _ref) {
 			if (this.retrieved) {
 				return Optional.empty();
 			}*/
-	this.retrieved = /*Undefined identifier: true*/;
-	return /*Undefined identifier: Optional*/.of(this.element);/*}*/
+	this.retrieved = true;
+	return Optional.of(this.element);/*}*/
 }
 Optional<T> next_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	return /*Undefined identifier: Optional*/.empty();/*}*/
+	return Optional.empty();/*}*/
 }
 /*current;
 
@@ -1013,6 +1021,7 @@ Optional<T> next_Main(void* _ref) {
 				this.current = this.mapper.apply(nextHead.get());
 			}*//*}*/
 }
+public static final List<String> enumNames = new List<String> new_public static final List<String> enumNames = new List<String>();
 private static List<String> structures = new List<String> new_private static List<String> structures = new List<String>();
 private static List<CFunction> functions = new List<CFunction> new_private static List<CFunction> functions = new List<CFunction>();
 private static List<String> globals = new List<String> new_private static List<String> globals = new List<String>();
@@ -1023,7 +1032,7 @@ void main_Main(void* _ref, char** args) {
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: Paths]]]*/ source = /*Undefined identifier: Paths*/.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);/*return switch (readString(source)) {
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unresolved identifier: Paths]]*/ source = Paths.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -1050,16 +1059,16 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
-	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.enter();
-	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=Undefined identifier: compileStatements]]*/ compiled = /*Undefined identifier: compileStatements*/(input, /*Main::compileRootSegment*/);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: globals]]]*/ joinedGlobals = /*Undefined identifier: globals*/.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: structures]]]*/ joinedStructures = /*Undefined identifier: structures*/.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: functions]]]*/ joinedFunctions = /*Undefined identifier: functions*/.stream(/*)*/.map(/*CFunction::generate).collect(new Collectors.Joiner(""*/));
+	scope = scope.enter();
+	/*Failed to resolve caller: JPlaceholder[input=Unresolved identifier: compileStatements]*/ compiled = compileStatements(input, /*Main::compileRootSegment*/);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unresolved identifier: globals]]*/ joinedGlobals = globals.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unresolved identifier: structures]]*/ joinedStructures = structures.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unresolved identifier: functions]]*/ joinedFunctions = functions.stream(/*)*/.map(/*CFunction::generate).collect(new Collectors.Joiner(""*/));
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
-	return /*Undefined identifier: divide*/(/*input)*/.map(/*mapper).collect(new Collectors.Joiner(""*/));
+	return divide(/*input)*/.map(/*mapper).collect(new Collectors.Joiner(""*/));
 }
 Stream<char*> divide_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
@@ -1373,11 +1382,7 @@ return segments.stream new_return segments.stream();
 	}*//*private static JExpression parseExpression(String input) {
 		final var stripped = input.strip();
 		if (isIdentifier(stripped)) {
-			if (isDefined(stripped)) {
-				return new JIdentifier(stripped);
-			} else {
-				return new JPlaceholder("Undefined identifier: " + stripped);
-			}
+			return new JIdentifier(stripped);
 		}
 
 		final var i = stripped.lastIndexOf(".");
