@@ -514,6 +514,7 @@ public class Main {
 					final var structureFields = Stream
 							.concat(recordFieldsStream, generatedFields.stream())
 							.map(CDefinable::generate)
+							.map(Main::generateStatement)
 							.collect(Collectors.joining());
 
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +

@@ -19,7 +19,9 @@ union ResultData {
 	Ok<T, X> ok;
 }
 template <typename T, typename X>
-struct Result {ResultTag _tagResultData<T, X> _data
+struct Result {
+	ResultTag _tag;
+	ResultData<T, X> _data;
 };
 enum CTypeTag {
 	CIdentifierType,
@@ -37,7 +39,9 @@ union CTypeData {
 	CStructureType cstructuretype;
 	CTemplateType ctemplatetype;
 }
-struct CType {CTypeTag _tagCTypeData _data
+struct CType {
+	CTypeTag _tag;
+	CTypeData _data;
 };
 enum CDefinableTag {
 	CDefinitionType,
@@ -47,7 +51,9 @@ union CDefinableData {
 	CDefinition cdefinition;
 	CPlaceholder cplaceholder;
 }
-struct CDefinable {CDefinableTag _tagCDefinableData _data
+struct CDefinable {
+	CDefinableTag _tag;
+	CDefinableData _data;
 };
 enum JMethodHeaderTag {
 	JConstructorType,
@@ -59,7 +65,9 @@ union JMethodHeaderData {
 	JDefinition jdefinition;
 	JPlaceholder jplaceholder;
 }
-struct JMethodHeader {JMethodHeaderTag _tagJMethodHeaderData _data
+struct JMethodHeader {
+	JMethodHeaderTag _tag;
+	JMethodHeaderData _data;
 };
 struct CFunctionHeader {
 };
@@ -75,7 +83,9 @@ union JExpressionData {
 	JMemberAccess jmemberaccess;
 	JPlaceholder jplaceholder;
 }
-struct JExpression {JExpressionTag _tagJExpressionData _data
+struct JExpression {
+	JExpressionTag _tag;
+	JExpressionData _data;
 };
 enum CExpressionTag {
 	CFieldAccessType,
@@ -87,47 +97,78 @@ union CExpressionData {
 	CIdentifier cidentifier;
 	CPlaceholder cplaceholder;
 }
-struct CExpression {CExpressionTag _tagCExpressionData _data
+struct CExpression {
+	CExpressionTag _tag;
+	CExpressionData _data;
 };
 template <typename T, typename X>
-struct Err {X error
+struct Err {
+	X error;
 };
 template <typename T, typename X>
-struct Ok {T value
+struct Ok {
+	T value;
 };
-struct CPointerType {CType child
+struct CPointerType {
+	CType child;
 };
-struct CTemplateType {char* baseList<CType> typeArguments
+struct CTemplateType {
+	char* base;
+	List<CType> typeArguments;
 };
-struct CIdentifier {char* input
+struct CIdentifier {
+	char* input;
 };
-struct CPlaceholder {char* input
+struct CPlaceholder {
+	char* input;
 };
-struct CDefinition {CType typechar* name
+struct CDefinition {
+	CType type;
+	char* name;
 };
-struct JDefinition {Optional<char*> beforeTypeJType typechar* name
+struct JDefinition {
+	Optional<char*> beforeType;
+	JType type;
+	char* name;
 };
-struct JConstructor {char* input
+struct JConstructor {
+	char* input;
 };
-struct JPlaceholder {char* input
+struct JPlaceholder {
+	char* input;
 };
-struct JArrayType {JType type
+struct JArrayType {
+	JType type;
 };
-struct JGenericType {char* baseList<JType> typeArguments
+struct JGenericType {
+	char* base;
+	List<JType> typeArguments;
 };
-struct JIdentifier {char* value
+struct JIdentifier {
+	char* value;
 };
-struct CFieldAccess {CExpression childchar* name
+struct CFieldAccess {
+	CExpression child;
+	char* name;
 };
-struct JMemberAccess {JExpression childchar* name
+struct JMemberAccess {
+	JExpression child;
+	char* name;
 };
-struct Frame {Optional<char*> maybeStructureNameList<JDefinition> definitions
+struct Frame {
+	Optional<char*> maybeStructureName;
+	List<JDefinition> definitions;
 };
-struct CStructureType {char* nameList<CDefinition> fields
+struct CStructureType {
+	char* name;
+	List<CDefinition> fields;
 };
-struct JClassType {char* nameList<JDefinition> definitions
+struct JClassType {
+	char* name;
+	List<JDefinition> definitions;
 };
-struct Scope {List<Frame> frames
+struct Scope {
+	List<Frame> frames;
 };
 struct Main {
 };
@@ -639,13 +680,6 @@ return segments.stream new_return segments.stream();
 
 						beforeStruct += generatedEnum + generatedUnion;
 
-						recordFields
-								.stream()
-								.map(JDefinition::toCDefinition)
-								.map(CDefinable::generate)
-								.map(Main::generateStatement)
-								.collect(Collectors.joining());
-
 						generatedFields = List.of(new CDefinition(new CIdentifier(tagType), "_tag"),
 																			new CDefinition(new CIdentifier(unionType + typeArguments), "_data"));
 					}
@@ -656,6 +690,7 @@ return segments.stream new_return segments.stream();
 					final var structureFields = Stream
 							.concat(recordFieldsStream, generatedFields.stream())
 							.map(CDefinable::generate)
+							.map(Main::generateStatement)
 							.collect(Collectors.joining());
 
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
