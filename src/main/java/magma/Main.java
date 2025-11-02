@@ -61,11 +61,11 @@ public class Main {
 		CType toCType();
 	}
 
-	private sealed interface JExpression permits JIdentifier, JMemberAccess, JPlaceholder {
+	private sealed interface JExpression permits JIdentifier, JInvocation, JMemberAccess, JPlaceholder {
 		CExpression toCExpression();
 	}
 
-	private sealed interface CExpression permits CFieldAccess, CIdentifier, CPlaceholder {
+	private sealed interface CExpression permits CFieldAccess, CIdentifier, CInvocation, CPlaceholder {
 		String generate();
 	}
 
@@ -307,6 +307,20 @@ public class Main {
 					.flatMap(Optional::stream)
 					.findFirst()
 					.orElse("?");
+		}
+	}
+
+	private record CInvocation(CExpression cExpression, CExpression cExpression1) implements CExpression {
+		@Override
+		public String generate() {
+			return this.cExpression.generate() + "(" + this.cExpression1.generate() + ")";
+		}
+	}
+
+	private record JInvocation(JExpression caller, JExpression argument) implements JExpression {
+		@Override
+		public CExpression toCExpression() {
+			return new CInvocation(this.caller.toCExpression(), this.argument.toCExpression());
 		}
 	}
 
@@ -724,6 +738,16 @@ public class Main {
 			if (isIdentifier(name)) {
 				final var child = parseExpression(substring);
 				return new JMemberAccess(child, name);
+			}
+		}
+
+		if (stripped.endsWith(")")) {
+			final var slice = stripped.substring(0, stripped.length() - 1);
+			final var i1 = slice.indexOf("(");
+			if (i1 >= 0) {
+				final var substring = slice.substring(0, i1);
+				final var substring1 = slice.substring(i1 + 1);
+				return new JInvocation(parseExpression(substring), parseExpression(substring1));
 			}
 		}
 
