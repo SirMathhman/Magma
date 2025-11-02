@@ -310,17 +310,19 @@ public class Main {
 		}
 	}
 
-	private record CInvocation(CExpression cExpression, CExpression cExpression1) implements CExpression {
+	private record CInvocation(CExpression cExpression, List<CExpression> arguments) implements CExpression {
 		@Override
 		public String generate() {
-			return this.cExpression.generate() + "(" + this.cExpression1.generate() + ")";
+			final var joined = this.arguments.stream().map(CExpression::generate).collect(Collectors.joining(", "));
+			return this.cExpression.generate() + "(" + joined + ")";
 		}
 	}
 
-	private record JInvocation(JExpression caller, JExpression argument) implements JExpression {
+	private record JInvocation(JExpression caller, List<JExpression> arguments) implements JExpression {
 		@Override
 		public CExpression toCExpression() {
-			return new CInvocation(this.caller.toCExpression(), this.argument.toCExpression());
+			return new CInvocation(this.caller.toCExpression(),
+														 this.arguments.stream().map(JExpression::toCExpression).toList());
 		}
 	}
 
@@ -746,8 +748,14 @@ public class Main {
 			final var i1 = slice.indexOf("(");
 			if (i1 >= 0) {
 				final var substring = slice.substring(0, i1);
-				final var substring1 = slice.substring(i1 + 1);
-				return new JInvocation(parseExpression(substring), parseExpression(substring1));
+				final var arguments = Arrays
+						.stream(slice.substring(i1 + 1).split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(segment -> !segment.isEmpty())
+						.map(Main::parseExpression)
+						.toList();
+
+				return new JInvocation(parseExpression(substring), arguments);
 			}
 		}
 
