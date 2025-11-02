@@ -145,7 +145,7 @@ struct JGenericType {
 	List<JType> typeArguments;
 };
 struct JIdentifier {
-	char* input;
+	char* value;
 };
 struct CFieldAccess {
 	CExpression child;
@@ -239,7 +239,7 @@ CType toCType_CTemplateType(void* _ref){
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
-	/*Not a structure type: JIdentifier[input=var]*/ typeArguments1 = cTemplateType.typeArguments;
+	/*Property not present: typeArguments*/ typeArguments1 = cTemplateType.typeArguments;
 	/*JPlaceholder[input=typeArguments1.stream()]*/ stream = /*typeArguments1.stream()*/;
 	/*JPlaceholder[input=stream.map(CType::generate)]*/ stringStream = /*stream.map(CType::generate)*/;
 	/*JPlaceholder[input=stringStream.collect(Collectors.joining(", "))]*/ joined = /*stringStream.collect(Collectors.joining(", "))*/;
@@ -351,11 +351,11 @@ CType toCType_JGenericType(void* _ref) {
 }
 CType toCType_JIdentifier(void* _ref) {
 	JIdentifier _this = *((JIdentifier*) _ref);
-	return /*new CIdentifier(this.input)*/;
+	return /*new CIdentifier(this.value)*/;
 }
 CExpression toCExpression_JIdentifier(void* _ref) {
 	JIdentifier _this = *((JIdentifier*) _ref);
-	return /*new CIdentifier(this.input)*/;
+	return /*new CIdentifier(this.value)*/;
 }
 CExpression toCExpression_CFieldAccess(void* _ref){
 	CFieldAccess _this = *((CFieldAccess*) _ref);
@@ -387,11 +387,17 @@ Optional<JClassType> toClassType_Frame(void* _ref) {
 }
 void defineAll_Frame(void* _ref, List<JDefinition> definitions) {
 	Frame _this = *((Frame*) _ref);
-	/*this.definitions.addAll(definitions)*/;
+	/*definitions.forEach(this::define)*/;
 }
 void define_Frame(void* _ref, JDefinition definition) {
 	Frame _this = *((Frame*) _ref);
+	/*assert !this.isVar(definition)*/;
 	/*this.definitions.addLast(definition)*/;
+}
+boolean isVar_Frame(void* _ref, JDefinition definition) {
+	Frame _this = *((Frame*) _ref);
+	/*Not a structure type: JIdentifier[value=JDefinition]*/ type = definition.type;
+	return /*type instanceof JIdentifier(var value) && value.equals("var")*/;
 }
 Frame withStructureName_Frame(void* _ref, char* structureName) {
 	Frame _this = *((Frame*) _ref);
@@ -899,9 +905,9 @@ return segments.stream new_return segments.stream();
 			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
-				scope = scope.define(definition);
-
-				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
+				final var jDefinition = withResolvedType(definition, source);
+				scope = scope.define(jDefinition);
+				return jDefinition.toCDefinition().generate() + " = " + sourceString;
 			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
 		}
 
@@ -919,7 +925,7 @@ return segments.stream new_return segments.stream();
 			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
-		if (type instanceof JMemberAccess(JExpression child, String name)) {
+		if (type instanceof JMemberAccess(var child, var name)) {
 			final var resolved = resolveExpression(child);
 			if (resolved instanceof JClassType type0) {
 				final var found = type0.resolve(name);

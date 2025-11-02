@@ -166,15 +166,15 @@ public class Main {
 		}
 	}
 
-	private record JIdentifier(String input) implements JType, JExpression {
+	private record JIdentifier(String value) implements JType, JExpression {
 		@Override
 		public CType toCType() {
-			return new CIdentifier(this.input);
+			return new CIdentifier(this.value);
 		}
 
 		@Override
 		public CExpression toCExpression() {
-			return new CIdentifier(this.input);
+			return new CIdentifier(this.value);
 		}
 	}
 
@@ -203,11 +203,17 @@ public class Main {
 		}
 
 		public void defineAll(List<JDefinition> definitions) {
-			this.definitions.addAll(definitions);
+			definitions.forEach(this::define);
 		}
 
 		public void define(JDefinition definition) {
+			assert !this.isVar(definition);
 			this.definitions.addLast(definition);
+		}
+
+		private boolean isVar(JDefinition definition) {
+			final var type = definition.type;
+			return type instanceof JIdentifier(var value) && value.equals("var");
 		}
 
 		public Frame withStructureName(String structureName) {
@@ -750,9 +756,9 @@ public class Main {
 			final var sourceString = source.toCExpression().generate();
 
 			return parseDefinition(destination).map(definition -> {
-				scope = scope.define(definition);
-
-				return withResolvedType(definition, source).toCDefinition().generate() + " = " + sourceString;
+				final var jDefinition = withResolvedType(definition, source);
+				scope = scope.define(jDefinition);
+				return jDefinition.toCDefinition().generate() + " = " + sourceString;
 			}).orElseGet(() -> compileExpression(destination) + " = " + sourceString);
 		}
 
@@ -774,11 +780,10 @@ public class Main {
 			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
-		if (type instanceof JMemberAccess(JExpression child, String name)) {
+		if (type instanceof JMemberAccess(var child, var name)) {
 			final var resolved = resolveExpression(child);
 			if (resolved instanceof JClassType type0) {
-				final var found = type0.resolve(name);
-				return found.orElseGet(() -> new JPlaceholder("Property not present: " + name));
+				return type0.resolve(name).orElseGet(() -> new JPlaceholder("Property not present: " + name));
 			}
 			return new JPlaceholder("Not a structure type: " + resolved);
 		}
