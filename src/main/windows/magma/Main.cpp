@@ -28,6 +28,7 @@ enum CTypeTag {
 	CPlaceholderType,
 	CPointerTypeType,
 	CPrimitiveTypeType,
+	CStructureTypeType,
 	CTemplateTypeType
 };
 union CTypeData {
@@ -35,6 +36,7 @@ union CTypeData {
 	CPlaceholder cplaceholder;
 	CPointerType cpointertype;
 	CPrimitiveType cprimitivetype;
+	CStructureType cstructuretype;
 	CTemplateType ctemplatetype;
 }
 struct CType {
@@ -154,6 +156,15 @@ struct JMemberAccess {
 	char* name;
 };
 struct Frame {
+	Optional<char*> maybeStructureName;
+	List<JDefinition> definitions;
+};
+struct CStructureType {
+	char* name;
+	List<CDefinition> fields;
+};
+struct JClassType {
+	char* name;
 	List<JDefinition> definitions;
 };
 struct Scope {
@@ -227,7 +238,7 @@ CType toCType_CTemplateType(void* _ref){
 }
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
-	/*Undefined identifier: this*/ cTemplateType = this;
+	CTemplateType cTemplateType = this;
 	/*JMemberAccess[child=JIdentifier[input=cTemplateType], name=typeArguments]*/ typeArguments1 = cTemplateType.typeArguments;
 	/*JMemberAccess[child=JIdentifier[input=typeArguments1], name=stream()]*/ stream = typeArguments1.stream();
 	/*JMemberAccess[child=JIdentifier[input=stream], name=map(CType::generate)]*/ stringStream = stream.map(CType::generate);
@@ -368,7 +379,11 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 }
 public Frame_Frame(void* _ref) {
 	Frame _this = *((Frame*) _ref);
-	/*this(new ArrayList<>())*/;
+	/*this(Optional.empty(), new ArrayList<JDefinition>())*/;
+}
+Optional<JClassType> toClassType_Frame(void* _ref) {
+	Frame _this = *((Frame*) _ref);
+	return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definitions));
 }
 void defineAll_Frame(void* _ref, List<JDefinition> definitions) {
 	Frame _this = *((Frame*) _ref);
@@ -378,14 +393,47 @@ void define_Frame(void* _ref, JDefinition definition) {
 	Frame _this = *((Frame*) _ref);
 	/*this.definitions.addLast(definition)*/;
 }
+Frame withStructureName_Frame(void* _ref, char* structureName) {
+	Frame _this = *((Frame*) _ref);
+	return /*new Frame(Optional*/.of(structureName), this.definitions);
+}
+CType toCType_CStructureType(void* _ref){
+	CStructureType _this = *((CStructureType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CStructureTypeType, data };
+}
+char* generate_CStructureType(void* _ref) {
+	CStructureType _this = *((CStructureType*) _ref);
+	return this.name;
+}
+JType toJType_JClassType(void* _ref){
+	JClassType _this = *((JClassType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JClassTypeType, data };
+}
+CType toCType_JClassType(void* _ref) {
+	JClassType _this = *((JClassType*) _ref);
+	return /*new CStructureType(this*/.name,
+																this.definitions.stream().map(definition -> new CDefinition(definition.type.toCType(), definition.name)).toList());
+}
 public Scope_Scope(void* _ref) {
 	Scope _this = *((Scope*) _ref);
-	/*this(new ArrayList<>())*/;
-	/*this.enter()*/;
+	/*this(new ArrayList<Frame>())*/;
+	/*this.frames.addLast(new Frame())*/;
 }
-Optional<JDefinition> resolve_Scope(void* _ref, char* input) {
-	Scope _this = *((Scope*) _ref);
-	return this.frames.stream().map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst()).flatMap(Optional::stream).findFirst();
+Optional<JType> resolveIdentifier_Scope(void* _ref, char* input) {
+	Scope _this = *((Scope*) _ref);/*if (input.equals("this")) {
+				return this.frames
+						.reversed()
+						.stream()
+						.map(Frame::toClassType)
+						.flatMap(Optional::stream)
+						.findFirst()
+						.map(value -> value);
+			}*/
+	return this.frames.reversed().stream().map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst()).flatMap(Optional::stream).map(JDefinition::type).findFirst();
 }
 Scope enter_Scope(void* _ref) {
 	Scope _this = *((Scope*) _ref);
@@ -397,7 +445,7 @@ Scope defineAll_Scope(void* _ref, List<JDefinition> definitions) {
 	/*this.frames.getLast().defineAll(definitions)*/;
 	return this;
 }
-Scope pop_Scope(void* _ref) {
+Scope exit_Scope(void* _ref) {
 	Scope _this = *((Scope*) _ref);
 	/*this.frames.removeLast()*/;
 	return this;
@@ -407,10 +455,18 @@ Scope define_Scope(void* _ref, JDefinition definition) {
 	/*this.frames.getLast().define(definition)*/;
 	return this;
 }
+Scope withStructureName_Scope(void* _ref, char* name) {
+	Scope _this = *((Scope*) _ref);
+	/*this.frames.set(this.frames.size() - 1, this.frames.getLast().withStructureName(name))*/;
+	return this;
+}
+char* getCurrentStructName_Scope(void* _ref) {
+	Scope _this = *((Scope*) _ref);
+	return this.frames.reversed().stream().map(frame -> frame.maybeStructureName).flatMap(Optional::stream).findFirst().orElse("?");
+}
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
-private static final Stack<String> structureNames = new Stack<String> new_private static final Stack<String> structureNames = new Stack<String>();
 new Scope_Main(void* _ref);
 void main_Main(void* _ref, char** args) {
 	Main _this = *((Main*) _ref);
@@ -445,7 +501,7 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 }
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
-	/*scope.enter()*/;
+	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.enter();
 	/*JPlaceholder[input=compileStatements(input, Main::compileRootSegment)]*/ compiled = /*compileStatements(input, Main::compileRootSegment)*/;
 	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", globals)]*/ joinedGlobals = /*Undefined identifier: String*/.join("", globals);
 	/*JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join("", structures)]*/ joinedStructures = /*Undefined identifier: String*/.join("", structures);
@@ -598,13 +654,12 @@ return segments.stream new_return segments.stream();
 								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
-					structureNames.push(beforeContent);
+					scope = scope.enter().withStructureName(beforeContent);
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
-					structureNames.pop();
-
 					structures.add(generated);
+					scope = scope.exit();
 					return Optional.of("");
 				}
 			}
@@ -690,7 +745,7 @@ return segments.stream new_return segments.stream();
 					case JDefinition jDefinition:
 						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
 						outputDefinition =
-								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + structureNames.peek());
+								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
 						break;
 					default:
 						outputDefinition = header.toCDefinition();
@@ -705,13 +760,13 @@ return segments.stream new_return segments.stream();
 
 					scope = scope.enter().defineAll(jParameters).enter();
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope = scope.pop().pop();
+					scope = scope.exit().exit();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
 						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
 					} else if (header instanceof JDefinition) {
-						outputContent = generateDereferenceThis(structureNames.peek()) + compiledContent;
+						outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
 					} else {
 						outputContent = compiledContent;
 					}
@@ -738,7 +793,7 @@ return segments.stream new_return segments.stream();
 			final var list =
 					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 
-			final var name = structureNames.peek();
+			final var name = scope.getCurrentStructName();
 			for (var segment : list) {
 				if (!compileEnumValue(segment, name)) {
 					return Optional.empty();
@@ -792,7 +847,7 @@ return segments.stream new_return segments.stream();
 			return true;
 		}
 
-		return scope.resolve(input).isPresent();
+		return scope.resolveIdentifier(input).isPresent();
 	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
@@ -837,10 +892,7 @@ return segments.stream new_return segments.stream();
 	}*//*private static JType resolveType(JExpression type) {
 		if (type instanceof JIdentifier(String input)) {
 			if (input.equals("this")) {
-				return scope
-						.resolve(input)
-						.map(definition -> definition.type)
-						.orElseGet(() -> new JPlaceholder("Undefined identifier: " + input));
+				return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 			}
 		}
 

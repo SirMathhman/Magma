@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.Stack;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -42,7 +41,8 @@ public class Main {
 
 	private sealed interface Result<T, X> permits Err, Ok {}
 
-	private sealed interface CType permits CIdentifier, CPlaceholder, CPointerType, CPrimitiveType, CTemplateType {
+	private sealed interface CType
+			permits CIdentifier, CPlaceholder, CPointerType, CPrimitiveType, CStructureType, CTemplateType {
 		String generate();
 	}
 
@@ -193,9 +193,13 @@ public class Main {
 		}
 	}
 
-	private record Frame(List<JDefinition> definitions) {
+	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definitions) {
 		public Frame() {
-			this(new ArrayList<JDefinition>());
+			this(Optional.empty(), new ArrayList<JDefinition>());
+		}
+
+		private Optional<JClassType> toClassType() {
+			return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definitions));
 		}
 
 		public void defineAll(List<JDefinition> definitions) {
@@ -205,19 +209,53 @@ public class Main {
 		public void define(JDefinition definition) {
 			this.definitions.addLast(definition);
 		}
+
+		public Frame withStructureName(String structureName) {
+			return new Frame(Optional.of(structureName), this.definitions);
+		}
+	}
+
+	private record CStructureType(String name, List<CDefinition> fields) implements CType {
+		@Override
+		public String generate() {
+			return this.name;
+		}
+	}
+
+	private record JClassType(String name, List<JDefinition> definitions) implements JType {
+		@Override
+		public CType toCType() {
+			return new CStructureType(this.name,
+																this.definitions
+																		.stream()
+																		.map(definition -> new CDefinition(definition.type.toCType(), definition.name))
+																		.toList());
+		}
 	}
 
 	private record Scope(List<Frame> frames) {
 		public Scope() {
 			this(new ArrayList<Frame>());
-			this.enter();
+			this.frames.addLast(new Frame());
 		}
 
-		private Optional<JDefinition> resolve(String input) {
+		private Optional<JType> resolveIdentifier(String input) {
+			if (input.equals("this")) {
+				return this.frames
+						.reversed()
+						.stream()
+						.map(Frame::toClassType)
+						.flatMap(Optional::stream)
+						.findFirst()
+						.map(value -> value);
+			}
+
 			return this.frames
+					.reversed()
 					.stream()
 					.map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst())
 					.flatMap(Optional::stream)
+					.map(JDefinition::type)
 					.findFirst();
 		}
 
@@ -231,7 +269,7 @@ public class Main {
 			return this;
 		}
 
-		public Scope pop() {
+		public Scope exit() {
 			this.frames.removeLast();
 			return this;
 		}
@@ -240,12 +278,26 @@ public class Main {
 			this.frames.getLast().define(definition);
 			return this;
 		}
+
+		public Scope withStructureName(String name) {
+			this.frames.set(this.frames.size() - 1, this.frames.getLast().withStructureName(name));
+			return this;
+		}
+
+		public String getCurrentStructName() {
+			return this.frames
+					.reversed()
+					.stream()
+					.map(frame -> frame.maybeStructureName)
+					.flatMap(Optional::stream)
+					.findFirst()
+					.orElse("?");
+		}
 	}
 
 	public static final List<String> functions = new ArrayList<String>();
 	public static final List<String> structures = new ArrayList<String>();
 	private static final List<String> globals = new ArrayList<String>();
-	private static final Stack<String> structureNames = new Stack<String>();
 	private static Scope scope = new Scope();
 
 	public static void main(String[] args) {
@@ -282,7 +334,7 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		scope.enter();
+		scope = scope.enter();
 
 		final var compiled = compileStatements(input, Main::compileRootSegment);
 		final var joinedGlobals = String.join("", globals);
@@ -440,13 +492,12 @@ public class Main {
 								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
 					}
 
-					structureNames.push(beforeContent);
+					scope = scope.enter().withStructureName(beforeContent);
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
-					structureNames.pop();
-
 					structures.add(generated);
+					scope = scope.exit();
 					return Optional.of("");
 				}
 			}
@@ -544,7 +595,7 @@ public class Main {
 					case JDefinition jDefinition:
 						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
 						outputDefinition =
-								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + structureNames.peek());
+								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
 						break;
 					default:
 						outputDefinition = header.toCDefinition();
@@ -559,13 +610,13 @@ public class Main {
 
 					scope = scope.enter().defineAll(jParameters).enter();
 					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope = scope.pop().pop();
+					scope = scope.exit().exit();
 
 					final String outputContent;
 					if (header instanceof JConstructor(var name)) {
 						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
 					} else if (header instanceof JDefinition) {
-						outputContent = generateDereferenceThis(structureNames.peek()) + compiledContent;
+						outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
 					} else {
 						outputContent = compiledContent;
 					}
@@ -596,7 +647,7 @@ public class Main {
 			final var list =
 					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 
-			final var name = structureNames.peek();
+			final var name = scope.getCurrentStructName();
 			for (var segment : list) {
 				if (!compileEnumValue(segment, name)) {
 					return Optional.empty();
@@ -658,7 +709,7 @@ public class Main {
 			return true;
 		}
 
-		return scope.resolve(input).isPresent();
+		return scope.resolveIdentifier(input).isPresent();
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -711,10 +762,7 @@ public class Main {
 	private static JType resolveType(JExpression type) {
 		if (type instanceof JIdentifier(String input)) {
 			if (input.equals("this")) {
-				return scope
-						.resolve(input)
-						.map(definition -> definition.type)
-						.orElseGet(() -> new JPlaceholder("Undefined identifier: " + input));
+				return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 			}
 		}
 
