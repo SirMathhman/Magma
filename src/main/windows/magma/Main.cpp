@@ -225,6 +225,11 @@ struct CStructureSegmentWrapper {
 struct JClassSegmentWrapper {
 	char* output;
 };
+struct CFunction {
+	CDefinable header;
+	List<CDefinable> cParameters;
+	char* content;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -910,8 +915,14 @@ CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
 	return /*new CStructureSegmentWrapper*/(this.output);
 }
+char* generate_CFunction(void* _ref) {
+	CFunction _this = *((CFunction*) _ref);
+	return this.header(/*).generate() + "(" +
+						 this.cParameters().stream().map(CDefinable::generate).collect(new Collectors.Joiner("*/, /*")) + ")" +
+						 this.content + System.lineSeparator(*/);
+}
 private static List<String> structures = new List<String> new_private static List<String> structures = new List<String>();
-private static List<String> functions = new List<String> new_private static List<String> functions = new List<String>();
+private static List<CFunction> functions = new List<CFunction> new_private static List<CFunction> functions = new List<CFunction>();
 private static List<String> globals = new List<String> new_private static List<String> globals = new List<String>();
 new Scope_Main(void* _ref);
 void main_Main(void* _ref, char** args) {
@@ -951,7 +962,7 @@ char* compile_Main(void* _ref, char* input) {
 	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=Undefined identifier: compileStatements]]*/ compiled = /*Undefined identifier: compileStatements*/(input, /*Main::compileRootSegment*/);
 	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: globals]]]*/ joinedGlobals = /*Undefined identifier: globals*/.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
 	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: structures]]]*/ joinedStructures = /*Undefined identifier: structures*/.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: functions]]]*/ joinedFunctions = /*Undefined identifier: functions*/.stream(/*)*/.collect(/*new Collectors.Joiner(""*/));
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=JPlaceholder[input=Undefined identifier: functions]]]*/ joinedFunctions = /*Undefined identifier: functions*/.stream(/*)*/.map(/*CFunction::generate).collect(new Collectors.Joiner(""*/));
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
@@ -1009,11 +1020,11 @@ return segments.stream new_return segments.stream();
 						beforeContent = beforeContent.substring(0, i2).strip();
 					}
 
-					Optional<String> maybeImplements = Optional.empty();
+					Optional<JType> maybeImplements = Optional.empty();
 					final var i4 = beforeContent.indexOf("implements ");
 					if (i4 >= 0) {
 						final var substring2 = beforeContent.substring(i4 + "implements ".length());
-						maybeImplements = Optional.of(compileTypeToString(substring2.strip()));
+						maybeImplements = Optional.of(parseType(substring2.strip()));
 
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
@@ -1066,16 +1077,22 @@ return segments.stream new_return segments.stream();
 
 					var beforeStruct = "";
 					if (maybeImplements.isPresent()) {
-						final var superType = maybeImplements.get();
-						final var thisType = beforeContent + typeArguments;
-						final var s = generateStatement(superType + "Data data");
-						final var s1 = generateStatement("data.err = this");
-						final var s2 = generateStatement("return " + superType + " { " + beforeContent + "Type, data " + "}");
-						final var content1 = s + s1 + s2;
-						final var generated =
-								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, content1);
+						final var superType = maybeImplements.get().toCType();
+						final var superTypeString = superType.generate();
 
-						functions = functions.addLast(generated);
+						final var thisType = beforeContent + typeArguments;
+						final var s = generateStatement(superTypeString + "Data data");
+						final var s1 = generateStatement("data.err = this");
+						final var s2 = generateStatement("return " + superTypeString + " { " + beforeContent + "Type, data " +
+																						 "}");
+						final var content1 = s + s1 + s2;
+						final var s3 = "to" + superTypeString + "_" + beforeContent;
+						final var outputContent = "{" + generateDereferenceThis(thisType) + content1 + System.lineSeparator() +
+																			"}";
+
+						final var refDef = new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref");
+						functions =
+								functions.addLast(new CFunction(new CDefinition(superType, s3), List.of(refDef), outputContent));
 					}
 
 					var generatedFields = new List<CDefinition>();
@@ -1130,9 +1147,6 @@ return segments.stream new_return segments.stream();
 		}
 
 		return Optional.empty();
-	}*//*private static String generateFunction(String thisType, String returnType, String name, String content) {
-		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
-					 System.lineSeparator() + "}" + System.lineSeparator();
 	}*//*private static String generateDereferenceThis(String thisType) {
 		return generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 	}*//*private static String generateStatement(String content) {
@@ -1146,10 +1160,8 @@ return segments.stream new_return segments.stream();
 
 		return true;
 	}*//*private static String compileClassSegment(String input) {
-		return getString1(input).generate();
-	}*//*private static CStructureSegment getString1(String input) {
-		return getString(input).toCStructureSegment();
-	}*//*private static JClassSegment getString(String input) {
+		return parseClassSegment(input).toCStructureSegment().generate();
+	}*//*private static JClassSegment parseClassSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return new JClassSegmentWrapper("");
@@ -1212,10 +1224,6 @@ return segments.stream new_return segments.stream();
 					outputDefinition = header.toCDefinition();
 				}
 
-				final var joinedParameters =
-						cParameters.stream().map(CDefinable::generate).collect(new Collectors.Joiner(", "));
-				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
-
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
@@ -1232,14 +1240,12 @@ return segments.stream new_return segments.stream();
 						outputContent = compiledContent;
 					}
 
-					final var generated =
-							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+					final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}";
+					functions = functions.addLast(new CFunction(outputDefinition, cParameters, contentWithBraces));
 
-					functions = functions.addLast(generated);
 					return Optional.of(new JClassSegmentWrapper(""));
 				} else {
-					final var generated = headerWithString + ";" + System.lineSeparator();
-					functions = functions.addLast(generated);
+					functions = functions.addLast(new CFunction(outputDefinition, cParameters, ";"));
 					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}

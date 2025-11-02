@@ -703,8 +703,16 @@ public class Main {
 		}
 	}
 
+	private record CFunction(CDefinable header, List<CDefinable> cParameters, String content) {
+		private String generate() {
+			return this.header().generate() + "(" +
+						 this.cParameters().stream().map(CDefinable::generate).collect(new Collectors.Joiner(", ")) + ")" +
+						 this.content + System.lineSeparator();
+		}
+	}
+
 	private static List<String> structures = new List<String>();
-	private static List<String> functions = new List<String>();
+	private static List<CFunction> functions = new List<CFunction>();
 	private static List<String> globals = new List<String>();
 	private static Scope scope = new Scope();
 
@@ -747,7 +755,7 @@ public class Main {
 		final var compiled = compileStatements(input, Main::compileRootSegment);
 		final var joinedGlobals = globals.stream().collect(new Collectors.Joiner(""));
 		final var joinedStructures = structures.stream().collect(new Collectors.Joiner(""));
-		final var joinedFunctions = functions.stream().collect(new Collectors.Joiner(""));
+		final var joinedFunctions = functions.stream().map(CFunction::generate).collect(new Collectors.Joiner(""));
 		return joinedGlobals + joinedStructures + joinedFunctions + compiled;
 	}
 
@@ -809,11 +817,11 @@ public class Main {
 						beforeContent = beforeContent.substring(0, i2).strip();
 					}
 
-					Optional<String> maybeImplements = Optional.empty();
+					Optional<JType> maybeImplements = Optional.empty();
 					final var i4 = beforeContent.indexOf("implements ");
 					if (i4 >= 0) {
 						final var substring2 = beforeContent.substring(i4 + "implements ".length());
-						maybeImplements = Optional.of(compileTypeToString(substring2.strip()));
+						maybeImplements = Optional.of(parseType(substring2.strip()));
 
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
@@ -866,16 +874,22 @@ public class Main {
 
 					var beforeStruct = "";
 					if (maybeImplements.isPresent()) {
-						final var superType = maybeImplements.get();
-						final var thisType = beforeContent + typeArguments;
-						final var s = generateStatement(superType + "Data data");
-						final var s1 = generateStatement("data.err = this");
-						final var s2 = generateStatement("return " + superType + " { " + beforeContent + "Type, data " + "}");
-						final var content1 = s + s1 + s2;
-						final var generated =
-								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, content1);
+						final var superType = maybeImplements.get().toCType();
+						final var superTypeString = superType.generate();
 
-						functions = functions.addLast(generated);
+						final var thisType = beforeContent + typeArguments;
+						final var s = generateStatement(superTypeString + "Data data");
+						final var s1 = generateStatement("data.err = this");
+						final var s2 = generateStatement("return " + superTypeString + " { " + beforeContent + "Type, data " +
+																						 "}");
+						final var content1 = s + s1 + s2;
+						final var s3 = "to" + superTypeString + "_" + beforeContent;
+						final var outputContent = "{" + generateDereferenceThis(thisType) + content1 + System.lineSeparator() +
+																			"}";
+
+						final var refDef = new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref");
+						functions =
+								functions.addLast(new CFunction(new CDefinition(superType, s3), List.of(refDef), outputContent));
 					}
 
 					var generatedFields = new List<CDefinition>();
@@ -930,11 +944,6 @@ public class Main {
 		}
 
 		return Optional.empty();
-	}
-
-	private static String generateFunction(String thisType, String returnType, String name, String content) {
-		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
-					 System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
 	private static String generateDereferenceThis(String thisType) {
@@ -1024,10 +1033,6 @@ public class Main {
 					outputDefinition = header.toCDefinition();
 				}
 
-				final var joinedParameters =
-						cParameters.stream().map(CDefinable::generate).collect(new Collectors.Joiner(", "));
-				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
-
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
 
@@ -1044,14 +1049,12 @@ public class Main {
 						outputContent = compiledContent;
 					}
 
-					final var generated =
-							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+					final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}";
+					functions = functions.addLast(new CFunction(outputDefinition, cParameters, contentWithBraces));
 
-					functions = functions.addLast(generated);
 					return Optional.of(new JClassSegmentWrapper(""));
 				} else {
-					final var generated = headerWithString + ";" + System.lineSeparator();
-					functions = functions.addLast(generated);
+					functions = functions.addLast(new CFunction(outputDefinition, cParameters, ";"));
 					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
