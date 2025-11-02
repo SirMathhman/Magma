@@ -6,7 +6,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
@@ -192,22 +194,23 @@ public class Main {
 		}
 	}
 
-	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definitions) {
+	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definedExpressions,
+											 Map<String, JType> definedTypes) {
 		public Frame() {
-			this(Optional.empty(), new ArrayList<JDefinition>());
+			this(Optional.empty(), new ArrayList<JDefinition>(), new HashMap<String, JType>());
 		}
 
 		private Optional<JClassType> toClassType() {
-			return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definitions));
+			return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definedExpressions));
 		}
 
-		public void defineAll(List<JDefinition> definitions) {
-			definitions.forEach(this::define);
+		public void defineAllExpressions(List<JDefinition> definitions) {
+			definitions.forEach(this::defineExpression);
 		}
 
-		public void define(JDefinition definition) {
+		public void defineExpression(JDefinition definition) {
 			assert !this.isVar(definition);
-			this.definitions.addLast(definition);
+			this.definedExpressions.addLast(definition);
 		}
 
 		private boolean isVar(JDefinition definition) {
@@ -216,7 +219,11 @@ public class Main {
 		}
 
 		public Frame withStructureName(String structureName) {
-			return new Frame(Optional.of(structureName), this.definitions);
+			return new Frame(Optional.of(structureName), this.definedExpressions, this.definedTypes);
+		}
+
+		public Optional<JType> resolveType(String key) {
+			return Optional.ofNullable(this.definedTypes.get(key));
 		}
 	}
 
@@ -252,7 +259,7 @@ public class Main {
 			this.frames.addLast(new Frame());
 		}
 
-		private Optional<JType> resolveIdentifier(String input) {
+		private Optional<JType> resolveExpression(String input) {
 			if (input.equals("this")) {
 				return this.frames
 						.reversed()
@@ -266,10 +273,33 @@ public class Main {
 			return this.frames
 					.reversed()
 					.stream()
-					.map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst())
+					.map(frame -> frame.definedExpressions
+							.stream()
+							.filter(definition -> definition.name.equals(input))
+							.findFirst())
 					.flatMap(Optional::stream)
 					.map(JDefinition::type)
-					.findFirst();
+					.findFirst()
+					.map(this::finalizeType);
+		}
+
+		private JType finalizeType(JType type) {
+			if (type instanceof JGenericType(String base, List<JType> typeArguments)) {
+				final var maybeResolved = scope.resolveType(base);
+				if (maybeResolved.isPresent()) {
+					final var jType = maybeResolved.get();
+					if (jType instanceof JClassType classType) {
+					}
+				} else {
+					return new JPlaceholder("Unknown base generic type: " + base);
+				}
+			}
+
+			return type;
+		}
+
+		private Optional<JType> resolveType(String key) {
+			return this.frames.reversed().stream().map(frame -> frame.resolveType(key)).flatMap(Optional::stream).findFirst();
 		}
 
 		public Scope enter() {
@@ -278,7 +308,7 @@ public class Main {
 		}
 
 		public Scope defineAll(List<JDefinition> definitions) {
-			this.frames.getLast().defineAll(definitions);
+			this.frames.getLast().defineAllExpressions(definitions);
 			return this;
 		}
 
@@ -288,7 +318,7 @@ public class Main {
 		}
 
 		public Scope define(JDefinition definition) {
-			this.frames.getLast().define(definition);
+			this.frames.getLast().defineExpression(definition);
 			return this;
 		}
 
@@ -780,7 +810,7 @@ public class Main {
 			return true;
 		}
 
-		return scope.resolveIdentifier(input).isPresent();
+		return scope.resolveExpression(input).isPresent();
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -832,7 +862,7 @@ public class Main {
 
 	private static JType resolveExpression(JExpression expression) {
 		if (expression instanceof JIdentifier(var input)) {
-			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+			return scope.resolveExpression(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
 		if (expression instanceof JMemberAccess(var child, var name)) {
