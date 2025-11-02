@@ -849,7 +849,7 @@ public class Main {
 			if (callerType instanceof JMethodType methodType) {
 				return methodType.returnType;
 			} else {
-				return new JPlaceholder("Failed to resolve caller: " + caller);
+				return new JPlaceholder("Failed to resolve caller: " + callerType);
 			}
 		}
 
