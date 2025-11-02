@@ -6,19 +6,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.BiFunction;
+import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Main {
 	private enum JPrimitiveType implements JType {
-		Char(CPrimitiveType.Char), Void(CPrimitiveType.Void), String(new CPointerType(CPrimitiveType.Char));
+		Void(CPrimitiveType.Void), String(new CPointerType(CPrimitiveType.Char));
 
 		private final CType cType;
 
@@ -62,7 +61,7 @@ public class Main {
 		CType toCType();
 
 		default List<String> findTypeParameters() {
-			return Collections.emptyList();
+			return new List<String>();
 		}
 
 		default JType remap(Map<String, JType> mapping) {
@@ -76,6 +75,227 @@ public class Main {
 
 	private sealed interface CExpression permits CFieldAccess, CIdentifier, CInvocation, CPlaceholder {
 		String generate();
+	}
+
+	private interface Head<T> {
+		Optional<T> next();
+	}
+
+	private interface Collector<T, C> {
+		C createInitial();
+
+		C fold(C current, T element);
+	}
+
+	private record Stream<T>(Head<T> head) {
+		private record MapHead<T, R>(Head<T> head, Function<T, R> mapper) implements Head<R> {
+			@Override
+			public Optional<R> next() {
+				return this.head.next().map(this.mapper);
+			}
+		}
+
+		private static class ListCollector<T> implements Collector<T, List<T>> {
+			@Override
+			public List<T> createInitial() {
+				return new List<T>();
+			}
+
+			@Override
+			public List<T> fold(List<T> current, T element) {
+				return current.addLast(element);
+			}
+		}
+
+		private static class SingleHead<T> implements Head<T> {
+			private final T element;
+			private boolean retrieved = false;
+
+			public SingleHead(T element) {
+				this.element = element;
+			}
+
+			@Override
+			public Optional<T> next() {
+				if (this.retrieved) {
+					return Optional.empty();
+				}
+
+				this.retrieved = true;
+				return Optional.of(this.element);
+			}
+		}
+
+		private static class EmptyHead<T> implements Head<T> {
+			@Override
+			public Optional<T> next() {
+				return Optional.empty();
+			}
+		}
+
+		private static class FlatMapHead<T, R> implements Head<R> {
+			private final Head<T> head;
+			private final Function<T, Stream<R>> mapper;
+			private Stream<R> current;
+
+			public FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
+				this.head = head;
+				this.mapper = mapper;
+				this.current = head.next().map(mapper).orElseGet(() -> new Stream<R>(new EmptyHead<R>()));
+			}
+
+			@Override
+			public Optional<R> next() {
+				while (true) {
+					final var maybeNext = this.current.next();
+					if (maybeNext.isPresent()) {
+						return maybeNext;
+					}
+
+					final var nextHead = this.head.next();
+					if (nextHead.isEmpty()) {
+						return Optional.empty();
+					}
+
+					this.current = this.mapper.apply(nextHead.get());
+				}
+			}
+		}
+
+		public static <T> Stream<T> fromOptional(Optional<T> optional) {
+			return new Stream<T>(optional.<Head<T>>map(SingleHead::new).orElseGet(EmptyHead::new));
+		}
+
+		public static <T> Stream<T> fromArray(T[] array) {
+			return new Stream<Integer>(new LengthHead(array.length)).map(index -> array[index]);
+		}
+
+		public Stream<T> concat(Stream<T> second) {
+			return new Stream<T>(() -> this.next().or(second::next));
+		}
+
+		private Optional<T> next() {
+			return this.head.next();
+		}
+
+		public <R> Stream<R> map(Function<T, R> mapper) {
+			return new Stream<R>(new MapHead<T, R>(this.head, mapper));
+		}
+
+		public <C> C collect(Collector<T, C> collector) {
+			return this.fold(collector.createInitial(), collector::fold);
+		}
+
+		public <R> R fold(R initial, BiFunction<R, T, R> folder) {
+			var current = initial;
+			while (true) {
+				final var maybeNext = this.head.next();
+				if (maybeNext.isPresent()) {
+					final var next = maybeNext.get();
+					current = folder.apply(current, next);
+				} else {
+					return current;
+				}
+			}
+		}
+
+		public List<T> toList() {
+			return this.collect(new ListCollector<T>());
+		}
+
+		public Stream<T> filter(Predicate<T> predicate) {
+			return this.flatMap(element -> {
+				if (predicate.test(element)) {
+					return new Stream<T>(new SingleHead<T>(element));
+				}
+				return new Stream<T>(new EmptyHead<T>());
+			});
+		}
+
+		private <R> Stream<R> flatMap(Function<T, Stream<R>> mapper) {
+			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		}
+
+		public Optional<T> findFirst() {
+			return this.head.next();
+		}
+	}
+
+	private static final class LengthHead implements Head<Integer> {
+		private final int length;
+		private int counter = 0;
+
+		public LengthHead(int length) {this.length = length;}
+
+		@Override
+		public Optional<Integer> next() {
+			if (this.counter < this.length) {
+				final var value = this.counter;
+				this.counter++;
+				return Optional.of(value);
+			} else {
+				return Optional.empty();
+			}
+		}
+	}
+
+	private record List<T>(java.util.List<T> nativeList) {
+		public List() {
+			this(new ArrayList<T>());
+		}
+
+		@SafeVarargs
+		public static <T> List<T> of(T... elements) {
+			return new List<T>(new ArrayList<T>(Arrays.asList(elements)));
+		}
+
+		public void forEach(Consumer<T> consumer) {
+			this.nativeList.forEach(consumer);
+		}
+
+		public Stream<T> stream() {
+			return new Stream<Integer>(new LengthHead(this.nativeList.size())).map(this.nativeList::get);
+		}
+
+		public List<T> addLast(T definition) {
+			this.nativeList.addLast(definition);
+			return this;
+		}
+
+		public List<T> reversed() {
+			return new List<T>(this.nativeList.reversed());
+		}
+
+		public int size() {
+			return this.nativeList.size();
+		}
+
+		public T get(int index) {
+			return this.nativeList.get(index);
+		}
+
+		public T getLast() {
+			return this.nativeList.getLast();
+		}
+
+		public List<T> removeLast() {
+			this.nativeList.removeLast();
+			return this;
+		}
+
+		public List<T> set(int index, T element) {
+			this.nativeList.set(index, element);
+			return this;
+		}
+
+		public boolean isEmpty() {
+			return this.nativeList.isEmpty();
+		}
+
+		public List<T> addFirst(T element) {
+			this.nativeList.addFirst(element);
+			return this;
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -96,8 +316,29 @@ public class Main {
 			final var typeArguments1 = cTemplateType.typeArguments;
 			final var stream = typeArguments1.stream();
 			final var stringStream = stream.map(CType::generate);
-			final var joined = stringStream.collect(Collectors.joining(", "));
+			final var joined = stringStream.collect(new Collectors.Joiner(", "));
 			return this.base + "<" + joined + ">";
+		}
+	}
+
+	static class Collectors {
+		private static class Joiner implements Collector<String, String> {
+			private final String delimiter;
+
+			public Joiner(String delimiter) {this.delimiter = delimiter;}
+
+			@Override
+			public String createInitial() {
+				return "";
+			}
+
+			@Override
+			public String fold(String current, String element) {
+				if (current.isEmpty()) {
+					return element;
+				}
+				return current + this.delimiter + element;
+			}
 		}
 	}
 
@@ -203,10 +444,21 @@ public class Main {
 		}
 	}
 
-	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definedMembers,
-											 Map<String, JType> definedTypes) {
+	private static final class Frame {
+		private final Optional<String> maybeStructureName;
+		private final Map<String, JType> definedTypes;
+		private List<JDefinition> definedMembers;
+
+		private Frame(Optional<String> maybeStructureName,
+									List<JDefinition> definedMembers,
+									Map<String, JType> definedTypes) {
+			this.maybeStructureName = maybeStructureName;
+			this.definedMembers = definedMembers;
+			this.definedTypes = definedTypes;
+		}
+
 		public Frame() {
-			this(Optional.empty(), new ArrayList<JDefinition>(), new HashMap<String, JType>());
+			this(Optional.empty(), new List<JDefinition>(), new HashMap<String, JType>());
 		}
 
 		private Optional<JClassType> toClassType() {
@@ -219,7 +471,7 @@ public class Main {
 
 		public void defineExpression(JDefinition definition) {
 			assert !this.isVar(definition);
-			this.definedMembers.addLast(definition);
+			this.definedMembers = this.definedMembers.addLast(definition);
 		}
 
 		private boolean isVar(JDefinition definition) {
@@ -262,10 +514,13 @@ public class Main {
 		}
 	}
 
-	private record Scope(List<Frame> frames) {
+	private static final class Scope {
+		private List<Frame> frames;
+
+		private Scope(List<Frame> frames) {this.frames = frames;}
+
 		public Scope() {
-			this(new ArrayList<Frame>());
-			this.frames.addLast(new Frame());
+			this(new List<Frame>().addLast(new Frame()));
 		}
 
 		private Optional<JType> resolveExpression(String input) {
@@ -274,7 +529,7 @@ public class Main {
 						.reversed()
 						.stream()
 						.map(Frame::toClassType)
-						.flatMap(Optional::stream)
+						.flatMap(Stream::fromOptional)
 						.findFirst()
 						.map(value -> value);
 			}
@@ -283,7 +538,7 @@ public class Main {
 					.reversed()
 					.stream()
 					.map(frame -> frame.definedMembers.stream().filter(definition -> definition.name.equals(input)).findFirst())
-					.flatMap(Optional::stream)
+					.flatMap(Stream::fromOptional)
 					.map(JDefinition::type)
 					.findFirst()
 					.map(this::finalizeType);
@@ -316,11 +571,16 @@ public class Main {
 		}
 
 		private Optional<JType> resolveType(String key) {
-			return this.frames.reversed().stream().map(frame -> frame.resolveType(key)).flatMap(Optional::stream).findFirst();
+			return this.frames
+					.reversed()
+					.stream()
+					.map(frame -> frame.resolveType(key))
+					.flatMap(Stream::fromOptional)
+					.findFirst();
 		}
 
 		public Scope enter() {
-			this.frames.addLast(new Frame());
+			this.frames = this.frames.addLast(new Frame());
 			return this;
 		}
 
@@ -330,7 +590,7 @@ public class Main {
 		}
 
 		public Scope exit() {
-			this.frames.removeLast();
+			this.frames = this.frames.removeLast();
 			return this;
 		}
 
@@ -340,7 +600,7 @@ public class Main {
 		}
 
 		public Scope withStructureName(String name) {
-			this.frames.set(this.frames.size() - 1, this.frames.getLast().withStructureName(name));
+			this.frames = this.frames.set(this.frames.size() - 1, this.frames.getLast().withStructureName(name));
 			return this;
 		}
 
@@ -349,7 +609,7 @@ public class Main {
 					.reversed()
 					.stream()
 					.map(frame -> frame.maybeStructureName)
-					.flatMap(Optional::stream)
+					.flatMap(Stream::fromOptional)
 					.findFirst()
 					.orElse("?");
 		}
@@ -358,7 +618,7 @@ public class Main {
 	private record CInvocation(CExpression cExpression, List<CExpression> arguments) implements CExpression {
 		@Override
 		public String generate() {
-			final var joined = this.arguments.stream().map(CExpression::generate).collect(Collectors.joining(", "));
+			final var joined = this.arguments.stream().map(CExpression::generate).collect(new Collectors.Joiner(", "));
 			return this.cExpression.generate() + "(" + joined + ")";
 		}
 	}
@@ -374,7 +634,8 @@ public class Main {
 	private record CFunctionType(CType returnType, List<CType> paramTypes) implements CType {
 		@Override
 		public String generate() {
-			final var joinedParameterTypes = this.paramTypes.stream().map(CType::generate).collect(Collectors.joining(", "));
+			final var joinedParameterTypes =
+					this.paramTypes.stream().map(CType::generate).collect(new Collectors.Joiner(", "));
 			return this.returnType.generate() + " (*)(" + joinedParameterTypes + ")";
 		}
 	}
@@ -386,9 +647,21 @@ public class Main {
 		}
 	}
 
-	public static final List<String> functions = new ArrayList<String>();
-	public static final List<String> structures = new ArrayList<String>();
-	private static final List<String> globals = new ArrayList<String>();
+	private record AllMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+		@Override
+		public Boolean createInitial() {
+			return true;
+		}
+
+		@Override
+		public Boolean fold(Boolean current, T element) {
+			return current && this.predicate.test(element);
+		}
+	}
+
+	private static List<String> structures = new List<String>();
+	private static List<String> functions = new List<String>();
+	private static List<String> globals = new List<String>();
 	private static Scope scope = new Scope();
 
 	public static void main(String[] args) {
@@ -428,24 +701,24 @@ public class Main {
 		scope = scope.enter();
 
 		final var compiled = compileStatements(input, Main::compileRootSegment);
-		final var joinedGlobals = String.join("", globals);
-		final var joinedStructures = String.join("", structures);
-		final var joinedFunctions = String.join("", functions);
+		final var joinedGlobals = globals.stream().collect(new Collectors.Joiner(""));
+		final var joinedStructures = structures.stream().collect(new Collectors.Joiner(""));
+		final var joinedFunctions = functions.stream().collect(new Collectors.Joiner(""));
 		return joinedGlobals + joinedStructures + joinedFunctions + compiled;
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		final var segments = new ArrayList<String>();
+		var segments = new List<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
+				segments = segments.addLast(buffer.toString());
 				buffer = new StringBuilder();
 			} else if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
+				segments = segments.addLast(buffer.toString());
 				buffer = new StringBuilder();
 				depth--;
 			} else if (c == '{') {
@@ -454,9 +727,9 @@ public class Main {
 				depth--;
 			}
 		}
-		segments.add(buffer.toString());
+		segments = segments.addLast(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return segments.stream().map(mapper).collect(new Collectors.Joiner(null));
 	}
 
 	private static String compileRootSegment(String input) {
@@ -480,11 +753,11 @@ public class Main {
 					final var content = substring1.substring(i1 + 1).strip();
 
 					final var i2 = beforeContent.indexOf("permits");
-					List<String> variants = new ArrayList<String>();
+					var variants = new List<String>();
 					if (i2 >= 0) {
 						final var stripped1 = beforeContent.substring(i2 + "permits".length()).strip().split(Pattern.quote(","));
 
-						variants = Arrays.stream(stripped1).map(String::strip).filter(segment -> !segment.isEmpty()).toList();
+						variants = Stream.fromArray(stripped1).map(String::strip).filter(segment -> !segment.isEmpty()).toList();
 
 						beforeContent = beforeContent.substring(0, i2).strip();
 					}
@@ -498,31 +771,32 @@ public class Main {
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					List<JDefinition> recordFields = new ArrayList<JDefinition>();
+					var recordFields = new List<JDefinition>();
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							recordFields = Arrays
-									.stream(substring4.split(Pattern.quote(",")))
+							recordFields = Stream
+									.fromArray(substring4.split(Pattern.quote(",")))
 									.map(String::strip)
 									.filter(slice -> !slice.isEmpty())
 									.map(Main::parseDefinition)
-									.flatMap(Optional::stream)
+									.flatMap(Stream::fromOptional)
 									.toList();
 
 							beforeContent = substring2.substring(0, i3);
 						}
 					}
 
-					List<String> typeParameters = new ArrayList<String>();
+					var typeParameters = new List<String>();
 					if (beforeContent.endsWith(">")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("<");
 						if (i3 >= 0) {
 							final var substring3 = substring2.substring(i3 + 1).strip().split(Pattern.quote(","));
-							typeParameters = Arrays.stream(substring3).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+							typeParameters =
+									Stream.fromArray(substring3).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 
 							beforeContent = beforeContent.substring(0, i3).strip();
 						}
@@ -531,7 +805,7 @@ public class Main {
 					var templateString = "";
 					if (!typeParameters.isEmpty()) {
 						final var joined =
-								typeParameters.stream().map(slice -> "typename " + slice).collect(Collectors.joining(", "));
+								typeParameters.stream().map(slice -> "typename " + slice).collect(new Collectors.Joiner(", "));
 
 						templateString = "template <" + joined + ">" + System.lineSeparator();
 					}
@@ -540,28 +814,29 @@ public class Main {
 					if (typeParameters.isEmpty()) {
 						typeArguments = "";
 					} else {
-						typeArguments = "<" + String.join(", ", typeParameters) + ">";
+						typeArguments = "<" + typeParameters.stream().collect(new Collectors.Joiner(", ")) + ">";
 					}
 
 					var beforeStruct = "";
 					if (maybeImplements.isPresent()) {
 						final var superType = maybeImplements.get();
 						final var thisType = beforeContent + typeArguments;
-						functions.add(generateFunction(thisType,
-																					 superType,
-																					 "to" + superType + "_" + beforeContent,
-																					 "void* _ref",
-																					 generateStatement(superType + "Data data") +
-																					 generateStatement("data.err = this") + generateStatement(
-																							 "return " + superType + " { " + beforeContent + "Type, data }")));
+						final var s = generateStatement(superType + "Data data");
+						final var s1 = generateStatement("data.err = this");
+						final var s2 = generateStatement("return " + superType + " { " + beforeContent + "Type, data " + "}");
+						final var content1 = s + s1 + s2;
+						final var generated =
+								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, "void* _ref", content1);
+
+						functions = functions.addLast(generated);
 					}
 
-					List<CDefinition> generatedFields = new ArrayList<CDefinition>();
+					var generatedFields = new List<CDefinition>();
 					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + "Type")
-								.collect(Collectors.joining(","));
+								.collect(new Collectors.Joiner(","));
 
 						final var tagType = beforeContent + "Tag";
 						final var generatedEnum =
@@ -571,7 +846,7 @@ public class Main {
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() +
 																";")
-								.collect(Collectors.joining());
+								.collect(new Collectors.Joiner(null));
 
 						final var unionType = beforeContent + "Data";
 						final var generatedUnion =
@@ -587,16 +862,16 @@ public class Main {
 					scope = scope.enter().withStructureName(beforeContent).defineAll(recordFields);
 
 					final var recordFieldsStream = recordFields.stream().map(JDefinition::toCDefinition);
-					final var structureFields = Stream
-							.concat(recordFieldsStream, generatedFields.stream())
+					final var structureFields = recordFieldsStream
+							.concat(generatedFields.stream().map(item -> item))
 							.map(CDefinable::generate)
 							.map(Main::generateStatement)
-							.collect(Collectors.joining());
+							.collect(new Collectors.Joiner(null));
 
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
-					structures.add(generated);
+					structures = structures.addLast(generated);
 					scope = scope.exit();
 					return Optional.of("");
 				}
@@ -679,30 +954,27 @@ public class Main {
 						.or(() -> parseConstructor(substring))
 						.orElseGet(() -> new JPlaceholder(substring));
 
-				final var jParameters = Arrays
-						.stream(paramString.split(Pattern.quote(",")))
+				final var jParameters = Stream
+						.fromArray(paramString.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.map(Main::parseDefinition)
-						.flatMap(Optional::stream)
+						.flatMap(Stream::fromOptional)
 						.toList();
 
-				final var cParameters =
-						new ArrayList<CDefinable>(jParameters.stream().map(JDefinition::toCDefinition).toList());
+				var cParameters = jParameters.stream().map(JDefinition::toCDefinition).toList();
 
 				CDefinable outputDefinition;
-				switch (header) {
-					case JDefinition jDefinition:
-						cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
-						outputDefinition =
-								new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
-						break;
-					default:
-						outputDefinition = header.toCDefinition();
-						break;
+				if (header instanceof JDefinition jDefinition) {
+					cParameters = cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+					outputDefinition =
+							new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
+				} else {
+					outputDefinition = header.toCDefinition();
 				}
 
-				final var joinedParameters = cParameters.stream().map(CDefinable::generate).collect(Collectors.joining(", "));
+				final var joinedParameters =
+						cParameters.stream().map(CDefinable::generate).collect(new Collectors.Joiner(", "));
 				final var headerWithString = outputDefinition.generate() + "(" + joinedParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -724,11 +996,11 @@ public class Main {
 					final var generated =
 							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
-					functions.add(generated);
+					functions = functions.addLast(generated);
 					return Optional.of("");
 				} else {
 					final var generated = headerWithString + ";" + System.lineSeparator();
-					functions.add(generated);
+					functions = functions.addLast(generated);
 					return Optional.of("");
 				}
 			}
@@ -744,16 +1016,16 @@ public class Main {
 
 	private static Optional<String> compileClassStatement(String input) {
 		return compileDefinition(input).map(Main::generateStatement).or(() -> {
-			final var list =
-					Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+			final var enumValues = Stream
+					.fromArray(input.split(Pattern.quote(",")))
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.toList();
 
 			final var name = scope.getCurrentStructName();
-			for (var segment : list) {
-				if (!compileEnumValue(segment, name)) {
-					return Optional.empty();
-				}
+			if (!enumValues.stream().collect(new AllMatch<String>(segment -> compileEnumValue(segment, name)))) {
+				return Optional.empty();
 			}
-
 			return Optional.of("");
 		});
 	}
@@ -769,8 +1041,8 @@ public class Main {
 				final var substring2 = substring.substring(i + 1);
 
 				if (isIdentifier(memberName)) {
-					globals.add(enumName + " " + enumName + "_" + memberName + " = new_" + enumName + "(" +
-											compileExpression(substring2) + ");" + System.lineSeparator());
+					globals = globals.addLast(enumName + " " + enumName + "_" + memberName + " = new_" + enumName + "(" +
+																		compileExpression(substring2) + ");" + System.lineSeparator());
 					return true;
 				}
 			}
@@ -808,8 +1080,8 @@ public class Main {
 			final var i1 = slice.indexOf("(");
 			if (i1 >= 0) {
 				final var substring = slice.substring(0, i1);
-				final var arguments = Arrays
-						.stream(slice.substring(i1 + 1).split(Pattern.quote(",")))
+				final var arguments = Stream
+						.fromArray(slice.substring(i1 + 1).split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(segment -> !segment.isEmpty())
 						.map(Main::parseExpression)
@@ -954,8 +1226,8 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var typeArgumentsArray = substring.substring(i + 1).split(Pattern.quote(","));
 
-				final var typeArguments = Arrays
-						.stream(typeArgumentsArray)
+				final var typeArguments = Stream
+						.fromArray(typeArgumentsArray)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.map(Main::parseType)
