@@ -300,6 +300,7 @@ C createInitial_Collector(void* _ref);
 C fold_Collector(void* _ref, C current, T element);
 CStructureSegment toCStructureSegment_JClassSegment(void* _ref);
 JClassSegment complete_JIncompleteClassSegment(void* _ref);
+Optional<JDefinition> createDefinition_JIncompleteClassSegment(void* _ref);
 char* generate_CStructureSegment(void* _ref);
 Stream<T> fromOptional_Stream(void* _ref, Optional<T> optional) {
 	Stream _this = *((Stream*) _ref);
@@ -419,6 +420,10 @@ List<T> mapLast_List(void* _ref, /*T>*/ mapper) {
 	/*this.nativeList.set(this.nativeList.size() - 1, mapper.apply(this.nativeList.getLast()))*/;
 	return this;
 }
+List<T> addAllLast_List(void* _ref, List<T> others) {
+	List _this = *((List*) _ref);
+	return others.stream(/*).fold(this*/, /*List::addLast*/);
+}
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -537,6 +542,10 @@ JClassSegment complete_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new JPlaceholder*/(this.input);
 }
+Optional<JDefinition> createDefinition_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	return /*Undefined identifier: Optional*/.empty();
+}
 CStructureSegment toCStructureSegment_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder*/(this.input);
@@ -622,6 +631,10 @@ Optional<JType> resolve_JClassType(void* _ref, char* name) {
 					.filter(definition -> definition.name.equals(name))
 					.map(definition -> definition.type)
 					.findFirst(*/);
+}
+JClassType attachMembers_JClassType(void* _ref, List<JDefinition> otherMembers) {
+	JClassType _this = *((JClassType*) _ref);
+	return /*new JClassType*/(this.name, this.members.addAllLast(otherMembers));
 }
 CExpression toCExpression_CInvocation(void* _ref){
 	CInvocation _this = *((CInvocation*) _ref);
@@ -709,6 +722,10 @@ JClassSegment complete_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
 	return /*new JClassSegmentWrapper*/(this.output);
 }
+Optional<JDefinition> createDefinition_JClassSegmentWrapper(void* _ref) {
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	return /*Undefined identifier: Optional*/.empty();
+}
 CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
 	return /*new CStructureSegmentWrapper*/(this.output);
@@ -730,6 +747,14 @@ JClassSegment complete_JIncompleteMethod(void* _ref) {
 	/*Failed to resolve caller: JPlaceholder[input=Property not present: completeWithParameters]*/ function = this.completeWithParameters();
 	/*Undefined identifier: functions*/ = /*Undefined identifier: functions*/.addLast(function);
 	return /*new JClassSegmentWrapper*/(/*""*/);
+}
+Optional<JDefinition> createDefinition_JIncompleteMethod(void* _ref) {
+	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=JDefinition]]]]]*/ parameterTypes = this.parameters.stream(/*).map(definition -> definition.type).toList(*/);/*if (this.header instanceof JDefinition definition) {
+				return Optional.of(definition.mapType(type -> new JMethodType(type, parameterTypes)));
+			}*//*else {
+				return Optional.empty();
+			}*/
 }
 CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
@@ -845,7 +870,7 @@ CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 
 		private Optional<JType> resolveExpression(String input) {
 			if (input.equals("this")) {
-				return this.getThisType();
+				return this.getThisType().map(type -> type);
 			}*/
 	return this.frames.reversed(/*)
 					.stream()
@@ -856,7 +881,7 @@ CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
 					.map(this::finalizeType*/);
 	/*}
 
-		private Optional<JType> getThisType() {
+		private Optional<JClassType> getThisType() {
 			return this.frames
 					.reversed()
 					.stream()
@@ -1205,8 +1230,15 @@ return segments.stream new_return segments.stream();
 							.collect(new Collectors.Joiner(""));
 
 					final var inputSegments = divide(content).map(Main::parseClassSegment).toList();
+					final var incompleteSegments = inputSegments.stream().toList();
 
-					final var outputContent = inputSegments
+					final var methodDefinitions = inputSegments
+							.stream()
+							.map(JIncompleteClassSegment::createDefinition)
+							.flatMap(Stream::fromOptional)
+							.toList();
+
+					final var outputContent = incompleteSegments
 							.stream()
 							.map(JIncompleteClassSegment::complete)
 							.map(JClassSegment::toCStructureSegment)
@@ -1219,9 +1251,12 @@ return segments.stream new_return segments.stream();
 
 					structures = structures.addLast(generated);
 
-					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
-					scope = scope.exit().defineType(beforeContent, thisType);
+					final var thisType = scope
+							.getThisType()
+							.<JType>map(classType -> classType.attachMembers(methodDefinitions))
+							.orElse(JPrimitiveType.Void);
 
+					scope = scope.exit().defineType(beforeContent, thisType);
 					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}

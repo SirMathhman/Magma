@@ -93,6 +93,8 @@ public class Main {
 
 	private sealed interface JIncompleteClassSegment permits JClassSegmentWrapper, JIncompleteMethod, JPlaceholder {
 		JClassSegment complete();
+
+		Optional<JDefinition> createDefinition();
 	}
 
 	private interface CStructureSegment {
@@ -239,6 +241,10 @@ public class Main {
 			this.nativeList.set(this.nativeList.size() - 1, mapper.apply(this.nativeList.getLast()));
 			return this;
 		}
+
+		public List<T> addAllLast(List<T> others) {
+			return others.stream().fold(this, List::addLast);
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -348,6 +354,11 @@ public class Main {
 		@Override
 		public JClassSegment complete() {
 			return new JPlaceholder(this.input);
+		}
+
+		@Override
+		public Optional<JDefinition> createDefinition() {
+			return Optional.empty();
 		}
 
 		@Override
@@ -469,6 +480,10 @@ public class Main {
 					.map(definition -> definition.type)
 					.findFirst();
 		}
+
+		public JClassType attachMembers(List<JDefinition> otherMembers) {
+			return new JClassType(this.name, this.members.addAllLast(otherMembers));
+		}
 	}
 
 	private static final class Scope {
@@ -482,7 +497,7 @@ public class Main {
 
 		private Optional<JType> resolveExpression(String input) {
 			if (input.equals("this")) {
-				return this.getThisType();
+				return this.getThisType().map(type -> type);
 			}
 
 			return this.frames
@@ -495,7 +510,7 @@ public class Main {
 					.map(this::finalizeType);
 		}
 
-		private Optional<JType> getThisType() {
+		private Optional<JClassType> getThisType() {
 			return this.frames
 					.reversed()
 					.stream()
@@ -713,6 +728,11 @@ public class Main {
 		}
 
 		@Override
+		public Optional<JDefinition> createDefinition() {
+			return Optional.empty();
+		}
+
+		@Override
 		public CStructureSegment toCStructureSegment() {
 			return new CStructureSegmentWrapper(this.output);
 		}
@@ -734,6 +754,17 @@ public class Main {
 			final var function = this.completeWithParameters();
 			functions = functions.addLast(function);
 			return new JClassSegmentWrapper("");
+		}
+
+		@Override
+		public Optional<JDefinition> createDefinition() {
+			final var parameterTypes = this.parameters.stream().map(definition -> definition.type).toList();
+
+			if (this.header instanceof JDefinition definition) {
+				return Optional.of(definition.mapType(type -> new JMethodType(type, parameterTypes)));
+			} else {
+				return Optional.empty();
+			}
 		}
 
 		private CFunction completeWithParameters() {
@@ -995,8 +1026,15 @@ public class Main {
 							.collect(new Collectors.Joiner(""));
 
 					final var inputSegments = divide(content).map(Main::parseClassSegment).toList();
+					final var incompleteSegments = inputSegments.stream().toList();
 
-					final var outputContent = inputSegments
+					final var methodDefinitions = inputSegments
+							.stream()
+							.map(JIncompleteClassSegment::createDefinition)
+							.flatMap(Stream::fromOptional)
+							.toList();
+
+					final var outputContent = incompleteSegments
 							.stream()
 							.map(JIncompleteClassSegment::complete)
 							.map(JClassSegment::toCStructureSegment)
@@ -1009,9 +1047,12 @@ public class Main {
 
 					structures = structures.addLast(generated);
 
-					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
-					scope = scope.exit().defineType(beforeContent, thisType);
+					final var thisType = scope
+							.getThisType()
+							.<JType>map(classType -> classType.attachMembers(methodDefinitions))
+							.orElse(JPrimitiveType.Void);
 
+					scope = scope.exit().defineType(beforeContent, thisType);
 					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
