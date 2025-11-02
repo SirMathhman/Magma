@@ -760,6 +760,10 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
+		return divide(input).map(mapper).collect(new Collectors.Joiner(""));
+	}
+
+	private static Stream<String> divide(String input) {
 		var segments = new List<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -780,8 +784,8 @@ public class Main {
 			}
 		}
 		segments = segments.addLast(buffer.toString());
-
-		return segments.stream().map(mapper).collect(new Collectors.Joiner(""));
+		final var stream = segments.stream();
+		return stream;
 	}
 
 	private static String compileRootSegment(String input) {
@@ -929,9 +933,17 @@ public class Main {
 							.map(Main::generateStatement)
 							.collect(new Collectors.Joiner(""));
 
-					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
-																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
-																System.lineSeparator();
+					final var inputSegments = divide(content).map(Main::parseClassSegment).toList();
+
+					final var outputContent = inputSegments
+							.stream()
+							.map(JClassSegment::toCStructureSegment)
+							.map(CStructureSegment::generate)
+							.collect(new Collectors.Joiner(""));
+
+					final var generated =
+							beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields + outputContent +
+							System.lineSeparator() + "};" + System.lineSeparator();
 
 					structures = structures.addLast(generated);
 
