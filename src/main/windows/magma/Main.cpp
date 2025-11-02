@@ -124,10 +124,12 @@ struct JClassSegment {
 };
 enum JIncompleteClassSegmentTag {
 	JClassSegmentWrapperType,
+	JIncompleteMethodType,
 	JPlaceholderType
 };
 union JIncompleteClassSegmentData {
 	JClassSegmentWrapper jclasssegmentwrapper;
+	JIncompleteMethod jincompletemethod;
 	JPlaceholder jplaceholder;
 }
 struct JIncompleteClassSegment {
@@ -242,6 +244,11 @@ struct CFunction {
 	List<CDefinable> cParameters;
 	char* content;
 };
+struct JIncompleteMethod {
+	JMethodHeader header;
+	List<JDefinition> parameters;
+	char* content;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -292,7 +299,7 @@ Optional<T> next_Head(void* _ref);
 C createInitial_Collector(void* _ref);
 C fold_Collector(void* _ref, C current, T element);
 CStructureSegment toCStructureSegment_JClassSegment(void* _ref);
-JClassSegment toClassSegment_JIncompleteClassSegment(void* _ref);
+JClassSegment complete_JIncompleteClassSegment(void* _ref);
 char* generate_CStructureSegment(void* _ref);
 Stream<T> fromOptional_Stream(void* _ref, Optional<T> optional) {
 	Stream _this = *((Stream*) _ref);
@@ -350,22 +357,6 @@ Stream<R> flatMap_Stream(void* _ref, Stream</*R>*/> mapper) {
 Optional<T> findFirst_Stream(void* _ref) {
 	Stream _this = *((Stream*) _ref);
 	return this.head.next();
-}
-/*0;
-
-		public*/ LengthHead_Main(void* _ref, int length) {
-	Main _this = *((Main*) _ref);
-	this.length = length;/*}
-
-		@Override
-		public Optional<Integer> next() {
-			if (this.counter < this.length) {
-				final var value = this.counter;
-				this.counter++;
-				return Optional.of(value);
-			}*//*else {
-				return Optional.empty();
-			}*//*}*/
 }
 public List_List(void* _ref) {
 	List _this = *((List*) _ref);
@@ -464,25 +455,6 @@ char* generate_CTemplateType(void* _ref) {
 	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]]]]]*/ joined = stringStream.collect(/*new Collectors.Joiner("*/, /*")*/);
 	return /*this.base + "<" + joined + ">"*/;
 }
-/*delimiter;
-
-			public*/ Joiner_Main(void* _ref, char* delimiter) {
-	Main _this = *((Main*) _ref);
-	this.delimiter = delimiter;
-	/*}
-
-			@Override
-			public String createInitial() {
-				return ""*/;/*}
-
-			@Override
-			public String fold(String current, String element) {
-				if (current.isEmpty()) {
-					return element;
-				}*/
-	return /*current + this.delimiter + element*/;/*}
-		}*/
-}
 /*CType, CExpression*/ to/*CType, CExpression*/_CIdentifier(void* _ref){
 	CIdentifier _this = *((CIdentifier*) _ref);
 	/*CType, CExpression*/Data data;
@@ -561,7 +533,7 @@ CExpression toCExpression_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder*/(this.input);
 }
-JClassSegment toClassSegment_JPlaceholder(void* _ref) {
+JClassSegment complete_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new JPlaceholder*/(this.input);
 }
@@ -623,6 +595,204 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 	JMemberAccess _this = *((JMemberAccess*) _ref);
 	return /*new CFieldAccess*/(this.child.toCExpression(), this.name);
 }
+CType toCType_CStructureType(void* _ref){
+	CStructureType _this = *((CStructureType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CStructureTypeType, data };
+}
+char* generate_CStructureType(void* _ref) {
+	CStructureType _this = *((CStructureType*) _ref);
+	return this.name;
+}
+JType toJType_JClassType(void* _ref){
+	JClassType _this = *((JClassType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JClassTypeType, data };
+}
+CType toCType_JClassType(void* _ref) {
+	JClassType _this = *((JClassType*) _ref);
+	return /*new CStructureType*/(this.name, this.members.stream(/*)
+																		.map(definition -> new CDefinition(definition.type.toCType(*/), /*definition.name))*/.toList());
+}
+Optional<JType> resolve_JClassType(void* _ref, char* name) {
+	JClassType _this = *((JClassType*) _ref);
+	return this.members.stream(/*)
+					.filter(definition -> definition.name.equals(name))
+					.map(definition -> definition.type)
+					.findFirst(*/);
+}
+CExpression toCExpression_CInvocation(void* _ref){
+	CInvocation _this = *((CInvocation*) _ref);
+	CExpressionData data;
+	data.err = this;
+	return CExpression { CInvocationType, data };
+}
+char* generate_CInvocation(void* _ref) {
+	CInvocation _this = *((CInvocation*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CExpression]]]]]*/ joined = this.arguments.stream(/*).map(CExpression::generate).collect(new Collectors.Joiner("*/, /*")*/);
+	return /*this.cExpression.generate() + "(" + joined + ")"*/;
+}
+JExpression toJExpression_JInvocation(void* _ref){
+	JInvocation _this = *((JInvocation*) _ref);
+	JExpressionData data;
+	data.err = this;
+	return JExpression { JInvocationType, data };
+}
+CExpression toCExpression_JInvocation(void* _ref) {
+	JInvocation _this = *((JInvocation*) _ref);
+	return /*new CInvocation*/(this.caller.toCExpression(), this.arguments.stream(/*).map(JExpression::toCExpression).toList(*/));
+}
+CType toCType_CFunctionType(void* _ref){
+	CFunctionType _this = *((CFunctionType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CFunctionTypeType, data };
+}
+char* generate_CFunctionType(void* _ref) {
+	CFunctionType _this = *((CFunctionType*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]*/ joinedParameterTypes = this.paramTypes.stream(/*).map(CType::generate).collect(new Collectors.Joiner("*/, /*")*/);
+	return /*this.returnType.generate() + " (*)(" + joinedParameterTypes + ")"*/;
+}
+JType toJType_JMethodType(void* _ref){
+	JMethodType _this = *((JMethodType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JMethodTypeType, data };
+}
+CType toCType_JMethodType(void* _ref) {
+	JMethodType _this = *((JMethodType*) _ref);
+	return /*new CFunctionType*/(this.returnType.toCType(), this.paramTypes.stream(/*).map(JType::toCType).toList(*/));
+}
+Collector<T, Boolean> toCollector<T, Boolean>_AllMatch(void* _ref){
+	AllMatch<T> _this = *((AllMatch<T>*) _ref);
+	Collector<T, Boolean>Data data;
+	data.err = this;
+	return Collector<T, Boolean> { AllMatchType, data };
+}
+Boolean createInitial_AllMatch(void* _ref) {
+	AllMatch _this = *((AllMatch*) _ref);
+	return /*Undefined identifier: true*/;
+}
+Boolean fold_AllMatch(void* _ref, Boolean current, T element) {
+	AllMatch _this = *((AllMatch*) _ref);
+	return /*current && this*/.predicate.test(element);
+}
+Head<R> toHead<R>_MapHead(void* _ref){
+	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
+	Head<R>Data data;
+	data.err = this;
+	return Head<R> { MapHeadType, data };
+}
+Optional<R> next_MapHead(void* _ref) {
+	MapHead _this = *((MapHead*) _ref);
+	return this.head.next(/*).map(this*/.mapper);
+}
+CStructureSegment toCStructureSegment_CStructureSegmentWrapper(void* _ref){
+	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
+	CStructureSegmentData data;
+	data.err = this;
+	return CStructureSegment { CStructureSegmentWrapperType, data };
+}
+char* generate_CStructureSegmentWrapper(void* _ref) {
+	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
+	return this.output;
+}
+/*JIncompleteClassSegment, JClassSegment*/ to/*JIncompleteClassSegment, JClassSegment*/_JClassSegmentWrapper(void* _ref){
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	/*JIncompleteClassSegment, JClassSegment*/Data data;
+	data.err = this;
+	return /*JIncompleteClassSegment, JClassSegment*/ { JClassSegmentWrapperType, data };
+}
+JClassSegment complete_JClassSegmentWrapper(void* _ref) {
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	return /*new JClassSegmentWrapper*/(this.output);
+}
+CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	return /*new CStructureSegmentWrapper*/(this.output);
+}
+char* generate_CFunction(void* _ref) {
+	CFunction _this = *((CFunction*) _ref);
+	return this.header(/*).generate() + "(" +
+						 this.cParameters().stream().map(CDefinable::generate).collect(new Collectors.Joiner("*/, /*")) + ")" +
+						 this.content + System.lineSeparator(*/);
+}
+JIncompleteClassSegment toJIncompleteClassSegment_JIncompleteMethod(void* _ref){
+	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
+	JIncompleteClassSegmentData data;
+	data.err = this;
+	return JIncompleteClassSegment { JIncompleteMethodType, data };
+}
+JClassSegment complete_JIncompleteMethod(void* _ref) {
+	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=Property not present: completeWithParameters]*/ function = this.completeWithParameters();
+	/*Undefined identifier: functions*/ = /*Undefined identifier: functions*/.addLast(function);
+	return /*new JClassSegmentWrapper*/(/*""*/);
+}
+CFunction completeWithParameters_JIncompleteMethod(void* _ref) {
+	JIncompleteMethod _this = *((JIncompleteMethod*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=JDefinition]]]]]*/ cParameters = this.parameters.stream(/*).map(JDefinition::toCDefinition).toList(*/);
+	/*CDefinable outputDefinition*/;/*if (this.header instanceof JDefinition jDefinition) {
+				cParameters = cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+				outputDefinition =
+						new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
+			}*//*else {
+				outputDefinition = this.header.toCDefinition();
+			}*/
+	/*Failed to resolve caller: String*/ withBraces = this.content();/*if (!withBraces.startsWith("{") || !withBraces.endsWith("}*//*")) {
+				return new CFunction(outputDefinition, cParameters, ";");
+			}*/
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: String]]*/ content1 = withBraces.substring(/*1*/, /*withBraces.length() - 1*/);
+	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.enter(/*).defineAll(this.parameters()).enter(*/);
+	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=Undefined identifier: compileStatements]]*/ compiledContent = /*Undefined identifier: compileStatements*/(content1, /*Main::compileMethodSegment*/);
+	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.exit(/*).exit(*/);
+	/*final String outputContent*/;/*if (this.header instanceof JConstructor(var name)) {
+				outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+			}*//*else if (this.header instanceof JDefinition) {
+				outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
+			}*//*else {
+				outputContent = compiledContent;
+			}*//*final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}*/
+	/*"*/;
+	return /*new CFunction*/(/*Undefined identifier: outputDefinition*/, cParameters, /*Undefined identifier: contentWithBraces*/);
+}
+/*0;
+
+		public*/ LengthHead_Main(void* _ref, int length) {
+	Main _this = *((Main*) _ref);
+	this.length = length;/*}
+
+		@Override
+		public Optional<Integer> next() {
+			if (this.counter < this.length) {
+				final var value = this.counter;
+				this.counter++;
+				return Optional.of(value);
+			}*//*else {
+				return Optional.empty();
+			}*//*}*/
+}
+/*delimiter;
+
+			public*/ Joiner_Main(void* _ref, char* delimiter) {
+	Main _this = *((Main*) _ref);
+	this.delimiter = delimiter;
+	/*}
+
+			@Override
+			public String createInitial() {
+				return ""*/;/*}
+
+			@Override
+			public String fold(String current, String element) {
+				if (current.isEmpty()) {
+					return element;
+				}*/
+	return /*current + this.delimiter + element*/;/*}
+		}*/
+}
 /*definedMembers;
 
 		private*/ Frame_Main(void* _ref, Optional<char*> maybeStructureName, List<JDefinition> definedMembers, /*JType>*/ definedTypes) {
@@ -662,34 +832,6 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 		public Frame defineType(String key, JType type) {
 			this.definedTypes.put(key, type)*/;
 	return this;/*}*/
-}
-CType toCType_CStructureType(void* _ref){
-	CStructureType _this = *((CStructureType*) _ref);
-	CTypeData data;
-	data.err = this;
-	return CType { CStructureTypeType, data };
-}
-char* generate_CStructureType(void* _ref) {
-	CStructureType _this = *((CStructureType*) _ref);
-	return this.name;
-}
-JType toJType_JClassType(void* _ref){
-	JClassType _this = *((JClassType*) _ref);
-	JTypeData data;
-	data.err = this;
-	return JType { JClassTypeType, data };
-}
-CType toCType_JClassType(void* _ref) {
-	JClassType _this = *((JClassType*) _ref);
-	return /*new CStructureType*/(this.name, this.members.stream(/*)
-																		.map(definition -> new CDefinition(definition.type.toCType(*/), /*definition.name))*/.toList());
-}
-Optional<JType> resolve_JClassType(void* _ref, char* name) {
-	JClassType _this = *((JClassType*) _ref);
-	return this.members.stream(/*)
-					.filter(definition -> definition.name.equals(name))
-					.map(definition -> definition.type)
-					.findFirst(*/);
 }
 /*frames;
 
@@ -795,72 +937,6 @@ Optional<JType> resolve_JClassType(void* _ref, char* name) {
 			this*/.frames = this.frames.mapLast(/*last -> last.defineType(name*/, /*type)*/);
 	return this;/*}*/
 }
-CExpression toCExpression_CInvocation(void* _ref){
-	CInvocation _this = *((CInvocation*) _ref);
-	CExpressionData data;
-	data.err = this;
-	return CExpression { CInvocationType, data };
-}
-char* generate_CInvocation(void* _ref) {
-	CInvocation _this = *((CInvocation*) _ref);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CExpression]]]]]*/ joined = this.arguments.stream(/*).map(CExpression::generate).collect(new Collectors.Joiner("*/, /*")*/);
-	return /*this.cExpression.generate() + "(" + joined + ")"*/;
-}
-JExpression toJExpression_JInvocation(void* _ref){
-	JInvocation _this = *((JInvocation*) _ref);
-	JExpressionData data;
-	data.err = this;
-	return JExpression { JInvocationType, data };
-}
-CExpression toCExpression_JInvocation(void* _ref) {
-	JInvocation _this = *((JInvocation*) _ref);
-	return /*new CInvocation*/(this.caller.toCExpression(), this.arguments.stream(/*).map(JExpression::toCExpression).toList(*/));
-}
-CType toCType_CFunctionType(void* _ref){
-	CFunctionType _this = *((CFunctionType*) _ref);
-	CTypeData data;
-	data.err = this;
-	return CType { CFunctionTypeType, data };
-}
-char* generate_CFunctionType(void* _ref) {
-	CFunctionType _this = *((CFunctionType*) _ref);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]*/ joinedParameterTypes = this.paramTypes.stream(/*).map(CType::generate).collect(new Collectors.Joiner("*/, /*")*/);
-	return /*this.returnType.generate() + " (*)(" + joinedParameterTypes + ")"*/;
-}
-JType toJType_JMethodType(void* _ref){
-	JMethodType _this = *((JMethodType*) _ref);
-	JTypeData data;
-	data.err = this;
-	return JType { JMethodTypeType, data };
-}
-CType toCType_JMethodType(void* _ref) {
-	JMethodType _this = *((JMethodType*) _ref);
-	return /*new CFunctionType*/(this.returnType.toCType(), this.paramTypes.stream(/*).map(JType::toCType).toList(*/));
-}
-Collector<T, Boolean> toCollector<T, Boolean>_AllMatch(void* _ref){
-	AllMatch<T> _this = *((AllMatch<T>*) _ref);
-	Collector<T, Boolean>Data data;
-	data.err = this;
-	return Collector<T, Boolean> { AllMatchType, data };
-}
-Boolean createInitial_AllMatch(void* _ref) {
-	AllMatch _this = *((AllMatch*) _ref);
-	return /*Undefined identifier: true*/;
-}
-Boolean fold_AllMatch(void* _ref, Boolean current, T element) {
-	AllMatch _this = *((AllMatch*) _ref);
-	return /*current && this*/.predicate.test(element);
-}
-Head<R> toHead<R>_MapHead(void* _ref){
-	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
-	Head<R>Data data;
-	data.err = this;
-	return Head<R> { MapHeadType, data };
-}
-Optional<R> next_MapHead(void* _ref) {
-	MapHead _this = *((MapHead*) _ref);
-	return this.head.next(/*).map(this*/.mapper);
-}
 List<T> createInitial_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
 	return /*new List<T>*/();
@@ -911,36 +987,6 @@ Optional<T> next_Main(void* _ref) {
 
 				this.current = this.mapper.apply(nextHead.get());
 			}*//*}*/
-}
-CStructureSegment toCStructureSegment_CStructureSegmentWrapper(void* _ref){
-	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
-	CStructureSegmentData data;
-	data.err = this;
-	return CStructureSegment { CStructureSegmentWrapperType, data };
-}
-char* generate_CStructureSegmentWrapper(void* _ref) {
-	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
-	return this.output;
-}
-/*JIncompleteClassSegment, JClassSegment*/ to/*JIncompleteClassSegment, JClassSegment*/_JClassSegmentWrapper(void* _ref){
-	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
-	/*JIncompleteClassSegment, JClassSegment*/Data data;
-	data.err = this;
-	return /*JIncompleteClassSegment, JClassSegment*/ { JClassSegmentWrapperType, data };
-}
-JClassSegment toClassSegment_JClassSegmentWrapper(void* _ref) {
-	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
-	return /*new JClassSegmentWrapper*/(this.output);
-}
-CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
-	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
-	return /*new CStructureSegmentWrapper*/(this.output);
-}
-char* generate_CFunction(void* _ref) {
-	CFunction _this = *((CFunction*) _ref);
-	return this.header(/*).generate() + "(" +
-						 this.cParameters().stream().map(CDefinable::generate).collect(new Collectors.Joiner("*/, /*")) + ")" +
-						 this.content + System.lineSeparator(*/);
 }
 private static List<String> structures = new List<String> new_private static List<String> structures = new List<String>();
 private static List<CFunction> functions = new List<CFunction> new_private static List<CFunction> functions = new List<CFunction>();
@@ -1021,7 +1067,7 @@ return segments.stream new_return segments.stream();
 		}
 
 		return compileStructure(stripped, "class")
-				.map(JClassSegmentWrapper::toClassSegment)
+				.map(JClassSegmentWrapper::complete)
 				.map(JClassSegment::toCStructureSegment)
 				.map(CStructureSegment::generate)
 				.orElseGet(() -> CPlaceholder.wrap(stripped));
@@ -1162,7 +1208,7 @@ return segments.stream new_return segments.stream();
 
 					final var outputContent = inputSegments
 							.stream()
-							.map(JIncompleteClassSegment::toClassSegment)
+							.map(JIncompleteClassSegment::complete)
 							.map(JClassSegment::toCStructureSegment)
 							.map(CStructureSegment::generate)
 							.collect(new Collectors.Joiner(""));
@@ -1246,41 +1292,7 @@ return segments.stream new_return segments.stream();
 						.flatMap(Stream::fromOptional)
 						.toList();
 
-				var cParameters = jParameters.stream().map(JDefinition::toCDefinition).toList();
-
-				CDefinable outputDefinition;
-				if (header instanceof JDefinition jDefinition) {
-					cParameters = cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
-					outputDefinition =
-							new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
-				} else {
-					outputDefinition = header.toCDefinition();
-				}
-
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
-
-					scope = scope.enter().defineAll(jParameters).enter();
-					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope = scope.exit().exit();
-
-					final String outputContent;
-					if (header instanceof JConstructor(var name)) {
-						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
-					} else if (header instanceof JDefinition) {
-						outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
-					} else {
-						outputContent = compiledContent;
-					}
-
-					final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}";
-					functions = functions.addLast(new CFunction(outputDefinition, cParameters, contentWithBraces));
-
-					return Optional.of(new JClassSegmentWrapper(""));
-				} else {
-					functions = functions.addLast(new CFunction(outputDefinition, cParameters, ";"));
-					return Optional.of(new JClassSegmentWrapper(""));
-				}
+				return Optional.of(new JIncompleteMethod(header, jParameters, withBraces));
 			}
 		}
 

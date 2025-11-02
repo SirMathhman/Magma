@@ -91,8 +91,8 @@ public class Main {
 		CStructureSegment toCStructureSegment();
 	}
 
-	private sealed interface JIncompleteClassSegment permits JClassSegmentWrapper, JPlaceholder {
-		JClassSegment toClassSegment();
+	private sealed interface JIncompleteClassSegment permits JClassSegmentWrapper, JIncompleteMethod, JPlaceholder {
+		JClassSegment complete();
 	}
 
 	private interface CStructureSegment {
@@ -346,7 +346,7 @@ public class Main {
 		}
 
 		@Override
-		public JClassSegment toClassSegment() {
+		public JClassSegment complete() {
 			return new JPlaceholder(this.input);
 		}
 
@@ -708,7 +708,7 @@ public class Main {
 
 	private record JClassSegmentWrapper(String output) implements JIncompleteClassSegment, JClassSegment {
 		@Override
-		public JClassSegment toClassSegment() {
+		public JClassSegment complete() {
 			return new JClassSegmentWrapper(this.output);
 		}
 
@@ -723,6 +723,52 @@ public class Main {
 			return this.header().generate() + "(" +
 						 this.cParameters().stream().map(CDefinable::generate).collect(new Collectors.Joiner(", ")) + ")" +
 						 this.content + System.lineSeparator();
+		}
+	}
+
+	private record JIncompleteMethod(JMethodHeader header, List<JDefinition> parameters, String content)
+			implements JIncompleteClassSegment {
+
+		@Override
+		public JClassSegment complete() {
+			final var function = this.completeWithParameters();
+			functions = functions.addLast(function);
+			return new JClassSegmentWrapper("");
+		}
+
+		private CFunction completeWithParameters() {
+			var cParameters = this.parameters.stream().map(JDefinition::toCDefinition).toList();
+			CDefinable outputDefinition;
+			if (this.header instanceof JDefinition jDefinition) {
+				cParameters = cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
+				outputDefinition =
+						new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
+			} else {
+				outputDefinition = this.header.toCDefinition();
+			}
+
+			var withBraces = this.content();
+			if (!withBraces.startsWith("{") || !withBraces.endsWith("}")) {
+				return new CFunction(outputDefinition, cParameters, ";");
+			}
+
+			final var content1 = withBraces.substring(1, withBraces.length() - 1);
+
+			scope = scope.enter().defineAll(this.parameters()).enter();
+			final var compiledContent = compileStatements(content1, Main::compileMethodSegment);
+			scope = scope.exit().exit();
+
+			final String outputContent;
+			if (this.header instanceof JConstructor(var name)) {
+				outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
+			} else if (this.header instanceof JDefinition) {
+				outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
+			} else {
+				outputContent = compiledContent;
+			}
+
+			final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}";
+			return new CFunction(outputDefinition, cParameters, contentWithBraces);
 		}
 	}
 
@@ -809,7 +855,7 @@ public class Main {
 		}
 
 		return compileStructure(stripped, "class")
-				.map(JClassSegmentWrapper::toClassSegment)
+				.map(JClassSegmentWrapper::complete)
 				.map(JClassSegment::toCStructureSegment)
 				.map(CStructureSegment::generate)
 				.orElseGet(() -> CPlaceholder.wrap(stripped));
@@ -952,7 +998,7 @@ public class Main {
 
 					final var outputContent = inputSegments
 							.stream()
-							.map(JIncompleteClassSegment::toClassSegment)
+							.map(JIncompleteClassSegment::complete)
 							.map(JClassSegment::toCStructureSegment)
 							.map(CStructureSegment::generate)
 							.collect(new Collectors.Joiner(""));
@@ -1046,41 +1092,7 @@ public class Main {
 						.flatMap(Stream::fromOptional)
 						.toList();
 
-				var cParameters = jParameters.stream().map(JDefinition::toCDefinition).toList();
-
-				CDefinable outputDefinition;
-				if (header instanceof JDefinition jDefinition) {
-					cParameters = cParameters.addFirst(new CDefinition(new CPointerType(CPrimitiveType.Void), "_ref"));
-					outputDefinition =
-							new CDefinition(jDefinition.type.toCType(), jDefinition.name + "_" + scope.getCurrentStructName());
-				} else {
-					outputDefinition = header.toCDefinition();
-				}
-
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
-
-					scope = scope.enter().defineAll(jParameters).enter();
-					final var compiledContent = compileStatements(content, Main::compileMethodSegment);
-					scope = scope.exit().exit();
-
-					final String outputContent;
-					if (header instanceof JConstructor(var name)) {
-						outputContent = generateStatement(name + " this") + compiledContent + generateStatement("return this");
-					} else if (header instanceof JDefinition) {
-						outputContent = generateDereferenceThis(scope.getCurrentStructName()) + compiledContent;
-					} else {
-						outputContent = compiledContent;
-					}
-
-					final var contentWithBraces = " {" + outputContent + System.lineSeparator() + "}";
-					functions = functions.addLast(new CFunction(outputDefinition, cParameters, contentWithBraces));
-
-					return Optional.of(new JClassSegmentWrapper(""));
-				} else {
-					functions = functions.addLast(new CFunction(outputDefinition, cParameters, ";"));
-					return Optional.of(new JClassSegmentWrapper(""));
-				}
+				return Optional.of(new JIncompleteMethod(header, jParameters, withBraces));
 			}
 		}
 
