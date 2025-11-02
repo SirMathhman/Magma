@@ -88,80 +88,6 @@ public class Main {
 	}
 
 	private record Stream<T>(Head<T> head) {
-		private record MapHead<T, R>(Head<T> head, Function<T, R> mapper) implements Head<R> {
-			@Override
-			public Optional<R> next() {
-				return this.head.next().map(this.mapper);
-			}
-		}
-
-		private static class ListCollector<T> implements Collector<T, List<T>> {
-			@Override
-			public List<T> createInitial() {
-				return new List<T>();
-			}
-
-			@Override
-			public List<T> fold(List<T> current, T element) {
-				return current.addLast(element);
-			}
-		}
-
-		private static class SingleHead<T> implements Head<T> {
-			private final T element;
-			private boolean retrieved = false;
-
-			public SingleHead(T element) {
-				this.element = element;
-			}
-
-			@Override
-			public Optional<T> next() {
-				if (this.retrieved) {
-					return Optional.empty();
-				}
-
-				this.retrieved = true;
-				return Optional.of(this.element);
-			}
-		}
-
-		private static class EmptyHead<T> implements Head<T> {
-			@Override
-			public Optional<T> next() {
-				return Optional.empty();
-			}
-		}
-
-		private static class FlatMapHead<T, R> implements Head<R> {
-			private final Head<T> head;
-			private final Function<T, Stream<R>> mapper;
-			private Stream<R> current;
-
-			public FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
-				this.head = head;
-				this.mapper = mapper;
-				this.current = head.next().map(mapper).orElseGet(() -> new Stream<R>(new EmptyHead<R>()));
-			}
-
-			@Override
-			public Optional<R> next() {
-				while (true) {
-					final var maybeNext = this.current.next();
-					if (maybeNext.isPresent()) {
-						return maybeNext;
-					}
-
-					final var nextHead = this.head.next();
-					if (nextHead.isEmpty()) {
-						return Optional.empty();
-					}
-
-					this.current = this.mapper.apply(nextHead.get());
-				}
-			}
-		}
-
 		public static <T> Stream<T> fromOptional(Optional<T> optional) {
 			return new Stream<T>(optional.<Head<T>>map(SingleHead::new).orElseGet(EmptyHead::new));
 		}
@@ -313,8 +239,7 @@ public class Main {
 		@Override
 		public String generate() {
 			final var cTemplateType = this;
-			final var typeArguments1 = cTemplateType.typeArguments;
-			final var stream = typeArguments1.stream();
+			final var stream = cTemplateType.typeArguments.stream();
 			final var stringStream = stream.map(CType::generate);
 			final var joined = stringStream.collect(new Collectors.Joiner(", "));
 			return this.base + "<" + joined + ">";
@@ -659,6 +584,80 @@ public class Main {
 		}
 	}
 
+	private record MapHead<T, R>(Head<T> head, Function<T, R> mapper) implements Head<R> {
+		@Override
+		public Optional<R> next() {
+			return this.head.next().map(this.mapper);
+		}
+	}
+
+	private static class ListCollector<T> implements Collector<T, List<T>> {
+		@Override
+		public List<T> createInitial() {
+			return new List<T>();
+		}
+
+		@Override
+		public List<T> fold(List<T> current, T element) {
+			return current.addLast(element);
+		}
+	}
+
+	private static class SingleHead<T> implements Head<T> {
+		private final T element;
+		private boolean retrieved = false;
+
+		public SingleHead(T element) {
+			this.element = element;
+		}
+
+		@Override
+		public Optional<T> next() {
+			if (this.retrieved) {
+				return Optional.empty();
+			}
+
+			this.retrieved = true;
+			return Optional.of(this.element);
+		}
+	}
+
+	private static class EmptyHead<T> implements Head<T> {
+		@Override
+		public Optional<T> next() {
+			return Optional.empty();
+		}
+	}
+
+	private static class FlatMapHead<T, R> implements Head<R> {
+		private final Head<T> head;
+		private final Function<T, Stream<R>> mapper;
+		private Stream<R> current;
+
+		public FlatMapHead(Head<T> head, Function<T, Stream<R>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+			this.current = head.next().map(mapper).orElseGet(() -> new Stream<R>(new EmptyHead<R>()));
+		}
+
+		@Override
+		public Optional<R> next() {
+			while (true) {
+				final var maybeNext = this.current.next();
+				if (maybeNext.isPresent()) {
+					return maybeNext;
+				}
+
+				final var nextHead = this.head.next();
+				if (nextHead.isEmpty()) {
+					return Optional.empty();
+				}
+
+				this.current = this.mapper.apply(nextHead.get());
+			}
+		}
+	}
+
 	private static List<String> structures = new List<String>();
 	private static List<String> functions = new List<String>();
 	private static List<String> globals = new List<String>();
@@ -826,7 +825,7 @@ public class Main {
 						final var s2 = generateStatement("return " + superType + " { " + beforeContent + "Type, data " + "}");
 						final var content1 = s + s1 + s2;
 						final var generated =
-								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, "void* _ref", content1);
+								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, content1);
 
 						functions = functions.addLast(generated);
 					}
@@ -883,10 +882,8 @@ public class Main {
 
 	private static String generateFunction(String thisType,
 																				 String returnType,
-																				 String name,
-																				 String params,
-																				 String content) {
-		return returnType + " " + name + "(" + params + "){" + generateDereferenceThis(thisType) + content +
+																				 String name, String content) {
+		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
 					 System.lineSeparator() + "}" + System.lineSeparator();
 	}
 

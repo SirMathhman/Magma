@@ -110,11 +110,6 @@ struct Head {
 template <typename T, typename C>
 struct Collector {
 };
-template <typename T, typename R>
-struct MapHead {
-	Head<T> head;
-	/*R>*/ mapper;
-};
 template <typename T>
 struct Stream {
 	Head<T> head;
@@ -205,6 +200,11 @@ template <typename T>
 struct AllMatch {
 	Predicate<T> predicate;
 };
+template <typename T, typename R>
+struct MapHead {
+	Head<T> head;
+	/*R>*/ mapper;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -254,67 +254,6 @@ char* generate_CExpression(void* _ref);
 Optional<T> next_Head(void* _ref);
 C createInitial_Collector(void* _ref);
 C fold_Collector(void* _ref, C current, T element);
-Head<R> toHead<R>_MapHead(void* _ref){
-	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
-	Head<R>Data data;
-	data.err = this;
-	return Head<R> { MapHeadType, data };
-}
-Optional<R> next_MapHead(void* _ref) {
-	MapHead _this = *((MapHead*) _ref);
-	return this.head.next(/*).map(this*/.mapper);
-}
-List<T> createInitial_Stream(void* _ref) {
-	Stream _this = *((Stream*) _ref);
-	return /*new List<T>*/();
-	/*}
-
-			@Override
-			public List<T> fold(List<T> current, T element) {
-				return current.addLast(element)*/;/*}*/
-}
-/*false;
-
-			public*/ SingleHead_Stream(void* _ref, T element) {
-	Stream _this = *((Stream*) _ref);
-	this.element = element;/*}
-
-			@Override
-			public Optional<T> next() {
-				if (this.retrieved) {
-					return Optional.empty();
-				}*/
-	this.retrieved = /*Undefined identifier: true*/;
-	return /*Undefined identifier: Optional*/.of(this.element);/*}*/
-}
-Optional<T> next_Stream(void* _ref) {
-	Stream _this = *((Stream*) _ref);
-	return /*Undefined identifier: Optional*/.empty();/*}*/
-}
-/*current;
-
-			public*/ FlatMapHead_Stream(void* _ref, Head<T> head, Stream</*R>*/> mapper) {
-	Stream _this = *((Stream*) _ref);
-	this.head = head;
-	this.mapper = mapper;
-	this.current = head.next(/*)*/.map(/*mapper)*/.orElseGet(/*() -> new Stream<R>(new EmptyHead<R>(*/)));/*}
-
-			@Override
-			public Optional<R> next() {
-				while (true) {
-					final var maybeNext = this.current.next();
-					if (maybeNext.isPresent()) {
-						return maybeNext;
-					}
-
-					final var nextHead = this.head.next();
-					if (nextHead.isEmpty()) {
-						return Optional.empty();
-					}
-
-					this.current = this.mapper.apply(nextHead.get());
-				}*//*}*/
-}
 Stream<T> fromOptional_Stream(void* _ref, Optional<T> optional) {
 	Stream _this = *((Stream*) _ref);
 	return /*new Stream<T>*/(/*optional.<Head<T>>map*/(/*SingleHead::new).orElseGet(EmptyHead::new*/));
@@ -475,10 +414,9 @@ CType toCType_CTemplateType(void* _ref){
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
-	List<CType> typeArguments1 = cTemplateType.typeArguments;
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]*/ stream = typeArguments1.stream();
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]]]*/ stringStream = stream.map(/*CType::generate*/);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]]]]]*/ joined = stringStream.collect(/*new Collectors.Joiner("*/, /*")*/);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]*/ stream = cTemplateType.typeArguments.stream();
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]]]*/ stringStream = stream.map(/*CType::generate*/);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=List[nativeList=[JIdentifier[value=CType]]]]]]]]]*/ joined = stringStream.collect(/*new Collectors.Joiner("*/, /*")*/);
 	return /*this.base + "<" + joined + ">"*/;
 }
 /*delimiter;
@@ -846,6 +784,67 @@ Boolean fold_AllMatch(void* _ref, Boolean current, T element) {
 	AllMatch _this = *((AllMatch*) _ref);
 	return /*current && this*/.predicate.test(element);
 }
+Head<R> toHead<R>_MapHead(void* _ref){
+	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
+	Head<R>Data data;
+	data.err = this;
+	return Head<R> { MapHeadType, data };
+}
+Optional<R> next_MapHead(void* _ref) {
+	MapHead _this = *((MapHead*) _ref);
+	return this.head.next(/*).map(this*/.mapper);
+}
+List<T> createInitial_Main(void* _ref) {
+	Main _this = *((Main*) _ref);
+	return /*new List<T>*/();
+	/*}
+
+		@Override
+		public List<T> fold(List<T> current, T element) {
+			return current.addLast(element)*/;/*}*/
+}
+/*false;
+
+		public*/ SingleHead_Main(void* _ref, T element) {
+	Main _this = *((Main*) _ref);
+	this.element = element;/*}
+
+		@Override
+		public Optional<T> next() {
+			if (this.retrieved) {
+				return Optional.empty();
+			}*/
+	this.retrieved = /*Undefined identifier: true*/;
+	return /*Undefined identifier: Optional*/.of(this.element);/*}*/
+}
+Optional<T> next_Main(void* _ref) {
+	Main _this = *((Main*) _ref);
+	return /*Undefined identifier: Optional*/.empty();/*}*/
+}
+/*current;
+
+		public*/ FlatMapHead_Main(void* _ref, Head<T> head, Stream</*R>*/> mapper) {
+	Main _this = *((Main*) _ref);
+	this.head = head;
+	this.mapper = mapper;
+	this.current = head.next(/*)*/.map(/*mapper)*/.orElseGet(/*() -> new Stream<R>(new EmptyHead<R>(*/)));/*}
+
+		@Override
+		public Optional<R> next() {
+			while (true) {
+				final var maybeNext = this.current.next();
+				if (maybeNext.isPresent()) {
+					return maybeNext;
+				}
+
+				final var nextHead = this.head.next();
+				if (nextHead.isEmpty()) {
+					return Optional.empty();
+				}
+
+				this.current = this.mapper.apply(nextHead.get());
+			}*//*}*/
+}
 private static List<String> structures = new List<String> new_private static List<String> structures = new List<String>();
 private static List<String> functions = new List<String> new_private static List<String> functions = new List<String>();
 private static List<String> globals = new List<String> new_private static List<String> globals = new List<String>();
@@ -1006,7 +1005,7 @@ return segments.stream new_return segments.stream();
 						final var s2 = generateStatement("return " + superType + " { " + beforeContent + "Type, data " + "}");
 						final var content1 = s + s1 + s2;
 						final var generated =
-								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, "void* _ref", content1);
+								generateFunction(thisType, superType, "to" + superType + "_" + beforeContent, content1);
 
 						functions = functions.addLast(generated);
 					}
@@ -1061,10 +1060,8 @@ return segments.stream new_return segments.stream();
 		return Optional.empty();
 	}*//*private static String generateFunction(String thisType,
 																				 String returnType,
-																				 String name,
-																				 String params,
-																				 String content) {
-		return returnType + " " + name + "(" + params + "){" + generateDereferenceThis(thisType) + content +
+																				 String name, String content) {
+		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
 					 System.lineSeparator() + "}" + System.lineSeparator();
 	}*//*private static String generateDereferenceThis(String thisType) {
 		return generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
