@@ -866,7 +866,7 @@ public class Main {
 							.concat(generatedFields.stream().map(item -> item))
 							.map(CDefinable::generate)
 							.map(Main::generateStatement)
-							.collect(new Collectors.Joiner(null));
+							.collect(new Collectors.Joiner(""));
 
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +

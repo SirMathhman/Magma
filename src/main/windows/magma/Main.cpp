@@ -19,7 +19,7 @@ union ResultData {
 }
 template <typename T, typename X>
 struct Result {
-	ResultTag _tag;null
+	ResultTag _tag;
 	ResultData<T, X> _data;
 };
 enum CTypeTag {
@@ -41,7 +41,7 @@ union CTypeData {
 	CTemplateType ctemplatetype;
 }
 struct CType {
-	CTypeTag _tag;null
+	CTypeTag _tag;
 	CTypeData _data;
 };
 enum CDefinableTag {
@@ -53,7 +53,7 @@ union CDefinableData {
 	CPlaceholder cplaceholder;
 }
 struct CDefinable {
-	CDefinableTag _tag;null
+	CDefinableTag _tag;
 	CDefinableData _data;
 };
 enum JMethodHeaderTag {
@@ -67,7 +67,7 @@ union JMethodHeaderData {
 	JPlaceholder jplaceholder;
 }
 struct JMethodHeader {
-	JMethodHeaderTag _tag;null
+	JMethodHeaderTag _tag;
 	JMethodHeaderData _data;
 };
 struct JType {
@@ -85,7 +85,7 @@ union JExpressionData {
 	JPlaceholder jplaceholder;
 }
 struct JExpression {
-	JExpressionTag _tag;null
+	JExpressionTag _tag;
 	JExpressionData _data;
 };
 enum CExpressionTag {
@@ -101,7 +101,7 @@ union CExpressionData {
 	CPlaceholder cplaceholder;
 }
 struct CExpression {
-	CExpressionTag _tag;null
+	CExpressionTag _tag;
 	CExpressionData _data;
 };
 template <typename T>
@@ -112,7 +112,7 @@ struct Collector {
 };
 template <typename T, typename R>
 struct MapHead {
-	Head<T> head;null
+	Head<T> head;
 	/*R>*/ mapper;
 };
 template <typename T>
@@ -135,7 +135,7 @@ struct CPointerType {
 	CType child;
 };
 struct CTemplateType {
-	char* base;null
+	char* base;
 	List<CType> typeArguments;
 };
 struct CIdentifier {
@@ -145,12 +145,12 @@ struct CPlaceholder {
 	char* input;
 };
 struct CDefinition {
-	CType type;null
+	CType type;
 	char* name;
 };
 struct JDefinition {
-	Optional<char*> beforeType;null
-	JType type;null
+	Optional<char*> beforeType;
+	JType type;
 	char* name;
 };
 struct JConstructor {
@@ -163,42 +163,42 @@ struct JArrayType {
 	JType type;
 };
 struct JGenericType {
-	char* base;null
+	char* base;
 	List<JType> typeArguments;
 };
 struct JIdentifier {
 	char* value;
 };
 struct CFieldAccess {
-	CExpression child;null
+	CExpression child;
 	char* name;
 };
 struct JMemberAccess {
-	JExpression child;null
+	JExpression child;
 	char* name;
 };
 struct CStructureType {
-	char* name;null
+	char* name;
 	List<CDefinition> fields;
 };
 struct JClassType {
-	char* name;null
+	char* name;
 	List<JDefinition> members;
 };
 struct CInvocation {
-	CExpression cExpression;null
+	CExpression cExpression;
 	List<CExpression> arguments;
 };
 struct JInvocation {
-	JExpression caller;null
+	JExpression caller;
 	List<JExpression> arguments;
 };
 struct CFunctionType {
-	CType returnType;null
+	CType returnType;
 	List<CType> paramTypes;
 };
 struct JMethodType {
-	JType returnType;null
+	JType returnType;
 	List<JType> paramTypes;
 };
 template <typename T>
@@ -1046,7 +1046,7 @@ return segments.stream new_return segments.stream();
 							.concat(generatedFields.stream().map(item -> item))
 							.map(CDefinable::generate)
 							.map(Main::generateStatement)
-							.collect(new Collectors.Joiner(null));
+							.collect(new Collectors.Joiner(""));
 
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
