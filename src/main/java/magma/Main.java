@@ -697,8 +697,10 @@ public class Main {
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i).strip();
 			final var name = stripped.substring(i + 1).strip();
-			final var child = parseExpression(substring);
-			return new JMemberAccess(child, name);
+			if (isIdentifier(name)) {
+				final var child = parseExpression(substring);
+				return new JMemberAccess(child, name);
+			}
 		}
 
 		return new JPlaceholder(stripped);
