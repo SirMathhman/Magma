@@ -222,6 +222,11 @@ public class Main {
 			this.nativeList.addFirst(element);
 			return this;
 		}
+
+		public List<T> mapLast(Function<T, T> mapper) {
+			this.nativeList.set(this.nativeList.size() - 1, mapper.apply(this.nativeList.getLast()));
+			return this;
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {}
@@ -411,6 +416,11 @@ public class Main {
 		public Optional<JType> resolveType(String key) {
 			return Optional.ofNullable(this.definedTypes.get(key));
 		}
+
+		public Frame defineType(String key, JType type) {
+			this.definedTypes.put(key, type);
+			return this;
+		}
 	}
 
 	private record CStructureType(String name, List<CDefinition> fields) implements CType {
@@ -450,13 +460,7 @@ public class Main {
 
 		private Optional<JType> resolveExpression(String input) {
 			if (input.equals("this")) {
-				return this.frames
-						.reversed()
-						.stream()
-						.map(Frame::toClassType)
-						.flatMap(Stream::fromOptional)
-						.findFirst()
-						.map(value -> value);
+				return this.getThisType();
 			}
 
 			return this.frames
@@ -467,6 +471,16 @@ public class Main {
 					.map(JDefinition::type)
 					.findFirst()
 					.map(this::finalizeType);
+		}
+
+		private Optional<JType> getThisType() {
+			return this.frames
+					.reversed()
+					.stream()
+					.map(Frame::toClassType)
+					.flatMap(Stream::fromOptional)
+					.findFirst()
+					.map(value -> value);
 		}
 
 		private JType finalizeType(JType type) {
@@ -537,6 +551,11 @@ public class Main {
 					.flatMap(Stream::fromOptional)
 					.findFirst()
 					.orElse("?");
+		}
+
+		public Scope defineType(String name, JType type) {
+			this.frames = this.frames.mapLast(last -> last.defineType(name, type));
+			return this;
 		}
 	}
 
@@ -870,8 +889,12 @@ public class Main {
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
+
 					structures = structures.addLast(generated);
-					scope = scope.exit();
+
+					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
+					scope = scope.exit().defineType(beforeContent, thisType);
+
 					return Optional.of("");
 				}
 			}
@@ -880,9 +903,7 @@ public class Main {
 		return Optional.empty();
 	}
 
-	private static String generateFunction(String thisType,
-																				 String returnType,
-																				 String name, String content) {
+	private static String generateFunction(String thisType, String returnType, String name, String content) {
 		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
 					 System.lineSeparator() + "}" + System.lineSeparator();
 	}

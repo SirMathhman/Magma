@@ -383,6 +383,11 @@ List<T> addFirst_List(void* _ref, T element) {
 	/*this.nativeList.addFirst(element)*/;
 	return this;
 }
+List<T> mapLast_List(void* _ref, /*T>*/ mapper) {
+	List _this = *((List*) _ref);
+	/*this.nativeList.set(this.nativeList.size() - 1, mapper.apply(this.nativeList.getLast()))*/;
+	return this;
+}
 Result<T, X> toResult<T, X>_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	Result<T, X>Data data;
@@ -603,7 +608,12 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 	/*}
 
 		public Optional<JType> resolveType(String key) {
-			return Optional.ofNullable(this.definedTypes.get(key))*/;/*}*/
+			return Optional.ofNullable(this.definedTypes.get(key))*/;
+	/*}
+
+		public Frame defineType(String key, JType type) {
+			this.definedTypes.put(key, type)*/;
+	return this;/*}*/
 }
 CType toCType_CStructureType(void* _ref){
 	CStructureType _this = *((CStructureType*) _ref);
@@ -645,13 +655,7 @@ Optional<JType> resolve_JClassType(void* _ref, char* name) {
 
 		private Optional<JType> resolveExpression(String input) {
 			if (input.equals("this")) {
-				return this.frames
-						.reversed()
-						.stream()
-						.map(Frame::toClassType)
-						.flatMap(Stream::fromOptional)
-						.findFirst()
-						.map(value -> value);
+				return this.getThisType();
 			}*/
 	return this.frames.reversed(/*)
 					.stream()
@@ -659,7 +663,17 @@ Optional<JType> resolve_JClassType(void* _ref, char* name) {
 					.flatMap(Stream::fromOptional)
 					.map(JDefinition::type)
 					.findFirst()
-					.map(this::finalizeType*/);/*}
+					.map(this::finalizeType*/);
+	/*}
+
+		private Optional<JType> getThisType() {
+			return this.frames
+					.reversed()
+					.stream()
+					.map(Frame::toClassType)
+					.flatMap(Stream::fromOptional)
+					.findFirst()
+					.map(value -> value)*/;/*}
 
 		private JType finalizeType(JType type) {
 			if (type instanceof JGenericType(var base, var typeArguments)) {
@@ -726,7 +740,12 @@ Optional<JType> resolve_JClassType(void* _ref, char* name) {
 					.map(frame -> frame.maybeStructureName)
 					.flatMap(Stream::fromOptional)
 					.findFirst()
-					.orElse("?")*/;/*}*/
+					.orElse("?")*/;
+	/*}
+
+		public Scope defineType(String name, JType type) {
+			this*/.frames = this.frames.mapLast(/*last -> last.defineType(name*/, /*type)*/);
+	return this;/*}*/
 }
 CExpression toCExpression_CInvocation(void* _ref){
 	CInvocation _this = *((CInvocation*) _ref);
@@ -1050,17 +1069,19 @@ return segments.stream new_return segments.stream();
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
+
 					structures = structures.addLast(generated);
-					scope = scope.exit();
+
+					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
+					scope = scope.exit().defineType(beforeContent, thisType);
+
 					return Optional.of("");
 				}
 			}
 		}
 
 		return Optional.empty();
-	}*//*private static String generateFunction(String thisType,
-																				 String returnType,
-																				 String name, String content) {
+	}*//*private static String generateFunction(String thisType, String returnType, String name, String content) {
 		return returnType + " " + name + "(" + "void* _ref" + "){" + generateDereferenceThis(thisType) + content +
 					 System.lineSeparator() + "}" + System.lineSeparator();
 	}*//*private static String generateDereferenceThis(String thisType) {
