@@ -19,9 +19,7 @@ union ResultData {
 	Ok<T, X> ok;
 }
 template <typename T, typename X>
-struct Result {
-	ResultTag _tag;
-	ResultData<T, X> _data;
+struct Result {ResultTag _tagResultData<T, X> _data
 };
 enum CTypeTag {
 	CIdentifierType,
@@ -39,9 +37,7 @@ union CTypeData {
 	CStructureType cstructuretype;
 	CTemplateType ctemplatetype;
 }
-struct CType {
-	CTypeTag _tag;
-	CTypeData _data;
+struct CType {CTypeTag _tagCTypeData _data
 };
 enum CDefinableTag {
 	CDefinitionType,
@@ -51,9 +47,7 @@ union CDefinableData {
 	CDefinition cdefinition;
 	CPlaceholder cplaceholder;
 }
-struct CDefinable {
-	CDefinableTag _tag;
-	CDefinableData _data;
+struct CDefinable {CDefinableTag _tagCDefinableData _data
 };
 enum JMethodHeaderTag {
 	JConstructorType,
@@ -65,9 +59,7 @@ union JMethodHeaderData {
 	JDefinition jdefinition;
 	JPlaceholder jplaceholder;
 }
-struct JMethodHeader {
-	JMethodHeaderTag _tag;
-	JMethodHeaderData _data;
+struct JMethodHeader {JMethodHeaderTag _tagJMethodHeaderData _data
 };
 struct CFunctionHeader {
 };
@@ -83,9 +75,7 @@ union JExpressionData {
 	JMemberAccess jmemberaccess;
 	JPlaceholder jplaceholder;
 }
-struct JExpression {
-	JExpressionTag _tag;
-	JExpressionData _data;
+struct JExpression {JExpressionTag _tagJExpressionData _data
 };
 enum CExpressionTag {
 	CFieldAccessType,
@@ -97,78 +87,47 @@ union CExpressionData {
 	CIdentifier cidentifier;
 	CPlaceholder cplaceholder;
 }
-struct CExpression {
-	CExpressionTag _tag;
-	CExpressionData _data;
+struct CExpression {CExpressionTag _tagCExpressionData _data
 };
 template <typename T, typename X>
-struct Err {
-	X error;
+struct Err {X error
 };
 template <typename T, typename X>
-struct Ok {
-	T value;
+struct Ok {T value
 };
-struct CPointerType {
-	CType child;
+struct CPointerType {CType child
 };
-struct CTemplateType {
-	char* base;
-	List<CType> typeArguments;
+struct CTemplateType {char* baseList<CType> typeArguments
 };
-struct CIdentifier {
-	char* input;
+struct CIdentifier {char* input
 };
-struct CPlaceholder {
-	char* input;
+struct CPlaceholder {char* input
 };
-struct CDefinition {
-	CType type;
-	char* name;
+struct CDefinition {CType typechar* name
 };
-struct JDefinition {
-	Optional<char*> beforeType;
-	JType type;
-	char* name;
+struct JDefinition {Optional<char*> beforeTypeJType typechar* name
 };
-struct JConstructor {
-	char* input;
+struct JConstructor {char* input
 };
-struct JPlaceholder {
-	char* input;
+struct JPlaceholder {char* input
 };
-struct JArrayType {
-	JType type;
+struct JArrayType {JType type
 };
-struct JGenericType {
-	char* base;
-	List<JType> typeArguments;
+struct JGenericType {char* baseList<JType> typeArguments
 };
-struct JIdentifier {
-	char* value;
+struct JIdentifier {char* value
 };
-struct CFieldAccess {
-	CExpression child;
-	char* name;
+struct CFieldAccess {CExpression childchar* name
 };
-struct JMemberAccess {
-	JExpression child;
-	char* name;
+struct JMemberAccess {JExpression childchar* name
 };
-struct Frame {
-	Optional<char*> maybeStructureName;
-	List<JDefinition> definitions;
+struct Frame {Optional<char*> maybeStructureNameList<JDefinition> definitions
 };
-struct CStructureType {
-	char* name;
-	List<CDefinition> fields;
+struct CStructureType {char* nameList<CDefinition> fields
 };
-struct JClassType {
-	char* name;
-	List<JDefinition> definitions;
+struct JClassType {char* nameList<JDefinition> definitions
 };
-struct Scope {
-	List<Frame> frames;
+struct Scope {List<Frame> frames
 };
 struct Main {
 };
@@ -239,7 +198,7 @@ CType toCType_CTemplateType(void* _ref){
 char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
-	/*Property not present: typeArguments*/ typeArguments1 = cTemplateType.typeArguments;
+	List<CType> typeArguments1 = cTemplateType.typeArguments;
 	/*JPlaceholder[input=typeArguments1.stream()]*/ stream = /*typeArguments1.stream()*/;
 	/*JPlaceholder[input=stream.map(CType::generate)]*/ stringStream = /*stream.map(CType::generate)*/;
 	/*JPlaceholder[input=stringStream.collect(Collectors.joining(", "))]*/ joined = /*stringStream.collect(Collectors.joining(", "))*/;
@@ -598,20 +557,19 @@ return segments.stream new_return segments.stream();
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					var structureFields = "";
+					List<JDefinition> recordFields = new ArrayList<JDefinition>();
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							structureFields += Arrays
+							recordFields = Arrays
 									.stream(substring4.split(Pattern.quote(",")))
 									.map(String::strip)
 									.filter(slice -> !slice.isEmpty())
-									.map(Main::compileDefinition)
+									.map(Main::parseDefinition)
 									.flatMap(Optional::stream)
-									.map(Main::generateStatement)
-									.collect(Collectors.joining());
+									.toList();
 
 							beforeContent = substring2.substring(0, i3);
 						}
@@ -657,6 +615,7 @@ return segments.stream new_return segments.stream();
 																							 "return " + superType + " { " + beforeContent + "Type, data }")));
 					}
 
+					List<CDefinition> generatedFields = new ArrayList<CDefinition>();
 					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
@@ -679,11 +638,26 @@ return segments.stream new_return segments.stream();
 								System.lineSeparator();
 
 						beforeStruct += generatedEnum + generatedUnion;
-						structureFields +=
-								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
+
+						recordFields
+								.stream()
+								.map(JDefinition::toCDefinition)
+								.map(CDefinable::generate)
+								.map(Main::generateStatement)
+								.collect(Collectors.joining());
+
+						generatedFields = List.of(new CDefinition(new CIdentifier(tagType), "_tag"),
+																			new CDefinition(new CIdentifier(unionType + typeArguments), "_data"));
 					}
 
-					scope = scope.enter().withStructureName(beforeContent);
+					scope = scope.enter().withStructureName(beforeContent).defineAll(recordFields);
+
+					final var recordFieldsStream = recordFields.stream().map(JDefinition::toCDefinition);
+					final var structureFields = Stream
+							.concat(recordFieldsStream, generatedFields.stream())
+							.map(CDefinable::generate)
+							.collect(Collectors.joining());
+
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
@@ -928,8 +902,7 @@ return segments.stream new_return segments.stream();
 		if (type instanceof JMemberAccess(var child, var name)) {
 			final var resolved = resolveExpression(child);
 			if (resolved instanceof JClassType type0) {
-				final var found = type0.resolve(name);
-				return found.orElseGet(() -> new JPlaceholder("Property not present: " + name));
+				return type0.resolve(name).orElseGet(() -> new JPlaceholder("Property not present: " + name));
 			}
 			return new JPlaceholder("Not a structure type: " + resolved);
 		}

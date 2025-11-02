@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 	private enum JPrimitiveType implements JType {
@@ -421,20 +422,19 @@ public class Main {
 						beforeContent = beforeContent.substring(0, i4).strip();
 					}
 
-					var structureFields = "";
+					List<JDefinition> recordFields = new ArrayList<JDefinition>();
 					if (beforeContent.endsWith(")")) {
 						final var substring2 = beforeContent.substring(0, beforeContent.length() - 1);
 						final var i3 = substring2.indexOf("(");
 						if (i3 >= 0) {
 							final var substring4 = substring2.substring(i3 + 1);
-							structureFields += Arrays
+							recordFields = Arrays
 									.stream(substring4.split(Pattern.quote(",")))
 									.map(String::strip)
 									.filter(slice -> !slice.isEmpty())
-									.map(Main::compileDefinition)
+									.map(Main::parseDefinition)
 									.flatMap(Optional::stream)
-									.map(Main::generateStatement)
-									.collect(Collectors.joining());
+									.toList();
 
 							beforeContent = substring2.substring(0, i3);
 						}
@@ -480,6 +480,7 @@ public class Main {
 																							 "return " + superType + " { " + beforeContent + "Type, data }")));
 					}
 
+					List<CDefinition> generatedFields = new ArrayList<CDefinition>();
 					if (!variants.isEmpty()) {
 						final var enumFields = variants
 								.stream()
@@ -502,11 +503,26 @@ public class Main {
 								System.lineSeparator();
 
 						beforeStruct += generatedEnum + generatedUnion;
-						structureFields +=
-								generateStatement(tagType + " _tag") + generateStatement(unionType + typeArguments + " _data");
+
+						recordFields
+								.stream()
+								.map(JDefinition::toCDefinition)
+								.map(CDefinable::generate)
+								.map(Main::generateStatement)
+								.collect(Collectors.joining());
+
+						generatedFields = List.of(new CDefinition(new CIdentifier(tagType), "_tag"),
+																			new CDefinition(new CIdentifier(unionType + typeArguments), "_data"));
 					}
 
-					scope = scope.enter().withStructureName(beforeContent);
+					scope = scope.enter().withStructureName(beforeContent).defineAll(recordFields);
+
+					final var recordFieldsStream = recordFields.stream().map(JDefinition::toCDefinition);
+					final var structureFields = Stream
+							.concat(recordFieldsStream, generatedFields.stream())
+							.map(CDefinable::generate)
+							.collect(Collectors.joining());
+
 					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
 																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
 																System.lineSeparator();
