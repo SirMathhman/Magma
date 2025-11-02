@@ -504,13 +504,6 @@ public class Main {
 
 						beforeStruct += generatedEnum + generatedUnion;
 
-						recordFields
-								.stream()
-								.map(JDefinition::toCDefinition)
-								.map(CDefinable::generate)
-								.map(Main::generateStatement)
-								.collect(Collectors.joining());
-
 						generatedFields = List.of(new CDefinition(new CIdentifier(tagType), "_tag"),
 																			new CDefinition(new CIdentifier(unionType + typeArguments), "_data"));
 					}
