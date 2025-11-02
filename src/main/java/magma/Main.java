@@ -91,6 +91,10 @@ public class Main {
 		CStructureSegment toCStructureSegment();
 	}
 
+	private sealed interface JIncompleteClassSegment permits JClassSegmentWrapper, JPlaceholder {
+		JClassSegment toClassSegment();
+	}
+
 	private interface CStructureSegment {
 		String generate();
 	}
@@ -324,7 +328,8 @@ public class Main {
 		}
 	}
 
-	private record JPlaceholder(String input) implements JMethodHeader, JType, JExpression, JClassSegment {
+	private record JPlaceholder(String input)
+			implements JMethodHeader, JType, JExpression, JIncompleteClassSegment, JClassSegment {
 		@Override
 		public CDefinable toCDefinition() {
 			return new CPlaceholder(this.input);
@@ -338,6 +343,11 @@ public class Main {
 		@Override
 		public CExpression toCExpression() {
 			return new CPlaceholder(this.input);
+		}
+
+		@Override
+		public JClassSegment toClassSegment() {
+			return new JPlaceholder(this.input);
 		}
 
 		@Override
@@ -696,7 +706,12 @@ public class Main {
 		}
 	}
 
-	private record JClassSegmentWrapper(String output) implements JClassSegment {
+	private record JClassSegmentWrapper(String output) implements JIncompleteClassSegment, JClassSegment {
+		@Override
+		public JClassSegment toClassSegment() {
+			return new JClassSegmentWrapper(this.output);
+		}
+
 		@Override
 		public CStructureSegment toCStructureSegment() {
 			return new CStructureSegmentWrapper(this.output);
@@ -784,8 +799,7 @@ public class Main {
 			}
 		}
 		segments = segments.addLast(buffer.toString());
-		final var stream = segments.stream();
-		return stream;
+		return segments.stream();
 	}
 
 	private static String compileRootSegment(String input) {
@@ -795,7 +809,8 @@ public class Main {
 		}
 
 		return compileStructure(stripped, "class")
-				.map(JClassSegmentWrapper::toCStructureSegment)
+				.map(JClassSegmentWrapper::toClassSegment)
+				.map(JClassSegment::toCStructureSegment)
 				.map(CStructureSegment::generate)
 				.orElseGet(() -> CPlaceholder.wrap(stripped));
 	}
@@ -937,6 +952,7 @@ public class Main {
 
 					final var outputContent = inputSegments
 							.stream()
+							.map(JIncompleteClassSegment::toClassSegment)
 							.map(JClassSegment::toCStructureSegment)
 							.map(CStructureSegment::generate)
 							.collect(new Collectors.Joiner(""));
@@ -976,11 +992,7 @@ public class Main {
 		return true;
 	}
 
-	private static String compileClassSegment(String input) {
-		return parseClassSegment(input).toCStructureSegment().generate();
-	}
-
-	private static JClassSegment parseClassSegment(String input) {
+	private static JIncompleteClassSegment parseClassSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return new JClassSegmentWrapper("");
@@ -1012,7 +1024,7 @@ public class Main {
 		return compileMethod(stripped).orElseGet(() -> new JPlaceholder(stripped));
 	}
 
-	private static Optional<JClassSegment> compileMethod(String stripped) {
+	private static Optional<JIncompleteClassSegment> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);

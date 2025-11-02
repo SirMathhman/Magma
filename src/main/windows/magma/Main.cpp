@@ -122,6 +122,18 @@ struct JClassSegment {
 	JClassSegmentTag _tag;
 	JClassSegmentData _data;
 };
+enum JIncompleteClassSegmentTag {
+	JClassSegmentWrapperType,
+	JPlaceholderType
+};
+union JIncompleteClassSegmentData {
+	JClassSegmentWrapper jclasssegmentwrapper;
+	JPlaceholder jplaceholder;
+}
+struct JIncompleteClassSegment {
+	JIncompleteClassSegmentTag _tag;
+	JIncompleteClassSegmentData _data;
+};
 struct CStructureSegment {
 };
 template <typename T>
@@ -280,6 +292,7 @@ Optional<T> next_Head(void* _ref);
 C createInitial_Collector(void* _ref);
 C fold_Collector(void* _ref, C current, T element);
 CStructureSegment toCStructureSegment_JClassSegment(void* _ref);
+JClassSegment toClassSegment_JIncompleteClassSegment(void* _ref);
 char* generate_CStructureSegment(void* _ref);
 Stream<T> fromOptional_Stream(void* _ref, Optional<T> optional) {
 	Stream _this = *((Stream*) _ref);
@@ -530,11 +543,11 @@ CDefinable toCDefinition_JConstructor(void* _ref) {
 	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=new CIdentifier]]*/ type = /*new CIdentifier*/(this.input);
 	return /*new CDefinition*/(type, /*"new_" + this*/.input);
 }
-/*JMethodHeader, JType, JExpression, JClassSegment*/ to/*JMethodHeader, JType, JExpression, JClassSegment*/_JPlaceholder(void* _ref){
+/*JMethodHeader, JType, JExpression, JIncompleteClassSegment, JClassSegment*/ to/*JMethodHeader, JType, JExpression, JIncompleteClassSegment, JClassSegment*/_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	/*JMethodHeader, JType, JExpression, JClassSegment*/Data data;
+	/*JMethodHeader, JType, JExpression, JIncompleteClassSegment, JClassSegment*/Data data;
 	data.err = this;
-	return /*JMethodHeader, JType, JExpression, JClassSegment*/ { JPlaceholderType, data };
+	return /*JMethodHeader, JType, JExpression, JIncompleteClassSegment, JClassSegment*/ { JPlaceholderType, data };
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -547,6 +560,10 @@ CType toCType_JPlaceholder(void* _ref) {
 CExpression toCExpression_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder*/(this.input);
+}
+JClassSegment toClassSegment_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	return /*new JPlaceholder*/(this.input);
 }
 CStructureSegment toCStructureSegment_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -905,11 +922,15 @@ char* generate_CStructureSegmentWrapper(void* _ref) {
 	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
 	return this.output;
 }
-JClassSegment toJClassSegment_JClassSegmentWrapper(void* _ref){
+/*JIncompleteClassSegment, JClassSegment*/ to/*JIncompleteClassSegment, JClassSegment*/_JClassSegmentWrapper(void* _ref){
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
-	JClassSegmentData data;
+	/*JIncompleteClassSegment, JClassSegment*/Data data;
 	data.err = this;
-	return JClassSegment { JClassSegmentWrapperType, data };
+	return /*JIncompleteClassSegment, JClassSegment*/ { JClassSegmentWrapperType, data };
+}
+JClassSegment toClassSegment_JClassSegmentWrapper(void* _ref) {
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	return /*new JClassSegmentWrapper*/(this.output);
 }
 CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
 	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
@@ -967,6 +988,10 @@ char* compile_Main(void* _ref, char* input) {
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
+	return /*Undefined identifier: divide*/(/*input)*/.map(/*mapper).collect(new Collectors.Joiner(""*/));
+}
+Stream<char*> divide_Main(void* _ref, char* input) {
+	Main _this = *((Main*) _ref);
 	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=new List<String>]]*/ segments = /*new List<String>*/();
 	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=new StringBuilder]]*/ buffer = /*new StringBuilder*/();
 	/*JPlaceholder[input=0]*/ depth = /*0*/;
@@ -996,7 +1021,8 @@ return segments.stream new_return segments.stream();
 		}
 
 		return compileStructure(stripped, "class")
-				.map(JClassSegmentWrapper::toCStructureSegment)
+				.map(JClassSegmentWrapper::toClassSegment)
+				.map(JClassSegment::toCStructureSegment)
 				.map(CStructureSegment::generate)
 				.orElseGet(() -> CPlaceholder.wrap(stripped));
 	}*//*private static Optional<JClassSegmentWrapper> compileStructure(String stripped, String type) {
@@ -1132,9 +1158,18 @@ return segments.stream new_return segments.stream();
 							.map(Main::generateStatement)
 							.collect(new Collectors.Joiner(""));
 
-					final var generated = beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields +
-																compileStatements(content, Main::compileClassSegment) + System.lineSeparator() + "};" +
-																System.lineSeparator();
+					final var inputSegments = divide(content).map(Main::parseClassSegment).toList();
+
+					final var outputContent = inputSegments
+							.stream()
+							.map(JIncompleteClassSegment::toClassSegment)
+							.map(JClassSegment::toCStructureSegment)
+							.map(CStructureSegment::generate)
+							.collect(new Collectors.Joiner(""));
+
+					final var generated =
+							beforeStruct + templateString + "struct " + beforeContent + " {" + structureFields + outputContent +
+							System.lineSeparator() + "};" + System.lineSeparator();
 
 					structures = structures.addLast(generated);
 
@@ -1159,9 +1194,7 @@ return segments.stream new_return segments.stream();
 		}
 
 		return true;
-	}*//*private static String compileClassSegment(String input) {
-		return parseClassSegment(input).toCStructureSegment().generate();
-	}*//*private static JClassSegment parseClassSegment(String input) {
+	}*//*private static JIncompleteClassSegment parseClassSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return new JClassSegmentWrapper("");
@@ -1191,7 +1224,7 @@ return segments.stream new_return segments.stream();
 		}
 
 		return compileMethod(stripped).orElseGet(() -> new JPlaceholder(stripped));
-	}*//*private static Optional<JClassSegment> compileMethod(String stripped) {
+	}*//*private static Optional<JIncompleteClassSegment> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
