@@ -161,7 +161,8 @@ struct JMemberAccess {
 };
 struct Frame {
 	Optional<char*> maybeStructureName;
-	List<JDefinition> definitions;
+	List<JDefinition> definedMembers;
+	/*JType>*/ definedTypes;
 };
 struct CStructureType {
 	char* name;
@@ -169,7 +170,7 @@ struct CStructureType {
 };
 struct JClassType {
 	char* name;
-	List<JDefinition> definitions;
+	List<JDefinition> members;
 };
 struct Scope {
 	List<Frame> frames;
@@ -226,6 +227,14 @@ char* generate_CType(void* _ref);
 char* generate_CDefinable(void* _ref);
 CDefinable toCDefinition_JMethodHeader(void* _ref);
 CType toCType_JType(void* _ref);
+List<char*> findTypeParameters_JType(void* _ref) {
+	JType _this = *((JType*) _ref);
+	return /*Undefined identifier: Collections*/.emptyList();
+}
+JType remap_JType(void* _ref, /*JType>*/ mapping) {
+	JType _this = *((JType*) _ref);
+	return this;
+}
 CExpression toCExpression_JExpression(void* _ref);
 char* generate_CExpression(void* _ref);
 Result<T, X> toResult<T, X>_Err(void* _ref){
@@ -260,9 +269,9 @@ char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
 	List<CType> typeArguments1 = cTemplateType.typeArguments;
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=[JIdentifier[value=CType]]]]*/ stream = typeArguments1.stream();
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=[JIdentifier[value=CType]]]]]]*/ stringStream = stream.map(/*CType::generate*/);
-	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JGenericType[base=List, typeArguments=[JIdentifier[value=CType]]]]]]]]*/ joined = stringStream.collect(/*Collectors.joining("*/, /*")*/);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]*/ stream = typeArguments1.stream();
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]]]*/ stringStream = stream.map(/*CType::generate*/);
+	/*Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Failed to resolve caller: JPlaceholder[input=Not a structure type: JPlaceholder[input=Unknown base generic type: List]]]]]]*/ joined = stringStream.collect(/*Collectors.joining("*/, /*")*/);
 	return /*this.base + "<" + joined + ">"*/;
 }
 /*CType, CExpression*/ to/*CType, CExpression*/_CIdentifier(void* _ref){
@@ -399,20 +408,20 @@ CExpression toCExpression_JMemberAccess(void* _ref) {
 }
 public Frame_Frame(void* _ref) {
 	Frame _this = *((Frame*) _ref);
-	/*this(Optional.empty(), new ArrayList<JDefinition>())*/;
+	/*this(Optional.empty(), new ArrayList<JDefinition>(), new HashMap<String, JType>())*/;
 }
 Optional<JClassType> toClassType_Frame(void* _ref) {
 	Frame _this = *((Frame*) _ref);
-	return this.maybeStructureName.map(/*structureName -> new JClassType(structureName*/, /*this.definitions)*/);
+	return this.maybeStructureName.map(/*structureName -> new JClassType(structureName*/, /*this.definedMembers)*/);
 }
-void defineAll_Frame(void* _ref, List<JDefinition> definitions) {
+void defineAllExpressions_Frame(void* _ref, List<JDefinition> definitions) {
 	Frame _this = *((Frame*) _ref);
-	/*definitions.forEach(this::define)*/;
+	/*definitions.forEach(this::defineExpression)*/;
 }
-void define_Frame(void* _ref, JDefinition definition) {
+void defineExpression_Frame(void* _ref, JDefinition definition) {
 	Frame _this = *((Frame*) _ref);
 	/*assert !this.isVar(definition)*/;
-	/*this.definitions.addLast(definition)*/;
+	/*this.definedMembers.addLast(definition)*/;
 }
 boolean isVar_Frame(void* _ref, JDefinition definition) {
 	Frame _this = *((Frame*) _ref);
@@ -421,7 +430,11 @@ boolean isVar_Frame(void* _ref, JDefinition definition) {
 }
 Frame withStructureName_Frame(void* _ref, char* structureName) {
 	Frame _this = *((Frame*) _ref);
-	return /*new Frame*/(/*Undefined identifier: Optional*/.of(structureName), this.definitions);
+	return /*new Frame*/(/*Undefined identifier: Optional*/.of(structureName), this.definedMembers, this.definedTypes);
+}
+Optional<JType> resolveType_Frame(void* _ref, char* key) {
+	Frame _this = *((Frame*) _ref);
+	return /*Undefined identifier: Optional*/.ofNullable(this.definedTypes.get(key));
 }
 CType toCType_CStructureType(void* _ref){
 	CStructureType _this = *((CStructureType*) _ref);
@@ -441,12 +454,12 @@ JType toJType_JClassType(void* _ref){
 }
 CType toCType_JClassType(void* _ref) {
 	JClassType _this = *((JClassType*) _ref);
-	return /*new CStructureType*/(this.name, this.definitions.stream(/*)
+	return /*new CStructureType*/(this.name, this.members.stream(/*)
 																		.map(definition -> new CDefinition(definition.type.toCType(*/), /*definition.name))*/.toList());
 }
 Optional<JType> resolve_JClassType(void* _ref, char* name) {
 	JClassType _this = *((JClassType*) _ref);
-	return this.definitions.stream(/*)
+	return this.members.stream(/*)
 					.filter(definition -> definition.name.equals(name))
 					.map(definition -> definition.type)
 					.findFirst(*/);
@@ -456,7 +469,7 @@ public Scope_Scope(void* _ref) {
 	/*this(new ArrayList<Frame>())*/;
 	/*this.frames.addLast(new Frame())*/;
 }
-Optional<JType> resolveIdentifier_Scope(void* _ref, char* input) {
+Optional<JType> resolveExpression_Scope(void* _ref, char* input) {
 	Scope _this = *((Scope*) _ref);/*if (input.equals("this")) {
 				return this.frames
 						.reversed()
@@ -468,10 +481,41 @@ Optional<JType> resolveIdentifier_Scope(void* _ref, char* input) {
 			}*/
 	return this.frames.reversed(/*)
 					.stream()
-					.map(frame -> frame.definitions.stream().filter(definition -> definition.name.equals(input)).findFirst())
+					.map(frame -> frame.definedMembers.stream().filter(definition -> definition.name.equals(input)).findFirst())
 					.flatMap(Optional::stream)
 					.map(JDefinition::type)
-					.findFirst(*/);
+					.findFirst()
+					.map(this::finalizeType*/);
+}
+JType finalizeType_Scope(void* _ref, JType type) {
+	Scope _this = *((Scope*) _ref);/*if (type instanceof JGenericType(var base, var typeArguments)) {
+				final var maybeResolved = scope.resolveType(base);
+				if (maybeResolved.isPresent()) {
+					final var jType = maybeResolved.get();
+					final var typeParameters = jType.findTypeParameters();
+					final var mapping = this.createMapping(typeArguments, typeParameters);
+					return jType.remap(mapping);
+				} else {
+					return new JPlaceholder("Unknown base generic type: " + base);
+				}
+			}*//*else {
+				return type;
+			}*/
+}
+/*JType>*/ createMapping_Scope(void* _ref, List<JType> typeArguments, List<char*> typeParameters) {
+	Scope _this = *((Scope*) _ref);
+	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=new HashMap<String, JType>]]*/ mapping = /*new HashMap<String, JType>*/();
+	/*(var*/ i = /*0*/;
+	/*i < typeParameters.size()*/;/*i++) {
+				final var typeParameter = typeParameters.get(i);
+				final var typeArgument = typeArguments.get(i);
+				mapping.put(typeParameter, typeArgument);
+			}*/
+	return mapping;
+}
+Optional<JType> resolveType_Scope(void* _ref, char* key) {
+	Scope _this = *((Scope*) _ref);
+	return this.frames.reversed(/*).stream().map(frame -> frame.resolveType(key)).flatMap(Optional::stream).findFirst(*/);
 }
 Scope enter_Scope(void* _ref) {
 	Scope _this = *((Scope*) _ref);
@@ -480,7 +524,7 @@ Scope enter_Scope(void* _ref) {
 }
 Scope defineAll_Scope(void* _ref, List<JDefinition> definitions) {
 	Scope _this = *((Scope*) _ref);
-	/*this.frames.getLast().defineAll(definitions)*/;
+	/*this.frames.getLast().defineAllExpressions(definitions)*/;
 	return this;
 }
 Scope exit_Scope(void* _ref) {
@@ -490,7 +534,7 @@ Scope exit_Scope(void* _ref) {
 }
 Scope define_Scope(void* _ref, JDefinition definition) {
 	Scope _this = *((Scope*) _ref);
-	/*this.frames.getLast().define(definition)*/;
+	/*this.frames.getLast().defineExpression(definition)*/;
 	return this;
 }
 Scope withStructureName_Scope(void* _ref, char* name) {
@@ -959,7 +1003,7 @@ return segments.stream new_return segments.stream();
 			return true;
 		}
 
-		return scope.resolveIdentifier(input).isPresent();
+		return scope.resolveExpression(input).isPresent();
 	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
@@ -1003,7 +1047,7 @@ return segments.stream new_return segments.stream();
 		});
 	}*//*private static JType resolveExpression(JExpression expression) {
 		if (expression instanceof JIdentifier(var input)) {
-			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
+			return scope.resolveExpression(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
 		if (expression instanceof JMemberAccess(var child, var name)) {

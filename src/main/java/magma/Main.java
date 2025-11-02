@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -59,6 +60,14 @@ public class Main {
 
 	private interface JType {
 		CType toCType();
+
+		default List<String> findTypeParameters() {
+			return Collections.emptyList();
+		}
+
+		default JType remap(Map<String, JType> mapping) {
+			return this;
+		}
 	}
 
 	private sealed interface JExpression permits JIdentifier, JInvocation, JMemberAccess, JPlaceholder {
@@ -194,14 +203,14 @@ public class Main {
 		}
 	}
 
-	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definedExpressions,
+	private record Frame(Optional<String> maybeStructureName, List<JDefinition> definedMembers,
 											 Map<String, JType> definedTypes) {
 		public Frame() {
 			this(Optional.empty(), new ArrayList<JDefinition>(), new HashMap<String, JType>());
 		}
 
 		private Optional<JClassType> toClassType() {
-			return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definedExpressions));
+			return this.maybeStructureName.map(structureName -> new JClassType(structureName, this.definedMembers));
 		}
 
 		public void defineAllExpressions(List<JDefinition> definitions) {
@@ -210,7 +219,7 @@ public class Main {
 
 		public void defineExpression(JDefinition definition) {
 			assert !this.isVar(definition);
-			this.definedExpressions.addLast(definition);
+			this.definedMembers.addLast(definition);
 		}
 
 		private boolean isVar(JDefinition definition) {
@@ -219,7 +228,7 @@ public class Main {
 		}
 
 		public Frame withStructureName(String structureName) {
-			return new Frame(Optional.of(structureName), this.definedExpressions, this.definedTypes);
+			return new Frame(Optional.of(structureName), this.definedMembers, this.definedTypes);
 		}
 
 		public Optional<JType> resolveType(String key) {
@@ -234,18 +243,18 @@ public class Main {
 		}
 	}
 
-	private record JClassType(String name, List<JDefinition> definitions) implements JType {
+	private record JClassType(String name, List<JDefinition> members) implements JType {
 		@Override
 		public CType toCType() {
 			return new CStructureType(this.name,
-																this.definitions
+																this.members
 																		.stream()
 																		.map(definition -> new CDefinition(definition.type.toCType(), definition.name))
 																		.toList());
 		}
 
 		public Optional<JType> resolve(String name) {
-			return this.definitions
+			return this.members
 					.stream()
 					.filter(definition -> definition.name.equals(name))
 					.map(definition -> definition.type)
@@ -273,10 +282,7 @@ public class Main {
 			return this.frames
 					.reversed()
 					.stream()
-					.map(frame -> frame.definedExpressions
-							.stream()
-							.filter(definition -> definition.name.equals(input))
-							.findFirst())
+					.map(frame -> frame.definedMembers.stream().filter(definition -> definition.name.equals(input)).findFirst())
 					.flatMap(Optional::stream)
 					.map(JDefinition::type)
 					.findFirst()
@@ -284,18 +290,29 @@ public class Main {
 		}
 
 		private JType finalizeType(JType type) {
-			if (type instanceof JGenericType(String base, List<JType> typeArguments)) {
+			if (type instanceof JGenericType(var base, var typeArguments)) {
 				final var maybeResolved = scope.resolveType(base);
 				if (maybeResolved.isPresent()) {
 					final var jType = maybeResolved.get();
-					if (jType instanceof JClassType classType) {
-					}
+					final var typeParameters = jType.findTypeParameters();
+					final var mapping = this.createMapping(typeArguments, typeParameters);
+					return jType.remap(mapping);
 				} else {
 					return new JPlaceholder("Unknown base generic type: " + base);
 				}
+			} else {
+				return type;
 			}
+		}
 
-			return type;
+		private Map<String, JType> createMapping(List<JType> typeArguments, List<String> typeParameters) {
+			final var mapping = new HashMap<String, JType>();
+			for (var i = 0; i < typeParameters.size(); i++) {
+				final var typeParameter = typeParameters.get(i);
+				final var typeArgument = typeArguments.get(i);
+				mapping.put(typeParameter, typeArgument);
+			}
+			return mapping;
 		}
 
 		private Optional<JType> resolveType(String key) {
