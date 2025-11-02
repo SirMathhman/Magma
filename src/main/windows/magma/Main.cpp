@@ -110,6 +110,20 @@ struct Head {
 template <typename T, typename C>
 struct Collector {
 };
+enum JClassSegmentTag {
+	JClassSegmentWrapperType,
+	JPlaceholderType
+};
+union JClassSegmentData {
+	JClassSegmentWrapper jclasssegmentwrapper;
+	JPlaceholder jplaceholder;
+}
+struct JClassSegment {
+	JClassSegmentTag _tag;
+	JClassSegmentData _data;
+};
+struct CStructureSegment {
+};
 template <typename T>
 struct Stream {
 	Head<T> head;
@@ -205,6 +219,12 @@ struct MapHead {
 	Head<T> head;
 	/*R>*/ mapper;
 };
+struct CStructureSegmentWrapper {
+	char* output;
+};
+struct JClassSegmentWrapper {
+	char* output;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -254,6 +274,8 @@ char* generate_CExpression(void* _ref);
 Optional<T> next_Head(void* _ref);
 C createInitial_Collector(void* _ref);
 C fold_Collector(void* _ref, C current, T element);
+CStructureSegment toCStructureSegment_JClassSegment(void* _ref);
+char* generate_CStructureSegment(void* _ref);
 Stream<T> fromOptional_Stream(void* _ref, Optional<T> optional) {
 	Stream _this = *((Stream*) _ref);
 	return /*new Stream<T>*/(/*optional.<Head<T>>map*/(/*SingleHead::new).orElseGet(EmptyHead::new*/));
@@ -453,11 +475,11 @@ char* generate_CIdentifier(void* _ref) {
 	CIdentifier _this = *((CIdentifier*) _ref);
 	return this.input;
 }
-/*CType, CDefinable, CExpression*/ to/*CType, CDefinable, CExpression*/_CPlaceholder(void* _ref){
+/*CType, CDefinable, CExpression, CStructureSegment*/ to/*CType, CDefinable, CExpression, CStructureSegment*/_CPlaceholder(void* _ref){
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	/*CType, CDefinable, CExpression*/Data data;
+	/*CType, CDefinable, CExpression, CStructureSegment*/Data data;
 	data.err = this;
-	return /*CType, CDefinable, CExpression*/ { CPlaceholderType, data };
+	return /*CType, CDefinable, CExpression, CStructureSegment*/ { CPlaceholderType, data };
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
@@ -503,11 +525,11 @@ CDefinable toCDefinition_JConstructor(void* _ref) {
 	/*Failed to resolve caller: JPlaceholder[input=JPlaceholder[input=new CIdentifier]]*/ type = /*new CIdentifier*/(this.input);
 	return /*new CDefinition*/(type, /*"new_" + this*/.input);
 }
-/*JMethodHeader, JType, JExpression*/ to/*JMethodHeader, JType, JExpression*/_JPlaceholder(void* _ref){
+/*JMethodHeader, JType, JExpression, JClassSegment*/ to/*JMethodHeader, JType, JExpression, JClassSegment*/_JPlaceholder(void* _ref){
 	JPlaceholder _this = *((JPlaceholder*) _ref);
-	/*JMethodHeader, JType, JExpression*/Data data;
+	/*JMethodHeader, JType, JExpression, JClassSegment*/Data data;
 	data.err = this;
-	return /*JMethodHeader, JType, JExpression*/ { JPlaceholderType, data };
+	return /*JMethodHeader, JType, JExpression, JClassSegment*/ { JPlaceholderType, data };
 }
 CDefinable toCDefinition_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
@@ -518,6 +540,10 @@ CType toCType_JPlaceholder(void* _ref) {
 	return /*new CPlaceholder*/(this.input);
 }
 CExpression toCExpression_JPlaceholder(void* _ref) {
+	JPlaceholder _this = *((JPlaceholder*) _ref);
+	return /*new CPlaceholder*/(this.input);
+}
+CStructureSegment toCStructureSegment_JPlaceholder(void* _ref) {
 	JPlaceholder _this = *((JPlaceholder*) _ref);
 	return /*new CPlaceholder*/(this.input);
 }
@@ -864,6 +890,26 @@ Optional<T> next_Main(void* _ref) {
 				this.current = this.mapper.apply(nextHead.get());
 			}*//*}*/
 }
+CStructureSegment toCStructureSegment_CStructureSegmentWrapper(void* _ref){
+	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
+	CStructureSegmentData data;
+	data.err = this;
+	return CStructureSegment { CStructureSegmentWrapperType, data };
+}
+char* generate_CStructureSegmentWrapper(void* _ref) {
+	CStructureSegmentWrapper _this = *((CStructureSegmentWrapper*) _ref);
+	return this.output;
+}
+JClassSegment toJClassSegment_JClassSegmentWrapper(void* _ref){
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	JClassSegmentData data;
+	data.err = this;
+	return JClassSegment { JClassSegmentWrapperType, data };
+}
+CStructureSegment toCStructureSegment_JClassSegmentWrapper(void* _ref) {
+	JClassSegmentWrapper _this = *((JClassSegmentWrapper*) _ref);
+	return /*new CStructureSegmentWrapper*/(this.output);
+}
 private static List<String> structures = new List<String> new_private static List<String> structures = new List<String>();
 private static List<String> functions = new List<String> new_private static List<String> functions = new List<String>();
 private static List<String> globals = new List<String> new_private static List<String> globals = new List<String>();
@@ -938,8 +984,11 @@ return segments.stream new_return segments.stream();
 			return "";
 		}
 
-		return compileStructure(stripped, "class").orElseGet(() -> CPlaceholder.wrap(stripped));
-	}*//*private static Optional<String> compileStructure(String stripped, String type) {
+		return compileStructure(stripped, "class")
+				.map(JClassSegmentWrapper::toCStructureSegment)
+				.map(CStructureSegment::generate)
+				.orElseGet(() -> CPlaceholder.wrap(stripped));
+	}*//*private static Optional<JClassSegmentWrapper> compileStructure(String stripped, String type) {
 		final var i = stripped.indexOf(type + " ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + (type + " ").length()).strip();
@@ -1075,7 +1124,7 @@ return segments.stream new_return segments.stream();
 					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
 					scope = scope.exit().defineType(beforeContent, thisType);
 
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
 		}
@@ -1097,9 +1146,13 @@ return segments.stream new_return segments.stream();
 
 		return true;
 	}*//*private static String compileClassSegment(String input) {
+		return getString1(input).generate();
+	}*//*private static CStructureSegment getString1(String input) {
+		return getString(input).toCStructureSegment();
+	}*//*private static JClassSegment getString(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
-			return "";
+			return new JClassSegmentWrapper("");
 		}
 
 		final var maybeInterface = compileStructure(stripped, "interface");
@@ -1125,8 +1178,8 @@ return segments.stream new_return segments.stream();
 			}
 		}
 
-		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
-	}*//*private static Optional<String> compileMethod(String stripped) {
+		return compileMethod(stripped).orElseGet(() -> new JPlaceholder(stripped));
+	}*//*private static Optional<JClassSegment> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
@@ -1183,11 +1236,11 @@ return segments.stream new_return segments.stream();
 							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
 					functions = functions.addLast(generated);
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				} else {
 					final var generated = headerWithString + ";" + System.lineSeparator();
 					functions = functions.addLast(generated);
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
 		}
@@ -1196,8 +1249,8 @@ return segments.stream new_return segments.stream();
 	}*//*private static Optional<JMethodHeader> parseConstructor(String input) {
 		final var stripped = input.strip();
 		return Optional.of(new JConstructor(stripped));
-	}*//*private static Optional<String> compileClassStatement(String input) {
-		return compileDefinition(input).map(Main::generateStatement).or(() -> {
+	}*//*private static Optional<JClassSegmentWrapper> compileClassStatement(String input) {
+		return compileDefinition(input).map(Main::generateStatement).map(JClassSegmentWrapper::new).or(() -> {
 			final var enumValues = Stream
 					.fromArray(input.split(Pattern.quote(",")))
 					.map(String::strip)
@@ -1208,7 +1261,7 @@ return segments.stream new_return segments.stream();
 			if (!enumValues.stream().collect(new AllMatch<String>(segment -> compileEnumValue(segment, name)))) {
 				return Optional.empty();
 			}
-			return Optional.of("");
+			return Optional.of(new JClassSegmentWrapper(""));
 		});
 	}*//*private static boolean compileEnumValue(String segment, String enumName) {
 		final var stripped = segment.strip();

@@ -87,6 +87,14 @@ public class Main {
 		C fold(C current, T element);
 	}
 
+	private sealed interface JClassSegment permits JClassSegmentWrapper, JPlaceholder {
+		CStructureSegment toCStructureSegment();
+	}
+
+	private interface CStructureSegment {
+		String generate();
+	}
+
 	private record Stream<T>(Head<T> head) {
 		public static <T> Stream<T> fromOptional(Optional<T> optional) {
 			return new Stream<T>(optional.<Head<T>>map(SingleHead::new).orElseGet(EmptyHead::new));
@@ -279,7 +287,7 @@ public class Main {
 		}
 	}
 
-	private record CPlaceholder(String input) implements CType, CDefinable, CExpression {
+	private record CPlaceholder(String input) implements CType, CDefinable, CExpression, CStructureSegment {
 		private static String wrap(String input) {
 			final var replaced = input.replace("/*", "start").replace("*/", "end");
 			return "/*" + replaced + "*/";
@@ -316,7 +324,7 @@ public class Main {
 		}
 	}
 
-	private record JPlaceholder(String input) implements JMethodHeader, JType, JExpression {
+	private record JPlaceholder(String input) implements JMethodHeader, JType, JExpression, JClassSegment {
 		@Override
 		public CDefinable toCDefinition() {
 			return new CPlaceholder(this.input);
@@ -329,6 +337,11 @@ public class Main {
 
 		@Override
 		public CExpression toCExpression() {
+			return new CPlaceholder(this.input);
+		}
+
+		@Override
+		public CStructureSegment toCStructureSegment() {
 			return new CPlaceholder(this.input);
 		}
 	}
@@ -365,7 +378,6 @@ public class Main {
 			return this.child.generate() + "." + this.name;
 		}
 	}
-
 
 	private record JMemberAccess(JExpression child, String name) implements JExpression {
 		@Override
@@ -677,6 +689,20 @@ public class Main {
 		}
 	}
 
+	private record CStructureSegmentWrapper(String output) implements CStructureSegment {
+		@Override
+		public String generate() {
+			return this.output;
+		}
+	}
+
+	private record JClassSegmentWrapper(String output) implements JClassSegment {
+		@Override
+		public CStructureSegment toCStructureSegment() {
+			return new CStructureSegmentWrapper(this.output);
+		}
+	}
+
 	private static List<String> structures = new List<String>();
 	private static List<String> functions = new List<String>();
 	private static List<String> globals = new List<String>();
@@ -756,10 +782,13 @@ public class Main {
 			return "";
 		}
 
-		return compileStructure(stripped, "class").orElseGet(() -> CPlaceholder.wrap(stripped));
+		return compileStructure(stripped, "class")
+				.map(JClassSegmentWrapper::toCStructureSegment)
+				.map(CStructureSegment::generate)
+				.orElseGet(() -> CPlaceholder.wrap(stripped));
 	}
 
-	private static Optional<String> compileStructure(String stripped, String type) {
+	private static Optional<JClassSegmentWrapper> compileStructure(String stripped, String type) {
 		final var i = stripped.indexOf(type + " ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + (type + " ").length()).strip();
@@ -895,7 +924,7 @@ public class Main {
 					final var thisType = scope.getThisType().orElse(JPrimitiveType.Void);
 					scope = scope.exit().defineType(beforeContent, thisType);
 
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
 		}
@@ -927,9 +956,13 @@ public class Main {
 	}
 
 	private static String compileClassSegment(String input) {
+		return parseClassSegment(input).toCStructureSegment().generate();
+	}
+
+	private static JClassSegment parseClassSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
-			return "";
+			return new JClassSegmentWrapper("");
 		}
 
 		final var maybeInterface = compileStructure(stripped, "interface");
@@ -955,10 +988,10 @@ public class Main {
 			}
 		}
 
-		return compileMethod(stripped).orElseGet(() -> CPlaceholder.wrap(stripped));
+		return compileMethod(stripped).orElseGet(() -> new JPlaceholder(stripped));
 	}
 
-	private static Optional<String> compileMethod(String stripped) {
+	private static Optional<JClassSegment> compileMethod(String stripped) {
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
@@ -1015,11 +1048,11 @@ public class Main {
 							headerWithString + " {" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
 					functions = functions.addLast(generated);
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				} else {
 					final var generated = headerWithString + ";" + System.lineSeparator();
 					functions = functions.addLast(generated);
-					return Optional.of("");
+					return Optional.of(new JClassSegmentWrapper(""));
 				}
 			}
 		}
@@ -1032,8 +1065,8 @@ public class Main {
 		return Optional.of(new JConstructor(stripped));
 	}
 
-	private static Optional<String> compileClassStatement(String input) {
-		return compileDefinition(input).map(Main::generateStatement).or(() -> {
+	private static Optional<JClassSegmentWrapper> compileClassStatement(String input) {
+		return compileDefinition(input).map(Main::generateStatement).map(JClassSegmentWrapper::new).or(() -> {
 			final var enumValues = Stream
 					.fromArray(input.split(Pattern.quote(",")))
 					.map(String::strip)
@@ -1044,7 +1077,7 @@ public class Main {
 			if (!enumValues.stream().collect(new AllMatch<String>(segment -> compileEnumValue(segment, name)))) {
 				return Optional.empty();
 			}
-			return Optional.of("");
+			return Optional.of(new JClassSegmentWrapper(""));
 		});
 	}
 
