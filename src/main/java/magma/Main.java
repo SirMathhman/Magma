@@ -729,7 +729,7 @@ public class Main {
 		}
 		segments = segments.addLast(buffer.toString());
 
-		return segments.stream().map(mapper).collect(new Collectors.Joiner(null));
+		return segments.stream().map(mapper).collect(new Collectors.Joiner(""));
 	}
 
 	private static String compileRootSegment(String input) {
@@ -846,7 +846,7 @@ public class Main {
 								.stream()
 								.map(segment -> System.lineSeparator() + "\t" + segment + typeArguments + " " + segment.toLowerCase() +
 																";")
-								.collect(new Collectors.Joiner(null));
+								.collect(new Collectors.Joiner(""));
 
 						final var unionType = beforeContent + "Data";
 						final var generatedUnion =
