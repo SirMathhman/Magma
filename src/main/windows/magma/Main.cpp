@@ -24,6 +24,7 @@ struct Result {
 	ResultData<T, X> _data;
 };
 enum CTypeTag {
+	CFunctionTypeType,
 	CIdentifierType,
 	CPlaceholderType,
 	CPointerTypeType,
@@ -32,6 +33,7 @@ enum CTypeTag {
 	CTemplateTypeType
 };
 union CTypeData {
+	CFunctionType cfunctiontype;
 	CIdentifier cidentifier;
 	CPlaceholder cplaceholder;
 	CPointerType cpointertype;
@@ -68,8 +70,6 @@ union JMethodHeaderData {
 struct JMethodHeader {
 	JMethodHeaderTag _tag;
 	JMethodHeaderData _data;
-};
-struct CFunctionHeader {
 };
 struct JType {
 };
@@ -182,6 +182,14 @@ struct JInvocation {
 	JExpression caller;
 	List<JExpression> arguments;
 };
+struct CFunctionType {
+	CType returnType;
+	List<CType> paramTypes;
+};
+struct JMethodType {
+	JType returnType;
+	List<JType> paramTypes;
+};
 struct Main {
 };
 JType toJType_JPrimitiveType(void* _ref){
@@ -252,9 +260,9 @@ char* generate_CTemplateType(void* _ref) {
 	CTemplateType _this = *((CTemplateType*) _ref);
 	CTemplateType cTemplateType = this;
 	List<CType> typeArguments1 = cTemplateType.typeArguments;
-	/*JInvocation[caller=JMemberAccess[child=JIdentifier[value=typeArguments1], name=stream], arguments=[]]*/ stream = typeArguments1.stream();
-	/*JInvocation[caller=JMemberAccess[child=JIdentifier[value=stream], name=map], arguments=[JPlaceholder[input=CType::generate]]]*/ stringStream = stream.map(/*CType::generate*/);
-	/*JInvocation[caller=JMemberAccess[child=JIdentifier[value=stringStream], name=collect], arguments=[JPlaceholder[input=Collectors.joining("], JPlaceholder[input=")]]]*/ joined = stringStream.collect(/*Collectors.joining("*/, /*")*/);
+	/*Failed to resolve caller: JMemberAccess[child=JIdentifier[value=typeArguments1], name=stream]*/ stream = typeArguments1.stream();
+	/*Failed to resolve caller: JMemberAccess[child=JIdentifier[value=stream], name=map]*/ stringStream = stream.map(/*CType::generate*/);
+	/*Failed to resolve caller: JMemberAccess[child=JIdentifier[value=stringStream], name=collect]*/ joined = stringStream.collect(/*Collectors.joining("*/, /*")*/);
 	return /*this.base + "<" + joined + ">"*/;
 }
 /*CType, CExpression*/ to/*CType, CExpression*/_CIdentifier(void* _ref){
@@ -275,7 +283,7 @@ char* generate_CIdentifier(void* _ref) {
 }
 char* wrap_CPlaceholder(void* _ref, char* input) {
 	CPlaceholder _this = *((CPlaceholder*) _ref);
-	/*JInvocation[caller=JMemberAccess[child=JIdentifier[value=input], name=replace], arguments=[JPlaceholder[input="start"], JPlaceholder[input="start").replace("end"], JPlaceholder[input="end"]]]*/ replaced = input.replace(/*"start"*/, /*"start").replace("end"*/, /*"end"*/);
+	/*Failed to resolve caller: JMemberAccess[child=JIdentifier[value=input], name=replace]*/ replaced = input.replace(/*"start"*/, /*"start").replace("end"*/, /*"end"*/);
 	return /*"start" + replaced + "end"*/;
 }
 char* generate_CPlaceholder(void* _ref) {
@@ -314,7 +322,7 @@ JMethodHeader toJMethodHeader_JConstructor(void* _ref){
 }
 CDefinable toCDefinition_JConstructor(void* _ref) {
 	JConstructor _this = *((JConstructor*) _ref);
-	/*JInvocation[caller=JPlaceholder[input=new CIdentifier], arguments=[JMemberAccess[child=JIdentifier[value=this], name=input]]]*/ type = /*new CIdentifier*/(this.input);
+	/*Failed to resolve caller: JPlaceholder[input=new CIdentifier]*/ type = /*new CIdentifier*/(this.input);
 	return /*new CDefinition*/(type, /*"new_" + this*/.input);
 }
 /*JMethodHeader, JType, JExpression*/ to/*JMethodHeader, JType, JExpression*/_JPlaceholder(void* _ref){
@@ -507,7 +515,7 @@ CExpression toCExpression_CInvocation(void* _ref){
 }
 char* generate_CInvocation(void* _ref) {
 	CInvocation _this = *((CInvocation*) _ref);
-	/*JInvocation[caller=JMemberAccess[child=JMemberAccess[child=JIdentifier[value=this], name=arguments], name=stream], arguments=[JPlaceholder[input=).map(CExpression::generate).collect(Collectors.joining("], JPlaceholder[input=")]]]*/ joined = this.arguments.stream(/*).map(CExpression::generate).collect(Collectors.joining("*/, /*")*/);
+	/*Failed to resolve caller: JMemberAccess[child=JMemberAccess[child=JIdentifier[value=this], name=arguments], name=stream]*/ joined = this.arguments.stream(/*).map(CExpression::generate).collect(Collectors.joining("*/, /*")*/);
 	return /*this.cExpression.generate() + "(" + joined + ")"*/;
 }
 JExpression toJExpression_JInvocation(void* _ref){
@@ -520,6 +528,27 @@ CExpression toCExpression_JInvocation(void* _ref) {
 	JInvocation _this = *((JInvocation*) _ref);
 	return /*new CInvocation*/(this.caller.toCExpression(), this.arguments.stream(/*).map(JExpression::toCExpression).toList(*/));
 }
+CType toCType_CFunctionType(void* _ref){
+	CFunctionType _this = *((CFunctionType*) _ref);
+	CTypeData data;
+	data.err = this;
+	return CType { CFunctionTypeType, data };
+}
+char* generate_CFunctionType(void* _ref) {
+	CFunctionType _this = *((CFunctionType*) _ref);
+	/*Failed to resolve caller: JMemberAccess[child=JMemberAccess[child=JIdentifier[value=this], name=paramTypes], name=stream]*/ joinedParameterTypes = this.paramTypes.stream(/*).map(CType::generate).collect(Collectors.joining("*/, /*")*/);
+	return /*this.returnType.generate() + " (*)(" + joinedParameterTypes + ")"*/;
+}
+JType toJType_JMethodType(void* _ref){
+	JMethodType _this = *((JMethodType*) _ref);
+	JTypeData data;
+	data.err = this;
+	return JType { JMethodTypeType, data };
+}
+CType toCType_JMethodType(void* _ref) {
+	JMethodType _this = *((JMethodType*) _ref);
+	return /*new CFunctionType*/(this.returnType.toCType(), this.paramTypes.stream(/*).map(JType::toCType).toList(*/));
+}
 public static final List<String> functions = new ArrayList<String> new_public static final List<String> functions = new ArrayList<String>();
 public static final List<String> structures = new ArrayList<String> new_public static final List<String> structures = new ArrayList<String>();
 private static final List<String> globals = new ArrayList<String> new_private static final List<String> globals = new ArrayList<String>();
@@ -530,7 +559,7 @@ void main_Main(void* _ref, char** args) {
 }
 Optional<IOException> run_Main(void* _ref) {
 	Main _this = *((Main*) _ref);
-	/*JInvocation[caller=JMemberAccess[child=JPlaceholder[input=Undefined identifier: Paths], name=get], arguments=[JPlaceholder[input="."], JPlaceholder[input="src"], JPlaceholder[input="main"], JPlaceholder[input="java"], JPlaceholder[input="magma"], JPlaceholder[input="Main.java"]]]*/ source = /*Undefined identifier: Paths*/.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);/*return switch (readString(source)) {
+	/*Failed to resolve caller: JMemberAccess[child=JPlaceholder[input=Undefined identifier: Paths], name=get]*/ source = /*Undefined identifier: Paths*/.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);/*return switch (readString(source)) {
 			case Ok(var input) -> {
 				final var target = Paths.get(".", "src", "main", "windows", "magma", "Main.cpp");
 				final var output = compile(input);
@@ -558,16 +587,16 @@ Optional<IOException> writeString_Main(void* _ref, Path target, char* output) {
 char* compile_Main(void* _ref, char* input) {
 	Main _this = *((Main*) _ref);
 	/*Undefined identifier: scope*/ = /*Undefined identifier: scope*/.enter();
-	/*JInvocation[caller=JPlaceholder[input=Undefined identifier: compileStatements], arguments=[JIdentifier[value=input], JPlaceholder[input=Main::compileRootSegment]]]*/ compiled = /*Undefined identifier: compileStatements*/(input, /*Main::compileRootSegment*/);
-	/*JInvocation[caller=JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join], arguments=[JPlaceholder[input=""], JPlaceholder[input=Undefined identifier: globals]]]*/ joinedGlobals = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: globals*/);
-	/*JInvocation[caller=JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join], arguments=[JPlaceholder[input=""], JPlaceholder[input=Undefined identifier: structures]]]*/ joinedStructures = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: structures*/);
-	/*JInvocation[caller=JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join], arguments=[JPlaceholder[input=""], JPlaceholder[input=Undefined identifier: functions]]]*/ joinedFunctions = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: functions*/);
+	/*Failed to resolve caller: JPlaceholder[input=Undefined identifier: compileStatements]*/ compiled = /*Undefined identifier: compileStatements*/(input, /*Main::compileRootSegment*/);
+	/*Failed to resolve caller: JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join]*/ joinedGlobals = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: globals*/);
+	/*Failed to resolve caller: JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join]*/ joinedStructures = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: structures*/);
+	/*Failed to resolve caller: JMemberAccess[child=JPlaceholder[input=Undefined identifier: String], name=join]*/ joinedFunctions = /*Undefined identifier: String*/.join(/*""*/, /*Undefined identifier: functions*/);
 	return /*joinedGlobals + joinedStructures + joinedFunctions + compiled*/;
 }
 char* compileStatements_Main(void* _ref, char* input, /*String>*/ mapper) {
 	Main _this = *((Main*) _ref);
-	/*JInvocation[caller=JPlaceholder[input=new ArrayList<String>], arguments=[]]*/ segments = /*new ArrayList<String>*/();
-	/*JInvocation[caller=JPlaceholder[input=new StringBuilder], arguments=[]]*/ buffer = /*new StringBuilder*/();
+	/*Failed to resolve caller: JPlaceholder[input=new ArrayList<String>]*/ segments = /*new ArrayList<String>*/();
+	/*Failed to resolve caller: JPlaceholder[input=new StringBuilder]*/ buffer = /*new StringBuilder*/();
 	/*JPlaceholder[input=0]*/ depth = /*0*/;
 	/*(var*/ i = /*0*/;
 	/*i < input.length()*/;/*i++) {
@@ -972,12 +1001,12 @@ return segments.stream new_return segments.stream();
 
 			return type;
 		});
-	}*//*private static JType resolveExpression(JExpression type) {
-		if (type instanceof JIdentifier(var input)) {
+	}*//*private static JType resolveExpression(JExpression expression) {
+		if (expression instanceof JIdentifier(var input)) {
 			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
-		if (type instanceof JMemberAccess(var child, var name)) {
+		if (expression instanceof JMemberAccess(var child, var name)) {
 			final var resolved = resolveExpression(child);
 			if (resolved instanceof JClassType type0) {
 				return type0.resolve(name).orElseGet(() -> new JPlaceholder("Property not present: " + name));
@@ -985,7 +1014,17 @@ return segments.stream new_return segments.stream();
 			return new JPlaceholder("Not a structure type: " + resolved);
 		}
 
-		return new JPlaceholder(type.toString());
+		if (expression instanceof JInvocation invocation) {
+			final var caller = invocation.caller;
+			final var callerType = resolveExpression(caller);
+			if (callerType instanceof JMethodType methodType) {
+				return methodType.returnType;
+			} else {
+				return new JPlaceholder("Failed to resolve caller: " + caller);
+			}
+		}
+
+		return new JPlaceholder(expression.toString());
 	}*//*private static Optional<String> compileDefinition(String input) {
 		return parseDefinition(input).map(JDefinition::toCDefinition).map(CDefinable::generate);
 	}*//*private static Optional<JDefinition> parseDefinition(String input) {

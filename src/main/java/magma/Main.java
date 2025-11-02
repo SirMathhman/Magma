@@ -43,7 +43,7 @@ public class Main {
 	private sealed interface Result<T, X> permits Err, Ok {}
 
 	private sealed interface CType
-			permits CIdentifier, CPlaceholder, CPointerType, CPrimitiveType, CStructureType, CTemplateType {
+			permits CFunctionType, CIdentifier, CPlaceholder, CPointerType, CPrimitiveType, CStructureType, CTemplateType {
 		String generate();
 	}
 
@@ -54,8 +54,6 @@ public class Main {
 	private sealed interface JMethodHeader permits JConstructor, JDefinition, JPlaceholder {
 		CDefinable toCDefinition();
 	}
-
-	private interface CFunctionHeader {}
 
 	private interface JType {
 		CType toCType();
@@ -323,6 +321,21 @@ public class Main {
 		public CExpression toCExpression() {
 			return new CInvocation(this.caller.toCExpression(),
 														 this.arguments.stream().map(JExpression::toCExpression).toList());
+		}
+	}
+
+	private record CFunctionType(CType returnType, List<CType> paramTypes) implements CType {
+		@Override
+		public String generate() {
+			final var joinedParameterTypes = this.paramTypes.stream().map(CType::generate).collect(Collectors.joining(", "));
+			return this.returnType.generate() + " (*)(" + joinedParameterTypes + ")";
+		}
+	}
+
+	private record JMethodType(JType returnType, List<JType> paramTypes) implements JType {
+		@Override
+		public CType toCType() {
+			return new CFunctionType(this.returnType.toCType(), this.paramTypes.stream().map(JType::toCType).toList());
 		}
 	}
 
@@ -817,12 +830,12 @@ public class Main {
 		});
 	}
 
-	private static JType resolveExpression(JExpression type) {
-		if (type instanceof JIdentifier(var input)) {
+	private static JType resolveExpression(JExpression expression) {
+		if (expression instanceof JIdentifier(var input)) {
 			return scope.resolveIdentifier(input).orElseGet(() -> new JPlaceholder("Unresolved identifier: " + input));
 		}
 
-		if (type instanceof JMemberAccess(var child, var name)) {
+		if (expression instanceof JMemberAccess(var child, var name)) {
 			final var resolved = resolveExpression(child);
 			if (resolved instanceof JClassType type0) {
 				return type0.resolve(name).orElseGet(() -> new JPlaceholder("Property not present: " + name));
@@ -830,7 +843,17 @@ public class Main {
 			return new JPlaceholder("Not a structure type: " + resolved);
 		}
 
-		return new JPlaceholder(type.toString());
+		if (expression instanceof JInvocation invocation) {
+			final var caller = invocation.caller;
+			final var callerType = resolveExpression(caller);
+			if (callerType instanceof JMethodType methodType) {
+				return methodType.returnType;
+			} else {
+				return new JPlaceholder("Failed to resolve caller: " + caller);
+			}
+		}
+
+		return new JPlaceholder(expression.toString());
 	}
 
 	private static Optional<String> compileDefinition(String input) {
