@@ -1217,7 +1217,7 @@ public class Main {
 			final var slice = stripped.substring(0, stripped.length() - 1);
 			final var i1 = slice.indexOf("(");
 			if (i1 >= 0) {
-				final var substring = slice.substring(0, i1);
+				final var callerString = slice.substring(0, i1);
 				final var arguments = Stream
 						.fromArray(slice.substring(i1 + 1).split(Pattern.quote(",")))
 						.map(String::strip)
@@ -1225,19 +1225,11 @@ public class Main {
 						.map(Main::parseExpression)
 						.toList();
 
-				return new JInvocation(parseExpression(substring), arguments);
+				return new JInvocation(parseExpression(callerString), arguments);
 			}
 		}
 
 		return new JPlaceholder(stripped);
-	}
-
-	private static boolean isDefined(String input) {
-		if (input.equals("this")) {
-			return true;
-		}
-
-		return scope.resolveExpression(input).isPresent();
 	}
 
 	private static String compileMethodSegment(String input) {
