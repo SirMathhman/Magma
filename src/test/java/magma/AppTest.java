@@ -132,6 +132,16 @@ class AppTest {
 		assertInterpretsTo("3 == 3", "true");
 	}
 
+	@Test
+	void interpretIfTrue() {
+		assertInterpretsTo("if (true) 3 else 5", "3");
+	}
+
+	@Test
+	void interpretIfFalse() {
+		assertInterpretsTo("if (false) 3 else 5", "5");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

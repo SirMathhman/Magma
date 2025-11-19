@@ -178,6 +178,71 @@ public class App {
 		return java.util.Optional.of(new Result.Ok<>(Boolean.toString(lVal.equals(rVal))));
 	}
 
+	private static java.util.Optional<Result<String, String>> handleIfExpression(String input) {
+		int start = skipWhitespace(input, 0, input.length());
+		if (start >= input.length())
+			return java.util.Optional.empty();
+		if (!input.startsWith("if", start)) {
+			return java.util.Optional.empty();
+		}
+		int afterIf = start + 2;
+		int idx = skipWhitespace(input, afterIf, input.length());
+		if (idx >= input.length() || input.charAt(idx) != '(') {
+			return java.util.Optional.empty();
+		}
+		int closing = findMatchingParenthesis(input, idx);
+		if (closing == -1) {
+			return java.util.Optional.empty();
+		}
+		String cond = input.substring(idx + 1, closing).trim();
+		int elseIndex = findTopLevelElse(input, closing + 1);
+		if (elseIndex == -1) {
+			return java.util.Optional.empty();
+		}
+		String thenExpr = input.substring(closing + 1, elseIndex).trim();
+		String elseExpr = input.substring(elseIndex + 4).trim();
+		var condEval = evaluateConditionBoolean(cond);
+		if (condEval instanceof Result.Err<Boolean, String> err)
+			return java.util.Optional.of(new Result.Err<>(err.error()));
+		boolean condBool = ((Result.Ok<Boolean, String>) condEval).value();
+		var chosenRes = interpret(condBool ? thenExpr : elseExpr);
+		if (chosenRes instanceof Result.Err<String, String> cerr)
+			return java.util.Optional.of(new Result.Err<>(cerr.error()));
+		return java.util.Optional.of(chosenRes);
+	}
+
+	private static int findTopLevelElse(String input, int from) {
+		int depth = 0;
+		for (int i = from; i + 4 <= input.length(); i++) {
+			char c = input.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')')
+				depth--;
+			else if (depth == 0 && input.startsWith("else", i)) {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private static Result<Boolean, String> evaluateConditionBoolean(String cond) {
+		var condRes = interpret(cond);
+		if (condRes instanceof Result.Err<String, String> err)
+			return new Result.Err<>(err.error());
+		String condVal = ((Result.Ok<String, String>) condRes).value();
+		if ("true".equals(condVal))
+			return new Result.Ok<>(true);
+		if ("false".equals(condVal))
+			return new Result.Ok<>(false);
+		try {
+			boolean b = new java.math.BigInteger(condVal).signum() != 0;
+			return new Result.Ok<>(b);
+		} catch (NumberFormatException nfe) {
+			return new Result.Err<>("invalid condition");
+		}
+	}
+
 	private static boolean isOperatorChar(char op) {
 		return op == '+' || op == '-' || op == '*' || op == '/';
 	}
@@ -294,6 +359,10 @@ public class App {
 	}
 
 	private static java.util.Optional<Result<String, String>> handleArithmetic(String input) {
+		var ifRes = handleIfExpression(input);
+		if (ifRes.isPresent()) {
+			return ifRes;
+		}
 		var equality = handleEqualityComparison(input);
 		if (equality.isPresent()) {
 			return equality;
