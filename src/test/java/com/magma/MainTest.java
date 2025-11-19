@@ -76,7 +76,10 @@ class MainTest {
 
     @Test
     void testInterpretNegativeWithUnits() {
-        assertInvalid("-1U8");
+        assertValid("-1U8", "-1");
+        assertValid("-1I8", "-1");
+        assertValid("-1U8 + 2", "1");
+        assertValid("2 + -1U8", "1");
     }
 
     @Test

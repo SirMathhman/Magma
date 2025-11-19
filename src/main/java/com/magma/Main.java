@@ -21,11 +21,17 @@ public final class Main {
      * Extracts the leading numeric part from a string.
      *
      * @param str The string to extract from
-     * @return The leading numeric part
+     * @return The leading numeric part (including negative sign if present)
      */
     private static String extractLeadingNumeric(final String str) {
         final StringBuilder result = new StringBuilder();
-        for (int i = 0; i < str.length(); i++) {
+        int startIndex = 0;
+        // Check for negative sign at the start
+        if (str.length() > 0 && str.charAt(0) == '-') {
+            result.append('-');
+            startIndex = 1;
+        }
+        for (int i = startIndex; i < str.length(); i++) {
             final char c = str.charAt(i);
             if (Character.isDigit(c)) {
                 result.append(c);
@@ -63,23 +69,6 @@ public final class Main {
     }
 
     /**
-     * Checks if any operand with units is negative.
-     *
-     * @param operands Array of operand strings
-     * @return Err if a negative value with units is found, Ok otherwise
-     */
-    private static Result<String, String> checkNegativeWithUnits(
-            final String[] operands) {
-        for (final String operand : operands) {
-            final String trimmed = operand.trim();
-            if (trimmed.startsWith("-") && hasUnits(trimmed)) {
-                return new Err<>("Negative values with units are not allowed");
-            }
-        }
-        return new Ok<>("");
-    }
-
-    /**
      * Checks if all operands with units have matching units.
      *
      * @param operands Array of operand strings
@@ -108,16 +97,14 @@ public final class Main {
     }
 
     /**
-     * Validates operands and checks for unit mismatches and negative values
-     * with units.
+     * Validates operands and checks for unit mismatches.
      *
      * @param operands Array of operand strings
      * @return Err if validation fails, Ok with operands if valid
      */
     private static Result<String[], String> validateOperands(
             final String[] operands) {
-        return checkNegativeWithUnits(operands)
-                .flatMap(ignored -> checkUnitMismatches(operands))
+        return checkUnitMismatches(operands)
                 .map(ignored -> operands);
     }
 
@@ -338,11 +325,6 @@ public final class Main {
      *         part of the string wrapped in Ok
      */
     public static Result<String, String> interpret(final String input) {
-        // Check for negative value with units (single value case)
-        final String trimmed = input.trim();
-        if (trimmed.startsWith("-") && hasUnits(trimmed)) {
-            return new Err<>("Negative values with units are not allowed");
-        }
         // Check if input contains any arithmetic operator
         if (input.contains(" + ") || input.contains(" - ")
                 || input.contains(" * ")) {
