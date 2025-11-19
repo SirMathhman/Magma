@@ -13,6 +13,7 @@ class MainTest {
     @Test
     void testInterpret() {
         assertEquals("5", Main.interpret("5"));
+        assertEquals("5", Main.interpret("5U8"));
     }
 }
 

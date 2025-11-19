@@ -21,13 +21,25 @@ public final class Main {
     }
 
     /**
-     * Interprets a string and returns it unchanged.
+     * Interprets a string and extracts the leading numeric part.
      *
      * @param input The input string to interpret
-     * @return The same string that was passed in
+     * @return The leading numeric part of the string
      */
     public static String interpret(final String input) {
-        return input;
+        if (input == null || input.isEmpty()) {
+            return "";
+        }
+        final StringBuilder result = new StringBuilder();
+        for (int i = 0; i < input.length(); i++) {
+            final char c = input.charAt(i);
+            if (Character.isDigit(c)) {
+                result.append(c);
+            } else {
+                break;
+            }
+        }
+        return result.toString();
     }
 }
 
