@@ -7,7 +7,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class AppTest {
 
 	@Test
-	void greetShouldReturnGreeting() {
-		assertEquals("Hello, Alice!", App.greet("Alice"));
+	void interpretReturnsSameString() {
+		String sample = "Hello, Magma!";
+		assertEquals(sample, App.interpret(sample));
 	}
 }

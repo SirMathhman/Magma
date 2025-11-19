@@ -1,15 +1,19 @@
 package magma;
 
 /**
- * Simple application entrypoint for the Maven project scaffold.
+ * Core application class for Magma.
+ *
+ * This class intentionally contains only a single public API method:
+ * `interpret`.
  */
 public class App {
-	public static void main(String[] args) {
-		System.out.println("Hello from Magma!");
-		System.out.println("Java version: " + System.getProperty("java.version"));
-	}
-
-	public static String greet(String name) {
-		return "Hello, " + name + "!";
+	/**
+	 * Return the given string unchanged.
+	 *
+	 * @param input the input string
+	 * @return the same string that was provided
+	 */
+	public static String interpret(String input) {
+		return input;
 	}
 }
