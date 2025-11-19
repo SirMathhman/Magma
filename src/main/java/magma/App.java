@@ -14,6 +14,12 @@ public class App {
 	 * @return the leading decimal digit sequence, or empty string when none exist
 	 */
 	public static Result<String, String> interpret(String input) {
+		// If the input begins with a minus followed by digits, return an error.
+		java.util.regex.Matcher negative = java.util.regex.Pattern.compile("^-\\d+").matcher(input);
+		if (negative.find()) {
+			return new Result.Err<>("negative numbers not allowed");
+		}
+
 		java.util.regex.Matcher m = java.util.regex.Pattern.compile("^\\d+").matcher(input);
 		if (m.find()) {
 			return new Result.Ok<>(m.group());

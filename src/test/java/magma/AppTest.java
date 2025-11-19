@@ -16,11 +16,24 @@ class AppTest {
 		assertInterpretsTo("100U8", "100");
 	}
 
+	@Test
+	void interpretNegativeReturnsErr() {
+		assertInterpretsErr("-1U8");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		switch (res) {
 			case Result.Ok<?, ?> ok -> assertEquals(expected, ok.value());
 			case Result.Err<?, ?> err -> fail("Expected Ok but got Err: " + err.error());
+		}
+	}
+
+	private static void assertInterpretsErr(String input) {
+		var res = App.interpret(input);
+		switch (res) {
+			case Result.Err<?, ?> err -> assertNotNull(err.error());
+			case Result.Ok<?, ?> ok -> fail("Expected Err but got Ok: " + ok.value());
 		}
 	}
 }
