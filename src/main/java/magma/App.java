@@ -28,7 +28,7 @@ public class App {
 			// If there is a type suffix, enforce bounds.
 			if (typeLetter != null && widthStr != null) {
 				String fullType = typeLetter + widthStr; // e.g., U8, I16
-				java.util.Set<String> supported = java.util.Set.of("U6","U8","U32","U64","I8","I16","I32","I64");
+				java.util.Set<String> supported = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 				if (supported.contains(fullType)) {
 					int bits = Integer.parseInt(widthStr);
 					java.math.BigInteger value = new java.math.BigInteger(digits);
