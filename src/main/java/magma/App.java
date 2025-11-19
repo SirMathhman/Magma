@@ -20,20 +20,20 @@ public class App {
 		if (m.find()) {
 			String sign = m.group(1); // "" or "-"
 			String digits = m.group(2);
-			String typeLetter = m.group(3); // null, "U" or "I"
-			String widthStr = m.group(4); // number of bits like 8, 16, 32
+			java.util.Optional<String> typeLetter = java.util.Optional.ofNullable(m.group(3));
+			java.util.Optional<String> widthStr = java.util.Optional.ofNullable(m.group(4));
 
 			boolean negative = "-".equals(sign);
 
 			// If there is a type suffix, enforce bounds.
-			if (typeLetter != null && widthStr != null) {
-				String fullType = typeLetter + widthStr; // e.g., U8, I16
+			if (typeLetter.isPresent() && widthStr.isPresent()) {
+				String fullType = typeLetter.get() + widthStr.get(); // e.g., U8, I16
 				java.util.Set<String> supported = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 				if (supported.contains(fullType)) {
-					int bits = Integer.parseInt(widthStr);
+					int bits = Integer.parseInt(widthStr.get());
 					java.math.BigInteger value = new java.math.BigInteger(digits);
 
-					if ("U".equals(typeLetter)) {
+					if ("U".equals(typeLetter.get())) {
 						// Unsigned: negative not allowed and upper bound is 2^bits - 1.
 						if (negative) {
 							return new Result.Err<>("negative numbers not allowed");

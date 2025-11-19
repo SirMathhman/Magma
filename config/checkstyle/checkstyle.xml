@@ -6,5 +6,10 @@
 		<module name="CyclomaticComplexity">
 			<property name="max" value="15" />
 		</module>
+		<!-- Disallow use of the null literal at the AST level; prefer Optional<T> instead -->
+		<module name="IllegalToken">
+			<property name="tokens" value="LITERAL_NULL"/>
+			<message key="illegal.token" value="Avoid using 'null'; prefer Optional&lt;T&gt; instead."/>
+		</module>
 	</module>
 </module>
