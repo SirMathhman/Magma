@@ -114,7 +114,10 @@ public class App {
 
 			var aTypeFull = aType.flatMap(t -> aWidth.map(w -> t + w));
 			var bTypeFull = bType.flatMap(t -> bWidth.map(w -> t + w));
-			if (aTypeFull.isPresent() && bTypeFull.isPresent() && aTypeFull.get().equals(bTypeFull.get())) {
+			if (aTypeFull.isPresent() && bTypeFull.isPresent()) {
+				if (!aTypeFull.get().equals(bTypeFull.get())) {
+					return java.util.Optional.of(new Result.Err<>("operand types differ"));
+				}
 				var boundRes = enforceResultBound(sum, aTypeFull.get());
 				return java.util.Optional.of(boundRes);
 			}

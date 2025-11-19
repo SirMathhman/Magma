@@ -62,6 +62,11 @@ class AppTest {
 		assertInterpretsTo("1U8 + 2", "3");
 	}
 
+	@Test
+	void interpretIncompatibleAddition() {
+		assertInterpretsErr("1U8 + 2I8");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
