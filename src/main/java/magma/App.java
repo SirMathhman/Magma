@@ -142,37 +142,30 @@ public class App {
 	}
 
 	private static StatementResult handleLetStatement(String trimmed, Map<String, VarEntry> ctx, int currentIndex) {
-		var res = handleLetDeclaration(trimmed, ctx);
-		if (res instanceof Err<String, String>(var error)) {
-			return new StatementResult.Error(error);
-		}
-		return new StatementResult.Processed(currentIndex, Optional.empty());
+		return convertToStatementResult(handleLetDeclaration(trimmed, ctx), currentIndex, Optional.empty());
 	}
 
 	private static StatementResult handleExpressionStatement(String trimmed, Map<String, VarEntry> ctx, int currentIndex) {
 		// Check for assignment statement (x = value)
 		var assignRes = handleAssignment(trimmed, ctx);
 		if (assignRes.isPresent()) {
-			var r = assignRes.get();
-			if (r instanceof Err<String, String>(var error)) {
-				return new StatementResult.Error(error);
-			}
-			return new StatementResult.Processed(currentIndex, Optional.empty());
+			return convertToStatementResult(assignRes.get(), currentIndex, Optional.empty());
 		}
 		var arithmeticRes = handleArithmetic(trimmed, ctx);
 		if (arithmeticRes.isPresent()) {
-			var r = arithmeticRes.get();
-			if (r instanceof Err<String, String>(var error)) {
-				return new StatementResult.Error(error);
-			}
-			return new StatementResult.Processed(currentIndex, Optional.of(r));
+			return convertToStatementResult(arithmeticRes.get(), currentIndex, arithmeticRes);
 		}
 		// boolean or literal or leading number logic for a single expression
 		var singleRes = handleSingleExpression(trimmed, ctx);
-		if (singleRes instanceof Err<String, String>(var error)) {
+		return convertToStatementResult(singleRes, currentIndex, Optional.of(singleRes));
+	}
+
+	private static StatementResult convertToStatementResult(Result<String, String> result, int currentIndex,
+			Optional<Result<String, String>> optionalResult) {
+		if (result instanceof Err<String, String>(var error)) {
 			return new StatementResult.Error(error);
 		}
-		return new StatementResult.Processed(currentIndex, Optional.of(singleRes));
+		return new StatementResult.Processed(currentIndex, optionalResult);
 	}
 
 	private static Optional<StatementResult> handleIfExpressionSpanning(StatementContext context) {
@@ -328,13 +321,12 @@ public class App {
 	}
 
 	private static Optional<Result<String, String>> handleEqualityComparison(String input, Map<String, VarEntry> ctx) {
-		var splitRes = splitAtTopLevel(input, findTopLevelEquality(input), 2);
-		if (splitRes.isEmpty()) {
-			return Optional.empty();
-		}
-		var splitPair = splitRes.get();
-		var left = splitPair.first();
-		var right = splitPair.second();
+		return extractAndValidateSplit(input, findTopLevelEquality(input), 2)
+				.flatMap(split -> processEqualityComparison(split.left(), split.right(), ctx));
+	}
+
+	private static Optional<Result<String, String>> processEqualityComparison(String left, String right,
+			Map<String, VarEntry> ctx) {
 		// boolean equality
 		if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
 			return Optional.of(new Ok<String, String>(Boolean.toString(left.equals(right))));
@@ -354,11 +346,8 @@ public class App {
 			var rEval = evaluateSequence(rSeq.values(), rSeq.operators());
 			return lEval.flatMap(lVal -> rEval.flatMap(rVal -> {
 				// If both sides have resolved types, they must match
-				var typeCheck = checkTypeCompatibility(lSeq.resolvedType(), rSeq.resolvedType());
-				if (typeCheck instanceof Err<String, String>(var error)) {
-					return new Err<String, String>(error);
-				}
-				return new Ok<String, String>(Boolean.toString(lVal.equals(rVal)));
+				return checkTypeCompatibility(lSeq.resolvedType(), rSeq.resolvedType())
+						.flatMap(v -> new Ok<String, String>(Boolean.toString(lVal.equals(rVal))));
 			}));
 		}));
 	}
@@ -651,15 +640,29 @@ public class App {
 		return Optional.of(new Tuple<>(left, right));
 	}
 
+	private static Optional<Tuple<String, String>> extractSplitPair(String input, int index, int skipChars) {
+		return splitAtTopLevel(input, index, skipChars);
+	}
 
-	private static Optional<Result<String, String>> handleAssignment(String stmt, Map<String, VarEntry> ctx) {
-		var splitRes = splitAtTopLevel(stmt, findTopLevelAssign(stmt), 1);
-		if (splitRes.isEmpty()) {
+	private record SplitPair(String left, String right) {
+	}
+
+	private static Optional<SplitPair> extractAndValidateSplit(String input, int index, int skipChars) {
+		var splitPair = extractSplitPair(input, index, skipChars);
+		if (splitPair.isEmpty()) {
 			return Optional.empty();
 		}
-		var pair = splitRes.get();
-		var lhs = pair.first();
-		var rhs = pair.second();
+		var pair = splitPair.get();
+		return Optional.of(new SplitPair(pair.first(), pair.second()));
+	}
+
+
+	private static Optional<Result<String, String>> handleAssignment(String stmt, Map<String, VarEntry> ctx) {
+		return extractAndValidateSplit(stmt, findTopLevelAssign(stmt), 1)
+				.flatMap(split -> processAssignment(split.left(), split.right(), ctx));
+	}
+
+	private static Optional<Result<String, String>> processAssignment(String lhs, String rhs, Map<String, VarEntry> ctx) {
 		// Check if LHS is a valid identifier
 		var identMatcher = IDENT_PATTERN.matcher(lhs);
 		if (!identMatcher.matches()) {
