@@ -139,16 +139,6 @@
                 value="Interface type parameter name ''{0}'' must match pattern ''{1}''."/>
         </module>
         <module name="NoFinalizer"/>
-        <module name="GenericWhitespace">
-            <message key="ws.notPreceded"
-                value="Whitespace ''{0}'' is not preceded with whitespace."/>
-            <message key="ws.notFollowed"
-                value="Whitespace ''{0}'' is not followed by whitespace."/>
-            <message key="ws.illegalFollow"
-                value="Whitespace ''{0}'' should not be followed by whitespace."/>
-            <message key="ws.preceded"
-                value="Whitespace ''{0}'' is preceded with whitespace."/>
-        </module>
         <module name="Indentation">
             <property name="basicOffset" value="4"/>
             <property name="braceAdjustment" value="0"/>
@@ -175,7 +165,7 @@
         <module name="MethodParamPad"/>
         <module name="NoWhitespaceBefore">
             <property name="tokens"
-                value="COMMA, SEMI, POST_INC, POST_DEC, GENERIC_START, GENERIC_END"/>
+                value="COMMA, SEMI, POST_INC, POST_DEC"/>
             <property name="allowLineBreaks" value="true"/>
         </module>
         <module name="ParenPad"/>

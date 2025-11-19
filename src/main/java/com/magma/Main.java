@@ -1,5 +1,7 @@
 package com.magma;
 
+import java.util.function.BinaryOperator;
+
 import com.magma.result.Err;
 import com.magma.result.Ok;
 import com.magma.result.Result;
@@ -96,74 +98,66 @@ public final class Main {
      */
     private static Result<String[], String> validateOperands(
             final String[] operands) {
-        final Result<String, String> unitCheck =
-                checkUnitMismatches(operands);
-        if (unitCheck instanceof Err) {
-            return new Err<>(((Err<String, String>) unitCheck).getError());
-        }
-        return new Ok<>(operands);
+        return checkUnitMismatches(operands)
+                .map(ignored -> operands);
     }
 
     /**
-     * Processes operands with addition operation.
+     * Processes operands using the given binary operator.
      *
      * @param operands Array of validated operand strings
-     * @return Result with the sum
+     * @param initialValue The initial value to start with
+     * @param operator The binary operator to apply
+     * @param startIndex The index to start processing from
+     * @return Result with the computed value
      */
-    private static Result<String, String> processAddition(
-            final String[] operands) {
-        int sum = 0;
-        for (final String operand : operands) {
-            final String numeric = extractLeadingNumeric(operand.trim());
-            sum += Integer.parseInt(numeric);
-        }
-        return new Ok<>(String.valueOf(sum));
-    }
-
-    /**
-     * Processes operands with subtraction operation.
-     *
-     * @param operands Array of validated operand strings
-     * @return Result with the difference
-     */
-    private static Result<String, String> processSubtraction(
-            final String[] operands) {
-        int result = Integer.parseInt(
-                extractLeadingNumeric(operands[0].trim()));
-        for (int i = 1; i < operands.length; i++) {
+    private static Result<String, String> processOperands(
+            final String[] operands,
+            final int initialValue,
+            final BinaryOperator<Integer> operator,
+            final int startIndex) {
+        int result = initialValue;
+        for (int i = startIndex; i < operands.length; i++) {
             final String numeric = extractLeadingNumeric(
                     operands[i].trim());
-            result -= Integer.parseInt(numeric);
+            result = operator.apply(result, Integer.parseInt(numeric));
         }
         return new Ok<>(String.valueOf(result));
+    }
+
+    /**
+     * Splits and validates operands from input.
+     *
+     * @param input The input string containing the expression
+     * @param operatorPattern The operator pattern to split on
+     * @return Err if validation fails, Ok with validated operands otherwise
+     */
+    private static Result<String[], String> splitAndValidate(
+            final String input,
+            final String operatorPattern) {
+        final String[] operands = input.split(operatorPattern);
+        return validateOperands(operands);
     }
 
     /**
      * Processes an arithmetic expression with the given operator.
      *
      * @param input The input string containing the expression
-     * @param operator The operator pattern to split on
-     * @param isAddition True for addition, false for subtraction
+     * @param operatorPattern The operator pattern to split on
+     * @param operation The binary operator to apply
+     * @param initialValue The initial value for the operation
+     * @param startIndex The index to start processing from
      * @return Result with the evaluated expression
      */
     private static Result<String, String> processArithmetic(
             final String input,
-            final String operator,
-            final boolean isAddition) {
-        final String[] operands = input.split(operator);
-        final Result<String[], String> validated =
-                validateOperands(operands);
-        if (validated instanceof Err) {
-            final Err<String[], String> err =
-                    (Err<String[], String>) validated;
-            return new Err<>(err.getError());
-        }
-        final String[] validOperands =
-                ((Ok<String[], String>) validated).getValue();
-        if (isAddition) {
-            return processAddition(validOperands);
-        }
-        return processSubtraction(validOperands);
+            final String operatorPattern,
+            final BinaryOperator<Integer> operation,
+            final int initialValue,
+            final int startIndex) {
+        return splitAndValidate(input, operatorPattern)
+                .flatMap(operands -> processOperands(operands, initialValue,
+                        operation, startIndex));
     }
 
     /**
@@ -178,10 +172,16 @@ public final class Main {
     public static Result<String, String> interpret(final String input) {
         // Check if input contains an arithmetic operator
         if (input.contains(" + ")) {
-            return processArithmetic(input, " \\+ ", true);
+            return processArithmetic(input, " \\+ ", Integer::sum, 0, 0);
         }
         if (input.contains(" - ")) {
-            return processArithmetic(input, " - ", false);
+            return splitAndValidate(input, " - ")
+                    .flatMap(operands -> {
+                        final int firstValue = Integer.parseInt(
+                                extractLeadingNumeric(operands[0].trim()));
+                        return processOperands(operands, firstValue,
+                                (a, b) -> a - b, 1);
+                    });
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));

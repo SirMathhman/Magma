@@ -1,5 +1,7 @@
 package com.magma.result;
 
+import java.util.function.Function;
+
 /**
  * Represents a successful result containing a value.
  *
@@ -28,6 +30,24 @@ public final class Ok<T, X> implements Result<T, X> {
      */
     public T getValue() {
         return value;
+    }
+
+    @Override
+    public <U> Result<U, X> map(
+            final Function<? super T, ? extends U> mapper) {
+        return new Ok<>(mapper.apply(value));
+    }
+
+    @Override
+    public <U> Result<U, X> flatMap(
+            final Function<? super T, ? extends Result<U, X>> mapper) {
+        return mapper.apply(value);
+    }
+
+    @Override
+    public <R> R match(final Function<? super T, ? extends R> onOk,
+            final Function<? super X, ? extends R> onErr) {
+        return onOk.apply(value);
     }
 }
 
