@@ -152,7 +152,7 @@ public final class Main {
      * @param requireTypeEmptyCheck Whether to check if type is empty
      * @return Tuple with variable name and type, or Err if parsing fails
      */
-    private static Result<ExpressionParser.Tuple<String, String>, String>
+    static Result<ExpressionParser.Tuple<String, String>, String>
             parseVarNameAndType(final String rest, final String errorMsg,
             final boolean requireTypeEmptyCheck) {
         final int colonIndex = rest.indexOf(':');
@@ -195,7 +195,7 @@ public final class Main {
      * @param context   The variable context
      * @return Ok if successful, Err if parsing fails
      */
-    private static Result<String, String> parseExternLetStatement(
+    static Result<String, String> parseExternLetStatement(
             final String statement, final VariableContext context) {
         // Format: extern let x : type
         return validateAndExtractRest(statement, "extern let ",
@@ -217,7 +217,7 @@ public final class Main {
      * @param context   The variable context
      * @return Ok if successful, Err if parsing fails
      */
-    private static Result<String, String> parseLetStatement(
+    static Result<String, String> parseLetStatement(
             final String statement, final VariableContext context) {
         // Format: let x : type = value
         final Result<String, String> restResult =
@@ -272,7 +272,7 @@ public final class Main {
      * @param context    The variable context
      * @return The expression with variables substituted
      */
-    private static String substituteVariables(final String expression,
+    static String substituteVariables(final String expression,
             final VariableContext context) {
         String result = expression;
         for (final String varName : context.getVariableNames()) {
@@ -298,6 +298,7 @@ public final class Main {
     private static java.util.Optional<Result<String, String>>
             processIfExpression(final String input,
             final VariableContext context) {
+        // Check for if expressions before variable substitution
         final String trimmed = input.trim();
         if (!trimmed.startsWith("if ")) {
             return java.util.Optional.empty();
@@ -319,25 +320,89 @@ public final class Main {
         if (elseIndex < 0) {
             return java.util.Optional.empty();
         }
-        final String thenValue = afterParen.substring(0, elseIndex).trim();
-        final String elseValue = afterParen.substring(elseIndex + 6).trim();
-        // Evaluate condition
-        final Result<String, String> conditionResult =
-                interpretExpression(condition, context);
-        if (conditionResult instanceof Err<String, String>) {
-            return java.util.Optional.of(conditionResult);
+        String thenValue = afterParen.substring(0, elseIndex).trim();
+        String elseValue = afterParen.substring(elseIndex + 6).trim();
+        // Remove trailing semicolons if present
+        if (thenValue.endsWith(";")) {
+            thenValue = thenValue.substring(0, thenValue.length() - 1).trim();
         }
-        final String conditionValue =
-                ((Ok<String, String>) conditionResult).getValue();
-        if (!"true".equals(conditionValue)
-                && !"false".equals(conditionValue)) {
+        if (elseValue.endsWith(";")) {
+            elseValue = elseValue.substring(0, elseValue.length() - 1).trim();
+        }
+        // Evaluate condition and branch
+        return StatementProcessor.evaluateIfBranches(condition,
+                new StatementProcessor.IfBranches(thenValue, elseValue),
+                context);
+    }
+
+    /**
+     * Checks if a string is a simple identifier (variable name).
+     *
+     * @param str The string to check
+     * @return true if it's a simple identifier, false otherwise
+     */
+    private static boolean isSimpleIdentifier(final String str) {
+        final String trimmed = str.trim();
+        if (trimmed.isEmpty()) {
+            return false;
+        }
+        // Check if it contains only alphanumeric characters and underscores
+        for (int i = 0; i < trimmed.length(); i++) {
+            final char c = trimmed.charAt(i);
+            if (!Character.isLetterOrDigit(c) && c != '_') {
+                return false;
+            }
+        }
+        // Must start with a letter or underscore
+        final char first = trimmed.charAt(0);
+        return Character.isLetter(first) || first == '_';
+    }
+
+    /**
+     * Processes an assignment statement.
+     *
+     * @param input The input string containing the assignment
+     * @param context The variable context
+     * @return Result with empty string if successful, or empty Optional if not
+     *         an assignment
+     */
+    private static java.util.Optional<Result<String, String>>
+            processAssignment(final String input,
+            final VariableContext context) {
+        final String trimmed = input.trim();
+        // Don't process if it starts with "if" - it's an if expression
+        if (trimmed.startsWith("if ")) {
+            return java.util.Optional.empty();
+        }
+        final int equalsIndex = trimmed.indexOf('=');
+        if (equalsIndex < 0) {
+            return java.util.Optional.empty();
+        }
+        final String varName = trimmed.substring(0, equalsIndex).trim();
+        if (varName.isEmpty() || !isSimpleIdentifier(varName)) {
+            return java.util.Optional.empty();
+        }
+        // Check if variable exists
+        final java.util.Optional<String> existingValue =
+                context.getVariable(varName);
+        if (existingValue.isEmpty()) {
             return java.util.Optional.of(new Err<>(
-                    "Condition must be a boolean"));
+                    "Variable " + varName + " is not declared"));
         }
-        // Evaluate the appropriate branch
-        final String branchValue = "true".equals(conditionValue)
-                ? thenValue : elseValue;
-        return java.util.Optional.of(interpretExpression(branchValue, context));
+        final String value = trimmed.substring(equalsIndex + 1).trim();
+        // Remove trailing semicolon if present
+        final String valueWithoutSemicolon = value.endsWith(";")
+                ? value.substring(0, value.length() - 1).trim() : value;
+        // Evaluate the value
+        final Result<String, String> valueResult =
+                interpretExpression(valueWithoutSemicolon, context);
+        if (valueResult instanceof Err<String, String>) {
+            return java.util.Optional.of(valueResult);
+        }
+        final String valueStr = ((Ok<String, String>) valueResult).getValue();
+        // Store the variable
+        context.setVariable(varName, valueStr);
+        return java.util.Optional.of(new Ok<>(""));
     }
 
     /**
@@ -347,16 +412,24 @@ public final class Main {
      * @param context    The variable context
      * @return Result with the evaluated expression
      */
-    private static Result<String, String> interpretExpression(
+    static Result<String, String> interpretExpression(
             final String expression, final VariableContext context) {
-        // Substitute variables
-        final String substituted = substituteVariables(expression, context);
-        // Check for if expressions
+        // Check for assignments first (before variable substitution)
+        final java.util.Optional<Result<String, String>> assignmentResult =
+                processAssignment(expression, context);
+        if (assignmentResult.isPresent()) {
+            return assignmentResult.get();
+        }
+        // Check for if expressions (before variable substitution, as branches
+        // may contain assignments)
         final java.util.Optional<Result<String, String>> ifResult =
-                processIfExpression(substituted, context);
+                processIfExpression(expression, context);
         if (ifResult.isPresent()) {
             return ifResult.get();
         }
+        // Substitute variables (after checking for assignments and if
+        // expressions)
+        final String substituted = substituteVariables(expression, context);
         // Check for boolean literals
         final java.util.Optional<Result<String, String>> booleanResult =
                 checkBooleanLiteral(substituted);
@@ -400,31 +473,32 @@ public final class Main {
         // Split by semicolon to handle multiple statements
         final String[] statements = input.split(";");
         Result<String, String> lastResult = new Ok<>("");
-        for (final String statement : statements) {
-            final String trimmed = statement.trim();
+        int i = 0;
+        while (i < statements.length) {
+            String trimmed = statements[i].trim();
             if (trimmed.isEmpty()) {
+                i++;
                 continue;
             }
-            if (trimmed.startsWith("extern let ")) {
-                final Result<String, String> externLetResult =
-                        parseExternLetStatement(trimmed, context);
-                if (externLetResult instanceof Err<String, String>) {
-                    return externLetResult;
-                }
-                lastResult = externLetResult;
-            } else if (trimmed.startsWith("let ")) {
-                final Result<String, String> letResult =
-                        parseLetStatement(trimmed, context);
-                if (letResult instanceof Err<String, String>) {
-                    return letResult;
-                }
-                lastResult = letResult;
-            } else {
-                lastResult = interpretExpression(trimmed, context);
+            // Check if this is the start of an if expression
+            if (trimmed.startsWith("if ")) {
+                final int[] newIndex = new int[]{i};
+                final String ifExpr = StatementProcessor
+                        .reconstructIfExpression(statements, newIndex);
+                i = newIndex[0];
+                lastResult = interpretExpression(ifExpr, context);
                 if (lastResult instanceof Err<String, String>) {
                     return lastResult;
                 }
+                continue;
             }
+            final Result<String, String> statementResult =
+                    StatementProcessor.processStatement(trimmed, context);
+            if (statementResult instanceof Err<String, String>) {
+                return statementResult;
+            }
+            lastResult = statementResult;
+            i++;
         }
         return lastResult;
     }
