@@ -91,6 +91,46 @@ public final class Main {
     }
 
     /**
+     * Checks if the declared type matches the value type.
+     *
+     * @param type  The declared type annotation
+     * @param value The value to check
+     * @return Err if types don't match, Ok otherwise
+     */
+    private static Result<String, String> checkTypeMatch(final String type,
+            final String value) {
+        // Extract numeric and unit parts for comparison
+        final String declaredNumeric = StringParser.extractLeadingNumeric(type);
+        final String declaredUnits = StringParser.hasUnits(type)
+                ? StringParser.extractUnits(type) : "";
+        final String valueNumeric = StringParser.extractLeadingNumeric(value);
+        final String valueUnits = StringParser.hasUnits(value)
+                ? StringParser.extractUnits(value) : "";
+        // Check if types match
+        // If type annotation has no numeric part (just unit type),
+        // only check units
+        final boolean isUnitOnlyType = declaredNumeric.isEmpty()
+                && !declaredUnits.isEmpty();
+        if (isUnitOnlyType) {
+            // Only check that units match (value can have no units for
+            // plain numbers)
+            if (!valueUnits.isEmpty()
+                    && !declaredUnits.equals(valueUnits)) {
+                return new Err<>("Type mismatch: declared type is " + type
+                        + " but value has units " + valueUnits);
+            }
+        } else {
+            // Check both numeric and unit parts
+            if (!declaredNumeric.equals(valueNumeric)
+                    || !declaredUnits.equals(valueUnits)) {
+                return new Err<>("Type mismatch: declared type is " + type
+                        + " but value is " + value);
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
      * Parses a let statement and stores the variable.
      *
      * @param statement The let statement (e.g., "let x : 1U8 = 1U8")
@@ -120,18 +160,10 @@ public final class Main {
         }
         final String type = afterColon.substring(0, equalsIndex).trim();
         final String value = afterColon.substring(equalsIndex + 1).trim();
-        // Extract numeric and unit parts for comparison
-        final String declaredNumeric = StringParser.extractLeadingNumeric(type);
-        final String declaredUnits = StringParser.hasUnits(type)
-                ? StringParser.extractUnits(type) : "";
-        final String valueNumeric = StringParser.extractLeadingNumeric(value);
-        final String valueUnits = StringParser.hasUnits(value)
-                ? StringParser.extractUnits(value) : "";
-        // Check if types match (both numeric and unit parts)
-        if (!declaredNumeric.equals(valueNumeric)
-                || !declaredUnits.equals(valueUnits)) {
-            return new Err<>("Type mismatch: declared type is " + type
-                    + " but value is " + value);
+        // Check type match
+        final Result<String, String> typeCheck = checkTypeMatch(type, value);
+        if (typeCheck instanceof Err<String, String>) {
+            return typeCheck;
         }
         // Evaluate the value
         final Result<String, String> valueResult =
