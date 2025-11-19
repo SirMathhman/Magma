@@ -4,7 +4,7 @@
 	<module name="TreeWalker">
 		<!-- Disallow methods with cyclomatic complexity greater than 15 -->
 		<module name="CyclomaticComplexity">
-			<property name="max" value="15"/>
+			<property name="max" value="15" />
 		</module>
 	</module>
 </module>
