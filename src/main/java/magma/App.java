@@ -14,6 +14,15 @@ public class App {
 	 * @return the leading decimal digit sequence, or empty string when none exist
 	 */
 	public static Result<String, String> interpret(String input) {
+		// Support simple integer addition expressions like: 1 + 2
+		java.util.regex.Pattern addPattern = java.util.regex.Pattern.compile("^\\s*([+-]?\\d+)\\s*\\+\\s*([+-]?\\d+)\\s*$");
+		java.util.regex.Matcher addMatcher = addPattern.matcher(input);
+		if (addMatcher.find()) {
+			java.math.BigInteger a = new java.math.BigInteger(addMatcher.group(1));
+			java.math.BigInteger b = new java.math.BigInteger(addMatcher.group(2));
+			return new Result.Ok<>(a.add(b).toString());
+		}
+
 		// Parse an optional sign, digits, and optional type suffix like U8 or I8.
 		java.util.regex.Pattern p = java.util.regex.Pattern.compile("^(-?)(\\d+)(?:([UI])(\\d+))?");
 		java.util.regex.Matcher m = p.matcher(input);

@@ -51,6 +51,11 @@ class AppTest {
 		assertInterpretsErr("4294967296U32");
 	}
 
+	@Test
+	void interpretAddition() {
+		assertInterpretsTo("1 + 2", "3");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		switch (res) {
