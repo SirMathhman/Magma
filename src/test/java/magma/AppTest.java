@@ -57,6 +57,11 @@ class AppTest {
 		assertInterpretsTo("1U8 + 2U8", "3");
 	}
 
+	@Test
+	void interpretMixedTypedAddition() {
+		assertInterpretsTo("1U8 + 2", "3");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
