@@ -2,7 +2,6 @@ package com.magma;
 
 import java.util.function.BinaryOperator;
 
-import com.magma.result.Ok;
 import com.magma.result.Result;
 
 /**
@@ -33,13 +32,7 @@ public final class ArithmeticProcessor {
             result = config.operator().apply(result,
                     Integer.parseInt(numeric));
         }
-        final String resultStr = String.valueOf(result);
-        final Result<String, String> overflowCheck =
-                OperandValidator.validateResultOverflow(resultStr, operands);
-        if (overflowCheck instanceof com.magma.result.Err<String, String>) {
-            return overflowCheck;
-        }
-        return new Ok<>(resultStr);
+        return OperandValidator.validateAndReturnResult(result, operands);
     }
 
     /**

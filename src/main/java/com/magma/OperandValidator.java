@@ -100,14 +100,24 @@ public final class OperandValidator {
     }
 
     /**
-     * Validates result and returns Ok with result or Err if overflow.
+     * Validates result and returns Ok with result or Err if overflow or
+     * negative for unsigned types.
      *
      * @param result The result value
      * @param validOperands Array of operand strings
-     * @return Ok with result string or Err if overflow
+     * @return Ok with result string or Err if overflow or negative for unsigned
      */
     public static Result<String, String> validateAndReturnResult(
             final int result, final String[] validOperands) {
+        // Check for negative result with unsigned types
+        if (result < 0 && validOperands.length > 0
+                && StringParser.hasUnits(validOperands[0].trim())) {
+            final String units = StringParser.extractUnits(
+                    validOperands[0].trim());
+            if (units.startsWith("U")) {
+                return new Err<>("Negative values with units are not allowed");
+            }
+        }
         final String resultStr = String.valueOf(result);
         final Result<String, String> overflowCheck =
                 validateResultOverflow(resultStr, validOperands);

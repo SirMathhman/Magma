@@ -67,6 +67,7 @@ class MainTest {
     @Test
     void testInterpretSubtraction() {
         assertValid("3U8 - 2U8", "1");
+        assertInvalid("100U8 - 200U8");
     }
 
     @Test
@@ -93,7 +94,6 @@ class MainTest {
         assertValid("255U8", "255");
         assertInvalid("256U8");
         assertInvalid("255U8 + 1U8");
-        assertInvalid("100-200U8");
         // U16
         assertValid("65535U16", "65535");
         assertInvalid("65536U16");
