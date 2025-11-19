@@ -89,7 +89,34 @@ class MainTest {
 
     @Test
     void testInterpretValueRange() {
+        // U8
         assertValid("255U8", "255");
         assertInvalid("256U8");
+        // U16
+        assertValid("65535U16", "65535");
+        assertInvalid("65536U16");
+        // U32
+        assertValid("4294967295U32", "4294967295");
+        assertInvalid("4294967296U32");
+        // U64
+        assertValid("9223372036854775807U64", "9223372036854775807");
+        // I8
+        assertValid("127I8", "127");
+        assertValid("-128I8", "-128");
+        assertInvalid("128I8");
+        assertInvalid("-129I8");
+        // I16
+        assertValid("32767I16", "32767");
+        assertValid("-32768I16", "-32768");
+        assertInvalid("32768I16");
+        assertInvalid("-32769I16");
+        // I32
+        assertValid("2147483647I32", "2147483647");
+        assertValid("-2147483648I32", "-2147483648");
+        assertInvalid("2147483648I32");
+        assertInvalid("-2147483649I32");
+        // I64
+        assertValid("9223372036854775807I64", "9223372036854775807");
+        assertValid("-9223372036854775808I64", "-9223372036854775808");
     }
 }

@@ -1,5 +1,6 @@
 package com.magma;
 
+import java.util.Optional;
 import java.util.function.BinaryOperator;
 
 import com.magma.result.Err;
@@ -69,23 +70,46 @@ public final class Main {
     }
 
     /**
-     * Gets the maximum value for a unit type.
+     * Gets the minimum value for a unit type.
      *
      * @param units The unit string (e.g., "U8", "I8", "U16")
-     * @return The maximum value for the unit, or -1 if unknown
+     * @return The minimum value for the unit, or empty if unknown or unsigned
      */
-    private static int getMaxValueForUnit(final String units) {
+    private static Optional<Long> getMinValueForUnit(final String units) {
         return switch (units) {
-            case "U8" -> 255;
-            default -> -1;
+            case "I8" -> Optional.of(-128L);
+            case "I16" -> Optional.of(-32768L);
+            case "I32" -> Optional.of(-2147483648L);
+            case "I64" -> Optional.of(-9223372036854775808L);
+            default -> Optional.empty();
         };
     }
 
     /**
-     * Checks if a value with units exceeds the maximum allowed value.
+     * Gets the maximum value for a unit type.
+     *
+     * @param units The unit string (e.g., "U8", "I8", "U16")
+     * @return The maximum value for the unit, or empty if unknown
+     */
+    private static Optional<Long> getMaxValueForUnit(final String units) {
+        return switch (units) {
+            case "U8" -> Optional.of(255L);
+            case "U16" -> Optional.of(65535L);
+            case "U32" -> Optional.of(4294967295L);
+            case "U64" -> Optional.of(9223372036854775807L);
+            case "I8" -> Optional.of(127L);
+            case "I16" -> Optional.of(32767L);
+            case "I32" -> Optional.of(2147483647L);
+            case "I64" -> Optional.of(9223372036854775807L);
+            default -> Optional.empty();
+        };
+    }
+
+    /**
+     * Checks if a value with units is within the allowed range.
      *
      * @param operand The operand string to check
-     * @return Err if value exceeds maximum, Ok otherwise
+     * @return Err if value is out of range, Ok otherwise
      */
     private static Result<String, String> checkValueRange(
             final String operand) {
@@ -93,11 +117,16 @@ public final class Main {
         if (hasUnits(trimmed)) {
             final String numeric = extractLeadingNumeric(trimmed);
             final String units = extractUnits(trimmed);
-            final int maxValue = getMaxValueForUnit(units);
-            if (maxValue >= 0) {
+            final Optional<Long> minValue = getMinValueForUnit(units);
+            final Optional<Long> maxValue = getMaxValueForUnit(units);
+            if (maxValue.isPresent()) {
                 try {
-                    final int value = Integer.parseInt(numeric);
-                    if (value > maxValue) {
+                    final long value = Long.parseLong(numeric);
+                    if (minValue.isPresent() && value < minValue.get()) {
+                        return new Err<>(
+                                "Value below minimum for " + units);
+                    }
+                    if (value > maxValue.get()) {
                         return new Err<>("Value exceeds maximum for " + units);
                     }
                 } catch (final NumberFormatException e) {
