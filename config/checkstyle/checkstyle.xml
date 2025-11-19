@@ -232,6 +232,9 @@
             <property name="allowMissingPropertyJavadoc" value="true"/>
             <property name="allowedAnnotations" value="Override, Test"/>
         </module>
+        <module name="MethodLength">
+            <property name="max" value="50"/>
+        </module>
         <module name="MissingJavadocType"/>
         <module name="MissingJavadocPackage"/>
         <module name="HideUtilityClassConstructor"/>
