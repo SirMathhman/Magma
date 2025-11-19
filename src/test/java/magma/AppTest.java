@@ -68,6 +68,16 @@ class AppTest {
 	}
 
 	@Test
+	void interpretDivisionByZero() {
+		assertInterpretsErr("4 / 0");
+	}
+
+	@Test
+	void interpretDivisionByZeroNested() {
+		assertInterpretsErr("4 / (2 - 2)");
+	}
+
+	@Test
 	void interpretMixedOperators() {
 		assertInterpretsTo("2 * 3 + 1", "7");
 	}
