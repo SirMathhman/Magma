@@ -11,6 +11,15 @@ public class App {
 			"I32", "I64");
 	private static final java.util.regex.Pattern OPERAND_PATTERN = java.util.regex.Pattern
 			.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
+	private static final java.util.regex.Pattern LEADING_NUMBER_PATTERN = java.util.regex.Pattern
+			.compile("^(-?)(\\d+)(?:([UI])(\\d+))?");
+
+	private static final record OperandInfo(java.math.BigInteger value, java.util.Optional<String> typeFull) {
+	}
+
+	private static final record OperandSequence(java.util.List<java.math.BigInteger> values,
+		java.util.Optional<String> typeFull) {
+	}
 
 	/**
 	 * Return the leading decimal digit sequence from the provided non-null input.
@@ -29,8 +38,7 @@ public class App {
 		}
 
 		// Parse an optional sign, digits, and optional type suffix like U8 or I8.
-		java.util.regex.Pattern p = java.util.regex.Pattern.compile("^(-?)(\\d+)(?:([UI])(\\d+))?");
-		java.util.regex.Matcher m = p.matcher(input);
+		java.util.regex.Matcher m = LEADING_NUMBER_PATTERN.matcher(input);
 		if (m.find()) {
 			String sign = m.group(1); // "" or "-"
 			String digits = m.group(2);
@@ -92,6 +100,65 @@ public class App {
 		return new Result.Ok<>(sum.toString());
 	}
 
+	private static Result<String, String> wrapNumericResult(java.math.BigInteger value,
+			java.util.Optional<String> typeFull) {
+		if (typeFull.isPresent()) {
+			return enforceResultBound(value, typeFull.get());
+		}
+		return new Result.Ok<>(value.toString());
+	}
+
+	private static java.util.Optional<Result<OperandInfo, String>> parseOperandToken(String raw) {
+		java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(raw);
+		if (!matcher.matches()) {
+			return java.util.Optional.empty();
+		}
+		String digitsWithSign = matcher.group(1);
+		var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
+		var width = java.util.Optional.ofNullable(matcher.group(3));
+		var typeFull = typeLetter.flatMap(t -> width.map(w -> t + w));
+		return java.util.Optional.of(parseOperandValue(digitsWithSign, typeLetter, width)
+				.map(value -> new OperandInfo(value, typeFull)));
+	}
+
+	private static java.util.Optional<Result<OperandSequence, String>> parseOperandSequence(
+			String[] rawOperands) {
+		java.util.List<java.math.BigInteger> values = new java.util.ArrayList<>();
+		java.util.Optional<String> resolvedType = java.util.Optional.empty();
+		for (String raw : rawOperands) {
+			var operandOpt = parseOperandToken(raw);
+			if (operandOpt.isEmpty()) {
+				return java.util.Optional.empty();
+			}
+			var operandRes = operandOpt.get();
+			if (operandRes instanceof Result.Err<OperandInfo, String> err) {
+				return java.util.Optional.of(new Result.Err<>(err.error()));
+			}
+			OperandInfo operand = ((Result.Ok<OperandInfo, String>) operandRes).value();
+			values.add(operand.value());
+			var operandType = operand.typeFull();
+			if (operandType.isPresent()) {
+				if (resolvedType.isPresent()) {
+					if (!resolvedType.get().equals(operandType.get())) {
+						return java.util.Optional.of(new Result.Err<>("operand types differ"));
+					}
+				} else {
+					resolvedType = operandType;
+				}
+			}
+		}
+		return java.util.Optional.of(new Result.Ok<>(new OperandSequence(values, resolvedType)));
+	}
+
+	private static java.util.Optional<Result<String, String>> accumulateOperands(String[] operands,
+			java.util.function.Function<OperandSequence, Result<String, String>> combiner) {
+		var sequenceOpt = parseOperandSequence(operands);
+		if (sequenceOpt.isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		return sequenceOpt.map(sequenceRes -> sequenceRes.flatMap(combiner));
+	}
+
 	private static java.util.Optional<Result<String, String>> handleAddition(String input) {
 		if (!input.contains("+")) {
 			return java.util.Optional.empty();
@@ -100,36 +167,13 @@ public class App {
 		if (operands.length < 2) {
 			return java.util.Optional.empty();
 		}
-		java.math.BigInteger sum = java.math.BigInteger.ZERO;
-		java.util.Optional<String> resolvedType = java.util.Optional.empty();
-		for (String raw : operands) {
-			java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(raw);
-			if (!matcher.matches()) {
-				return java.util.Optional.empty();
+		return accumulateOperands(operands, sequence -> {
+			java.math.BigInteger sum = java.math.BigInteger.ZERO;
+			for (java.math.BigInteger value : sequence.values()) {
+				sum = sum.add(value);
 			}
-			String digitsWithSign = matcher.group(1);
-			var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
-			var width = java.util.Optional.ofNullable(matcher.group(3));
-			var operandRes = parseOperandValue(digitsWithSign, typeLetter, width);
-			if (operandRes instanceof Result.Err<java.math.BigInteger, String> err) {
-				return java.util.Optional.of(new Result.Err<>(err.error()));
-			}
-			sum = sum.add(((Result.Ok<java.math.BigInteger, String>) operandRes).value());
-			if (typeLetter.isPresent() && width.isPresent()) {
-				String typeFull = typeLetter.get() + width.get();
-				if (resolvedType.isPresent()) {
-					if (!resolvedType.get().equals(typeFull)) {
-						return java.util.Optional.of(new Result.Err<>("operand types differ"));
-					}
-				} else {
-					resolvedType = java.util.Optional.of(typeFull);
-				}
-			}
-		}
-		if (resolvedType.isPresent()) {
-			return java.util.Optional.of(enforceResultBound(sum, resolvedType.get()));
-		}
-		return java.util.Optional.of(new Result.Ok<>(sum.toString()));
+			return wrapNumericResult(sum, sequence.typeFull());
+		});
 	}
 
 	private static java.util.Optional<Result<String, String>> handleSubtraction(String input) {
@@ -137,36 +181,11 @@ public class App {
 				.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*-\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
 		java.util.regex.Matcher subtractMatcher = subtractPattern.matcher(input);
 		if (subtractMatcher.find()) {
-			String aStr = subtractMatcher.group(1);
-			var aType = java.util.Optional.ofNullable(subtractMatcher.group(2));
-			var aWidth = java.util.Optional.ofNullable(subtractMatcher.group(3));
-			String bStr = subtractMatcher.group(4);
-			var bType = java.util.Optional.ofNullable(subtractMatcher.group(5));
-			var bWidth = java.util.Optional.ofNullable(subtractMatcher.group(6));
-
-			var aRes = parseOperandValue(aStr, aType, aWidth);
-			if (aRes instanceof Result.Err<java.math.BigInteger, String> errA) {
-				return java.util.Optional.of(new Result.Err<>(errA.error()));
-			}
-			var bRes = parseOperandValue(bStr, bType, bWidth);
-			if (bRes instanceof Result.Err<java.math.BigInteger, String> errB) {
-				return java.util.Optional.of(new Result.Err<>(errB.error()));
-			}
-
-			java.math.BigInteger aVal = ((Result.Ok<java.math.BigInteger, String>) aRes).value();
-			java.math.BigInteger bVal = ((Result.Ok<java.math.BigInteger, String>) bRes).value();
-			java.math.BigInteger result = aVal.subtract(bVal);
-
-			var aTypeFull = aType.flatMap(t -> aWidth.map(w -> t + w));
-			var bTypeFull = bType.flatMap(t -> bWidth.map(w -> t + w));
-			if (aTypeFull.isPresent() && bTypeFull.isPresent()) {
-				if (!aTypeFull.get().equals(bTypeFull.get())) {
-					return java.util.Optional.of(new Result.Err<>("operand types differ"));
-				}
-				var boundRes = enforceResultBound(result, aTypeFull.get());
-				return java.util.Optional.of(boundRes);
-			}
-			return java.util.Optional.of(new Result.Ok<>(result.toString()));
+			String[] operands = { subtractMatcher.group(1), subtractMatcher.group(4) };
+			return accumulateOperands(operands, sequence -> {
+				java.math.BigInteger result = sequence.values().get(0).subtract(sequence.values().get(1));
+				return wrapNumericResult(result, sequence.typeFull());
+			});
 		}
 		return java.util.Optional.empty();
 	}

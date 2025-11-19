@@ -66,6 +66,8 @@
 					<encoding>${project.build.sourceEncoding}</encoding>
 					<minimumTokens>40</minimumTokens>
 					<failOnViolation>true</failOnViolation>
+					<ignoreIdentifiers>true</ignoreIdentifiers>
+					<ignoreLiterals>true</ignoreLiterals>
 				</configuration>
 				<executions>
 					<execution>
