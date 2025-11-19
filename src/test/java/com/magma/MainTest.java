@@ -91,6 +91,11 @@ class MainTest {
     }
 
     @Test
+    void testInterpretVariables() {
+        assertValid("let x : 1U8 = 1U8; x", "1");
+    }
+
+    @Test
     void testInterpretValueRange() {
         // U8
         assertValid("255U8", "255");

@@ -91,6 +91,110 @@ public final class Main {
     }
 
     /**
+     * Parses a let statement and stores the variable.
+     *
+     * @param statement The let statement (e.g., "let x : 1U8 = 1U8")
+     * @param context   The variable context
+     * @return Ok if successful, Err if parsing fails
+     */
+    private static Result<String, String> parseLetStatement(
+            final String statement, final VariableContext context) {
+        final String trimmed = statement.trim();
+        // Format: let x : type = value
+        if (!trimmed.startsWith("let ")) {
+            return new Err<>("Invalid let statement");
+        }
+        final String rest = trimmed.substring(4).trim();
+        final int colonIndex = rest.indexOf(':');
+        if (colonIndex < 0) {
+            return new Err<>("Missing type in let statement");
+        }
+        final String varName = rest.substring(0, colonIndex).trim();
+        if (varName.isEmpty()) {
+            return new Err<>("Empty variable name");
+        }
+        final String afterColon = rest.substring(colonIndex + 1).trim();
+        final int equalsIndex = afterColon.indexOf('=');
+        if (equalsIndex < 0) {
+            return new Err<>("Missing = in let statement");
+        }
+        final String type = afterColon.substring(0, equalsIndex).trim();
+        final String value = afterColon.substring(equalsIndex + 1).trim();
+        // Evaluate the value
+        final Result<String, String> valueResult =
+                interpretExpression(value, context);
+        if (valueResult instanceof Err<String, String>) {
+            return valueResult;
+        }
+        final String valueStr = ((Ok<String, String>) valueResult).getValue();
+        // Store the variable
+        context.setVariable(varName, valueStr);
+        return new Ok<>("");
+    }
+
+    /**
+     * Substitutes variables in an expression.
+     *
+     * @param expression The expression to substitute
+     * @param context    The variable context
+     * @return The expression with variables substituted
+     */
+    private static String substituteVariables(final String expression,
+            final VariableContext context) {
+        String result = expression;
+        for (final String varName : context.getVariableNames()) {
+            final java.util.Optional<String> varValue =
+                    context.getVariable(varName);
+            if (varValue.isPresent()) {
+                // Replace variable name with its value
+                result = result.replaceAll("\\b" + varName + "\\b",
+                        varValue.get());
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Interprets an expression (without handling let statements).
+     *
+     * @param expression The expression to interpret
+     * @param context    The variable context
+     * @return Result with the evaluated expression
+     */
+    private static Result<String, String> interpretExpression(
+            final String expression, final VariableContext context) {
+        // Substitute variables
+        final String substituted = substituteVariables(expression, context);
+        // Check for boolean literals
+        final java.util.Optional<Result<String, String>> booleanResult =
+                checkBooleanLiteral(substituted);
+        if (booleanResult.isPresent()) {
+            return booleanResult.get();
+        }
+        // Check for arithmetic expressions
+        final java.util.Optional<Result<String, String>> arithmeticResult =
+                processArithmeticExpression(substituted);
+        if (arithmeticResult.isPresent()) {
+            return arithmeticResult.get();
+        }
+        // Check if it's a variable reference
+        final String trimmed = substituted.trim();
+        final java.util.Optional<String> varValue =
+                context.getVariable(trimmed);
+        if (varValue.isPresent()) {
+            return new Ok<>(varValue.get());
+        }
+        // Fall back to extracting leading numeric part
+        // Check value range for single values with units
+        final Result<String, String> rangeCheck =
+                OperandValidator.checkValueRange(substituted);
+        if (rangeCheck instanceof Err<String, String>) {
+            return rangeCheck;
+        }
+        return new Ok<>(StringParser.extractLeadingNumeric(substituted));
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -100,25 +204,29 @@ public final class Main {
      *         part of the string wrapped in Ok
      */
     public static Result<String, String> interpret(final String input) {
-        // Check for boolean literals
-        final java.util.Optional<Result<String, String>> booleanResult =
-                checkBooleanLiteral(input);
-        if (booleanResult.isPresent()) {
-            return booleanResult.get();
+        final VariableContext context = new VariableContext();
+        // Split by semicolon to handle multiple statements
+        final String[] statements = input.split(";");
+        Result<String, String> lastResult = new Ok<>("");
+        for (final String statement : statements) {
+            final String trimmed = statement.trim();
+            if (trimmed.isEmpty()) {
+                continue;
+            }
+            if (trimmed.startsWith("let ")) {
+                final Result<String, String> letResult =
+                        parseLetStatement(trimmed, context);
+                if (letResult instanceof Err<String, String>) {
+                    return letResult;
+                }
+                lastResult = letResult;
+            } else {
+                lastResult = interpretExpression(trimmed, context);
+                if (lastResult instanceof Err<String, String>) {
+                    return lastResult;
+                }
+            }
         }
-        // Check for arithmetic expressions
-        final java.util.Optional<Result<String, String>> arithmeticResult =
-                processArithmeticExpression(input);
-        if (arithmeticResult.isPresent()) {
-            return arithmeticResult.get();
-        }
-        // Fall back to extracting leading numeric part
-        // Check value range for single values with units
-        final Result<String, String> rangeCheck =
-                OperandValidator.checkValueRange(input);
-        if (rangeCheck instanceof Err<String, String>) {
-            return rangeCheck;
-        }
-        return new Ok<>(StringParser.extractLeadingNumeric(input));
+        return lastResult;
     }
 }
