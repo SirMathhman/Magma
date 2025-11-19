@@ -61,6 +61,33 @@ public final class Main {
     }
 
     /**
+     * Checks if all operands with units have matching units.
+     *
+     * @param operands Array of operand strings
+     * @return Err if units mismatch, Ok with empty string if units match
+     */
+    private static Result<String, String> checkUnitMismatches(
+            final String[] operands) {
+        for (int i = 0; i < operands.length; i++) {
+            final String operandI = operands[i].trim();
+            if (hasUnits(operandI)) {
+                final String unitsI = extractUnits(operandI);
+                for (int j = i + 1; j < operands.length; j++) {
+                    final String operandJ = operands[j].trim();
+                    if (hasUnits(operandJ)) {
+                        final String unitsJ = extractUnits(operandJ);
+                        if (!unitsI.equals(unitsJ)) {
+                            return new Err<>(
+                                    "Cannot add values with different units");
+                        }
+                    }
+                }
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -71,24 +98,21 @@ public final class Main {
      */
     public static Result<String, String> interpret(final String input) {
         // Check if input contains an arithmetic operator
-        final int plusIndex = input.indexOf(" + ");
-        if (plusIndex >= 0) {
-            final String leftStr = input.substring(0, plusIndex).trim();
-            final String rightStr = input.substring(plusIndex + 3).trim();
-            // Check if both operands have units
-            if (hasUnits(leftStr) && hasUnits(rightStr)) {
-                final String leftUnits = extractUnits(leftStr);
-                final String rightUnits = extractUnits(rightStr);
-                // Only return error if units are different
-                if (!leftUnits.equals(rightUnits)) {
-                    return new Err<>("Cannot add values with different units");
-                }
+        if (input.contains(" + ")) {
+            final String[] operands = input.split(" \\+ ");
+            // Check for unit mismatches between all pairs of operands
+            // with units
+            final Result<String, String> unitCheck =
+                    checkUnitMismatches(operands);
+            if (unitCheck instanceof Err) {
+                return unitCheck;
             }
-            final String leftNumeric = extractLeadingNumeric(leftStr);
-            final String rightNumeric = extractLeadingNumeric(rightStr);
-            final int left = Integer.parseInt(leftNumeric);
-            final int right = Integer.parseInt(rightNumeric);
-            final int sum = left + right;
+            // Sum all operands
+            int sum = 0;
+            for (final String operand : operands) {
+                final String numeric = extractLeadingNumeric(operand.trim());
+                sum += Integer.parseInt(numeric);
+            }
             return new Ok<>(String.valueOf(sum));
         }
         // Fall back to extracting leading numeric part

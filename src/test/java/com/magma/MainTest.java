@@ -40,6 +40,11 @@ class MainTest {
         assertInstanceOf(Ok.class, result6);
         final Ok<String, String> ok6 = (Ok<String, String>) result6;
         assertEquals("5", ok6.getValue());
+
+        final Result<String, String> result7 = Main.interpret("2 + 3 + 4U8");
+        assertInstanceOf(Ok.class, result7);
+        final Ok<String, String> ok7 = (Ok<String, String>) result7;
+        assertEquals("9", ok7.getValue());
     }
 }
 
