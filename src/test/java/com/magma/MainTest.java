@@ -93,6 +93,7 @@ class MainTest {
         assertValid("255U8", "255");
         assertInvalid("256U8");
         assertInvalid("255U8 + 1U8");
+        assertInvalid("100-200U8");
         // U16
         assertValid("65535U16", "65535");
         assertInvalid("65536U16");

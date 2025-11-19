@@ -16,6 +16,37 @@ public final class Main {
     }
 
     /**
+     * Checks if the input is a range expression (e.g., "100-200U8").
+     *
+     * @param input The input string to check
+     * @return true if it's a range expression, false otherwise
+     */
+    private static boolean isRangeExpression(final String input) {
+        final String trimmed = input.trim();
+        final int dashIndex = trimmed.indexOf('-');
+        if (dashIndex <= 0 || dashIndex >= trimmed.length() - 1) {
+            return false;
+        }
+        // Check if there are no spaces around the dash
+        if (dashIndex > 0 && dashIndex < trimmed.length() - 1
+                && trimmed.charAt(dashIndex - 1) != ' '
+                && trimmed.charAt(dashIndex + 1) != ' ') {
+            // Check if part before dash is numeric
+            final String beforeDash = trimmed.substring(0, dashIndex);
+            final String numericBefore = StringParser.extractLeadingNumeric(
+                    beforeDash);
+            if (numericBefore.length() == beforeDash.length()) {
+                // Check if part after dash has units
+                final String afterDash = trimmed.substring(dashIndex + 1);
+                if (StringParser.hasUnits(afterDash)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -25,6 +56,10 @@ public final class Main {
      *         part of the string wrapped in Ok
      */
     public static Result<String, String> interpret(final String input) {
+        // Check for range expressions (e.g., "100-200U8")
+        if (isRangeExpression(input)) {
+            return new Err<>("Range expressions are not supported");
+        }
         // Check if input contains any arithmetic operator
         if (input.contains(" + ") || input.contains(" - ")
                 || input.contains(" * ")) {
