@@ -21,9 +21,11 @@ import java.util.regex.Pattern;
  */
 public class App {
 	private record ArithmeticSequence(List<BigInteger> values, List<Character> operators,
-																		Optional<String> resolvedType) {}
+			Optional<String> resolvedType) {
+	}
 
-	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {}
+	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {
+	}
 
 	private static final Set<String> SUPPORTED_TYPES = Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 	private static final Pattern OPERAND_PATTERN = Pattern.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*");
@@ -74,8 +76,8 @@ public class App {
 	}
 
 	private static Result<BigInteger, String> parseOperandValue(String digitsWithSign,
-																															Optional<String> typeLetter,
-																															Optional<String> widthStr) {
+			Optional<String> typeLetter,
+			Optional<String> widthStr) {
 		var val = new BigInteger(digitsWithSign);
 		if (typeLetter.isPresent() && widthStr.isPresent()) {
 			var fullType = typeLetter.get() + widthStr.get();
@@ -327,8 +329,8 @@ public class App {
 		var width = Optional.ofNullable(matcher.group(3));
 		var operandType = typeLetter.flatMap(t -> width.map(w -> t + w));
 		return parseOperandValue(digitsWithSign, typeLetter, width).map(value -> Optional.of(new OperandResult(value,
-																																																					 operandType,
-																																																					 matcher.end())));
+				operandType,
+				matcher.end())));
 	}
 
 	private static Result<Optional<OperandResult>, String> evaluateParenthesizedOperand(String inner, int closing) {
@@ -336,9 +338,8 @@ public class App {
 		if (innerSeq.isEmpty()) {
 			return new Ok<Optional<OperandResult>, String>(Optional.empty());
 		}
-		return innerSeq.get().flatMap(sequence ->
-			evaluateSequence(sequence.values(), sequence.operators()).map(total ->
-				Optional.of(new OperandResult(total, sequence.resolvedType(), closing + 1))));
+		return innerSeq.get().flatMap(sequence -> evaluateSequence(sequence.values(), sequence.operators())
+				.map(total -> Optional.of(new OperandResult(total, sequence.resolvedType(), closing + 1))));
 	}
 
 	private static Result<BigInteger, String> evaluateSequence(List<BigInteger> values, List<Character> operators) {
@@ -379,12 +380,12 @@ public class App {
 			return Optional.empty();
 		}
 		return parsed.map(sequenceRes -> sequenceRes.flatMap(sequence -> evaluateSequence(sequence.values(),
-																																											sequence.operators()).flatMap(
-				total -> {
-					if (sequence.resolvedType().isPresent()) {
-						return enforceResultBound(total, sequence.resolvedType().get());
-					}
-					return new Ok<String, String>(total.toString());
-				})));
+				sequence.operators()).flatMap(
+						total -> {
+							if (sequence.resolvedType().isPresent()) {
+								return enforceResultBound(total, sequence.resolvedType().get());
+							}
+							return new Ok<String, String>(total.toString());
+						})));
 	}
 }
