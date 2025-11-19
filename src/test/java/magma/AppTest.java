@@ -162,6 +162,11 @@ class AppTest {
 		assertInterpretsTo("let x = 100; let y = x; y", "100");
 	}
 
+	@Test
+	void interpretVariableWithIncompatibleType() {
+		assertInterpretsErr("let x : U8 = 100; x + 10I8");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
