@@ -21,6 +21,11 @@ class AppTest {
 		assertInterpretsErr("-1U8");
 	}
 
+	@Test
+	void interpretSignedNegativeReturnsOk() {
+		assertInterpretsTo("-1I8", "-1");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		switch (res) {
