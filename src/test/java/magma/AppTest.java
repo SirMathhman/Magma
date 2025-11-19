@@ -73,6 +73,11 @@ class AppTest {
 	}
 
 	@Test
+	void interpretUnsignedOverflowAddition() {
+		assertInterpretsErr("255U8 + 1");
+	}
+
+	@Test
 	void interpretSimpleSubtraction() {
 		assertInterpretsTo("3 - 2", "1");
 	}
