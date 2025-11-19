@@ -68,6 +68,11 @@ class AppTest {
 	}
 
 	@Test
+	void interpretParenthesizedAddition() {
+		assertInterpretsTo("(2 + 3)", "5");
+	}
+
+	@Test
 	void interpretMixedTypedAddition() {
 		assertInterpretsTo("1U8 + 2", "3");
 	}
