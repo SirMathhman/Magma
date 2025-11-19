@@ -13,11 +13,11 @@ class MainTest {
      * Asserts that interpreting the input produces a valid (Ok) result with
      * the expected value.
      *
-     * @param input The input string to interpret
+     * @param input         The input string to interpret
      * @param expectedValue The expected value
      */
     private static void assertValid(final String input,
-                                    final String expectedValue) {
+            final String expectedValue) {
         final Result<String, String> result = Main.interpret(input);
         switch (result) {
             case Ok<String, String> ok -> assertEquals(expectedValue,
@@ -79,4 +79,3 @@ class MainTest {
         assertInvalid("-1U8");
     }
 }
-
