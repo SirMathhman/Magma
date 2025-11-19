@@ -19,6 +19,11 @@ class MainTest {
         assertInstanceOf(Ok.class, result2);
         final Ok<String, String> ok2 = (Ok<String, String>) result2;
         assertEquals("5", ok2.getValue());
+
+        final Result<String, String> result3 = Main.interpret("2 + 3");
+        assertInstanceOf(Ok.class, result3);
+        final Ok<String, String> ok3 = (Ok<String, String>) result3;
+        assertEquals("5", ok3.getValue());
     }
 }
 
