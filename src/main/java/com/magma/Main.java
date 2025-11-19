@@ -288,6 +288,59 @@ public final class Main {
     }
 
     /**
+     * Processes an if expression.
+     *
+     * @param input The input string containing the if expression
+     * @param context The variable context
+     * @return Result with the evaluated expression, or empty Optional if not
+     *         an if expression
+     */
+    private static java.util.Optional<Result<String, String>>
+            processIfExpression(final String input,
+            final VariableContext context) {
+        final String trimmed = input.trim();
+        if (!trimmed.startsWith("if ")) {
+            return java.util.Optional.empty();
+        }
+        // Format: if (condition) thenValue else elseValue
+        final int openParen = trimmed.indexOf('(');
+        if (openParen < 0) {
+            return java.util.Optional.empty();
+        }
+        final int closeParen = trimmed.indexOf(')', openParen);
+        if (closeParen < 0) {
+            return java.util.Optional.empty();
+        }
+        final String condition = trimmed.substring(openParen + 1,
+                closeParen).trim();
+        final String afterParen = trimmed.substring(closeParen + 1).trim();
+        // Find the "else" keyword - it should be preceded by a space
+        final int elseIndex = afterParen.indexOf(" else ");
+        if (elseIndex < 0) {
+            return java.util.Optional.empty();
+        }
+        final String thenValue = afterParen.substring(0, elseIndex).trim();
+        final String elseValue = afterParen.substring(elseIndex + 6).trim();
+        // Evaluate condition
+        final Result<String, String> conditionResult =
+                interpretExpression(condition, context);
+        if (conditionResult instanceof Err<String, String>) {
+            return java.util.Optional.of(conditionResult);
+        }
+        final String conditionValue =
+                ((Ok<String, String>) conditionResult).getValue();
+        if (!"true".equals(conditionValue)
+                && !"false".equals(conditionValue)) {
+            return java.util.Optional.of(new Err<>(
+                    "Condition must be a boolean"));
+        }
+        // Evaluate the appropriate branch
+        final String branchValue = "true".equals(conditionValue)
+                ? thenValue : elseValue;
+        return java.util.Optional.of(interpretExpression(branchValue, context));
+    }
+
+    /**
      * Interprets an expression (without handling let statements).
      *
      * @param expression The expression to interpret
@@ -298,6 +351,12 @@ public final class Main {
             final String expression, final VariableContext context) {
         // Substitute variables
         final String substituted = substituteVariables(expression, context);
+        // Check for if expressions
+        final java.util.Optional<Result<String, String>> ifResult =
+                processIfExpression(substituted, context);
+        if (ifResult.isPresent()) {
+            return ifResult.get();
+        }
         // Check for boolean literals
         final java.util.Optional<Result<String, String>> booleanResult =
                 checkBooleanLiteral(substituted);

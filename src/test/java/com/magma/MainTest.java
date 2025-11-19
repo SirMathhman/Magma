@@ -91,6 +91,11 @@ class MainTest {
     }
 
     @Test
+    void testInterpretIfExpression() {
+        assertValid("if (true) 3 else 5", "3");
+    }
+
+    @Test
     void testInterpretVariables() {
         assertValid("let x : 1U8 = 1U8; x", "1");
         assertInvalid("let x : 5U8 = 1U8; x");
