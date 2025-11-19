@@ -228,6 +228,9 @@
         <module name="ParameterNumber">
             <property name="max" value="3"/>
         </module>
+        <module name="CyclomaticComplexity">
+            <property name="max" value="15"/>
+        </module>
         <module name="MissingJavadocType"/>
         <module name="MissingJavadocPackage"/>
         <module name="HideUtilityClassConstructor"/>
