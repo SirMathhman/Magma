@@ -93,6 +93,7 @@ class MainTest {
     @Test
     void testInterpretVariables() {
         assertValid("let x : 1U8 = 1U8; x", "1");
+        assertInvalid("let x : 5U8 = 1U8; x");
     }
 
     @Test

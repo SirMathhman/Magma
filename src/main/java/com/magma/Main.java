@@ -120,6 +120,19 @@ public final class Main {
         }
         final String type = afterColon.substring(0, equalsIndex).trim();
         final String value = afterColon.substring(equalsIndex + 1).trim();
+        // Extract numeric and unit parts for comparison
+        final String declaredNumeric = StringParser.extractLeadingNumeric(type);
+        final String declaredUnits = StringParser.hasUnits(type)
+                ? StringParser.extractUnits(type) : "";
+        final String valueNumeric = StringParser.extractLeadingNumeric(value);
+        final String valueUnits = StringParser.hasUnits(value)
+                ? StringParser.extractUnits(value) : "";
+        // Check if types match (both numeric and unit parts)
+        if (!declaredNumeric.equals(valueNumeric)
+                || !declaredUnits.equals(valueUnits)) {
+            return new Err<>("Type mismatch: declared type is " + type
+                    + " but value is " + value);
+        }
         // Evaluate the value
         final Result<String, String> valueResult =
                 interpretExpression(value, context);
