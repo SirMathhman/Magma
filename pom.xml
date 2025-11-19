@@ -13,6 +13,8 @@
 		<java.version>24</java.version>
 		<maven.compiler.release>${java.version}</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<!-- Prefer explicit Checkstyle version for newer Java grammar + plugin compat -->
+		<checkstyle.version>12.1.2</checkstyle.version>
 	</properties>
 
 	<dependencies>
@@ -41,6 +43,13 @@
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-checkstyle-plugin</artifactId>
 				<version>3.2.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>com.puppycrawl.tools</groupId>
+						<artifactId>checkstyle</artifactId>
+						<version>${checkstyle.version}</version>
+					</dependency>
+				</dependencies>
 				<configuration>
 					<configLocation>config/checkstyle/checkstyle.xml</configLocation>
 					<encoding>${project.build.sourceEncoding}</encoding>
