@@ -172,6 +172,11 @@ class AppTest {
 		assertInterpretsErr("let x = 0; let x = 0;");
 	}
 
+	@Test
+	void interpretNegativeUnsignedVariable() {
+		assertInterpretsErr("let x : U8 = -1");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
