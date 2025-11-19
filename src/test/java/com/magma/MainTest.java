@@ -95,6 +95,7 @@ class MainTest {
         assertValid("let x : 1U8 = 1U8; x", "1");
         assertInvalid("let x : 5U8 = 1U8; x");
         assertValid("let x : U8 = 10; x", "10");
+        assertValid("let x : U8 = 0;", "");
     }
 
     @Test
