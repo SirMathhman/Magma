@@ -7,7 +7,9 @@ package magma;
  * `interpret`.
  */
 public class App {
-	private static final java.util.Set<String> SUPPORTED_TYPES = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
+	private static final java.util.Set<String> SUPPORTED_TYPES = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16",
+			"I32", "I64");
+
 	/**
 	 * Return the leading decimal digit sequence from the provided non-null input.
 	 *
@@ -54,38 +56,34 @@ public class App {
 			String fullType = typeLetter.get() + widthStr.get();
 			if (!SUPPORTED_TYPES.contains(fullType))
 				return new Result.Err<>("unsupported type");
-			int bits = Integer.parseInt(widthStr.get());
-			if ("U".equals(typeLetter.get())) {
-				if (val.signum() < 0)
-					return new Result.Err<>("negative numbers not allowed");
-				java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits).subtract(java.math.BigInteger.ONE);
-				if (val.compareTo(max) > 0)
-					return new Result.Err<>("unsigned overflow");
-			} else {
-				java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(bits - 1).negate();
-				java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits - 1).subtract(java.math.BigInteger.ONE);
-				if (val.compareTo(min) < 0 || val.compareTo(max) > 0)
-					return new Result.Err<>("signed overflow");
-			}
+			return enforceNumericBound(val, fullType);
 		}
 		return new Result.Ok<>(val);
 	}
 
-	private static Result<String, String> enforceResultBound(java.math.BigInteger sum, String typeFull) {
+	private static Result<java.math.BigInteger, String> enforceNumericBound(java.math.BigInteger value, String typeFull) {
 		int bits = Integer.parseInt(typeFull.substring(1));
 		if (typeFull.startsWith("U")) {
+			if (value.signum() < 0)
+				return new Result.Err<>("negative numbers not allowed");
 			java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits).subtract(java.math.BigInteger.ONE);
-			if (sum.compareTo(max) > 0)
+			if (value.compareTo(max) > 0)
 				return new Result.Err<>("unsigned overflow");
-			return new Result.Ok<>(sum.toString());
+			return new Result.Ok<>(value);
 		} else {
 			java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(bits - 1).negate();
 			java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits - 1).subtract(java.math.BigInteger.ONE);
-			if (sum.compareTo(min) < 0 || sum.compareTo(max) > 0)
+			if (value.compareTo(min) < 0 || value.compareTo(max) > 0)
 				return new Result.Err<>("signed overflow");
-			return new Result.Ok<>(sum.toString());
+			return new Result.Ok<>(value);
 		}
+	}
 
+	private static Result<String, String> enforceResultBound(java.math.BigInteger sum, String typeFull) {
+		var boundCheck = enforceNumericBound(sum, typeFull);
+		if (boundCheck instanceof Result.Err<java.math.BigInteger, String> err)
+			return new Result.Err<>(err.error());
+		return new Result.Ok<>(sum.toString());
 	}
 
 	private static java.util.Optional<Result<String, String>> handleAddition(String input) {
