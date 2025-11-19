@@ -117,6 +117,10 @@ public class App {
 		return -1;
 	}
 
+	private static boolean isOperatorChar(char op) {
+		return op == '+' || op == '-' || op == '*' || op == '/';
+	}
+
 	private static java.util.Optional<Result<ArithmeticSequence, String>> parseArithmeticSequence(String input) {
 		int length = input.length();
 		java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(input);
@@ -142,12 +146,10 @@ public class App {
 			cursor = result.nextCursor();
 			values.add(result.value());
 			if (result.type().isPresent()) {
-				if (resolvedType.isPresent()) {
-					if (!resolvedType.get().equals(result.type().get())) {
-						return java.util.Optional.of(new Result.Err<>("operand types differ"));
-					}
-				} else {
+				if (resolvedType.isEmpty()) {
 					resolvedType = result.type();
+				} else if (!resolvedType.get().equals(result.type().get())) {
+					return java.util.Optional.of(new Result.Err<>("operand types differ"));
 				}
 			}
 			cursor = skipWhitespace(input, cursor, length);
@@ -155,7 +157,7 @@ public class App {
 				break;
 			}
 			char op = input.charAt(cursor);
-			if (op != '+' && op != '-' && op != '*') {
+			if (!isOperatorChar(op)) {
 				return java.util.Optional.empty();
 			}
 			operators.add(op);
@@ -187,7 +189,11 @@ public class App {
 				return new Result.Err<>(err.error());
 			}
 			ArithmeticSequence sequence = ((Result.Ok<ArithmeticSequence, String>) innerResult).value();
-			java.math.BigInteger value = evaluateSequence(sequence.values(), sequence.operators());
+			var eval = evaluateSequence(sequence.values(), sequence.operators());
+			if (eval instanceof Result.Err<java.math.BigInteger, String> err) {
+				return new Result.Err<>(err.error());
+			}
+			java.math.BigInteger value = ((Result.Ok<java.math.BigInteger, String>) eval).value();
 			return new Result.Ok<>(java.util.Optional.of(new OperandResult(value, sequence.resolvedType(), closing + 1)));
 		}
 		matcher.region(cursor, length);
@@ -202,7 +208,7 @@ public class App {
 				.of(new OperandResult(value, operandType, matcher.end())));
 	}
 
-	private static java.math.BigInteger evaluateSequence(java.util.List<java.math.BigInteger> values,
+	private static Result<java.math.BigInteger, String> evaluateSequence(java.util.List<java.math.BigInteger> values,
 			java.util.List<Character> operators) {
 		java.math.BigInteger result = values.get(0);
 		for (int i = 1; i < values.size(); i++) {
@@ -212,11 +218,18 @@ public class App {
 				result = result.add(operand);
 			} else if (op == '-') {
 				result = result.subtract(operand);
-			} else {
+			} else if (op == '*') {
 				result = result.multiply(operand);
+			} else if (op == '/') {
+				if (operand.signum() == 0) {
+					return new Result.Err<>("division by zero");
+				}
+				result = result.divide(operand);
+			} else {
+				return new Result.Err<>("unsupported operator");
 			}
 		}
-		return result;
+		return new Result.Ok<>(result);
 	}
 
 	private static java.util.Optional<Result<String, String>> handleArithmetic(String input) {
@@ -224,12 +237,12 @@ public class App {
 		if (parsed.isEmpty()) {
 			return java.util.Optional.empty();
 		}
-		return parsed.map(sequenceRes -> sequenceRes.flatMap(sequence -> {
-			java.math.BigInteger total = evaluateSequence(sequence.values(), sequence.operators());
-			if (sequence.resolvedType().isPresent()) {
-				return enforceResultBound(total, sequence.resolvedType().get());
-			}
-			return new Result.Ok<>(total.toString());
-		}));
+		return parsed.map(sequenceRes -> sequenceRes
+				.flatMap(sequence -> evaluateSequence(sequence.values(), sequence.operators()).flatMap(total -> {
+					if (sequence.resolvedType().isPresent()) {
+						return enforceResultBound(total, sequence.resolvedType().get());
+					}
+					return new Result.Ok<>(total.toString());
+				})));
 	}
 }

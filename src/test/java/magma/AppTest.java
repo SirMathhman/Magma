@@ -63,6 +63,11 @@ class AppTest {
 	}
 
 	@Test
+	void interpretDivision() {
+		assertInterpretsTo("4 / 2", "2");
+	}
+
+	@Test
 	void interpretMixedOperators() {
 		assertInterpretsTo("2 * 3 + 1", "7");
 	}
