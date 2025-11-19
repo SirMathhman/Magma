@@ -142,6 +142,11 @@ class AppTest {
 		assertInterpretsTo("if (false) 3 else 5", "5");
 	}
 
+	@Test
+	void interpretIgnoresVariableDeclaration() {
+		assertInterpretsTo("let x : U8 = 100;", "");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
