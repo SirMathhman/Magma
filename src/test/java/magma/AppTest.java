@@ -26,6 +26,11 @@ class AppTest {
 		assertInterpretsTo("-1I8", "-1");
 	}
 
+	@Test
+	void interpretUnsignedOverflowReturnsErr() {
+		assertInterpretsErr("256U8");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		switch (res) {

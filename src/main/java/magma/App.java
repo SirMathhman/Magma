@@ -32,6 +32,14 @@ public class App {
 				return new Result.Ok<>("-" + digits);
 			}
 
+			// If unsigned 8-bit type and digits exceed 255, return Err.
+			if ("U".equals(type) && "8".equals(m.group(4))) {
+				java.math.BigInteger v = new java.math.BigInteger(digits);
+				if (v.compareTo(java.math.BigInteger.valueOf(255)) > 0) {
+					return new Result.Err<>("unsigned overflow");
+				}
+			}
+
 			// Not negative: return digits as-is.
 			return new Result.Ok<>(digits);
 		}
