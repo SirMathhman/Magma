@@ -1,76 +1,36 @@
 package magma;
 
-import magma.Result.Err;
-import magma.Result.Ok;
-
-import java.util.Optional;
-import java.util.function.Function;
-
 /**
  * Generic sealed result type with success and error variants.
  *
  * @param <T> success type
  * @param <X> error type
  */
-public sealed interface Result<T, X> permits Ok, Err {
+public sealed interface Result<T, X> permits Result.Ok, Result.Err {
 	/**
 	 * Success variant wrapping a value of type T.
 	 */
-	record Ok<T, X>(T value) implements Result<T, X> {
-		public boolean isOk() {
-			return true;
-		}
-
-		@Override
-		public Optional<T> asOk() {
-			return Optional.of(this.value());
-		}
-
-		@Override
-		public Optional<X> asErr() {
-			return Optional.empty();
-		}
+	public static final record Ok<T, X>(T value) implements Result<T, X> {
 	}
 
 	/**
 	 * Error variant wrapping an error value of type X.
 	 */
-	record Err<T, X>(X error) implements Result<T, X> {
-		public boolean isErr() {
-			return true;
-		}
-
-		@Override
-		public Optional<T> asOk() {
-			return Optional.empty();
-		}
-
-		@Override
-		public Optional<X> asErr() {
-			return Optional.of(this.error());
-		}
-	}
-
-	default Optional<T> asOk() {
-		return Optional.empty();
-	}
-
-	default Optional<X> asErr() {
-		return Optional.empty();
+	public static final record Err<T, X>(X error) implements Result<T, X> {
 	}
 
 	@SuppressWarnings("unchecked")
-	default <U> Result<U, X> mapValue(Function<? super T, ? extends U> mapper) {
-		if (this instanceof Ok<T, X>) {
-			return new Ok<U, X>(mapper.apply(this.asOk().get()));
+	default <U> Result<U, X> map(java.util.function.Function<? super T, ? extends U> mapper) {
+		if (this instanceof Result.Ok<T, X> ok) {
+			return new Result.Ok<>(mapper.apply(ok.value()));
 		}
 		return (Result<U, X>) this;
 	}
 
 	@SuppressWarnings("unchecked")
-	default <U> Result<U, X> flatMap(Function<? super T, Result<U, X>> mapper) {
-		if (this instanceof Ok<T, X>) {
-			return mapper.apply(this.asOk().get());
+	default <U> Result<U, X> flatMap(java.util.function.Function<? super T, Result<U, X>> mapper) {
+		if (this instanceof Result.Ok<T, X> ok) {
+			return mapper.apply(ok.value());
 		}
 		return (Result<U, X>) this;
 	}

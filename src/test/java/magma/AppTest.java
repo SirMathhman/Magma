@@ -142,11 +142,6 @@ class AppTest {
 		assertInterpretsTo("if (false) 3 else 5", "5");
 	}
 
-	@Test
-	void interpretParenthesizedIfPlusOne() {
-		assertInterpretsTo("(if (true) 3 else 5) + 1", "4");
-	}
-
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

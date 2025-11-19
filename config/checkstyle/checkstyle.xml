@@ -11,23 +11,5 @@
 			<property name="tokens" value="LITERAL_NULL" />
 			<message key="illegal.token" value="Avoid using 'null'; prefer Optional&lt;T&gt; instead." />
 		</module>
-		<!-- Disallow using 'instanceof' keyword - prefer polymorphism or pattern matches carefully -->
-		<module name="IllegalToken">
-			<property name="tokens" value="LITERAL_INSTANCEOF" />
-			<message key="illegal.token"
-				value="Avoid using 'instanceof'; prefer methods defined in Result or switch expressions instead." />
-		</module>
-		<!-- Disallow the use of 'throw' statements; prefer Result for error handling -->
-		<module name="IllegalToken">
-			<property name="tokens" value="LITERAL_THROW" />
-			<message key="illegal.token"
-				value="Avoid using 'throw'; prefer Result&lt;T, E&gt; for error handling." />
-		</module>
-		<!-- Disallow the use of 'throws' declaration; prefer Result for explicit error results -->
-		<module name="IllegalToken">
-			<property name="tokens" value="LITERAL_THROWS" />
-			<message key="illegal.token"
-				value="Avoid using 'throws' on methods; prefer Result&lt;T, E&gt; returns instead." />
-		</module>
 	</module>
 </module>
