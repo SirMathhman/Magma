@@ -122,6 +122,62 @@ public class App {
 		return -1;
 	}
 
+	private static int findTopLevelEquality(String input) {
+		int depth = 0;
+		for (int i = 0; i < input.length() - 1; i++) {
+			char c = input.charAt(i);
+			if (c == '(')
+				depth++;
+			else if (c == ')')
+				depth--;
+			else if (depth == 0 && c == '=' && input.charAt(i + 1) == '=') {
+				return i;
+			}
+		}
+		return -1;
+	}
+
+	private static java.util.Optional<Result<String, String>> handleEqualityComparison(String input) {
+		int eqIndex = findTopLevelEquality(input);
+		if (eqIndex < 0) {
+			return java.util.Optional.empty();
+		}
+		String left = input.substring(0, eqIndex).trim();
+		String right = input.substring(eqIndex + 2).trim();
+		// boolean equality
+		if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
+			return java.util.Optional.of(new Result.Ok<>(Boolean.toString(left.equals(right))));
+		}
+		// numeric equality: parse both sides as arithmetic sequences
+		var leftParsed = parseArithmeticSequence(left);
+		var rightParsed = parseArithmeticSequence(right);
+		if (leftParsed.isEmpty() || rightParsed.isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		var leftRes = leftParsed.get();
+		var rightRes = rightParsed.get();
+		if (leftRes instanceof Result.Err<ArithmeticSequence, String> lerr)
+			return java.util.Optional.of(new Result.Err<>(lerr.error()));
+		if (rightRes instanceof Result.Err<ArithmeticSequence, String> rerr)
+			return java.util.Optional.of(new Result.Err<>(rerr.error()));
+		ArithmeticSequence lSeq = ((Result.Ok<ArithmeticSequence, String>) leftRes).value();
+		ArithmeticSequence rSeq = ((Result.Ok<ArithmeticSequence, String>) rightRes).value();
+		var lEval = evaluateSequence(lSeq.values(), lSeq.operators());
+		var rEval = evaluateSequence(rSeq.values(), rSeq.operators());
+		if (lEval instanceof Result.Err<java.math.BigInteger, String> lerr2)
+			return java.util.Optional.of(new Result.Err<>(lerr2.error()));
+		if (rEval instanceof Result.Err<java.math.BigInteger, String> rerr2)
+			return java.util.Optional.of(new Result.Err<>(rerr2.error()));
+		java.math.BigInteger lVal = ((Result.Ok<java.math.BigInteger, String>) lEval).value();
+		java.math.BigInteger rVal = ((Result.Ok<java.math.BigInteger, String>) rEval).value();
+		// If both sides have resolved types, they must match
+		if (lSeq.resolvedType().isPresent() && rSeq.resolvedType().isPresent()
+				&& !lSeq.resolvedType().get().equals(rSeq.resolvedType().get())) {
+			return java.util.Optional.of(new Result.Err<>("operand types differ"));
+		}
+		return java.util.Optional.of(new Result.Ok<>(Boolean.toString(lVal.equals(rVal))));
+	}
+
 	private static boolean isOperatorChar(char op) {
 		return op == '+' || op == '-' || op == '*' || op == '/';
 	}
@@ -238,6 +294,11 @@ public class App {
 	}
 
 	private static java.util.Optional<Result<String, String>> handleArithmetic(String input) {
+		var equality = handleEqualityComparison(input);
+		if (equality.isPresent()) {
+			return equality;
+		}
+
 		var parsed = parseArithmeticSequence(input);
 		if (parsed.isEmpty()) {
 			return java.util.Optional.empty();

@@ -127,6 +127,11 @@ class AppTest {
 		assertInterpretsTo("false", "false");
 	}
 
+	@Test
+	void interpretEqualsTrue() {
+		assertInterpretsTo("3 == 3", "true");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
