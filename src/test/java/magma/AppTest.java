@@ -54,21 +54,32 @@ class AppTest {
 	@Test
 	void interpretAddition() {
 		assertInterpretsTo("1 + 2", "3");
+		assertInterpretsTo("1U8 + 2U8", "3");
 	}
 
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
-		switch (res) {
-			case Result.Ok<?, ?> ok -> assertEquals(expected, ok.value());
-			case Result.Err<?, ?> err -> fail("Expected Ok but got Err: " + err.error());
+		if (res instanceof Result.Ok) {
+			var ok = (Result.Ok<String, String>) res;
+			assertEquals(expected, ok.value());
+		} else if (res instanceof Result.Err) {
+			var err = (Result.Err<String, String>) res;
+			fail("Expected Ok but got Err: " + err.error());
+		} else {
+			fail("Unexpected result variant");
 		}
 	}
 
 	private static void assertInterpretsErr(String input) {
 		var res = App.interpret(input);
-		switch (res) {
-			case Result.Err<?, ?> err -> assertNotNull(err.error());
-			case Result.Ok<?, ?> ok -> fail("Expected Err but got Ok: " + ok.value());
+		if (res instanceof Result.Err) {
+			var err = (Result.Err<String, String>) res;
+			assertNotNull(err.error());
+		} else if (res instanceof Result.Ok) {
+			var ok = (Result.Ok<String, String>) res;
+			fail("Expected Err but got Ok: " + ok.value());
+		} else {
+			fail("Unexpected result variant");
 		}
 	}
 }
