@@ -170,14 +170,13 @@ public class App {
 		}
 		var leftRes = leftParsed.get();
 		var rightRes = rightParsed.get();
-		if (leftRes instanceof Err<ArithmeticSequence, String>(var error)) {
+		var combined = leftRes.and(() -> rightRes);
+		if (combined instanceof Err<Result.Tuple<ArithmeticSequence, ArithmeticSequence>, String>(var error)) {
 			return Optional.of(new Err<String, String>(error));
 		}
-		if (rightRes instanceof Err<ArithmeticSequence, String>(var error)) {
-			return Optional.of(new Err<String, String>(error));
-		}
-		var lSeq = ((Ok<ArithmeticSequence, String>) leftRes).value();
-		var rSeq = ((Ok<ArithmeticSequence, String>) rightRes).value();
+		var pair = ((Ok<Result.Tuple<ArithmeticSequence, ArithmeticSequence>, String>) combined).value();
+		var lSeq = pair.first();
+		var rSeq = pair.second();
 		var lEval = evaluateSequence(lSeq.values(), lSeq.operators());
 		var rEval = evaluateSequence(rSeq.values(), rSeq.operators());
 		if (lEval instanceof Err<BigInteger, String>(var error)) {
