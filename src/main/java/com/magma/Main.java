@@ -63,6 +63,23 @@ public final class Main {
     }
 
     /**
+     * Checks if any operand with units is negative.
+     *
+     * @param operands Array of operand strings
+     * @return Err if a negative value with units is found, Ok otherwise
+     */
+    private static Result<String, String> checkNegativeWithUnits(
+            final String[] operands) {
+        for (final String operand : operands) {
+            final String trimmed = operand.trim();
+            if (trimmed.startsWith("-") && hasUnits(trimmed)) {
+                return new Err<>("Negative values with units are not allowed");
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
      * Checks if all operands with units have matching units.
      *
      * @param operands Array of operand strings
@@ -91,14 +108,16 @@ public final class Main {
     }
 
     /**
-     * Validates operands and checks for unit mismatches.
+     * Validates operands and checks for unit mismatches and negative values
+     * with units.
      *
      * @param operands Array of operand strings
-     * @return Err if units mismatch, Ok with operands if valid
+     * @return Err if validation fails, Ok with operands if valid
      */
     private static Result<String[], String> validateOperands(
             final String[] operands) {
-        return checkUnitMismatches(operands)
+        return checkNegativeWithUnits(operands)
+                .flatMap(ignored -> checkUnitMismatches(operands))
                 .map(ignored -> operands);
     }
 
@@ -214,6 +233,11 @@ public final class Main {
      *         part of the string wrapped in Ok
      */
     public static Result<String, String> interpret(final String input) {
+        // Check for negative value with units (single value case)
+        final String trimmed = input.trim();
+        if (trimmed.startsWith("-") && hasUnits(trimmed)) {
+            return new Err<>("Negative values with units are not allowed");
+        }
         // Check if input contains any arithmetic operator
         if (input.contains(" + ") || input.contains(" - ")) {
             // Check if it contains both operators
