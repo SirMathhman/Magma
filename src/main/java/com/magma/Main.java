@@ -156,6 +156,30 @@ public final class Main {
     }
 
     /**
+     * Splits expression into parts and extracts operands and operators.
+     *
+     * @param input The input string containing the expression
+     * @param operatorPattern The regex pattern to split on
+     * @return Tuple of operands array and operators array, or Err if invalid
+     */
+    private static Result<Tuple<String[], String[]>, String> splitExpression(
+            final String input, final String operatorPattern) {
+        final String[] parts = input.split(operatorPattern);
+        if (parts.length < 2) {
+            return new Err<>("Invalid expression");
+        }
+        final String[] operands = new String[(parts.length + 1) / 2];
+        final String[] operators = new String[parts.length / 2];
+        for (int i = 0; i < parts.length; i += 2) {
+            operands[i / 2] = parts[i];
+        }
+        for (int i = 1; i < parts.length; i += 2) {
+            operators[i / 2] = parts[i].trim();
+        }
+        return new Ok<>(new Tuple<>(operands, operators));
+    }
+
+    /**
      * Processes an arithmetic expression with the given operator.
      *
      * @param input The input string containing the expression
@@ -172,6 +196,109 @@ public final class Main {
     }
 
     /**
+     * Processes multiplication operations, returning values and operators for
+     * addition/subtraction.
+     *
+     * @param validOperands Array of validated operand strings
+     * @param operators Array of operator strings
+     * @return Tuple of values list and addition/subtraction operators list
+     */
+    private static Tuple<java.util.List<Integer>, java.util.List<String>>
+            processMultiplications(final String[] validOperands,
+                                  final String[] operators) {
+        final java.util.List<Integer> values =
+                new java.util.ArrayList<>();
+        final java.util.List<String> addSubOps =
+                new java.util.ArrayList<>();
+        int current = Integer.parseInt(
+                extractLeadingNumeric(validOperands[0].trim()));
+        for (int i = 0; i < operators.length; i++) {
+            final String op = operators[i];
+            final int nextValue = Integer.parseInt(
+                    extractLeadingNumeric(validOperands[i + 1].trim()));
+            if ("*".equals(op)) {
+                current *= nextValue;
+            } else {
+                values.add(current);
+                addSubOps.add(op);
+                current = nextValue;
+            }
+        }
+        values.add(current);
+        return new Tuple<>(values, addSubOps);
+    }
+
+    /**
+     * Processes addition and subtraction operations.
+     *
+     * @param values List of values to operate on
+     * @param addSubOps List of addition/subtraction operators
+     * @return The final result
+     */
+    private static int processAdditionsAndSubtractions(
+            final java.util.List<Integer> values,
+            final java.util.List<String> addSubOps) {
+        int result = values.get(0);
+        for (int i = 0; i < addSubOps.size(); i++) {
+            final String op = addSubOps.get(i);
+            final int value = values.get(i + 1);
+            if ("-".equals(op)) {
+                result -= value;
+            } else {
+                result += value;
+            }
+        }
+        return result;
+    }
+
+    /**
+     * Splits and validates an expression, then processes it with the given
+     * function.
+     *
+     * @param input The input string containing the expression
+     * @param operatorPattern The regex pattern to split on
+     * @param processor Function to process validated operands and operators
+     * @return Result with the evaluated expression
+     */
+    private static Result<String, String> splitValidateAndProcess(
+            final String input,
+            final String operatorPattern,
+            final java.util.function.Function<Tuple<String[], String[]>,
+                    Result<String, String>> processor) {
+        return splitExpression(input, operatorPattern)
+                .flatMap(tuple -> {
+                    final String[] operands = tuple.first();
+                    final String[] operators = tuple.second();
+                    return validateOperands(operands)
+                            .flatMap(validOperands -> processor.apply(
+                                    new Tuple<>(validOperands, operators)));
+                });
+    }
+
+    /**
+     * Processes an expression with operator precedence (multiplication before
+     * addition/subtraction).
+     *
+     * @param input The input string containing the expression
+     * @return Result with the evaluated expression
+     */
+    private static Result<String, String> processWithPrecedence(
+            final String input) {
+        return splitValidateAndProcess(input, " (?=[+\\-*])|(?<=[+\\-*]) ",
+                tuple -> {
+                    final String[] validOperands = tuple.first();
+                    final String[] operators = tuple.second();
+                    final var multResult =
+                            processMultiplications(validOperands, operators);
+                    final int result =
+                            processAdditionsAndSubtractions(
+                                    multResult.first(),
+                                    multResult.second());
+                    return new Ok<>(String.valueOf(result));
+                });
+    }
+
+    /**
      * Processes a mixed arithmetic expression with both addition and
      * subtraction.
      *
@@ -180,39 +307,25 @@ public final class Main {
      */
     private static Result<String, String> processMixedArithmetic(
             final String input) {
-        // Split by both operators, keeping track of operators
-        final String[] parts = input.split(" (?=[+-])|(?<=[+-]) ");
-        if (parts.length < 2) {
-            return new Err<>("Invalid expression");
-        }
-        // Extract operands (every other element starting from 0)
-        final String[] operands = new String[(parts.length + 1) / 2];
-        for (int i = 0; i < parts.length; i += 2) {
-            operands[i / 2] = parts[i];
-        }
-        // Validate operands
-        final Result<String[], String> validated =
-                validateOperands(operands);
-        return validated.flatMap(validOperands -> {
-            // Process left-to-right
-            int result = Integer.parseInt(
-                    extractLeadingNumeric(validOperands[0].trim()));
-            for (int i = 1; i < validOperands.length; i++) {
-                final int value = Integer.parseInt(
-                        extractLeadingNumeric(validOperands[i].trim()));
-                // Find the operator between operands[i-1] and operands[i]
-                final int opIndex = 2 * i - 1;
-                if (opIndex < parts.length) {
-                    final String operator = parts[opIndex].trim();
-                    if ("-".equals(operator)) {
-                        result -= value;
-                    } else {
-                        result += value;
+        return splitValidateAndProcess(input, " (?=[+-])|(?<=[+-]) ",
+                tuple -> {
+                    final String[] validOperands = tuple.first();
+                    final String[] operators = tuple.second();
+                    // Process left-to-right
+                    int result = Integer.parseInt(
+                            extractLeadingNumeric(validOperands[0].trim()));
+                    for (int i = 0; i < operators.length; i++) {
+                        final int value = Integer.parseInt(
+                                extractLeadingNumeric(
+                                        validOperands[i + 1].trim()));
+                        if ("-".equals(operators[i])) {
+                            result -= value;
+                        } else {
+                            result += value;
+                        }
                     }
-                }
-            }
-            return new Ok<>(String.valueOf(result));
-        });
+                    return new Ok<>(String.valueOf(result));
+                });
     }
 
     /**
@@ -233,7 +346,12 @@ public final class Main {
         // Check if input contains any arithmetic operator
         if (input.contains(" + ") || input.contains(" - ")
                 || input.contains(" * ")) {
-            // Check if it contains both operators
+            // Check if it contains multiplication with addition/subtraction
+            if (input.contains(" * ")
+                    && (input.contains(" + ") || input.contains(" - "))) {
+                return processWithPrecedence(input);
+            }
+            // Check if it contains both addition and subtraction
             if (input.contains(" + ") && input.contains(" - ")) {
                 return processMixedArithmetic(input);
             }
@@ -260,6 +378,17 @@ public final class Main {
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));
+    }
+
+    /**
+     * A tuple containing two values.
+     *
+     * @param <A> The type of the first value
+     * @param <B> The type of the second value
+     * @param first The first value
+     * @param second The second value
+     */
+    private record Tuple<A, B>(A first, B second) {
     }
 
     /**
