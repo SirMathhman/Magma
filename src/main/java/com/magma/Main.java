@@ -245,8 +245,20 @@ public final class Main {
                 // Evaluate the value
                 return interpretExpression(value, context)
                         .flatMap(valueStr -> {
-                            // Store the variable
-                            context.setVariable(varName, valueStr);
+                            // Store the variable with unit type if type is
+                            // unit-only
+                            final String declaredNumeric =
+                                    StringParser.extractLeadingNumeric(type);
+                            final String declaredUnits =
+                                    StringParser.hasUnits(type)
+                                            ? StringParser.extractUnits(type)
+                                            : "";
+                            final boolean isUnitOnlyType =
+                                    declaredNumeric.isEmpty()
+                                            && !declaredUnits.isEmpty();
+                            final String storedValue = isUnitOnlyType
+                                    ? valueStr + declaredUnits : valueStr;
+                            context.setVariable(varName, storedValue);
                             return new Ok<String, String>("");
                         });
             });

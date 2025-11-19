@@ -129,27 +129,38 @@ public final class OperandValidator {
 
     /**
      * Checks if all operands with units have matching units.
+     * If any operand has units, all operands must have the same units.
      *
      * @param operands Array of operand strings
      * @return Err if units mismatch, Ok with empty string if units match
      */
     public static Result<String, String> checkUnitMismatches(
             final String[] operands) {
-        for (int i = 0; i < operands.length; i++) {
-            final String operandI = operands[i].trim();
-            if (StringParser.hasUnits(operandI)) {
-                final String unitsI = StringParser.extractUnits(operandI);
-                for (int j = i + 1; j < operands.length; j++) {
-                    final String operandJ = operands[j].trim();
-                    if (StringParser.hasUnits(operandJ)) {
-                        final String unitsJ =
-                                StringParser.extractUnits(operandJ);
-                        if (!unitsI.equals(unitsJ)) {
-                            return new Err<>(
-                                    "Cannot operate on values with different "
-                                    + "units");
-                        }
-                    }
+        // Check if any operand has units
+        boolean hasAnyUnits = false;
+        String firstUnits = "";
+        for (final String operand : operands) {
+            final String trimmed = operand.trim();
+            if (StringParser.hasUnits(trimmed)) {
+                hasAnyUnits = true;
+                if (firstUnits.isEmpty()) {
+                    firstUnits = StringParser.extractUnits(trimmed);
+                }
+                break;
+            }
+        }
+        // If any operand has units, all must have the same units
+        if (hasAnyUnits) {
+            for (final String operand : operands) {
+                final String trimmed = operand.trim();
+                if (!StringParser.hasUnits(trimmed)) {
+                    return new Err<>(
+                            "Cannot operate on values with different units");
+                }
+                final String units = StringParser.extractUnits(trimmed);
+                if (!firstUnits.equals(units)) {
+                    return new Err<>(
+                            "Cannot operate on values with different units");
                 }
             }
         }

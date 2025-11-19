@@ -56,9 +56,9 @@ class MainTest {
     @Test
     void testInterpretAddition() {
         assertValid("2 + 3", "5");
-        assertValid("2U8 + 10", "12");
+        assertInvalid("2U8 + 10");
         assertValid("2U8 + 3U8", "5");
-        assertValid("2 + 3 + 4U8", "9");
+        assertInvalid("2 + 3 + 4U8");
     }
 
     @Test
@@ -81,8 +81,8 @@ class MainTest {
     void testInterpretNegativeWithUnits() {
         assertValid("-1U8", "-1");
         assertValid("-1I8", "-1");
-        assertValid("-1U8 + 2", "1");
-        assertValid("2 + -1U8", "1");
+        assertInvalid("-1U8 + 2");
+        assertInvalid("2 + -1U8");
     }
 
     @Test
@@ -99,6 +99,7 @@ class MainTest {
         assertInvalid("let x : U8 = -1;");
         assertInvalid("let x : U8 = 256;");
         assertValid("extern let x : U8;", "");
+        assertInvalid("let x : U8 = 100; x + 1");
     }
 
     @Test
