@@ -49,6 +49,8 @@ class MainTest {
     void testInterpretSimpleValues() {
         assertValid("5", "5");
         assertValid("5U8", "5");
+        assertValid("true", "true");
+        assertValid("false", "false");
     }
 
     @Test
