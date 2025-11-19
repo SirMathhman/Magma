@@ -149,12 +149,12 @@ class AppTest {
 
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
-		if (res.asOk().isPresent()) {
-			var ok = res.asOk().get();
-			assertEquals(expected, ok);
-		} else if (res.asErr().isPresent()) {
-			var err = res.asErr().get();
-			fail("Expected Ok but got Err: " + err);
+		if (res instanceof Result.Ok) {
+			var ok = (Result.Ok<String, String>) res;
+			assertEquals(expected, ok.value());
+		} else if (res instanceof Result.Err) {
+			var err = (Result.Err<String, String>) res;
+			fail("Expected Ok but got Err: " + err.error());
 		} else {
 			fail("Unexpected result variant");
 		}
@@ -162,12 +162,12 @@ class AppTest {
 
 	private static void assertInterpretsErr(String input) {
 		var res = App.interpret(input);
-		if (res.asErr().isPresent()) {
-			var err = res.asErr().get();
-			assertNotNull(err);
-		} else if (res.asOk().isPresent()) {
-			var ok = res.asOk().get();
-			fail("Expected Err but got Ok: " + ok);
+		if (res instanceof Result.Err) {
+			var err = (Result.Err<String, String>) res;
+			assertNotNull(err.error());
+		} else if (res instanceof Result.Ok) {
+			var ok = (Result.Ok<String, String>) res;
+			fail("Expected Err but got Ok: " + ok.value());
 		} else {
 			fail("Unexpected result variant");
 		}

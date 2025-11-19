@@ -61,7 +61,7 @@ public sealed interface Result<T, X> permits Ok, Err {
 
 	@SuppressWarnings("unchecked")
 	default <U> Result<U, X> mapValue(Function<? super T, ? extends U> mapper) {
-		if (this.asOk().isPresent()) {
+		if (this instanceof Ok<T, X>) {
 			return new Ok<U, X>(mapper.apply(this.asOk().get()));
 		}
 		return (Result<U, X>) this;
@@ -69,7 +69,7 @@ public sealed interface Result<T, X> permits Ok, Err {
 
 	@SuppressWarnings("unchecked")
 	default <U> Result<U, X> flatMap(Function<? super T, Result<U, X>> mapper) {
-		if (this.asOk().isPresent()) {
+		if (this instanceof Ok<T, X>) {
 			return mapper.apply(this.asOk().get());
 		}
 		return (Result<U, X>) this;
