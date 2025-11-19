@@ -38,4 +38,24 @@ class ResultTest {
 		var err = (Result.Err<Result.Tuple<Integer, Integer>, String>) res;
 		assertEquals("right-err", err.error());
 	}
+
+	@Test
+	void andDoesNotCallSupplierWhenLeftErr() {
+		Result.Err<Integer, String> left = new Result.Err<>("left-err");
+		final boolean[] called = {false};
+		Supplier<Result<Integer, String>> rightSupplier = () -> { called[0] = true; return new Result.Ok<>(2); };
+		var res = left.and(rightSupplier);
+		assertTrue(res instanceof Result.Err);
+		assertFalse(called[0]);
+	}
+
+	@Test
+	void andCallsSupplierWhenLeftOk() {
+		Result.Ok<Integer, String> left = new Result.Ok<>(1);
+		final boolean[] called = {false};
+		Supplier<Result<Integer, String>> rightSupplier = () -> { called[0] = true; return new Result.Ok<>(2); };
+		var res = left.and(rightSupplier);
+		assertTrue(res instanceof Result.Ok);
+		assertTrue(called[0]);
+	}
 }
