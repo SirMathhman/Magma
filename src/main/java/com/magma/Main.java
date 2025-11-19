@@ -112,6 +112,11 @@ public final class Main {
         final boolean isUnitOnlyType = declaredNumeric.isEmpty()
                 && !declaredUnits.isEmpty();
         if (isUnitOnlyType) {
+            // Check for negative values with unsigned types
+            if (declaredUnits.startsWith("U") && valueNumeric.startsWith("-")) {
+                return new Err<>("Negative values with unsigned types are not "
+                        + "allowed");
+            }
             // Only check that units match (value can have no units for
             // plain numbers)
             if (!valueUnits.isEmpty()
