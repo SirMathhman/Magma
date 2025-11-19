@@ -157,6 +157,11 @@ class AppTest {
 		assertInterpretsTo("let x = 100; x", "100");
 	}
 
+	@Test
+	void interpretVariableToVariableAssignment() {
+		assertInterpretsTo("let x = 100; let y = x; y", "100");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
