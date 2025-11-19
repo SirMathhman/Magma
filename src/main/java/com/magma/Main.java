@@ -144,6 +144,73 @@ public final class Main {
     }
 
     /**
+     * Parses variable name and type from a statement.
+     *
+     * @param rest                  The statement after the "let" or
+     *                              "extern let" prefix
+     * @param errorMsg              Error message prefix for validation errors
+     * @param requireTypeEmptyCheck Whether to check if type is empty
+     * @return Tuple with variable name and type, or Err if parsing fails
+     */
+    private static Result<ExpressionParser.Tuple<String, String>, String>
+            parseVarNameAndType(final String rest, final String errorMsg,
+            final boolean requireTypeEmptyCheck) {
+        final int colonIndex = rest.indexOf(':');
+        if (colonIndex < 0) {
+            return new Err<>("Missing type in " + errorMsg);
+        }
+        final String varName = rest.substring(0, colonIndex).trim();
+        if (varName.isEmpty()) {
+            return new Err<>("Empty variable name");
+        }
+        final String type = rest.substring(colonIndex + 1).trim();
+        if (requireTypeEmptyCheck && type.isEmpty()) {
+            return new Err<>("Empty type in " + errorMsg);
+        }
+        return new Ok<>(new ExpressionParser.Tuple<>(varName, type));
+    }
+
+    /**
+     * Validates and extracts the rest of a statement after a prefix.
+     *
+     * @param statement The full statement
+     * @param prefix    The expected prefix
+     * @param errorMsg  Error message if prefix doesn't match
+     * @return The rest of the statement after the prefix, or Err if invalid
+     */
+    private static Result<String, String> validateAndExtractRest(
+            final String statement, final String prefix,
+            final String errorMsg) {
+        final String trimmed = statement.trim();
+        if (!trimmed.startsWith(prefix)) {
+            return new Err<>(errorMsg);
+        }
+        return new Ok<>(trimmed.substring(prefix.length()).trim());
+    }
+
+    /**
+     * Parses an extern let statement and stores the variable.
+     *
+     * @param statement The extern let statement (e.g., "extern let x : U8")
+     * @param context   The variable context
+     * @return Ok if successful, Err if parsing fails
+     */
+    private static Result<String, String> parseExternLetStatement(
+            final String statement, final VariableContext context) {
+        // Format: extern let x : type
+        return validateAndExtractRest(statement, "extern let ",
+                "Invalid extern let statement")
+                .flatMap(rest -> parseVarNameAndType(rest,
+                        "extern let statement", true)
+                        .flatMap(tuple -> {
+                            // Store the variable with empty value (extern
+                            // variables are not initialized)
+                            context.setVariable(tuple.first(), "");
+                            return new Ok<String, String>("");
+                        }));
+    }
+
+    /**
      * Parses a let statement and stores the variable.
      *
      * @param statement The let statement (e.g., "let x : 1U8 = 1U8")
@@ -152,42 +219,38 @@ public final class Main {
      */
     private static Result<String, String> parseLetStatement(
             final String statement, final VariableContext context) {
-        final String trimmed = statement.trim();
         // Format: let x : type = value
-        if (!trimmed.startsWith("let ")) {
-            return new Err<>("Invalid let statement");
-        }
-        final String rest = trimmed.substring(4).trim();
-        final int colonIndex = rest.indexOf(':');
-        if (colonIndex < 0) {
-            return new Err<>("Missing type in let statement");
-        }
-        final String varName = rest.substring(0, colonIndex).trim();
-        if (varName.isEmpty()) {
-            return new Err<>("Empty variable name");
-        }
-        final String afterColon = rest.substring(colonIndex + 1).trim();
-        final int equalsIndex = afterColon.indexOf('=');
-        if (equalsIndex < 0) {
-            return new Err<>("Missing = in let statement");
-        }
-        final String type = afterColon.substring(0, equalsIndex).trim();
-        final String value = afterColon.substring(equalsIndex + 1).trim();
-        // Check type match
-        final Result<String, String> typeCheck = checkTypeMatch(type, value);
-        if (typeCheck instanceof Err<String, String>) {
-            return typeCheck;
-        }
-        // Evaluate the value
-        final Result<String, String> valueResult =
-                interpretExpression(value, context);
-        if (valueResult instanceof Err<String, String>) {
-            return valueResult;
-        }
-        final String valueStr = ((Ok<String, String>) valueResult).getValue();
-        // Store the variable
-        context.setVariable(varName, valueStr);
-        return new Ok<>("");
+        final Result<String, String> restResult =
+                validateAndExtractRest(statement, "let ",
+                        "Invalid let statement");
+        return restResult.flatMap(rest -> {
+            final int colonIndex = rest.indexOf(':');
+            if (colonIndex < 0) {
+                return new Err<String, String>(
+                        "Missing type in let statement");
+            }
+            final String varName = rest.substring(0, colonIndex).trim();
+            if (varName.isEmpty()) {
+                return new Err<String, String>("Empty variable name");
+            }
+            final String afterColon = rest.substring(colonIndex + 1).trim();
+            final int equalsIndex = afterColon.indexOf('=');
+            if (equalsIndex < 0) {
+                return new Err<String, String>("Missing = in let statement");
+            }
+            final String type = afterColon.substring(0, equalsIndex).trim();
+            final String value = afterColon.substring(equalsIndex + 1).trim();
+            // Check type match
+            return checkTypeMatch(type, value).flatMap(ignored -> {
+                // Evaluate the value
+                return interpretExpression(value, context)
+                        .flatMap(valueStr -> {
+                            // Store the variable
+                            context.setVariable(varName, valueStr);
+                            return new Ok<String, String>("");
+                        });
+            });
+        });
     }
 
     /**
@@ -271,7 +334,14 @@ public final class Main {
             if (trimmed.isEmpty()) {
                 continue;
             }
-            if (trimmed.startsWith("let ")) {
+            if (trimmed.startsWith("extern let ")) {
+                final Result<String, String> externLetResult =
+                        parseExternLetStatement(trimmed, context);
+                if (externLetResult instanceof Err<String, String>) {
+                    return externLetResult;
+                }
+                lastResult = externLetResult;
+            } else if (trimmed.startsWith("let ")) {
                 final Result<String, String> letResult =
                         parseLetStatement(trimmed, context);
                 if (letResult instanceof Err<String, String>) {

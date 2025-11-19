@@ -98,6 +98,7 @@ class MainTest {
         assertValid("let x : U8 = 0;", "");
         assertInvalid("let x : U8 = -1;");
         assertInvalid("let x : U8 = 256;");
+        assertValid("extern let x : U8;", "");
     }
 
     @Test
