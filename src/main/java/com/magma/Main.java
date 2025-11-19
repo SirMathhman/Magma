@@ -78,7 +78,8 @@ public final class Main {
                         final String unitsJ = extractUnits(operandJ);
                         if (!unitsI.equals(unitsJ)) {
                             return new Err<>(
-                                    "Cannot add values with different units");
+                                    "Cannot operate on values with different "
+                                    + "units");
                         }
                     }
                 }
@@ -114,6 +115,25 @@ public final class Main {
                 sum += Integer.parseInt(numeric);
             }
             return new Ok<>(String.valueOf(sum));
+        }
+        if (input.contains(" - ")) {
+            final String[] operands = input.split(" - ");
+            // Check for unit mismatches between all pairs of operands
+            // with units
+            final Result<String, String> unitCheck =
+                    checkUnitMismatches(operands);
+            if (unitCheck instanceof Err) {
+                return unitCheck;
+            }
+            // Subtract all operands from the first
+            int result = Integer.parseInt(
+                    extractLeadingNumeric(operands[0].trim()));
+            for (int i = 1; i < operands.length; i++) {
+                final String numeric = extractLeadingNumeric(
+                        operands[i].trim());
+                result -= Integer.parseInt(numeric);
+            }
+            return new Ok<>(String.valueOf(result));
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));
