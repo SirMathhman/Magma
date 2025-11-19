@@ -26,6 +26,11 @@ public class App {
 			return arithmeticRes.get();
 		}
 
+		String trimmed = input.trim();
+		if ("true".equals(trimmed) || "false".equals(trimmed)) {
+			return new Result.Ok<>(trimmed);
+		}
+
 		// Parse an optional sign, digits, and optional type suffix like U8 or I8.
 		java.util.regex.Matcher m = LEADING_NUMBER_PATTERN.matcher(input);
 		if (m.find()) {

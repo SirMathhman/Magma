@@ -117,6 +117,16 @@ class AppTest {
 		assertInterpretsTo("3 - 2", "1");
 	}
 
+	@Test
+	void interpretBooleanTrue() {
+		assertInterpretsTo("true", "true");
+	}
+
+	@Test
+	void interpretBooleanFalse() {
+		assertInterpretsTo("false", "false");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
