@@ -7,6 +7,7 @@ package magma;
  * `interpret`.
  */
 public class App {
+	private static final java.util.Set<String> SUPPORTED_TYPES = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 	/**
 	 * Return the leading decimal digit sequence from the provided non-null input.
 	 *
@@ -30,37 +31,17 @@ public class App {
 
 			boolean negative = "-".equals(sign);
 
-			// If there is a type suffix, enforce bounds.
 			if (typeLetter.isPresent() && widthStr.isPresent()) {
-				String fullType = typeLetter.get() + widthStr.get(); // e.g., U8, I16
-				java.util.Set<String> supported = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
-				if (supported.contains(fullType)) {
-					int bits = Integer.parseInt(widthStr.get());
-					java.math.BigInteger value = new java.math.BigInteger(digits);
-
-					if ("U".equals(typeLetter.get())) {
-						// Unsigned: negative not allowed and upper bound is 2^bits - 1.
-						if (negative) {
-							return new Result.Err<>("negative numbers not allowed");
-						}
-						java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits).subtract(java.math.BigInteger.ONE);
-						if (value.compareTo(max) > 0) {
-							return new Result.Err<>("unsigned overflow");
-						}
-						return new Result.Ok<>(value.toString());
-					} else { // Signed
-						java.math.BigInteger min = java.math.BigInteger.ONE.shiftLeft(bits - 1).negate();
-						java.math.BigInteger max = java.math.BigInteger.ONE.shiftLeft(bits - 1).subtract(java.math.BigInteger.ONE);
-						java.math.BigInteger signedValue = negative ? value.negate() : value;
-						if (signedValue.compareTo(min) < 0 || signedValue.compareTo(max) > 0) {
-							return new Result.Err<>("signed overflow");
-						}
-						return new Result.Ok<>(signedValue.toString());
+				String fullType = typeLetter.get() + widthStr.get();
+				if (SUPPORTED_TYPES.contains(fullType)) {
+					String digitsWithSign = negative ? "-" + digits : digits;
+					var parsed = parseOperandValue(digitsWithSign, typeLetter, widthStr);
+					if (parsed instanceof Result.Err<java.math.BigInteger, String> err) {
+						return new Result.Err<>(err.error());
 					}
+					return new Result.Ok<>(((Result.Ok<java.math.BigInteger, String>) parsed).value().toString());
 				}
-				// Unsupported type suffix: fall back to returning the digits as-is.
 			}
-			// Not negative: return digits as-is.
 			return new Result.Ok<>(digits);
 		}
 		return new Result.Ok<>("");
@@ -71,8 +52,7 @@ public class App {
 		java.math.BigInteger val = new java.math.BigInteger(digitsWithSign);
 		if (typeLetter.isPresent() && widthStr.isPresent()) {
 			String fullType = typeLetter.get() + widthStr.get();
-			java.util.Set<String> supported = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
-			if (!supported.contains(fullType))
+			if (!SUPPORTED_TYPES.contains(fullType))
 				return new Result.Err<>("unsupported type");
 			int bits = Integer.parseInt(widthStr.get());
 			if ("U".equals(typeLetter.get())) {
