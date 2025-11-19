@@ -182,6 +182,11 @@ class AppTest {
 		assertInterpretsTo("let x : I32; x = 10; x", "10");
 	}
 
+	@Test
+	void interpretAssignmentInIfElse() {
+		assertInterpretsTo("let x : I32; if (true) x = 3; else x = 5; x", "3");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

@@ -85,48 +85,114 @@ public class App {
 	private static Result<String, String> interpretWithContext(String input, Map<String, VarEntry> ctx) {
 		var statements = splitTopLevelStatements(input);
 		Optional<Result<String, String>> lastOk = Optional.empty();
-		for (var stmt : statements) {
+		for (int i = 0; i < statements.size(); i++) {
+			var stmt = statements.get(i);
 			var trimmed = stmt.trim();
 			if (trimmed.isEmpty()) {
 				continue;
 			}
-			if (trimmed.startsWith("let") && (trimmed.length() == 3 || Character.isWhitespace(trimmed.charAt(3)))) {
-				var res = handleLetDeclaration(trimmed, ctx);
-				if (res instanceof Err<String, String>(var error)) {
-					return new Err<String, String>(error);
+			var result = processStatement(new StatementContext(statements, i, trimmed, ctx));
+			if (result instanceof StatementResult.Processed processed) {
+				i = processed.nextIndex();
+				if (processed.result().isPresent()) {
+					lastOk = processed.result();
 				}
 				continue;
 			}
-			// Check for assignment statement (x = value)
-			var assignRes = handleAssignment(trimmed, ctx);
-			if (assignRes.isPresent()) {
-				var r = assignRes.get();
-				if (r instanceof Err<String, String>(var error)) {
-					return new Err<String, String>(error);
-				}
-				continue;
+			if (result instanceof StatementResult.Error error) {
+				return new Err<String, String>(error.message());
 			}
-			var arithmeticRes = handleArithmetic(trimmed, ctx);
-			if (arithmeticRes.isPresent()) {
-				var r = arithmeticRes.get();
-				if (r instanceof Err<String, String>(var error)) {
-					return new Err<String, String>(error);
-				}
-				lastOk = Optional.of(r);
-				continue;
-			}
-
-			// boolean or literal or leading number logic for a single expression
-			var singleRes = handleSingleExpression(trimmed, ctx);
-			if (singleRes instanceof Err<String, String>(var error)) {
-				return new Err<String, String>(error);
-			}
-			lastOk = Optional.of(singleRes);
 		}
 		if (lastOk.isPresent()) {
 			return lastOk.get();
 		}
 		return new Ok<String, String>("");
+	}
+
+	private sealed interface StatementResult {
+		record Processed(int nextIndex, Optional<Result<String, String>> result) implements StatementResult {
+		}
+
+		record Error(String message) implements StatementResult {
+		}
+	}
+
+	private record StatementContext(List<String> statements, int currentIndex, String trimmed, Map<String, VarEntry> ctx) {
+	}
+
+	private static StatementResult processStatement(StatementContext context) {
+		var trimmed = context.trimmed();
+		if (trimmed.startsWith("let") && (trimmed.length() == 3 || Character.isWhitespace(trimmed.charAt(3)))) {
+			return handleLetStatement(trimmed, context.ctx(), context.currentIndex());
+		}
+		// Check if this is an else clause that should be combined with previous if
+		if (trimmed.startsWith("else") && (trimmed.length() == 4 || Character.isWhitespace(trimmed.charAt(4)))) {
+			// This else should have been handled by the previous if-expression
+			// Skip it as it's already been processed
+			return new StatementResult.Processed(context.currentIndex(), Optional.empty());
+		}
+		// Check for if-expression that might span multiple statements
+		if (trimmed.startsWith("if") && (trimmed.length() == 2 || Character.isWhitespace(trimmed.charAt(2)))) {
+			var ifResult = handleIfExpressionSpanning(context);
+			if (ifResult.isPresent()) {
+				return ifResult.get();
+			}
+		}
+		return handleExpressionStatement(trimmed, context.ctx(), context.currentIndex());
+	}
+
+	private static StatementResult handleLetStatement(String trimmed, Map<String, VarEntry> ctx, int currentIndex) {
+		var res = handleLetDeclaration(trimmed, ctx);
+		if (res instanceof Err<String, String>(var error)) {
+			return new StatementResult.Error(error);
+		}
+		return new StatementResult.Processed(currentIndex, Optional.empty());
+	}
+
+	private static StatementResult handleExpressionStatement(String trimmed, Map<String, VarEntry> ctx, int currentIndex) {
+		// Check for assignment statement (x = value)
+		var assignRes = handleAssignment(trimmed, ctx);
+		if (assignRes.isPresent()) {
+			var r = assignRes.get();
+			if (r instanceof Err<String, String>(var error)) {
+				return new StatementResult.Error(error);
+			}
+			return new StatementResult.Processed(currentIndex, Optional.empty());
+		}
+		var arithmeticRes = handleArithmetic(trimmed, ctx);
+		if (arithmeticRes.isPresent()) {
+			var r = arithmeticRes.get();
+			if (r instanceof Err<String, String>(var error)) {
+				return new StatementResult.Error(error);
+			}
+			return new StatementResult.Processed(currentIndex, Optional.of(r));
+		}
+		// boolean or literal or leading number logic for a single expression
+		var singleRes = handleSingleExpression(trimmed, ctx);
+		if (singleRes instanceof Err<String, String>(var error)) {
+			return new StatementResult.Error(error);
+		}
+		return new StatementResult.Processed(currentIndex, Optional.of(singleRes));
+	}
+
+	private static Optional<StatementResult> handleIfExpressionSpanning(StatementContext context) {
+		// Check if next statement is an else clause
+		if (context.currentIndex() + 1 < context.statements().size()) {
+			var nextStmt = context.statements().get(context.currentIndex() + 1).trim();
+			if (nextStmt.startsWith("else") && (nextStmt.length() == 4 || Character.isWhitespace(nextStmt.charAt(4)))) {
+				// Combine if and else into one statement
+				var combined = context.trimmed() + " " + nextStmt;
+				var ifRes = handleIfExpression(combined, context.ctx());
+				if (ifRes.isPresent()) {
+					var r = ifRes.get();
+					if (r instanceof Err<String, String>(var error)) {
+						return Optional.of(new StatementResult.Error(error));
+					}
+					return Optional.of(new StatementResult.Processed(context.currentIndex() + 1, Optional.of(r)));
+				}
+			}
+		}
+		return Optional.empty();
 	}
 
 	private static List<String> splitTopLevelStatements(String input) {
