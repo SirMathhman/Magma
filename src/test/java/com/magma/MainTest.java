@@ -78,4 +78,9 @@ class MainTest {
     void testInterpretNegativeWithUnits() {
         assertInvalid("-1U8");
     }
+
+    @Test
+    void testInterpretMultiplication() {
+        assertValid("2 * 3", "6");
+    }
 }

@@ -231,7 +231,8 @@ public final class Main {
             return new Err<>("Negative values with units are not allowed");
         }
         // Check if input contains any arithmetic operator
-        if (input.contains(" + ") || input.contains(" - ")) {
+        if (input.contains(" + ") || input.contains(" - ")
+                || input.contains(" * ")) {
             // Check if it contains both operators
             if (input.contains(" + ") && input.contains(" - ")) {
                 return processMixedArithmetic(input);
@@ -251,6 +252,10 @@ public final class Main {
                                     new OperandConfig(firstValue,
                                             (a, b) -> a - b, 1));
                         });
+            }
+            if (input.contains(" * ")) {
+                return processArithmetic(input, " \\* ",
+                        new OperandConfig(1, (a, b) -> a * b, 0));
             }
         }
         // Fall back to extracting leading numeric part
