@@ -22,6 +22,7 @@
         <maven.compiler.plugin.version>3.13.0</maven.compiler.plugin.version>
         <maven.surefire.plugin.version>3.2.5</maven.surefire.plugin.version>
         <maven.checkstyle.plugin.version>3.3.1</maven.checkstyle.plugin.version>
+        <maven.pmd.plugin.version>3.25.0</maven.pmd.plugin.version>
     </properties>
 
     <dependencies>
@@ -67,6 +68,25 @@
                         <phase>test</phase>
                         <goals>
                             <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>${maven.pmd.plugin.version}</version>
+                <configuration>
+                    <minimumTokens>50</minimumTokens>
+                    <failOnViolation>true</failOnViolation>
+                    <includeTests>true</includeTests>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>cpd</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>cpd-check</goal>
                         </goals>
                     </execution>
                 </executions>
