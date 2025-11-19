@@ -177,6 +177,11 @@ class AppTest {
 		assertInterpretsErr("let x : U8 = -1");
 	}
 
+	@Test
+	void interpretVariableDeclarationAndAssignment() {
+		assertInterpretsTo("let x : I32; x = 10; x", "10");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

@@ -97,6 +97,15 @@ public class App {
 				}
 				continue;
 			}
+			// Check for assignment statement (x = value)
+			var assignRes = handleAssignment(trimmed, ctx);
+			if (assignRes.isPresent()) {
+				var r = assignRes.get();
+				if (r instanceof Err<String, String>(var error)) {
+					return new Err<String, String>(error);
+				}
+				continue;
+			}
 			var arithmeticRes = handleArithmetic(trimmed, ctx);
 			if (arithmeticRes.isPresent()) {
 				var r = arithmeticRes.get();
@@ -206,6 +215,37 @@ public class App {
 		return enforceNumericBound(sum, typeFull).map(BigInteger::toString);
 	}
 
+	private record VariableAssignment(String name, BigInteger value, Optional<String> declaredType,
+			Optional<String> rhsResolvedType) {
+	}
+
+	private static Result<String, String> checkTypeCompatibility(Optional<String> leftType, Optional<String> rightType) {
+		if (leftType.isPresent() && rightType.isPresent() && !leftType.get().equals(rightType.get())) {
+			return new Err<String, String>("operand types differ");
+		}
+		return new Ok<String, String>("");
+	}
+
+	private static Result<String, String> validateAndStoreVariable(VariableAssignment assignment,
+			Map<String, VarEntry> ctx) {
+		if (assignment.declaredType().isPresent()) {
+			var boundCheck = enforceNumericBound(assignment.value(), assignment.declaredType().get());
+			if (boundCheck instanceof Err<BigInteger, String>(var errVal)) {
+				return new Err<String, String>(errVal);
+			}
+			// If RHS had a resolved type and it doesn't match declared type, error
+			var typeCheck = checkTypeCompatibility(assignment.declaredType(), assignment.rhsResolvedType());
+			if (typeCheck instanceof Err<String, String>(var error)) {
+				return new Err<String, String>(error);
+			}
+			ctx.put(assignment.name(), new VarEntry(assignment.value(), assignment.declaredType()));
+			return new Ok<String, String>("");
+		}
+		// no declared type, use RHS resolved type if present
+		ctx.put(assignment.name(), new VarEntry(assignment.value(), assignment.rhsResolvedType()));
+		return new Ok<String, String>("");
+	}
+
 	private static int skipWhitespace(String input, int cursor, int length) {
 		while (cursor < length && Character.isWhitespace(input.charAt(cursor))) {
 			cursor++;
@@ -222,12 +262,13 @@ public class App {
 	}
 
 	private static Optional<Result<String, String>> handleEqualityComparison(String input, Map<String, VarEntry> ctx) {
-		var eqIndex = findTopLevelEquality(input);
-		if (eqIndex < 0) {
+		var splitRes = splitAtTopLevel(input, findTopLevelEquality(input), 2);
+		if (splitRes.isEmpty()) {
 			return Optional.empty();
 		}
-		var left = input.substring(0, eqIndex).trim();
-		var right = input.substring(eqIndex + 2).trim();
+		var splitPair = splitRes.get();
+		var left = splitPair.first();
+		var right = splitPair.second();
 		// boolean equality
 		if (("true".equals(left) || "false".equals(left)) && ("true".equals(right) || "false".equals(right))) {
 			return Optional.of(new Ok<String, String>(Boolean.toString(left.equals(right))));
@@ -240,16 +281,16 @@ public class App {
 		}
 		var leftRes = leftParsed.get();
 		var rightRes = rightParsed.get();
-		return Optional.of(leftRes.and(() -> rightRes).flatMap(pair -> {
-			var lSeq = pair.first();
-			var rSeq = pair.second();
+		return Optional.of(leftRes.and(() -> rightRes).flatMap(seqPair -> {
+			var lSeq = seqPair.first();
+			var rSeq = seqPair.second();
 			var lEval = evaluateSequence(lSeq.values(), lSeq.operators());
 			var rEval = evaluateSequence(rSeq.values(), rSeq.operators());
 			return lEval.flatMap(lVal -> rEval.flatMap(rVal -> {
 				// If both sides have resolved types, they must match
-				if (lSeq.resolvedType().isPresent() && rSeq.resolvedType().isPresent() &&
-						!lSeq.resolvedType().get().equals(rSeq.resolvedType().get())) {
-					return new Err<String, String>("operand types differ");
+				var typeCheck = checkTypeCompatibility(lSeq.resolvedType(), rSeq.resolvedType());
+				if (typeCheck instanceof Err<String, String>(var error)) {
+					return new Err<String, String>(error);
 				}
 				return new Ok<String, String>(Boolean.toString(lVal.equals(rVal)));
 			}));
@@ -510,7 +551,13 @@ public class App {
 				// expect '=' at top-level
 				var assignIndex = findTopLevelAssign(stmt);
 				if (assignIndex < 0) {
-					return new Err<String, String>("invalid declaration");
+					// Declaration without initial value - only allowed if type is specified
+					if (declaredType.isEmpty()) {
+						return new Err<String, String>("invalid declaration");
+					}
+					// Declare variable with type but no value (uninitialized)
+					ctx.put(name, new VarEntry(BigInteger.ZERO, declaredType));
+					return new Ok<String, String>("");
 				}
 				var rhs = stmt.substring(assignIndex + 1).trim();
 				// evaluate RHS and return value + resolved type
@@ -518,22 +565,8 @@ public class App {
 				return rhsEval.flatMap(rhsPair -> {
 					var value = rhsPair.first();
 					var rhsResolvedType = rhsPair.second();
-					// bounds/type enforcement
-					if (declaredType.isPresent()) {
-						var boundCheck = enforceNumericBound(value, declaredType.get());
-						if (boundCheck instanceof Err<BigInteger, String>(var errVal)) {
-							return new Err<String, String>(errVal);
-						}
-						// If RHS had a resolved type and it doesn't match declared type, error
-						if (rhsResolvedType.isPresent() && !rhsResolvedType.get().equals(declaredType.get())) {
-							return new Err<String, String>("operand types differ");
-						}
-						ctx.put(name, new VarEntry(value, declaredType));
-						return new Ok<String, String>("");
-					}
-					// no declared type, use RHS resolved type if present
-					ctx.put(name, new VarEntry(value, rhsResolvedType));
-					return new Ok<String, String>("");
+					return validateAndStoreVariable(
+							new VariableAssignment(name, value, declaredType, rhsResolvedType), ctx);
 				});
 			});
 		});
@@ -541,6 +574,52 @@ public class App {
 
 	private static int findTopLevelAssign(String input) {
 		return findTopLevel(input, 0, (s, i) -> s.charAt(i) == '=' && !(i + 1 < s.length() && s.charAt(i + 1) == '='));
+	}
+
+	private static Optional<Tuple<String, String>> splitAtTopLevel(String input, int index, int skipChars) {
+		if (index < 0) {
+			return Optional.empty();
+		}
+		var left = input.substring(0, index).trim();
+		var right = input.substring(index + skipChars).trim();
+		return Optional.of(new Tuple<>(left, right));
+	}
+
+
+	private static Optional<Result<String, String>> handleAssignment(String stmt, Map<String, VarEntry> ctx) {
+		var splitRes = splitAtTopLevel(stmt, findTopLevelAssign(stmt), 1);
+		if (splitRes.isEmpty()) {
+			return Optional.empty();
+		}
+		var pair = splitRes.get();
+		var lhs = pair.first();
+		var rhs = pair.second();
+		// Check if LHS is a valid identifier
+		var identMatcher = IDENT_PATTERN.matcher(lhs);
+		if (!identMatcher.matches()) {
+			return Optional.empty();
+		}
+		var name = identMatcher.group(1);
+		// Check if variable exists
+		if (!ctx.containsKey(name)) {
+			return Optional.of(new Err<String, String>("unknown variable"));
+		}
+		var existingEntry = ctx.get(name);
+		// Evaluate RHS
+		var rhsEval = evaluateAssignmentRHS(rhs, ctx);
+		if (rhsEval instanceof Err<Tuple<BigInteger, Optional<String>>, String>(var error)) {
+			return Optional.of(new Err<String, String>(error));
+		}
+		var rhsPair = ((Ok<Tuple<BigInteger, Optional<String>>, String>) rhsEval).value();
+		var value = rhsPair.first();
+		var rhsResolvedType = rhsPair.second();
+		// Type checking: if variable has a declared type, enforce it
+		var result = validateAndStoreVariable(
+				new VariableAssignment(name, value, existingEntry.resolvedType(), rhsResolvedType), ctx);
+		if (result instanceof Err<String, String>(var error)) {
+			return Optional.of(new Err<String, String>(error));
+		}
+		return Optional.of(new Ok<String, String>(""));
 	}
 
 	private static Result<Tuple<Integer, String>, String> parseDeclarationIdentifier(String stmt, int start) {
