@@ -162,6 +162,68 @@ public final class Main {
     }
 
     /**
+     * Checks if a result value exceeds the maximum for a given unit type.
+     *
+     * @param resultValue The result value as a string
+     * @param units The unit type
+     * @return Err if value exceeds maximum, Ok otherwise
+     */
+    private static Result<String, String> checkResultOverflow(
+            final String resultValue, final String units) {
+        final Optional<BigInteger> maxValue = getMaxValueForUnit(units);
+        if (maxValue.isPresent()) {
+            try {
+                final BigInteger value = new BigInteger(resultValue);
+                if (value.compareTo(maxValue.get()) > 0) {
+                    return new Err<>("Value exceeds maximum for " + units);
+                }
+            } catch (final NumberFormatException e) {
+                // Invalid number format, will be caught elsewhere
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
+     * Validates result overflow for operands with units.
+     *
+     * @param resultStr The result value as a string
+     * @param validOperands Array of operand strings
+     * @return Err if overflow detected, Ok otherwise
+     */
+    private static Result<String, String> validateResultOverflow(
+            final String resultStr, final String[] validOperands) {
+        if (validOperands.length > 0
+                && hasUnits(validOperands[0].trim())) {
+            final String units = extractUnits(validOperands[0].trim());
+            final Result<String, String> overflowCheck =
+                    checkResultOverflow(resultStr, units);
+            if (overflowCheck instanceof Err<String, String>) {
+                return overflowCheck;
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
+     * Validates result and returns Ok with result or Err if overflow.
+     *
+     * @param result The result value
+     * @param validOperands Array of operand strings
+     * @return Ok with result string or Err if overflow
+     */
+    private static Result<String, String> validateAndReturnResult(
+            final int result, final String[] validOperands) {
+        final String resultStr = String.valueOf(result);
+        final Result<String, String> overflowCheck =
+                validateResultOverflow(resultStr, validOperands);
+        if (overflowCheck instanceof Err<String, String>) {
+            return overflowCheck;
+        }
+        return new Ok<>(resultStr);
+    }
+
+    /**
      * Checks if all operands with units have matching units.
      *
      * @param operands Array of operand strings
@@ -224,7 +286,13 @@ public final class Main {
             result = config.operator().apply(result,
                     Integer.parseInt(numeric));
         }
-        return new Ok<>(String.valueOf(result));
+        final String resultStr = String.valueOf(result);
+        final Result<String, String> overflowCheck =
+                validateResultOverflow(resultStr, operands);
+        if (overflowCheck instanceof Err<String, String>) {
+            return overflowCheck;
+        }
+        return new Ok<>(resultStr);
     }
 
     /**
@@ -380,7 +448,7 @@ public final class Main {
                             processAdditionsAndSubtractions(
                                     multResult.first(),
                                     multResult.second());
-                    return new Ok<>(String.valueOf(result));
+                    return validateAndReturnResult(result, validOperands);
                 });
     }
 
@@ -410,7 +478,7 @@ public final class Main {
                             result += value;
                         }
                     }
-                    return new Ok<>(String.valueOf(result));
+                    return validateAndReturnResult(result, validOperands);
                 });
     }
 
