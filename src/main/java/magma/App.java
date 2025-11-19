@@ -501,6 +501,9 @@ public class App {
 		return parseIdRes.flatMap(idPair -> {
 			var idxAfterId = skipWhitespace(stmt, idPair.first(), stmt.length());
 			var name = idPair.second();
+			if (ctx.containsKey(name)) {
+				return new Err<String, String>("variable already declared");
+			}
 			var declaredTypeRes = parseDeclaredType(stmt, idxAfterId);
 			return declaredTypeRes.flatMap(declaredPair -> {
 				Optional<String> declaredType = declaredPair.second();

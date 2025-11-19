@@ -167,6 +167,11 @@ class AppTest {
 		assertInterpretsErr("let x : U8 = 100; x + 10I8");
 	}
 
+	@Test
+	void interpretVariableRedeclaration() {
+		assertInterpretsErr("let x = 0; let x = 0;");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
