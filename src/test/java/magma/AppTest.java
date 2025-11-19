@@ -147,6 +147,11 @@ class AppTest {
 		assertInterpretsTo("let x : U8 = 100;", "");
 	}
 
+	@Test
+	void interpretVariableAccess() {
+		assertInterpretsTo("let x : U8 = 100; x", "100");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {
