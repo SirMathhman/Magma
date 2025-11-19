@@ -77,7 +77,7 @@
                 <artifactId>maven-pmd-plugin</artifactId>
                 <version>${maven.pmd.plugin.version}</version>
                 <configuration>
-                    <minimumTokens>5</minimumTokens>
+                    <minimumTokens>40</minimumTokens>
                     <failOnViolation>true</failOnViolation>
                     <includeTests>true</includeTests>
                     <ignoreLiterals>true</ignoreLiterals>

@@ -89,6 +89,84 @@ public final class Main {
     }
 
     /**
+     * Validates operands and checks for unit mismatches.
+     *
+     * @param operands Array of operand strings
+     * @return Err if units mismatch, Ok with operands if valid
+     */
+    private static Result<String[], String> validateOperands(
+            final String[] operands) {
+        final Result<String, String> unitCheck =
+                checkUnitMismatches(operands);
+        if (unitCheck instanceof Err) {
+            return new Err<>(((Err<String, String>) unitCheck).getError());
+        }
+        return new Ok<>(operands);
+    }
+
+    /**
+     * Processes operands with addition operation.
+     *
+     * @param operands Array of validated operand strings
+     * @return Result with the sum
+     */
+    private static Result<String, String> processAddition(
+            final String[] operands) {
+        int sum = 0;
+        for (final String operand : operands) {
+            final String numeric = extractLeadingNumeric(operand.trim());
+            sum += Integer.parseInt(numeric);
+        }
+        return new Ok<>(String.valueOf(sum));
+    }
+
+    /**
+     * Processes operands with subtraction operation.
+     *
+     * @param operands Array of validated operand strings
+     * @return Result with the difference
+     */
+    private static Result<String, String> processSubtraction(
+            final String[] operands) {
+        int result = Integer.parseInt(
+                extractLeadingNumeric(operands[0].trim()));
+        for (int i = 1; i < operands.length; i++) {
+            final String numeric = extractLeadingNumeric(
+                    operands[i].trim());
+            result -= Integer.parseInt(numeric);
+        }
+        return new Ok<>(String.valueOf(result));
+    }
+
+    /**
+     * Processes an arithmetic expression with the given operator.
+     *
+     * @param input The input string containing the expression
+     * @param operator The operator pattern to split on
+     * @param isAddition True for addition, false for subtraction
+     * @return Result with the evaluated expression
+     */
+    private static Result<String, String> processArithmetic(
+            final String input,
+            final String operator,
+            final boolean isAddition) {
+        final String[] operands = input.split(operator);
+        final Result<String[], String> validated =
+                validateOperands(operands);
+        if (validated instanceof Err) {
+            final Err<String[], String> err =
+                    (Err<String[], String>) validated;
+            return new Err<>(err.getError());
+        }
+        final String[] validOperands =
+                ((Ok<String[], String>) validated).getValue();
+        if (isAddition) {
+            return processAddition(validOperands);
+        }
+        return processSubtraction(validOperands);
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -100,40 +178,10 @@ public final class Main {
     public static Result<String, String> interpret(final String input) {
         // Check if input contains an arithmetic operator
         if (input.contains(" + ")) {
-            final String[] operands = input.split(" \\+ ");
-            // Check for unit mismatches between all pairs of operands
-            // with units
-            final Result<String, String> unitCheck =
-                    checkUnitMismatches(operands);
-            if (unitCheck instanceof Err) {
-                return unitCheck;
-            }
-            // Sum all operands
-            int sum = 0;
-            for (final String operand : operands) {
-                final String numeric = extractLeadingNumeric(operand.trim());
-                sum += Integer.parseInt(numeric);
-            }
-            return new Ok<>(String.valueOf(sum));
+            return processArithmetic(input, " \\+ ", true);
         }
         if (input.contains(" - ")) {
-            final String[] operands = input.split(" - ");
-            // Check for unit mismatches between all pairs of operands
-            // with units
-            final Result<String, String> unitCheck =
-                    checkUnitMismatches(operands);
-            if (unitCheck instanceof Err) {
-                return unitCheck;
-            }
-            // Subtract all operands from the first
-            int result = Integer.parseInt(
-                    extractLeadingNumeric(operands[0].trim()));
-            for (int i = 1; i < operands.length; i++) {
-                final String numeric = extractLeadingNumeric(
-                        operands[i].trim());
-                result -= Integer.parseInt(numeric);
-            }
-            return new Ok<>(String.valueOf(result));
+            return processArithmetic(input, " - ", false);
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));
