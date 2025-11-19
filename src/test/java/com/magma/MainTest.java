@@ -99,7 +99,8 @@ class MainTest {
         assertValid("4294967295U32", "4294967295");
         assertInvalid("4294967296U32");
         // U64
-        assertValid("9223372036854775807U64", "9223372036854775807");
+        assertValid("18446744073709551615U64", "18446744073709551615");
+        assertInvalid("18446744073709551616U64");
         // I8
         assertValid("127I8", "127");
         assertValid("-128I8", "-128");

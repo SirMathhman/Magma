@@ -1,5 +1,6 @@
 package com.magma;
 
+import java.math.BigInteger;
 import java.util.Optional;
 import java.util.function.BinaryOperator;
 
@@ -70,17 +71,29 @@ public final class Main {
     }
 
     /**
+     * Creates a BigInteger from a hexadecimal string.
+     *
+     * @param hexString The hexadecimal string
+     * @return The BigInteger value
+     */
+    private static BigInteger bigIntFromHex(final String hexString) {
+        return new BigInteger(hexString, 16);
+    }
+
+    /**
      * Gets the minimum value for a unit type.
      *
      * @param units The unit string (e.g., "U8", "I8", "U16")
      * @return The minimum value for the unit, or empty if unknown or unsigned
      */
-    private static Optional<Long> getMinValueForUnit(final String units) {
+    private static Optional<BigInteger> getMinValueForUnit(
+            final String units) {
         return switch (units) {
-            case "I8" -> Optional.of(-128L);
-            case "I16" -> Optional.of(-32768L);
-            case "I32" -> Optional.of(-2147483648L);
-            case "I64" -> Optional.of(-9223372036854775808L);
+            case "I8" -> Optional.of(BigInteger.valueOf(-0x80L));
+            case "I16" -> Optional.of(BigInteger.valueOf(-0x8000L));
+            case "I32" -> Optional.of(BigInteger.valueOf(-0x80000000L));
+            case "I64" -> Optional.of(
+                    BigInteger.valueOf(-0x8000000000000000L));
             default -> Optional.empty();
         };
     }
@@ -91,16 +104,26 @@ public final class Main {
      * @param units The unit string (e.g., "U8", "I8", "U16")
      * @return The maximum value for the unit, or empty if unknown
      */
-    private static Optional<Long> getMaxValueForUnit(final String units) {
+    private static Optional<BigInteger> getMaxValueForUnit(
+            final String units) {
+        final BigInteger u8Max = BigInteger.valueOf(0xFFL);
+        final BigInteger u16Max = BigInteger.valueOf(0xFFFFL);
+        final BigInteger u32Max = BigInteger.valueOf(0xFFFFFFFFL);
+        final BigInteger u64Max = bigIntFromHex("FFFFFFFFFFFFFFFF");
+        final BigInteger i8Max = BigInteger.valueOf(0x7FL);
+        final BigInteger i16Max = BigInteger.valueOf(0x7FFFL);
+        final BigInteger i32Max = BigInteger.valueOf(0x7FFFFFFFL);
+        final BigInteger i64Max =
+                BigInteger.valueOf(0x7FFFFFFFFFFFFFFFL);
         return switch (units) {
-            case "U8" -> Optional.of(255L);
-            case "U16" -> Optional.of(65535L);
-            case "U32" -> Optional.of(4294967295L);
-            case "U64" -> Optional.of(9223372036854775807L);
-            case "I8" -> Optional.of(127L);
-            case "I16" -> Optional.of(32767L);
-            case "I32" -> Optional.of(2147483647L);
-            case "I64" -> Optional.of(9223372036854775807L);
+            case "U8" -> Optional.of(u8Max);
+            case "U16" -> Optional.of(u16Max);
+            case "U32" -> Optional.of(u32Max);
+            case "U64" -> Optional.of(u64Max);
+            case "I8" -> Optional.of(i8Max);
+            case "I16" -> Optional.of(i16Max);
+            case "I32" -> Optional.of(i32Max);
+            case "I64" -> Optional.of(i64Max);
             default -> Optional.empty();
         };
     }
@@ -117,16 +140,17 @@ public final class Main {
         if (hasUnits(trimmed)) {
             final String numeric = extractLeadingNumeric(trimmed);
             final String units = extractUnits(trimmed);
-            final Optional<Long> minValue = getMinValueForUnit(units);
-            final Optional<Long> maxValue = getMaxValueForUnit(units);
+            final Optional<BigInteger> minValue = getMinValueForUnit(units);
+            final Optional<BigInteger> maxValue = getMaxValueForUnit(units);
             if (maxValue.isPresent()) {
                 try {
-                    final long value = Long.parseLong(numeric);
-                    if (minValue.isPresent() && value < minValue.get()) {
+                    final BigInteger value = new BigInteger(numeric);
+                    if (minValue.isPresent()
+                            && value.compareTo(minValue.get()) < 0) {
                         return new Err<>(
                                 "Value below minimum for " + units);
                     }
-                    if (value > maxValue.get()) {
+                    if (value.compareTo(maxValue.get()) > 0) {
                         return new Err<>("Value exceeds maximum for " + units);
                     }
                 } catch (final NumberFormatException e) {
