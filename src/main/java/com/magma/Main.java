@@ -161,6 +161,50 @@ public final class Main {
     }
 
     /**
+     * Processes a mixed arithmetic expression with both addition and
+     * subtraction.
+     *
+     * @param input The input string containing the expression
+     * @return Result with the evaluated expression
+     */
+    private static Result<String, String> processMixedArithmetic(
+            final String input) {
+        // Split by both operators, keeping track of operators
+        final String[] parts = input.split(" (?=[+-])|(?<=[+-]) ");
+        if (parts.length < 2) {
+            return new Err<>("Invalid expression");
+        }
+        // Extract operands (every other element starting from 0)
+        final String[] operands = new String[(parts.length + 1) / 2];
+        for (int i = 0; i < parts.length; i += 2) {
+            operands[i / 2] = parts[i];
+        }
+        // Validate operands
+        final Result<String[], String> validated =
+                validateOperands(operands);
+        return validated.flatMap(validOperands -> {
+            // Process left-to-right
+            int result = Integer.parseInt(
+                    extractLeadingNumeric(validOperands[0].trim()));
+            for (int i = 1; i < validOperands.length; i++) {
+                final int value = Integer.parseInt(
+                        extractLeadingNumeric(validOperands[i].trim()));
+                // Find the operator between operands[i-1] and operands[i]
+                final int opIndex = 2 * i - 1;
+                if (opIndex < parts.length) {
+                    final String operator = parts[opIndex].trim();
+                    if ("-".equals(operator)) {
+                        result -= value;
+                    } else {
+                        result += value;
+                    }
+                }
+            }
+            return new Ok<>(String.valueOf(result));
+        });
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -170,18 +214,26 @@ public final class Main {
      *         part of the string wrapped in Ok
      */
     public static Result<String, String> interpret(final String input) {
-        // Check if input contains an arithmetic operator
-        if (input.contains(" + ")) {
-            return processArithmetic(input, " \\+ ", Integer::sum, 0, 0);
-        }
-        if (input.contains(" - ")) {
-            return splitAndValidate(input, " - ")
-                    .flatMap(operands -> {
-                        final int firstValue = Integer.parseInt(
-                                extractLeadingNumeric(operands[0].trim()));
-                        return processOperands(operands, firstValue,
-                                (a, b) -> a - b, 1);
-                    });
+        // Check if input contains any arithmetic operator
+        if (input.contains(" + ") || input.contains(" - ")) {
+            // Check if it contains both operators
+            if (input.contains(" + ") && input.contains(" - ")) {
+                return processMixedArithmetic(input);
+            }
+            // Single operator type
+            if (input.contains(" + ")) {
+                return processArithmetic(input, " \\+ ", Integer::sum, 0, 0);
+            }
+            if (input.contains(" - ")) {
+                return splitAndValidate(input, " - ")
+                        .flatMap(operands -> {
+                            final int firstValue = Integer.parseInt(
+                                    extractLeadingNumeric(
+                                            operands[0].trim()));
+                            return processOperands(operands, firstValue,
+                                    (a, b) -> a - b, 1);
+                        });
+            }
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));
