@@ -19,5 +19,15 @@ public final class Main {
     public static void main(final String[] args) {
         System.out.println("Hello, Magma!");
     }
+
+    /**
+     * Interprets a string and returns it unchanged.
+     *
+     * @param input The input string to interpret
+     * @return The same string that was passed in
+     */
+    public static String interpret(final String input) {
+        return input;
+    }
 }
 
