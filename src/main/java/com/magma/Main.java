@@ -47,6 +47,20 @@ public final class Main {
     }
 
     /**
+     * Extracts the units (non-numeric part) from a string.
+     *
+     * @param str The string to extract units from
+     * @return The units part, or empty string if no units
+     */
+    private static String extractUnits(final String str) {
+        final String numeric = extractLeadingNumeric(str);
+        if (numeric.length() < str.length()) {
+            return str.substring(numeric.length());
+        }
+        return "";
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -63,7 +77,12 @@ public final class Main {
             final String rightStr = input.substring(plusIndex + 3).trim();
             // Check if both operands have units
             if (hasUnits(leftStr) && hasUnits(rightStr)) {
-                return new Err<>("Cannot add values with different units");
+                final String leftUnits = extractUnits(leftStr);
+                final String rightUnits = extractUnits(rightStr);
+                // Only return error if units are different
+                if (!leftUnits.equals(rightUnits)) {
+                    return new Err<>("Cannot add values with different units");
+                }
             }
             final String leftNumeric = extractLeadingNumeric(leftStr);
             final String rightNumeric = extractLeadingNumeric(rightStr);

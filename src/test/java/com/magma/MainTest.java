@@ -35,6 +35,11 @@ class MainTest {
         assertInstanceOf(Err.class, result5);
         final Err<String, String> err1 = (Err<String, String>) result5;
         assertEquals("Cannot add values with different units", err1.getError());
+
+        final Result<String, String> result6 = Main.interpret("2U8 + 3U8");
+        assertInstanceOf(Ok.class, result6);
+        final Ok<String, String> ok6 = (Ok<String, String>) result6;
+        assertEquals("5", ok6.getValue());
     }
 }
 
