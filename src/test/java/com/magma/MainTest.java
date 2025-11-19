@@ -1,6 +1,7 @@
 package com.magma;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import com.magma.result.Err;
 import com.magma.result.Ok;
@@ -21,7 +22,7 @@ class MainTest {
         switch (result) {
             case Ok<String, String> ok -> assertEquals(expectedValue,
                     ok.getValue());
-            case Err<String, String> err -> throw new AssertionError(
+            case Err<String, String> err -> fail(
                     "Expected Ok but got Err: " + err.getError());
         }
     }
@@ -34,7 +35,7 @@ class MainTest {
     private static void assertInvalid(final String input) {
         final Result<String, String> result = Main.interpret(input);
         switch (result) {
-            case Ok<String, String> ok -> throw new AssertionError(
+            case Ok<String, String> ok -> fail(
                     "Expected Err but got Ok: " + ok.getValue());
             case Err<String, String> err -> {
                 // Expected case - err variable is required by pattern matching
