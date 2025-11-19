@@ -5,14 +5,8 @@ import com.magma.result.Result;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MainTest {
-    @Test
-    void testMain() {
-        assertTrue(true, "Basic test to verify test setup");
-    }
-
     @Test
     void testInterpret() {
         final Result<String, String> result1 = Main.interpret("5");

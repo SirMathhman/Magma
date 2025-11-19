@@ -15,15 +15,6 @@ public final class Main {
     }
 
     /**
-     * Main method to start the application.
-     *
-     * @param args Command line arguments
-     */
-    public static void main(final String[] args) {
-        System.out.println("Hello, Magma!");
-    }
-
-    /**
      * Interprets a string and extracts the leading numeric part.
      *
      * @param input The input string to interpret
