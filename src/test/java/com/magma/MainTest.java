@@ -97,6 +97,7 @@ class MainTest {
         assertValid("let x : U8 = 10; x", "10");
         assertValid("let x : U8 = 0;", "");
         assertInvalid("let x : U8 = -1;");
+        assertInvalid("let x : U8 = 256;");
     }
 
     @Test

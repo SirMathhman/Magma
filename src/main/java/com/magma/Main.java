@@ -124,6 +124,14 @@ public final class Main {
                 return new Err<>("Type mismatch: declared type is " + type
                         + " but value has units " + valueUnits);
             }
+            // Check value range for unit-only types
+            // Construct value with units to check range
+            final String valueWithUnits = valueNumeric + declaredUnits;
+            final Result<String, String> rangeCheck =
+                    OperandValidator.checkValueRange(valueWithUnits);
+            if (rangeCheck instanceof Err<String, String>) {
+                return rangeCheck;
+            }
         } else {
             // Check both numeric and unit parts
             if (!declaredNumeric.equals(valueNumeric)
