@@ -10,16 +10,9 @@ public class App {
 	private static final java.util.Set<String> SUPPORTED_TYPES = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16",
 			"I32", "I64");
 	private static final java.util.regex.Pattern OPERAND_PATTERN = java.util.regex.Pattern
-			.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
+			.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*");
 	private static final java.util.regex.Pattern LEADING_NUMBER_PATTERN = java.util.regex.Pattern
 			.compile("^(-?)(\\d+)(?:([UI])(\\d+))?");
-
-	private static final record OperandInfo(java.math.BigInteger value, java.util.Optional<String> typeFull) {
-	}
-
-	private static final record OperandSequence(java.util.List<java.math.BigInteger> values,
-		java.util.Optional<String> typeFull) {
-	}
 
 	/**
 	 * Return the leading decimal digit sequence from the provided non-null input.
@@ -28,13 +21,9 @@ public class App {
 	 * @return the leading decimal digit sequence, or empty string when none exist
 	 */
 	public static Result<String, String> interpret(String input) {
-		var addRes = handleAddition(input);
-		if (addRes.isPresent()) {
-			return addRes.get();
-		}
-		var subRes = handleSubtraction(input);
-		if (subRes.isPresent()) {
-			return subRes.get();
+		var arithmeticRes = handleArithmetic(input);
+		if (arithmeticRes.isPresent()) {
+			return arithmeticRes.get();
 		}
 
 		// Parse an optional sign, digits, and optional type suffix like U8 or I8.
@@ -100,93 +89,100 @@ public class App {
 		return new Result.Ok<>(sum.toString());
 	}
 
-	private static Result<String, String> wrapNumericResult(java.math.BigInteger value,
-			java.util.Optional<String> typeFull) {
-		if (typeFull.isPresent()) {
-			return enforceResultBound(value, typeFull.get());
+	private static int skipWhitespace(String input, int cursor, int length) {
+		while (cursor < length && Character.isWhitespace(input.charAt(cursor))) {
+			cursor++;
 		}
-		return new Result.Ok<>(value.toString());
+		return cursor;
 	}
 
-	private static java.util.Optional<Result<OperandInfo, String>> parseOperandToken(String raw) {
-		java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(raw);
-		if (!matcher.matches()) {
-			return java.util.Optional.empty();
-		}
-		String digitsWithSign = matcher.group(1);
-		var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
-		var width = java.util.Optional.ofNullable(matcher.group(3));
-		var typeFull = typeLetter.flatMap(t -> width.map(w -> t + w));
-		return java.util.Optional.of(parseOperandValue(digitsWithSign, typeLetter, width)
-				.map(value -> new OperandInfo(value, typeFull)));
+	private static final record ArithmeticSequence(java.util.List<java.math.BigInteger> values,
+			java.util.List<Character> operators, java.util.Optional<String> resolvedType) {
 	}
 
-	private static java.util.Optional<Result<OperandSequence, String>> parseOperandSequence(
-			String[] rawOperands) {
+	private static java.util.Optional<Result<ArithmeticSequence, String>> parseArithmeticSequence(String input) {
+		int length = input.length();
+		java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(input);
+		int cursor = 0;
 		java.util.List<java.math.BigInteger> values = new java.util.ArrayList<>();
+		java.util.List<Character> operators = new java.util.ArrayList<>();
 		java.util.Optional<String> resolvedType = java.util.Optional.empty();
-		for (String raw : rawOperands) {
-			var operandOpt = parseOperandToken(raw);
-			if (operandOpt.isEmpty()) {
-				return java.util.Optional.empty();
+		boolean matched = false;
+		while (true) {
+			matcher.region(cursor, length);
+			if (!matcher.lookingAt()) {
+				break;
 			}
-			var operandRes = operandOpt.get();
-			if (operandRes instanceof Result.Err<OperandInfo, String> err) {
+			matched = true;
+			String digitsWithSign = matcher.group(1);
+			var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
+			var width = java.util.Optional.ofNullable(matcher.group(3));
+			var operandRes = parseOperandValue(digitsWithSign, typeLetter, width);
+			if (operandRes instanceof Result.Err<java.math.BigInteger, String> err) {
 				return java.util.Optional.of(new Result.Err<>(err.error()));
 			}
-			OperandInfo operand = ((Result.Ok<OperandInfo, String>) operandRes).value();
-			values.add(operand.value());
-			var operandType = operand.typeFull();
-			if (operandType.isPresent()) {
+			java.math.BigInteger value = ((Result.Ok<java.math.BigInteger, String>) operandRes).value();
+			values.add(value);
+			var typeFull = typeLetter.flatMap(t -> width.map(w -> t + w));
+			if (typeFull.isPresent()) {
 				if (resolvedType.isPresent()) {
-					if (!resolvedType.get().equals(operandType.get())) {
+					if (!resolvedType.get().equals(typeFull.get())) {
 						return java.util.Optional.of(new Result.Err<>("operand types differ"));
 					}
 				} else {
-					resolvedType = operandType;
+					resolvedType = typeFull;
 				}
 			}
-		}
-		return java.util.Optional.of(new Result.Ok<>(new OperandSequence(values, resolvedType)));
-	}
-
-	private static java.util.Optional<Result<String, String>> accumulateOperands(String[] operands,
-			java.util.function.Function<OperandSequence, Result<String, String>> combiner) {
-		var sequenceOpt = parseOperandSequence(operands);
-		if (sequenceOpt.isEmpty()) {
-			return java.util.Optional.empty();
-		}
-		return sequenceOpt.map(sequenceRes -> sequenceRes.flatMap(combiner));
-	}
-
-	private static java.util.Optional<Result<String, String>> handleAddition(String input) {
-		if (!input.contains("+")) {
-			return java.util.Optional.empty();
-		}
-		String[] operands = input.split("\\+");
-		if (operands.length < 2) {
-			return java.util.Optional.empty();
-		}
-		return accumulateOperands(operands, sequence -> {
-			java.math.BigInteger sum = java.math.BigInteger.ZERO;
-			for (java.math.BigInteger value : sequence.values()) {
-				sum = sum.add(value);
+			cursor = matcher.end();
+			cursor = skipWhitespace(input, cursor, length);
+			if (cursor >= length) {
+				break;
 			}
-			return wrapNumericResult(sum, sequence.typeFull());
-		});
+			char op = input.charAt(cursor);
+			if (op != '+' && op != '-' && op != '*') {
+				return java.util.Optional.empty();
+			}
+			operators.add(op);
+			cursor++;
+		}
+		if (!matched || values.isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		cursor = skipWhitespace(input, cursor, length);
+		if (cursor != length || values.size() - 1 != operators.size()) {
+			return java.util.Optional.empty();
+		}
+		return java.util.Optional.of(new Result.Ok<>(new ArithmeticSequence(values, operators, resolvedType)));
 	}
 
-	private static java.util.Optional<Result<String, String>> handleSubtraction(String input) {
-		java.util.regex.Pattern subtractPattern = java.util.regex.Pattern
-				.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*-\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
-		java.util.regex.Matcher subtractMatcher = subtractPattern.matcher(input);
-		if (subtractMatcher.find()) {
-			String[] operands = { subtractMatcher.group(1), subtractMatcher.group(4) };
-			return accumulateOperands(operands, sequence -> {
-				java.math.BigInteger result = sequence.values().get(0).subtract(sequence.values().get(1));
-				return wrapNumericResult(result, sequence.typeFull());
-			});
+	private static java.math.BigInteger evaluateSequence(java.util.List<java.math.BigInteger> values,
+			java.util.List<Character> operators) {
+		java.math.BigInteger result = values.get(0);
+		for (int i = 1; i < values.size(); i++) {
+			char op = operators.get(i - 1);
+			java.math.BigInteger operand = values.get(i);
+			if (op == '+') {
+				result = result.add(operand);
+			} else if (op == '-') {
+				result = result.subtract(operand);
+			} else {
+				result = result.multiply(operand);
+			}
 		}
-		return java.util.Optional.empty();
+		return result;
+	}
+
+	private static java.util.Optional<Result<String, String>> handleArithmetic(String input) {
+		var parsed = parseArithmeticSequence(input);
+		if (parsed.isEmpty()) {
+			return java.util.Optional.empty();
+		}
+		return parsed.map(sequenceRes -> sequenceRes.flatMap(sequence -> {
+			java.math.BigInteger total = evaluateSequence(sequence.values(), sequence.operators());
+			if (sequence.resolvedType().isPresent()) {
+				return enforceResultBound(total, sequence.resolvedType().get());
+			}
+			return new Result.Ok<>(total.toString());
+		}));
 	}
 }

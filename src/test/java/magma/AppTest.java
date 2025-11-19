@@ -58,6 +58,11 @@ class AppTest {
 	}
 
 	@Test
+	void interpretMultiplication() {
+		assertInterpretsTo("2 * 3", "6");
+	}
+
+	@Test
 	void interpretMixedTypedAddition() {
 		assertInterpretsTo("1U8 + 2", "3");
 	}
