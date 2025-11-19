@@ -31,6 +31,26 @@ class AppTest {
 		assertInterpretsErr("256U8");
 	}
 
+	@Test
+	void interpretU6Bounds() {
+		assertInterpretsTo("63U6", "63");
+		assertInterpretsErr("64U6");
+	}
+
+	@Test
+	void interpretI8Bounds() {
+		assertInterpretsTo("127I8", "127");
+		assertInterpretsErr("128I8");
+		assertInterpretsTo("-128I8", "-128");
+		assertInterpretsErr("-129I8");
+	}
+
+	@Test
+	void interpretU32Bounds() {
+		assertInterpretsTo("4294967295U32", "4294967295");
+		assertInterpretsErr("4294967296U32");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		switch (res) {
