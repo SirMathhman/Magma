@@ -67,6 +67,11 @@ class AppTest {
 		assertInterpretsErr("1U8 + 2I8");
 	}
 
+	@Test
+	void interpretThreeOperandAddition() {
+		assertInterpretsTo("1 + 2 + 3", "6");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

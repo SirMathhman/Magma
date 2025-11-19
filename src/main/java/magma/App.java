@@ -9,6 +9,8 @@ package magma;
 public class App {
 	private static final java.util.Set<String> SUPPORTED_TYPES = java.util.Set.of("U6", "U8", "U32", "U64", "I8", "I16",
 			"I32", "I64");
+	private static final java.util.regex.Pattern OPERAND_PATTERN = java.util.regex.Pattern
+			.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
 
 	/**
 	 * Return the leading decimal digit sequence from the provided non-null input.
@@ -87,42 +89,42 @@ public class App {
 	}
 
 	private static java.util.Optional<Result<String, String>> handleAddition(String input) {
-		java.util.regex.Pattern addPattern = java.util.regex.Pattern
-				.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*\\+\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
-		java.util.regex.Matcher addMatcher = addPattern.matcher(input);
-		if (addMatcher.find()) {
-			String aStr = addMatcher.group(1);
-			var aType = java.util.Optional.ofNullable(addMatcher.group(2));
-			var aWidth = java.util.Optional.ofNullable(addMatcher.group(3));
-			String bStr = addMatcher.group(4);
-			var bType = java.util.Optional.ofNullable(addMatcher.group(5));
-			var bWidth = java.util.Optional.ofNullable(addMatcher.group(6));
-
-			var aRes = parseOperandValue(aStr, aType, aWidth);
-			if (aRes instanceof Result.Err<java.math.BigInteger, String> errA) {
-				return java.util.Optional.of(new Result.Err<>(errA.error()));
-			}
-			var bRes = parseOperandValue(bStr, bType, bWidth);
-			if (bRes instanceof Result.Err<java.math.BigInteger, String> errB) {
-				return java.util.Optional.of(new Result.Err<>(errB.error()));
-			}
-
-			java.math.BigInteger aVal = ((Result.Ok<java.math.BigInteger, String>) aRes).value();
-			java.math.BigInteger bVal = ((Result.Ok<java.math.BigInteger, String>) bRes).value();
-
-			java.math.BigInteger sum = aVal.add(bVal);
-
-			var aTypeFull = aType.flatMap(t -> aWidth.map(w -> t + w));
-			var bTypeFull = bType.flatMap(t -> bWidth.map(w -> t + w));
-			if (aTypeFull.isPresent() && bTypeFull.isPresent()) {
-				if (!aTypeFull.get().equals(bTypeFull.get())) {
-					return java.util.Optional.of(new Result.Err<>("operand types differ"));
-				}
-				var boundRes = enforceResultBound(sum, aTypeFull.get());
-				return java.util.Optional.of(boundRes);
-			}
-			return java.util.Optional.of(new Result.Ok<>(sum.toString()));
+		if (!input.contains("+")) {
+			return java.util.Optional.empty();
 		}
-		return java.util.Optional.empty();
+		String[] operands = input.split("\\+");
+		if (operands.length < 2) {
+			return java.util.Optional.empty();
+		}
+		java.math.BigInteger sum = java.math.BigInteger.ZERO;
+		java.util.Optional<String> resolvedType = java.util.Optional.empty();
+		for (String raw : operands) {
+			java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(raw);
+			if (!matcher.matches()) {
+				return java.util.Optional.empty();
+			}
+			String digitsWithSign = matcher.group(1);
+			var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
+			var width = java.util.Optional.ofNullable(matcher.group(3));
+			var operandRes = parseOperandValue(digitsWithSign, typeLetter, width);
+			if (operandRes instanceof Result.Err<java.math.BigInteger, String> err) {
+				return java.util.Optional.of(new Result.Err<>(err.error()));
+			}
+			sum = sum.add(((Result.Ok<java.math.BigInteger, String>) operandRes).value());
+			if (typeLetter.isPresent() && width.isPresent()) {
+				String typeFull = typeLetter.get() + width.get();
+				if (resolvedType.isPresent()) {
+					if (!resolvedType.get().equals(typeFull)) {
+						return java.util.Optional.of(new Result.Err<>("operand types differ"));
+					}
+				} else {
+					resolvedType = java.util.Optional.of(typeFull);
+				}
+			}
+		}
+		if (resolvedType.isPresent()) {
+			return java.util.Optional.of(enforceResultBound(sum, resolvedType.get()));
+		}
+		return java.util.Optional.of(new Result.Ok<>(sum.toString()));
 	}
 }
