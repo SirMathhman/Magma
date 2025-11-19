@@ -72,6 +72,11 @@ class AppTest {
 		assertInterpretsTo("1 + 2 + 3", "6");
 	}
 
+	@Test
+	void interpretSimpleSubtraction() {
+		assertInterpretsTo("3 - 2", "1");
+	}
+
 	private static void assertInterpretsTo(String input, String expected) {
 		var res = App.interpret(input);
 		if (res instanceof Result.Ok) {

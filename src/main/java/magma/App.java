@@ -23,6 +23,10 @@ public class App {
 		if (addRes.isPresent()) {
 			return addRes.get();
 		}
+		var subRes = handleSubtraction(input);
+		if (subRes.isPresent()) {
+			return subRes.get();
+		}
 
 		// Parse an optional sign, digits, and optional type suffix like U8 or I8.
 		java.util.regex.Pattern p = java.util.regex.Pattern.compile("^(-?)(\\d+)(?:([UI])(\\d+))?");
@@ -126,5 +130,44 @@ public class App {
 			return java.util.Optional.of(enforceResultBound(sum, resolvedType.get()));
 		}
 		return java.util.Optional.of(new Result.Ok<>(sum.toString()));
+	}
+
+	private static java.util.Optional<Result<String, String>> handleSubtraction(String input) {
+		java.util.regex.Pattern subtractPattern = java.util.regex.Pattern
+				.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*-\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*$");
+		java.util.regex.Matcher subtractMatcher = subtractPattern.matcher(input);
+		if (subtractMatcher.find()) {
+			String aStr = subtractMatcher.group(1);
+			var aType = java.util.Optional.ofNullable(subtractMatcher.group(2));
+			var aWidth = java.util.Optional.ofNullable(subtractMatcher.group(3));
+			String bStr = subtractMatcher.group(4);
+			var bType = java.util.Optional.ofNullable(subtractMatcher.group(5));
+			var bWidth = java.util.Optional.ofNullable(subtractMatcher.group(6));
+
+			var aRes = parseOperandValue(aStr, aType, aWidth);
+			if (aRes instanceof Result.Err<java.math.BigInteger, String> errA) {
+				return java.util.Optional.of(new Result.Err<>(errA.error()));
+			}
+			var bRes = parseOperandValue(bStr, bType, bWidth);
+			if (bRes instanceof Result.Err<java.math.BigInteger, String> errB) {
+				return java.util.Optional.of(new Result.Err<>(errB.error()));
+			}
+
+			java.math.BigInteger aVal = ((Result.Ok<java.math.BigInteger, String>) aRes).value();
+			java.math.BigInteger bVal = ((Result.Ok<java.math.BigInteger, String>) bRes).value();
+			java.math.BigInteger result = aVal.subtract(bVal);
+
+			var aTypeFull = aType.flatMap(t -> aWidth.map(w -> t + w));
+			var bTypeFull = bType.flatMap(t -> bWidth.map(w -> t + w));
+			if (aTypeFull.isPresent() && bTypeFull.isPresent()) {
+				if (!aTypeFull.get().equals(bTypeFull.get())) {
+					return java.util.Optional.of(new Result.Err<>("operand types differ"));
+				}
+				var boundRes = enforceResultBound(result, aTypeFull.get());
+				return java.util.Optional.of(boundRes);
+			}
+			return java.util.Optional.of(new Result.Ok<>(result.toString()));
+		}
+		return java.util.Optional.empty();
 	}
 }
