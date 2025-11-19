@@ -15,6 +15,25 @@ public final class Main {
     }
 
     /**
+     * Extracts the leading numeric part from a string.
+     *
+     * @param str The string to extract from
+     * @return The leading numeric part
+     */
+    private static String extractLeadingNumeric(final String str) {
+        final StringBuilder result = new StringBuilder();
+        for (int i = 0; i < str.length(); i++) {
+            final char c = str.charAt(i);
+            if (Character.isDigit(c)) {
+                result.append(c);
+            } else {
+                break;
+            }
+        }
+        return result.toString();
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -29,22 +48,15 @@ public final class Main {
         if (plusIndex >= 0) {
             final String leftStr = input.substring(0, plusIndex).trim();
             final String rightStr = input.substring(plusIndex + 3).trim();
-            final int left = Integer.parseInt(leftStr);
-            final int right = Integer.parseInt(rightStr);
+            final String leftNumeric = extractLeadingNumeric(leftStr);
+            final String rightNumeric = extractLeadingNumeric(rightStr);
+            final int left = Integer.parseInt(leftNumeric);
+            final int right = Integer.parseInt(rightNumeric);
             final int sum = left + right;
             return new Ok<>(String.valueOf(sum));
         }
         // Fall back to extracting leading numeric part
-        final StringBuilder result = new StringBuilder();
-        for (int i = 0; i < input.length(); i++) {
-            final char c = input.charAt(i);
-            if (Character.isDigit(c)) {
-                result.append(c);
-            } else {
-                break;
-            }
-        }
-        return new Ok<>(result.toString());
+        return new Ok<>(extractLeadingNumeric(input));
     }
 }
 
