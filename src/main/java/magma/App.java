@@ -2,12 +2,14 @@ package magma;
 
 import magma.Result.Err;
 import magma.Result.Ok;
+import magma.Result.Tuple;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.BiPredicate;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -19,11 +21,9 @@ import java.util.regex.Pattern;
  */
 public class App {
 	private record ArithmeticSequence(List<BigInteger> values, List<Character> operators,
-			Optional<String> resolvedType) {
-	}
+																		Optional<String> resolvedType) {}
 
-	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {
-	}
+	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {}
 
 	private static final Set<String> SUPPORTED_TYPES = Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 	private static final Pattern OPERAND_PATTERN = Pattern.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*");
@@ -74,8 +74,8 @@ public class App {
 	}
 
 	private static Result<BigInteger, String> parseOperandValue(String digitsWithSign,
-			Optional<String> typeLetter,
-			Optional<String> widthStr) {
+																															Optional<String> typeLetter,
+																															Optional<String> widthStr) {
 		var val = new BigInteger(digitsWithSign);
 		if (typeLetter.isPresent() && widthStr.isPresent()) {
 			var fullType = typeLetter.get() + widthStr.get();
@@ -123,34 +123,11 @@ public class App {
 	}
 
 	private static int findMatchingParenthesis(String input, int start) {
-		var depth = 0;
-		for (var i = start; i < input.length(); i++) {
-			var current = input.charAt(i);
-			if (current == '(') {
-				depth++;
-			} else if (current == ')') {
-				depth--;
-				if (depth == 0) {
-					return i;
-				}
-			}
-		}
-		return -1;
+		return findTopLevel(input, start, (s, i) -> s.charAt(i) == ')');
 	}
 
 	private static int findTopLevelEquality(String input) {
-		var depth = 0;
-		for (var i = 0; i < input.length() - 1; i++) {
-			var c = input.charAt(i);
-			if (c == '(') {
-				depth++;
-			} else if (c == ')') {
-				depth--;
-			} else if (depth == 0 && c == '=' && input.charAt(i + 1) == '=') {
-				return i;
-			}
-		}
-		return -1;
+		return findTopLevel(input, 0, (s, i) -> s.charAt(i) == '=' && i + 1 < s.length() && s.charAt(i + 1) == '=');
 	}
 
 	private static Optional<Result<String, String>> handleEqualityComparison(String input) {
@@ -173,10 +150,10 @@ public class App {
 		var leftRes = leftParsed.get();
 		var rightRes = rightParsed.get();
 		var combined = leftRes.and(() -> rightRes);
-		if (combined instanceof Err<Result.Tuple<ArithmeticSequence, ArithmeticSequence>, String>(var error)) {
+		if (combined instanceof Err<Tuple<ArithmeticSequence, ArithmeticSequence>, String>(var error)) {
 			return Optional.of(new Err<String, String>(error));
 		}
-		var pair = ((Ok<Result.Tuple<ArithmeticSequence, ArithmeticSequence>, String>) combined).value();
+		var pair = ((Ok<Tuple<ArithmeticSequence, ArithmeticSequence>, String>) combined).value();
 		var lSeq = pair.first();
 		var rSeq = pair.second();
 		var lEval = evaluateSequence(lSeq.values(), lSeq.operators());
@@ -239,14 +216,19 @@ public class App {
 	}
 
 	private static int findTopLevelElse(String input, int from) {
+		return findTopLevel(input, from, (s, i) -> s.startsWith("else", i));
+	}
+
+	private static int findTopLevel(String input, int start, BiPredicate<String, Integer> matcher) {
 		var depth = 0;
-		for (var i = from; i + 4 <= input.length(); i++) {
+		for (var i = start; i < input.length(); i++) {
 			var c = input.charAt(i);
 			if (c == '(') {
 				depth++;
 			} else if (c == ')') {
 				depth--;
-			} else if (depth == 0 && input.startsWith("else", i)) {
+			}
+			if (depth == 0 && matcher.test(input, i)) {
 				return i;
 			}
 		}
@@ -334,23 +316,7 @@ public class App {
 				return new Ok<Optional<OperandResult>, String>(Optional.empty());
 			}
 			var inner = input.substring(cursor + 1, closing);
-			var innerSeq = parseArithmeticSequence(inner);
-			if (innerSeq.isEmpty()) {
-				return new Ok<Optional<OperandResult>, String>(Optional.empty());
-			}
-			var innerResult = innerSeq.get();
-			if (innerResult instanceof Err<ArithmeticSequence, String>(var error)) {
-				return new Err<Optional<OperandResult>, String>(error);
-			}
-			var sequence = ((Ok<ArithmeticSequence, String>) innerResult).value();
-			var eval = evaluateSequence(sequence.values(), sequence.operators());
-			if (eval instanceof Err<BigInteger, String>(var error)) {
-				return new Err<Optional<OperandResult>, String>(error);
-			}
-			var value = ((Ok<BigInteger, String>) eval).value();
-			return new Ok<Optional<OperandResult>, String>(Optional.of(new OperandResult(value,
-					sequence.resolvedType(),
-					closing + 1)));
+			return evaluateParenthesizedOperand(inner, closing);
 		}
 		matcher.region(cursor, length);
 		if (!matcher.lookingAt()) {
@@ -361,8 +327,18 @@ public class App {
 		var width = Optional.ofNullable(matcher.group(3));
 		var operandType = typeLetter.flatMap(t -> width.map(w -> t + w));
 		return parseOperandValue(digitsWithSign, typeLetter, width).map(value -> Optional.of(new OperandResult(value,
-				operandType,
-				matcher.end())));
+																																																					 operandType,
+																																																					 matcher.end())));
+	}
+
+	private static Result<Optional<OperandResult>, String> evaluateParenthesizedOperand(String inner, int closing) {
+		var innerSeq = parseArithmeticSequence(inner);
+		if (innerSeq.isEmpty()) {
+			return new Ok<Optional<OperandResult>, String>(Optional.empty());
+		}
+		return innerSeq.get().flatMap(sequence ->
+			evaluateSequence(sequence.values(), sequence.operators()).map(total ->
+				Optional.of(new OperandResult(total, sequence.resolvedType(), closing + 1))));
 	}
 
 	private static Result<BigInteger, String> evaluateSequence(List<BigInteger> values, List<Character> operators) {
@@ -403,12 +379,12 @@ public class App {
 			return Optional.empty();
 		}
 		return parsed.map(sequenceRes -> sequenceRes.flatMap(sequence -> evaluateSequence(sequence.values(),
-				sequence.operators()).flatMap(
-						total -> {
-							if (sequence.resolvedType().isPresent()) {
-								return enforceResultBound(total, sequence.resolvedType().get());
-							}
-							return new Ok<String, String>(total.toString());
-						})));
+																																											sequence.operators()).flatMap(
+				total -> {
+					if (sequence.resolvedType().isPresent()) {
+						return enforceResultBound(total, sequence.resolvedType().get());
+					}
+					return new Ok<String, String>(total.toString());
+				})));
 	}
 }
