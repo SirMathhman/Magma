@@ -19,13 +19,17 @@ import java.util.regex.Pattern;
  */
 public class App {
 	private record ArithmeticSequence(List<BigInteger> values, List<Character> operators,
-																		Optional<String> resolvedType) {}
+			Optional<String> resolvedType) {
+	}
 
-	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {}
+	private record OperandResult(BigInteger value, Optional<String> type, int nextCursor) {
+	}
 
-	private record IfParts(String cond, String thenExpr, String elseExpr) {}
+	private record IfParts(String cond, String thenExpr, String elseExpr) {
+	}
 
-	private record ValueWithType(BigInteger value, Optional<String> type) {}
+	private record ValueWithType(BigInteger value, Optional<String> type) {
+	}
 
 	private static final Set<String> SUPPORTED_TYPES = Set.of("U6", "U8", "U32", "U64", "I8", "I16", "I32", "I64");
 	private static final Pattern OPERAND_PATTERN = Pattern.compile("^\\s*([+-]?\\d+)(?:([UI])(\\d+))?\\s*");
@@ -76,8 +80,8 @@ public class App {
 	}
 
 	private static Result<BigInteger, String> parseOperandValue(String digitsWithSign,
-																															Optional<String> typeLetter,
-																															Optional<String> widthStr) {
+			Optional<String> typeLetter,
+			Optional<String> widthStr) {
 		var val = new BigInteger(digitsWithSign);
 		if (typeLetter.isPresent() && widthStr.isPresent()) {
 			var fullType = typeLetter.get() + widthStr.get();
@@ -171,30 +175,18 @@ public class App {
 		}
 		var leftRes = leftParsed.get();
 		var rightRes = rightParsed.get();
-		if (leftRes instanceof Err<ArithmeticSequence, String>) {
-			return Optional.of(new Err<String, String>(leftRes.asErr().get()));
-		}
-		if (rightRes instanceof Err<ArithmeticSequence, String>) {
-			return Optional.of(new Err<String, String>(rightRes.asErr().get()));
-		}
-		var lSeq = leftRes.asOk().get();
-		var rSeq = rightRes.asOk().get();
-		var lEval = evaluateSequence(lSeq.values(), lSeq.operators());
-		var rEval = evaluateSequence(rSeq.values(), rSeq.operators());
-		if (lEval instanceof Err<BigInteger, String>) {
-			return Optional.of(new Err<String, String>(lEval.asErr().get()));
-		}
-		if (rEval instanceof Err<BigInteger, String>) {
-			return Optional.of(new Err<String, String>(rEval.asErr().get()));
-		}
-		var lVal = lEval.asOk().get();
-		var rVal = rEval.asOk().get();
-		// If both sides have resolved types, they must match
-		if (lSeq.resolvedType().isPresent() && rSeq.resolvedType().isPresent() &&
-				!lSeq.resolvedType().get().equals(rSeq.resolvedType().get())) {
-			return Optional.of(new Err<String, String>("operand types differ"));
-		}
-		return Optional.of(new Ok<String, String>(Boolean.toString(lVal.equals(rVal))));
+
+		var eqRes = leftRes.flatMap(lSeq -> rightRes.flatMap(rSeq -> {
+			if (lSeq.resolvedType().isPresent() && rSeq.resolvedType().isPresent() &&
+					!lSeq.resolvedType().get().equals(rSeq.resolvedType().get())) {
+				return new Err<String, String>("operand types differ");
+			}
+			return evaluateSequence(lSeq.values(), lSeq.operators())
+					.flatMap(lVal -> evaluateSequence(rSeq.values(), rSeq.operators())
+							.mapValue(rVal -> Boolean.toString(lVal.equals(rVal))));
+		}));
+		// resolved-type mismatch is handled in chain above
+		return Optional.of(eqRes);
 	}
 
 	private static Optional<Result<String, String>> handleIfExpression(String input) {
@@ -203,21 +195,20 @@ public class App {
 			return Optional.empty();
 		}
 		var parts = ifParts.get();
-		var chosenRes = chooseIfBranch(parts);
-		if (chosenRes instanceof Err<String, String>) {
-			return Optional.of(new Err<String, String>(chosenRes.asErr().get()));
+		var chooseRes = chooseIfBranch(parts);
+		if (chooseRes.asErr().isPresent()) {
+			return Optional.of(new Err<String, String>(chooseRes.asErr().get()));
 		}
-		var chosen = chosenRes.asOk().get();
+		var chosen = chooseRes.asOk().get();
 		var valRes = evaluateExpressionAsValue(chosen);
-		if (valRes instanceof Ok<ValueWithType, String>) {
-			var valOk = valRes.asOk().get();
-			return Optional.of(new Ok<String, String>(valOk.value().toString()));
+		if (valRes.asOk().isPresent()) {
+			return Optional.of(valRes.mapValue(vwt -> vwt.value().toString()));
 		}
-		if (valRes instanceof Err<ValueWithType, String>) {
+		if (valRes.asErr().isPresent()) {
 			var errMsg = valRes.asErr().get();
 			if ("non-numeric expression".equals(errMsg)) {
 				var chosenInterp = interpret(chosen);
-				if (chosenInterp instanceof Err<String, String>) {
+				if (chosenInterp.asErr().isPresent()) {
 					return Optional.of(new Err<String, String>(chosenInterp.asErr().get()));
 				}
 				return Optional.of(chosenInterp);
@@ -253,14 +244,7 @@ public class App {
 
 	private static Result<String, String> chooseIfBranch(IfParts parts) {
 		var condEval = evaluateConditionBoolean(parts.cond());
-		if (condEval instanceof Err<Boolean, String>) {
-			return new Err<String, String>(condEval.asErr().get());
-		}
-		boolean condBool = condEval.asOk().get();
-		if (condBool) {
-			return new Ok<String, String>(parts.thenExpr());
-		}
-		return new Ok<String, String>(parts.elseExpr());
+		return condEval.mapValue(condBool -> condBool ? parts.thenExpr() : parts.elseExpr());
 	}
 
 	private static int findTopLevelElse(String input, int from) {
@@ -280,15 +264,14 @@ public class App {
 
 	private static Result<Boolean, String> evaluateConditionBoolean(String cond) {
 		var numeric = evaluateExpressionAsValue(cond);
-		if (numeric instanceof Ok<ValueWithType, String>) {
-			var v = numeric.asOk().get();
-			return new Ok<Boolean, String>(v.value().signum() != 0);
+		if (numeric.asOk().isPresent()) {
+			return numeric.mapValue(v -> v.value().signum() != 0);
 		}
-		if (numeric instanceof Err<ValueWithType, String>) {
+		if (numeric.asErr().isPresent()) {
 			var msg = numeric.asErr().get();
 			if ("non-numeric expression".equals(msg)) {
 				var strRes = interpretAsString(cond);
-				if (strRes instanceof Err<String, String>) {
+				if (strRes.asErr().isPresent()) {
 					return new Err<Boolean, String>(strRes.asErr().get());
 				}
 				var sval = strRes.asOk().get();
@@ -322,7 +305,7 @@ public class App {
 				break;
 			}
 			var operandResult = parseOperandAt(input, cursor, matcher);
-			if (operandResult instanceof Err<Optional<OperandResult>, String>) {
+			if (operandResult.asErr().isPresent()) {
 				return Optional.of(new Err<ArithmeticSequence, String>(operandResult.asErr().get()));
 			}
 			var operand = operandResult.asOk().get();
@@ -376,18 +359,18 @@ public class App {
 				return new Ok<Optional<OperandResult>, String>(Optional.empty());
 			}
 			var innerResult = innerSeq.get();
-			if (innerResult instanceof Err<ArithmeticSequence, String>) {
+			if (innerResult.asErr().isPresent()) {
 				return new Err<Optional<OperandResult>, String>(innerResult.asErr().get());
 			}
 			var sequence = innerResult.asOk().get();
 			var eval = evaluateSequence(sequence.values(), sequence.operators());
-			if (eval instanceof Err<BigInteger, String>) {
+			if (eval.asErr().isPresent()) {
 				return new Err<Optional<OperandResult>, String>(eval.asErr().get());
 			}
 			var value = eval.asOk().get();
 			return new Ok<Optional<OperandResult>, String>(Optional.of(new OperandResult(value,
-																																									 sequence.resolvedType(),
-																																									 closing + 1)));
+					sequence.resolvedType(),
+					closing + 1)));
 		}
 		matcher.region(cursor, length);
 		if (!matcher.lookingAt()) {
@@ -398,8 +381,8 @@ public class App {
 		var width = Optional.ofNullable(matcher.group(3));
 		var operandType = typeLetter.flatMap(t -> width.map(w -> t + w));
 		return parseOperandValue(digitsWithSign, typeLetter, width).mapValue(value -> Optional.of(new OperandResult(value,
-																																																								operandType,
-																																																								matcher.end())));
+				operandType,
+				matcher.end())));
 	}
 
 	private static Result<Optional<OperandResult>, String> parseIfOperandFromInner(String inner, int closing) {
@@ -409,25 +392,25 @@ public class App {
 		}
 		var parts = parsed.get();
 		var chosenRes = chooseIfBranch(parts);
-		if (chosenRes instanceof Err<String, String>) {
+		if (chosenRes.asErr().isPresent()) {
 			return new Err<Optional<OperandResult>, String>(chosenRes.asErr().get());
 		}
 		var chosen = chosenRes.asOk().get();
 		var chosenVal = evaluateExpressionAsValue(chosen);
-		if (chosenVal instanceof Err<ValueWithType, String>) {
+		if (chosenVal.asErr().isPresent()) {
 			return new Err<Optional<OperandResult>, String>(chosenVal.asErr().get());
 		}
 		var vwt = chosenVal.asOk().get();
 		return new Ok<Optional<OperandResult>, String>(Optional.of(new OperandResult(vwt.value(),
-																																								 vwt.type(),
-																																								 closing + 1)));
+				vwt.type(),
+				closing + 1)));
 	}
 
 	private static Result<ValueWithType, String> evaluateExpressionAsValue(String expr) {
 		var parsed = parseArithmeticSequence(expr);
 		if (parsed.isEmpty()) {
 			var interpreted = interpret(expr);
-			if (interpreted instanceof Err<String, String>) {
+			if (interpreted.asErr().isPresent()) {
 				return new Err<ValueWithType, String>(interpreted.asErr().get());
 			}
 			var val = interpreted.asOk().get();
@@ -442,12 +425,12 @@ public class App {
 			}
 		}
 		var res = parsed.get();
-		if (res instanceof Err<ArithmeticSequence, String>) {
+		if (res.asErr().isPresent()) {
 			return new Err<ValueWithType, String>(res.asErr().get());
 		}
 		var seq = res.asOk().get();
 		var eval = evaluateSequence(seq.values(), seq.operators());
-		if (eval instanceof Err<BigInteger, String>) {
+		if (eval.asErr().isPresent()) {
 			return new Err<ValueWithType, String>(eval.asErr().get());
 		}
 		var value = eval.asOk().get();
@@ -496,12 +479,12 @@ public class App {
 			return Optional.empty();
 		}
 		return parsed.map(sequenceRes -> sequenceRes.flatMap(sequence -> evaluateSequence(sequence.values(),
-																																											sequence.operators()).flatMap(
-				total -> {
-					if (sequence.resolvedType().isPresent()) {
-						return enforceResultBound(total, sequence.resolvedType().get());
-					}
-					return new Ok<String, String>(total.toString());
-				})));
+				sequence.operators()).flatMap(
+						total -> {
+							if (sequence.resolvedType().isPresent()) {
+								return enforceResultBound(total, sequence.resolvedType().get());
+							}
+							return new Ok<String, String>(total.toString());
+						})));
 	}
 }
