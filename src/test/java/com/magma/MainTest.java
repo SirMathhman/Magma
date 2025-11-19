@@ -3,6 +3,7 @@ package com.magma;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
+import com.magma.result.Err;
 import com.magma.result.Ok;
 import com.magma.result.Result;
 import org.junit.jupiter.api.Test;
@@ -29,6 +30,11 @@ class MainTest {
         assertInstanceOf(Ok.class, result4);
         final Ok<String, String> ok4 = (Ok<String, String>) result4;
         assertEquals("12", ok4.getValue());
+
+        final Result<String, String> result5 = Main.interpret("10U8 + 2U16");
+        assertInstanceOf(Err.class, result5);
+        final Err<String, String> err1 = (Err<String, String>) result5;
+        assertEquals("Cannot add values with different units", err1.getError());
     }
 }
 

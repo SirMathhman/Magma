@@ -1,5 +1,6 @@
 package com.magma;
 
+import com.magma.result.Err;
 import com.magma.result.Ok;
 import com.magma.result.Result;
 
@@ -34,6 +35,18 @@ public final class Main {
     }
 
     /**
+     * Checks if a string has units (non-numeric characters after the leading
+     * digits).
+     *
+     * @param str The string to check
+     * @return true if the string has units, false otherwise
+     */
+    private static boolean hasUnits(final String str) {
+        final String numeric = extractLeadingNumeric(str);
+        return numeric.length() < str.length();
+    }
+
+    /**
      * Interprets a string and evaluates arithmetic expressions or extracts
      * the leading numeric part.
      *
@@ -48,6 +61,10 @@ public final class Main {
         if (plusIndex >= 0) {
             final String leftStr = input.substring(0, plusIndex).trim();
             final String rightStr = input.substring(plusIndex + 3).trim();
+            // Check if both operands have units
+            if (hasUnits(leftStr) && hasUnits(rightStr)) {
+                return new Err<>("Cannot add values with different units");
+            }
             final String leftNumeric = extractLeadingNumeric(leftStr);
             final String rightNumeric = extractLeadingNumeric(rightStr);
             final int left = Integer.parseInt(leftNumeric);
