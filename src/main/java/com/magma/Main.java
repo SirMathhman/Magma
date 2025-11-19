@@ -122,24 +122,21 @@ public final class Main {
     }
 
     /**
-     * Processes operands using the given binary operator.
+     * Processes operands using the given configuration.
      *
      * @param operands Array of validated operand strings
-     * @param initialValue The initial value to start with
-     * @param operator The binary operator to apply
-     * @param startIndex The index to start processing from
+     * @param config The configuration for processing
      * @return Result with the computed value
      */
     private static Result<String, String> processOperands(
             final String[] operands,
-            final int initialValue,
-            final BinaryOperator<Integer> operator,
-            final int startIndex) {
-        int result = initialValue;
-        for (int i = startIndex; i < operands.length; i++) {
+            final OperandConfig config) {
+        int result = config.initialValue();
+        for (int i = config.startIndex(); i < operands.length; i++) {
             final String numeric = extractLeadingNumeric(
                     operands[i].trim());
-            result = operator.apply(result, Integer.parseInt(numeric));
+            result = config.operator().apply(result,
+                    Integer.parseInt(numeric));
         }
         return new Ok<>(String.valueOf(result));
     }
@@ -163,20 +160,15 @@ public final class Main {
      *
      * @param input The input string containing the expression
      * @param operatorPattern The operator pattern to split on
-     * @param operation The binary operator to apply
-     * @param initialValue The initial value for the operation
-     * @param startIndex The index to start processing from
+     * @param config The configuration for processing operands
      * @return Result with the evaluated expression
      */
     private static Result<String, String> processArithmetic(
             final String input,
             final String operatorPattern,
-            final BinaryOperator<Integer> operation,
-            final int initialValue,
-            final int startIndex) {
+            final OperandConfig config) {
         return splitAndValidate(input, operatorPattern)
-                .flatMap(operands -> processOperands(operands, initialValue,
-                        operation, startIndex));
+                .flatMap(operands -> processOperands(operands, config));
     }
 
     /**
@@ -246,7 +238,8 @@ public final class Main {
             }
             // Single operator type
             if (input.contains(" + ")) {
-                return processArithmetic(input, " \\+ ", Integer::sum, 0, 0);
+                return processArithmetic(input, " \\+ ",
+                        new OperandConfig(0, Integer::sum, 0));
             }
             if (input.contains(" - ")) {
                 return splitAndValidate(input, " - ")
@@ -254,13 +247,26 @@ public final class Main {
                             final int firstValue = Integer.parseInt(
                                     extractLeadingNumeric(
                                             operands[0].trim()));
-                            return processOperands(operands, firstValue,
-                                    (a, b) -> a - b, 1);
+                            return processOperands(operands,
+                                    new OperandConfig(firstValue,
+                                            (a, b) -> a - b, 1));
                         });
             }
         }
         // Fall back to extracting leading numeric part
         return new Ok<>(extractLeadingNumeric(input));
+    }
+
+    /**
+     * Configuration for processing operands.
+     *
+     * @param initialValue The initial value to start with
+     * @param operator The binary operator to apply
+     * @param startIndex The index to start processing from
+     */
+    private record OperandConfig(int initialValue,
+                                 BinaryOperator<Integer> operator,
+                                 int startIndex) {
     }
 }
 

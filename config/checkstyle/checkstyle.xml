@@ -225,6 +225,9 @@
         <module name="MethodLength">
             <property name="max" value="50"/>
         </module>
+        <module name="ParameterNumber">
+            <property name="max" value="3"/>
+        </module>
         <module name="MissingJavadocType"/>
         <module name="MissingJavadocPackage"/>
         <module name="HideUtilityClassConstructor"/>
