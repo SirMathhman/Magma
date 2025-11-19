@@ -40,11 +40,8 @@ public class App {
 				String fullType = typeLetter.get() + widthStr.get();
 				if (SUPPORTED_TYPES.contains(fullType)) {
 					String digitsWithSign = negative ? "-" + digits : digits;
-					var parsed = parseOperandValue(digitsWithSign, typeLetter, widthStr);
-					if (parsed instanceof Result.Err<java.math.BigInteger, String> err) {
-						return new Result.Err<>(err.error());
-					}
-					return new Result.Ok<>(((Result.Ok<java.math.BigInteger, String>) parsed).value().toString());
+					return parseOperandValue(digitsWithSign, typeLetter, widthStr)
+							.map(java.math.BigInteger::toString);
 				}
 			}
 			return new Result.Ok<>(digits);
@@ -100,6 +97,26 @@ public class App {
 			java.util.List<Character> operators, java.util.Optional<String> resolvedType) {
 	}
 
+	private static final record OperandResult(java.math.BigInteger value, java.util.Optional<String> type,
+			int nextCursor) {
+	}
+
+	private static int findMatchingParenthesis(String input, int start) {
+		int depth = 0;
+		for (int i = start; i < input.length(); i++) {
+			char current = input.charAt(i);
+			if (current == '(') {
+				depth++;
+			} else if (current == ')') {
+				depth--;
+				if (depth == 0) {
+					return i;
+				}
+			}
+		}
+		return -1;
+	}
+
 	private static java.util.Optional<Result<ArithmeticSequence, String>> parseArithmeticSequence(String input) {
 		int length = input.length();
 		java.util.regex.Matcher matcher = OPERAND_PATTERN.matcher(input);
@@ -107,33 +124,32 @@ public class App {
 		java.util.List<java.math.BigInteger> values = new java.util.ArrayList<>();
 		java.util.List<Character> operators = new java.util.ArrayList<>();
 		java.util.Optional<String> resolvedType = java.util.Optional.empty();
-		boolean matched = false;
 		while (true) {
-			matcher.region(cursor, length);
-			if (!matcher.lookingAt()) {
+			cursor = skipWhitespace(input, cursor, length);
+			if (cursor >= length) {
 				break;
 			}
-			matched = true;
-			String digitsWithSign = matcher.group(1);
-			var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
-			var width = java.util.Optional.ofNullable(matcher.group(3));
-			var operandRes = parseOperandValue(digitsWithSign, typeLetter, width);
-			if (operandRes instanceof Result.Err<java.math.BigInteger, String> err) {
+			Result<java.util.Optional<OperandResult>, String> operandResult = parseOperandAt(input, cursor, matcher);
+			if (operandResult instanceof Result.Err<java.util.Optional<OperandResult>, String> err) {
 				return java.util.Optional.of(new Result.Err<>(err.error()));
 			}
-			java.math.BigInteger value = ((Result.Ok<java.math.BigInteger, String>) operandRes).value();
-			values.add(value);
-			var typeFull = typeLetter.flatMap(t -> width.map(w -> t + w));
-			if (typeFull.isPresent()) {
+			java.util.Optional<OperandResult> operand = ((Result.Ok<java.util.Optional<OperandResult>, String>) operandResult)
+					.value();
+			if (operand.isEmpty()) {
+				return java.util.Optional.empty();
+			}
+			OperandResult result = operand.get();
+			cursor = result.nextCursor();
+			values.add(result.value());
+			if (result.type().isPresent()) {
 				if (resolvedType.isPresent()) {
-					if (!resolvedType.get().equals(typeFull.get())) {
+					if (!resolvedType.get().equals(result.type().get())) {
 						return java.util.Optional.of(new Result.Err<>("operand types differ"));
 					}
 				} else {
-					resolvedType = typeFull;
+					resolvedType = result.type();
 				}
 			}
-			cursor = matcher.end();
 			cursor = skipWhitespace(input, cursor, length);
 			if (cursor >= length) {
 				break;
@@ -145,14 +161,45 @@ public class App {
 			operators.add(op);
 			cursor++;
 		}
-		if (!matched || values.isEmpty()) {
-			return java.util.Optional.empty();
-		}
 		cursor = skipWhitespace(input, cursor, length);
-		if (cursor != length || values.size() - 1 != operators.size()) {
+		if (cursor != length || values.isEmpty() || values.size() - 1 != operators.size()) {
 			return java.util.Optional.empty();
 		}
 		return java.util.Optional.of(new Result.Ok<>(new ArithmeticSequence(values, operators, resolvedType)));
+	}
+
+	private static Result<java.util.Optional<OperandResult>, String> parseOperandAt(String input, int cursor,
+			java.util.regex.Matcher matcher) {
+		int length = input.length();
+		char current = input.charAt(cursor);
+		if (current == '(') {
+			int closing = findMatchingParenthesis(input, cursor);
+			if (closing == -1) {
+				return new Result.Ok<>(java.util.Optional.empty());
+			}
+			String inner = input.substring(cursor + 1, closing);
+			var innerSeq = parseArithmeticSequence(inner);
+			if (innerSeq.isEmpty()) {
+				return new Result.Ok<>(java.util.Optional.empty());
+			}
+			var innerResult = innerSeq.get();
+			if (innerResult instanceof Result.Err<ArithmeticSequence, String> err) {
+				return new Result.Err<>(err.error());
+			}
+			ArithmeticSequence sequence = ((Result.Ok<ArithmeticSequence, String>) innerResult).value();
+			java.math.BigInteger value = evaluateSequence(sequence.values(), sequence.operators());
+			return new Result.Ok<>(java.util.Optional.of(new OperandResult(value, sequence.resolvedType(), closing + 1)));
+		}
+		matcher.region(cursor, length);
+		if (!matcher.lookingAt()) {
+			return new Result.Ok<>(java.util.Optional.empty());
+		}
+		String digitsWithSign = matcher.group(1);
+		var typeLetter = java.util.Optional.ofNullable(matcher.group(2));
+		var width = java.util.Optional.ofNullable(matcher.group(3));
+		java.util.Optional<String> operandType = typeLetter.flatMap(t -> width.map(w -> t + w));
+		return parseOperandValue(digitsWithSign, typeLetter, width).map(value -> java.util.Optional
+				.of(new OperandResult(value, operandType, matcher.end())));
 	}
 
 	private static java.math.BigInteger evaluateSequence(java.util.List<java.math.BigInteger> values,
