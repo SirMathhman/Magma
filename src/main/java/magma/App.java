@@ -8,13 +8,12 @@ package magma;
  */
 public class App {
 	/**
-	 * Return the given string unchanged.
+	 * Return the leading decimal digit sequence from the provided non-null input.
 	 *
-	 * @param input the input string
-	 * @return the same string that was provided
+	 * @param input the non-null input string
+	 * @return the leading decimal digit sequence, or empty string when none exist
 	 */
 	public static String interpret(String input) {
-		if (input == null) return null;
 		java.util.regex.Matcher m = java.util.regex.Pattern.compile("^\\d+").matcher(input);
 		if (m.find()) {
 			return m.group();
