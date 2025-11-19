@@ -14,6 +14,11 @@ public class App {
 	 * @return the same string that was provided
 	 */
 	public static String interpret(String input) {
-		return input;
+		if (input == null) return null;
+		java.util.regex.Matcher m = java.util.regex.Pattern.compile("^\\d+").matcher(input);
+		if (m.find()) {
+			return m.group();
+		}
+		return "";
 	}
 }

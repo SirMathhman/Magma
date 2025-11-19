@@ -11,4 +11,10 @@ class AppTest {
 		String sample = "100";
 		assertEquals(sample, App.interpret(sample));
 	}
+
+	@Test
+	void interpretExtractsLeadingDigits() {
+		String sample = "100U8";
+		assertEquals("100", App.interpret(sample));
+	}
 }
