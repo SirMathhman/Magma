@@ -1,5 +1,8 @@
 package com.magma;
 
+import com.magma.result.Ok;
+import com.magma.result.Result;
+
 /**
  * Main entry point for the Magma application.
  */
@@ -24,11 +27,12 @@ public final class Main {
      * Interprets a string and extracts the leading numeric part.
      *
      * @param input The input string to interpret
-     * @return The leading numeric part of the string
+     * @return A Result containing the leading numeric part of the string
+     *         wrapped in Ok
      */
-    public static String interpret(final String input) {
+    public static Result<String, String> interpret(final String input) {
         if (input == null || input.isEmpty()) {
-            return "";
+            return new Ok<>("");
         }
         final StringBuilder result = new StringBuilder();
         for (int i = 0; i < input.length(); i++) {
@@ -39,7 +43,7 @@ public final class Main {
                 break;
             }
         }
-        return result.toString();
+        return new Ok<>(result.toString());
     }
 }
 
