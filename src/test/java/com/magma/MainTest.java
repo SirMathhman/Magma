@@ -86,4 +86,10 @@ class MainTest {
     void testInterpretMultiplication() {
         assertValid("2 * 3", "6");
     }
+
+    @Test
+    void testInterpretValueRange() {
+        assertValid("255U8", "255");
+        assertInvalid("256U8");
+    }
 }

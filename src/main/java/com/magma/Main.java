@@ -69,6 +69,46 @@ public final class Main {
     }
 
     /**
+     * Gets the maximum value for a unit type.
+     *
+     * @param units The unit string (e.g., "U8", "I8", "U16")
+     * @return The maximum value for the unit, or -1 if unknown
+     */
+    private static int getMaxValueForUnit(final String units) {
+        return switch (units) {
+            case "U8" -> 255;
+            default -> -1;
+        };
+    }
+
+    /**
+     * Checks if a value with units exceeds the maximum allowed value.
+     *
+     * @param operand The operand string to check
+     * @return Err if value exceeds maximum, Ok otherwise
+     */
+    private static Result<String, String> checkValueRange(
+            final String operand) {
+        final String trimmed = operand.trim();
+        if (hasUnits(trimmed)) {
+            final String numeric = extractLeadingNumeric(trimmed);
+            final String units = extractUnits(trimmed);
+            final int maxValue = getMaxValueForUnit(units);
+            if (maxValue >= 0) {
+                try {
+                    final int value = Integer.parseInt(numeric);
+                    if (value > maxValue) {
+                        return new Err<>("Value exceeds maximum for " + units);
+                    }
+                } catch (final NumberFormatException e) {
+                    // Invalid number format, will be caught elsewhere
+                }
+            }
+        }
+        return new Ok<>("");
+    }
+
+    /**
      * Checks if all operands with units have matching units.
      *
      * @param operands Array of operand strings
@@ -97,13 +137,19 @@ public final class Main {
     }
 
     /**
-     * Validates operands and checks for unit mismatches.
+     * Validates operands and checks for unit mismatches and value ranges.
      *
      * @param operands Array of operand strings
      * @return Err if validation fails, Ok with operands if valid
      */
     private static Result<String[], String> validateOperands(
             final String[] operands) {
+        for (final String operand : operands) {
+            final Result<String, String> rangeCheck = checkValueRange(operand);
+            if (rangeCheck instanceof Err<String, String> err) {
+                return new Err<>(err.getError());
+            }
+        }
         return checkUnitMismatches(operands)
                 .map(ignored -> operands);
     }
@@ -359,6 +405,11 @@ public final class Main {
             }
         }
         // Fall back to extracting leading numeric part
+        // Check value range for single values with units
+        final Result<String, String> rangeCheck = checkValueRange(input);
+        if (rangeCheck instanceof Err<String, String>) {
+            return rangeCheck;
+        }
         return new Ok<>(extractLeadingNumeric(input));
     }
 
