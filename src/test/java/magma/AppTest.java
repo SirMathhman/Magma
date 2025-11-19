@@ -8,7 +8,7 @@ class AppTest {
 
 	@Test
 	void interpretReturnsSameString() {
-		String sample = "Hello, Magma!";
+		String sample = "100";
 		assertEquals(sample, App.interpret(sample));
 	}
 }
