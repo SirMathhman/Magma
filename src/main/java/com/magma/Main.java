@@ -1,7 +1,5 @@
 package com.magma;
 
-import java.util.Optional;
-
 import com.magma.result.Ok;
 import com.magma.result.Result;
 
@@ -19,19 +17,15 @@ public final class Main {
     /**
      * Interprets a string and extracts the leading numeric part.
      *
-     * @param input The input string to interpret, wrapped in Optional
+     * @param input The input string to interpret (assumed to be present
+     *              and non-empty)
      * @return A Result containing the leading numeric part of the string
      *         wrapped in Ok
      */
-    public static Result<String, String> interpret(
-            final Optional<String> input) {
-        final String inputStr = input.orElse("");
-        if (inputStr.isEmpty()) {
-            return new Ok<>("");
-        }
+    public static Result<String, String> interpret(final String input) {
         final StringBuilder result = new StringBuilder();
-        for (int i = 0; i < inputStr.length(); i++) {
-            final char c = inputStr.charAt(i);
+        for (int i = 0; i < input.length(); i++) {
+            final char c = input.charAt(i);
             if (Character.isDigit(c)) {
                 result.append(c);
             } else {
