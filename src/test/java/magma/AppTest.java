@@ -10,6 +10,7 @@ public class AppTest {
 	public void setUp() {
 		App.clearVariables();
 	}
+
 	@Test
 	public void testInterpret() {
 		String in = "echo";
@@ -217,5 +218,52 @@ public class AppTest {
 	public void testInterpretDuplicateVariableDifferentTypeThrows() {
 		App.interpret("let x : U8 = 100;");
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : U16 = 100;"));
+	}
+
+	@Test
+	public void testInterpretVariableDeclaration() {
+		assertEquals("", App.interpret("let x : I32;"));
+		assertEquals("", App.interpret("x = 100;"));
+		assertEquals("100", App.interpret("x"));
+	}
+
+	@Test
+	public void testInterpretVariableAssignment() {
+		App.interpret("let x : U8;");
+		assertEquals("", App.interpret("x = 50;"));
+		assertEquals("50", App.interpret("x"));
+		assertEquals("", App.interpret("x = 100;"));
+		assertEquals("100", App.interpret("x"));
+	}
+
+	@Test
+	public void testInterpretVariableAssignmentUntyped() {
+		App.interpret("let y;");
+		assertEquals("", App.interpret("y = 42;"));
+		assertEquals("42", App.interpret("y"));
+	}
+
+	@Test
+	public void testInterpretVariableAssignmentInExpression() {
+		App.interpret("let x : I32;");
+		App.interpret("x = 100;");
+		assertEquals("150", App.interpret("x + 50"));
+	}
+
+	@Test
+	public void testInterpretVariableAssignmentTypeValidation() {
+		App.interpret("let x : U8;");
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("x = 256;"));
+	}
+
+	@Test
+	public void testInterpretUninitializedVariableThrows() {
+		App.interpret("let x : I32;");
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("x"));
+	}
+
+	@Test
+	public void testInterpretAssignmentToUndefinedVariableThrows() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("y = 100;"));
 	}
 }

@@ -1,27 +1,54 @@
 package magma;
 
 public class App {
-	private static final java.util.regex.Pattern leadingIntPattern = java.util.regex.Pattern.compile("^[-+]?\\d+");
-	private static final java.util.regex.Pattern typedPattern = java.util.regex.Pattern
-			.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
-	private static final java.util.regex.Pattern letPattern = java.util.regex.Pattern
-			.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
-	private static final java.util.regex.Pattern letUntypedPattern = java.util.regex.Pattern
-			.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+	private static final class Patterns {
+		static final java.util.regex.Pattern leadingInt = p("^[-+]?\\d+");
+		static final java.util.regex.Pattern typed = p("^([+-]?\\d+)([UI])(8|16|32|64)$");
+		static final java.util.regex.Pattern let = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
+		static final java.util.regex.Pattern letUntyped = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+		static final java.util.regex.Pattern letUntypedUninitialized = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
+		static final java.util.regex.Pattern letUninitialized = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*;\\s*$");
+		static final java.util.regex.Pattern assignment = p("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+
+		private static java.util.regex.Pattern p(String regex) {
+			return java.util.regex.Pattern.compile(regex);
+		}
+	}
 
 	private static final java.util.Map<String, TypedValue> variables = new java.util.HashMap<>();
 
 	private static final class TypedValue {
-		final java.math.BigInteger value;
+		final java.math.BigInteger value; // null if uninitialized
 		final boolean typed;
 		final String ui;
 		final int bits;
+		final boolean initialized;
 
 		TypedValue(java.math.BigInteger value, boolean typed, String ui, int bits) {
 			this.value = value;
 			this.typed = typed;
 			this.ui = ui;
 			this.bits = bits;
+			this.initialized = value != null;
+		}
+
+		// Constructor for uninitialized typed variables
+		private TypedValue(String ui, int bits, boolean isTyped) {
+			this.value = null;
+			this.typed = isTyped;
+			this.ui = isTyped ? ui : null;
+			this.bits = isTyped ? bits : 0;
+			this.initialized = false;
+		}
+
+		// Factory method for uninitialized typed variables
+		static TypedValue uninitializedTyped(String ui, int bits) {
+			return new TypedValue(ui, bits, true);
+		}
+
+		// Factory method for uninitialized untyped variables
+		static TypedValue uninitializedUntyped() {
+			return new TypedValue(null, 0, false);
 		}
 	}
 
@@ -33,7 +60,7 @@ public class App {
 		input = input.trim();
 
 		// Handle let bindings
-		java.util.regex.Matcher letMatcher = letPattern.matcher(input);
+		java.util.regex.Matcher letMatcher = Patterns.let.matcher(input);
 		if (letMatcher.matches()) {
 			String varName = letMatcher.group(1);
 			String ui = letMatcher.group(2);
@@ -69,7 +96,7 @@ public class App {
 		}
 
 		// Handle untyped let bindings
-		java.util.regex.Matcher letUntypedMatcher = letUntypedPattern.matcher(input);
+		java.util.regex.Matcher letUntypedMatcher = Patterns.letUntyped.matcher(input);
 		if (letUntypedMatcher.matches()) {
 			String varName = letUntypedMatcher.group(1);
 			String valueExpr = letUntypedMatcher.group(2);
@@ -84,6 +111,71 @@ public class App {
 
 			// Store the variable
 			variables.put(varName, typedVal);
+			return "";
+		}
+
+		// Handle uninitialized untyped let declarations (let y;)
+		java.util.regex.Matcher letUntypedUninitializedMatcher = Patterns.letUntypedUninitialized.matcher(input);
+		if (letUntypedUninitializedMatcher.matches()) {
+			String varName = letUntypedUninitializedMatcher.group(1);
+
+			// Check for duplicate variable
+			if (variables.containsKey(varName)) {
+				throw new IllegalArgumentException("Variable " + varName + " is already defined");
+			}
+
+			// Store uninitialized untyped variable
+			variables.put(varName, TypedValue.uninitializedUntyped());
+			return "";
+		}
+
+		// Handle uninitialized typed let declarations (let x : I32;)
+		java.util.regex.Matcher letUninitializedMatcher = Patterns.letUninitialized.matcher(input);
+		if (letUninitializedMatcher.matches()) {
+			String varName = letUninitializedMatcher.group(1);
+			String ui = letUninitializedMatcher.group(2);
+			int bits = Integer.parseInt(letUninitializedMatcher.group(3));
+
+			// Check for duplicate variable
+			if (variables.containsKey(varName)) {
+				throw new IllegalArgumentException("Variable " + varName + " is already defined");
+			}
+
+			// Store uninitialized variable
+			variables.put(varName, TypedValue.uninitializedTyped(ui, bits));
+			return "";
+		}
+
+		// Handle assignment statements (x = value;)
+		java.util.regex.Matcher assignmentMatcher = Patterns.assignment.matcher(input);
+		if (assignmentMatcher.matches()) {
+			String varName = assignmentMatcher.group(1);
+			String valueExpr = assignmentMatcher.group(2);
+
+			// Check if variable exists
+			if (!variables.containsKey(varName)) {
+				throw new IllegalArgumentException("Variable " + varName + " is not defined");
+			}
+
+			TypedValue existingVar = variables.get(varName);
+			TypedValue newVal = parseTypedValue(valueExpr);
+
+			// If variable is typed, validate assignment value matches type
+			if (existingVar.typed) {
+				if (newVal.typed && (!newVal.ui.equals(existingVar.ui) || newVal.bits != existingVar.bits)) {
+					throw new IllegalArgumentException("Type mismatch for assignment to " + varName + ": expected " + existingVar.ui + existingVar.bits + " but got " + newVal.ui + newVal.bits);
+				}
+				if (!newVal.typed) {
+					java.math.BigInteger[] range = rangeFor(existingVar.ui, existingVar.bits);
+					if (newVal.value.compareTo(range[0]) < 0 || newVal.value.compareTo(range[1]) > 0) {
+						throw new IllegalArgumentException("Value out of range for " + existingVar.ui + existingVar.bits + " suffix: " + valueExpr);
+					}
+					newVal = new TypedValue(newVal.value, true, existingVar.ui, existingVar.bits);
+				}
+			}
+
+			// Update the variable
+			variables.put(varName, newVal);
 			return "";
 		}
 
@@ -111,15 +203,19 @@ public class App {
 
 		// Check if input is a variable reference
 		if (variables.containsKey(input)) {
-			return variables.get(input).value.toString();
+			TypedValue var = variables.get(input);
+			if (!var.initialized) {
+				throw new IllegalArgumentException("Variable " + input + " is not initialized");
+			}
+			return var.value.toString();
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
-		if (typedPattern.matcher(input).matches() || leadingIntPattern.matcher(input).find()) {
+		if (Patterns.typed.matcher(input).matches() || Patterns.leadingInt.matcher(input).find()) {
 			return parseTypedValue(input).value.toString();
 		}
 
-		java.util.regex.Matcher m = leadingIntPattern.matcher(input);
+		java.util.regex.Matcher m = Patterns.leadingInt.matcher(input);
 		if (m.find()) {
 			return m.group();
 		}
@@ -256,7 +352,7 @@ public class App {
 			return variables.get(input);
 		}
 
-		java.util.regex.Matcher typedM = typedPattern.matcher(input);
+		java.util.regex.Matcher typedM = Patterns.typed.matcher(input);
 		if (typedM.matches()) {
 			String numStr = typedM.group(1);
 			String ui = typedM.group(2);
@@ -280,7 +376,7 @@ public class App {
 			}
 			return new TypedValue(val, true, ui, bits);
 		}
-		java.util.regex.Matcher m = leadingIntPattern.matcher(input);
+		java.util.regex.Matcher m = Patterns.leadingInt.matcher(input);
 		if (m.find()) {
 			java.math.BigInteger val = new java.math.BigInteger(m.group());
 			return new TypedValue(val, false, null, 0);
