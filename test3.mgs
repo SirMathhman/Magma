@@ -1,0 +1,1 @@
+type T<I> = I; extern fn test() : T<I32> | 0;

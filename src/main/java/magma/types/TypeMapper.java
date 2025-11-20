@@ -34,6 +34,10 @@ public class TypeMapper {
 			return mapGenericType((GenericType) resolvedType);
 		} else if (resolvedType instanceof UnionType) {
 			return mapUnionType((UnionType) resolvedType, generator);
+		} else if (resolvedType instanceof SizeOfType) {
+			return mapSizeOfType((SizeOfType) resolvedType, generator);
+		} else if (resolvedType instanceof BinaryType) {
+			return mapBinaryType((BinaryType) resolvedType, generator);
 		} else {
 			throw new RuntimeException("Unknown type: " + resolvedType.getClass().getSimpleName());
 		}
@@ -115,6 +119,22 @@ public class TypeMapper {
 			return "0".equals(((NamedType) type).getName());
 		}
 		return false;
+	}
+
+	private String mapSizeOfType(SizeOfType node, CTypeGenerator generator) {
+		// SizeOf<Type> maps to sizeof(type) expression
+		String innerType = mapToCType(node.getType(), generator);
+		return "sizeof(" + innerType + ")";
+	}
+
+	private String mapBinaryType(BinaryType node, CTypeGenerator generator) {
+		// BinaryType (e.g., SizeOf<Type> * Length) maps to (left * right) expression
+		String left = mapToCType(node.getLeft(), generator);
+		String right = mapToCType(node.getRight(), generator);
+		if (node.getOperator().type() == magma.lexer.TokenType.STAR) {
+			return "(" + left + " * " + right + ")";
+		}
+		throw new RuntimeException("Unsupported type operator: " + node.getOperator().type());
 	}
 
 	private String sanitizeTypeName(String typeName) {

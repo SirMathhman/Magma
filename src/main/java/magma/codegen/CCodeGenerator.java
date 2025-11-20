@@ -1028,6 +1028,24 @@ public class CCodeGenerator implements Visitor<String> {
 		return traitName + "_" + implementingTypeName + "_VTable";
 	}
 
+	@Override
+	public String visitSizeOfType(SizeOfType node) {
+		// SizeOf<Type> generates sizeof(type) in C
+		String cType = typeMapper.mapToCType(node.getType(), this::generateExpression);
+		return "sizeof(" + cType + ")";
+	}
+
+	@Override
+	public String visitBinaryType(BinaryType node) {
+		// Type * Type generates (leftType * rightType) in C
+		String left = typeMapper.mapToCType(node.getLeft(), this::generateExpression);
+		String right = typeMapper.mapToCType(node.getRight(), this::generateExpression);
+		if (node.getOperator().type() == magma.lexer.TokenType.STAR) {
+			return "(" + left + " * " + right + ")";
+		}
+		throw new RuntimeException("Unsupported type operator: " + node.getOperator().type());
+	}
+
 	private String indent() {
 		return INDENT.repeat(indentLevel);
 	}

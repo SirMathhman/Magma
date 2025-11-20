@@ -308,23 +308,44 @@ public class Parser {
 	}
 
 	private Type parseType() {
-		// Parse base type first
-		Type baseType = parseBaseType();
+		// Parse multiplicative types first (Type * Type)
+		Type type = parseMultiplicativeType();
 		
 		// Check for union types: Type | Type | Type
 		if (match(TokenType.PIPE)) {
 			List<Type> variants = new ArrayList<>();
-			variants.add(baseType);
+			variants.add(type);
 			do {
-				variants.add(parseBaseType());
+				variants.add(parseMultiplicativeType());
 			} while (match(TokenType.PIPE));
 			return new UnionType(variants);
 		}
 		
-		return baseType;
+		return type;
+	}
+
+	private Type parseMultiplicativeType() {
+		Type type = parseBaseType();
+		
+		// Check for type multiplication: Type * Type
+		// Note: * at the start of a type is a pointer, but * between types is multiplication
+		while (match(TokenType.STAR) && !check(TokenType.STAR)) {
+			Type right = parseBaseType();
+			type = new BinaryType(type, previous(), right);
+		}
+		
+		return type;
 	}
 
 	private Type parseBaseType() {
+		// Handle SizeOf types: SizeOf<Type>
+		if (match(TokenType.SIZEOF)) {
+			consume(TokenType.LESS, "Expected '<' after SizeOf");
+			Type type = parseType();
+			consume(TokenType.GREATER, "Expected '>' after type in SizeOf");
+			return new SizeOfType(type);
+		}
+
 		// Handle pointer types: *Type
 		if (match(TokenType.STAR)) {
 			Type baseType = parseBaseType();
@@ -341,8 +362,8 @@ public class Parser {
 	}
 
 	private Type parseNamedOrGenericType() {
-		// Accept IDENTIFIER or VOID keyword as type name
-		if (!match(TokenType.IDENTIFIER) && !match(TokenType.VOID)) {
+		// Accept IDENTIFIER, VOID keyword, or NUMBER (like 0 for null type) as type name
+		if (!match(TokenType.IDENTIFIER) && !match(TokenType.VOID) && !match(TokenType.NUMBER)) {
 			throw new RuntimeException("Expected type name at line " + peek().line() + ", column " + peek().column());
 		}
 		String name = previous().lexeme();
@@ -360,7 +381,9 @@ public class Parser {
 
 		if (!check(TokenType.GREATER)) {
 			do {
-				typeArguments.add(parseType());
+				// Parse type argument - use parseMultiplicativeType to avoid parsing union types
+				// Union types should only be parsed at the top level
+				typeArguments.add(parseMultiplicativeType());
 			} while (match(TokenType.COMMA));
 		}
 

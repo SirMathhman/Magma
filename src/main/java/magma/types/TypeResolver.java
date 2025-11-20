@@ -40,6 +40,15 @@ public class TypeResolver {
 					.map(this::resolve)
 					.toList();
 			return new UnionType(resolvedVariants);
+		} else if (type instanceof SizeOfType) {
+			SizeOfType sizeOf = (SizeOfType) type;
+			Type innerType = resolve(sizeOf.getType());
+			return new SizeOfType(innerType);
+		} else if (type instanceof BinaryType) {
+			BinaryType binary = (BinaryType) type;
+			Type left = resolve(binary.getLeft());
+			Type right = resolve(binary.getRight());
+			return new BinaryType(left, binary.getOperator(), right);
 		}
 		return type;
 	}

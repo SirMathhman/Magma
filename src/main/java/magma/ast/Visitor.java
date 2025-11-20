@@ -54,4 +54,8 @@ public interface Visitor<T> {
 	T visitTraitDefinition(TraitDefinition node);
 
 	T visitTraitImplementation(TraitImplementation node);
+
+	T visitSizeOfType(SizeOfType node);
+
+	T visitBinaryType(BinaryType node);
 }
