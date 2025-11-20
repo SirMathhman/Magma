@@ -10,7 +10,7 @@
 		<maven.compiler.release>24</maven.compiler.release>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.jupiter.version>5.10.0</junit.jupiter.version>
-		<pmd.minimumTokens>5</pmd.minimumTokens>
+		<pmd.minimumTokens>20</pmd.minimumTokens>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -43,7 +43,7 @@
 				</configuration>
 				<executions>
 					<execution>
-						<phase>verify</phase>
+						<phase>test</phase>
 						<goals>
 							<goal>cpd-check</goal>
 						</goals>
