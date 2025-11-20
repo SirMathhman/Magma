@@ -1,8 +1,15 @@
 package magma;
 
+import magma.ast.Node;
+import magma.codegen.CCodeGenerator;
+import magma.lexer.Lexer;
+import magma.lexer.Token;
+import magma.parser.Parser;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.List;
 
 public class Main {
 	public static void main(String[] args) {
@@ -25,6 +32,20 @@ public class Main {
 	}
 
 	private static String compile(String source) {
-		return "// Compiled from Magma source\n#include <stdio.h>\n\nint main(void) {\n    return 0;\n}\n";
+		Lexer lexer = new Lexer(source);
+		List<Token> tokens = lexer.tokenize();
+
+		Parser parser = new Parser(tokens);
+		Node ast = parser.parse();
+
+		CCodeGenerator generator = new CCodeGenerator();
+		String expression = generator.generate(ast);
+
+		return "// Compiled from Magma source\n"
+			+ "#include <stdio.h>\n\n"
+			+ "int main(void) {\n"
+			+ "    int result = " + expression + ";\n"
+			+ "    return result;\n"
+			+ "}\n";
 	}
 }
