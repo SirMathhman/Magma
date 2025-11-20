@@ -2,7 +2,9 @@ package magma;
 
 public class App {
 	private static final java.util.regex.Pattern leadingIntPattern = java.util.regex.Pattern.compile("^[-+]?\\d+");
-	private static final java.util.regex.Pattern typedPattern = java.util.regex.Pattern.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
+	private static final java.util.regex.Pattern typedPattern = java.util.regex.Pattern
+			.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
+
 	public static String interpret(String input) {
 		if (input == null) {
 			return null;
@@ -16,11 +18,12 @@ public class App {
 			TypedValue leftTV = parseTypedValue(left);
 			TypedValue rightTV = parseTypedValue(right);
 
-			// If both operands are typed, their UI and bit width must match
+			// If both operands are typed and their bit width differs, disallow mixing
 			if (leftTV.typed && rightTV.typed) {
-				if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
-					throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
+				if (leftTV.bits != rightTV.bits) {
+					throw new IllegalArgumentException("Mixed typed suffixes with different bit width not allowed: " + input);
 				}
+				// If bits match, signed/unsigned difference is allowed (e.g., I16 + U16)
 			}
 
 			try {
@@ -103,7 +106,8 @@ public class App {
 				min = java.math.BigInteger.ZERO;
 				max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
 				if (val.signum() < 0) {
-					throw new IllegalArgumentException("Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
+					throw new IllegalArgumentException(
+							"Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
 				}
 			} else {
 				min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
