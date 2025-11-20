@@ -20,4 +20,9 @@ public class AppTest {
 	public void testInterpretNegativeU8Throws() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("-1U8"));
 	}
+
+	@Test
+	public void testInterpretU8OverflowThrows() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("256U8"));
+	}
 }
