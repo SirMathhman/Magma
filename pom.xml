@@ -40,6 +40,8 @@
 				<configuration>
 					<minimumTokens>${pmd.minimumTokens}</minimumTokens>
 					<failOnViolation>false</failOnViolation>
+					<ignoreLiterals>true</ignoreLiterals>
+					<ignoreIdentifiers>true</ignoreIdentifiers>
 				</configuration>
 				<executions>
 					<execution>
