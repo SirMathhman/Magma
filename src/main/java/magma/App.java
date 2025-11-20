@@ -2,16 +2,24 @@ package magma;
 
 public class App {
 	private static final class Patterns {
-		static final java.util.regex.Pattern leadingInt = p("^[-+]?\\d+");
-		static final java.util.regex.Pattern typed = p("^([+-]?\\d+)([UI])(8|16|32|64)$");
-		static final java.util.regex.Pattern let = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
-		static final java.util.regex.Pattern letUntyped = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
-		static final java.util.regex.Pattern letUntypedUninitialized = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
-		static final java.util.regex.Pattern letUninitialized = p("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*;\\s*$");
-		static final java.util.regex.Pattern assignment = p("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+		private static final java.util.regex.Pattern leadingInt;
+		private static final java.util.regex.Pattern typed;
+		private static final java.util.regex.Pattern let;
+		private static final java.util.regex.Pattern letUntyped;
+		private static final java.util.regex.Pattern letUntypedUninitialized;
+		private static final java.util.regex.Pattern letUninitialized;
+		private static final java.util.regex.Pattern assignment;
+		private static final java.util.regex.Pattern max;
 
-		private static java.util.regex.Pattern p(String regex) {
-			return java.util.regex.Pattern.compile(regex);
+		static {
+			leadingInt = java.util.regex.Pattern.compile("^[-+]?\\d+");
+			typed = java.util.regex.Pattern.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
+			let = java.util.regex.Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
+			letUntyped = java.util.regex.Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+			letUntypedUninitialized = java.util.regex.Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*;\\s*$");
+			letUninitialized = java.util.regex.Pattern.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*;\\s*$");
+			assignment = java.util.regex.Pattern.compile("^([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
+			max = java.util.regex.Pattern.compile("^max<([UI])(8|16|32|64)>\\(\\)$");
 		}
 	}
 
@@ -163,12 +171,14 @@ public class App {
 			// If variable is typed, validate assignment value matches type
 			if (existingVar.typed) {
 				if (newVal.typed && (!newVal.ui.equals(existingVar.ui) || newVal.bits != existingVar.bits)) {
-					throw new IllegalArgumentException("Type mismatch for assignment to " + varName + ": expected " + existingVar.ui + existingVar.bits + " but got " + newVal.ui + newVal.bits);
+					throw new IllegalArgumentException("Type mismatch for assignment to " + varName + ": expected "
+							+ existingVar.ui + existingVar.bits + " but got " + newVal.ui + newVal.bits);
 				}
 				if (!newVal.typed) {
 					java.math.BigInteger[] range = rangeFor(existingVar.ui, existingVar.bits);
 					if (newVal.value.compareTo(range[0]) < 0 || newVal.value.compareTo(range[1]) > 0) {
-						throw new IllegalArgumentException("Value out of range for " + existingVar.ui + existingVar.bits + " suffix: " + valueExpr);
+						throw new IllegalArgumentException(
+								"Value out of range for " + existingVar.ui + existingVar.bits + " suffix: " + valueExpr);
 					}
 					newVal = new TypedValue(newVal.value, true, existingVar.ui, existingVar.bits);
 				}
@@ -199,6 +209,16 @@ public class App {
 		int mulDivOpIdx = findRightmostOperator(input, 1, new char[] { '*', '/' });
 		if (mulDivOpIdx > 0) {
 			return processBinaryOp(input, mulDivOpIdx, new char[] { '*', '/' });
+		}
+
+		// Handle built-in max<TYPE>() function
+		java.util.regex.Matcher maxMatcher = Patterns.max.matcher(input);
+		if (maxMatcher.matches()) {
+			String ui = maxMatcher.group(1);
+			int bits = Integer.parseInt(maxMatcher.group(2));
+			java.math.BigInteger[] range = rangeFor(ui, bits);
+			java.math.BigInteger maxVal = range[1];
+			return maxVal.toString() + ui + bits;
 		}
 
 		// Check if input is a variable reference

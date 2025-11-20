@@ -266,4 +266,44 @@ public class AppTest {
 	public void testInterpretAssignmentToUndefinedVariableThrows() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("y = 100;"));
 	}
+
+	@Test
+	public void testInterpretMaxU8() {
+		assertEquals("255U8", App.interpret("max<U8>()"));
+	}
+
+	@Test
+	public void testInterpretMaxU16() {
+		assertEquals("65535U16", App.interpret("max<U16>()"));
+	}
+
+	@Test
+	public void testInterpretMaxU32() {
+		assertEquals("4294967295U32", App.interpret("max<U32>()"));
+	}
+
+	@Test
+	public void testInterpretMaxU64() {
+		assertEquals("18446744073709551615U64", App.interpret("max<U64>()"));
+	}
+
+	@Test
+	public void testInterpretMaxI8() {
+		assertEquals("127I8", App.interpret("max<I8>()"));
+	}
+
+	@Test
+	public void testInterpretMaxI16() {
+		assertEquals("32767I16", App.interpret("max<I16>()"));
+	}
+
+	@Test
+	public void testInterpretMaxI32() {
+		assertEquals("2147483647I32", App.interpret("max<I32>()"));
+	}
+
+	@Test
+	public void testInterpretMaxI64() {
+		assertEquals("9223372036854775807I64", App.interpret("max<I64>()"));
+	}
 }
