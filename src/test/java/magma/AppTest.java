@@ -187,4 +187,18 @@ public class AppTest {
 		assertEquals("150", App.interpret("x + 50"));
 		assertEquals("50", App.interpret("x - 50"));
 	}
+
+	@Test
+	public void testInterpretUntypedLetBinding() {
+		assertEquals("", App.interpret("let x = 100;"));
+		assertEquals("100", App.interpret("x"));
+	}
+
+	@Test
+	public void testInterpretUntypedLetBindingInExpression() {
+		App.interpret("let x = 100;");
+		assertEquals("150", App.interpret("x + 50"));
+		App.interpret("let y = -50;");
+		assertEquals("-50", App.interpret("y"));
+	}
 }

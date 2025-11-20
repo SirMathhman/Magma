@@ -6,6 +6,8 @@ public class App {
 			.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
 	private static final java.util.regex.Pattern letPattern = java.util.regex.Pattern
 			.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
+	private static final java.util.regex.Pattern letUntypedPattern = java.util.regex.Pattern
+			.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*=\\s*(.+);\\s*$");
 
 	private static final java.util.Map<String, TypedValue> variables = new java.util.HashMap<>();
 
@@ -55,6 +57,20 @@ public class App {
 				}
 				typedVal = new TypedValue(typedVal.value, true, ui, bits);
 			}
+
+			// Store the variable
+			variables.put(varName, typedVal);
+			return "";
+		}
+
+		// Handle untyped let bindings
+		java.util.regex.Matcher letUntypedMatcher = letUntypedPattern.matcher(input);
+		if (letUntypedMatcher.matches()) {
+			String varName = letUntypedMatcher.group(1);
+			String valueExpr = letUntypedMatcher.group(2);
+
+			// Parse the value (will be untyped)
+			TypedValue typedVal = parseTypedValue(valueExpr);
 
 			// Store the variable
 			variables.put(varName, typedVal);
