@@ -51,7 +51,7 @@ public class Parser {
 			traitImplementations.add(parseTraitImplementation());
 		}
 
-		// Parse functions, extern functions, and statements
+		// Parse functions, extern functions, type definitions, trait implementations, and statements
 		while (!isAtEnd()) {
 			if (check(TokenType.EXTERN) && position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.FN) {
 				// extern fn ...
@@ -60,6 +60,12 @@ public class Parser {
 				externFunctions.add(parseExternFunctionDeclaration());
 			} else if (match(TokenType.FN)) {
 				functions.add(parseFunctionDefinition());
+			} else if (match(TokenType.TYPE)) {
+				// Allow type definitions after traits/implementations
+				typeDefinitions.add(parseTypeDefinition());
+			} else if (match(TokenType.IMPL)) {
+				// Allow trait implementations after type definitions
+				traitImplementations.add(parseTraitImplementation());
 			} else {
 				statements.add(parseStatement());
 			}
@@ -533,6 +539,9 @@ public class Parser {
 
 		// Optional type annotation
 		if (match(TokenType.COLON)) {
+			// Try to parse as type first
+			// If that fails and we see SizeOf, it might be an expression in type context
+			// For now, we'll try parsing as type and let it fail with a clearer error if needed
 			Type type = parseType();
 			return new FunctionParameter(name, type);
 		}

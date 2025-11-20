@@ -51,6 +51,7 @@
 				<version>3.5.0</version>
 				<configuration>
 					<mainClass>magma.Main</mainClass>
+					<commandlineArgs>src/main/windows/magma/main.mgs target/main.c</commandlineArgs>
 				</configuration>
 			</plugin>
 
