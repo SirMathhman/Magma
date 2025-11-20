@@ -61,4 +61,11 @@ public class AppTest {
 		assertEquals("3", App.interpret("1 + 2"));
 		assertEquals("3", App.interpret("1+2"));
 	}
+
+	@Test
+	public void testInterpretAdditionMixed() {
+		assertEquals("3", App.interpret("1 + 2U8"));
+		assertEquals("3", App.interpret("2U8 + 1"));
+		assertEquals("3", App.interpret("2U8+1U8"));
+	}
 }

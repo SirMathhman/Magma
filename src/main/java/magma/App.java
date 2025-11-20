@@ -5,12 +5,21 @@ public class App {
 		if (input == null) {
 			return null;
 		}
-		java.util.regex.Pattern addPattern = java.util.regex.Pattern.compile("^\\s*([+-]?\\d+)\\s*\\+\\s*([+-]?\\d+)\\s*$");
+		java.util.regex.Pattern addPattern = java.util.regex.Pattern.compile("^\\s*(.+?)\\s*\\+\\s*(.+?)\\s*$");
 		java.util.regex.Matcher addM = addPattern.matcher(input);
 		if (addM.matches()) {
-			java.math.BigInteger a = new java.math.BigInteger(addM.group(1));
-			java.math.BigInteger b = new java.math.BigInteger(addM.group(2));
-			return a.add(b).toString();
+			// Interpret both operands (handles typed suffixes) then add
+			String left = addM.group(1).trim();
+			String right = addM.group(2).trim();
+			String leftInterpreted = interpret(left);
+			String rightInterpreted = interpret(right);
+			try {
+				java.math.BigInteger a = new java.math.BigInteger(leftInterpreted);
+				java.math.BigInteger b = new java.math.BigInteger(rightInterpreted);
+				return a.add(b).toString();
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException("Invalid operands for addition: " + input);
+			}
 		}
 
 		java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[-+]?\\d+");
