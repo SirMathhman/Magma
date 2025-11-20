@@ -4,6 +4,24 @@ public class App {
 	private static final java.util.regex.Pattern leadingIntPattern = java.util.regex.Pattern.compile("^[-+]?\\d+");
 	private static final java.util.regex.Pattern typedPattern = java.util.regex.Pattern
 			.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
+	private static final java.util.regex.Pattern letPattern = java.util.regex.Pattern
+			.compile("^let\\s+([a-zA-Z_][a-zA-Z0-9_]*)\\s*:\\s*([UI])(8|16|32|64)\\s*=\\s*(.+);\\s*$");
+
+	private static final java.util.Map<String, TypedValue> variables = new java.util.HashMap<>();
+
+	private static final class TypedValue {
+		final java.math.BigInteger value;
+		final boolean typed;
+		final String ui;
+		final int bits;
+
+		TypedValue(java.math.BigInteger value, boolean typed, String ui, int bits) {
+			this.value = value;
+			this.typed = typed;
+			this.ui = ui;
+			this.bits = bits;
+		}
+	}
 
 	public static String interpret(String input) {
 		if (input == null) {
@@ -11,6 +29,36 @@ public class App {
 		}
 
 		input = input.trim();
+
+		// Handle let bindings
+		java.util.regex.Matcher letMatcher = letPattern.matcher(input);
+		if (letMatcher.matches()) {
+			String varName = letMatcher.group(1);
+			String ui = letMatcher.group(2);
+			int bits = Integer.parseInt(letMatcher.group(3));
+			String valueExpr = letMatcher.group(4);
+
+			// Parse and validate the value
+			TypedValue typedVal = parseTypedValue(valueExpr);
+			
+			// Verify the value matches the declared type
+			if (typedVal.typed && (!typedVal.ui.equals(ui) || typedVal.bits != bits)) {
+				throw new IllegalArgumentException("Type mismatch for variable " + varName + ": expected " + ui + bits + " but got " + typedVal.ui + typedVal.bits);
+			}
+			
+			// If untyped value, validate it fits in the declared type
+			if (!typedVal.typed) {
+				java.math.BigInteger[] range = rangeFor(ui, bits);
+				if (typedVal.value.compareTo(range[0]) < 0 || typedVal.value.compareTo(range[1]) > 0) {
+					throw new IllegalArgumentException("Value out of range for " + ui + bits + " suffix: " + valueExpr);
+				}
+				typedVal = new TypedValue(typedVal.value, true, ui, bits);
+			}
+			
+			// Store the variable
+			variables.put(varName, typedVal);
+			return "";
+		}
 
 		// Handle parentheses
 		if (input.startsWith("(") && input.endsWith(")")) {
@@ -32,6 +80,11 @@ public class App {
 		int mulDivOpIdx = findRightmostOperator(input, 1, new char[] { '*', '/' });
 		if (mulDivOpIdx > 0) {
 			return processBinaryOp(input, mulDivOpIdx, new char[] { '*', '/' });
+		}
+
+		// Check if input is a variable reference
+		if (variables.containsKey(input)) {
+			return variables.get(input).value.toString();
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
@@ -156,20 +209,6 @@ public class App {
 			}
 		}
 		return lastOpIdx;
-	}
-
-	private static final class TypedValue {
-		final java.math.BigInteger value;
-		final boolean typed;
-		final String ui;
-		final int bits;
-
-		TypedValue(java.math.BigInteger value, boolean typed, String ui, int bits) {
-			this.value = value;
-			this.typed = typed;
-			this.ui = ui;
-			this.bits = bits;
-		}
 	}
 
 	private static TypedValue parseTypedValue(String input) {

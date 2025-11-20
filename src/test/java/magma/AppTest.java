@@ -160,4 +160,16 @@ public class AppTest {
 	public void testInterpretParenthesesDivisionByZero() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("4 / (2 - 2)"));
 	}
+
+	@Test
+	public void testInterpretLetBinding() {
+		assertEquals("", App.interpret("let x : U8 = 100;"));
+		assertEquals("", App.interpret("let y : I16 = -50;"));
+	}
+
+	@Test
+	public void testInterpretLetBindingInvalid() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : U8 = 256;"));
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : I16 = -33000;"));
+	}
 }
