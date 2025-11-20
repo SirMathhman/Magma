@@ -138,4 +138,9 @@ public class AppTest {
 	public void testInterpretChainedMultiplication() {
 		assertEquals("24", App.interpret("2 * 3 * 4"));
 	}
+
+	@Test
+	public void testInterpretDivisionByZero() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("4 / 0"));
+	}
 }

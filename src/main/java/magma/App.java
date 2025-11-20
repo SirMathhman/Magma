@@ -11,15 +11,15 @@ public class App {
 		}
 
 		// Handle lower precedence operators first: + and -
-		int addSubOpIdx = findOperator(input, 1, new char[]{'+', '-'});
+		int addSubOpIdx = findOperator(input, 1, new char[] { '+', '-' });
 		if (addSubOpIdx > 0) {
-			return processBinaryOp(input, addSubOpIdx, new char[]{'+', '-'});
+			return processBinaryOp(input, addSubOpIdx, new char[] { '+', '-' });
 		}
 
 		// Handle higher precedence operators: * and /
-		int mulDivOpIdx = findOperator(input, 1, new char[]{'*', '/'});
+		int mulDivOpIdx = findOperator(input, 1, new char[] { '*', '/' });
 		if (mulDivOpIdx > 0) {
-			return processBinaryOp(input, mulDivOpIdx, new char[]{'*', '/', '+', '-'});
+			return processBinaryOp(input, mulDivOpIdx, new char[] { '*', '/', '+', '-' });
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
@@ -80,7 +80,8 @@ public class App {
 					break;
 				}
 			}
-			if (!isOperator) continue;
+			if (!isOperator)
+				continue;
 
 			if (!Character.isWhitespace(input.charAt(i - 1))) {
 				return i;
@@ -120,7 +121,8 @@ public class App {
 					break;
 				}
 			}
-			if (!isNextOp) continue;
+			if (!isNextOp)
+				continue;
 
 			if (i == 0 || Character.isWhitespace(input.charAt(i - 1))) {
 				String potentialRight = input.substring(0, i).trim();
@@ -246,6 +248,8 @@ public class App {
 
 			validateResult(result, leftTV, rightTV, input);
 			return result.toString();
+		} catch (ArithmeticException ex) {
+			throw new IllegalArgumentException("Division by zero: " + input);
 		} catch (NumberFormatException ex) {
 			throw new IllegalArgumentException("Invalid operands for operation: " + input);
 		}
