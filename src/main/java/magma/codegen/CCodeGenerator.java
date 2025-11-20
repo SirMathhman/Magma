@@ -18,6 +18,7 @@ public class CCodeGenerator implements Visitor<String> {
 	private List<TraitDefinition> traits = new ArrayList<>();
 	private List<TraitImplementation> traitImplementations = new ArrayList<>();
 	private List<FunctionDefinition> functions = new ArrayList<>();
+	private List<ExternFunctionDeclaration> externFunctions = new ArrayList<>();
 	private java.util.Map<String, Type> variableTypes = new java.util.HashMap<>();
 	private int indentLevel = 0;
 	private static final String INDENT = "    ";
@@ -35,6 +36,7 @@ public class CCodeGenerator implements Visitor<String> {
 		this.traits = program.getTraits();
 		this.traitImplementations = program.getTraitImplementations();
 		this.functions = program.getFunctions();
+		this.externFunctions = program.getExternFunctions();
 		
 		// Reset variable type tracking for this program
 		this.variableTypes.clear();
@@ -185,8 +187,14 @@ public class CCodeGenerator implements Visitor<String> {
 				type = typeMapper.mapToCType(typeAnnotation, this::generateExpression);
 			}
 		} else {
-			// Type inference: default to int for now
-			type = "int";
+			// Type inference: try to infer from initializer
+			Type inferredType = inferTypeFromExpression(node.getInitializer());
+			if (inferredType != null) {
+				type = typeMapper.mapToCType(inferredType, this::generateExpression);
+			} else {
+				// Default to int for now
+				type = "int";
+			}
 		}
 		String name = node.getName();
 		String initializer = node.getInitializer().accept(this);
@@ -194,6 +202,12 @@ public class CCodeGenerator implements Visitor<String> {
 		// Track variable type for method call dispatch
 		if (node.hasTypeAnnotation()) {
 			variableTypes.put(name, node.getTypeAnnotation());
+		} else {
+			// Track inferred type
+			Type inferredType = inferTypeFromExpression(node.getInitializer());
+			if (inferredType != null) {
+				variableTypes.put(name, inferredType);
+			}
 		}
 		
 		return type + " " + name + arraySuffix + " = " + initializer + ";";
@@ -254,6 +268,14 @@ public class CCodeGenerator implements Visitor<String> {
 				if (fn.getName().equals(call.getName())) {
 					if (fn.hasReturnType()) {
 						return fn.getReturnType();
+					}
+				}
+			}
+			// Check extern functions
+			for (ExternFunctionDeclaration extFn : externFunctions) {
+				if (extFn.getName().equals(call.getName())) {
+					if (extFn.hasReturnType()) {
+						return extFn.getReturnType();
 					}
 				}
 			}

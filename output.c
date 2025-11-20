@@ -1,7 +1,10 @@
-// Compiled from Magma source
-#include <stdio.h>
+#include <stddef.h>
+#include <stdint.h>
 
 int main(void) {
-    int result = (2 + (3 * 4));
-    return result;
+    int array = malloc((sizeof(int32_t) * 100));
+    for (int i = 0; i < 100; i++) {
+        array[i] = i;
+    }
+    printf("%d", array[2]);
 }

@@ -392,13 +392,25 @@ public class Parser {
 		consume(TokenType.IDENTIFIER, "Expected function name");
 		String name = previous().lexeme();
 
-		// Parse generic type arguments: <Type1, Type2>
+		// Parse generic type arguments: <Type1, Type2> or <Type1, Param : Constraint>
 		List<Type> typeArguments = null;
 		if (match(TokenType.LESS)) {
 			typeArguments = new ArrayList<>();
 			if (!check(TokenType.GREATER)) {
 				do {
-					typeArguments.add(parseType());
+					// Parse either a type or a generic parameter with constraint
+					if (check(TokenType.IDENTIFIER) && position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.COLON) {
+						// Generic parameter with constraint: Param : Constraint
+						consume(TokenType.IDENTIFIER, "Expected parameter name");
+						String paramName = previous().lexeme();
+						consume(TokenType.COLON, "Expected ':' after parameter name");
+						Type constraint = parseType();
+						// Store as NamedType for now (constraint is ignored in AST)
+						typeArguments.add(new NamedType(paramName));
+					} else {
+						// Regular type
+						typeArguments.add(parseType());
+					}
 				} while (match(TokenType.COMMA));
 			}
 			consume(TokenType.GREATER, "Expected '>' after generic type arguments");
@@ -443,13 +455,25 @@ public class Parser {
 		consume(TokenType.IDENTIFIER, "Expected function name");
 		String name = previous().lexeme();
 
-		// Parse generic type arguments: <Type1, Type2>
+		// Parse generic type arguments: <Type1, Type2> or <Type1, Param : Constraint>
 		List<Type> typeArguments = null;
 		if (match(TokenType.LESS)) {
 			typeArguments = new ArrayList<>();
 			if (!check(TokenType.GREATER)) {
 				do {
-					typeArguments.add(parseType());
+					// Parse either a type or a generic parameter with constraint
+					if (check(TokenType.IDENTIFIER) && position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.COLON) {
+						// Generic parameter with constraint: Param : Constraint
+						consume(TokenType.IDENTIFIER, "Expected parameter name");
+						String paramName = previous().lexeme();
+						consume(TokenType.COLON, "Expected ':' after parameter name");
+						Type constraint = parseType();
+						// Store as NamedType for now (constraint is ignored in AST)
+						typeArguments.add(new NamedType(paramName));
+					} else {
+						// Regular type
+						typeArguments.add(parseType());
+					}
 				} while (match(TokenType.COMMA));
 			}
 			consume(TokenType.GREATER, "Expected '>' after generic type arguments");

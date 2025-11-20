@@ -1,14 +1,11 @@
 package magma;
 
 import magma.codegen.CCodeGenerator;
-import magma.lexer.Lexer;
-import magma.lexer.Token;
-import magma.parser.Parser;
+import magma.ast.Program;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.List;
 
 public class Main {
 	public static void main(String[] args) {
@@ -21,23 +18,13 @@ public class Main {
 		String outputPath = args[1];
 
 		try {
-			String source = Files.readString(Paths.get(inputPath));
-			String compiled = compile(source);
+			Program program = ModuleResolver.resolveMainModule(inputPath);
+			CCodeGenerator generator = new CCodeGenerator();
+			String compiled = generator.generate(program);
 			Files.writeString(Paths.get(outputPath), compiled);
 		} catch (IOException e) {
 			System.err.println("Error: " + e.getMessage());
 			System.exit(1);
 		}
-	}
-
-	private static String compile(String source) {
-		Lexer lexer = new Lexer(source);
-		List<Token> tokens = lexer.tokenize();
-
-		Parser parser = new Parser(tokens);
-		magma.ast.Program program = parser.parse();
-
-		CCodeGenerator generator = new CCodeGenerator();
-		return generator.generate(program);
 	}
 }

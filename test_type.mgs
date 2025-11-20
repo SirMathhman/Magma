@@ -1,0 +1,1 @@
+type Allocated<Type, Length : USize> = *[Type; 0; Length];
