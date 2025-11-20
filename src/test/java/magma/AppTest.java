@@ -82,4 +82,23 @@ public class AppTest {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("255U8 + 1"));
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("1 + 255U8"));
 	}
+
+	@Test
+	public void testInterpretSubtraction() {
+		assertEquals("1", App.interpret("3 - 2"));
+		assertEquals("1", App.interpret("3-2"));
+	}
+
+	@Test
+	public void testInterpretSubtractionMixed() {
+		assertEquals("1", App.interpret("3U8 - 2"));
+		assertEquals("1", App.interpret("3 - 2U8"));
+		assertEquals("1", App.interpret("3U8 - 2U8"));
+	}
+
+	@Test
+	public void testInterpretSubtractionUnderflow() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("1U8 - 2"));
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("0I16 - 33000"));
+	}
 }

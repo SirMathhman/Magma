@@ -46,6 +46,43 @@ public class App {
 			}
 		}
 
+		// Handle subtraction
+		java.util.regex.Pattern subPattern = java.util.regex.Pattern.compile("^\\s*(.+?)\\s*-\\s*(.+?)\\s*$");
+		java.util.regex.Matcher subM = subPattern.matcher(input);
+		if (subM.matches()) {
+			String left = subM.group(1).trim();
+			String right = subM.group(2).trim();
+			TypedValue leftTV = parseTypedValue(left);
+			TypedValue rightTV = parseTypedValue(right);
+
+			// If both operands are typed, their UI and bit width must match
+			if (leftTV.typed && rightTV.typed) {
+				if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
+					throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
+				}
+			}
+
+			try {
+				java.math.BigInteger a = leftTV.value;
+				java.math.BigInteger b = rightTV.value;
+				java.math.BigInteger diff = a.subtract(b);
+
+				// If either operand is typed, verify the result is within the typed range
+				if (leftTV.typed || rightTV.typed) {
+					TypedValue typedTV = leftTV.typed ? leftTV : rightTV;
+					java.math.BigInteger[] range = rangeFor(typedTV.ui, typedTV.bits);
+					if (diff.compareTo(range[0]) < 0 || diff.compareTo(range[1]) > 0) {
+						throw new IllegalArgumentException(
+								"Result out of range for " + typedTV.ui + typedTV.bits + " suffix: " + input);
+					}
+				}
+
+				return diff.toString();
+			} catch (NumberFormatException ex) {
+				throw new IllegalArgumentException("Invalid operands for subtraction: " + input);
+			}
+		}
+
 		// If input is a typed or plain integer, delegate to parseTypedValue
 		if (typedPattern.matcher(input).matches() || leadingIntPattern.matcher(input).find()) {
 			return parseTypedValue(input).value.toString();
