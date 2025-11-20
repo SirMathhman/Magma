@@ -25,4 +25,34 @@ public class AppTest {
 	public void testInterpretU8OverflowThrows() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("256U8"));
 	}
+
+	@Test
+	public void testInterpretU16() {
+		assertEquals("65535", App.interpret("65535U16"));
+	}
+
+	@Test
+	public void testInterpretU32() {
+		assertEquals("4294967295", App.interpret("4294967295U32"));
+	}
+
+	@Test
+	public void testInterpretU64() {
+		assertEquals("18446744073709551615", App.interpret("18446744073709551615U64"));
+	}
+
+	@Test
+	public void testInterpretI16Overflow() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("32768I16"));
+	}
+
+	@Test
+	public void testInterpretI32Overflow() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("2147483648I32"));
+	}
+
+	@Test
+	public void testInterpretI64Overflow() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("9223372036854775808I64"));
+	}
 }

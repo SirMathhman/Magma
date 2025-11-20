@@ -6,23 +6,37 @@ public class App {
 			return null;
 		}
 		java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[-+]?\\d+");
-		java.util.regex.Pattern u8Pattern = java.util.regex.Pattern.compile("^([+-]?\\d+)U8$");
+		java.util.regex.Pattern typedPattern = java.util.regex.Pattern.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
 
-		java.util.regex.Matcher u8m = u8Pattern.matcher(input);
-		if (u8m.matches()) {
-			String numStr = u8m.group(1);
+		java.util.regex.Matcher typedM = typedPattern.matcher(input);
+		if (typedM.matches()) {
+			String numStr = typedM.group(1);
+			String ui = typedM.group(2); // U or I
+			int bits = Integer.parseInt(typedM.group(3));
+			java.math.BigInteger val;
 			try {
-				long val = Long.parseLong(numStr);
-				if (val < 0) {
-					throw new IllegalArgumentException("Negative value not allowed with unsigned U8 suffix: " + input);
-				}
-				if (val > 255) {
-					throw new IllegalArgumentException("Value out of range for U8 suffix: " + input);
-				}
-				return Long.toString(val);
+				val = new java.math.BigInteger(numStr);
 			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid numeric value for U8 suffix: " + input);
+				throw new IllegalArgumentException("Invalid numeric value for " + ui + bits + " suffix: " + input);
 			}
+
+			java.math.BigInteger min;
+			java.math.BigInteger max;
+			if (ui.equals("U")) {
+				min = java.math.BigInteger.ZERO;
+				max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
+				if (val.signum() < 0) {
+					throw new IllegalArgumentException("Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
+				}
+			} else { // signed
+				min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
+				max = java.math.BigInteger.valueOf(2).pow(bits - 1).subtract(java.math.BigInteger.ONE);
+			}
+
+			if (val.compareTo(min) < 0 || val.compareTo(max) > 0) {
+				throw new IllegalArgumentException("Value out of range for " + ui + bits + " suffix: " + input);
+			}
+			return val.toString();
 		}
 
 		java.util.regex.Matcher m = leadingInt.matcher(input);
