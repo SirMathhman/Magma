@@ -115,4 +115,27 @@ public class AppTest {
 		assertEquals("0", App.interpret("5 - 2 - 3"));
 		assertEquals("6", App.interpret("1 + 2 - 3 + 6"));
 	}
+
+	@Test
+	public void testInterpretMultiplication() {
+		assertEquals("6", App.interpret("3 * 2"));
+		assertEquals("6", App.interpret("3*2"));
+	}
+
+	@Test
+	public void testInterpretMultiplicationMixed() {
+		assertEquals("6", App.interpret("3 * 2U8"));
+		assertEquals("6", App.interpret("2U8 * 3"));
+		assertEquals("6", App.interpret("2U8 * 3U8"));
+	}
+
+	@Test
+	public void testInterpretMultiplicationOverflow() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("200U8 * 2"));
+	}
+
+	@Test
+	public void testInterpretChainedMultiplication() {
+		assertEquals("24", App.interpret("2 * 3 * 4"));
+	}
 }

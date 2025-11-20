@@ -10,96 +10,16 @@ public class App {
 			return null;
 		}
 
-		// Find the first + or - operator (skipping leading sign on first character)
-		// Start from position 1 to skip any leading +/- sign
-		int opIdx = -1;
-		char opChar = ' ';
-
-		// Scan from position 1 onwards
-		for (int i = 1; i < input.length(); i++) {
-			char c = input.charAt(i);
-			if ((c == '+' || c == '-') && !Character.isWhitespace(input.charAt(i - 1))) {
-				// Found operator, but verify it's not a sign by checking previous char
-				// Operators appear after numbers or closing parens/brackets, not after
-				// operators
-				opIdx = i;
-				opChar = c;
-				break;
-			} else if ((c == '+' || c == '-') && Character.isWhitespace(input.charAt(i - 1))) {
-				// Check if this follows whitespace that follows a complete token
-				// We need to check if there's a complete left operand before this
-				String leftPart = input.substring(0, i).trim();
-				if (!leftPart.isEmpty()) {
-					try {
-						parseTypedValue(leftPart); // Try to parse left; if successful, this is the operator
-						opIdx = i;
-						opChar = c;
-						break;
-					} catch (IllegalArgumentException e) {
-						// Not a valid operator position, continue searching
-						continue;
-					}
-				}
-			}
+		// Handle lower precedence operators first: + and -
+		int addSubOpIdx = findOperator(input, 1, new char[]{'+', '-'});
+		if (addSubOpIdx > 0) {
+			return processBinaryOp(input, addSubOpIdx, new char[]{'+', '-'});
 		}
 
-		// If an operator was found, process it
-		if (opIdx > 0) {
-			String left = input.substring(0, opIdx).trim();
-			String rightAndRest = input.substring(opIdx + 1).trim();
-
-			TypedValue leftTV = parseTypedValue(left);
-
-			// Parse the first token in rightAndRest (stopping before the next operator)
-			int nextOpIdx = -1;
-			for (int i = 0; i < rightAndRest.length(); i++) {
-				char c = rightAndRest.charAt(i);
-				if (c == '+' || c == '-') {
-					// Check if this is a sign (preceded by another operator or at start) or an
-					// operator
-					if (i == 0 || Character.isWhitespace(rightAndRest.charAt(i - 1))) {
-						// Could be a sign, try to parse up to here
-						String potentialRight = rightAndRest.substring(0, i).trim();
-						if (!potentialRight.isEmpty()) {
-							try {
-								parseTypedValue(potentialRight);
-								nextOpIdx = i;
-								break;
-							} catch (IllegalArgumentException e) {
-								// Not a valid operator position
-								continue;
-							}
-						}
-					} else {
-						// Definitely an operator
-						nextOpIdx = i;
-						break;
-					}
-				}
-			}
-
-			String right, rest;
-			if (nextOpIdx >= 0) {
-				right = rightAndRest.substring(0, nextOpIdx).trim();
-				rest = rightAndRest.substring(nextOpIdx).trim(); // Don't skip the operator
-			} else {
-				right = rightAndRest.trim();
-				rest = "";
-			}
-
-			TypedValue rightTV = parseTypedValue(right);
-
-			validateTypedOperands(leftTV, rightTV, input);
-
-			BinaryOp op = (opChar == '+') ? (a, b) -> a.add(b) : (a, b) -> a.subtract(b);
-			String resultStr = applyBinaryOp(leftTV, rightTV, op, input);
-
-			// If there's more to process, recursively evaluate result + rest
-			if (!rest.isEmpty()) {
-				return interpret(resultStr + " " + rest);
-			}
-
-			return resultStr;
+		// Handle higher precedence operators: * and /
+		int mulDivOpIdx = findOperator(input, 1, new char[]{'*', '/'});
+		if (mulDivOpIdx > 0) {
+			return processBinaryOp(input, mulDivOpIdx, new char[]{'*', '/', '+', '-'});
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
@@ -112,6 +32,124 @@ public class App {
 			return m.group();
 		}
 		return input;
+	}
+
+	private static String processBinaryOp(String input, int opIdx, char[] nextOps) {
+		char opChar = input.charAt(opIdx);
+		String left = input.substring(0, opIdx).trim();
+		String rightAndRest = input.substring(opIdx + 1).trim();
+
+		TypedValue leftTV = parseTypedValue(left);
+		ParsedOperands operands = parseOperandsBeforeNextOp(rightAndRest, nextOps);
+
+		validateTypedOperands(leftTV, operands.rightTV, input);
+
+		BinaryOp op = getBinaryOp(opChar);
+		String resultStr = applyBinaryOp(leftTV, operands.rightTV, op, input);
+
+		// If there's more to process, recursively evaluate result + rest
+		if (!operands.rest.isEmpty()) {
+			return interpret(resultStr + " " + operands.rest);
+		}
+
+		return resultStr;
+	}
+
+	private static BinaryOp getBinaryOp(char opChar) {
+		switch (opChar) {
+			case '+':
+				return (a, b) -> a.add(b);
+			case '-':
+				return (a, b) -> a.subtract(b);
+			case '*':
+				return (a, b) -> a.multiply(b);
+			case '/':
+				return (a, b) -> a.divide(b);
+			default:
+				throw new IllegalArgumentException("Unknown operator: " + opChar);
+		}
+	}
+
+	private static int findOperator(String input, int startIdx, char[] operators) {
+		for (int i = startIdx; i < input.length(); i++) {
+			char c = input.charAt(i);
+			boolean isOperator = false;
+			for (char op : operators) {
+				if (c == op) {
+					isOperator = true;
+					break;
+				}
+			}
+			if (!isOperator) continue;
+
+			if (!Character.isWhitespace(input.charAt(i - 1))) {
+				return i;
+			} else if (Character.isWhitespace(input.charAt(i - 1))) {
+				String leftPart = input.substring(0, i).trim();
+				if (!leftPart.isEmpty()) {
+					try {
+						parseTypedValue(leftPart);
+						return i;
+					} catch (IllegalArgumentException e) {
+						continue;
+					}
+				}
+			}
+		}
+		return -1;
+	}
+
+	private static final class ParsedOperands {
+		final TypedValue rightTV;
+		final String rest;
+
+		ParsedOperands(TypedValue rightTV, String rest) {
+			this.rightTV = rightTV;
+			this.rest = rest;
+		}
+	}
+
+	private static ParsedOperands parseOperandsBeforeNextOp(String input, char[] nextOps) {
+		int nextOpIdx = -1;
+		for (int i = 0; i < input.length(); i++) {
+			char c = input.charAt(i);
+			boolean isNextOp = false;
+			for (char op : nextOps) {
+				if (c == op) {
+					isNextOp = true;
+					break;
+				}
+			}
+			if (!isNextOp) continue;
+
+			if (i == 0 || Character.isWhitespace(input.charAt(i - 1))) {
+				String potentialRight = input.substring(0, i).trim();
+				if (!potentialRight.isEmpty()) {
+					try {
+						parseTypedValue(potentialRight);
+						nextOpIdx = i;
+						break;
+					} catch (IllegalArgumentException e) {
+						continue;
+					}
+				}
+			} else {
+				nextOpIdx = i;
+				break;
+			}
+		}
+
+		String right, rest;
+		if (nextOpIdx >= 0) {
+			right = input.substring(0, nextOpIdx).trim();
+			rest = input.substring(nextOpIdx).trim();
+		} else {
+			right = input.trim();
+			rest = "";
+		}
+
+		TypedValue rightTV = parseTypedValue(right);
+		return new ParsedOperands(rightTV, rest);
 	}
 
 	private static final class TypedValue {
