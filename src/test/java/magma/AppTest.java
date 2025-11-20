@@ -101,4 +101,11 @@ public class AppTest {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("1U8 - 2"));
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("0I16 - 33000"));
 	}
+
+	@Test
+	public void testInterpretChainedAddition() {
+		assertEquals("6", App.interpret("1 + 2 + 3"));
+		assertEquals("10", App.interpret("1+2+3+4"));
+		assertEquals("6", App.interpret("1U8 + 2U8 + 3U8"));
+	}
 }

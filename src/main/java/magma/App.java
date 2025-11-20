@@ -9,40 +9,47 @@ public class App {
 		if (input == null) {
 			return null;
 		}
-		java.util.regex.Pattern addPattern = java.util.regex.Pattern.compile("^\\s*(.+?)\\s*\\+\\s*(.+?)\\s*$");
-		java.util.regex.Matcher addM = addPattern.matcher(input);
-		if (addM.matches()) {
-			// Interpret both operands (handles typed suffixes) then add
-			String left = addM.group(1).trim();
-			String right = addM.group(2).trim();
-			TypedValue leftTV = parseTypedValue(left);
-			TypedValue rightTV = parseTypedValue(right);
 
-			// If both operands are typed, their UI and bit width must match
-			if (leftTV.typed && rightTV.typed) {
-				if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
-					throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
-				}
-			}
+		// Check for addition: find the first + operator and split there
+		if (input.contains("+")) {
+			int plusIdx = input.indexOf("+");
+			if (plusIdx > 0) {
+				String left = input.substring(0, plusIdx).trim();
+				String rightAndRest = input.substring(plusIdx + 1).trim();
 
-			try {
-				java.math.BigInteger a = leftTV.value;
-				java.math.BigInteger b = rightTV.value;
-				java.math.BigInteger sum = a.add(b);
-
-				// If either operand is typed, verify the result is within the typed range
-				if (leftTV.typed || rightTV.typed) {
-					TypedValue typedTV = leftTV.typed ? leftTV : rightTV;
-					java.math.BigInteger[] range = rangeFor(typedTV.ui, typedTV.bits);
-					if (sum.compareTo(range[0]) < 0 || sum.compareTo(range[1]) > 0) {
-						throw new IllegalArgumentException(
-								"Result out of range for " + typedTV.ui + typedTV.bits + " suffix: " + input);
+				TypedValue leftTV = parseTypedValue(left);
+				
+				// Parse the first token in rightAndRest (stopping before the next operator if any)
+				int nextOpIdx = -1;
+				for (int i = 0; i < rightAndRest.length(); i++) {
+					char c = rightAndRest.charAt(i);
+					if (c == '+') {
+						nextOpIdx = i;
+						break;
 					}
 				}
+				
+				String right, rest;
+				if (nextOpIdx >= 0) {
+					right = rightAndRest.substring(0, nextOpIdx).trim();
+					rest = rightAndRest.substring(nextOpIdx + 1).trim();
+				} else {
+					right = rightAndRest.trim();
+					rest = "";
+				}
 
-				return sum.toString();
-			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid operands for addition: " + input);
+				TypedValue rightTV = parseTypedValue(right);
+
+				validateTypedOperands(leftTV, rightTV, input);
+
+				String resultStr = applyBinaryOp(leftTV, rightTV, (a, b) -> a.add(b), input);
+
+				// If there's more to process, recursively evaluate sum + rest
+				if (!rest.isEmpty()) {
+					return interpret(resultStr + " + " + rest);
+				}
+
+				return resultStr;
 			}
 		}
 
@@ -55,32 +62,11 @@ public class App {
 			TypedValue leftTV = parseTypedValue(left);
 			TypedValue rightTV = parseTypedValue(right);
 
-			// If both operands are typed, their UI and bit width must match
-			if (leftTV.typed && rightTV.typed) {
-				if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
-					throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
-				}
-			}
+			validateTypedOperands(leftTV, rightTV, input);
 
-			try {
-				java.math.BigInteger a = leftTV.value;
-				java.math.BigInteger b = rightTV.value;
-				java.math.BigInteger diff = a.subtract(b);
+			String resultStr = applyBinaryOp(leftTV, rightTV, (a, b) -> a.subtract(b), input);
 
-				// If either operand is typed, verify the result is within the typed range
-				if (leftTV.typed || rightTV.typed) {
-					TypedValue typedTV = leftTV.typed ? leftTV : rightTV;
-					java.math.BigInteger[] range = rangeFor(typedTV.ui, typedTV.bits);
-					if (diff.compareTo(range[0]) < 0 || diff.compareTo(range[1]) > 0) {
-						throw new IllegalArgumentException(
-								"Result out of range for " + typedTV.ui + typedTV.bits + " suffix: " + input);
-					}
-				}
-
-				return diff.toString();
-			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid operands for subtraction: " + input);
-			}
+			return resultStr;
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
@@ -153,5 +139,44 @@ public class App {
 			max = java.math.BigInteger.valueOf(2).pow(bits - 1).subtract(java.math.BigInteger.ONE);
 		}
 		return new java.math.BigInteger[] { min, max };
+	}
+
+	private static void validateTypedOperands(TypedValue leftTV, TypedValue rightTV, String input) {
+		// If both operands are typed, their UI and bit width must match
+		if (leftTV.typed && rightTV.typed) {
+			if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
+				throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
+			}
+		}
+	}
+
+	private static void validateResult(java.math.BigInteger result, TypedValue leftTV, TypedValue rightTV,
+			String input) {
+		// If either operand is typed, verify the result is within the typed range
+		if (leftTV.typed || rightTV.typed) {
+			TypedValue typedTV = leftTV.typed ? leftTV : rightTV;
+			java.math.BigInteger[] range = rangeFor(typedTV.ui, typedTV.bits);
+			if (result.compareTo(range[0]) < 0 || result.compareTo(range[1]) > 0) {
+				throw new IllegalArgumentException(
+						"Result out of range for " + typedTV.ui + typedTV.bits + " suffix: " + input);
+			}
+		}
+	}
+
+	private interface BinaryOp {
+		java.math.BigInteger apply(java.math.BigInteger a, java.math.BigInteger b);
+	}
+
+	private static String applyBinaryOp(TypedValue leftTV, TypedValue rightTV, BinaryOp op, String input) {
+		try {
+			java.math.BigInteger a = leftTV.value;
+			java.math.BigInteger b = rightTV.value;
+			java.math.BigInteger result = op.apply(a, b);
+
+			validateResult(result, leftTV, rightTV, input);
+			return result.toString();
+		} catch (NumberFormatException ex) {
+			throw new IllegalArgumentException("Invalid operands for operation: " + input);
+		}
 	}
 }
