@@ -66,7 +66,8 @@ public class App {
 		String left = input.substring(0, opIdx).trim();
 		String right = input.substring(opIdx + 1).trim();
 
-		// Check if left side contains operators (and thus needs recursive interpretation)
+		// Check if left side contains operators (and thus needs recursive
+		// interpretation)
 		TypedValue leftTV;
 		int leftOpIdx = findRightmostOperator(left, 1, new char[] { '+', '-', '*', '/' });
 		if (leftOpIdx > 0) {
@@ -75,8 +76,9 @@ public class App {
 		} else {
 			leftTV = parseTypedValue(left);
 		}
-		
-		// Check if right side contains operators (and thus needs recursive interpretation)
+
+		// Check if right side contains operators (and thus needs recursive
+		// interpretation)
 		TypedValue rightTV;
 		int rightOpIdx = findRightmostOperator(right, 1, new char[] { '+', '-', '*', '/' });
 		if (rightOpIdx > 0) {
@@ -114,7 +116,7 @@ public class App {
 		int lastOpIdx = -1;
 		for (int i = startIdx; i < input.length(); i++) {
 			char c = input.charAt(i);
-			
+
 			// Track parentheses depth
 			if (c == '(') {
 				depth++;
@@ -123,12 +125,12 @@ public class App {
 				depth--;
 				continue;
 			}
-			
+
 			// Skip operators inside parentheses
 			if (depth > 0) {
 				continue;
 			}
-			
+
 			boolean isOperator = false;
 			for (char op : operators) {
 				if (c == op) {
@@ -172,7 +174,7 @@ public class App {
 
 	private static TypedValue parseTypedValue(String input) {
 		input = input.trim();
-		
+
 		// Handle parentheses
 		if (input.startsWith("(") && input.endsWith(")")) {
 			String inner = input.substring(1, input.length() - 1);
@@ -182,7 +184,7 @@ public class App {
 				return parseTypedValue(evaluated);
 			}
 		}
-		
+
 		java.util.regex.Matcher typedM = typedPattern.matcher(input);
 		if (typedM.matches()) {
 			String numStr = typedM.group(1);
