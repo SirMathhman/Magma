@@ -40,6 +40,11 @@ public class App {
 			int bits = Integer.parseInt(letMatcher.group(3));
 			String valueExpr = letMatcher.group(4);
 
+			// Check for duplicate variable
+			if (variables.containsKey(varName)) {
+				throw new IllegalArgumentException("Variable " + varName + " is already defined");
+			}
+
 			// Parse and validate the value
 			TypedValue typedVal = parseTypedValue(valueExpr);
 
@@ -68,6 +73,11 @@ public class App {
 		if (letUntypedMatcher.matches()) {
 			String varName = letUntypedMatcher.group(1);
 			String valueExpr = letUntypedMatcher.group(2);
+
+			// Check for duplicate variable
+			if (variables.containsKey(varName)) {
+				throw new IllegalArgumentException("Variable " + varName + " is already defined");
+			}
 
 			// Parse the value (will be untyped)
 			TypedValue typedVal = parseTypedValue(valueExpr);
@@ -330,5 +340,10 @@ public class App {
 		} catch (NumberFormatException ex) {
 			throw new IllegalArgumentException("Invalid operands for operation: " + input);
 		}
+	}
+
+	// Package-private method for testing - clears all variables
+	static void clearVariables() {
+		variables.clear();
 	}
 }

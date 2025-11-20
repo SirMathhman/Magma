@@ -1,10 +1,15 @@
 package magma;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 public class AppTest {
+	@BeforeEach
+	public void setUp() {
+		App.clearVariables();
+	}
 	@Test
 	public void testInterpret() {
 		String in = "echo";
@@ -200,5 +205,17 @@ public class AppTest {
 		assertEquals("150", App.interpret("x + 50"));
 		App.interpret("let y = -50;");
 		assertEquals("-50", App.interpret("y"));
+	}
+
+	@Test
+	public void testInterpretDuplicateVariableThrows() {
+		App.interpret("let x = 100;");
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x = 100;"));
+	}
+
+	@Test
+	public void testInterpretDuplicateVariableDifferentTypeThrows() {
+		App.interpret("let x : U8 = 100;");
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : U16 = 100;"));
 	}
 }
