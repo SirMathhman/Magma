@@ -42,10 +42,10 @@ public class Main {
 		String expression = generator.generate(ast);
 
 		return "// Compiled from Magma source\n"
-			+ "#include <stdio.h>\n\n"
-			+ "int main(void) {\n"
-			+ "    int result = " + expression + ";\n"
-			+ "    return result;\n"
-			+ "}\n";
+				+ "#include <stdio.h>\n\n"
+				+ "int main(void) {\n"
+				+ "    int result = " + expression + ";\n"
+				+ "    return result;\n"
+				+ "}\n";
 	}
 }

@@ -24,8 +24,8 @@ class CCodeGeneratorTest {
 	void testGenerateAddition() {
 		Node left = new NumberLiteral(3);
 		Node right = new NumberLiteral(5);
-		Node node = new BinaryExpression(left, 
-			new magma.lexer.Token(TokenType.PLUS, "+", 1, 1), right);
+		Node node = new BinaryExpression(left,
+				new magma.lexer.Token(TokenType.PLUS, "+", 1, 1), right);
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(node);
@@ -37,12 +37,11 @@ class CCodeGeneratorTest {
 	void testGenerateComplexExpression() {
 		Node left = new NumberLiteral(2);
 		Node right = new BinaryExpression(
-			new NumberLiteral(3),
-			new magma.lexer.Token(TokenType.STAR, "*", 1, 1),
-			new NumberLiteral(4)
-		);
+				new NumberLiteral(3),
+				new magma.lexer.Token(TokenType.STAR, "*", 1, 1),
+				new NumberLiteral(4));
 		Node node = new BinaryExpression(left,
-			new magma.lexer.Token(TokenType.PLUS, "+", 1, 1), right);
+				new magma.lexer.Token(TokenType.PLUS, "+", 1, 1), right);
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(node);

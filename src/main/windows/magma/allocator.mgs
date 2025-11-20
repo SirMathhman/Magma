@@ -1,0 +1,15 @@
+import extern stdlib;
+
+intrinsic trait Drop {
+	fn drop(this) : Void;
+}
+
+type Allocated<Type, Length : USize> = *[Type; 0; Length];
+
+impl Drop for Allocated {
+	fn drop(this) => {
+		free(this);
+	}
+}
+
+extern fn malloc<Type, Length : USize>(byteCount : SizeOf<Type> * Length) : Allocated<Type, Length> | 0;
