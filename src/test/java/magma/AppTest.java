@@ -108,4 +108,11 @@ public class AppTest {
 		assertEquals("10", App.interpret("1+2+3+4"));
 		assertEquals("6", App.interpret("1U8 + 2U8 + 3U8"));
 	}
+
+	@Test
+	public void testInterpretMixedAdditionSubtraction() {
+		assertEquals("5", App.interpret("3 + 4 - 2"));
+		assertEquals("0", App.interpret("5 - 2 - 3"));
+		assertEquals("6", App.interpret("1 + 2 - 3 + 6"));
+	}
 }
