@@ -1,6 +1,5 @@
 package magma;
 
-import magma.ast.Node;
 import magma.codegen.CCodeGenerator;
 import magma.lexer.Lexer;
 import magma.lexer.Token;
@@ -36,16 +35,9 @@ public class Main {
 		List<Token> tokens = lexer.tokenize();
 
 		Parser parser = new Parser(tokens);
-		Node ast = parser.parse();
+		magma.ast.Program program = parser.parse();
 
 		CCodeGenerator generator = new CCodeGenerator();
-		String expression = generator.generate(ast);
-
-		return "// Compiled from Magma source\n"
-				+ "#include <stdio.h>\n\n"
-				+ "int main(void) {\n"
-				+ "    int result = " + expression + ";\n"
-				+ "    return result;\n"
-				+ "}\n";
+		return generator.generate(program);
 	}
 }
