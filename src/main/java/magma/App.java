@@ -26,7 +26,8 @@ public class App {
 				min = java.math.BigInteger.ZERO;
 				max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
 				if (val.signum() < 0) {
-					throw new IllegalArgumentException("Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
+					throw new IllegalArgumentException(
+							"Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
 				}
 			} else { // signed
 				min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
