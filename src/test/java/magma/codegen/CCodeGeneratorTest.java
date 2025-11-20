@@ -1,8 +1,10 @@
 package magma.codegen;
 
 import magma.ast.*;
+import magma.lexer.Lexer;
 import magma.lexer.Token;
 import magma.lexer.TokenType;
+import magma.parser.Parser;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -253,7 +255,7 @@ class CCodeGeneratorTest {
 			thenAssign,
 			elseAssign
 		);
-		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -273,7 +275,7 @@ class CCodeGeneratorTest {
 			new NumberLiteral(1),
 			thenAssign
 		);
-		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
