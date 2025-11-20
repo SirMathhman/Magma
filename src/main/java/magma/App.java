@@ -5,6 +5,14 @@ public class App {
 		if (input == null) {
 			return null;
 		}
+		java.util.regex.Pattern addPattern = java.util.regex.Pattern.compile("^\\s*([+-]?\\d+)\\s*\\+\\s*([+-]?\\d+)\\s*$");
+		java.util.regex.Matcher addM = addPattern.matcher(input);
+		if (addM.matches()) {
+			java.math.BigInteger a = new java.math.BigInteger(addM.group(1));
+			java.math.BigInteger b = new java.math.BigInteger(addM.group(2));
+			return a.add(b).toString();
+		}
+
 		java.util.regex.Pattern leadingInt = java.util.regex.Pattern.compile("^[-+]?\\d+");
 		java.util.regex.Pattern typedPattern = java.util.regex.Pattern.compile("^([+-]?\\d+)([UI])(8|16|32|64)$");
 

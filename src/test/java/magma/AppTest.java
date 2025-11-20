@@ -55,4 +55,10 @@ public class AppTest {
 	public void testInterpretI64Overflow() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("9223372036854775808I64"));
 	}
+
+	@Test
+	public void testInterpretAddition() {
+		assertEquals("3", App.interpret("1 + 2"));
+		assertEquals("3", App.interpret("1+2"));
+	}
 }
