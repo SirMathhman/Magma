@@ -10,16 +10,28 @@ public class App {
 			return null;
 		}
 
-		// Handle lower precedence operators first: + and -
-		int addSubOpIdx = findOperator(input, 1, new char[] { '+', '-' });
+		input = input.trim();
+
+		// Handle parentheses
+		if (input.startsWith("(") && input.endsWith(")")) {
+			String inner = input.substring(1, input.length() - 1);
+			// Check if parentheses are matched at this level
+			if (isBalancedParentheses(inner)) {
+				return interpret(inner);
+			}
+		}
+
+		// Find the rightmost lower precedence operator at depth 0
+		// This ensures higher precedence operators are evaluated first
+		int addSubOpIdx = findRightmostOperator(input, 1, new char[] { '+', '-' });
 		if (addSubOpIdx > 0) {
 			return processBinaryOp(input, addSubOpIdx, new char[] { '+', '-' });
 		}
 
-		// Handle higher precedence operators: * and /
-		int mulDivOpIdx = findOperator(input, 1, new char[] { '*', '/' });
+		// Find the rightmost higher precedence operator at depth 0
+		int mulDivOpIdx = findRightmostOperator(input, 1, new char[] { '*', '/' });
 		if (mulDivOpIdx > 0) {
-			return processBinaryOp(input, mulDivOpIdx, new char[] { '*', '/', '+', '-' });
+			return processBinaryOp(input, mulDivOpIdx, new char[] { '*', '/' });
 		}
 
 		// If input is a typed or plain integer, delegate to parseTypedValue
@@ -34,23 +46,50 @@ public class App {
 		return input;
 	}
 
-	private static String processBinaryOp(String input, int opIdx, char[] nextOps) {
+	private static boolean isBalancedParentheses(String str) {
+		int depth = 0;
+		for (char c : str.toCharArray()) {
+			if (c == '(') {
+				depth++;
+			} else if (c == ')') {
+				depth--;
+				if (depth < 0) {
+					return false;
+				}
+			}
+		}
+		return depth == 0;
+	}
+
+	private static String processBinaryOp(String input, int opIdx, char[] operators) {
 		char opChar = input.charAt(opIdx);
 		String left = input.substring(0, opIdx).trim();
-		String rightAndRest = input.substring(opIdx + 1).trim();
+		String right = input.substring(opIdx + 1).trim();
 
-		TypedValue leftTV = parseTypedValue(left);
-		ParsedOperands operands = parseOperandsBeforeNextOp(rightAndRest, nextOps);
+		// Check if left side contains operators (and thus needs recursive interpretation)
+		TypedValue leftTV;
+		int leftOpIdx = findRightmostOperator(left, 1, new char[] { '+', '-', '*', '/' });
+		if (leftOpIdx > 0) {
+			String interpretedLeft = interpret(left);
+			leftTV = parseTypedValue(interpretedLeft);
+		} else {
+			leftTV = parseTypedValue(left);
+		}
+		
+		// Check if right side contains operators (and thus needs recursive interpretation)
+		TypedValue rightTV;
+		int rightOpIdx = findRightmostOperator(right, 1, new char[] { '+', '-', '*', '/' });
+		if (rightOpIdx > 0) {
+			String interpretedRight = interpret(right);
+			rightTV = parseTypedValue(interpretedRight);
+		} else {
+			rightTV = parseTypedValue(right);
+		}
 
-		validateTypedOperands(leftTV, operands.rightTV, input);
+		validateTypedOperands(leftTV, rightTV, input);
 
 		BinaryOp op = getBinaryOp(opChar);
-		String resultStr = applyBinaryOp(leftTV, operands.rightTV, op, input);
-
-		// If there's more to process, recursively evaluate result + rest
-		if (!operands.rest.isEmpty()) {
-			return interpret(resultStr + " " + operands.rest);
-		}
+		String resultStr = applyBinaryOp(leftTV, rightTV, op, input);
 
 		return resultStr;
 	}
@@ -70,9 +109,26 @@ public class App {
 		}
 	}
 
-	private static int findOperator(String input, int startIdx, char[] operators) {
+	private static int findRightmostOperator(String input, int startIdx, char[] operators) {
+		int depth = 0;
+		int lastOpIdx = -1;
 		for (int i = startIdx; i < input.length(); i++) {
 			char c = input.charAt(i);
+			
+			// Track parentheses depth
+			if (c == '(') {
+				depth++;
+				continue;
+			} else if (c == ')') {
+				depth--;
+				continue;
+			}
+			
+			// Skip operators inside parentheses
+			if (depth > 0) {
+				continue;
+			}
+			
 			boolean isOperator = false;
 			for (char op : operators) {
 				if (c == op) {
@@ -84,74 +140,20 @@ public class App {
 				continue;
 
 			if (!Character.isWhitespace(input.charAt(i - 1))) {
-				return i;
+				lastOpIdx = i;
 			} else if (Character.isWhitespace(input.charAt(i - 1))) {
 				String leftPart = input.substring(0, i).trim();
 				if (!leftPart.isEmpty()) {
 					try {
 						parseTypedValue(leftPart);
-						return i;
+						lastOpIdx = i;
 					} catch (IllegalArgumentException e) {
 						continue;
 					}
 				}
 			}
 		}
-		return -1;
-	}
-
-	private static final class ParsedOperands {
-		final TypedValue rightTV;
-		final String rest;
-
-		ParsedOperands(TypedValue rightTV, String rest) {
-			this.rightTV = rightTV;
-			this.rest = rest;
-		}
-	}
-
-	private static ParsedOperands parseOperandsBeforeNextOp(String input, char[] nextOps) {
-		int nextOpIdx = -1;
-		for (int i = 0; i < input.length(); i++) {
-			char c = input.charAt(i);
-			boolean isNextOp = false;
-			for (char op : nextOps) {
-				if (c == op) {
-					isNextOp = true;
-					break;
-				}
-			}
-			if (!isNextOp)
-				continue;
-
-			if (i == 0 || Character.isWhitespace(input.charAt(i - 1))) {
-				String potentialRight = input.substring(0, i).trim();
-				if (!potentialRight.isEmpty()) {
-					try {
-						parseTypedValue(potentialRight);
-						nextOpIdx = i;
-						break;
-					} catch (IllegalArgumentException e) {
-						continue;
-					}
-				}
-			} else {
-				nextOpIdx = i;
-				break;
-			}
-		}
-
-		String right, rest;
-		if (nextOpIdx >= 0) {
-			right = input.substring(0, nextOpIdx).trim();
-			rest = input.substring(nextOpIdx).trim();
-		} else {
-			right = input.trim();
-			rest = "";
-		}
-
-		TypedValue rightTV = parseTypedValue(right);
-		return new ParsedOperands(rightTV, rest);
+		return lastOpIdx;
 	}
 
 	private static final class TypedValue {
@@ -169,6 +171,18 @@ public class App {
 	}
 
 	private static TypedValue parseTypedValue(String input) {
+		input = input.trim();
+		
+		// Handle parentheses
+		if (input.startsWith("(") && input.endsWith(")")) {
+			String inner = input.substring(1, input.length() - 1);
+			// Check if parentheses are matched at this level
+			if (isBalancedParentheses(inner)) {
+				String evaluated = interpret(inner);
+				return parseTypedValue(evaluated);
+			}
+		}
+		
 		java.util.regex.Matcher typedM = typedPattern.matcher(input);
 		if (typedM.matches()) {
 			String numStr = typedM.group(1);

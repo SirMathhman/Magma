@@ -143,4 +143,21 @@ public class AppTest {
 	public void testInterpretDivisionByZero() {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("4 / 0"));
 	}
+
+	@Test
+	public void testInterpretParentheses() {
+		assertEquals("1", App.interpret("(1)"));
+		assertEquals("5", App.interpret("(1 + 2 + 2)"));
+	}
+
+	@Test
+	public void testInterpretParenthesesPrecedence() {
+		assertEquals("9", App.interpret("(1 + 2) * 3"));
+		assertEquals("7", App.interpret("1 + 2 * 3"));
+	}
+
+	@Test
+	public void testInterpretParenthesesDivisionByZero() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("4 / (2 - 2)"));
+	}
 }
