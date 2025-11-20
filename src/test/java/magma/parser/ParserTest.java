@@ -191,4 +191,69 @@ class ParserTest {
 		assertInstanceOf(NamedType.class, sizeof.getType());
 		assertEquals("I32", ((NamedType) sizeof.getType()).getName());
 	}
+
+	@Test
+	void testParseFunctionDefinition() {
+		Lexer lexer = new Lexer("fn add(x : I32, y : I32) : I32 { let result = x + y; }");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getFunctions().size());
+		FunctionDefinition fn = program.getFunctions().get(0);
+		assertEquals("add", fn.getName());
+		assertEquals(2, fn.getParameters().size());
+		assertEquals("x", fn.getParameters().get(0).getName());
+		assertEquals("y", fn.getParameters().get(1).getName());
+		assertEquals(true, fn.hasReturnType());
+		assertInstanceOf(NamedType.class, fn.getReturnType());
+		assertEquals("I32", ((NamedType) fn.getReturnType()).getName());
+		assertInstanceOf(Block.class, fn.getBody());
+	}
+
+	@Test
+	void testParseFunctionDefinitionArrowSyntax() {
+		Lexer lexer = new Lexer("fn square(x : I32) => x * x;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getFunctions().size());
+		FunctionDefinition fn = program.getFunctions().get(0);
+		assertEquals("square", fn.getName());
+		assertEquals(1, fn.getParameters().size());
+		assertEquals(false, fn.hasReturnType());
+		assertInstanceOf(Block.class, fn.getBody());
+	}
+
+	@Test
+	void testParseExternFunctionDeclaration() {
+		Lexer lexer = new Lexer("extern fn printf(format : I32) : I32;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getExternFunctions().size());
+		ExternFunctionDeclaration externFn = program.getExternFunctions().get(0);
+		assertEquals("printf", externFn.getName());
+		assertEquals(1, externFn.getParameters().size());
+		assertEquals("format", externFn.getParameters().get(0).getName());
+		assertEquals(true, externFn.hasReturnType());
+		assertInstanceOf(NamedType.class, externFn.getReturnType());
+		assertEquals("I32", ((NamedType) externFn.getReturnType()).getName());
+	}
+
+	@Test
+	void testParseFunctionWithGenericParameters() {
+		Lexer lexer = new Lexer("fn identity<T>(x : T) : T { let result = x; }");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getFunctions().size());
+		FunctionDefinition fn = program.getFunctions().get(0);
+		assertEquals("identity", fn.getName());
+		assertEquals(true, fn.hasTypeArguments());
+		assertEquals(1, fn.getTypeArguments().size());
+	}
 }

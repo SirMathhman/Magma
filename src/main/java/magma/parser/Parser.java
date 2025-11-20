@@ -18,6 +18,8 @@ public class Parser {
 
 	public Program parse() {
 		List<ImportStatement> imports = new ArrayList<>();
+		List<FunctionDefinition> functions = new ArrayList<>();
+		List<ExternFunctionDeclaration> externFunctions = new ArrayList<>();
 		List<Statement> statements = new ArrayList<>();
 
 		// Parse imports
@@ -25,12 +27,21 @@ public class Parser {
 			imports.add(parseImport());
 		}
 
-		// Parse statements
+		// Parse functions, extern functions, and statements
 		while (!isAtEnd()) {
-			statements.add(parseStatement());
+			if (check(TokenType.EXTERN) && position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.FN) {
+				// extern fn ...
+				advance(); // consume EXTERN
+				advance(); // consume FN
+				externFunctions.add(parseExternFunctionDeclaration());
+			} else if (match(TokenType.FN)) {
+				functions.add(parseFunctionDefinition());
+			} else {
+				statements.add(parseStatement());
+			}
 		}
 
-		return new Program(imports, statements);
+		return new Program(imports, functions, externFunctions, statements);
 	}
 
 	private ImportStatement parseImport() {
@@ -47,6 +58,9 @@ public class Parser {
 		}
 		if (match(TokenType.FOR)) {
 			return parseForLoop();
+		}
+		if (match(TokenType.RETURN)) {
+			return parseReturnStatement();
 		}
 		if (match(TokenType.LBRACE)) {
 			return parseBlock();
@@ -65,6 +79,17 @@ public class Parser {
 
 		consume(TokenType.SEMICOLON, "Expected ';' after statement");
 		return new ExpressionStatement(expr);
+	}
+
+	private Statement parseReturnStatement() {
+		// return expr; or return;
+		if (check(TokenType.SEMICOLON)) {
+			consume(TokenType.SEMICOLON, "Expected ';' after return");
+			return new ReturnStatement();
+		}
+		Node expr = parseExpression();
+		consume(TokenType.SEMICOLON, "Expected ';' after return statement");
+		return new ReturnStatement(expr);
 	}
 
 	private VariableDeclaration parseVariableDeclaration() {
@@ -309,6 +334,135 @@ public class Parser {
 			consume(TokenType.RBRACKET, "Expected ']' after array type");
 			return new ArrayType(elementType, length);
 		}
+	}
+
+	private FunctionDefinition parseFunctionDefinition() {
+		// fn name<TypeArgs>(params) : ReturnType { body } or fn name(params) => expr;
+		consume(TokenType.IDENTIFIER, "Expected function name");
+		String name = previous().lexeme();
+
+		// Parse generic type arguments: <Type1, Type2>
+		List<Type> typeArguments = null;
+		if (match(TokenType.LESS)) {
+			typeArguments = new ArrayList<>();
+			if (!check(TokenType.GREATER)) {
+				do {
+					typeArguments.add(parseType());
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.GREATER, "Expected '>' after generic type arguments");
+		}
+
+		// Parse parameters: (param1 : Type1, param2 : Type2)
+		consume(TokenType.LPAREN, "Expected '(' after function name");
+		List<FunctionParameter> parameters = parseFunctionParameters();
+		consume(TokenType.RPAREN, "Expected ')' after parameters");
+
+		// Parse optional return type: : ReturnType
+		Type returnType = null;
+		if (match(TokenType.COLON)) {
+			returnType = parseType();
+		}
+
+		// Parse function body: { body } or => expr;
+		Node body;
+		if (match(TokenType.ARROW)) {
+			// Arrow syntax: => expr; or => { statements }
+			if (match(TokenType.LBRACE)) {
+				body = parseBlock();
+			} else {
+				Node expr = parseExpression();
+				consume(TokenType.SEMICOLON, "Expected ';' after arrow expression");
+				body = new Block(List.of(new ExpressionStatement(expr)));
+			}
+		} else {
+			// Block syntax: { body }
+			body = parseBlock();
+		}
+
+		if (typeArguments != null) {
+			return new FunctionDefinition(name, typeArguments, parameters, returnType, body);
+		} else {
+			return new FunctionDefinition(name, parameters, returnType, body);
+		}
+	}
+
+	private ExternFunctionDeclaration parseExternFunctionDeclaration() {
+		// extern fn name<TypeArgs>(params) : ReturnType;
+		consume(TokenType.IDENTIFIER, "Expected function name");
+		String name = previous().lexeme();
+
+		// Parse generic type arguments: <Type1, Type2>
+		List<Type> typeArguments = null;
+		if (match(TokenType.LESS)) {
+			typeArguments = new ArrayList<>();
+			if (!check(TokenType.GREATER)) {
+				do {
+					typeArguments.add(parseType());
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.GREATER, "Expected '>' after generic type arguments");
+		}
+
+		// Parse parameters: (param1 : Type1, param2 : Type2, ...args : Type)
+		consume(TokenType.LPAREN, "Expected '(' after function name");
+		List<FunctionParameter> parameters = parseFunctionParameters();
+		consume(TokenType.RPAREN, "Expected ')' after parameters");
+
+		// Parse optional return type: : ReturnType
+		Type returnType = null;
+		if (match(TokenType.COLON)) {
+			returnType = parseType();
+		}
+
+		consume(TokenType.SEMICOLON, "Expected ';' after extern function declaration");
+
+		if (typeArguments != null) {
+			return new ExternFunctionDeclaration(name, typeArguments, parameters, returnType);
+		} else {
+			return new ExternFunctionDeclaration(name, parameters, returnType);
+		}
+	}
+
+	private List<FunctionParameter> parseFunctionParameters() {
+		List<FunctionParameter> parameters = new ArrayList<>();
+
+		if (!check(TokenType.RPAREN)) {
+			do {
+				// Handle varargs: ...args (check for three consecutive dots)
+				boolean isVarargs = check(TokenType.DOT) && 
+					position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.DOT &&
+					position + 2 < tokens.size() && tokens.get(position + 2).type() == TokenType.DOT;
+				if (isVarargs) {
+					advance(); // consume first DOT
+					advance(); // consume second DOT
+					advance(); // consume third DOT
+					consume(TokenType.IDENTIFIER, "Expected parameter name after '...'");
+					String name = previous().lexeme();
+					consume(TokenType.COLON, "Expected ':' after varargs parameter name");
+					Type type = parseType();
+					parameters.add(new FunctionParameter(name, type));
+				} else {
+					parameters.add(parseFunctionParameter());
+				}
+			} while (match(TokenType.COMMA));
+		}
+
+		return parameters;
+	}
+
+	private FunctionParameter parseFunctionParameter() {
+		// name : Type or just name
+		consume(TokenType.IDENTIFIER, "Expected parameter name");
+		String name = previous().lexeme();
+
+		// Optional type annotation
+		if (match(TokenType.COLON)) {
+			Type type = parseType();
+			return new FunctionParameter(name, type);
+		}
+
+		return new FunctionParameter(name);
 	}
 
 	private Token consume(TokenType type, String message) {

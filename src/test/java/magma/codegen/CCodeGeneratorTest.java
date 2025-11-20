@@ -9,7 +9,6 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class CCodeGeneratorTest {
 	@Test
@@ -39,7 +38,7 @@ class CCodeGeneratorTest {
 	void testGenerateVariableDeclaration() {
 		VariableDeclaration decl = new VariableDeclaration("x", true,
 				new NumberLiteral(42));
-		Program program = new Program(List.of(), List.of(decl));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(decl));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -53,7 +52,7 @@ class CCodeGeneratorTest {
 		FunctionCall call = new FunctionCall("printf",
 				List.of(new StringLiteral("hello"), new NumberLiteral(42)));
 		ExpressionStatement stmt = new ExpressionStatement(call);
-		Program program = new Program(List.of(), List.of(stmt));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(stmt));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -67,7 +66,7 @@ class CCodeGeneratorTest {
 				new NumberLiteral(0),
 				new NumberLiteral(10),
 				new Block(List.of()));
-		Program program = new Program(List.of(), List.of(loop));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(loop));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -78,7 +77,7 @@ class CCodeGeneratorTest {
 	@Test
 	void testGenerateImport() {
 		ImportStatement imp = new ImportStatement("stdio", true);
-		Program program = new Program(List.of(imp), List.of());
+		Program program = new Program(List.of(imp), List.of(), List.of(), List.of());
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -92,7 +91,7 @@ class CCodeGeneratorTest {
 				new Identifier("array"),
 				new NumberLiteral(5));
 		ExpressionStatement stmt = new ExpressionStatement(index);
-		Program program = new Program(List.of(), List.of(stmt));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(stmt));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -105,7 +104,7 @@ class CCodeGeneratorTest {
 		VariableDeclaration decl = new VariableDeclaration("x", true,
 				new NamedType("I32"),
 				new NumberLiteral(42));
-		Program program = new Program(List.of(), List.of(decl));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(decl));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -120,7 +119,7 @@ class CCodeGeneratorTest {
 		VariableDeclaration decl = new VariableDeclaration("ptr", true,
 				ptrType,
 				new NumberLiteral(0));
-		Program program = new Program(List.of(), List.of(decl));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(decl));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -136,7 +135,7 @@ class CCodeGeneratorTest {
 		VariableDeclaration decl = new VariableDeclaration("arr", true,
 				arrayType,
 				new NumberLiteral(0));
-		Program program = new Program(List.of(), List.of(decl));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(decl));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
@@ -151,11 +150,50 @@ class CCodeGeneratorTest {
 				new Token(TokenType.STAR, "*", 1, 1),
 				new NumberLiteral(100));
 		VariableDeclaration decl = new VariableDeclaration("size", true, expr);
-		Program program = new Program(List.of(), List.of(decl));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(decl));
 		CCodeGenerator generator = new CCodeGenerator();
 
 		String result = generator.generate(program);
 
 		assertTrue(result.contains("sizeof(int32_t) * 100"));
+	}
+
+	@Test
+	void testGenerateFunctionDefinition() {
+		FunctionParameter param1 = new FunctionParameter("x", new NamedType("I32"));
+		FunctionParameter param2 = new FunctionParameter("y", new NamedType("I32"));
+		Block body = new Block(List.of(
+				new ExpressionStatement(new BinaryExpression(
+						new Identifier("x"),
+						new Token(TokenType.PLUS, "+", 1, 1),
+						new Identifier("y")))));
+		FunctionDefinition fn = new FunctionDefinition("add",
+				List.of(param1, param2),
+				new NamedType("I32"),
+				body);
+		Program program = new Program(List.of(), List.of(fn), List.of(), List.of());
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		assertTrue(result.contains("int32_t add(int32_t x, int32_t y)"));
+		assertTrue(result.contains("(x + y);"));
+	}
+
+	@Test
+	void testGenerateExternFunctionDeclaration() {
+		FunctionParameter param = new FunctionParameter("format",
+				new PointerType(new ArrayType(new NamedType("U8"), new NumberLiteral(0))));
+		ExternFunctionDeclaration externFn = new ExternFunctionDeclaration("printf",
+				List.of(param),
+				new NamedType("Void"));
+		Program program = new Program(List.of(), List.of(), List.of(externFn), List.of());
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Extern functions should emit whitespace only
+		assertTrue(result.contains(" "));
+		assertTrue(!result.contains("extern void printf"));
 	}
 }

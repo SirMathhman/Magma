@@ -49,6 +49,16 @@ public class CCodeGenerator implements Visitor<String> {
 			code.append("\n");
 		}
 
+		// Generate extern function declarations (emit whitespace only)
+		for (ExternFunctionDeclaration externFn : program.getExternFunctions()) {
+			code.append(externFn.accept(this));
+		}
+
+		// Generate function definitions (before main)
+		for (FunctionDefinition fn : program.getFunctions()) {
+			code.append(fn.accept(this)).append("\n\n");
+		}
+
 		// Generate main function
 		code.append("int main(void) {\n");
 		indentLevel++;
@@ -228,6 +238,67 @@ public class CCodeGenerator implements Visitor<String> {
 	public String visitSizeOfExpression(SizeOfExpression node) {
 		String cType = typeMapper.mapToCType(node.getType(), this::generateExpression);
 		return "sizeof(" + cType + ")";
+	}
+
+	@Override
+	public String visitFunctionDefinition(FunctionDefinition node) {
+		StringBuilder code = new StringBuilder();
+		
+		// Generate return type
+		String returnType;
+		if (node.hasReturnType()) {
+			returnType = typeMapper.mapToCType(node.getReturnType(), this::generateExpression);
+		} else {
+			returnType = "void";
+		}
+		
+		// Generate function signature
+		code.append(returnType).append(" ").append(node.getName()).append("(");
+		
+		// Generate parameters
+		List<String> params = node.getParameters().stream()
+				.map(this::visitFunctionParameter)
+				.collect(Collectors.toList());
+		code.append(String.join(", ", params));
+		
+		code.append(") {\n");
+		
+		// Generate function body (always a Block)
+		indentLevel++;
+		Block body = (Block) node.getBody();
+		for (Statement stmt : body.getStatements()) {
+			code.append(indent()).append(stmt.accept(this)).append("\n");
+		}
+		indentLevel--;
+		code.append("}");
+		
+		return code.toString();
+	}
+
+	@Override
+	public String visitExternFunctionDeclaration(ExternFunctionDeclaration node) {
+		// Emit whitespace only as requested
+		return " ";
+	}
+
+	@Override
+	public String visitReturnStatement(ReturnStatement node) {
+		if (node.hasValue()) {
+			return "return " + node.getValue().accept(this) + ";";
+		} else {
+			return "return;";
+		}
+	}
+
+	private String visitFunctionParameter(FunctionParameter param) {
+		String type;
+		if (param.hasType()) {
+			type = typeMapper.mapToCType(param.getType(), this::generateExpression);
+		} else {
+			// Default to int if no type annotation
+			type = "int";
+		}
+		return type + " " + param.getName();
 	}
 
 	private String indent() {

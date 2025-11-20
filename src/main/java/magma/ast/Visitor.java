@@ -36,4 +36,10 @@ public interface Visitor<T> {
 	T visitGenericType(GenericType node);
 
 	T visitSizeOfExpression(SizeOfExpression node);
+
+	T visitFunctionDefinition(FunctionDefinition node);
+
+	T visitExternFunctionDeclaration(ExternFunctionDeclaration node);
+
+	T visitReturnStatement(ReturnStatement node);
 }
