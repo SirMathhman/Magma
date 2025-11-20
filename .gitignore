@@ -1,8 +1,0 @@
-target/
-*.class
-*.log
-.idea/
-.vscode/
-*.iml
-/.mvn/
-/.gradle/
