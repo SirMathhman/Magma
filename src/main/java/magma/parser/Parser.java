@@ -19,6 +19,8 @@ public class Parser {
 	public Program parse() {
 		List<ImportStatement> imports = new ArrayList<>();
 		List<TypeDefinition> typeDefinitions = new ArrayList<>();
+		List<TraitDefinition> traits = new ArrayList<>();
+		List<TraitImplementation> traitImplementations = new ArrayList<>();
 		List<FunctionDefinition> functions = new ArrayList<>();
 		List<ExternFunctionDeclaration> externFunctions = new ArrayList<>();
 		List<Statement> statements = new ArrayList<>();
@@ -28,9 +30,25 @@ public class Parser {
 			imports.add(parseImport());
 		}
 
-		// Parse type definitions (after imports, before functions)
+		// Parse type definitions (after imports, before traits)
 		while (match(TokenType.TYPE)) {
 			typeDefinitions.add(parseTypeDefinition());
+		}
+
+		// Parse traits (after type definitions, before implementations)
+		while (check(TokenType.INTRINSIC) && position + 1 < tokens.size() && tokens.get(position + 1).type() == TokenType.TRAIT) {
+			advance(); // consume INTRINSIC
+			advance(); // consume TRAIT
+			traits.add(parseTraitDefinition(true));
+		}
+		while (check(TokenType.TRAIT)) {
+			advance(); // consume TRAIT
+			traits.add(parseTraitDefinition(false));
+		}
+
+		// Parse trait implementations (after traits, before functions)
+		while (match(TokenType.IMPL)) {
+			traitImplementations.add(parseTraitImplementation());
 		}
 
 		// Parse functions, extern functions, and statements
@@ -47,7 +65,7 @@ public class Parser {
 			}
 		}
 
-		return new Program(imports, typeDefinitions, functions, externFunctions, statements);
+		return new Program(imports, typeDefinitions, traits, traitImplementations, functions, externFunctions, statements);
 	}
 
 	private ImportStatement parseImport() {
@@ -317,7 +335,10 @@ public class Parser {
 	}
 
 	private Type parseNamedOrGenericType() {
-		consume(TokenType.IDENTIFIER, "Expected type name");
+		// Accept IDENTIFIER or VOID keyword as type name
+		if (!match(TokenType.IDENTIFIER) && !match(TokenType.VOID)) {
+			throw new RuntimeException("Expected type name at line " + peek().line() + ", column " + peek().column());
+		}
 		String name = previous().lexeme();
 
 		// Check for generic type arguments: Type<Param1, Param2>
@@ -571,6 +592,92 @@ public class Parser {
 		} else {
 			return new IfStatement(condition, thenStmt);
 		}
+	}
+
+	private TraitDefinition parseTraitDefinition(boolean isIntrinsic) {
+		// trait Name<Params> { methods } or intrinsic trait Name<Params> { methods }
+		consume(TokenType.IDENTIFIER, "Expected trait name");
+		String name = previous().lexeme();
+
+		// Parse generic parameters: <Param1, Param2 : Constraint, Param3>
+		List<GenericParameter> genericParameters = null;
+		if (match(TokenType.LESS)) {
+			genericParameters = parseGenericParameters();
+			consume(TokenType.GREATER, "Expected '>' after generic parameters");
+		}
+
+		// Parse trait body: { method signatures }
+		consume(TokenType.LBRACE, "Expected '{' after trait name");
+		List<FunctionDefinition> methods = new ArrayList<>();
+		while (!check(TokenType.RBRACE) && !isAtEnd()) {
+			consume(TokenType.FN, "Expected 'fn' in trait definition");
+			methods.add(parseTraitMethodSignature());
+		}
+		consume(TokenType.RBRACE, "Expected '}' after trait definition");
+
+		if (genericParameters != null) {
+			return new TraitDefinition(name, genericParameters, methods, isIntrinsic);
+		} else {
+			return new TraitDefinition(name, null, methods, isIntrinsic);
+		}
+	}
+
+	private FunctionDefinition parseTraitMethodSignature() {
+		// fn name(params) : ReturnType; (no body, just signature)
+		consume(TokenType.IDENTIFIER, "Expected method name");
+		String name = previous().lexeme();
+
+		// Parse generic type arguments: <Type1, Type2>
+		List<Type> typeArguments = null;
+		if (match(TokenType.LESS)) {
+			typeArguments = new ArrayList<>();
+			if (!check(TokenType.GREATER)) {
+				do {
+					typeArguments.add(parseType());
+				} while (match(TokenType.COMMA));
+			}
+			consume(TokenType.GREATER, "Expected '>' after generic type arguments");
+		}
+
+		// Parse parameters: (param1 : Type1, param2 : Type2)
+		consume(TokenType.LPAREN, "Expected '(' after method name");
+		List<FunctionParameter> parameters = parseFunctionParameters();
+		consume(TokenType.RPAREN, "Expected ')' after parameters");
+
+		// Parse optional return type: : ReturnType
+		Type returnType = null;
+		if (match(TokenType.COLON)) {
+			returnType = parseType();
+		}
+
+		consume(TokenType.SEMICOLON, "Expected ';' after trait method signature");
+
+		// Trait method signatures have no body
+		if (typeArguments != null) {
+			return new FunctionDefinition(name, typeArguments, parameters, returnType, null);
+		} else {
+			return new FunctionDefinition(name, parameters, returnType, null);
+		}
+	}
+
+	private TraitImplementation parseTraitImplementation() {
+		// impl TraitName for Type { methods }
+		consume(TokenType.IDENTIFIER, "Expected trait name");
+		String traitName = previous().lexeme();
+
+		consume(TokenType.FOR, "Expected 'for' after trait name");
+		Type implementingType = parseType();
+
+		// Parse implementation body: { method implementations }
+		consume(TokenType.LBRACE, "Expected '{' after implementing type");
+		List<FunctionDefinition> methods = new ArrayList<>();
+		while (!check(TokenType.RBRACE) && !isAtEnd()) {
+			consume(TokenType.FN, "Expected 'fn' in trait implementation");
+			methods.add(parseFunctionDefinition());
+		}
+		consume(TokenType.RBRACE, "Expected '}' after trait implementation");
+
+		return new TraitImplementation(traitName, implementingType, methods);
 	}
 
 	private Token consume(TokenType type, String message) {

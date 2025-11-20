@@ -50,4 +50,8 @@ public interface Visitor<T> {
 	T visitIfStatement(IfStatement node);
 
 	T visitUnionType(UnionType node);
+
+	T visitTraitDefinition(TraitDefinition node);
+
+	T visitTraitImplementation(TraitImplementation node);
 }

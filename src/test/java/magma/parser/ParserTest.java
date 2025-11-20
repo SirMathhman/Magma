@@ -401,4 +401,48 @@ class ParserTest {
 		assertInstanceOf(PointerType.class, union.getVariants().get(0));
 		assertInstanceOf(NamedType.class, union.getVariants().get(1));
 	}
+
+	@Test
+	void testParseTraitDefinition() {
+		Lexer lexer = new Lexer("trait Drop { fn drop(this) : Void; }");
+		Parser parser = new Parser(lexer.tokenize());
+
+		Program program = parser.parse();
+
+		assertEquals(1, program.getTraits().size());
+		TraitDefinition trait = program.getTraits().get(0);
+		assertEquals("Drop", trait.getName());
+		assertEquals(false, trait.isIntrinsic());
+		assertEquals(1, trait.getMethods().size());
+		assertEquals("drop", trait.getMethods().get(0).getName());
+	}
+
+	@Test
+	void testParseIntrinsicTrait() {
+		Lexer lexer = new Lexer("intrinsic trait Clone { fn clone(this) : Self; }");
+		Parser parser = new Parser(lexer.tokenize());
+
+		Program program = parser.parse();
+
+		assertEquals(1, program.getTraits().size());
+		TraitDefinition trait = program.getTraits().get(0);
+		assertEquals("Clone", trait.getName());
+		assertEquals(true, trait.isIntrinsic());
+	}
+
+	@Test
+	void testParseTraitImplementation() {
+		Lexer lexer = new Lexer("impl Drop for Allocated { fn drop(this) => { free(this); } }");
+		Parser parser = new Parser(lexer.tokenize());
+
+		Program program = parser.parse();
+
+		assertEquals(1, program.getTraitImplementations().size());
+		TraitImplementation impl = program.getTraitImplementations().get(0);
+		assertEquals("Drop", impl.getTraitName());
+		assertInstanceOf(NamedType.class, impl.getImplementingType());
+		assertEquals("Allocated", ((NamedType) impl.getImplementingType()).getName());
+		assertEquals(1, impl.getMethods().size());
+		assertEquals("drop", impl.getMethods().get(0).getName());
+	}
 }
