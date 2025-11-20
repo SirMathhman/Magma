@@ -35,36 +35,9 @@ public class App {
 			}
 		}
 
-		java.util.regex.Matcher typedM = typedPattern.matcher(input);
-		if (typedM.matches()) {
-			String numStr = typedM.group(1);
-			String ui = typedM.group(2); // U or I
-			int bits = Integer.parseInt(typedM.group(3));
-			java.math.BigInteger val;
-			try {
-				val = new java.math.BigInteger(numStr);
-			} catch (NumberFormatException ex) {
-				throw new IllegalArgumentException("Invalid numeric value for " + ui + bits + " suffix: " + input);
-			}
-
-			java.math.BigInteger min;
-			java.math.BigInteger max;
-			if (ui.equals("U")) {
-				min = java.math.BigInteger.ZERO;
-				max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
-				if (val.signum() < 0) {
-					throw new IllegalArgumentException(
-							"Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
-				}
-			} else { // signed
-				min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
-				max = java.math.BigInteger.valueOf(2).pow(bits - 1).subtract(java.math.BigInteger.ONE);
-			}
-
-			if (val.compareTo(min) < 0 || val.compareTo(max) > 0) {
-				throw new IllegalArgumentException("Value out of range for " + ui + bits + " suffix: " + input);
-			}
-			return val.toString();
+		// If input is a typed or plain integer, delegate to parseTypedValue
+		if (typedPattern.matcher(input).matches() || leadingIntPattern.matcher(input).find()) {
+			return parseTypedValue(input).value.toString();
 		}
 
 		java.util.regex.Matcher m = leadingIntPattern.matcher(input);
