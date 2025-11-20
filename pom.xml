@@ -39,7 +39,7 @@
 				<version>3.23.0</version>
 				<configuration>
 					<minimumTokens>${pmd.minimumTokens}</minimumTokens>
-					<failOnViolation>false</failOnViolation>
+					<failOnViolation>true</failOnViolation>
 					<ignoreLiterals>true</ignoreLiterals>
 					<ignoreIdentifiers>true</ignoreIdentifiers>
 				</configuration>
