@@ -20,6 +20,7 @@ public class CCodeGenerator implements Visitor<String> {
 	private List<FunctionDefinition> functions = new ArrayList<>();
 	private List<ExternFunctionDeclaration> externFunctions = new ArrayList<>();
 	private java.util.Map<String, Type> variableTypes = new java.util.HashMap<>();
+	private java.util.Stack<java.util.List<String>> cleanupStack = new java.util.Stack<>();
 	private int indentLevel = 0;
 	private static final String INDENT = "    ";
 
@@ -40,6 +41,7 @@ public class CCodeGenerator implements Visitor<String> {
 		
 		// Reset variable type tracking for this program
 		this.variableTypes.clear();
+		this.cleanupStack.clear();
 
 		// Add standard type includes
 		includes.add("#include <stdint.h>");
@@ -115,11 +117,24 @@ public class CCodeGenerator implements Visitor<String> {
 		code.append("int main(void) {\n");
 		indentLevel++;
 		
+		// Track variables for cleanup in main
+		java.util.List<String> mainCleanup = new java.util.ArrayList<>();
+		cleanupStack.push(mainCleanup);
+		
 		// Generate statements
 		for (Statement stmt : program.getStatements()) {
 			code.append(indent()).append(stmt.accept(this)).append("\n");
 		}
 		
+		// Generate cleanup calls for variables that implement Drop
+		for (String varName : mainCleanup) {
+			Type varType = variableTypes.get(varName);
+			if (varType != null && implementsDrop(varType)) {
+				code.append(indent()).append("drop(").append(varName).append(");\n");
+			}
+		}
+		
+		cleanupStack.pop();
 		indentLevel--;
 		code.append("}\n");
 
@@ -200,14 +215,24 @@ public class CCodeGenerator implements Visitor<String> {
 		String initializer = node.getInitializer().accept(this);
 		
 		// Track variable type for method call dispatch
+		Type varType;
 		if (node.hasTypeAnnotation()) {
-			variableTypes.put(name, node.getTypeAnnotation());
+			varType = node.getTypeAnnotation();
+			variableTypes.put(name, varType);
 		} else {
 			// Track inferred type
 			Type inferredType = inferTypeFromExpression(node.getInitializer());
 			if (inferredType != null) {
+				varType = inferredType;
 				variableTypes.put(name, inferredType);
+			} else {
+				varType = null;
 			}
+		}
+		
+		// Track variable for cleanup if it implements Drop
+		if (varType != null && implementsDrop(varType) && !cleanupStack.isEmpty()) {
+			cleanupStack.peek().add(name);
 		}
 		
 		return type + " " + name + arraySuffix + " = " + initializer + ";";
@@ -427,12 +452,26 @@ public class CCodeGenerator implements Visitor<String> {
 
 	@Override
 	public String visitBlock(Block node) {
+		// Track variables declared in this block for cleanup
+		java.util.List<String> blockCleanup = new java.util.ArrayList<>();
+		cleanupStack.push(blockCleanup);
+		
 		StringBuilder code = new StringBuilder();
 		code.append("{\n");
 		indentLevel++;
 		for (Statement stmt : node.getStatements()) {
 			code.append(indent()).append(stmt.accept(this)).append("\n");
 		}
+		
+		// Generate cleanup calls for variables that implement Drop
+		for (String varName : blockCleanup) {
+			Type varType = variableTypes.get(varName);
+			if (varType != null && implementsDrop(varType)) {
+				code.append(indent()).append("drop(").append(varName).append(");\n");
+			}
+		}
+		
+		cleanupStack.pop();
 		indentLevel--;
 		code.append(indent()).append("}");
 		return code.toString();
@@ -919,6 +958,34 @@ public class CCodeGenerator implements Visitor<String> {
 			}
 		}
 		return false;
+	}
+
+	private boolean implementsDrop(Type type) {
+		// Check if a type implements the Drop trait
+		// For type aliases, check the original type name, not the resolved type
+		// (e.g., if type Allocated = *I32, check if Allocated implements Drop, not *I32)
+		Type typeToCheck = type;
+		
+		// For generic types, check the base type (e.g., Allocated<I32, USize> -> Allocated)
+		if (type instanceof GenericType) {
+			GenericType gen = (GenericType) type;
+			typeToCheck = new NamedType(gen.getBaseName());
+		}
+		
+		// For NamedType, check if it's a type alias - if so, use the alias name
+		// Otherwise, use the type as-is
+		if (typeToCheck instanceof NamedType) {
+			// Check if there's a Drop implementation for this type name
+			return findTraitImplementation("Drop", typeToCheck) != null;
+		}
+		
+		// For other types (PointerType, ArrayType, etc.), check the resolved type
+		Type resolvedType = typeMapper.getTypeResolver() != null 
+			? typeMapper.getTypeResolver().resolve(type)
+			: type;
+		
+		// Check if there's a Drop implementation for the resolved type
+		return findTraitImplementation("Drop", resolvedType) != null;
 	}
 
 	private TraitImplementation findTraitImplementation(String traitName, Type implementingType) {

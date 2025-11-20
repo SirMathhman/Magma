@@ -13,6 +13,10 @@ public class TypeMapper {
 		this.typeResolver = resolver;
 	}
 
+	public TypeResolver getTypeResolver() {
+		return typeResolver;
+	}
+
 	public String mapToCType(Type type, CTypeGenerator generator) {
 		// Resolve type aliases first
 		Type resolvedType = type;

@@ -402,4 +402,30 @@ class CCodeGeneratorTest {
 		assertTrue(result.contains("y->vtable->drop"));
 		assertTrue(result.contains("y->box"));
 	}
+
+	@Test
+	void testGenerateCleanupForDrop() {
+		// Test that variables implementing Drop get cleanup calls
+		// Construct AST directly to avoid parsing issues
+		TraitDefinition dropTrait = new TraitDefinition("Drop", List.of(), List.of(), false);
+		TypeDefinition allocatedType = new TypeDefinition("Allocated", new PointerType(new NamedType("I32")));
+		TraitImplementation dropImpl = new TraitImplementation("Drop", new NamedType("Allocated"), List.of());
+		VariableDeclaration varDecl = new VariableDeclaration("x", false, new NamedType("Allocated"), new NumberLiteral(0));
+		
+		Program program = new Program(
+			List.of(), // imports
+			List.of(allocatedType), // type definitions
+			List.of(dropTrait), // traits
+			List.of(dropImpl), // trait implementations
+			List.of(), // functions
+			List.of(), // extern functions
+			List.of(varDecl) // statements
+		);
+		
+		CCodeGenerator generator = new CCodeGenerator();
+		String result = generator.generate(program);
+
+		// Should generate cleanup call at end of main
+		assertTrue(result.contains("drop(x);"), "Should generate cleanup call for variable implementing Drop. Result: " + result);
+	}
 }
