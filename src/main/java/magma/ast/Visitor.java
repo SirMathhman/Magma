@@ -42,4 +42,6 @@ public interface Visitor<T> {
 	T visitExternFunctionDeclaration(ExternFunctionDeclaration node);
 
 	T visitReturnStatement(ReturnStatement node);
+
+	T visitTypeDefinition(TypeDefinition node);
 }

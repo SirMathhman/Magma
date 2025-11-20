@@ -256,4 +256,56 @@ class ParserTest {
 		assertEquals(true, fn.hasTypeArguments());
 		assertEquals(1, fn.getTypeArguments().size());
 	}
+
+	@Test
+	void testParseTypeDefinition() {
+		Lexer lexer = new Lexer("type MyInt = I32;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getTypeDefinitions().size());
+		TypeDefinition typeDef = program.getTypeDefinitions().get(0);
+		assertEquals("MyInt", typeDef.getName());
+		assertEquals(false, typeDef.hasGenericParameters());
+		assertInstanceOf(NamedType.class, typeDef.getAliasedType());
+		assertEquals("I32", ((NamedType) typeDef.getAliasedType()).getName());
+	}
+
+	@Test
+	void testParseTypeDefinitionWithGenerics() {
+		Lexer lexer = new Lexer("type Allocated<Type, Length : USize> = *[Type; 0; Length];");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getTypeDefinitions().size());
+		TypeDefinition typeDef = program.getTypeDefinitions().get(0);
+		assertEquals("Allocated", typeDef.getName());
+		assertEquals(true, typeDef.hasGenericParameters());
+		assertEquals(2, typeDef.getGenericParameters().size());
+		assertEquals("Type", typeDef.getGenericParameters().get(0).getName());
+		assertEquals(false, typeDef.getGenericParameters().get(0).hasConstraint());
+		assertEquals("Length", typeDef.getGenericParameters().get(1).getName());
+		assertEquals(true, typeDef.getGenericParameters().get(1).hasConstraint());
+		assertInstanceOf(PointerType.class, typeDef.getAliasedType());
+	}
+
+	@Test
+	void testParseTypeDefinitionWithConstraint() {
+		Lexer lexer = new Lexer("type MyType<Param : I32> = Param;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getTypeDefinitions().size());
+		TypeDefinition typeDef = program.getTypeDefinitions().get(0);
+		assertEquals("MyType", typeDef.getName());
+		assertEquals(1, typeDef.getGenericParameters().size());
+		GenericParameter param = typeDef.getGenericParameters().get(0);
+		assertEquals("Param", param.getName());
+		assertEquals(true, param.hasConstraint());
+		assertInstanceOf(NamedType.class, param.getConstraint());
+		assertEquals("I32", ((NamedType) param.getConstraint()).getName());
+	}
 }

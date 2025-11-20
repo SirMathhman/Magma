@@ -2,6 +2,7 @@ package magma.codegen;
 
 import magma.ast.*;
 import magma.types.TypeMapper;
+import magma.types.TypeResolver;
 
 import java.util.HashSet;
 import java.util.List;
@@ -19,6 +20,10 @@ public class CCodeGenerator implements Visitor<String> {
 	}
 
 	public String generate(Program program) {
+		// Initialize type resolver with type definitions
+		TypeResolver typeResolver = new TypeResolver(program.getTypeDefinitions());
+		typeMapper.setTypeResolver(typeResolver);
+
 		// Add standard type includes
 		includes.add("#include <stdint.h>");
 		includes.add("#include <stddef.h>");
@@ -288,6 +293,12 @@ public class CCodeGenerator implements Visitor<String> {
 		} else {
 			return "return;";
 		}
+	}
+
+	@Override
+	public String visitTypeDefinition(TypeDefinition node) {
+		// Type definitions are compile-time aliases, they don't generate C code
+		return "";
 	}
 
 	private String visitFunctionParameter(FunctionParameter param) {

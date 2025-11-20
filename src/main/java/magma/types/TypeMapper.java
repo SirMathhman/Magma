@@ -3,17 +3,33 @@ package magma.types;
 import magma.ast.*;
 
 public class TypeMapper {
+	private TypeResolver typeResolver;
+
+	public TypeMapper() {
+		this.typeResolver = null;
+	}
+
+	public void setTypeResolver(TypeResolver resolver) {
+		this.typeResolver = resolver;
+	}
+
 	public String mapToCType(Type type, CTypeGenerator generator) {
-		if (type instanceof NamedType) {
-			return mapNamedType((NamedType) type);
-		} else if (type instanceof PointerType) {
-			return mapPointerType((PointerType) type, generator);
-		} else if (type instanceof ArrayType) {
-			return mapArrayType((ArrayType) type, generator);
-		} else if (type instanceof GenericType) {
-			return mapGenericType((GenericType) type);
+		// Resolve type aliases first
+		Type resolvedType = type;
+		if (typeResolver != null) {
+			resolvedType = typeResolver.resolve(type);
+		}
+
+		if (resolvedType instanceof NamedType) {
+			return mapNamedType((NamedType) resolvedType);
+		} else if (resolvedType instanceof PointerType) {
+			return mapPointerType((PointerType) resolvedType, generator);
+		} else if (resolvedType instanceof ArrayType) {
+			return mapArrayType((ArrayType) resolvedType, generator);
+		} else if (resolvedType instanceof GenericType) {
+			return mapGenericType((GenericType) resolvedType);
 		} else {
-			throw new RuntimeException("Unknown type: " + type.getClass().getSimpleName());
+			throw new RuntimeException("Unknown type: " + resolvedType.getClass().getSimpleName());
 		}
 	}
 

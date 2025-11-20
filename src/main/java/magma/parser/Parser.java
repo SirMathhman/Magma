@@ -18,6 +18,7 @@ public class Parser {
 
 	public Program parse() {
 		List<ImportStatement> imports = new ArrayList<>();
+		List<TypeDefinition> typeDefinitions = new ArrayList<>();
 		List<FunctionDefinition> functions = new ArrayList<>();
 		List<ExternFunctionDeclaration> externFunctions = new ArrayList<>();
 		List<Statement> statements = new ArrayList<>();
@@ -25,6 +26,11 @@ public class Parser {
 		// Parse imports
 		while (match(TokenType.IMPORT)) {
 			imports.add(parseImport());
+		}
+
+		// Parse type definitions (after imports, before functions)
+		while (match(TokenType.TYPE)) {
+			typeDefinitions.add(parseTypeDefinition());
 		}
 
 		// Parse functions, extern functions, and statements
@@ -41,7 +47,7 @@ public class Parser {
 			}
 		}
 
-		return new Program(imports, functions, externFunctions, statements);
+		return new Program(imports, typeDefinitions, functions, externFunctions, statements);
 	}
 
 	private ImportStatement parseImport() {
@@ -463,6 +469,56 @@ public class Parser {
 		}
 
 		return new FunctionParameter(name);
+	}
+
+	private TypeDefinition parseTypeDefinition() {
+		// type name<params> = Type;
+		consume(TokenType.IDENTIFIER, "Expected type name");
+		String name = previous().lexeme();
+
+		// Parse generic parameters: <Param1, Param2 : Constraint, Param3>
+		List<GenericParameter> genericParameters = null;
+		if (match(TokenType.LESS)) {
+			genericParameters = parseGenericParameters();
+			consume(TokenType.GREATER, "Expected '>' after generic parameters");
+		}
+
+		// Parse = Type
+		consume(TokenType.ASSIGN, "Expected '=' after type name");
+		Type aliasedType = parseType();
+		consume(TokenType.SEMICOLON, "Expected ';' after type definition");
+
+		if (genericParameters != null) {
+			return new TypeDefinition(name, genericParameters, aliasedType);
+		} else {
+			return new TypeDefinition(name, aliasedType);
+		}
+	}
+
+	private List<GenericParameter> parseGenericParameters() {
+		List<GenericParameter> parameters = new ArrayList<>();
+
+		if (!check(TokenType.GREATER)) {
+			do {
+				parameters.add(parseGenericParameter());
+			} while (match(TokenType.COMMA));
+		}
+
+		return parameters;
+	}
+
+	private GenericParameter parseGenericParameter() {
+		// name : Constraint or just name
+		consume(TokenType.IDENTIFIER, "Expected generic parameter name");
+		String name = previous().lexeme();
+
+		// Optional constraint: : Constraint
+		if (match(TokenType.COLON)) {
+			Type constraint = parseType();
+			return new GenericParameter(name, constraint);
+		}
+
+		return new GenericParameter(name);
 	}
 
 	private Token consume(TokenType type, String message) {
