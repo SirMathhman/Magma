@@ -4,6 +4,7 @@ import magma.ast.*;
 import magma.types.TypeMapper;
 import magma.types.TypeResolver;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -12,6 +13,8 @@ import java.util.stream.Collectors;
 public class CCodeGenerator implements Visitor<String> {
 	private final Set<String> includes = new HashSet<>();
 	private final TypeMapper typeMapper;
+	private final Set<String> generatedUnions = new HashSet<>();
+	private final List<String> unionDefinitions = new ArrayList<>();
 	private int indentLevel = 0;
 	private static final String INDENT = "    ";
 
@@ -57,6 +60,14 @@ public class CCodeGenerator implements Visitor<String> {
 		// Generate extern function declarations (emit whitespace only)
 		for (ExternFunctionDeclaration externFn : program.getExternFunctions()) {
 			code.append(externFn.accept(this));
+		}
+
+		// Collect union types from function signatures and variable declarations
+		collectUnionTypes(program);
+
+		// Generate union type definitions (before function definitions)
+		for (String unionDef : unionDefinitions) {
+			code.append(unionDef).append("\n\n");
 		}
 
 		// Generate function definitions (before main)
@@ -345,6 +356,96 @@ public class CCodeGenerator implements Visitor<String> {
 		}
 		
 		return code.toString();
+	}
+
+	@Override
+	public String visitUnionType(UnionType node) {
+		// Check for special case: PointerType | 0 simplifies to pointer type
+		if (node.getVariants().size() == 2) {
+			Type variant1 = node.getVariants().get(0);
+			Type variant2 = node.getVariants().get(1);
+			
+			if (variant1 instanceof PointerType && isZeroType(variant2)) {
+				return typeMapper.mapToCType(variant1, this::generateExpression);
+			} else if (variant2 instanceof PointerType && isZeroType(variant1)) {
+				return typeMapper.mapToCType(variant2, this::generateExpression);
+			}
+		}
+		
+		// Generate union type name
+		String unionName = typeMapper.mapToCType(node, this::generateExpression);
+		
+		// Generate union definition if not already generated
+		if (!generatedUnions.contains(unionName)) {
+			generatedUnions.add(unionName);
+			String unionDef = generateUnionDefinition(node, unionName);
+			unionDefinitions.add(unionDef);
+		}
+		
+		return unionName;
+	}
+
+	private boolean isZeroType(Type type) {
+		if (type instanceof NamedType) {
+			return "0".equals(((NamedType) type).getName());
+		}
+		return false;
+	}
+
+	private String generateUnionDefinition(UnionType node, String unionName) {
+		StringBuilder code = new StringBuilder();
+		
+		// Generate enum for tags
+		code.append("typedef enum {\n");
+		for (int i = 0; i < node.getVariants().size(); i++) {
+			code.append("    ").append(unionName).append("_TAG_VARIANT").append(i);
+			if (i < node.getVariants().size() - 1) {
+				code.append(",");
+			}
+			code.append("\n");
+		}
+		code.append("} ").append(unionName).append("_Tag;\n\n");
+		
+		// Generate union for data
+		code.append("typedef union {\n");
+		for (int i = 0; i < node.getVariants().size(); i++) {
+			Type variant = node.getVariants().get(i);
+			String variantType = typeMapper.mapToCType(variant, this::generateExpression);
+			code.append("    ").append(variantType).append(" variant").append(i).append(";\n");
+		}
+		code.append("} ").append(unionName).append("_Data;\n\n");
+		
+		// Generate struct combining tag and data
+		code.append("typedef struct {\n");
+		code.append("    ").append(unionName).append("_Tag tag;\n");
+		code.append("    ").append(unionName).append("_Data data;\n");
+		code.append("} ").append(unionName).append(";");
+		
+		return code.toString();
+	}
+
+	private void collectUnionTypes(Program program) {
+		// Collect union types from function return types and parameters
+		for (FunctionDefinition fn : program.getFunctions()) {
+			if (fn.hasReturnType() && fn.getReturnType() instanceof UnionType) {
+				visitUnionType((UnionType) fn.getReturnType());
+			}
+			for (FunctionParameter param : fn.getParameters()) {
+				if (param.hasType() && param.getType() instanceof UnionType) {
+					visitUnionType((UnionType) param.getType());
+				}
+			}
+		}
+		
+		// Collect union types from variable declarations
+		for (Statement stmt : program.getStatements()) {
+			if (stmt instanceof VariableDeclaration) {
+				VariableDeclaration decl = (VariableDeclaration) stmt;
+				if (decl.hasTypeAnnotation() && decl.getTypeAnnotation() instanceof UnionType) {
+					visitUnionType((UnionType) decl.getTypeAnnotation());
+				}
+			}
+		}
 	}
 
 	private String visitFunctionParameter(FunctionParameter param) {

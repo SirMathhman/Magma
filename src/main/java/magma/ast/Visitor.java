@@ -48,4 +48,6 @@ public interface Visitor<T> {
 	T visitIfExpression(IfExpression node);
 
 	T visitIfStatement(IfStatement node);
+
+	T visitUnionType(UnionType node);
 }

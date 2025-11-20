@@ -34,6 +34,12 @@ public class TypeResolver {
 			} else {
 				return new ArrayType(elementType, arr.getLength());
 			}
+		} else if (type instanceof UnionType) {
+			UnionType union = (UnionType) type;
+			List<Type> resolvedVariants = union.getVariants().stream()
+					.map(this::resolve)
+					.toList();
+			return new UnionType(resolvedVariants);
 		}
 		return type;
 	}

@@ -283,4 +283,48 @@ class CCodeGeneratorTest {
 		assertTrue(result.contains("x = 3;"));
 		assertTrue(!result.contains("else"));
 	}
+
+	@Test
+	void testGenerateUnionType() {
+		// let x : I32 | USize = 10;
+		UnionType unionType = new UnionType(List.of(
+			new NamedType("I32"),
+			new NamedType("USize")
+		));
+		VariableDeclaration decl = new VariableDeclaration("x", false, unionType, new NumberLiteral(10));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Should generate union type definition
+		assertTrue(result.contains("typedef enum"));
+		assertTrue(result.contains("typedef union"));
+		assertTrue(result.contains("typedef struct"));
+		// Should use the union type in variable declaration
+		assertTrue(result.contains("Union_int32_t_size_t"));
+	}
+
+	@Test
+	void testGenerateUnionTypeWithThreeVariants() {
+		// let x : I32 | USize | U8 = 10;
+		UnionType unionType = new UnionType(List.of(
+			new NamedType("I32"),
+			new NamedType("USize"),
+			new NamedType("U8")
+		));
+		VariableDeclaration decl = new VariableDeclaration("x", false, unionType, new NumberLiteral(10));
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Should generate union with three variants
+		assertTrue(result.contains("TAG_VARIANT0"));
+		assertTrue(result.contains("TAG_VARIANT1"));
+		assertTrue(result.contains("TAG_VARIANT2"));
+		assertTrue(result.contains("variant0"));
+		assertTrue(result.contains("variant1"));
+		assertTrue(result.contains("variant2"));
+	}
 }

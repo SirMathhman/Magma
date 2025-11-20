@@ -28,6 +28,8 @@ public class TypeMapper {
 			return mapArrayType((ArrayType) resolvedType, generator);
 		} else if (resolvedType instanceof GenericType) {
 			return mapGenericType((GenericType) resolvedType);
+		} else if (resolvedType instanceof UnionType) {
+			return mapUnionType((UnionType) resolvedType, generator);
 		} else {
 			throw new RuntimeException("Unknown type: " + resolvedType.getClass().getSimpleName());
 		}
@@ -73,6 +75,47 @@ public class TypeMapper {
 		String baseName = node.getBaseName();
 		// Could generate something like "Allocated_int32_t_size_t" but for now just use base name
 		return baseName;
+	}
+
+	private String mapUnionType(UnionType node, CTypeGenerator generator) {
+		// Special case: PointerType | 0 simplifies to just the pointer type
+		if (node.getVariants().size() == 2) {
+			Type variant1 = node.getVariants().get(0);
+			Type variant2 = node.getVariants().get(1);
+			
+			// Check if one is a pointer and the other is "0"
+			if (variant1 instanceof PointerType && isZeroType(variant2)) {
+				return mapPointerType((PointerType) variant1, generator);
+			} else if (variant2 instanceof PointerType && isZeroType(variant1)) {
+				return mapPointerType((PointerType) variant2, generator);
+			}
+		}
+		
+		// Generate unique name for union type
+		StringBuilder nameBuilder = new StringBuilder("Union_");
+		for (Type variant : node.getVariants()) {
+			String variantName = mapToCType(variant, generator);
+			String sanitized = sanitizeTypeName(variantName);
+			nameBuilder.append(sanitized).append("_");
+		}
+		// Remove trailing underscore
+		if (nameBuilder.length() > 0 && nameBuilder.charAt(nameBuilder.length() - 1) == '_') {
+			nameBuilder.setLength(nameBuilder.length() - 1);
+		}
+		return nameBuilder.toString();
+	}
+
+	private boolean isZeroType(Type type) {
+		// Check if type is the literal "0" (could be NamedType with name "0")
+		if (type instanceof NamedType) {
+			return "0".equals(((NamedType) type).getName());
+		}
+		return false;
+	}
+
+	private String sanitizeTypeName(String typeName) {
+		// Replace special characters with underscores
+		return typeName.replaceAll("[<>,\\*\\[\\]\\s]", "_");
 	}
 
 	// Interface for generating C expressions from AST nodes

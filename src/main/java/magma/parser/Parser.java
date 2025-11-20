@@ -284,9 +284,26 @@ public class Parser {
 	}
 
 	private Type parseType() {
+		// Parse base type first
+		Type baseType = parseBaseType();
+		
+		// Check for union types: Type | Type | Type
+		if (match(TokenType.PIPE)) {
+			List<Type> variants = new ArrayList<>();
+			variants.add(baseType);
+			do {
+				variants.add(parseBaseType());
+			} while (match(TokenType.PIPE));
+			return new UnionType(variants);
+		}
+		
+		return baseType;
+	}
+
+	private Type parseBaseType() {
 		// Handle pointer types: *Type
 		if (match(TokenType.STAR)) {
-			Type baseType = parseType();
+			Type baseType = parseBaseType();
 			return new PointerType(baseType);
 		}
 

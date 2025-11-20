@@ -353,4 +353,52 @@ class ParserTest {
 		IfStatement ifStmt = (IfStatement) program.getStatements().get(0);
 		assertEquals(false, ifStmt.hasElse());
 	}
+
+	@Test
+	void testParseUnionType() {
+		Lexer lexer = new Lexer("let x : I32 | USize = 10;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(UnionType.class, decl.getTypeAnnotation());
+		UnionType union = (UnionType) decl.getTypeAnnotation();
+		assertEquals(2, union.getVariants().size());
+		assertInstanceOf(NamedType.class, union.getVariants().get(0));
+		assertInstanceOf(NamedType.class, union.getVariants().get(1));
+		assertEquals("I32", ((NamedType) union.getVariants().get(0)).getName());
+		assertEquals("USize", ((NamedType) union.getVariants().get(1)).getName());
+	}
+
+	@Test
+	void testParseUnionTypeWithThreeVariants() {
+		Lexer lexer = new Lexer("let x : I32 | USize | U8 = 10;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(UnionType.class, decl.getTypeAnnotation());
+		UnionType union = (UnionType) decl.getTypeAnnotation();
+		assertEquals(3, union.getVariants().size());
+	}
+
+	@Test
+	void testParseUnionTypeWithPointer() {
+		Lexer lexer = new Lexer("let x : *I32 | I32 = 10;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(UnionType.class, decl.getTypeAnnotation());
+		UnionType union = (UnionType) decl.getTypeAnnotation();
+		assertEquals(2, union.getVariants().size());
+		assertInstanceOf(PointerType.class, union.getVariants().get(0));
+		assertInstanceOf(NamedType.class, union.getVariants().get(1));
+	}
 }
