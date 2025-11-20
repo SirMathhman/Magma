@@ -14,13 +14,14 @@ public class App {
 		// Start from position 1 to skip any leading +/- sign
 		int opIdx = -1;
 		char opChar = ' ';
-		
+
 		// Scan from position 1 onwards
 		for (int i = 1; i < input.length(); i++) {
 			char c = input.charAt(i);
 			if ((c == '+' || c == '-') && !Character.isWhitespace(input.charAt(i - 1))) {
 				// Found operator, but verify it's not a sign by checking previous char
-				// Operators appear after numbers or closing parens/brackets, not after operators
+				// Operators appear after numbers or closing parens/brackets, not after
+				// operators
 				opIdx = i;
 				opChar = c;
 				break;
@@ -54,7 +55,8 @@ public class App {
 			for (int i = 0; i < rightAndRest.length(); i++) {
 				char c = rightAndRest.charAt(i);
 				if (c == '+' || c == '-') {
-					// Check if this is a sign (preceded by another operator or at start) or an operator
+					// Check if this is a sign (preceded by another operator or at start) or an
+					// operator
 					if (i == 0 || Character.isWhitespace(rightAndRest.charAt(i - 1))) {
 						// Could be a sign, try to parse up to here
 						String potentialRight = rightAndRest.substring(0, i).trim();
