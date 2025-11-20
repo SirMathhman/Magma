@@ -40,12 +40,13 @@ public class App {
 
 			// Parse and validate the value
 			TypedValue typedVal = parseTypedValue(valueExpr);
-			
+
 			// Verify the value matches the declared type
 			if (typedVal.typed && (!typedVal.ui.equals(ui) || typedVal.bits != bits)) {
-				throw new IllegalArgumentException("Type mismatch for variable " + varName + ": expected " + ui + bits + " but got " + typedVal.ui + typedVal.bits);
+				throw new IllegalArgumentException("Type mismatch for variable " + varName + ": expected " + ui + bits
+						+ " but got " + typedVal.ui + typedVal.bits);
 			}
-			
+
 			// If untyped value, validate it fits in the declared type
 			if (!typedVal.typed) {
 				java.math.BigInteger[] range = rangeFor(ui, bits);
@@ -54,7 +55,7 @@ public class App {
 				}
 				typedVal = new TypedValue(typedVal.value, true, ui, bits);
 			}
-			
+
 			// Store the variable
 			variables.put(varName, typedVal);
 			return "";
@@ -222,6 +223,11 @@ public class App {
 				String evaluated = interpret(inner);
 				return parseTypedValue(evaluated);
 			}
+		}
+
+		// Handle variable references
+		if (variables.containsKey(input)) {
+			return variables.get(input);
 		}
 
 		java.util.regex.Matcher typedM = typedPattern.matcher(input);

@@ -172,4 +172,19 @@ public class AppTest {
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : U8 = 256;"));
 		assertThrows(IllegalArgumentException.class, () -> App.interpret("let x : I16 = -33000;"));
 	}
+
+	@Test
+	public void testInterpretVariableReference() {
+		App.interpret("let x : U8 = 100;");
+		assertEquals("100", App.interpret("x"));
+		App.interpret("let y : I16 = -50;");
+		assertEquals("-50", App.interpret("y"));
+	}
+
+	@Test
+	public void testInterpretVariableInExpression() {
+		App.interpret("let x : U8 = 100;");
+		assertEquals("150", App.interpret("x + 50"));
+		assertEquals("50", App.interpret("x - 50"));
+	}
 }
