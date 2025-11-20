@@ -22,6 +22,7 @@ public enum TokenType {
 	ELSE,
 	RETURN,
 	VOID,
+	SIZEOF,
 
 	// Operators
 	ASSIGN,        // =

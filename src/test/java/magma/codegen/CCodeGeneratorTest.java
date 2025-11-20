@@ -9,6 +9,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 
 class CCodeGeneratorTest {
 	@Test
@@ -97,5 +98,64 @@ class CCodeGeneratorTest {
 		String result = generator.generate(program);
 
 		assertTrue(result.contains("array[5];"));
+	}
+
+	@Test
+	void testGenerateVariableWithTypeAnnotation() {
+		VariableDeclaration decl = new VariableDeclaration("x", true,
+				new NamedType("I32"),
+				new NumberLiteral(42));
+		Program program = new Program(List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		assertTrue(result.contains("int32_t x = 42;"));
+		assertTrue(result.contains("#include <stdint.h>"));
+	}
+
+	@Test
+	void testGeneratePointerType() {
+		PointerType ptrType = new PointerType(new NamedType("I32"));
+		VariableDeclaration decl = new VariableDeclaration("ptr", true,
+				ptrType,
+				new NumberLiteral(0));
+		Program program = new Program(List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		assertTrue(result.contains("int32_t* ptr = 0;"));
+	}
+
+	@Test
+	void testGenerateArrayType() {
+		ArrayType arrayType = new ArrayType(
+				new NamedType("I32"),
+				new NumberLiteral(100));
+		VariableDeclaration decl = new VariableDeclaration("arr", true,
+				arrayType,
+				new NumberLiteral(0));
+		Program program = new Program(List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		assertTrue(result.contains("int32_t arr[100] = 0;"));
+	}
+
+	@Test
+	void testGenerateSizeOfExpression() {
+		SizeOfExpression sizeof = new SizeOfExpression(new NamedType("I32"));
+		BinaryExpression expr = new BinaryExpression(sizeof,
+				new Token(TokenType.STAR, "*", 1, 1),
+				new NumberLiteral(100));
+		VariableDeclaration decl = new VariableDeclaration("size", true, expr);
+		Program program = new Program(List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		assertTrue(result.contains("sizeof(int32_t) * 100"));
 	}
 }

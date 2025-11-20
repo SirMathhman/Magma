@@ -29,6 +29,7 @@ public class Lexer {
 		keywords.put("else", TokenType.ELSE);
 		keywords.put("return", TokenType.RETURN);
 		keywords.put("Void", TokenType.VOID);
+		keywords.put("SizeOf", TokenType.SIZEOF);
 	}
 
 	public Lexer(String source) {

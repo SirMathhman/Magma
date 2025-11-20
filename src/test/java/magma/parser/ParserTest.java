@@ -130,4 +130,65 @@ class ParserTest {
 		assertEquals(true, imp.isExtern());
 		assertEquals(1, program.getStatements().size());
 	}
+
+	@Test
+	void testParseVariableWithTypeAnnotation() {
+		Lexer lexer = new Lexer("let mut x : I32 = 42;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		assertInstanceOf(VariableDeclaration.class, program.getStatements().get(0));
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertEquals("x", decl.getName());
+		assertEquals(true, decl.hasTypeAnnotation());
+		assertInstanceOf(NamedType.class, decl.getTypeAnnotation());
+		assertEquals("I32", ((NamedType) decl.getTypeAnnotation()).getName());
+	}
+
+	@Test
+	void testParsePointerType() {
+		Lexer lexer = new Lexer("let mut ptr : *I32 = 0;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(PointerType.class, decl.getTypeAnnotation());
+		PointerType ptrType = (PointerType) decl.getTypeAnnotation();
+		assertInstanceOf(NamedType.class, ptrType.getBaseType());
+		assertEquals("I32", ((NamedType) ptrType.getBaseType()).getName());
+	}
+
+	@Test
+	void testParseArrayType() {
+		Lexer lexer = new Lexer("let mut arr : [I32; 100] = 0;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(ArrayType.class, decl.getTypeAnnotation());
+		ArrayType arrayType = (ArrayType) decl.getTypeAnnotation();
+		assertInstanceOf(NamedType.class, arrayType.getElementType());
+		assertEquals("I32", ((NamedType) arrayType.getElementType()).getName());
+		assertInstanceOf(NumberLiteral.class, arrayType.getLength());
+	}
+
+	@Test
+	void testParseSizeOfExpression() {
+		Lexer lexer = new Lexer("let mut size = SizeOf<I32> * 100;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(BinaryExpression.class, decl.getInitializer());
+		BinaryExpression expr = (BinaryExpression) decl.getInitializer();
+		assertInstanceOf(SizeOfExpression.class, expr.getLeft());
+		SizeOfExpression sizeof = (SizeOfExpression) expr.getLeft();
+		assertInstanceOf(NamedType.class, sizeof.getType());
+		assertEquals("I32", ((NamedType) sizeof.getType()).getName());
+	}
 }

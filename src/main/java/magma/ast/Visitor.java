@@ -26,4 +26,14 @@ public interface Visitor<T> {
 	T visitImportStatement(ImportStatement node);
 
 	T visitExpressionStatement(ExpressionStatement node);
+
+	T visitNamedType(NamedType node);
+
+	T visitPointerType(PointerType node);
+
+	T visitArrayType(ArrayType node);
+
+	T visitGenericType(GenericType node);
+
+	T visitSizeOfExpression(SizeOfExpression node);
 }

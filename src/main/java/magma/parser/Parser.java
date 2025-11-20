@@ -71,10 +71,17 @@ public class Parser {
 		boolean mutable = match(TokenType.MUT);
 		consume(TokenType.IDENTIFIER, "Expected variable name");
 		String name = previous().lexeme();
+
+		// Optional type annotation: : Type
+		Type typeAnnotation = null;
+		if (match(TokenType.COLON)) {
+			typeAnnotation = parseType();
+		}
+
 		consume(TokenType.ASSIGN, "Expected '=' after variable name");
 		Node initializer = parseExpression();
 		consume(TokenType.SEMICOLON, "Expected ';' after variable declaration");
-		return new VariableDeclaration(name, mutable, initializer);
+		return new VariableDeclaration(name, mutable, typeAnnotation, initializer);
 	}
 
 	private ForLoop parseForLoop() {
@@ -156,9 +163,27 @@ public class Parser {
 				Node index = parseExpression();
 				consume(TokenType.RBRACKET, "Expected ']' after array index");
 				expr = new ArrayIndex(expr, index);
+			} else if (match(TokenType.LESS)) {
+				// Generic type arguments: func<Type1, Type2>(...)
+				if (expr instanceof Identifier) {
+					Identifier identifier = (Identifier) expr;
+					List<Type> typeArguments = new ArrayList<>();
+					do {
+						typeArguments.add(parseType());
+					} while (match(TokenType.COMMA));
+					consume(TokenType.GREATER, "Expected '>' after generic type arguments");
+					// Continue to parse function call with type arguments
+					if (match(TokenType.LPAREN)) {
+						expr = finishFunctionCall(identifier, typeArguments);
+					} else {
+						throw new RuntimeException("Expected '(' after generic type arguments");
+					}
+				} else {
+					throw new RuntimeException("Expected identifier before '<' for generic function call");
+				}
 			} else if (match(TokenType.LPAREN)) {
 				if (expr instanceof Identifier) {
-					expr = finishFunctionCall((Identifier) expr);
+					expr = finishFunctionCall((Identifier) expr, null);
 				} else {
 					throw new RuntimeException("Expected identifier before '(' for function call");
 				}
@@ -170,7 +195,7 @@ public class Parser {
 		return expr;
 	}
 
-	private FunctionCall finishFunctionCall(Identifier identifier) {
+	private FunctionCall finishFunctionCall(Identifier identifier, List<Type> typeArguments) {
 		List<Node> arguments = new ArrayList<>();
 
 		if (!check(TokenType.RPAREN)) {
@@ -180,7 +205,7 @@ public class Parser {
 		}
 
 		consume(TokenType.RPAREN, "Expected ')' after arguments");
-		return new FunctionCall(identifier.getName(), arguments);
+		return new FunctionCall(identifier.getName(), typeArguments, arguments);
 	}
 
 	private Node parsePrimary() {
@@ -195,6 +220,10 @@ public class Parser {
 			return new StringLiteral(token.lexeme());
 		}
 
+		if (match(TokenType.SIZEOF)) {
+			return parseSizeOfExpression();
+		}
+
 		if (match(TokenType.IDENTIFIER)) {
 			Token token = previous();
 			return new Identifier(token.lexeme());
@@ -207,6 +236,79 @@ public class Parser {
 		}
 
 		throw new RuntimeException("Expected expression at line " + peek().line() + ", column " + peek().column());
+	}
+
+	private SizeOfExpression parseSizeOfExpression() {
+		consume(TokenType.LESS, "Expected '<' after SizeOf");
+		Type type = parseType();
+		consume(TokenType.GREATER, "Expected '>' after type in SizeOf");
+		return new SizeOfExpression(type);
+	}
+
+	private Type parseType() {
+		// Handle pointer types: *Type
+		if (match(TokenType.STAR)) {
+			Type baseType = parseType();
+			return new PointerType(baseType);
+		}
+
+		// Handle array types: [Type; Length] or [Type; Start; End]
+		if (match(TokenType.LBRACKET)) {
+			return parseArrayType();
+		}
+
+		// Handle named types and generic types
+		return parseNamedOrGenericType();
+	}
+
+	private Type parseNamedOrGenericType() {
+		consume(TokenType.IDENTIFIER, "Expected type name");
+		String name = previous().lexeme();
+
+		// Check for generic type arguments: Type<Param1, Param2>
+		if (match(TokenType.LT)) {
+			return parseGenericType(name);
+		}
+
+		return new NamedType(name);
+	}
+
+	private GenericType parseGenericType(String baseName) {
+		List<Type> typeArguments = new ArrayList<>();
+
+		if (!check(TokenType.GREATER)) {
+			do {
+				typeArguments.add(parseType());
+			} while (match(TokenType.COMMA));
+		}
+
+		consume(TokenType.GREATER, "Expected '>' after generic type arguments");
+		return new GenericType(baseName, typeArguments);
+	}
+
+	private ArrayType parseArrayType() {
+		Type elementType = parseType();
+		consume(TokenType.SEMICOLON, "Expected ';' in array type");
+
+		// Check for [Type; Start; End] syntax
+		if (check(TokenType.NUMBER) || check(TokenType.IDENTIFIER)) {
+			Node start = parseExpression();
+			if (match(TokenType.SEMICOLON)) {
+				// [Type; Start; End] syntax
+				Node end = parseExpression();
+				consume(TokenType.RBRACKET, "Expected ']' after array type");
+				return new ArrayType(elementType, end, start);
+			} else {
+				// [Type; Length] syntax
+				consume(TokenType.RBRACKET, "Expected ']' after array type");
+				return new ArrayType(elementType, start);
+			}
+		} else {
+			// [Type; Length] where Length might be an identifier
+			Node length = parseExpression();
+			consume(TokenType.RBRACKET, "Expected ']' after array type");
+			return new ArrayType(elementType, length);
+		}
 	}
 
 	private Token consume(TokenType type, String message) {

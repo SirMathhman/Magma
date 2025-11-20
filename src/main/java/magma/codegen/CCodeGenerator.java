@@ -1,6 +1,7 @@
 package magma.codegen;
 
 import magma.ast.*;
+import magma.types.TypeMapper;
 
 import java.util.HashSet;
 import java.util.List;
@@ -9,10 +10,19 @@ import java.util.stream.Collectors;
 
 public class CCodeGenerator implements Visitor<String> {
 	private final Set<String> includes = new HashSet<>();
+	private final TypeMapper typeMapper;
 	private int indentLevel = 0;
 	private static final String INDENT = "    ";
 
+	public CCodeGenerator() {
+		this.typeMapper = new TypeMapper();
+	}
+
 	public String generate(Program program) {
+		// Add standard type includes
+		includes.add("#include <stdint.h>");
+		includes.add("#include <stddef.h>");
+
 		// Generate includes from imports
 		for (ImportStatement imp : program.getImports()) {
 			if (imp.isExtern()) {
@@ -30,8 +40,9 @@ public class CCodeGenerator implements Visitor<String> {
 		// Generate code
 		StringBuilder code = new StringBuilder();
 		
-		// Add includes
-		for (String include : includes) {
+		// Add includes (sorted for consistency)
+		List<String> sortedIncludes = includes.stream().sorted().collect(Collectors.toList());
+		for (String include : sortedIncludes) {
 			code.append(include).append("\n");
 		}
 		if (!includes.isEmpty()) {
@@ -89,12 +100,35 @@ public class CCodeGenerator implements Visitor<String> {
 
 	@Override
 	public String visitVariableDeclaration(VariableDeclaration node) {
-		// For now, assume int type for all variables
-		// In the future, we'd need type inference or type annotations
-		String type = "int";
+		String type;
+		String arraySuffix = "";
+		if (node.hasTypeAnnotation()) {
+			Type typeAnnotation = node.getTypeAnnotation();
+			if (typeAnnotation instanceof ArrayType) {
+				ArrayType arrayType = (ArrayType) typeAnnotation;
+				String elementType = typeMapper.mapToCType(arrayType.getElementType(), this::generateExpression);
+				if (arrayType.hasStart()) {
+					// Dynamic array - use pointer
+					type = elementType + "*";
+				} else {
+					// Fixed-size array - type is element type, brackets go after name
+					type = elementType;
+					arraySuffix = "[" + generateExpression(arrayType.getLength()) + "]";
+				}
+			} else {
+				type = typeMapper.mapToCType(typeAnnotation, this::generateExpression);
+			}
+		} else {
+			// Type inference: default to int for now
+			type = "int";
+		}
 		String name = node.getName();
 		String initializer = node.getInitializer().accept(this);
-		return type + " " + name + " = " + initializer + ";";
+		return type + " " + name + arraySuffix + " = " + initializer + ";";
+	}
+
+	private String generateExpression(Node node) {
+		return node.accept(this);
 	}
 
 	@Override
@@ -168,6 +202,32 @@ public class CCodeGenerator implements Visitor<String> {
 	@Override
 	public String visitExpressionStatement(ExpressionStatement node) {
 		return node.getExpression().accept(this) + ";";
+	}
+
+	@Override
+	public String visitNamedType(NamedType node) {
+		return typeMapper.mapToCType(node, this::generateExpression);
+	}
+
+	@Override
+	public String visitPointerType(PointerType node) {
+		return typeMapper.mapToCType(node, this::generateExpression);
+	}
+
+	@Override
+	public String visitArrayType(ArrayType node) {
+		return typeMapper.mapToCType(node, this::generateExpression);
+	}
+
+	@Override
+	public String visitGenericType(GenericType node) {
+		return typeMapper.mapToCType(node, this::generateExpression);
+	}
+
+	@Override
+	public String visitSizeOfExpression(SizeOfExpression node) {
+		String cType = typeMapper.mapToCType(node.getType(), this::generateExpression);
+		return "sizeof(" + cType + ")";
 	}
 
 	private String indent() {
