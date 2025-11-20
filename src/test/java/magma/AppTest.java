@@ -68,4 +68,10 @@ public class AppTest {
 		assertEquals("3", App.interpret("2U8 + 1"));
 		assertEquals("3", App.interpret("2U8+1U8"));
 	}
+
+	@Test
+	public void testInterpretAdditionDifferentTypedOperandsThrows() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("1U8 + 2U16"));
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("1I16 + 2U16"));
+	}
 }
