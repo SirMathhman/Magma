@@ -76,4 +76,10 @@ public class AppTest {
 		assertEquals("3", App.interpret("1I16 + 2I16"));
 		assertEquals("3", App.interpret("1U16 + 2U16"));
 	}
+
+	@Test
+	public void testInterpretAdditionMixedOverflowThrows() {
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("255U8 + 1"));
+		assertThrows(IllegalArgumentException.class, () -> App.interpret("1 + 255U8"));
+	}
 }

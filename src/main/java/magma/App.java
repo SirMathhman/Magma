@@ -28,7 +28,19 @@ public class App {
 			try {
 				java.math.BigInteger a = leftTV.value;
 				java.math.BigInteger b = rightTV.value;
-				return a.add(b).toString();
+				java.math.BigInteger sum = a.add(b);
+
+				// If either operand is typed, verify the result is within the typed range
+				if (leftTV.typed || rightTV.typed) {
+					TypedValue typedTV = leftTV.typed ? leftTV : rightTV;
+					java.math.BigInteger[] range = rangeFor(typedTV.ui, typedTV.bits);
+					if (sum.compareTo(range[0]) < 0 || sum.compareTo(range[1]) > 0) {
+						throw new IllegalArgumentException(
+								"Result out of range for " + typedTV.ui + typedTV.bits + " suffix: " + input);
+					}
+				}
+
+				return sum.toString();
 			} catch (NumberFormatException ex) {
 				throw new IllegalArgumentException("Invalid operands for addition: " + input);
 			}
@@ -72,18 +84,13 @@ public class App {
 			} catch (NumberFormatException ex) {
 				throw new IllegalArgumentException("Invalid numeric value for " + ui + bits + " suffix: " + input);
 			}
-			java.math.BigInteger min;
-			java.math.BigInteger max;
-			if (ui.equals("U")) {
-				min = java.math.BigInteger.ZERO;
-				max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
-				if (val.signum() < 0) {
-					throw new IllegalArgumentException(
-							"Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
-				}
-			} else {
-				min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
-				max = java.math.BigInteger.valueOf(2).pow(bits - 1).subtract(java.math.BigInteger.ONE);
+
+			java.math.BigInteger[] range = rangeFor(ui, bits);
+			java.math.BigInteger min = range[0];
+			java.math.BigInteger max = range[1];
+			if ("U".equals(ui) && val.signum() < 0) {
+				throw new IllegalArgumentException(
+						"Negative value not allowed with unsigned " + ui + bits + " suffix: " + input);
 			}
 			if (val.compareTo(min) < 0 || val.compareTo(max) > 0) {
 				throw new IllegalArgumentException("Value out of range for " + ui + bits + " suffix: " + input);
@@ -96,5 +103,18 @@ public class App {
 			return new TypedValue(val, false, null, 0);
 		}
 		throw new IllegalArgumentException("Invalid numeric value: " + input);
+	}
+
+	private static java.math.BigInteger[] rangeFor(String ui, int bits) {
+		java.math.BigInteger min;
+		java.math.BigInteger max;
+		if ("U".equals(ui)) {
+			min = java.math.BigInteger.ZERO;
+			max = java.math.BigInteger.valueOf(2).pow(bits).subtract(java.math.BigInteger.ONE);
+		} else {
+			min = java.math.BigInteger.valueOf(2).pow(bits - 1).negate();
+			max = java.math.BigInteger.valueOf(2).pow(bits - 1).subtract(java.math.BigInteger.ONE);
+		}
+		return new java.math.BigInteger[] { min, max };
 	}
 }
