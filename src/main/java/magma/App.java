@@ -18,12 +18,11 @@ public class App {
 			TypedValue leftTV = parseTypedValue(left);
 			TypedValue rightTV = parseTypedValue(right);
 
-			// If both operands are typed and their bit width differs, disallow mixing
+			// If both operands are typed, their UI and bit width must match
 			if (leftTV.typed && rightTV.typed) {
-				if (leftTV.bits != rightTV.bits) {
-					throw new IllegalArgumentException("Mixed typed suffixes with different bit width not allowed: " + input);
+				if (!leftTV.ui.equals(rightTV.ui) || leftTV.bits != rightTV.bits) {
+					throw new IllegalArgumentException("Mixed typed suffixes not allowed: " + input);
 				}
-				// If bits match, signed/unsigned difference is allowed (e.g., I16 + U16)
 			}
 
 			try {
