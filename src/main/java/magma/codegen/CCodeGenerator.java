@@ -15,6 +15,10 @@ public class CCodeGenerator implements Visitor<String> {
 	private final TypeMapper typeMapper;
 	private final Set<String> generatedUnions = new HashSet<>();
 	private final List<String> unionDefinitions = new ArrayList<>();
+	private List<TraitDefinition> traits = new ArrayList<>();
+	private List<TraitImplementation> traitImplementations = new ArrayList<>();
+	private List<FunctionDefinition> functions = new ArrayList<>();
+	private java.util.Map<String, Type> variableTypes = new java.util.HashMap<>();
 	private int indentLevel = 0;
 	private static final String INDENT = "    ";
 
@@ -26,6 +30,14 @@ public class CCodeGenerator implements Visitor<String> {
 		// Initialize type resolver with type definitions
 		TypeResolver typeResolver = new TypeResolver(program.getTypeDefinitions());
 		typeMapper.setTypeResolver(typeResolver);
+
+		// Store traits, implementations, and functions for use in code generation
+		this.traits = program.getTraits();
+		this.traitImplementations = program.getTraitImplementations();
+		this.functions = program.getFunctions();
+		
+		// Reset variable type tracking for this program
+		this.variableTypes.clear();
 
 		// Add standard type includes
 		includes.add("#include <stdint.h>");
@@ -152,6 +164,12 @@ public class CCodeGenerator implements Visitor<String> {
 		String arraySuffix = "";
 		if (node.hasTypeAnnotation()) {
 			Type typeAnnotation = node.getTypeAnnotation();
+			
+			// Check if this is a trait type - if so, generate trait object
+			if (isTraitType(typeAnnotation)) {
+				return generateTraitObjectDeclaration(node);
+			}
+			
 			if (typeAnnotation instanceof ArrayType) {
 				ArrayType arrayType = (ArrayType) typeAnnotation;
 				String elementType = typeMapper.mapToCType(arrayType.getElementType(), this::generateExpression);
@@ -172,7 +190,87 @@ public class CCodeGenerator implements Visitor<String> {
 		}
 		String name = node.getName();
 		String initializer = node.getInitializer().accept(this);
+		
+		// Track variable type for method call dispatch
+		if (node.hasTypeAnnotation()) {
+			variableTypes.put(name, node.getTypeAnnotation());
+		}
+		
 		return type + " " + name + arraySuffix + " = " + initializer + ";";
+	}
+
+	private String generateTraitObjectDeclaration(VariableDeclaration node) {
+		// Generate trait object creation: TraitName_Object var = { .box = (void*)&value, .vtable = &TraitName_Type_VTable };
+		NamedType traitType = (NamedType) node.getTypeAnnotation();
+		String traitName = traitType.getName();
+		String objectTypeName = getTraitObjectTypeName(traitName);
+		String varName = node.getName();
+		String initializerExpr = node.getInitializer().accept(this);
+		
+		// Find the implementation for the initializer's type
+		// For now, we'll try to infer the type from the initializer expression
+		Type implementingType = inferTypeFromExpression(node.getInitializer());
+		TraitImplementation impl = null;
+		
+		if (implementingType != null) {
+			impl = findTraitImplementation(traitName, implementingType);
+		}
+		
+		// If we can't find the implementation, try all implementations (simplified)
+		if (impl == null) {
+			// Use the first implementation we find (in a real compiler, this would be an error)
+			for (TraitImplementation candidate : traitImplementations) {
+				if (candidate.getTraitName().equals(traitName)) {
+					impl = candidate;
+					break;
+				}
+			}
+		}
+		
+		if (impl == null) {
+			// No implementation found - this is an error, but for now generate a placeholder
+			return objectTypeName + " " + varName + " = { .box = (void*)&(" + initializerExpr + "), .vtable = NULL };";
+		}
+		
+		String vtableName = getVTableInstanceName(traitName, impl.getImplementingType());
+		String implementingTypeName = getTypeName(impl.getImplementingType());
+		
+		// Generate: TraitName_Object var = { .box = (void*)&value, .vtable = &TraitName_Type_VTable };
+		// Track that this variable is a trait object
+		variableTypes.put(varName, traitType);
+		return objectTypeName + " " + varName + " = { .box = (void*)&(" + initializerExpr + "), .vtable = &" + vtableName + " };";
+	}
+
+	private Type inferTypeFromExpression(Node expression) {
+		// Simplified type inference - try to determine the type of an expression
+		if (expression instanceof Identifier) {
+			// Look up variable type from our tracking map
+			Identifier id = (Identifier) expression;
+			return variableTypes.get(id.getName());
+		} else if (expression instanceof FunctionCall) {
+			FunctionCall call = (FunctionCall) expression;
+			// Try to find the function definition and get its return type
+			for (FunctionDefinition fn : functions) {
+				if (fn.getName().equals(call.getName())) {
+					if (fn.hasReturnType()) {
+						return fn.getReturnType();
+					}
+				}
+			}
+			// Also check trait implementation methods
+			for (TraitImplementation impl : traitImplementations) {
+				for (FunctionDefinition method : impl.getMethods()) {
+					if (method.getName().equals(call.getName())) {
+						if (method.hasReturnType()) {
+							return method.getReturnType();
+						}
+					}
+				}
+			}
+			return null;
+		}
+		
+		return null;
 	}
 
 	private String generateExpression(Node node) {
@@ -189,10 +287,92 @@ public class CCodeGenerator implements Visitor<String> {
 	@Override
 	public String visitFunctionCall(FunctionCall node) {
 		String name = node.getName();
-		List<String> args = node.getArguments().stream()
+		List<Node> argNodes = node.getArguments();
+		
+		// Check if this is a trait method call
+		TraitDefinition trait = findTraitWithMethod(name);
+		if (trait != null && !argNodes.isEmpty()) {
+			// This might be a trait method call
+			Node receiver = argNodes.get(0);
+			
+			// Check if receiver is a trait object
+			if (receiver instanceof Identifier) {
+				Identifier receiverId = (Identifier) receiver;
+				Type receiverType = variableTypes.get(receiverId.getName());
+				
+				if (receiverType != null && isTraitType(receiverType)) {
+					// Trait object - use vtable dispatch
+					return generateTraitMethodVTableCall(trait, name, node);
+				}
+			}
+			
+			// Try direct call - find implementation for receiver type
+			Type receiverType = inferTypeFromExpression(receiver);
+			if (receiverType != null) {
+				TraitImplementation impl = findTraitImplementation(trait.getName(), receiverType);
+				if (impl != null) {
+					// Direct call
+					return generateTraitMethodDirectCall(impl, name, node);
+				}
+			}
+		}
+		
+		// Regular function call
+		List<String> args = argNodes.stream()
 				.map(arg -> arg.accept(this))
 				.collect(Collectors.toList());
 		return name + "(" + String.join(", ", args) + ")";
+	}
+
+	private TraitDefinition findTraitWithMethod(String methodName) {
+		// Find a trait that has a method with this name
+		for (TraitDefinition trait : traits) {
+			for (FunctionDefinition method : trait.getMethods()) {
+				if (method.getName().equals(methodName)) {
+					return trait;
+				}
+			}
+		}
+		return null;
+	}
+
+	private String generateTraitMethodVTableCall(TraitDefinition trait, String methodName, FunctionCall node) {
+		// Generate: obj->vtable->methodName(obj->box, ...)
+		if (node.getArguments().isEmpty()) {
+			return methodName + "()"; // Should not happen
+		}
+		
+		Node receiver = node.getArguments().get(0);
+		String receiverExpr = receiver.accept(this);
+		
+		StringBuilder code = new StringBuilder();
+		code.append(receiverExpr).append("->vtable->").append(methodName).append("(").append(receiverExpr).append("->box");
+		
+		// Add remaining arguments
+		for (int i = 1; i < node.getArguments().size(); i++) {
+			code.append(", ").append(node.getArguments().get(i).accept(this));
+		}
+		code.append(")");
+		
+		return code.toString();
+	}
+
+	private String generateTraitMethodDirectCall(TraitImplementation impl, String methodName, FunctionCall node) {
+		// Generate: TypeName_methodName(&value, ...)
+		String implementingTypeName = getTypeName(impl.getImplementingType());
+		String functionName = implementingTypeName + "_" + methodName;
+		
+		StringBuilder code = new StringBuilder();
+		code.append(functionName).append("(");
+		
+		// Add all arguments
+		List<String> args = node.getArguments().stream()
+				.map(arg -> arg.accept(this))
+				.collect(Collectors.toList());
+		code.append(String.join(", ", args));
+		code.append(")");
+		
+		return code.toString();
 	}
 
 	@Override
@@ -704,6 +884,59 @@ public class CCodeGenerator implements Visitor<String> {
 			return name.toString();
 		}
 		return "Unknown";
+	}
+
+	private boolean isTraitType(Type type) {
+		// Check if a NamedType matches a trait name
+		if (type instanceof NamedType) {
+			String name = ((NamedType) type).getName();
+			for (TraitDefinition trait : traits) {
+				if (trait.getName().equals(name)) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private TraitImplementation findTraitImplementation(String traitName, Type implementingType) {
+		// Find the trait implementation for a given type
+		for (TraitImplementation impl : traitImplementations) {
+			if (impl.getTraitName().equals(traitName)) {
+				// Compare implementing types - simplified comparison
+				if (typesMatch(impl.getImplementingType(), implementingType)) {
+					return impl;
+				}
+			}
+		}
+		return null;
+	}
+
+	private boolean typesMatch(Type type1, Type type2) {
+		// Simple type matching - for now, just compare string representations
+		// This is a simplified approach; a full implementation would need proper type resolution
+		String name1 = getTypeName(type1);
+		String name2 = getTypeName(type2);
+		return name1.equals(name2);
+	}
+
+	private TraitImplementation findTraitImplementationForExpression(String traitName, Node expression) {
+		// Try to infer the type of an expression and find the implementation
+		// This is simplified - in a full compiler, we'd need proper type inference
+		// For now, we'll look for common patterns:
+		// - Identifier: check if it's a variable with known type
+		// - Function call: check return type
+		// - For now, return null and let the caller handle it
+		return null;
+	}
+
+	private String getTraitObjectTypeName(String traitName) {
+		return traitName + "_Object";
+	}
+
+	private String getVTableInstanceName(String traitName, Type implementingType) {
+		String implementingTypeName = getTypeName(implementingType);
+		return traitName + "_" + implementingTypeName + "_VTable";
 	}
 
 	private String indent() {

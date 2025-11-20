@@ -363,4 +363,43 @@ class CCodeGeneratorTest {
 		assertTrue(result.contains("Drop_Allocated_VTable"));
 		assertTrue(result.contains(".drop = &Allocated_drop_wrapper"));
 	}
+
+	@Test
+	void testGenerateTraitObjectCreation() {
+		Lexer lexer = new Lexer("trait Drop { fn drop(this) : Void; } impl Drop for I32 { fn drop(this) => { } } let x : I32 = 0; let y : Drop = x;");
+		Parser parser = new Parser(lexer.tokenize());
+		Program program = parser.parse();
+		CCodeGenerator generator = new CCodeGenerator();
+		String result = generator.generate(program);
+
+		// Should generate trait object creation
+		assertTrue(result.contains("Drop_Object y"));
+		assertTrue(result.contains(".box = (void*)&(x)"));
+		assertTrue(result.contains(".vtable = &Drop_I32_VTable"));
+	}
+
+	@Test
+	void testGenerateTraitMethodDirectCall() {
+		Lexer lexer = new Lexer("trait Drop { fn drop(this) : Void; } impl Drop for I32 { fn drop(this) => { } } let x : I32 = 0; drop(x);");
+		Parser parser = new Parser(lexer.tokenize());
+		Program program = parser.parse();
+		CCodeGenerator generator = new CCodeGenerator();
+		String result = generator.generate(program);
+
+		// Should generate direct call to implementation
+		assertTrue(result.contains("I32_drop"));
+	}
+
+	@Test
+	void testGenerateTraitMethodVTableCall() {
+		Lexer lexer = new Lexer("trait Drop { fn drop(this) : Void; } impl Drop for I32 { fn drop(this) => { } } let x : I32 = 0; let y : Drop = x; drop(y);");
+		Parser parser = new Parser(lexer.tokenize());
+		Program program = parser.parse();
+		CCodeGenerator generator = new CCodeGenerator();
+		String result = generator.generate(program);
+
+		// Should generate vtable call
+		assertTrue(result.contains("y->vtable->drop"));
+		assertTrue(result.contains("y->box"));
+	}
 }
