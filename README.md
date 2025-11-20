@@ -5,6 +5,7 @@ This is a minimal Java project scaffolded for the repository. It uses Maven and 
 Quick start:
 
 PowerShell:
+
 ```
 .\check-java.ps1
 mvn -q test
