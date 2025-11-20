@@ -301,6 +301,52 @@ public class CCodeGenerator implements Visitor<String> {
 		return "";
 	}
 
+	@Override
+	public String visitIfExpression(IfExpression node) {
+		// Generate ternary operator: condition ? thenExpr : elseExpr
+		String condition = node.getCondition().accept(this);
+		String thenExpr = node.getThenExpr().accept(this);
+		String elseExpr = node.getElseExpr().accept(this);
+		return "(" + condition + ") ? (" + thenExpr + ") : (" + elseExpr + ")";
+	}
+
+	@Override
+	public String visitIfStatement(IfStatement node) {
+		StringBuilder code = new StringBuilder();
+		String condition = node.getCondition().accept(this);
+		
+		code.append("if (").append(condition).append(") {\n");
+		indentLevel++;
+		
+		// Generate then statement
+		String thenCode = node.getThenStmt().accept(this);
+		// If the statement already ends with a semicolon, don't add another
+		if (!thenCode.endsWith(";")) {
+			thenCode += ";";
+		}
+		code.append(indent()).append(thenCode).append("\n");
+		
+		indentLevel--;
+		code.append(indent()).append("}");
+		
+		// Generate else clause if present
+		if (node.hasElse()) {
+			code.append(" else {\n");
+			indentLevel++;
+			
+			String elseCode = node.getElseStmt().accept(this);
+			if (!elseCode.endsWith(";")) {
+				elseCode += ";";
+			}
+			code.append(indent()).append(elseCode).append("\n");
+			
+			indentLevel--;
+			code.append(indent()).append("}");
+		}
+		
+		return code.toString();
+	}
+
 	private String visitFunctionParameter(FunctionParameter param) {
 		String type;
 		if (param.hasType()) {

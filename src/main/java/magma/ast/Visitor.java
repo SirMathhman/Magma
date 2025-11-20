@@ -44,4 +44,8 @@ public interface Visitor<T> {
 	T visitReturnStatement(ReturnStatement node);
 
 	T visitTypeDefinition(TypeDefinition node);
+
+	T visitIfExpression(IfExpression node);
+
+	T visitIfStatement(IfStatement node);
 }

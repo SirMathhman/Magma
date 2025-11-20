@@ -308,4 +308,49 @@ class ParserTest {
 		assertInstanceOf(NamedType.class, param.getConstraint());
 		assertEquals("I32", ((NamedType) param.getConstraint()).getName());
 	}
+
+	@Test
+	void testParseIfExpression() {
+		Lexer lexer = new Lexer("let x = if (1) 3 else 5;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		VariableDeclaration decl = (VariableDeclaration) program.getStatements().get(0);
+		assertInstanceOf(IfExpression.class, decl.getInitializer());
+		IfExpression ifExpr = (IfExpression) decl.getInitializer();
+		assertInstanceOf(NumberLiteral.class, ifExpr.getCondition());
+		assertInstanceOf(NumberLiteral.class, ifExpr.getThenExpr());
+		assertInstanceOf(NumberLiteral.class, ifExpr.getElseExpr());
+	}
+
+	@Test
+	void testParseIfStatement() {
+		Lexer lexer = new Lexer("if (1) x = 3; else x = 5;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		assertInstanceOf(IfStatement.class, program.getStatements().get(0));
+		IfStatement ifStmt = (IfStatement) program.getStatements().get(0);
+		assertInstanceOf(NumberLiteral.class, ifStmt.getCondition());
+		assertInstanceOf(Assignment.class, ifStmt.getThenStmt());
+		assertEquals(true, ifStmt.hasElse());
+		assertInstanceOf(Assignment.class, ifStmt.getElseStmt());
+	}
+
+	@Test
+	void testParseIfStatementWithoutElse() {
+		Lexer lexer = new Lexer("if (1) x = 3;");
+		Parser parser = new Parser(lexer.tokenize());
+
+		magma.ast.Program program = parser.parse();
+
+		assertEquals(1, program.getStatements().size());
+		assertInstanceOf(IfStatement.class, program.getStatements().get(0));
+		IfStatement ifStmt = (IfStatement) program.getStatements().get(0);
+		assertEquals(false, ifStmt.hasElse());
+	}
 }

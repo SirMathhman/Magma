@@ -223,4 +223,64 @@ class CCodeGeneratorTest {
 		// The type alias should be resolved to int32_t
 		assertTrue(result.contains("int32_t x = 42;"));
 	}
+
+	@Test
+	void testGenerateIfExpression() {
+		// let x = if (true) 3 else 5;
+		IfExpression ifExpr = new IfExpression(
+			new NumberLiteral(1),
+			new NumberLiteral(3),
+			new NumberLiteral(5)
+		);
+		VariableDeclaration decl = new VariableDeclaration("x", false, null, ifExpr);
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(decl));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Should generate ternary operator
+		assertTrue(result.contains("x ="));
+		assertTrue(result.contains("(1) ? (3) : (5)"));
+	}
+
+	@Test
+	void testGenerateIfStatement() {
+		// if (true) x = 3; else x = 5;
+		Assignment thenAssign = new Assignment(new Identifier("x"), new NumberLiteral(3));
+		Assignment elseAssign = new Assignment(new Identifier("x"), new NumberLiteral(5));
+		IfStatement ifStmt = new IfStatement(
+			new NumberLiteral(1),
+			thenAssign,
+			elseAssign
+		);
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Should generate if/else blocks
+		assertTrue(result.contains("if (1) {"));
+		assertTrue(result.contains("x = 3;"));
+		assertTrue(result.contains("} else {"));
+		assertTrue(result.contains("x = 5;"));
+	}
+
+	@Test
+	void testGenerateIfStatementWithoutElse() {
+		// if (true) x = 3;
+		Assignment thenAssign = new Assignment(new Identifier("x"), new NumberLiteral(3));
+		IfStatement ifStmt = new IfStatement(
+			new NumberLiteral(1),
+			thenAssign
+		);
+		Program program = new Program(List.of(), List.of(), List.of(), List.of(), List.of(ifStmt));
+		CCodeGenerator generator = new CCodeGenerator();
+
+		String result = generator.generate(program);
+
+		// Should generate if block without else
+		assertTrue(result.contains("if (1) {"));
+		assertTrue(result.contains("x = 3;"));
+		assertTrue(!result.contains("else"));
+	}
 }

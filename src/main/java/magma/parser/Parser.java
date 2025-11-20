@@ -68,6 +68,9 @@ public class Parser {
 		if (match(TokenType.RETURN)) {
 			return parseReturnStatement();
 		}
+		if (match(TokenType.IF)) {
+			return parseIfStatement();
+		}
 		if (match(TokenType.LBRACE)) {
 			return parseBlock();
 		}
@@ -253,6 +256,10 @@ public class Parser {
 
 		if (match(TokenType.SIZEOF)) {
 			return parseSizeOfExpression();
+		}
+
+		if (match(TokenType.IF)) {
+			return parseIfExpression();
 		}
 
 		if (match(TokenType.IDENTIFIER)) {
@@ -519,6 +526,34 @@ public class Parser {
 		}
 
 		return new GenericParameter(name);
+	}
+
+	private IfExpression parseIfExpression() {
+		// if (condition) expr else expr
+		consume(TokenType.LPAREN, "Expected '(' after 'if'");
+		Node condition = parseExpression();
+		consume(TokenType.RPAREN, "Expected ')' after condition");
+		Node thenExpr = parseExpression();
+		consume(TokenType.ELSE, "Expected 'else' in if expression");
+		Node elseExpr = parseExpression();
+		return new IfExpression(condition, thenExpr, elseExpr);
+	}
+
+	private IfStatement parseIfStatement() {
+		// if (condition) statement else statement
+		consume(TokenType.LPAREN, "Expected '(' after 'if'");
+		Node condition = parseExpression();
+		consume(TokenType.RPAREN, "Expected ')' after condition");
+		Statement thenStmt = parseStatement();
+		Statement elseStmt = null;
+		if (match(TokenType.ELSE)) {
+			elseStmt = parseStatement();
+		}
+		if (elseStmt != null) {
+			return new IfStatement(condition, thenStmt, elseStmt);
+		} else {
+			return new IfStatement(condition, thenStmt);
+		}
 	}
 
 	private Token consume(TokenType type, String message) {
