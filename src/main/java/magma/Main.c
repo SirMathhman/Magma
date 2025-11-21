@@ -1,5 +1,5 @@
 /*public*/struct Main {};
-/*public static void main(String[] args) {
+/*public static void main*/(/*String[] args*/){/*
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -9,9 +9,9 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	}*//*private static String compile(String input) {
+	*/}/*private static String compile*/(/*String input*/){/*
 		return compileStatements(input, Main::compileRootSegment);
-	}*//*private static String compileStatements(String input, Function<String, String> mapper) {
+	*/}/*private static String compileStatements*/(/*String input, Function<String, String> mapper*/){/*
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -36,7 +36,7 @@
 			if (c == '}') {
 				depth--;
 			}
-		}*//*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
+		*/}/*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -74,6 +74,21 @@
 
 	private static String compileClassSegment(String input) {
 		final var stripped = input.strip();
+		final var i = stripped.indexOf("(");
+		if (i >= 0) {
+			final var declaration = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
+			final var i1 = substring1.indexOf(")");
+			if (i1 >= 0) {
+				final var parameters = substring1.substring(0, i1);
+				final var withBraces = substring1.substring(i1 + 1).strip();
+				if (withBraces.startsWith("{")&& withBraces.endsWith("}")) {
+					final var substring = withBraces.substring(1, withBraces.length() - 1);
+					return wrap(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
+				}
+			}
+		}
+
 		return wrap(stripped);
 	}
 
