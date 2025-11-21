@@ -1,10 +1,19 @@
-/*public*/struct Main {};
+/*public*/ struct Main {
+};
 enum ResultVariant {
 	ErrVariant, 
 	OkVariant
 };
 template <typename T, typename X>
-/*private sealed*/struct Result {};
+union ResultData {
+	ErrData<T, X> err;
+	OkData<T, X> ok;
+};
+template <typename T, typename X>
+/*private*/ struct Result {
+	ResultVariant variant;
+	ResultData data;
+};
 /*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
@@ -125,30 +134,71 @@ template <typename T, typename X>
 
 		if (!isIdentifier(beforeContent)) {return Optional.empty();}
 
-		String name = beforeContent;
-		final String dependencies;
-		if (variants.isEmpty()) {
-			dependencies = "";
-		} else {
-			dependencies = "enum " + name + "Variant {" + variants
-					.stream()
-					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
-					.collect(Collectors.joining(", ")) + System.lineSeparator() + "};" + System.lineSeparator();
-		}
+		final var modifiersList = Arrays
+				.stream(modifiers.split(Pattern.quote(" ")))
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.collect(Collectors.toCollection(ArrayList::new));
+		var name = beforeContent;
 
-		final String joinedTypeParameters;
+		final String templateString;
 		if (typeParameters.isEmpty()) {
-			joinedTypeParameters = "";
+			templateString = "";
 		} else {
-			joinedTypeParameters = "template " + typeParameters
+			templateString = "template " + typeParameters
 					.stream()
 					.map(typeParam -> "typename " + typeParam)
 					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
 		}
 
+		final String fields;
+		final String dependencies;
+		if (!variants.isEmpty() && modifiersList.contains("sealed")) {
+			modifiersList.remove("sealed");
+
+			final var enumFields = variants
+					.stream()
+					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
+					.collect(Collectors.joining(", "));
+
+			final var generatedEnum =
+					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
+
+			final String joinedTypeParameters;
+			if (typeParameters.isEmpty()) {
+				joinedTypeParameters = "";
+			} else {
+				joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
+			}
+
+			final var unionFields = variants
+					.stream()
+					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " +
+													variant.toLowerCase() + ";")
+					.collect(Collectors.joining());
+
+			final var generatedUnion =
+					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
+					System.lineSeparator();
+
+			fields = System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
+							 "Data data;";
+
+			dependencies = generatedEnum + generatedUnion;
+		} else {
+			fields = "";
+			dependencies = "";
+		}
+
+		final var joinedModifiers = modifiersList.isEmpty() ? "" : modifiersList
+				.stream()
+				.map(Main::wrap)
+				.map(modifier -> modifier + " ")
+				.collect(Collectors.joining());
+
 		return Optional.of(
-				dependencies + joinedTypeParameters + wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-				compileStatements(content, input1 -> compileClassSegment(input1, name)));
+				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
+				"};" + System.lineSeparator() + compileStatements(content, input1 -> compileClassSegment(input1, name)));
 
 	}
 
