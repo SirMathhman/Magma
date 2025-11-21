@@ -246,13 +246,17 @@ public class Main {
 			if (i1 >= 0) {
 				final var parameters = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var substring = withBraces.substring(1, withBraces.length() - 1);
 
-					final var compiledParameters = compileDeclaration(parameters, structName);
-					return compileDeclaration(declaration, structName) + "(" + compiledParameters + "){" +
-								 compileStatements(substring, Main::compileMethodSegment) + System.lineSeparator() + "}" +
+				final var compiledParameters = compileDeclaration(parameters, structName);
+				final var header = compileDeclaration(declaration, structName) + "(" + compiledParameters + ")";
+
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+
+					return header + "{" + compileStatements(content, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 								 System.lineSeparator();
+				} else {
+					return header + ";" + System.lineSeparator();
 				}
 			}
 		}

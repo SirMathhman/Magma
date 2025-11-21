@@ -14,17 +14,10 @@ template <typename T, typename X>
 	ResultVariant variant;
 	ResultData data;
 };
-/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-			return new Err<R, X>(this.error);
-		}
-	}*//*private record Ok<T, X>(T value) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-			return new Ok<R, X>(mapper.apply(this.value));
-		}
-	}*//*public static*/ void main_Main(char** args){
+/*<R> Result<R,*/ /*X>*/ mapValue_Result(/*Function<T,*/ /*R>*/ mapper_Result);
+/*}*//*private record*/ /*Err<T,*/ X>_Main(/*X*/ error);
+/*private record*/ /*Ok<T,*/ X>_Main(/*T*/ value);
+/*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace);*/
 }
 /*private static*/ /*Optional<IOException>*/ run_Main(/**/){
@@ -86,7 +79,9 @@ template <typename T, typename X>
 				depth--;
 			}*/
 }
-/*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
+/*segments.add*/(/*buffer.toString(*/);
+/*return*/ segments.stream(/**/);
+/*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -190,11 +185,13 @@ template <typename T, typename X>
 			dependencies = "";
 		}
 
-		final var joinedModifiers = modifiersList.isEmpty() ? "" : modifiersList
-				.stream()
-				.map(Main::wrap)
-				.map(modifier -> modifier + " ")
-				.collect(Collectors.joining());
+		final String joinedModifiers;
+		if (modifiersList.isEmpty()) {
+			joinedModifiers = "";
+		} else {
+			joinedModifiers =
+					modifiersList.stream().map(Main::wrap).map(modifier -> modifier + " ").collect(Collectors.joining());
+		}
 
 		return Optional.of(
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
@@ -230,13 +227,17 @@ template <typename T, typename X>
 			if (i1 >= 0) {
 				final var parameters = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var substring = withBraces.substring(1, withBraces.length() - 1);
 
-					final var compiledParameters = compileDeclaration(parameters, structName);
-					return compileDeclaration(declaration, structName) + "(" + compiledParameters + "){" +
-								 compileStatements(substring, Main::compileMethodSegment) + System.lineSeparator() + "}" +
+				final var compiledParameters = compileDeclaration(parameters, structName);
+				final var header = compileDeclaration(declaration, structName) + "(" + compiledParameters + ")";
+
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+
+					return header + "{" + compileStatements(content, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 								 System.lineSeparator();
+				} else {
+					return header + ";" + System.lineSeparator();
 				}
 			}
 		}
