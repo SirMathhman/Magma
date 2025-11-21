@@ -2,21 +2,61 @@ package magma;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
+	private sealed interface Result<T, X> permits Err, Ok {
+		<R> Result<R, X> mapValue(Function<T, R> mapper);
+	}
+
+	private record Err<T, X>(X error) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+			return new Err<R, X>(this.error);
+		}
+	}
+
+	private record Ok<T, X>(T value) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+			return new Ok<R, X>(mapper.apply(this.value));
+		}
+	}
+
 	public static void main(String[] args) {
+		run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> run() {
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final var target = source.resolveSibling("Main.c");
+		final var input = readString(source).mapValue(Main::compile);
+
+		return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> writeString(target, v.value);
+		};
+	}
+
+	private static Optional<IOException> writeString(Path target, String output) {
 		try {
-			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-			final var input = Files.readString(source);
-			final var target = source.resolveSibling("Main.c");
-			Files.writeString(target, compile(input));
+			Files.writeString(target, output);
+			return Optional.empty();
 		} catch (IOException e) {
-			//noinspection CallToPrintStackTrace
-			e.printStackTrace();
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(Path source) {
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<String, IOException>(e);
 		}
 	}
 
