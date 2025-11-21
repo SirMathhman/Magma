@@ -1,3 +1,0 @@
-import extern stdio;
-
-extern fn printf<Length : USize>(format : *[U8], ...args : [Unknown; Length]) : Void;

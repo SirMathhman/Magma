@@ -1,1 +1,0 @@
-extern fn test() : I32 | 0;

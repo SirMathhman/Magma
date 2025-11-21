@@ -1,1 +1,0 @@
-type T = I32; extern fn test() : T | 0;
