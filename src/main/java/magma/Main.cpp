@@ -1,4 +1,8 @@
 /*public*/struct Main {};
+enum ResultVariant {
+	ErrVariant, 
+	OkVariant
+};
 template <typename T, typename X>
 /*private sealed*/struct Result {};
 /*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
@@ -121,19 +125,30 @@ template <typename T, typename X>
 
 		if (!isIdentifier(beforeContent)) {return Optional.empty();}
 
+		String name = beforeContent;
+		final String dependencies;
+		if (variants.isEmpty()) {
+			dependencies = "";
+		} else {
+			dependencies = "enum " + name + "Variant {" + variants
+					.stream()
+					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
+					.collect(Collectors.joining(", ")) + System.lineSeparator() + "};" + System.lineSeparator();
+		}
+
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
 			joinedTypeParameters = "";
 		} else {
 			joinedTypeParameters = "template " + typeParameters
 					.stream()
-					.map(name -> "typename " + name)
+					.map(typeParam -> "typename " + typeParam)
 					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
 		}
 
-		String name = beforeContent;
-		return Optional.of(joinedTypeParameters + wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-											 compileStatements(content, input1 -> compileClassSegment(input1, name)));
+		return Optional.of(
+				dependencies + joinedTypeParameters + wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+				compileStatements(content, input1 -> compileClassSegment(input1, name)));
 
 	}
 
