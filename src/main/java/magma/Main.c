@@ -9,9 +9,11 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	*/}/*private static*/ /*String*/ compile(/*String input*/){/*
+	*/}
+/*private static*/ /*String*/ compile(/*String input*/){/*
 		return compileStatements(input, Main::compileRootSegment);
-	*/}/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/){/*
+	*/}
+/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/){/*
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -36,7 +38,8 @@
 			if (c == '}') {
 				depth--;
 			}
-		*/}/*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
+		*/}
+/*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -84,7 +87,7 @@
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
-					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
+					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}" + System.lineSeparator();
 				}
 			}
 		}

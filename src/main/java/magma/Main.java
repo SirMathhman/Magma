@@ -103,7 +103,8 @@ public class Main {
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
-					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
+					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}" +
+								 System.lineSeparator();
 				}
 			}
 		}
