@@ -42,20 +42,43 @@
 			return "";
 		}
 
-		final var i = stripped.indexOf("*/struct ");
-		if (i >= 0) {};
-/*final var modifiers = stripped.substring(0, i).strip();*//*final var afterKeyword = stripped.substring(i + "class ".length()).strip();*//*final var i1 = afterKeyword.indexOf("{");
+		final var i = stripped.indexOf("class ");
+		if (i >= 0) {
+			final var modifiers = stripped.substring(0, i).strip();
+			final var afterKeyword = stripped.substring(i + "class ".length()).strip();
+			final var i1 = afterKeyword.indexOf("{");
 			if (i1 >= 0) {
 				final var name = afterKeyword.substring(0, i1).strip();
 				final var content = afterKeyword.substring(i1 + 1);
-				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-							 compileStatements(content, Main::compileClassSegment);
+				if (isIdentifier(name)) {
+					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+								 compileStatements(content, Main::compileClassSegment);
+				}
 			}
-		}*//*return wrap(stripped);*//*}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static boolean isIdentifier(String input) {
+		final var stripped = input.strip();
+		for (var i = 0; i < stripped.length(); i++) {
+			final var c = stripped.charAt(i);
+			if (!Character.isLetter(c)) {
+				return false;
+			}
+		}
+
+		return true;
+	}
 
 	private static String compileClassSegment(String input) {
-		final var stripped = input.strip();*//*return wrap(stripped);*//*}
+		final var stripped = input.strip();
+		return wrap(stripped);
+	}
 
 	private static String wrap(String input) {
-		final var replaced = input.replace("start", "start").replace("end", "end");*//*return "start" + replaced + "end";*//*}
+		final var replaced = input.replace("start", "start").replace("end", "end");
+		return "start" + replaced + "end";
+	}
 }*//**/

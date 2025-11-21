@@ -69,12 +69,26 @@ public class Main {
 			if (i1 >= 0) {
 				final var name = afterKeyword.substring(0, i1).strip();
 				final var content = afterKeyword.substring(i1 + 1);
-				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-							 compileStatements(content, Main::compileClassSegment);
+				if (isIdentifier(name)) {
+					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+								 compileStatements(content, Main::compileClassSegment);
+				}
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static boolean isIdentifier(String input) {
+		final var stripped = input.strip();
+		for (var i = 0; i < stripped.length(); i++) {
+			final var c = stripped.charAt(i);
+			if (!Character.isLetter(c)) {
+				return false;
+			}
+		}
+
+		return true;
 	}
 
 	private static String compileClassSegment(String input) {
