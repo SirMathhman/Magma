@@ -431,6 +431,11 @@ public class Main {
 			return maybeInterface.get();
 		}
 
+		final var maybeEnumValues = compileEnumValues(input, structName);
+		if (maybeEnumValues.isPresent()) {
+			return maybeEnumValues.get();
+		}
+
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var declaration = stripped.substring(0, i);
@@ -463,6 +468,34 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private static Optional<String> compileEnumValues(String input, String structName) {
+		final var enumValues =
+				divide(input, Main::foldValue).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+
+		final var buffer = new StringBuilder();
+		if (!enumValues.isEmpty()) {
+			for (var enumValue : enumValues) {
+				if (enumValue.endsWith(")")) {
+					final var substring = enumValue.substring(0, enumValue.length() - 1);
+					final var i = substring.indexOf("(");
+					if (i >= 0) {
+						final var name = substring.substring(0, i);
+						if (!isIdentifier(name)) {
+							return Optional.empty();
+						}
+
+						final var substring2 = substring.substring(i + 1);
+						buffer.append(
+								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
+								System.lineSeparator());
+					}
+				}
+			}
+		}
+
+		return Optional.of(buffer.toString());
 	}
 
 	private static State foldValue(State state, Character next) {

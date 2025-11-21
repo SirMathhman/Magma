@@ -8,19 +8,8 @@ Type toType_PrimitiveType(void* _this){
 }
 /*private*/ struct PrimitiveType {
 };
-/*Void*/(/*"void"*/);
-/*private final String content;*//*PrimitiveType*/(char* content){
-	/*this.content = content;*/
-}
-/*@Override
-		public*/ char* generate_PrimitiveType(){
-	/*return this.content;*/
-}
-/*@Override
-		public*/ char* toIdentifier_PrimitiveType(){
-	/*return this.name().toLowerCase();*/
-}
-/*}*/enum ResultVariant {
+PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
+enum ResultVariant {
 	ErrVariant, 
 	OkVariant
 };
@@ -34,9 +23,7 @@ template <typename T, typename X>
 	ResultVariant variant;
 	ResultData data;
 };
-template <typename T, typename X, typename R>
-Result<R, X> mapValue_Result(Function<T, R> mapper);
-/*}*/enum TypeVariant {
+enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
@@ -54,143 +41,7 @@ union TypeData {
 	TypeVariant variant;
 	TypeData data;
 };
-char* generate();
-char* toIdentifier();
-/*}*//*private record Err<T, X>*/(X error);
-/*private record Ok<T, X>*/(T value);
-/*private static class State {
-		private final String input;
-		private final ArrayList<String> segments;
-		private final StringBuilder buffer;
-		private int index;
-		private int*/ /*depth;
-
-		public*/ State_Main(char* input){
-	/*this.input = input;*/
-	/*this.index = 0;*/
-	/*this.buffer = new StringBuilder();*/
-	/*this.depth = 0;*/
-	/*this.segments = new ArrayList<String>();*/
-	/*}
-
-		private boolean isShallow() {
-			return this.depth == 1;*/
-	/*}
-
-		private boolean isLevel() {
-			return this.depth == 0;*/
-	/*}
-
-		private State append(Character next) {
-			this.buffer.append(next);*/
-	/*return this;*/
-	/*}
-
-		private Optional<Character> pop() {
-			if (this.index < this.input.length()) {
-				final var value = this.input.charAt(this.index);
-				this.index++;
-				return Optional.of(value);
-			}*/
-	/*else {
-				return Optional.empty();
-			}*/
-	/*}
-
-		private State advance() {
-			this.segments.add(this.buffer.toString());*/
-	/*this.buffer.setLength(0);*/
-	/*return this;*/
-	/*}
-
-		private State enter() {
-			this.depth = this.depth + 1;*/
-	/*return this;*/
-	/*}
-
-		private State exit() {
-			this.depth = this.depth - 1;*/
-	/*return this;*/
-	/*}
-
-		private Stream<String> stream() {
-			return this.segments.stream();*/
-	/*}*/
-}
-/*private*/ record PointerType_Main(Type type);
-/*private*/ record TemplateType_Main(char* base, List<Type> list);
-/*private*/ record Identifier_Main(char* value);
-/*private*/ record Placeholder_Main(char* input);
-/*public static*/ void main_Main(char** args){
-	/*run().ifPresent(Throwable::printStackTrace);*/
-}
-/*private static*/ Optional<IOException> run_Main(){
-	/*final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*/
-	/*final var target = source.resolveSibling("Main.cpp");*/
-	/*final var input = readString(source).mapValue(Main::compile);*/
-	/*return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
-			case Ok<String, IOException> v -> writeString(target, v.value);
-		}*/
-	/*;*/
-}
-/*private static*/ Optional<IOException> writeString_Main(Path target, char* output){
-	/*try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		}*/
-	/*catch (IOException e) {
-			return Optional.of(e);
-		}*/
-}
-/*private static*/ Result<char*, IOException> readString_Main(Path source){
-	/*try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*/
-	/*catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*/
-}
-/*private static*/ char* compile_Main(char* input){
-	/*return compileStatements(input, Main::compileRootSegment);*/
-}
-/*private static*/ char* compileStatements_Main(char* input, Function<char*, char*> mapper){
-	/*return compileAll(input, mapper, Main::foldStatement);*/
-}
-/*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""));*/
-}
-/*private static*/ Stream<char*> divide_Main(char* input, BiFunction<State, Character, State> folder){
-	/*var current = new State(input);*/
-	/*while (true) {
-			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) {
-				break;
-			}
-
-			final var next = maybeNext.get();
-			current = folder.apply(current, next);
-		}*/
-	/*return current.advance().stream();*/
-}
-/*private static*/ State foldStatement_Main(State current, Character next){
-	/*final var appended = current.append(next);*/
-	/*if (next == ';*/
-	/*' && appended.isLevel()) {
-			return appended.advance();
-		}*/
-	/*if (next == '*/
-}
-/*' && appended.isShallow*/();
-/*if*/(/*next == '{'*/){
-	/*return appended.enter();*/
-	/*}
-
-		if (next == '*/
-}
-/*') {
-			return appended.exit*/();
-/*return appended;*//*}*//*private static String compileRootSegment(String input) {
+/*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -368,6 +219,11 @@ char* toIdentifier();
 			return maybeInterface.get();
 		}
 
+		final var maybeEnumValues = compileEnumValues(input, structName);
+		if (maybeEnumValues.isPresent()) {
+			return maybeEnumValues.get();
+		}
+
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var declaration = stripped.substring(0, i);
@@ -400,6 +256,34 @@ char* toIdentifier();
 		}
 
 		return wrap(stripped);
+	}
+
+	private static Optional<String> compileEnumValues(String input, String structName) {
+		final var enumValues =
+				divide(input, Main::foldValue).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+
+		final var buffer = new StringBuilder();
+		if (!enumValues.isEmpty()) {
+			for (var enumValue : enumValues) {
+				if (enumValue.endsWith(")")) {
+					final var substring = enumValue.substring(0, enumValue.length() - 1);
+					final var i = substring.indexOf("(");
+					if (i >= 0) {
+						final var name = substring.substring(0, i);
+						if (!isIdentifier(name)) {
+							return Optional.empty();
+						}
+
+						final var substring2 = substring.substring(i + 1);
+						buffer.append(
+								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
+								System.lineSeparator());
+					}
+				}
+			}
+		}
+
+		return Optional.of(buffer.toString());
 	}
 
 	private static State foldValue(State state, Character next) {
