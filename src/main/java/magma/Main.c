@@ -1,5 +1,5 @@
 /*public*/struct Main {};
-/*public static void main*/(/*String[] args*/){/*
+/*public static*/ void /*main*/(/*String[] args*/){/*
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -9,9 +9,9 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	*/}/*private static String compile*/(/*String input*/){/*
+	*/}/*private static*/ /*String*/ /*compile*/(/*String input*/){/*
 		return compileStatements(input, Main::compileRootSegment);
-	*/}/*private static String compileStatements*/(/*String input, Function<String, String> mapper*/){/*
+	*/}/*private static*/ /*String*/ /*compileStatements*/(/*String input, Function<String, String> mapper*/){/*
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -82,11 +82,37 @@
 			if (i1 >= 0) {
 				final var parameters = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
-				if (withBraces.startsWith("{")&& withBraces.endsWith("}")) {
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
-					return wrap(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
+					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
 				}
 			}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static String compileDeclaration(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if (i >= 0) {
+			final var beforeName = stripped.substring(0, i);
+			final var name = stripped.substring(i + 1);
+			final var i1 = beforeName.lastIndexOf(" ");
+			if (i1 >= 0) {
+				final var substring = beforeName.substring(0, i1);
+				final var substring1 = beforeName.substring(i1 + 1);
+				return wrap(substring) + " " + compileType(substring1) + " " + wrap(name);
+			}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static String compileType(String input) {
+		final var stripped = input.strip();
+		if (stripped.equals("void")) {
+			return "void";
 		}
 
 		return wrap(stripped);

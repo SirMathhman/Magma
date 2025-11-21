@@ -103,9 +103,35 @@ public class Main {
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
-					return wrap(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
+					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}";
 				}
 			}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static String compileDeclaration(String input) {
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(" ");
+		if (i >= 0) {
+			final var beforeName = stripped.substring(0, i);
+			final var name = stripped.substring(i + 1);
+			final var i1 = beforeName.lastIndexOf(" ");
+			if (i1 >= 0) {
+				final var substring = beforeName.substring(0, i1);
+				final var substring1 = beforeName.substring(i1 + 1);
+				return wrap(substring) + " " + compileType(substring1) + " " + wrap(name);
+			}
+		}
+
+		return wrap(stripped);
+	}
+
+	private static String compileType(String input) {
+		final var stripped = input.strip();
+		if (stripped.equals("void")) {
+			return "void";
 		}
 
 		return wrap(stripped);
