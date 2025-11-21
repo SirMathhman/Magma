@@ -1,5 +1,5 @@
 /*public*/struct Main {};
-/*public static*/ void main(char** args){
+/*public static*/ void main_Main(char** args){
 	/*try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -11,10 +11,10 @@
 			e.printStackTrace();
 		}*/
 }
-/*private static*/ char* compile(char* input){
+/*private static*/ char* compile_Main(char* input){
 	/*return compileStatements(input, Main::compileRootSegment);*/
 }
-/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper){
+/*private static*/ char* compileStatements_Main(/*String input, Function<String,*/ /*String>*/ mapper_Main){
 	/*final var segments = new ArrayList<String>();*/
 	/*var buffer = new StringBuilder();*/
 	/*var depth = 0;*/
@@ -59,7 +59,7 @@
 				final var content = afterKeyword.substring(i1 + 1);
 				if (isIdentifier(name)) {
 					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-								 compileStatements(content, Main::compileClassSegment);
+								 compileStatements(content, input1 -> compileClassSegment(input1, name));
 				}
 			}
 		}
@@ -79,7 +79,7 @@
 		return true;
 	}
 
-	private static String compileClassSegment(String input) {
+	private static String compileClassSegment(String input, String structName) {
 		final var stripped = input.strip();
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
@@ -92,8 +92,8 @@
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
 
-					final var compiledParameters = compileDeclaration(parameters);
-					return compileDeclaration(declaration) + "(" + compiledParameters + "){" +
+					final var compiledParameters = compileDeclaration(parameters, structName);
+					return compileDeclaration(declaration, structName) + "(" + compiledParameters + "){" +
 								 compileStatements(substring, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 								 System.lineSeparator();
 				}
@@ -112,7 +112,7 @@
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
-	private static String compileDeclaration(String input) {
+	private static String compileDeclaration(String input, String structName) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -122,7 +122,7 @@
 			if (typeSeparator >= 0) {
 				final var substring = beforeName.substring(0, typeSeparator);
 				final var substring1 = beforeName.substring(typeSeparator + 1);
-				return wrap(substring) + " " + compileType(substring1) + " " + name;
+				return wrap(substring) + " " + compileType(substring1) + " " + name + "_" + structName;
 			} else {
 				return compileType(beforeName) + " " + name;
 			}
