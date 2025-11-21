@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -20,6 +21,10 @@ public class Main {
 	}
 
 	private static String compile(String input) {
+		return compileStatements(input, Main::compileRootSegment);
+	}
+
+	private static String compileStatements(String input, Function<String, String> mapper) {
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -30,18 +35,24 @@ public class Main {
 			if (c == ';' && depth == 0) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
-			} else {
-				if (c == '{') {
-					depth++;
-				}
-				if (c == '}') {
-					depth--;
-				}
+				continue;
+			}
+			if (c == '}' && depth == 1) {
+				segments.add(buffer.toString());
+				buffer = new StringBuilder();
+				depth--;
+				continue;
+			}
+			if (c == '{') {
+				depth++;
+			}
+			if (c == '}') {
+				depth--;
 			}
 		}
 		segments.add(buffer.toString());
 
-		return segments.stream().map(Main::compileRootSegment).collect(Collectors.joining());
+		return segments.stream().map(mapper).collect(Collectors.joining());
 	}
 
 	private static String compileRootSegment(String input) {
@@ -58,10 +69,16 @@ public class Main {
 			if (i1 >= 0) {
 				final var name = afterKeyword.substring(0, i1).strip();
 				final var content = afterKeyword.substring(i1 + 1);
-				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() + wrap(content);
+				return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+							 compileStatements(content, Main::compileClassSegment);
 			}
 		}
 
+		return wrap(stripped);
+	}
+
+	private static String compileClassSegment(String input) {
+		final var stripped = input.strip();
 		return wrap(stripped);
 	}
 
