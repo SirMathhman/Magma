@@ -129,13 +129,14 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		return compileAll(input, mapper, Main::foldStatement);
+		return compileAll(input, mapper, Main::foldStatement, "");
 	}
 
 	private static String compileAll(String input,
 																	 Function<String, String> mapper,
-																	 BiFunction<State, Character, State> folder) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining());
+																	 BiFunction<State, Character, State> folder,
+																	 String delimiter) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));
 	}
 
 	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -440,7 +441,26 @@ public class Main {
 			return "char*";
 		}
 
+		if (stripped.endsWith(">")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i = substring.indexOf("<");
+			if (i >= 0) {
+				final var base = substring.substring(0, i);
+				final var parameters = substring.substring(i + 1);
+				final var typeArguments = compileValues(parameters, Main::compileType);
+				return base + "<" + typeArguments + ">";
+			}
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
+		}
+
 		return wrap(stripped);
+	}
+
+	private static String compileValues(String input, Function<String, String> mapper) {
+		return compileAll(input, mapper, Main::foldValue, ", ");
 	}
 
 	private static String wrap(String input) {

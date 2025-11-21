@@ -15,14 +15,14 @@ template <typename T, typename X>
 	ResultData data;
 };
 template <typename R>
-/*Result<R, X>*/ mapValue_Result(/*Function<T, R>*/ mapper);
-/*}*//*private record*/ /*Err<T,*/ X>_Main(/*X*/ error);
-/*private record*/ /*Ok<T,*/ X>_Main(/*T*/ value);
+Result<R, X> mapValue_Result(Function<T, R> mapper);
+/*}*//*private record*/ /*Err<T,*/ X>_Main(X error);
+/*private record*/ /*Ok<T,*/ X>_Main(T value);
 /*private static class State {
 		private final String input;
 		private final ArrayList<String> segments;
-		private int index;
 		private final StringBuilder buffer;
+		private int index;
 		private int*/ /*depth;
 
 		public*/ State_Main(char* input){
@@ -34,7 +34,7 @@ template <typename R>
 	/*}
 
 		private boolean isShallow() {
-			return depth == 1;*/
+			return this.depth == 1;*/
 	/*}
 
 		private boolean isLevel() {
@@ -80,7 +80,7 @@ template <typename R>
 /*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace);*/
 }
-/*private static*/ /*Optional<IOException>*/ run_Main(){
+/*private static*/ Optional<IOException> run_Main(){
 	/*final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*/
 	/*final var target = source.resolveSibling("Main.cpp");*/
 	/*final var input = readString(source).mapValue(Main::compile);*/
@@ -90,7 +90,7 @@ template <typename R>
 		}*/
 	/*;*/
 }
-/*private static*/ /*Optional<IOException>*/ writeString_Main(/*Path*/ target, char* output){
+/*private static*/ Optional<IOException> writeString_Main(Path target, char* output){
 	/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -99,7 +99,7 @@ template <typename R>
 			return Optional.of(e);
 		}*/
 }
-/*private static*/ /*Result<String, IOException>*/ readString_Main(/*Path*/ source){
+/*private static*/ Result<char*, IOException> readString_Main(Path source){
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*/
@@ -110,13 +110,13 @@ template <typename R>
 /*private static*/ char* compile_Main(char* input){
 	/*return compileStatements(input, Main::compileRootSegment);*/
 }
-/*private static*/ char* compileStatements_Main(char* input, /*Function<String, String>*/ mapper){
-	/*return compileAll(input, mapper, Main::foldStatement);*/
+/*private static*/ char* compileStatements_Main(char* input, Function<char*, char*> mapper){
+	/*return compileAll(input, mapper, Main::foldStatement, "");*/
 }
-/*private static*/ char* compileAll_Main(char* input, /*Function<String, String>*/ mapper, /*BiFunction<State, Character, State>*/ folder){
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining());*/
+/*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder, char* delimiter){
+	/*return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));*/
 }
-/*private static*/ /*Stream<String>*/ divide_Main(char* input, /*BiFunction<State, Character, State>*/ folder){
+/*private static*/ Stream<char*> divide_Main(char* input, BiFunction<State, Character, State> folder){
 	/*var current = new State(input);*/
 	/*while (true) {
 			final var maybeNext = current.pop();
@@ -129,7 +129,7 @@ template <typename R>
 		}*/
 	/*return current.advance().stream();*/
 }
-/*private static*/ /*State*/ foldStatement_Main(/*State*/ current, /*Character*/ next){
+/*private static*/ State foldStatement_Main(State current, Character next){
 	/*final var appended = current.append(next);*/
 	/*if (next == ';*/
 	/*' && appended.isLevel()) {
@@ -410,7 +410,26 @@ template <typename R>
 			return "char*";
 		}
 
+		if (stripped.endsWith(">")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i = substring.indexOf("<");
+			if (i >= 0) {
+				final var base = substring.substring(0, i);
+				final var parameters = substring.substring(i + 1);
+				final var typeArguments = compileValues(parameters, Main::compileType);
+				return base + "<" + typeArguments + ">";
+			}
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
+		}
+
 		return wrap(stripped);
+	}
+
+	private static String compileValues(String input, Function<String, String> mapper) {
+		return compileAll(input, mapper, Main::foldValue, ", ");
 	}
 
 	private static String wrap(String input) {
