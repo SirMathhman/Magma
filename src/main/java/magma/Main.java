@@ -450,11 +450,12 @@ public class Main {
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> compileDeclaration(param, structName, typeParameters))
+						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
 						.collect(Collectors.joining(", "));
 
-				final var header = compileDeclaration(declaration, structName, typeParameters) + "(" + compiledParameters +
-													 ")";
+				final var header = compileDeclaration(declaration, structName, typeParameters)
+															 .or(() -> compileConstructor(declaration, structName))
+															 .orElseGet(() -> wrap(declaration)) + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -468,6 +469,14 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private static Optional<String> compileConstructor(String declaration, String structName) {
+		if (declaration.strip().equals(structName)) {
+			return Optional.of(structName + " new_" + structName);
+		} else {
+			return Optional.empty();
+		}
 	}
 
 	private static Optional<String> compileEnumValues(String input, String structName) {
@@ -529,7 +538,11 @@ public class Main {
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
-	private static String compileDeclaration(String input, String structName, List<String> typeParameters) {
+	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
+		return compileDeclaration(input, structName, typeParameters).orElseGet(() -> wrap(input));
+	}
+
+	private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -552,7 +565,7 @@ public class Main {
 			}
 
 			if (typeSeparator < 0 && isIdentifier(name)) {
-				return compileType(beforeName) + " " + name;
+				return Optional.of(compileType(beforeName) + " " + name);
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -580,11 +593,12 @@ public class Main {
 			}
 
 			if (isIdentifier(name)) {
-				return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
+				return Optional.of(
+						beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName);
 			}
 		}
 
-		return wrap(stripped);
+		return Optional.empty();
 	}
 
 	private static String compileType(String input) {
