@@ -26,6 +26,11 @@ public class Main {
 		public String generate() {
 			return this.content;
 		}
+
+		@Override
+		public String toIdentifier() {
+			return this.name().toLowerCase();
+		}
 	}
 
 	private sealed interface Result<T, X> permits Err, Ok {
@@ -34,6 +39,8 @@ public class Main {
 
 	private sealed interface Type permits Identifier, Placeholder, PointerType, PrimitiveType, TemplateType {
 		String generate();
+
+		String toIdentifier();
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -114,6 +121,11 @@ public class Main {
 		public String generate() {
 			return this.type.generate() + "*";
 		}
+
+		@Override
+		public String toIdentifier() {
+			return this.type.toIdentifier() + "_ptr";
+		}
 	}
 
 	private record TemplateType(String base, List<Type> list) implements Type {
@@ -124,19 +136,36 @@ public class Main {
 
 			return this.base + "<" + typeArguments + ">";
 		}
-	}
 
-	private record Identifier(String stripped) implements Type {
 		@Override
-		public String generate() {
-			return this.stripped;
+		public String toIdentifier() {
+			final var joined = this.list.stream().map(Type::toIdentifier).collect(Collectors.joining("_"));
+
+			return this.base + "_" + joined;
 		}
 	}
 
-	private record Placeholder(String stripped) implements Type {
+	private record Identifier(String value) implements Type {
 		@Override
 		public String generate() {
-			return wrap(this.stripped);
+			return this.value;
+		}
+
+		@Override
+		public String toIdentifier() {
+			return this.value;
+		}
+	}
+
+	private record Placeholder(String input) implements Type {
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+
+		@Override
+		public String toIdentifier() {
+			return wrap(this.input);
 		}
 	}
 
@@ -251,6 +280,19 @@ public class Main {
 			variants = splitValues(substring1);
 		}
 
+		List<Type> implementees = new ArrayList<Type>();
+		final var i4 = beforeContent.indexOf("implements ");
+		if (i4 >= 0) {
+			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
+			beforeContent = beforeContent.substring(0, i4);
+
+			implementees = divide(implementeesString, Main::foldValue)
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.map(Main::parseType)
+					.toList();
+		}
+
 		List<String> typeParameters = new ArrayList<String>();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
@@ -275,7 +317,23 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 
 		final String fields;
-		final String dependencies;
+		var dependencies = new StringBuilder();
+		for (var implementee : implementees) {
+			final var identifier = implementee.toIdentifier();
+
+			final var variant = identifier + "Variant" + "." + name + "Variant";
+			final var conversionFunctionContent =
+					generateStatement(name + " this = *((" + name + "*) _this)") + generateStatement(identifier + "Data data") +
+					generateStatement("data." + name.toLowerCase() + " = this") +
+					generateStatement("return { " + variant + ", data }");
+
+			final var conversionFunction =
+					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
+					System.lineSeparator() + "}" + System.lineSeparator();
+
+			dependencies.append(conversionFunction);
+		}
+
 		if (!variants.isEmpty() && modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
 
@@ -307,10 +365,9 @@ public class Main {
 			fields = System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
 							 "Data data;";
 
-			dependencies = generatedEnum + generatedUnion;
+			dependencies.append(generatedEnum).append(generatedUnion);
 		} else {
 			fields = "";
-			dependencies = "";
 		}
 
 		final String joinedModifiers;
@@ -326,6 +383,10 @@ public class Main {
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
 				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
+	}
+
+	private static String generateStatement(String content) {
+		return System.lineSeparator() + "\t" + content + ";";
 	}
 
 	private static List<String> splitValues(String input) {

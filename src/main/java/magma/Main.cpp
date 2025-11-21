@@ -1,8 +1,26 @@
 /*public*/ struct Main {
 };
-/*private enum PrimitiveType implements Type {
-		Void*/(/*"void"*/);
-enum ResultVariant {
+Type toType_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
+	TypeData data;
+	data.primitivetype = this;
+	return { TypeVariant.PrimitiveTypeVariant, data };
+}
+/*private*/ struct PrimitiveType {
+};
+/*Void*/(/*"void"*/);
+/*private final String content;*//*PrimitiveType*/(char* content){
+	/*this.content = content;*/
+}
+/*@Override
+		public*/ char* generate_PrimitiveType(){
+	/*return this.content;*/
+}
+/*@Override
+		public*/ char* toIdentifier_PrimitiveType(){
+	/*return this.name().toLowerCase();*/
+}
+/*}*/enum ResultVariant {
 	ErrVariant, 
 	OkVariant
 };
@@ -37,6 +55,7 @@ union TypeData {
 	TypeData data;
 };
 char* generate();
+char* toIdentifier();
 /*}*//*private record Err<T, X>*/(X error);
 /*private record Ok<T, X>*/(T value);
 /*private static class State {
@@ -100,8 +119,8 @@ char* generate();
 }
 /*private*/ record PointerType_Main(Type type);
 /*private*/ record TemplateType_Main(char* base, List<Type> list);
-/*private*/ record Identifier_Main(char* stripped);
-/*private*/ record Placeholder_Main(char* stripped);
+/*private*/ record Identifier_Main(char* value);
+/*private*/ record Placeholder_Main(char* input);
 /*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace);*/
 }
@@ -198,6 +217,19 @@ char* generate();
 			variants = splitValues(substring1);
 		}
 
+		List<Type> implementees = new ArrayList<Type>();
+		final var i4 = beforeContent.indexOf("implements ");
+		if (i4 >= 0) {
+			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
+			beforeContent = beforeContent.substring(0, i4);
+
+			implementees = divide(implementeesString, Main::foldValue)
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.map(Main::parseType)
+					.toList();
+		}
+
 		List<String> typeParameters = new ArrayList<String>();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
@@ -222,7 +254,23 @@ char* generate();
 		final var templateString = generateTemplateString(typeParameters);
 
 		final String fields;
-		final String dependencies;
+		var dependencies = new StringBuilder();
+		for (var implementee : implementees) {
+			final var identifier = implementee.toIdentifier();
+
+			final var variant = identifier + "Variant" + "." + name + "Variant";
+			final var conversionFunctionContent =
+					generateStatement(name + " this = *((" + name + "*) _this)") + generateStatement(identifier + "Data data") +
+					generateStatement("data." + name.toLowerCase() + " = this") +
+					generateStatement("return { " + variant + ", data }");
+
+			final var conversionFunction =
+					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
+					System.lineSeparator() + "}" + System.lineSeparator();
+
+			dependencies.append(conversionFunction);
+		}
+
 		if (!variants.isEmpty() && modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
 
@@ -254,10 +302,9 @@ char* generate();
 			fields = System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
 							 "Data data;";
 
-			dependencies = generatedEnum + generatedUnion;
+			dependencies.append(generatedEnum).append(generatedUnion);
 		} else {
 			fields = "";
-			dependencies = "";
 		}
 
 		final String joinedModifiers;
@@ -273,6 +320,10 @@ char* generate();
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
 				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
+	}
+
+	private static String generateStatement(String content) {
+		return System.lineSeparator() + "\t" + content + ";";
 	}
 
 	private static List<String> splitValues(String input) {
