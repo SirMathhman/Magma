@@ -161,7 +161,7 @@ public class Main {
 
 		if (next == '}' && appended.isShallow()) {
 			return appended.advance().exit();
-		}OK
+		}
 
 		if (next == '{') {
 			return appended.enter();
