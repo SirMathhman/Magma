@@ -1,5 +1,5 @@
 /*public*/struct Main {};
-/*public static*/ void /*main*/(/*String[] args*/){/*
+/*public static*/ void main(/*String[] args*/){/*
 		try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
@@ -9,9 +9,9 @@
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
 		}
-	*/}/*private static*/ /*String*/ /*compile*/(/*String input*/){/*
+	*/}/*private static*/ /*String*/ compile(/*String input*/){/*
 		return compileStatements(input, Main::compileRootSegment);
-	*/}/*private static*/ /*String*/ /*compileStatements*/(/*String input, Function<String, String> mapper*/){/*
+	*/}/*private static*/ /*String*/ compileStatements(/*String input, Function<String, String> mapper*/){/*
 		final var segments = new ArrayList<String>();
 		var buffer = new StringBuilder();
 		var depth = 0;
@@ -94,15 +94,15 @@
 
 	private static String compileDeclaration(String input) {
 		final var stripped = input.strip();
-		final var i = stripped.lastIndexOf(" ");
-		if (i >= 0) {
-			final var beforeName = stripped.substring(0, i);
-			final var name = stripped.substring(i + 1);
-			final var i1 = beforeName.lastIndexOf(" ");
-			if (i1 >= 0) {
-				final var substring = beforeName.substring(0, i1);
-				final var substring1 = beforeName.substring(i1 + 1);
-				return wrap(substring) + " " + compileType(substring1) + " " + wrap(name);
+		final var nameSeparator = stripped.lastIndexOf(" ");
+		if (nameSeparator >= 0) {
+			final var beforeName = stripped.substring(0, nameSeparator);
+			final var name = stripped.substring(nameSeparator + 1).strip();
+			final var typeSeparator = beforeName.lastIndexOf(" ");
+			if (typeSeparator >= 0) {
+				final var substring = beforeName.substring(0, typeSeparator);
+				final var substring1 = beforeName.substring(typeSeparator + 1);
+				return wrap(substring) + " " + compileType(substring1) + " " + name;
 			}
 		}
 
