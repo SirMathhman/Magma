@@ -471,8 +471,15 @@ public class Main {
 	}
 
 	private static Optional<String> compileEnumValues(String input, String structName) {
-		final var enumValues =
-				divide(input, Main::foldValue).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		final var stripped = input.strip();
+		if (!stripped.endsWith(";")) {
+			return Optional.empty();
+		}
+
+		final var enumValues = divide(stripped.substring(0, stripped.length() - 1), Main::foldValue)
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.toList();
 
 		final var buffer = new StringBuilder();
 		if (!enumValues.isEmpty()) {
