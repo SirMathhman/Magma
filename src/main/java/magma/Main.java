@@ -8,9 +8,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Main {
 	private sealed interface Result<T, X> permits Err, Ok {
@@ -28,6 +30,65 @@ public class Main {
 		@Override
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
 			return new Ok<R, X>(mapper.apply(this.value));
+		}
+	}
+
+	private static class State {
+		private final String input;
+		private final ArrayList<String> segments;
+		private final StringBuilder buffer;
+		private int index;
+		private int depth;
+
+		public State(String input) {
+			this.input = input;
+			this.index = 0;
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new ArrayList<String>();
+		}
+
+		private boolean isShallow() {
+			return this.depth == 1;
+		}
+
+		private boolean isLevel() {
+			return this.depth == 0;
+		}
+
+		private State append(Character next) {
+			this.buffer.append(next);
+			return this;
+		}
+
+		private Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				final var value = this.input.charAt(this.index);
+				this.index++;
+				return Optional.of(value);
+			} else {
+				return Optional.empty();
+			}
+		}
+
+		private State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
+			return this;
+		}
+
+		private State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}
+
+		private State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}
+
+		private Stream<String> stream() {
+			return this.segments.stream();
 		}
 	}
 
@@ -68,34 +129,49 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		var depth = 0;
+		return compileAll(input, mapper, Main::foldStatement);
+	}
 
-		for (var i = 0; i < input.length(); i++) {
-			final var c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				continue;
+	private static String compileAll(String input,
+																	 Function<String, String> mapper,
+																	 BiFunction<State, Character, State> folder) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining());
+	}
+
+	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
+		var current = new State(input);
+		while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) {
+				break;
 			}
-			if (c == '}' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-				continue;
-			}
-			if (c == '{') {
-				depth++;
-			}
-			if (c == '}') {
-				depth--;
-			}
+
+			final var next = maybeNext.get();
+			current = folder.apply(current, next);
 		}
-		segments.add(buffer.toString());
 
-		return segments.stream().map(mapper).collect(Collectors.joining());
+		return current.advance().stream();
+	}
+
+	private static State foldStatement(State current, Character next) {
+		final var appended = current.append(next);
+		if (next == ';' && appended.isLevel()) {
+			return appended.advance();
+		}
+
+		if (next == '}' && appended.isShallow()) {
+			return appended.advance().exit();
+		}OK
+
+		if (next == '{') {
+			return appended.enter();
+		}
+
+		if (next == '}') {
+			return appended.exit();
+		}
+
+		return appended;
 	}
 
 	private static String compileRootSegment(String input) {
@@ -124,7 +200,7 @@ public class Main {
 			final var substring1 = beforeContent.substring(i2 + "permits ".length());
 			beforeContent = beforeContent.substring(0, i2);
 
-			variants = collectValues(substring1);
+			variants = splitValues(substring1);
 		}
 
 		List<String> typeParameters = new ArrayList<String>();
@@ -134,7 +210,7 @@ public class Main {
 			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
 				final var substring = substring1.substring(0, substring1.length() - 1);
-				typeParameters = collectValues(substring);
+				typeParameters = splitValues(substring);
 			}
 		}
 
@@ -202,7 +278,7 @@ public class Main {
 
 	}
 
-	private static List<String> collectValues(String input) {
+	private static List<String> splitValues(String input) {
 		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 	}
 
@@ -248,7 +324,14 @@ public class Main {
 				final var parameters = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var compiledParameters = compileDeclaration(parameters, structName);
+				final var compiledParameters = divide(parameters, Main::foldValue)
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.toList()
+						.stream()
+						.map(param -> compileDeclaration(param, structName))
+						.collect(Collectors.joining(", "));
+
 				final var header = compileDeclaration(declaration, structName) + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -263,6 +346,21 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private static State foldValue(State state, Character next) {
+		if (next == ',' && state.isLevel()) {
+			return state.advance();
+		}
+
+		final var appended = state.append(next);
+		if (next == '<') {
+			return appended.enter();
+		}
+		if (next == '>') {
+			return appended.exit();
+		}
+		return appended;
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -307,7 +405,7 @@ public class Main {
 				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
-					final var typeParameters = collectValues(substring2);
+					final var typeParameters = splitValues(substring2);
 					beforeDeclaration = generateTemplateString(typeParameters);
 					beforeType = substring.substring(0, i);
 				}

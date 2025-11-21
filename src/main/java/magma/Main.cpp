@@ -18,10 +18,69 @@ template <typename R>
 /*Result<R, X>*/ mapValue_Result(/*Function<T, R>*/ mapper);
 /*}*//*private record*/ /*Err<T,*/ X>_Main(/*X*/ error);
 /*private record*/ /*Ok<T,*/ X>_Main(/*T*/ value);
+/*private static class State {
+		private final String input;
+		private final ArrayList<String> segments;
+		private int index;
+		private final StringBuilder buffer;
+		private int*/ /*depth;
+
+		public*/ State_Main(char* input){
+	/*this.input = input;*/
+	/*this.index = 0;*/
+	/*this.buffer = new StringBuilder();*/
+	/*this.depth = 0;*/
+	/*this.segments = new ArrayList<String>();*/
+	/*}
+
+		private boolean isShallow() {
+			return depth == 1;*/
+	/*}
+
+		private boolean isLevel() {
+			return this.depth == 0;*/
+	/*}
+
+		private State append(Character next) {
+			this.buffer.append(next);*/
+	/*return this;*/
+	/*}
+
+		private Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				final var value = this.input.charAt(this.index);
+				this.index++;
+				return Optional.of(value);
+			}*/
+	/*else {
+				return Optional.empty();
+			}*/
+	/*}
+
+		private State advance() {
+			this.segments.add(this.buffer.toString());*/
+	/*this.buffer.setLength(0);*/
+	/*return this;*/
+	/*}
+
+		private State enter() {
+			this.depth = this.depth + 1;*/
+	/*return this;*/
+	/*}
+
+		private State exit() {
+			this.depth = this.depth - 1;*/
+	/*return this;*/
+	/*}
+
+		private Stream<String> stream() {
+			return this.segments.stream();*/
+	/*}*/
+}
 /*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace);*/
 }
-/*private static*/ /*Optional<IOException>*/ run_Main(/**/){
+/*private static*/ /*Optional<IOException>*/ run_Main(){
 	/*final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*/
 	/*final var target = source.resolveSibling("Main.cpp");*/
 	/*final var input = readString(source).mapValue(Main::compile);*/
@@ -31,7 +90,7 @@ template <typename R>
 		}*/
 	/*;*/
 }
-/*private static*/ /*Optional<IOException>*/ writeString_Main(/*Path target,*/ char* output_Main){
+/*private static*/ /*Optional<IOException>*/ writeString_Main(/*Path*/ target, char* output){
 	/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -51,38 +110,43 @@ template <typename R>
 /*private static*/ char* compile_Main(char* input){
 	/*return compileStatements(input, Main::compileRootSegment);*/
 }
-/*private static*/ char* compileStatements_Main(/*String input,*/ /*Function<String, String>*/ mapper_Main){
-	/*final var segments = new ArrayList<String>();*/
-	/*var buffer = new StringBuilder();*/
-	/*var depth = 0;*/
-	/*for (var i = 0;*/
-	/*i < input.length();*/
-	/*i++) {
-			final var c = input.charAt(i);
-			buffer.append(c);
-			if (c == ';' && depth == 0) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				continue;
-			}
-			if (c == '}*/
-	/*' && depth == 1) {
-				segments.add(buffer.toString());
-				buffer = new StringBuilder();
-				depth--;
-				continue;
-			}*/
-	/*if (c == '{') {
-				depth++;
-			}
-			if (c == '}*/
-	/*') {
-				depth--;
-			}*/
+/*private static*/ char* compileStatements_Main(char* input, /*Function<String, String>*/ mapper){
+	/*return compileAll(input, mapper, Main::foldStatement);*/
 }
-/*segments.add*/(/*buffer.toString(*/);
-/*return*/ segments.stream(/**/);
-/*}*//*private static String compileRootSegment(String input) {
+/*private static*/ char* compileAll_Main(char* input, /*Function<String, String>*/ mapper, /*BiFunction<State, Character, State>*/ folder){
+	/*return divide(input, folder).map(mapper).collect(Collectors.joining());*/
+}
+/*private static*/ /*Stream<String>*/ divide_Main(char* input, /*BiFunction<State, Character, State>*/ folder){
+	/*var current = new State(input);*/
+	/*while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) {
+				break;
+			}
+
+			final var next = maybeNext.get();
+			current = folder.apply(current, next);
+		}*/
+	/*return current.advance().stream();*/
+}
+/*private static*/ /*State*/ foldStatement_Main(/*State*/ current, /*Character*/ next){
+	/*final var appended = current.append(next);*/
+	/*if (next == ';*/
+	/*' && appended.isLevel()) {
+			return appended.advance();
+		}*/
+	/*if (next == '*/
+}
+/*'*/ /*&&*/ appended.isShallow_Main();
+/*if*/(/*next*/ /*==*/ '{'_Main){
+	/*return appended.enter();*/
+	/*}
+
+		if (next == '*/
+}
+/*')*/ /*{
+			return*/ appended.exit_Main();
+/*return appended;*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -106,7 +170,7 @@ template <typename R>
 			final var substring1 = beforeContent.substring(i2 + "permits ".length());
 			beforeContent = beforeContent.substring(0, i2);
 
-			variants = collectValues(substring1);
+			variants = splitValues(substring1);
 		}
 
 		List<String> typeParameters = new ArrayList<String>();
@@ -116,7 +180,7 @@ template <typename R>
 			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
 				final var substring = substring1.substring(0, substring1.length() - 1);
-				typeParameters = collectValues(substring);
+				typeParameters = splitValues(substring);
 			}
 		}
 
@@ -184,7 +248,7 @@ template <typename R>
 
 	}
 
-	private static List<String> collectValues(String input) {
+	private static List<String> splitValues(String input) {
 		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 	}
 
@@ -230,7 +294,14 @@ template <typename R>
 				final var parameters = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var compiledParameters = compileDeclaration(parameters, structName);
+				final var compiledParameters = divide(parameters, Main::foldValue)
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.toList()
+						.stream()
+						.map(param -> compileDeclaration(param, structName))
+						.collect(Collectors.joining(", "));
+
 				final var header = compileDeclaration(declaration, structName) + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -245,6 +316,21 @@ template <typename R>
 		}
 
 		return wrap(stripped);
+	}
+
+	private static State foldValue(State state, Character next) {
+		if (next == ',' && state.isLevel()) {
+			return state.advance();
+		}
+
+		final var appended = state.append(next);
+		if (next == '<') {
+			return appended.enter();
+		}
+		if (next == '>') {
+			return appended.exit();
+		}
+		return appended;
 	}
 
 	private static String compileMethodSegment(String input) {
@@ -289,7 +375,7 @@ template <typename R>
 				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
-					final var typeParameters = collectValues(substring2);
+					final var typeParameters = splitValues(substring2);
 					beforeDeclaration = generateTemplateString(typeParameters);
 					beforeType = substring.substring(0, i);
 				}
@@ -297,10 +383,10 @@ template <typename R>
 
 			final var typeString = beforeName.substring(typeSeparator + 1);
 			final String beforeTypeOutput;
-			if (!beforeType.isEmpty()) {
-				beforeTypeOutput = wrap(beforeType) + " ";
-			} else {
+			if (beforeType.isEmpty()) {
 				beforeTypeOutput = "";
+			} else {
+				beforeTypeOutput = wrap(beforeType) + " ";
 			}
 
 			return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
