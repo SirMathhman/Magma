@@ -1,7 +1,6 @@
 /*public*/struct Main {};
-/*private sealed interface Result<T, X> permits Err, Ok {
-		<R> Result<R, X> mapValue(Function<T, R> mapper);
-	}*//*private record Err<T, X>(X error) implements Result<T, X> {
+/*private sealed*/struct Result {};
+/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
 			return new Err<R, X>(this.error);
@@ -79,22 +78,50 @@
 			return "";
 		}
 
-		final var i = stripped.indexOf("class ");
-		if (i >= 0) {
-			final var modifiers = stripped.substring(0, i).strip();
-			final var afterKeyword = stripped.substring(i + "class ".length()).strip();
-			final var i1 = afterKeyword.indexOf("{");
-			if (i1 >= 0) {
-				final var name = afterKeyword.substring(0, i1).strip();
-				final var content = afterKeyword.substring(i1 + 1);
-				if (isIdentifier(name)) {
-					return wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
-								 compileStatements(content, input1 -> compileClassSegment(input1, name));
-				}
+		return compileStructure("class", stripped).orElseGet(() -> wrap(stripped));
+	}*//*private static Optional<String> compileStructure(String type, String stripped) {
+		final var i = stripped.indexOf(type + " ");
+		if (i < 0) {return Optional.empty();}
+		final var modifiers = stripped.substring(0, i).strip();
+		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
+
+		final var i1 = afterKeyword.indexOf("{");
+		if (i1 < 0) {return Optional.empty();}
+		var beforeContent = afterKeyword.substring(0, i1).strip();
+		final var content = afterKeyword.substring(i1 + 1);
+
+		List<String> variants = new ArrayList<String>();
+		final var i2 = beforeContent.indexOf("permits ");
+		if (i2 >= 0) {
+			final var substring1 = beforeContent.substring(i2 + "permits ".length());
+			beforeContent = beforeContent.substring(0, i2);
+
+			variants = Arrays
+					.stream(substring1.split(Pattern.quote(",")))
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.toList();
+		}
+
+		List<String> typeParameters = new ArrayList<String>();
+		final var i3 = beforeContent.indexOf("<");
+		if (i3 >= 0) {
+			final var substring1 = beforeContent.substring(i3 + 1).strip();
+			beforeContent = beforeContent.substring(0, i3);
+			if (substring1.endsWith(">")) {
+				typeParameters = Arrays
+						.stream(substring1.split(Pattern.quote(",")))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.toList();
 			}
 		}
 
-		return wrap(stripped);
+		if (!isIdentifier(beforeContent)) {return Optional.empty();}
+		String name = beforeContent;
+		return Optional.of(wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+											 compileStatements(content, input1 -> compileClassSegment(input1, name)));
+
 	}
 
 	private static boolean isIdentifier(String input) {
@@ -111,6 +138,12 @@
 
 	private static String compileClassSegment(String input, String structName) {
 		final var stripped = input.strip();
+
+		final var maybeInterface = compileStructure("interface", input);
+		if (maybeInterface.isPresent()) {
+			return maybeInterface.get();
+		}
+
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
 			final var declaration = stripped.substring(0, i);
