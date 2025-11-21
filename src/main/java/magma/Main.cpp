@@ -14,7 +14,8 @@ template <typename T, typename X>
 	ResultVariant variant;
 	ResultData data;
 };
-/*<R> Result<R,*/ /*X>*/ mapValue_Result(/*Function<T,*/ /*R>*/ mapper_Result);
+template <typename R>
+/*Result<R, X>*/ mapValue_Result(/*Function<T, R>*/ mapper);
 /*}*//*private record*/ /*Err<T,*/ X>_Main(/*X*/ error);
 /*private record*/ /*Ok<T,*/ X>_Main(/*T*/ value);
 /*public static*/ void main_Main(char** args){
@@ -39,7 +40,7 @@ template <typename T, typename X>
 			return Optional.of(e);
 		}*/
 }
-/*private static Result<String,*/ /*IOException>*/ readString_Main(/*Path*/ source){
+/*private static*/ /*Result<String, IOException>*/ readString_Main(/*Path*/ source){
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*/
@@ -50,7 +51,7 @@ template <typename T, typename X>
 /*private static*/ char* compile_Main(char* input){
 	/*return compileStatements(input, Main::compileRootSegment);*/
 }
-/*private static*/ char* compileStatements_Main(/*String input, Function<String,*/ /*String>*/ mapper_Main){
+/*private static*/ char* compileStatements_Main(/*String input,*/ /*Function<String, String>*/ mapper_Main){
 	/*final var segments = new ArrayList<String>();*/
 	/*var buffer = new StringBuilder();*/
 	/*var depth = 0;*/
@@ -105,11 +106,7 @@ template <typename T, typename X>
 			final var substring1 = beforeContent.substring(i2 + "permits ".length());
 			beforeContent = beforeContent.substring(0, i2);
 
-			variants = Arrays
-					.stream(substring1.split(Pattern.quote(",")))
-					.map(String::strip)
-					.filter(slice -> !slice.isEmpty())
-					.toList();
+			variants = collectValues(substring1);
 		}
 
 		List<String> typeParameters = new ArrayList<String>();
@@ -119,11 +116,7 @@ template <typename T, typename X>
 			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
 				final var substring = substring1.substring(0, substring1.length() - 1);
-				typeParameters = Arrays
-						.stream(substring.split(Pattern.quote(",")))
-						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
-						.toList();
+				typeParameters = collectValues(substring);
 			}
 		}
 
@@ -136,15 +129,7 @@ template <typename T, typename X>
 				.collect(Collectors.toCollection(ArrayList::new));
 		var name = beforeContent;
 
-		final String templateString;
-		if (typeParameters.isEmpty()) {
-			templateString = "";
-		} else {
-			templateString = "template " + typeParameters
-					.stream()
-					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
-		}
+		final var templateString = generateTemplateString(typeParameters);
 
 		final String fields;
 		final String dependencies;
@@ -197,6 +182,23 @@ template <typename T, typename X>
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
 				"};" + System.lineSeparator() + compileStatements(content, input1 -> compileClassSegment(input1, name)));
 
+	}
+
+	private static List<String> collectValues(String input) {
+		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+	}
+
+	private static String generateTemplateString(List<String> typeParameters) {
+		final String templateString;
+		if (typeParameters.isEmpty()) {
+			templateString = "";
+		} else {
+			templateString = "template " + typeParameters
+					.stream()
+					.map(typeParam -> "typename " + typeParam)
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
+		}
+		return templateString;
 	}
 
 	private static boolean isIdentifier(String input) {
@@ -258,16 +260,50 @@ template <typename T, typename X>
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
-			final var beforeName = stripped.substring(0, nameSeparator);
+			final var beforeName = stripped.substring(0, nameSeparator).strip();
 			final var name = stripped.substring(nameSeparator + 1).strip();
-			final var typeSeparator = beforeName.lastIndexOf(" ");
-			if (typeSeparator >= 0) {
-				final var substring = beforeName.substring(0, typeSeparator);
-				final var substring1 = beforeName.substring(typeSeparator + 1);
-				return wrap(substring) + " " + compileType(substring1) + " " + name + "_" + structName;
-			} else {
+
+			var typeSeparator = -1;
+			var depth = 0;
+			for (var i = 0; i < beforeName.length(); i++) {
+				final var c = beforeName.charAt(i);
+				if (c == ' ' && depth == 0) {
+					typeSeparator = i;
+				}
+				if (c == '<') {
+					depth++;
+				}
+				if (c == '>') {
+					depth--;
+				}
+			}
+
+			if (typeSeparator < 0) {
 				return compileType(beforeName) + " " + name;
 			}
+
+			var beforeType = beforeName.substring(0, typeSeparator).strip();
+			var beforeDeclaration = "";
+			if (beforeType.endsWith(">")) {
+				final var substring = beforeType.substring(0, beforeType.length() - 1);
+				final var i = substring.indexOf("<");
+				if (i >= 0) {
+					final var substring2 = substring.substring(i + 1);
+					final var typeParameters = collectValues(substring2);
+					beforeDeclaration = generateTemplateString(typeParameters);
+					beforeType = substring.substring(0, i);
+				}
+			}
+
+			final var typeString = beforeName.substring(typeSeparator + 1);
+			final String beforeTypeOutput;
+			if (!beforeType.isEmpty()) {
+				beforeTypeOutput = wrap(beforeType) + " ";
+			} else {
+				beforeTypeOutput = "";
+			}
+
+			return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
 		}
 
 		return wrap(stripped);
