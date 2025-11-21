@@ -15,7 +15,7 @@
 }
 /*private static*/ /*Optional<IOException>*/ run_Main(/**/){
 	/*final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*/
-	/*final var target = source.resolveSibling("Main.c");*/
+	/*final var target = source.resolveSibling("Main.cpp");*/
 	/*final var input = readString(source).mapValue(Main::compile);*/
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);

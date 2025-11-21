@@ -37,7 +37,7 @@ public class Main {
 
 	private static Optional<IOException> run() {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-		final var target = source.resolveSibling("Main.c");
+		final var target = source.resolveSibling("Main.cpp");
 		final var input = readString(source).mapValue(Main::compile);
 
 		return switch (input) {
