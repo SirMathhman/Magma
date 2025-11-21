@@ -273,9 +273,11 @@ public class Main {
 					modifiersList.stream().map(Main::wrap).map(modifier -> modifier + " ").collect(Collectors.joining());
 		}
 
+		var finalTypeParameters = typeParameters;
 		return Optional.of(
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() + compileStatements(content, input1 -> compileClassSegment(input1, name)));
+				"};" + System.lineSeparator() +
+				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
 
 	}
 
@@ -308,7 +310,7 @@ public class Main {
 		return true;
 	}
 
-	private static String compileClassSegment(String input, String structName) {
+	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 
 		final var maybeInterface = compileStructure("interface", input);
@@ -330,10 +332,11 @@ public class Main {
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> compileDeclaration(param, structName))
+						.map(param -> compileDeclaration(param, structName, typeParameters))
 						.collect(Collectors.joining(", "));
 
-				final var header = compileDeclaration(declaration, structName) + "(" + compiledParameters + ")";
+				final var header = compileDeclaration(declaration, structName, typeParameters) + "(" + compiledParameters +
+													 ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -373,7 +376,7 @@ public class Main {
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
-	private static String compileDeclaration(String input, String structName) {
+	private static String compileDeclaration(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -400,17 +403,20 @@ public class Main {
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
-			var beforeDeclaration = "";
+
+			final var copy = new ArrayList<String>(typeParameters);
 			if (beforeType.endsWith(">")) {
 				final var substring = beforeType.substring(0, beforeType.length() - 1);
 				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
-					final var typeParameters = splitValues(substring2);
-					beforeDeclaration = generateTemplateString(typeParameters);
+					copy.addAll(splitValues(substring2));
+
 					beforeType = substring.substring(0, i);
 				}
 			}
+
+			var beforeDeclaration = generateTemplateString(copy);
 
 			final var typeString = beforeName.substring(typeSeparator + 1);
 			final String beforeTypeOutput;
