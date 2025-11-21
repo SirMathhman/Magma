@@ -15,8 +15,25 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class Main {
+	private enum PrimitiveType implements Type {
+		Void("void"), Char("char");
+
+		private final String content;
+
+		PrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+	}
+
 	private sealed interface Result<T, X> permits Err, Ok {
 		<R> Result<R, X> mapValue(Function<T, R> mapper);
+	}
+
+	private sealed interface Type permits Identifier, Placeholder, PointerType, PrimitiveType, TemplateType {
+		String generate();
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -92,6 +109,37 @@ public class Main {
 		}
 	}
 
+	private record PointerType(Type type) implements Type {
+		@Override
+		public String generate() {
+			return this.type.generate() + "*";
+		}
+	}
+
+	private record TemplateType(String base, List<Type> list) implements Type {
+
+		@Override
+		public String generate() {
+			final var typeArguments = this.list.stream().map(Type::generate).collect(Collectors.joining(", "));
+
+			return this.base + "<" + typeArguments + ">";
+		}
+	}
+
+	private record Identifier(String stripped) implements Type {
+		@Override
+		public String generate() {
+			return this.stripped;
+		}
+	}
+
+	private record Placeholder(String stripped) implements Type {
+		@Override
+		public String generate() {
+			return wrap(this.stripped);
+		}
+	}
+
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
 	}
@@ -129,14 +177,13 @@ public class Main {
 	}
 
 	private static String compileStatements(String input, Function<String, String> mapper) {
-		return compileAll(input, mapper, Main::foldStatement, "");
+		return compileAll(input, mapper, Main::foldStatement);
 	}
 
 	private static String compileAll(String input,
 																	 Function<String, String> mapper,
-																	 BiFunction<State, Character, State> folder,
-																	 String delimiter) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));
+																	 BiFunction<State, Character, State> folder) {
+		return divide(input, folder).map(mapper).collect(Collectors.joining(""));
 	}
 
 	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -278,7 +325,6 @@ public class Main {
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
 				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
-
 	}
 
 	private static List<String> splitValues(String input) {
@@ -312,6 +358,11 @@ public class Main {
 
 	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
+
+		final var maybeEnum = compileStructure("enum", input);
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
+		}
 
 		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
@@ -398,7 +449,7 @@ public class Main {
 				}
 			}
 
-			if (typeSeparator < 0) {
+			if (typeSeparator < 0 && isIdentifier(name)) {
 				return compileType(beforeName) + " " + name;
 			}
 
@@ -426,25 +477,32 @@ public class Main {
 				beforeTypeOutput = wrap(beforeType) + " ";
 			}
 
-			return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
+			if (isIdentifier(name)) {
+				return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
+			}
 		}
 
 		return wrap(stripped);
 	}
 
 	private static String compileType(String input) {
+		return parseType(input).generate();
+	}
+
+	private static Type parseType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return "void";
+			return PrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - 2);
-			return compileType(slice) + "*";
+			final var type = parseType(slice);
+			return new PointerType(type);
 		}
 
 		if (stripped.equals("String")) {
-			return "char*";
+			return new PointerType(PrimitiveType.Char);
 		}
 
 		if (stripped.endsWith(">")) {
@@ -453,20 +511,18 @@ public class Main {
 			if (i >= 0) {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
-				final var typeArguments = compileValues(parameters, Main::compileType);
-				return base + "<" + typeArguments + ">";
+
+				final var list = divide(parameters, Main::foldValue).map(Main::parseType).toList();
+
+				return new TemplateType(base, list);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return stripped;
+			return new Identifier(stripped);
 		}
 
-		return wrap(stripped);
-	}
-
-	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileAll(input, mapper, Main::foldValue, ", ");
+		return new Placeholder(stripped);
 	}
 
 	private static String wrap(String input) {

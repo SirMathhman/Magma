@@ -1,5 +1,7 @@
 /*public*/ struct Main {
 };
+/*private enum PrimitiveType implements Type {
+		Void*/(/*"void"*/);
 enum ResultVariant {
 	ErrVariant, 
 	OkVariant
@@ -16,8 +18,27 @@ template <typename T, typename X>
 };
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Result(Function<T, R> mapper);
-/*}*//*private record*/ /*Err<T,*/ X>_Main(X error);
-/*private record*/ /*Ok<T,*/ X>_Main(T value);
+/*}*/enum Type Variant {
+	IdentifierVariant, 
+	PlaceholderVariant, 
+	PointerTypeVariant, 
+	PrimitiveTypeVariant, 
+	TemplateTypeVariant
+};
+union Type Data {
+	IdentifierData identifier;
+	PlaceholderData placeholder;
+	PointerTypeData pointertype;
+	PrimitiveTypeData primitivetype;
+	TemplateTypeData templatetype;
+};
+/*private*/ struct Type  {
+	Type Variant variant;
+	Type Data data;
+};
+char* generate();
+/*}*//*private record Err<T, X>*/(X error);
+/*private record Ok<T, X>*/(T value);
 /*private static class State {
 		private final String input;
 		private final ArrayList<String> segments;
@@ -77,6 +98,10 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 			return this.segments.stream();*/
 	/*}*/
 }
+/*private*/ record PointerType_Main(Type type);
+/*private*/ record TemplateType_Main(char* base, List<Type> list);
+/*private*/ record Identifier_Main(char* stripped);
+/*private*/ record Placeholder_Main(char* stripped);
 /*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace);*/
 }
@@ -111,10 +136,10 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 	/*return compileStatements(input, Main::compileRootSegment);*/
 }
 /*private static*/ char* compileStatements_Main(char* input, Function<char*, char*> mapper){
-	/*return compileAll(input, mapper, Main::foldStatement, "");*/
+	/*return compileAll(input, mapper, Main::foldStatement);*/
 }
-/*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder, char* delimiter){
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining(delimiter));*/
+/*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
+	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""));*/
 }
 /*private static*/ Stream<char*> divide_Main(char* input, BiFunction<State, Character, State> folder){
 	/*var current = new State(input);*/
@@ -137,15 +162,15 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 		}*/
 	/*if (next == '*/
 }
-/*'*/ /*&&*/ appended.isShallow_Main();
-/*if*/(/*next*/ /*==*/ '{'_Main){
+/*' && appended.isShallow*/();
+/*if*/(/*next == '{'*/){
 	/*return appended.enter();*/
 	/*}
 
 		if (next == '*/
 }
-/*')*/ /*{
-			return*/ appended.exit_Main();
+/*') {
+			return appended.exit*/();
 /*return appended;*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -242,12 +267,11 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 					modifiersList.stream().map(Main::wrap).map(modifier -> modifier + " ").collect(Collectors.joining());
 		}
 
-		List<String> finalTypeParameters = typeParameters;
+		var finalTypeParameters = typeParameters;
 		return Optional.of(
 				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
 				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
-
 	}
 
 	private static List<String> splitValues(String input) {
@@ -281,6 +305,11 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 
 	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
+
+		final var maybeEnum = compileStructure("enum", input);
+		if (maybeEnum.isPresent()) {
+			return maybeEnum.get();
+		}
 
 		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
@@ -367,7 +396,7 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 				}
 			}
 
-			if (typeSeparator < 0) {
+			if (typeSeparator < 0 && isIdentifier(name)) {
 				return compileType(beforeName) + " " + name;
 			}
 
@@ -395,25 +424,32 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 				beforeTypeOutput = wrap(beforeType) + " ";
 			}
 
-			return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
+			if (isIdentifier(name)) {
+				return beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName;
+			}
 		}
 
 		return wrap(stripped);
 	}
 
 	private static String compileType(String input) {
+		return parseType(input).generate();
+	}
+
+	private static Type parseType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
-			return "void";
+			return PrimitiveType.Void;
 		}
 
 		if (stripped.endsWith("[]")) {
 			final var slice = stripped.substring(0, stripped.length() - 2);
-			return compileType(slice) + "*";
+			final var type = parseType(slice);
+			return new PointerType(type);
 		}
 
 		if (stripped.equals("String")) {
-			return "char*";
+			return new PointerType(PrimitiveType.Char);
 		}
 
 		if (stripped.endsWith(">")) {
@@ -422,20 +458,18 @@ Result<R, X> mapValue_Result(Function<T, R> mapper);
 			if (i >= 0) {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
-				final var typeArguments = compileValues(parameters, Main::compileType);
-				return base + "<" + typeArguments + ">";
+
+				final var list = divide(parameters, Main::foldValue).map(Main::parseType).toList();
+
+				return new TemplateType(base, list);
 			}
 		}
 
 		if (isIdentifier(stripped)) {
-			return stripped;
+			return new Identifier(stripped);
 		}
 
-		return wrap(stripped);
-	}
-
-	private static String compileValues(String input, Function<String, String> mapper) {
-		return compileAll(input, mapper, Main::foldValue, ", ");
+		return new Placeholder(stripped);
 	}
 
 	private static String wrap(String input) {
