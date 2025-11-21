@@ -1,24 +1,26 @@
 /*public*/struct Main {};
-/*public static*/ void main(char** args){/*
-		try {
+/*public static*/ void main(char** args){
+	/*try {
 			final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 			final var input = Files.readString(source);
 			final var target = source.resolveSibling("Main.c");
 			Files.writeString(target, compile(input));
-		} catch (IOException e) {
+		}*/
+	/*catch (IOException e) {
 			//noinspection CallToPrintStackTrace
 			e.printStackTrace();
-		}
-	*/}
-/*private static*/ char* compile(char* input){/*
-		return compileStatements(input, Main::compileRootSegment);
-	*/}
-/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper){/*
-		final var segments = new ArrayList<String>();
-		var buffer = new StringBuilder();
-		var depth = 0;
-
-		for (var i = 0; i < input.length(); i++) {
+		}*/
+}
+/*private static*/ char* compile(char* input){
+	/*return compileStatements(input, Main::compileRootSegment);*/
+}
+/*private static*/ char* compileStatements(/*String input, Function<String,*/ /*String>*/ mapper){
+	/*final var segments = new ArrayList<String>();*/
+	/*var buffer = new StringBuilder();*/
+	/*var depth = 0;*/
+	/*for (var i = 0;*/
+	/*i < input.length();*/
+	/*i++) {
 			final var c = input.charAt(i);
 			buffer.append(c);
 			if (c == ';' && depth == 0) {
@@ -26,19 +28,21 @@
 				buffer = new StringBuilder();
 				continue;
 			}
-			if (c == '}' && depth == 1) {
+			if (c == '}*/
+	/*' && depth == 1) {
 				segments.add(buffer.toString());
 				buffer = new StringBuilder();
 				depth--;
 				continue;
-			}
-			if (c == '{') {
+			}*/
+	/*if (c == '{') {
 				depth++;
 			}
-			if (c == '}') {
+			if (c == '}*/
+	/*') {
 				depth--;
-			}
-		*/}
+			}*/
+}
 /*segments.add(buffer.toString());*//*return segments.stream().map(mapper).collect(Collectors.joining());*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -89,13 +93,23 @@
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
 
 					final var compiledParameters = compileDeclaration(parameters);
-					return compileDeclaration(declaration) + "(" + compiledParameters + "){" + wrap(substring) + "}" +
+					return compileDeclaration(declaration) + "(" + compiledParameters + "){" +
+								 compileStatements(substring, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 								 System.lineSeparator();
 				}
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static String compileMethodSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
+		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
 	private static String compileDeclaration(String input) {

@@ -105,13 +105,23 @@ public class Main {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
 
 					final var compiledParameters = compileDeclaration(parameters);
-					return compileDeclaration(declaration) + "(" + compiledParameters + "){" + wrap(substring) + "}" +
+					return compileDeclaration(declaration) + "(" + compiledParameters + "){" +
+								 compileStatements(substring, Main::compileMethodSegment) + System.lineSeparator() + "}" +
 								 System.lineSeparator();
 				}
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static String compileMethodSegment(String input) {
+		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
+		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
 	private static String compileDeclaration(String input) {
