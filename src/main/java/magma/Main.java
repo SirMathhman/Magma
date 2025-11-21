@@ -103,7 +103,9 @@ public class Main {
 				final var withBraces = substring1.substring(i1 + 1).strip();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var substring = withBraces.substring(1, withBraces.length() - 1);
-					return compileDeclaration(declaration) + "(" + wrap(parameters) + "){" + wrap(substring) + "}" +
+
+					final var compiledParameters = compileDeclaration(parameters);
+					return compileDeclaration(declaration) + "(" + compiledParameters + "){" + wrap(substring) + "}" +
 								 System.lineSeparator();
 				}
 			}
@@ -123,6 +125,8 @@ public class Main {
 				final var substring = beforeName.substring(0, typeSeparator);
 				final var substring1 = beforeName.substring(typeSeparator + 1);
 				return wrap(substring) + " " + compileType(substring1) + " " + name;
+			} else {
+				return compileType(beforeName) + " " + name;
 			}
 		}
 
@@ -133,6 +137,15 @@ public class Main {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
 			return "void";
+		}
+
+		if (stripped.endsWith("[]")) {
+			final var slice = stripped.substring(0, stripped.length() - 2);
+			return compileType(slice) + "*";
+		}
+
+		if (stripped.equals("String")) {
+			return "char*";
 		}
 
 		return wrap(stripped);
