@@ -18,23 +18,23 @@ template <typename T, typename X>
 };
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Result(Function<T, R> mapper);
-/*}*/enum Type Variant {
+/*}*/enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
 	PrimitiveTypeVariant, 
 	TemplateTypeVariant
 };
-union Type Data {
+union TypeData {
 	IdentifierData identifier;
 	PlaceholderData placeholder;
 	PointerTypeData pointertype;
 	PrimitiveTypeData primitivetype;
 	TemplateTypeData templatetype;
 };
-/*private*/ struct Type  {
-	Type Variant variant;
-	Type Data data;
+/*private*/ struct Type {
+	TypeVariant variant;
+	TypeData data;
 };
 char* generate();
 /*}*//*private record Err<T, X>*/(X error);
@@ -216,7 +216,8 @@ char* generate();
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.collect(Collectors.toCollection(ArrayList::new));
-		var name = beforeContent;
+
+		var name = beforeContent.strip();
 
 		final var templateString = generateTemplateString(typeParameters);
 

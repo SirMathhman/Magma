@@ -269,7 +269,8 @@ public class Main {
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.collect(Collectors.toCollection(ArrayList::new));
-		var name = beforeContent;
+
+		var name = beforeContent.strip();
 
 		final var templateString = generateTemplateString(typeParameters);
 
