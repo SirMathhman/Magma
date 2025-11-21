@@ -137,8 +137,9 @@ public class Main {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
 			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
+				final var substring = substring1.substring(0, substring1.length() - 1);
 				typeParameters = Arrays
-						.stream(substring1.split(Pattern.quote(",")))
+						.stream(substring.split(Pattern.quote(",")))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.toList();
@@ -146,8 +147,19 @@ public class Main {
 		}
 
 		if (!isIdentifier(beforeContent)) {return Optional.empty();}
+
+		final String joinedTypeParameters;
+		if (typeParameters.isEmpty()) {
+			joinedTypeParameters = "";
+		} else {
+			joinedTypeParameters = "template " + typeParameters
+					.stream()
+					.map(name -> "typename " + name)
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
+		}
+
 		String name = beforeContent;
-		return Optional.of(wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
+		return Optional.of(joinedTypeParameters + wrap(modifiers) + "struct " + name + " {};" + System.lineSeparator() +
 											 compileStatements(content, input1 -> compileClassSegment(input1, name)));
 
 	}
