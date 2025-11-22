@@ -167,6 +167,9 @@ struct Collector {
 	CollectorTable<T, C> table;
 	void* data;
 };
+struct IOError {
+	IOException e;
+};
 struct StringBuilder {
 	List<char> list;
 };
@@ -290,8 +293,8 @@ struct Main {
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
-Option<IOException> writeString_Main(Path target, char* output);
-Result<char*, IOException> readString_Main(Path source);
+Option<IOError> writeString_Main(Path target, char* output);
+Result<char*, IOError> readString_Main(Path source);
 Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
@@ -654,6 +657,12 @@ C fold_Collector(void* _ref, C c, T t){
 	switch (_this->variant) {
 	}
 	return _ret;
+}
+char* display_IOError(void* _ref){
+	IOError* _this = (IOError*) _ref;
+	var writer = new_StringWriter();
+	_this->e.printStackTrace(new_PrintWriter(writer));
+	return writer.toString();
 }
 public StringBuilder_StringBuilder(void* _ref){
 	StringBuilder* _this = (StringBuilder*) _ref;
@@ -1417,7 +1426,7 @@ void main_Main(void* _ref, char** args){
 	var ioExceptionOption = new_Main().run();
 	if (ioExceptionOption.variant = ?.SomeVariant) {
 		//noinspection CallToPrintStackTrace
-		value.printStackTrace();
+		System.err.println(value.display());
 	}
 }
 char* generateStatement_Main(void* _ref, int depth, char* content){
@@ -1428,7 +1437,7 @@ char* generateIndent_Main(void* _ref, int depth){
 	Main* _this = (Main*) _ref;
 	return System.lineSeparator() + "\t".repeat(depth);
 }
-Option<IOException> run_Main(void* _ref){
+Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");

@@ -1,6 +1,8 @@
 package magma;
 
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -111,6 +113,14 @@ public class Main {
 		C createInitial();
 
 		C fold(C c, T t);
+	}
+
+	private record IOError(IOException e) {
+		public String display() {
+			final var writer = new StringWriter();
+			this.e.printStackTrace(new PrintWriter(writer));
+			return writer.toString();
+		}
 	}
 
 	private record StringBuilder(List<Character> list) {
@@ -748,6 +758,7 @@ public class Main {
 			return tList.addLast(t);
 		}
 	}
+
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -784,11 +795,11 @@ public class Main {
 
 	public static void main(String[] args) {
 		var ioExceptionOption = new Main().run();
-		if (ioExceptionOption instanceof Some<IOException>(
+		if (ioExceptionOption instanceof Some<IOError>(
 				var value
 		)) {
 			//noinspection CallToPrintStackTrace
-			value.printStackTrace();
+			System.err.println(value.display());
 		}
 	}
 
@@ -800,33 +811,33 @@ public class Main {
 		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
-	private Option<IOException> run() {
+	private Option<IOError> run() {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final var target = source.resolveSibling("Main.cpp");
 		final var input = this.readString(source).mapValue(this::compile);
 
 		return switch (input) {
-			case Err<String, IOException> v -> new Some<IOException>(v.error);
-			case Ok<String, IOException> v -> this.writeString(target, v.value);
+			case Err<String, IOError> v -> new Some<IOError>(v.error);
+			case Ok<String, IOError> v -> this.writeString(target, v.value);
 		};
 	}
 
 	@Actual
-	private Option<IOException> writeString(Path target, String output) {
+	private Option<IOError> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
-			return new None<IOException>();
+			return new None<IOError>();
 		} catch (IOException e) {
-			return new Some<IOException>(e);
+			return new Some<IOError>(new IOError(e));
 		}
 	}
 
 	@Actual
-	private Result<String, IOException> readString(Path source) {
+	private Result<String, IOError> readString(Path source) {
 		try {
-			return new Ok<String, IOException>(Files.readString(source));
+			return new Ok<String, IOError>(Files.readString(source));
 		} catch (IOException e) {
-			return new Err<String, IOException>(e);
+			return new Err<String, IOError>(new IOError(e));
 		}
 	}
 
