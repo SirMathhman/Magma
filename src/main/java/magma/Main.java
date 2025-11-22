@@ -849,6 +849,10 @@ public class Main {
 			return Optional.of(stripped);
 		}
 
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
+			return Optional.of(stripped);
+		}
+
 		return this
 				.compileOperator(stripped, "==")
 				.or(() -> this.compileOperator(stripped, "<"))

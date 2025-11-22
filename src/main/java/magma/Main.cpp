@@ -313,11 +313,11 @@ Type toType_PointerType(void* _this){
 }
 char* generate_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
-	return /*this.type.generate() + "*"*/;
+	return this.type.generate() + "*";
 }
 char* toBaseName_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
-	return /*this.type.toBaseName() + "_ptr"*/;
+	return this.type.toBaseName() + "_ptr";
 }
 Type toType_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -328,7 +328,7 @@ Type toType_TemplateType(void* _this){
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
 	var typeArguments = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
-	return /*this.base + "<" + typeArguments + ">"*/;
+	return this.base + " < " + typeArguments + ">";
 }
 char* toBaseName_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -382,7 +382,7 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 }
 char* generate_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
-	return /*this.structName + " new_" + this.structName*/;
+	return this.structName + " new_" + this.structName;
 }
 MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
@@ -397,7 +397,7 @@ public Declaration_Declaration(void* _this, char* type, char* name){
 char* generate_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
 	var beforeDeclaration = generateTemplateString(this.typeParameters());
-	return /*beforeDeclaration + this.type + " " + this.name*/;
+	return beforeDeclaration + this.type + " " + this.name;
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 	Declaration this = *((Declaration*) _this);
@@ -411,8 +411,8 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration this = *((FunctionDeclaration*) _this);
-	var joinedParameterTypes = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, /* "*/, /* "("*/, /* ")")*/);
-	return /*this.type + " (*" + this.name + ")" + joinedParameterTypes*/;
+	var joinedParameterTypes = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, ", "(", /* ")")*/);
+	return this.type + " (*" + this.name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
 	EmptyStructMember this = *((EmptyStructMember*) _this);
@@ -422,7 +422,7 @@ StructMember toStructMember_EmptyStructMember(void* _this){
 }
 char* generate_EmptyStructMember(void* _this){
 	EmptyStructMember this = *((EmptyStructMember*) _this);
-	return /*""*/;
+	return "";
 }
 public Main_Main(void* _this){
 	Main this = *((Main*) _this);
@@ -434,20 +434,19 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
 	if (typeParameters.isEmpty()) {
-		templateString = /* ""*/;
+		templateString = "";
 	}
 	else {
-		templateString = /* "template " + typeParameters
-					.stream()
+		templateString = "template " + typeParameters.stream(/*)
 					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator()*/;
+					.collect(Collectors.joining(", ", "<"*/, /* ">")) + System.lineSeparator(*/);
 	}
 	return templateString;
 }
 char* wrap_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	var replaced = input.replace(/*"start"*/, /* "start").replace("end"*/, /* "end"*/);
-	return /*"start" + replaced + "end"*/;
+	var replaced = input.replace("/*", "start").replace("*/", "end");
+	return "/*" + replaced + "*/";
 }
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
@@ -455,8 +454,8 @@ void main_Main(void* _this, char** args){
 }
 Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
-	var source = Paths.get(/*"."*/, /* "src"*/, /* "main"*/, /* "java"*/, /* "magma"*/, /* "Main.java"*/);
-	var target = source.resolveSibling(/*"Main.cpp"*/);
+	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+	var target = source.resolveSibling("Main.cpp");
 	var input = this.readString(/*source).mapValue(this::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
@@ -486,9 +485,9 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
 	var all = this.compileStatements(input, /* this::compileRootSegment*/);
-	var joinedStructures = String.join(/*""*/, this.structures);
-	var joinedGlobals = String.join(/*""*/, this.globals);
-	var joinedFunctions = String.join(/*""*/, this.functions);
+	var joinedStructures = String.join("", this.structures);
+	var joinedGlobals = String.join("", this.globals);
+	var joinedFunctions = String.join("", this.functions);
 	return joinedStructures + joinedGlobals + joinedFunctions + all;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
@@ -1007,6 +1006,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		if (this.isNumber(stripped)) {
+			return Optional.of(stripped);
+		}
+
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
 			return Optional.of(stripped);
 		}
 
