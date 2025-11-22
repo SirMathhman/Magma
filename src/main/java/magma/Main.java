@@ -745,7 +745,7 @@ public class Main {
 	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("return ")) {
-			return "return " + this.compileExpression(stripped.substring("return ".length()));
+			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
@@ -757,44 +757,48 @@ public class Main {
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
 			final var substring1 = stripped.substring(i + 1);
-			return this.compileExpression(substring) + " = " + this.compileExpression(substring1);
+			return this.compileExpressionOrPlaceholder(substring) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
 		return wrap(stripped);
 	}
 
-	private String compileExpression(String input) {
+	private String compileExpressionOrPlaceholder(String input) {
+		return this.compileExpression(input).orElseGet(() -> wrap(input));
+	}
+
+	private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var instance = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(memberName)) {
-				return this.compileExpression(instance) + "." + memberName;
+				return Optional.of(this.compileExpressionOrPlaceholder(instance) + "." + memberName);
 			}
 		}
 
 		if (this.isIdentifier(stripped)) {
-			return stripped;
+			return Optional.of(stripped);
 		}
 
-		final var caller = this.compileInvokable(stripped);
-		if (caller.isPresent()) {
-			return caller.get();
+		final var maybeInvokable = this.compileInvokable(stripped);
+		if (maybeInvokable.isPresent()) {
+			return maybeInvokable;
 		}
 
 		if (this.isNumber(stripped)) {
-			return stripped;
+			return Optional.of(stripped);
 		}
 
 		final var i1 = stripped.indexOf("==");
 		if (i1 >= 0) {
 			final var left = stripped.substring(0, i1);
 			final var right = stripped.substring(i1 + 2);
-			return this.compileExpression(left) + " == " + this.compileExpression(right);
+			return Optional.of(this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
 		}
 
-		return wrap(stripped);
+		return Optional.empty();
 	}
 
 	private Optional<String> compileInvokable(String stripped) {
@@ -802,12 +806,15 @@ public class Main {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var i1 = substring.indexOf("(");
 			if (i1 >= 0) {
-				final var caller = substring.substring(0, i1);
+				final var callerString = substring.substring(0, i1);
 				final var arguments = substring.substring(i1 + 1);
 				final var joinedArguments =
-						this.divide(arguments, this::foldValue).map(this::compileExpression).collect(Collectors.joining(", "));
+						this.divide(arguments, this::foldValue).map(this::compileExpressionOrPlaceholder).collect(Collectors.joining(", "));
 
-				return Optional.of(this.compileCaller(caller) + "(" + joinedArguments + ")");
+				final var maybeCaller = this.compileCaller(callerString);
+				if (maybeCaller.isPresent()) {
+					return Optional.of(maybeCaller.get() + "(" + joinedArguments + ")");
+				}
 			}
 		}
 
@@ -826,11 +833,11 @@ public class Main {
 		return true;
 	}
 
-	private String compileCaller(String input) {
+	private Optional<String> compileCaller(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
-			return "new_" + this.compileType(type);
+			return Optional.of("new_" + this.compileType(type));
 		}
 
 		return this.compileExpression(stripped);
