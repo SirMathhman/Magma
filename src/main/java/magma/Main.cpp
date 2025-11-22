@@ -1354,9 +1354,10 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 	if (i2 >= 0) {
 		var substring = stripped.substring(0, i2);
 		var name = stripped.substring(i2 + 2).strip();
-		var compiled = this->compileExpressionOrPlaceholder(substring);
-		if (isIdentifier(name)) {
-			return Option.of("F? { alloc(" + compiled + "), F?Table { " + name + " }}");
+		if (this->isIdentifier(name)) {
+			var compiled = this->compileExpressionOrPlaceholder(substring);
+			var functionalInterfaceName = "F?";
+			return Option.of(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}");
 		}
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {

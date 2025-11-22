@@ -1002,8 +1002,8 @@ public class Main {
 		if (i2 >= 0) {
 			final var substring = stripped.substring(0, i2);
 			final var name = stripped.substring(i2 + 2).strip();
-			final var compiled = this.compileExpressionOrPlaceholder(substring);
 			if (this.isIdentifier(name)) {
+				final var compiled = this.compileExpressionOrPlaceholder(substring);
 				final var functionalInterfaceName = "F?";
 				return Option.of(
 						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
