@@ -190,10 +190,7 @@ public class Main {
 		@Override
 		public String generate() {
 			var beforeDeclaration = generateTemplateString(this.typeParameter());
-
-			final String beforeTypeOutput = this.beforeType.map(Main::wrap).map(slice -> slice + " ").orElse("");
-
-			return beforeDeclaration + beforeTypeOutput + this.type() + " " + this.name();
+			return beforeDeclaration + this.type + " " + this.name;
 		}
 	}
 
@@ -297,7 +294,12 @@ public class Main {
 		final var i1 = afterKeyword.indexOf("{");
 		if (i1 < 0) {return Optional.empty();}
 		var beforeContent = afterKeyword.substring(0, i1).strip();
-		final var content = afterKeyword.substring(i1 + 1);
+
+		final var withEnd = afterKeyword.substring(i1 + 1).strip();
+		if (!withEnd.endsWith("}")) {
+			return Optional.empty();
+		}
+		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = new ArrayList<String>();
 		final var i2 = beforeContent.indexOf("permits ");
@@ -398,18 +400,10 @@ public class Main {
 			fields = "";
 		}
 
-		final String joinedModifiers;
-		if (modifiersList.isEmpty()) {
-			joinedModifiers = "";
-		} else {
-			joinedModifiers =
-					modifiersList.stream().map(Main::wrap).map(modifier -> modifier + " ").collect(Collectors.joining());
-		}
-
 		var finalTypeParameters = typeParameters;
 		return Optional.of(
-				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() +
+				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
+				System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
 	}
 

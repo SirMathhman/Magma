@@ -1,4 +1,4 @@
-/*public*/ struct Main {
+struct Main {
 };
 Type toType_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
@@ -6,7 +6,7 @@ Type toType_PrimitiveType(void* _this){
 	data.primitivetype = this;
 	return { TypeVariant.PrimitiveTypeVariant, data };
 }
-/*private*/ struct PrimitiveType {
+struct PrimitiveType {
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -15,17 +15,15 @@ PrimitiveType new_PrimitiveType(char* content){
 	this.content = content;
 	return this;
 }
-/*@Override
-		public*/ char* generate_PrimitiveType(void* _this){
+char* generate_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
-/*@Override
-		public*/ char* toIdentifier_PrimitiveType(void* _this){
+char* toIdentifier_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
-/*}*/enum ResultVariant {
+/**/enum ResultVariant {
 	ErrVariant, 
 	OkVariant
 };
@@ -35,11 +33,11 @@ union ResultData {
 	OkData<T, X> ok;
 };
 template <typename T, typename X>
-/*private*/ struct Result {
+struct Result {
 	ResultVariant variant;
 	ResultData data;
 };
-/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*/enum TypeVariant {
+/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//**/enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
@@ -53,11 +51,11 @@ union TypeData {
 	PrimitiveTypeData primitivetype;
 	TemplateTypeData templatetype;
 };
-/*private*/ struct Type {
+struct Type {
 	TypeVariant variant;
 	TypeData data;
 };
-/*String generate();*//*String toIdentifier();*//*}*/enum MethodDeclarationVariant {
+/*String generate();*//*String toIdentifier();*//**/enum MethodDeclarationVariant {
 	ConstructorVariant, 
 	DeclarationVariant, 
 	PlaceholderVariant
@@ -67,11 +65,11 @@ union MethodDeclarationData {
 	DeclarationData declaration;
 	PlaceholderData placeholder;
 };
-/*private*/ struct MethodDeclaration {
+struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-/*String generate();*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
+/*String generate();*//**//*private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
 			return new Err<R, X>(this.error);
@@ -81,12 +79,7 @@ union MethodDeclarationData {
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
 			return new Ok<R, X>(mapper.apply(this.value));
 		}
-	}*//*private static class State {
-		private final String input;
-		private final ArrayList<String> segments;
-		private final StringBuilder buffer;
-		private int index;
-		private int*/ /*depth;
+	}*//*depth;
 
 		public*/ State_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
@@ -200,16 +193,13 @@ union MethodDeclarationData {
 		@Override
 		public String generate() {
 			var beforeDeclaration = generateTemplateString(this.typeParameter());
-
-			final String beforeTypeOutput = this.beforeType.map(Main::wrap).map(slice -> slice + " ").orElse("");
-
-			return beforeDeclaration + beforeTypeOutput + this.type() + " " + this.name();
+			return beforeDeclaration + this.type + " " + this.name;
 		}
-	}*//*public static*/ void main_Main(void* _this, char** args){
+	}*/void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
-/*private static*/ Optional<IOException> run_Main(void* _this){
+Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
 	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;
 	/*final var target*/ = /*source.resolveSibling("Main.cpp")*/;
@@ -220,7 +210,7 @@ union MethodDeclarationData {
 		}*/
 	/**/;
 }
-/*private static*/ Optional<IOException> writeString_Main(void* _this, Path target, char* output){
+Optional<IOException> writeString_Main(void* _this, Path target, char* output){
 	Main this = *((Main*) _this);
 	/*try {
 			Files.writeString(target, output);
@@ -230,7 +220,7 @@ union MethodDeclarationData {
 			return Optional.of(e);
 		}*/
 }
-/*private static*/ Result<char*, IOException> readString_Main(void* _this, Path source){
+Result<char*, IOException> readString_Main(void* _this, Path source){
 	Main this = *((Main*) _this);
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
@@ -239,19 +229,19 @@ union MethodDeclarationData {
 			return new Err<String, IOException>(e);
 		}*/
 }
-/*private static*/ char* compile_Main(void* _this, char* input){
+char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
 	return /*compileStatements(input, Main::compileRootSegment)*/;
 }
-/*private static*/ char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
+char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
 	Main this = *((Main*) _this);
 	return /*compileAll(input, mapper, Main::foldStatement)*/;
 }
-/*private static*/ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
+char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
 	return /*divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
 }
-/*private static*/ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
+Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
 	/*var current*/ = /*new State(input)*/;
 	/*while (true) {
@@ -265,7 +255,7 @@ union MethodDeclarationData {
 		}*/
 	return /*current.advance().stream()*/;
 }
-/*private static*/ State foldStatement_Main(void* _this, State current, Character next){
+State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
 	/*final var appended*/ = /*current.append(next)*/;
 	/*if (next*/ = /*= '*/;
@@ -285,7 +275,7 @@ union MethodDeclarationData {
 }
 /*') {
 			return appended.exit();
-		}*//*}*//*private static String compileRootSegment(String input) {
+		}*//**//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -301,7 +291,12 @@ union MethodDeclarationData {
 		final var i1 = afterKeyword.indexOf("{");
 		if (i1 < 0) {return Optional.empty();}
 		var beforeContent = afterKeyword.substring(0, i1).strip();
-		final var content = afterKeyword.substring(i1 + 1);
+
+		final var withEnd = afterKeyword.substring(i1 + 1).strip();
+		if (!withEnd.endsWith("}")) {
+			return Optional.empty();
+		}
+		final var content = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = new ArrayList<String>();
 		final var i2 = beforeContent.indexOf("permits ");
@@ -402,30 +397,16 @@ union MethodDeclarationData {
 			fields = "";
 		}
 
-		final String joinedModifiers;
-		if (modifiersList.isEmpty()) {
-			joinedModifiers = "";
-		} else {
-			joinedModifiers =
-					modifiersList.stream().map(Main::wrap).map(modifier -> modifier + " ").collect(Collectors.joining());
-		}
-
 		var finalTypeParameters = typeParameters;
 		return Optional.of(
-				dependencies + templateString + joinedModifiers + "struct " + name + " {" + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() +
+				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
+				System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
-	}
-
-	private static String generateStatement(String content) {
+	}*//*private static String generateStatement(String content) {
 		return System.lineSeparator() + "\t" + content + ";";
-	}
-
-	private static List<String> splitValues(String input) {
+	}*//*private static List<String> splitValues(String input) {
 		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-	}
-
-	private static String generateTemplateString(List<String> typeParameters) {
+	}*//*private static String generateTemplateString(List<String> typeParameters) {
 		final String templateString;
 		if (typeParameters.isEmpty()) {
 			templateString = "";
@@ -436,9 +417,7 @@ union MethodDeclarationData {
 					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
 		}
 		return templateString;
-	}
-
-	private static boolean isIdentifier(String input) {
+	}*//*private static boolean isIdentifier(String input) {
 		final var stripped = input.strip();
 		for (var i = 0; i < stripped.length(); i++) {
 			final var c = stripped.charAt(i);
@@ -448,9 +427,7 @@ union MethodDeclarationData {
 		}
 
 		return true;
-	}
-
-	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
+	}*//*private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 
 		final var maybeEnum = compileStructure("enum", input);
@@ -510,26 +487,20 @@ union MethodDeclarationData {
 		}
 
 		return wrap(stripped);
-	}
-
-	private static MethodDeclaration parseMethodDeclaration(String declaration,
+	}*//*private static MethodDeclaration parseMethodDeclaration(String declaration,
 																													String structName,
 																													List<String> typeParameters) {
 		return parseDeclaration(declaration, structName, typeParameters)
 				.<MethodDeclaration>map(value -> value)
 				.or(() -> parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration));
-	}
-
-	private static Optional<MethodDeclaration> parseConstructor(String declaration, String structName) {
+	}*//*private static Optional<MethodDeclaration> parseConstructor(String declaration, String structName) {
 		if (declaration.strip().equals(structName)) {
 			return Optional.of(new Constructor(structName));
 		} else {
 			return Optional.empty();
 		}
-	}
-
-	private static Optional<String> compileEnumValues(String input, String structName) {
+	}*//*private static Optional<String> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
 		if (!stripped.endsWith(";")) {
 			return Optional.empty();
@@ -562,9 +533,7 @@ union MethodDeclarationData {
 		}
 
 		return Optional.of(buffer.toString());
-	}
-
-	private static State foldValue(State state, Character next) {
+	}*//*private static State foldValue(State state, Character next) {
 		if (next == ',' && state.isLevel()) {
 			return state.advance();
 		}
@@ -577,9 +546,7 @@ union MethodDeclarationData {
 			return appended.exit();
 		}
 		return appended;
-	}
-
-	private static String compileMethodSegment(String input) {
+	}*//*private static String compileMethodSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return "";
@@ -591,9 +558,7 @@ union MethodDeclarationData {
 		}
 
 		return System.lineSeparator() + "\t" + wrap(stripped);
-	}
-
-	private static String compileMethodStatement(String input) {
+	}*//*private static String compileMethodStatement(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("return ")) {
 			return "return " + compileExpression(stripped.substring("return ".length()));
@@ -607,9 +572,7 @@ union MethodDeclarationData {
 		}
 
 		return wrap(stripped);
-	}
-
-	private static String compileExpression(String input) {
+	}*//*private static String compileExpression(String input) {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
@@ -625,17 +588,11 @@ union MethodDeclarationData {
 		}
 
 		return wrap(stripped);
-	}
-
-	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
+	}*//*private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
 		return compileDeclaration(input, structName, typeParameters).orElseGet(() -> wrap(input));
-	}
-
-	private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
+	}*//*private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
 		return parseDeclaration(input, structName, typeParameters).map(Declaration::generate);
-	}
-
-	private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
+	}*//*private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -685,13 +642,9 @@ union MethodDeclarationData {
 		}
 
 		return Optional.empty();
-	}
-
-	private static String compileType(String input) {
+	}*//*private static String compileType(String input) {
 		return parseType(input).generate();
-	}
-
-	private static Type parseType(String input) {
+	}*//*private static Type parseType(String input) {
 		final var stripped = input.strip();
 		if (stripped.equals("void")) {
 			return PrimitiveType.Void;
@@ -725,10 +678,7 @@ union MethodDeclarationData {
 		}
 
 		return new Placeholder(stripped);
-	}
-
-	private static String wrap(String input) {
+	}*//*private static String wrap(String input) {
 		final var replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
-	}
-}*//**/
+	}*//*}*/
