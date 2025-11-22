@@ -314,19 +314,19 @@ Option<T> next_Head(void* _ref){
 	Option<T> _ret;
 	switch (_this->variant) {
 		case RangeHeadVariant:
-			_ret = next_RangeHead(_this.data.RangeHead);
+			_ret = next_RangeHead(_this->data.RangeHead);
 			break;
 		case EmptyHeadVariant:
-			_ret = next_EmptyHead(_this.data.EmptyHead);
+			_ret = next_EmptyHead(_this->data.EmptyHead);
 			break;
 		case FlatMapHeadVariant:
-			_ret = next_FlatMapHead(_this.data.FlatMapHead);
+			_ret = next_FlatMapHead(_this->data.FlatMapHead);
 			break;
 		case MapHeadVariant:
-			_ret = next_MapHead(_this.data.MapHead);
+			_ret = next_MapHead(_this->data.MapHead);
 			break;
 		case SingleHeadVariant:
-			_ret = next_SingleHead(_this.data.SingleHead);
+			_ret = next_SingleHead(_this->data.SingleHead);
 			break;
 	}
 	return _ret;
@@ -425,10 +425,10 @@ Option<R> map_Option(void* _ref, F1R<T, R> mapper){
 	Option<R> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = map_None(_this.data.None);
+			_ret = map_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = map_Some(_this.data.Some);
+			_ret = map_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -439,10 +439,10 @@ T orElse_Option(void* _ref, T other){
 	T _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = orElse_None(_this.data.None);
+			_ret = orElse_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = orElse_Some(_this.data.Some);
+			_ret = orElse_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -453,10 +453,10 @@ Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper){
 	Option<R> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = flatMap_None(_this.data.None);
+			_ret = flatMap_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = flatMap_Some(_this.data.Some);
+			_ret = flatMap_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -467,10 +467,10 @@ T orElseGet_Option(void* _ref, FR<T> other){
 	T _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = orElseGet_None(_this.data.None);
+			_ret = orElseGet_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = orElseGet_Some(_this.data.Some);
+			_ret = orElseGet_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -481,10 +481,10 @@ Stream<T> stream_Option(void* _ref){
 	Stream<T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = stream_None(_this.data.None);
+			_ret = stream_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = stream_Some(_this.data.Some);
+			_ret = stream_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -495,10 +495,10 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	Option<T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = or_None(_this.data.None);
+			_ret = or_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = or_Some(_this.data.Some);
+			_ret = or_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -509,10 +509,10 @@ Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
 	Tuple<int, T> _ret;
 	switch (_this->variant) {
 		case NoneVariant:
-			_ret = toTuple_None(_this.data.None);
+			_ret = toTuple_None(_this->data.None);
 			break;
 		case SomeVariant:
-			_ret = toTuple_Some(_this.data.Some);
+			_ret = toTuple_Some(_this->data.Some);
 			break;
 	}
 	return _ret;
@@ -531,10 +531,10 @@ Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
 	Result<R, X> _ret;
 	switch (_this->variant) {
 		case ErrVariant:
-			_ret = mapValue_Err(_this.data.Err);
+			_ret = mapValue_Err(_this->data.Err);
 			break;
 		case OkVariant:
-			_ret = mapValue_Ok(_this.data.Ok);
+			_ret = mapValue_Ok(_this->data.Ok);
 			break;
 	}
 	return _ret;
@@ -544,19 +544,19 @@ char* generate_Type(void* _ref){
 	char* _ret;
 	switch (_this->variant) {
 		case IdentifierVariant:
-			_ret = generate_Identifier(_this.data.Identifier);
+			_ret = generate_Identifier(_this->data.Identifier);
 			break;
 		case PlaceholderVariant:
-			_ret = generate_Placeholder(_this.data.Placeholder);
+			_ret = generate_Placeholder(_this->data.Placeholder);
 			break;
 		case PointerTypeVariant:
-			_ret = generate_PointerType(_this.data.PointerType);
+			_ret = generate_PointerType(_this->data.PointerType);
 			break;
 		case PrimitiveTypeVariant:
-			_ret = generate_PrimitiveType(_this.data.PrimitiveType);
+			_ret = generate_PrimitiveType(_this->data.PrimitiveType);
 			break;
 		case TemplateTypeVariant:
-			_ret = generate_TemplateType(_this.data.TemplateType);
+			_ret = generate_TemplateType(_this->data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -566,19 +566,19 @@ char* toBaseName_Type(void* _ref){
 	char* _ret;
 	switch (_this->variant) {
 		case IdentifierVariant:
-			_ret = toBaseName_Identifier(_this.data.Identifier);
+			_ret = toBaseName_Identifier(_this->data.Identifier);
 			break;
 		case PlaceholderVariant:
-			_ret = toBaseName_Placeholder(_this.data.Placeholder);
+			_ret = toBaseName_Placeholder(_this->data.Placeholder);
 			break;
 		case PointerTypeVariant:
-			_ret = toBaseName_PointerType(_this.data.PointerType);
+			_ret = toBaseName_PointerType(_this->data.PointerType);
 			break;
 		case PrimitiveTypeVariant:
-			_ret = toBaseName_PrimitiveType(_this.data.PrimitiveType);
+			_ret = toBaseName_PrimitiveType(_this->data.PrimitiveType);
 			break;
 		case TemplateTypeVariant:
-			_ret = toBaseName_TemplateType(_this.data.TemplateType);
+			_ret = toBaseName_TemplateType(_this->data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -588,13 +588,13 @@ char* generate_MethodDeclaration(void* _ref){
 	char* _ret;
 	switch (_this->variant) {
 		case ConstructorVariant:
-			_ret = generate_Constructor(_this.data.Constructor);
+			_ret = generate_Constructor(_this->data.Constructor);
 			break;
 		case DeclarationVariant:
-			_ret = generate_Declaration(_this.data.Declaration);
+			_ret = generate_Declaration(_this->data.Declaration);
 			break;
 		case PlaceholderVariant:
-			_ret = generate_Placeholder(_this.data.Placeholder);
+			_ret = generate_Placeholder(_this->data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -604,19 +604,19 @@ char* generate_StructMember(void* _ref){
 	char* _ret;
 	switch (_this->variant) {
 		case DeclarationVariant:
-			_ret = generate_Declaration(_this.data.Declaration);
+			_ret = generate_Declaration(_this->data.Declaration);
 			break;
 		case EmptyStructMemberVariant:
-			_ret = generate_EmptyStructMember(_this.data.EmptyStructMember);
+			_ret = generate_EmptyStructMember(_this->data.EmptyStructMember);
 			break;
 		case FieldVariant:
-			_ret = generate_Field(_this.data.Field);
+			_ret = generate_Field(_this->data.Field);
 			break;
 		case F1RDeclarationVariant:
-			_ret = generate_F1RDeclaration(_this.data.F1RDeclaration);
+			_ret = generate_F1RDeclaration(_this->data.F1RDeclaration);
 			break;
 		case PlaceholderVariant:
-			_ret = generate_Placeholder(_this.data.Placeholder);
+			_ret = generate_Placeholder(_this->data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -1803,7 +1803,7 @@ char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 }
 char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
-	return generateIndent(2) + "case " + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this.data." + variant + ")") + generateStatement(3, "break");
+	return generateIndent(2) + "case " + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this->data." + variant + ")") + generateStatement(3, "break");
 }
 auto lambda27(void* _ref, auto ()){
 	return new_Placeholder(declaration);
