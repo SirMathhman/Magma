@@ -1423,7 +1423,10 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 	}
 	if (stripped.startsWith("!")) {
 		var substring = stripped.substring(1);
-		return new_Some<char*>("!" + this->compileExpressionOrPlaceholder(substring));
+		var maybeInstance = this->compileExpression(substring);
+		if (maybeInstance.variant = ?.SomeVariant) {
+			return new_Some<char*>("!" + instance);
+		}
 	}
 	var i3 = stripped.indexOf(".variant = ?."Variant);
 	if (i3 >= 0) {

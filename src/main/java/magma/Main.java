@@ -1100,7 +1100,10 @@ public class Main {
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
-			return new Some<String>("!" + this.compileExpressionOrPlaceholder(substring));
+			final var maybeInstance = this.compileExpression(substring);
+			if (maybeInstance instanceof Some<String>(var instance)) {
+				return new Some<String>("!" + instance);
+			}
 		}
 
 		final var i3 = stripped.indexOf("instanceof");
