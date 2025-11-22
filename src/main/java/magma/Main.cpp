@@ -644,7 +644,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 char* compileRootSegment_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
-	if (/*stripped.startsWith("package ") || stripped.startsWith("import ")*/) {
+	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
 	return this->compileStructure("class", stripped).map(/*StructMember::generate*/).orElseGet(/*() -> wrap(stripped)*/);
@@ -1034,7 +1034,7 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return Optional.of(stripped);
 	}
-	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/);
+	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator;
 	}

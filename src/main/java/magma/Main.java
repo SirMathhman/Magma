@@ -911,7 +911,8 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, "<"))
 				.or(() -> this.compileOperator(stripped, "+"))
 				.or(() -> this.compileOperator(stripped, "-"))
-				.or(() -> this.compileOperator(stripped, "&&"));
+				.or(() -> this.compileOperator(stripped, "&&"))
+				.or(() -> this.compileOperator(stripped, "||"));
 
 		if (maybeOperator.isPresent()) {
 			return maybeOperator;
