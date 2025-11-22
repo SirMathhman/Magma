@@ -6,6 +6,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
@@ -41,6 +42,10 @@ public class Main {
 		String generate();
 
 		String toIdentifier();
+	}
+
+	private sealed interface MethodDeclaration permits Constructor, Declaration, Placeholder {
+		String generate();
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -157,7 +162,7 @@ public class Main {
 		}
 	}
 
-	private record Placeholder(String input) implements Type {
+	private record Placeholder(String input) implements Type, MethodDeclaration {
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -166,6 +171,29 @@ public class Main {
 		@Override
 		public String toIdentifier() {
 			return wrap(this.input);
+		}
+	}
+
+	private record Constructor(String structName) implements MethodDeclaration {
+		@Override
+		public String generate() {
+			return this.structName + " new_" + this.structName;
+		}
+	}
+
+	private record Declaration(List<String> typeParameter, Optional<String> beforeType, String type, String name)
+			implements MethodDeclaration {
+		public Declaration(String type, String name) {
+			this(Collections.emptyList(), Optional.empty(), type, name);
+		}
+
+		@Override
+		public String generate() {
+			var beforeDeclaration = generateTemplateString(this.typeParameter());
+
+			final String beforeTypeOutput = this.beforeType.map(Main::wrap).map(slice -> slice + " ").orElse("");
+
+			return beforeDeclaration + beforeTypeOutput + this.type() + " " + this.name();
 		}
 	}
 
@@ -453,9 +481,8 @@ public class Main {
 						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
 						.collect(Collectors.joining(", "));
 
-				final var header = compileDeclaration(declaration, structName, typeParameters)
-															 .or(() -> compileConstructor(declaration, structName))
-															 .orElseGet(() -> wrap(declaration)) + "(" + compiledParameters + ")";
+				final var header =
+						parseMethodDeclaration(structName, typeParameters, declaration).generate() + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -471,9 +498,16 @@ public class Main {
 		return wrap(stripped);
 	}
 
-	private static Optional<String> compileConstructor(String declaration, String structName) {
+	private static MethodDeclaration parseMethodDeclaration(String structName, List<String> typeParameters, String declaration) {
+		return parseDeclaration(declaration, structName, typeParameters)
+				.<MethodDeclaration>map(value -> value)
+				.or(() -> parseConstructor(declaration, structName))
+				.orElseGet(() -> new Placeholder(declaration));
+	}
+
+	private static Optional<MethodDeclaration> parseConstructor(String declaration, String structName) {
 		if (declaration.strip().equals(structName)) {
-			return Optional.of(structName + " new_" + structName);
+			return Optional.of(new Constructor(structName));
 		} else {
 			return Optional.empty();
 		}
@@ -575,6 +609,10 @@ public class Main {
 	}
 
 	private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
+		return parseDeclaration(input, structName, typeParameters).map(Declaration::generate);
+	}
+
+	private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -597,7 +635,8 @@ public class Main {
 			}
 
 			if (typeSeparator < 0 && isIdentifier(name)) {
-				return Optional.of(compileType(beforeName) + " " + name);
+				final var type = compileType(beforeName);
+				return Optional.of(new Declaration(type, name));
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -614,19 +653,11 @@ public class Main {
 				}
 			}
 
-			var beforeDeclaration = generateTemplateString(copy);
-
-			final var typeString = beforeName.substring(typeSeparator + 1);
-			final String beforeTypeOutput;
-			if (beforeType.isEmpty()) {
-				beforeTypeOutput = "";
-			} else {
-				beforeTypeOutput = wrap(beforeType) + " ";
-			}
-
 			if (isIdentifier(name)) {
-				return Optional.of(
-						beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName);
+				return Optional.of(new Declaration(copy,
+																					 Optional.of(beforeType),
+																					 compileType(beforeName.substring(typeSeparator + 1)),
+																					 name + "_" + structName));
 			}
 		}
 

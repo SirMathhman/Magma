@@ -36,7 +36,7 @@ template <typename T, typename X>
 	ResultData data;
 };
 template <typename T, typename X, typename R>
-Result<R, X> mapValue_Result(Function<T, R> mapper);
+/**/ Result<R, X> mapValue_Result(Function<T, R> mapper);
 /*}*/enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
@@ -57,6 +57,21 @@ union TypeData {
 };
 char* generate();
 char* toIdentifier();
+/*}*/enum MethodDeclarationVariant {
+	ConstructorVariant, 
+	DeclarationVariant, 
+	PlaceholderVariant
+};
+union MethodDeclarationData {
+	ConstructorData constructor;
+	DeclarationData declaration;
+	PlaceholderData placeholder;
+};
+/*private*/ struct MethodDeclaration {
+	MethodDeclarationVariant variant;
+	MethodDeclarationData data;
+};
+char* generate();
 /*}*//*private record Err<T, X>*/(X error);
 /*private record Ok<T, X>*/(T value);
 /*private static class State {
@@ -122,6 +137,8 @@ char* toIdentifier();
 /*private*/ record TemplateType_Main(char* base, List<Type> list);
 /*private*/ record Identifier_Main(char* value);
 /*private*/ record Placeholder_Main(char* input);
+/*private*/ record Constructor_Main(char* structName);
+/*private*/ record Declaration_Main(List<char*> typeParameter, Optional<char*> beforeType, char* type, char* name);
 /*public static*/ void main_Main(char** args){
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
@@ -391,9 +408,8 @@ char* toIdentifier();
 						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
 						.collect(Collectors.joining(", "));
 
-				final var header = compileDeclaration(declaration, structName, typeParameters)
-															 .or(() -> compileConstructor(declaration, structName))
-															 .orElseGet(() -> wrap(declaration)) + "(" + compiledParameters + ")";
+				final var header =
+						parseMethodDeclaration(structName, typeParameters, declaration).generate() + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var content = withBraces.substring(1, withBraces.length() - 1);
@@ -409,9 +425,16 @@ char* toIdentifier();
 		return wrap(stripped);
 	}
 
-	private static Optional<String> compileConstructor(String declaration, String structName) {
+	private static MethodDeclaration parseMethodDeclaration(String structName, List<String> typeParameters, String declaration) {
+		return parseDeclaration(declaration, structName, typeParameters)
+				.<MethodDeclaration>map(value -> value)
+				.or(() -> parseConstructor(declaration, structName))
+				.orElseGet(() -> new Placeholder(declaration));
+	}
+
+	private static Optional<MethodDeclaration> parseConstructor(String declaration, String structName) {
 		if (declaration.strip().equals(structName)) {
-			return Optional.of(structName + " new_" + structName);
+			return Optional.of(new Constructor(structName));
 		} else {
 			return Optional.empty();
 		}
@@ -513,6 +536,10 @@ char* toIdentifier();
 	}
 
 	private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
+		return parseDeclaration(input, structName, typeParameters).map(Declaration::generate);
+	}
+
+	private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -535,7 +562,8 @@ char* toIdentifier();
 			}
 
 			if (typeSeparator < 0 && isIdentifier(name)) {
-				return Optional.of(compileType(beforeName) + " " + name);
+				final var type = compileType(beforeName);
+				return Optional.of(new Declaration(type, name));
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -552,19 +580,11 @@ char* toIdentifier();
 				}
 			}
 
-			var beforeDeclaration = generateTemplateString(copy);
-
-			final var typeString = beforeName.substring(typeSeparator + 1);
-			final String beforeTypeOutput;
-			if (beforeType.isEmpty()) {
-				beforeTypeOutput = "";
-			} else {
-				beforeTypeOutput = wrap(beforeType) + " ";
-			}
-
 			if (isIdentifier(name)) {
-				return Optional.of(
-						beforeDeclaration + beforeTypeOutput + compileType(typeString) + " " + name + "_" + structName);
+				return Optional.of(new Declaration(copy,
+																					 Optional.of(beforeType),
+																					 compileType(beforeName.substring(typeSeparator + 1)),
+																					 name + "_" + structName));
 			}
 		}
 
