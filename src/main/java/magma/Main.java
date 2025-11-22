@@ -4,10 +4,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -30,6 +27,20 @@ public class Main {
 		public String toBaseName() {
 			return this.content;
 		}
+	}
+
+	private interface List<T> {
+		Stream<T> stream();
+
+		boolean isEmpty();
+
+		List<T> addLast(T element);
+
+		boolean contains(T element);
+
+		List<T> addFirst(T element);
+
+		List<T> addAll(List<T> elements);
 	}
 
 	private interface FR<T> {
@@ -87,6 +98,45 @@ public class Main {
 
 	private @interface Actual {}
 
+	private record ArrayList<T>(java.util.List<T> nativeList) implements List<T> {
+		private ArrayList(java.util.List<T> nativeList) {
+			this.nativeList = new java.util.ArrayList<T>(nativeList);
+		}
+
+		public ArrayList() {
+			this(new java.util.ArrayList<T>());
+		}
+
+		public ArrayList<T> addLast(T element) {
+			this.nativeList.add(element);
+			return this;
+		}
+
+		public Stream<T> stream() {
+			return this.nativeList.stream();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return this.nativeList.isEmpty();
+		}
+
+		public boolean contains(T element) {
+			return this.nativeList.contains(element);
+		}
+
+		@Override
+		public List<T> addFirst(T element) {
+			this.nativeList.addFirst(element);
+			return this;
+		}
+
+		@Override
+		public List<T> addAll(List<T> elements) {
+			return elements.stream().reduce(this, ArrayList::addLast, (_, next) -> next);
+		}
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
@@ -105,8 +155,8 @@ public class Main {
 
 	private static class State {
 		private final String input;
-		private final ArrayList<String> segments;
 		private final StringBuilder buffer;
+		private List<String> segments;
 		private int index;
 		private int depth;
 
@@ -142,7 +192,7 @@ public class Main {
 		}
 
 		private State advance() {
-			this.segments.add(this.buffer.toString());
+			this.segments = this.segments.addLast(this.buffer.toString());
 			this.buffer.setLength(0);
 			return this;
 		}
@@ -242,7 +292,7 @@ public class Main {
 	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 														 String type, String name) implements MethodDeclaration, StructMember {
 		public Declaration(String type, String name) {
-			this(Collections.emptyList(), Collections.emptyList(), Option.empty(), type, name);
+			this(new ArrayList<String>(), new ArrayList<String>(), Option.empty(), type, name);
 		}
 
 		@Override
@@ -434,9 +484,9 @@ public class Main {
 		}
 	}
 
-	public final List<String> structures;
-	public final List<String> functions;
-	public final List<String> globals;
+	private List<String> globals;
+	private List<String> structures;
+	private List<String> functions;
 	private int counter;
 
 	public Main() {
@@ -516,10 +566,14 @@ public class Main {
 	private String compile(String input) {
 		final var all = this.compileStatements(input, this::compileRootSegment);
 
-		final var joinedStructures = String.join("", this.structures);
-		final var joinedGlobals = String.join("", this.globals);
-		final var joinedFunctions = String.join("", this.functions);
+		final var joinedStructures = this.joinStrings("", this.structures);
+		final var joinedGlobals = this.joinStrings("", this.globals);
+		final var joinedFunctions = this.joinStrings("", this.functions);
 		return joinedStructures + joinedGlobals + joinedFunctions + all;
+	}
+
+	private String joinStrings(String delimiter, List<String> structures) {
+		return String.join(delimiter, structures.stream().toList());
 	}
 
 	private String compileStatements(String input, F1R<String, String> mapper) {
@@ -637,25 +691,28 @@ public class Main {
 		if (i4 >= 0) {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
-			implementees = this
-					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
-					.map(String::strip)
-					.filter(slice -> !slice.isEmpty())
-					.map(this::parseType)
-					.toList();
+			implementees = new ArrayList<Type>(this
+																						 .divide(implementeesString,
+																										 (state, character) -> new ValueFolder().apply(state, character))
+																						 .map(String::strip)
+																						 .filter(slice -> !slice.isEmpty())
+																						 .map(this::parseType)
+																						 .toList());
 		}
 
-		List<Declaration> recordFields = Collections.emptyList();
+		List<Declaration> recordFields = new ArrayList<Declaration>();
 		if (beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
 			final var i3 = substring.indexOf("(");
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
-				recordFields = this
+				final var list = this
 						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
-						.map(slice -> this.parseDeclaration(slice, Collections.emptyList()))
+						.map(slice -> this.parseDeclaration(slice, new ArrayList<String>()))
 						.flatMap(Option::stream)
 						.toList();
+
+				recordFields = new ArrayList<Declaration>(list);
 			}
 		}
 
@@ -672,11 +729,11 @@ public class Main {
 
 		if (!this.isIdentifier(beforeContent)) {return Option.empty();}
 
-		final var modifiersList = Arrays
-				.stream(modifiers.split(Pattern.quote(" ")))
-				.map(String::strip)
-				.filter(slice -> !slice.isEmpty())
-				.collect(Collectors.toCollection(ArrayList::new));
+		var modifiersList = new ArrayList<String>(Arrays
+																									.stream(modifiers.split(Pattern.quote(" ")))
+																									.map(String::strip)
+																									.filter(slice -> !slice.isEmpty())
+																									.collect(Collectors.toCollection(java.util.ArrayList::new)));
 
 		var name = beforeContent.strip();
 
@@ -685,10 +742,10 @@ public class Main {
 
 		var fields = new StringBuilder();
 		var dependencies = new StringBuilder();
-		implementees
+		this.functions = implementees
 				.stream()
 				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))
-				.forEach(this.functions::add);
+				.reduce(this.functions, List::addLast, (_, next) -> next);
 
 		final var joinedRecordFields =
 				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
@@ -702,8 +759,6 @@ public class Main {
 				.toList();
 
 		if (modifiersList.contains("sealed")) {
-			modifiersList.remove("sealed");
-
 			final var enumFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
@@ -721,8 +776,10 @@ public class Main {
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			fields.append(System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
-										"Data data;");
+			final var s = name + "Variant variant";
+			final var s1 = name + "Data data";
+			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
+			fields = fields.append(generatedFields);
 
 			dependencies.append(generatedEnum).append(generatedUnion);
 		} else if (type.equals("interface")) {
@@ -735,7 +792,7 @@ public class Main {
 												 System.lineSeparator();
 
 			dependencies.append(vTable);
-			fields.append(table + data);
+			fields = fields.append(table).append(data);
 		} else {
 			final var joinedMembers = members
 					.stream()
@@ -749,7 +806,7 @@ public class Main {
 		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
 				"};" + System.lineSeparator();
-		this.structures.add(generated);
+		this.structures = this.structures.addLast(generated);
 
 		return Option.of(new EmptyStructMember());
 	}
@@ -780,7 +837,9 @@ public class Main {
 	private String generateStatement(String content) {return generateStatement(1, content);}
 
 	private List<String> splitValues(String input) {
-		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		final var segments = input.split(Pattern.quote(","));
+		final var list = Arrays.stream(segments).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		return new ArrayList<String>(list);
 	}
 
 	private boolean isIdentifier(String input) {
@@ -828,7 +887,7 @@ public class Main {
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var maybeDeclaration = this.parseDeclaration(substring, Collections.emptyList());
+			final var maybeDeclaration = this.parseDeclaration(substring, new ArrayList<String>());
 			if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 				return new Some<StructMember>(new Field(declaration));
 			}
@@ -843,7 +902,7 @@ public class Main {
 				final var parametersString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var parameters = this
+				final var collect = this
 						.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
@@ -851,8 +910,8 @@ public class Main {
 						.stream()
 						.map(param -> this.parseDeclaration(param, typeParameters))
 						.flatMap(Option::stream)
-						.collect(Collectors.toCollection(ArrayList::new));
-
+						.collect(Collectors.toCollection(java.util.ArrayList::new));
+				List<Declaration> parameters = new ArrayList<Declaration>(collect);
 				final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
 
 				Option<String> maybeCompiled = Option.empty();
@@ -861,7 +920,7 @@ public class Main {
 							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
 
 					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
-					this.functions.add(
+					this.functions = this.functions.addLast(
 							modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 					return new Some<StructMember>(new EmptyStructMember());
 				}
@@ -877,7 +936,7 @@ public class Main {
 					outputContent =
 							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this");
 				} else if (methodDeclaration instanceof Declaration declaration) {
-					parameters.addFirst(new Declaration("void*", "_this"));
+					parameters = parameters.addFirst(new Declaration("void*", "_this"));
 
 					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
@@ -910,9 +969,9 @@ public class Main {
 
 				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
-				this.functions.add(generated);
+				this.functions = this.functions.addLast(generated);
 
-				final var parameterTypes = parameters.stream().map(Declaration::type).toList();
+				final var parameterTypes = new ArrayList<String>(parameters.stream().map(Declaration::type).toList());
 
 				return switch (methodDeclaration) {
 					case Constructor _ -> Option.empty();
@@ -998,7 +1057,7 @@ public class Main {
 						structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
 						System.lineSeparator();
 
-				this.globals.add(generated);
+				this.globals = this.globals.addLast(generated);
 				return Option.of(new EmptyStructMember());
 			}
 		}
@@ -1062,7 +1121,7 @@ public class Main {
 				}
 
 				final var first = divisions.getFirst();
-				final var last = String.join("", divisions.subList(1, divisions.size()));
+				final var last = this.joinStrings("", new ArrayList<String>(divisions.subList(1, divisions.size())));
 
 				if (!first.endsWith(")")) {
 					return new None<String>();
@@ -1097,7 +1156,7 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			return this
 								 .compileExpression(destination)
-								 .or(() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate))
+								 .or(() -> this.parseDeclaration(destination, new ArrayList<String>()).map(Declaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
@@ -1116,7 +1175,7 @@ public class Main {
 			return x;
 		}
 
-		final var maybeDeclaration = this.parseDeclaration(input, Collections.emptyList());
+		final var maybeDeclaration = this.parseDeclaration(input, new ArrayList<String>());
 		if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 			return declaration.generate();
 		}
@@ -1254,11 +1313,14 @@ public class Main {
 
 			List<String> params;
 			if (this.isIdentifier(beforeContent)) {
-				params = Collections.singletonList(beforeContent);
+				params = new ArrayList<String>().addLast(beforeContent);
 			} else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 				final var substring = beforeContent.substring(1, beforeContent.length() - 1);
-				params =
-						this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+				params = new ArrayList<String>(this
+																					 .divide(substring, new ValueFolder())
+																					 .map(String::strip)
+																					 .filter(slice -> !slice.isEmpty())
+																					 .toList());
 			} else {
 				return new None<String>();
 			}
@@ -1269,22 +1331,26 @@ public class Main {
 
 				final var generatedName = this.generateName();
 
-				final var paramList =
-						params.stream().map(param -> "auto " + param).collect(Collectors.toCollection(ArrayList::new));
+				List<String> paramList = new ArrayList<String>(params
+																													 .stream()
+																													 .map(param -> "auto " + param)
+																													 .collect(Collectors.toCollection(java.util.ArrayList::new)));
 
-				paramList.addFirst("void* _this");
+				paramList = paramList.addFirst("void* _this");
 
-				final var joined = String.join(", ", paramList);
+				final var joined = this.joinStrings(", ", paramList);
 
-				this.functions.add("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
-													 System.lineSeparator());
+				this.functions = this.functions.addLast(
+						"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
+						System.lineSeparator());
 				return Option.of(generatedName);
 			} else {
 				final var generatedName = this.generateName();
 
-				this.functions.add("auto " + generatedName + "(void* _this, auto " + beforeContent + "){" +
-													 this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-													 System.lineSeparator() + "}" + System.lineSeparator());
+				this.functions = this.functions.addLast(
+						"auto " + generatedName + "(void* _this, auto " + beforeContent + ")" + "{" +
+						this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+						System.lineSeparator() + "}" + System.lineSeparator());
 				return Option.of(generatedName);
 			}
 		}
@@ -1313,16 +1379,9 @@ public class Main {
 		while (i < input.length() - 1) {
 			final var c = input.charAt(i);
 			if (c == operator.charAt(0)) {
-				if ((operator.length() == 2) && input.charAt(i + 1) == operator.charAt(1)) {
-					if (depth == 0) {
-						i1 = i;
-						break;
-					}
-				} else {
-					if (depth == 0) {
-						i1 = i;
-						break;
-					}
+				if (depth == 0) {
+					i1 = i;
+					break;
 				}
 			}
 
@@ -1439,13 +1498,13 @@ public class Main {
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
 
-			final var copy = new ArrayList<String>(typeParameters);
+			var copy = typeParameters;
 			if (beforeType.endsWith(">")) {
 				final var substring = beforeType.substring(0, beforeType.length() - 1);
 				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
-					copy.addAll(this.splitValues(substring2));
+					copy = copy.addAll(this.splitValues(substring2));
 
 					beforeType = substring.substring(0, i);
 				}
@@ -1454,12 +1513,12 @@ public class Main {
 			List<String> annotations = new ArrayList<String>();
 			final var i = beforeType.lastIndexOf("\n");
 			if (i >= 0) {
-				annotations = Arrays
-						.stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
-						.filter(slice -> !slice.isEmpty())
-						.map(slice -> slice.substring(1))
-						.map(String::strip)
-						.toList();
+				annotations = new ArrayList<String>(Arrays
+																								.stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
+																								.filter(slice -> !slice.isEmpty())
+																								.map(slice -> slice.substring(1))
+																								.map(String::strip)
+																								.toList());
 
 				beforeType = beforeType.substring(i + 1).strip();
 			}
@@ -1523,8 +1582,7 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = this.divide(parameters, new ValueFolder()).map(this::parseType).toList();
-
+				final var list = new ArrayList<Type>(this.divide(parameters, new ValueFolder()).map(this::parseType).toList());
 				return new TemplateType(base, list);
 			}
 		}
