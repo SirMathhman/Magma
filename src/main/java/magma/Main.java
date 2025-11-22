@@ -96,7 +96,7 @@ public class Main {
 
 			@Override
 			public Option<T> or(FR<Option<T>> other) {
-				return this;
+				return other.apply();
 			}
 		}
 
