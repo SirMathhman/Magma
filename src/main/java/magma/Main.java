@@ -680,18 +680,10 @@ public class Main {
 
 		var fields = "";
 		var dependencies = new StringBuilder();
-		implementees.stream().map(implementee -> {
-			final var identifier = implementee.toBaseName();
-			final var variant = identifier + "Variant" + "." + name + "Variant";
-			final var thisType = name + joinedTypeParameters;
-			final var conversionFunctionContent = this.generateStatement(thisType + " this = *((" + thisType + "*) _this)") +
-																						this.generateStatement(
-																								identifier + "Data" + joinedTypeParameters + " data") +
-																						this.generateStatement("data." + name + " = this") +
-																						this.generateStatement("return { " + variant + ", data }");
-			return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
-						 conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
-		}).forEach(this.functions::add);
+		implementees
+				.stream()
+				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))
+				.forEach(this.functions::add);
 
 		final var joinedRecordFields =
 				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
@@ -756,6 +748,19 @@ public class Main {
 		this.structures.add(generated);
 
 		return Option.of(new EmptyStructMember());
+	}
+
+	private String getString(Type implementee, String name, String joinedTypeParameters, String templateString) {
+		final var identifier = implementee.toBaseName();
+		final var variant = identifier + "Variant" + "." + name + "Variant";
+		final var thisType = name + joinedTypeParameters;
+		final var s = this.generateStatement(thisType + " this = *((" + thisType + "*) _this)");
+		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
+		final var s2 = this.generateStatement("data." + name + " = this");
+		final var s3 = this.generateStatement("return { " + variant + ", data }");
+		final var conversionFunctionContent = s + s1 + s2 + s3;
+		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
+					 conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
 	private String joinTypeParameters(List<String> typeParameters) {
@@ -1020,6 +1025,8 @@ public class Main {
 				final var substring1 = substring.substring(1, substring.length() - 1);
 				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 generateIndent(indent) + "}";
+			} else {
+				return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
 			}
 		}
 
@@ -1182,6 +1189,7 @@ public class Main {
 
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "!="))
 				.or(() -> this.compileOperator(stripped, "<"))
 				.or(() -> this.compileOperator(stripped, "+"))
 				.or(() -> this.compileOperator(stripped, "-"))
