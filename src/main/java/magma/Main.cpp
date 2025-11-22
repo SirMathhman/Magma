@@ -180,7 +180,8 @@ struct Field {
 struct Main {
 	List<char*> structures;
 	List<char*> functions;
-	List<char*> globals;/*private int counter = 0;*/
+	List<char*> globals;
+	int counter;
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -621,7 +622,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration* this = (FunctionDeclaration*) _this;
 	var joinedParameterTypes = this->parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
-	return this->type + " (*" + this->name + ")" + joinedParameterTypes;
+	return this->type + " (*" + this.name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
 	EmptyStructMember this = *((EmptyStructMember*) _this);
@@ -809,6 +810,7 @@ public Main_Main(void* _this){
 	this->structures = new_ArrayList<char*>();
 	this->functions = new_ArrayList<char*>();
 	this->globals = new_ArrayList<char*>();
+	this->counter = 0;
 }
 auto lambda3(void* _this, auto typeParam){
 	return "typename " + typeParam;
@@ -934,6 +936,9 @@ auto lambda4(void* _this, auto ()){
 char* compileRootSegment_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
+	if (stripped.isEmpty()) {
+		return "";
+	}
 	if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 		return "";
 	}
@@ -1027,7 +1032,7 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 	var name = beforeContent.strip();
 	var templateString = generateTemplateString(typeParameters);
 	var joinedTypeParameters = this->joinTypeParameters(typeParameters);
-	var fields = "";
+	var fields = new_StringBuilder();
 	var dependencies = new_StringBuilder();
 	implementees.stream().map(lambda10).forEach(F? { alloc(this->functions), F?Table { add }});
 	var joinedRecordFields = recordFields.stream().map(F? { alloc(Declaration), F?Table { generate }}).map(F? { alloc(this), F?Table { generateStatement }}).collect(Collectors.joining());
@@ -1040,7 +1045,7 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 		var generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
 		var unionFields = variants.stream().map(lambda13).collect(Collectors.joining());
 		var generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
-		fields +  = System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name + "Data data;";
+		fields.append(System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name + "Data data;");
 		dependencies.append(generatedEnum).append(generatedUnion);
 	}
 	else 
@@ -1050,11 +1055,11 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 		var tableMembers = members.stream().map(F? { alloc(StructMember), F?Table { generate }}).map(F? { alloc(this), F?Table { generateStatement }}).collect(Collectors.joining(""));
 		var vTable = templateString + "struct " + name + "Table" + joinedTypeParameters + " {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
 		dependencies.append(vTable);
-		fields +  = table + data;
+		fields.append(table + data);
 	}
 	else {
 		var joinedMembers = members.stream().filter(lambda14).map(F? { alloc(StructMember), F?Table { generate }}).collect(Collectors.joining());
-		fields +  = joinedMembers;
+		fields.append(joinedMembers);
 	}
 	var generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	this->structures.add(generated);
@@ -1180,8 +1185,7 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 			char* outputContent;
 			if (methodDeclaration.variant = ?.ConstructorVariant) {
 				var compiled = maybeCompiled.orElse("?");
-				outputContent = /*
-							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this")*/;
+				outputContent = this->generateStatement(structName + " this") + compiled + this.generateStatement("return this");
 			}
 			else 
 			if (methodDeclaration.variant = ?.Declaration declarationVariant) {
@@ -1213,9 +1217,7 @@ char* compileMethodsSegments_Main(void* _this, char* inputContent, int indent){
 }
 char* generateCase_Main(void* _this, char* structName, Declaration declaration, char* variant){
 	Main* this = (Main*) _this;
-	return /*generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
-					 generateStatement(3, "break")*/;
+	return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") + generateStatement(3, "break");
 }
 auto lambda24(void* _this, auto ()){
 	return new_Placeholder(declaration);
@@ -1223,43 +1225,13 @@ auto lambda24(void* _this, auto ()){
 auto lambda25(void* _this, auto ()){
 	return this->parseConstructor(declaration, structName);
 }
-auto lambda26(void* _this, auto value){
-	return value;
-}
-auto lambda27(void* _this, auto value){
-	return value;
-}
-auto lambda28(void* _this, auto value){
-	return value;
-}
-auto lambda29(void* _this, auto ()){
-	return this->parseConstructor(declaration, structName);
-}
-auto lambda30(void* _this, auto value){
-	return value;
-}
-auto lambda31(void* _this, auto ()){
-	return this->parseConstructor(declaration, structName);
-}
-auto lambda32(void* _this, auto value){
-	return value;
-}
-auto lambda33(void* _this, auto ()){
-	return new_Placeholder(declaration);
-}
-auto lambda34(void* _this, auto ()){
-	return this->parseConstructor(declaration, structName);
-}
-auto lambda35(void* _this, auto value){
-	return value;
-}
 MethodDeclaration parseMethodDeclaration_Main(void* _this, char* declaration, char* structName, List<char*> typeParameters){
 	Main* this = (Main*) _this;
-	return /*this
-				.parseDeclaration(declaration, typeParameters)
-				.<MethodDeclaration>map(value -> value)
-				.or(() -> this.parseConstructor(declaration, structName))
-				.orElseGet(() -> new Placeholder(declaration))*/;
+	return this->parseDeclaration(declaration, typeParameters).map(F? { alloc(this), F?Table { toInterface }}).or(lambda25).orElseGet(lambda24);
+}
+MethodDeclaration toInterface_Main(void* _this, Declaration value){
+	Main* this = (Main*) _this;
+	return value;
 }
 Option<MethodDeclaration> parseConstructor_Main(void* _this, char* declaration, char* structName){
 	Main* this = (Main*) _this;
@@ -1270,16 +1242,16 @@ Option<MethodDeclaration> parseConstructor_Main(void* _this, char* declaration, 
 		return Option.empty();
 	}
 }
-auto lambda36(void* _this, auto slice){
+auto lambda26(void* _this, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda37(void* _this, auto (state, character)){
+auto lambda27(void* _this, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda38(void* _this, auto option){
+auto lambda28(void* _this, auto option){
 	return option.variant = ?.NoneVariant;
 }
-auto lambda39(void* _this, auto enumValue){
+auto lambda29(void* _this, auto enumValue){
 	return this->compileEnumValue(structName, enumValue);
 }
 Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* structName){
@@ -1288,9 +1260,9 @@ Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* stru
 	if (!stripped.endsWith(";")) {
 		return Option.empty();
 	}
-	var enumValues = this->divide(stripped.substring(0, stripped.length() - 1), lambda37).map(F? { alloc(String), F?Table { strip }}).filter(lambda36).toList();
+	var enumValues = this->divide(stripped.substring(0, stripped.length() - 1), lambda27).map(F? { alloc(String), F?Table { strip }}).filter(lambda26).toList();
 	if (!enumValues.isEmpty()) {
-		var areAnyInvalid = enumValues.stream().map(lambda39).anyMatch(lambda38);
+		var areAnyInvalid = enumValues.stream().map(lambda29).anyMatch(lambda28);
 		if (areAnyInvalid) {
 			return new_None<StructMember>();
 		}
@@ -1337,8 +1309,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		var substring = stripped.substring("else ".length()).strip();
 		if (substring.startsWith("{") && substring.endsWith("}")) {
 			var substring1 = substring.substring(1, substring.length() - 1);
-			return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-							 generateIndent(indent) + "}";
+			return generateIndent(indent) + "else {" + this->compileMethodsSegments(substring1, indent + 1) + generateIndent(indent) + "}";
 		}
 		else {
 			return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
@@ -1349,7 +1320,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda40(void* _this, auto slice){
+auto lambda30(void* _this, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _this, char* type, int indent, char* input){
@@ -1358,7 +1329,7 @@ Option<char*> compileConditional_Main(void* _this, char* type, int indent, char*
 		var substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
 			var afterConditionStart = substring.substring(1).strip();
-			var divisions = this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda40).toList();
+			var divisions = this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda30).toList();
 			if (divisions.size() < 2) {
 				return Option.empty();
 			}
@@ -1370,17 +1341,16 @@ Option<char*> compileConditional_Main(void* _this, char* type, int indent, char*
 			var condition = first.substring(0, first.length() - 1);
 			if (last.startsWith("{") && last.endsWith("}")) {
 				var content = last.substring(1, last.length() - 1);
-				return Option.of(generateIndent(indent) + type + " (" + this->compileExpressionOrPlaceholder(condition) + ") {" +
-							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
+				return Option.of(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + this->compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
 		}
 	}
 	return Option.empty();
 }
-auto lambda41(void* _this, auto ()){
+auto lambda31(void* _this, auto ()){
 	return wrap(destination);
 }
-auto lambda42(void* _this, auto ()){
+auto lambda32(void* _this, auto ()){
 	return this->parseDeclaration(destination, Collections.emptyList()).map(F? { alloc(Declaration), F?Table { generate }});
 }
 char* compileMethodStatement_Main(void* _this, char* input){
@@ -1396,15 +1366,19 @@ char* compileMethodStatement_Main(void* _this, char* input){
 	if (i >= 0) {
 		var destination = stripped.substring(0, i);
 		var substring1 = stripped.substring(i + 1);
-		return this->compileExpression(destination).or(lambda42).orElseGet(lambda41) + " = " + this.compileExpressionOrPlaceholder(substring1);
+		return this->compileExpression(destination).or(lambda32).orElseGet(lambda31) + " = " + this.compileExpressionOrPlaceholder(substring1);
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) {
 		return value;
 	}
-	if (stripped.endsWith(" +  + ")) {
-		var instance = stripped.substring(0, stripped.length() - 2);
-		return this->compileExpressionOrPlaceholder(instance) + " +  + ";
+	var instance = this->post(stripped, "++");
+	if (instance.variant = ?.SomeVariant) {
+		return x;
+	}
+	var instance0 = this->post(stripped, "--");
+	if (instance0.variant = ?.SomeVariant) {
+		return x;
 	}
 	var maybeDeclaration = this->parseDeclaration(input, Collections.emptyList());
 	if (maybeDeclaration.variant = ?.SomeVariant) {
@@ -1412,32 +1386,40 @@ char* compileMethodStatement_Main(void* _this, char* input){
 	}
 	return wrap(stripped);
 }
-auto lambda43(void* _this, auto ()){
+Option<char*> post_Main(void* _this, char* stripped, char* slice){
+	Main* this = (Main*) _this;
+	if (stripped.endsWith(slice)) {
+		var instance = stripped.substring(0, stripped.length() - 2);
+		return new_Some<char*>(this->compileExpressionOrPlaceholder(instance) + slice);
+	}
+	return new_None<char*>();
+}
+auto lambda33(void* _this, auto ()){
 	return wrap(input);
 }
 char* compileExpressionOrPlaceholder_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
-	return this->compileExpression(input).orElseGet(lambda43);
+	return this->compileExpression(input).orElseGet(lambda33);
 }
-auto lambda44(void* _this, auto ()){
+auto lambda34(void* _this, auto ()){
 	return this->compileOperator(stripped, " >= ");
 }
-auto lambda45(void* _this, auto ()){
+auto lambda35(void* _this, auto ()){
 	return this->compileOperator(stripped, " || ");
 }
-auto lambda46(void* _this, auto ()){
+auto lambda36(void* _this, auto ()){
 	return this->compileOperator(stripped, " && ");
 }
-auto lambda47(void* _this, auto ()){
+auto lambda37(void* _this, auto ()){
 	return this->compileOperator(stripped, " - ");
 }
-auto lambda48(void* _this, auto ()){
+auto lambda38(void* _this, auto ()){
 	return this->compileOperator(stripped, " + ");
 }
-auto lambda49(void* _this, auto ()){
+auto lambda39(void* _this, auto ()){
 	return this->compileOperator(stripped, " < ");
 }
-auto lambda50(void* _this, auto ()){
+auto lambda40(void* _this, auto ()){
 	return this->compileOperator(stripped, " != ");
 }
 Option<char*> compileExpression_Main(void* _this, char* input){
@@ -1504,7 +1486,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 	if (maybeInvokable.variant = ?.SomeVariant) {
 		return maybeInvokable;
 	}
-	var maybeOperator = this->compileOperator(stripped, " == ").or(lambda50).or(lambda49).or(lambda48).or(lambda47).or(lambda46).or(lambda45).or(lambda44);
+	var maybeOperator = this->compileOperator(stripped, " == ").or(lambda40).or(lambda39).or(lambda38).or(lambda37).or(lambda36).or(lambda35).or(lambda34);
 	if (maybeOperator.variant = ?.SomeVariant) {
 		return maybeOperator;
 	}
@@ -1526,10 +1508,10 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 	}
 	return Option.empty();
 }
-auto lambda51(void* _this, auto slice){
+auto lambda41(void* _this, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda52(void* _this, auto param){
+auto lambda42(void* _this, auto param){
 	return "auto " + param;
 }
 Option<char*> compileLambda_Main(void* _this, char* stripped){
@@ -1545,7 +1527,7 @@ Option<char*> compileLambda_Main(void* _this, char* stripped){
 		else 
 		if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 			var substring = beforeContent.substring(1, beforeContent.length() - 1);
-			params = this->divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda51).toList();
+			params = this->divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda41).toList();
 		}
 		else {
 			return new_None<char*>();
@@ -1554,7 +1536,7 @@ Option<char*> compileLambda_Main(void* _this, char* stripped){
 			var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			var compiled = this->compileMethodsSegments(content, 1);
 			var generatedName = this->generateName();
-			var paramList = params.stream().map(lambda52).collect(Collectors.toCollection(F? { alloc(ArrayList), F?Table { new }}));
+			var paramList = params.stream().map(lambda42).collect(Collectors.toCollection(F? { alloc(ArrayList), F?Table { new }}));
 			paramList.addFirst("void* _this");
 			var joined = String.join(", ", paramList);
 			this->functions.add("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
@@ -1562,9 +1544,7 @@ Option<char*> compileLambda_Main(void* _this, char* stripped){
 		}
 		else {
 			var generatedName = this->generateName();
-			this->functions.add(/*"auto " + generatedName + "(void* _this, auto " + beforeContent + "){" +
-													 this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-													 System.lineSeparator() + "}" + System.lineSeparator()*/);
+			this->functions.add("auto " + generatedName + "(void* _this, auto " + beforeContent + "){" + this->generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) + System.lineSeparator() + "}" + System.lineSeparator());
 			return Option.of(generatedName);
 		}
 	}
@@ -1578,7 +1558,39 @@ char* generateName_Main(void* _this){
 }
 Option<char*> compileOperator_Main(void* _this, char* input, char* operator){
 	Main* this = (Main*) _this;
-	var i1 = input.indexOf(operator);
+	if (input.length() < 3) {
+		return new_None<char*>();
+	}
+	if (!input.contains(operator)) {
+		return new_None<char*>();
+	}
+	var i1 = -1;
+	var depth = 0;
+	var i = 0;
+	while (i < input.length() - 1) {
+		var c = input.charAt(i);
+		if (c == operator.charAt(0)) {
+			if ((operator.length() == 2) && input.charAt(i + 1) == operator.charAt(1)) {
+				if (depth == 0) {
+					i1 = i;
+					break;
+				}
+			}
+			else {
+				if (depth == 0) {
+					i1 = i;
+					break;
+				}
+			}
+		}
+		if (c == '(') {
+			depth++;
+		}
+		if (c == ')') {
+			depth--;
+		}
+		i++;
+	}
 	if (i1 >= 0) {
 		var leftString = input.substring(0, i1);
 		var right = input.substring(i1 + operator.length());
@@ -1609,7 +1621,7 @@ Option<char*> compileInvokable_Main(void* _this, char* stripped){
 }
 int findCallerStart_Main(void* _this, char* withoutEnd){
 	Main* this = (Main*) _this;
-	var callerStart =  - 1;
+	var callerStart = -1;
 	var depth = 0;
 	var i = 0;
 	while (i < withoutEnd.length()) {
@@ -1621,13 +1633,20 @@ int findCallerStart_Main(void* _this, char* withoutEnd){
 			depth++;
 		}
 		if (c == ')') {
-			/*depth--*/;
+			depth--;
 		}
 		i++;
 	}
 	return callerStart;
 }
 boolean isNumber_Main(void* _this, char* input){
+	Main* this = (Main*) _this;
+	if (input.startsWith(" - ")) {
+		return this->allDigits(input.substring(1));
+	}
+	return this->allDigits(input);
+}
+boolean allDigits_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	return IntStream.range(0, input.length()).mapToObj(F? { alloc(input), F?Table { charAt }}).allMatch(F? { alloc(Character), F?Table { isDigit }});
 }
@@ -1644,10 +1663,10 @@ Option<char*> compileCaller_Main(void* _this, char* input){
 	}
 	return new_None<char*>();
 }
-auto lambda53(void* _this, auto slice){
+auto lambda43(void* _this, auto slice){
 	return slice.substring(1);
 }
-auto lambda54(void* _this, auto slice){
+auto lambda44(void* _this, auto slice){
 	return !slice.isEmpty();
 }
 Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> typeParameters){
@@ -1679,7 +1698,7 @@ Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> 
 		List<char*> annotations = new_ArrayList<char*>();
 		var i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
-			annotations = Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda54).map(lambda53).map(F? { alloc(String), F?Table { strip }}).toList();
+			annotations = Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda44).map(lambda43).map(F? { alloc(String), F?Table { strip }}).toList();
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if (this->isIdentifier(name)) {
@@ -1690,7 +1709,7 @@ Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> 
 }
 int findTypeSeparator_Main(void* _this, char* beforeName){
 	Main* this = (Main*) _this;
-	var typeSeparator =  - 1;
+	var typeSeparator = -1;
 	var depth = 0;
 	var i = 0;
 	while (i < beforeName.length()) {
@@ -1702,7 +1721,7 @@ int findTypeSeparator_Main(void* _this, char* beforeName){
 			depth++;
 		}
 		if (c == '>') {
-			/*depth--*/;
+			depth--;
 		}
 		i++;
 	}
@@ -1741,4 +1760,3 @@ Type parseType_Main(void* _this, char* input){
 	}
 	return new_Placeholder(stripped);
 }
-/**/

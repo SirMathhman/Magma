@@ -437,12 +437,13 @@ public class Main {
 	public final List<String> structures;
 	public final List<String> functions;
 	public final List<String> globals;
-	private int counter = 0;
+	private int counter;
 
 	public Main() {
 		this.structures = new ArrayList<String>();
 		this.functions = new ArrayList<String>();
 		this.globals = new ArrayList<String>();
+		this.counter = 0;
 	}
 
 	private static String generateTemplateString(List<String> typeParameters) {
@@ -595,6 +596,10 @@ public class Main {
 
 	private String compileRootSegment(String input) {
 		final var stripped = input.strip();
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
 		}
@@ -678,7 +683,7 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		var fields = "";
+		var fields = new StringBuilder();
 		var dependencies = new StringBuilder();
 		implementees
 				.stream()
@@ -717,8 +722,8 @@ public class Main {
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			fields += System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
-								"Data data;";
+			fields.append(System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
+										"Data data;");
 
 			dependencies.append(generatedEnum).append(generatedUnion);
 		} else if (type.equals("interface")) {
@@ -731,7 +736,7 @@ public class Main {
 												 System.lineSeparator() + "};" + System.lineSeparator();
 
 			dependencies.append(vTable);
-			fields += table + data;
+			fields.append(table + data);
 		} else {
 			final var joinedMembers = members
 					.stream()
@@ -739,7 +744,7 @@ public class Main {
 					.map(StructMember::generate)
 					.collect(Collectors.joining());
 
-			fields += joinedMembers;
+			fields.append(joinedMembers);
 		}
 
 		final var generated =
@@ -935,9 +940,13 @@ public class Main {
 																									 List<String> typeParameters) {
 		return this
 				.parseDeclaration(declaration, typeParameters)
-				.<MethodDeclaration>map(value -> value)
+				.map(this::toInterface)
 				.or(() -> this.parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration));
+	}
+
+	private MethodDeclaration toInterface(Declaration value) {
+		return value;
 	}
 
 	private Option<MethodDeclaration> parseConstructor(String declaration, String structName) {
@@ -1098,9 +1107,14 @@ public class Main {
 			return value;
 		}
 
-		if (stripped.endsWith("++")) {
-			final var instance = stripped.substring(0, stripped.length() - 2);
-			return this.compileExpressionOrPlaceholder(instance) + "++";
+		final var instance = this.post(stripped, "++");
+		if (instance instanceof Some<String>(var x)) {
+			return x;
+		}
+
+		final var instance0 = this.post(stripped, "--");
+		if (instance0 instanceof Some<String>(var x)) {
+			return x;
 		}
 
 		final var maybeDeclaration = this.parseDeclaration(input, Collections.emptyList());
@@ -1109,6 +1123,15 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private Option<String> post(String stripped, String slice) {
+		if (stripped.endsWith(slice)) {
+			final var instance = stripped.substring(0, stripped.length() - 2);
+			return new Some<String>(this.compileExpressionOrPlaceholder(instance) + slice);
+		}
+
+		return new None<String>();
 	}
 
 	private String compileExpressionOrPlaceholder(String input) {
@@ -1277,7 +1300,42 @@ public class Main {
 	}
 
 	private Option<String> compileOperator(String input, String operator) {
-		final var i1 = input.indexOf(operator);
+		if (input.length() < 3) {
+			return new None<String>();
+		}
+
+		if (!input.contains(operator)) {
+			return new None<String>();
+		}
+
+		var i1 = -1;
+		var depth = 0;
+		var i = 0;
+		while (i < input.length() - 1) {
+			final var c = input.charAt(i);
+			if (c == operator.charAt(0)) {
+				if ((operator.length() == 2) && input.charAt(i + 1) == operator.charAt(1)) {
+					if (depth == 0) {
+						i1 = i;
+						break;
+					}
+				} else {
+					if (depth == 0) {
+						i1 = i;
+						break;
+					}
+				}
+			}
+
+			if (c == '(') {
+				depth++;
+			}
+			if (c == ')') {
+				depth--;
+			}
+			i++;
+		}
+
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
@@ -1337,6 +1395,13 @@ public class Main {
 	}
 
 	private boolean isNumber(String input) {
+		if (input.startsWith("-")) {
+			return this.allDigits(input.substring(1));
+		}
+		return this.allDigits(input);
+	}
+
+	private boolean allDigits(String input) {
 		return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isDigit);
 	}
 
