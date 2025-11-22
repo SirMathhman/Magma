@@ -143,9 +143,31 @@ char* generate_MethodDeclaration(void* _this){
 	}
 	return _ret;
 }
-/*private record Err<T, X>*/(X error){?
+Result<T, X> toResult_T_X_Err(void* _this){
+	Err this = *((Err*) _this);
+	Result_T_XData data;
+	data.Err = this;
+	return { Result_T_XVariant.ErrVariant, data };
 }
-/*private record Ok<T, X>*/(T value){?
+struct Err {
+};
+template <typename R>
+Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
+	Err this = *((Err*) _this);
+	return /*new Err<R, X>(this.error)*/;
+}
+Result<T, X> toResult_T_X_Ok(void* _this){
+	Ok this = *((Ok*) _this);
+	Result_T_XData data;
+	data.Ok = this;
+	return { Result_T_XVariant.OkVariant, data };
+}
+struct Ok {
+};
+template <typename R>
+Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
+	Ok this = *((Ok*) _this);
+	return /*new Ok<R, X>(mapper.apply(this.value))*/;
 }
 /*depth;
 
@@ -492,6 +514,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
 			return maybeInterface.get();
+		}
+
+		final var maybeRecord = compileStructure("record", input);
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
 		}
 
 		final var maybeEnumValues = compileEnumValues(input, structName);

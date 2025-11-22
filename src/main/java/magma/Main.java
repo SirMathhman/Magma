@@ -470,6 +470,11 @@ public class Main {
 			return maybeInterface.get();
 		}
 
+		final var maybeRecord = compileStructure("record", input);
+		if (maybeRecord.isPresent()) {
+			return maybeRecord.get();
+		}
+
 		final var maybeEnumValues = compileEnumValues(input, structName);
 		if (maybeEnumValues.isPresent()) {
 			return maybeEnumValues.get();
