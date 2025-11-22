@@ -767,7 +767,7 @@ public Main_Main(void* _this){
 }
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main* this = (Main*) _this;
-	/*final String templateString*/;
+	char* templateString;
 	if (typeParameters.isEmpty()) {
 		templateString = "";
 	}
@@ -846,7 +846,7 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 		if (!(maybeNext.variant = ?.SomeVariant)) {
 			break;
 		}
-		/*final Character next*/;
+		Character next;
 		next = value;
 		current = folder.apply(current, next);
 	}
@@ -1061,7 +1061,7 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 }
 char* joinTypeParameters_Main(void* _this, List<char*> typeParameters){
 	Main* this = (Main*) _this;
-	/*final String joinedTypeParameters*/;
+	char* joinedTypeParameters;
 	if (typeParameters.isEmpty()) {
 		joinedTypeParameters = "";
 	}
@@ -1152,7 +1152,7 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 				var inputContent = withBraces.substring(1, withBraces.length() - 1);
 				maybeCompiled = Option.of(this->compileMethodsSegments(inputContent, 1));
 			}
-			/*String outputContent*/;
+			char* outputContent;
 			if (methodDeclaration.variant = ?.ConstructorVariant) {
 				var compiled = maybeCompiled.orElse("?");
 				outputContent = /*
@@ -1371,6 +1371,10 @@ char* compileMethodStatement_Main(void* _this, char* input){
 		var instance = stripped.substring(0, stripped.length() - 2);
 		return this->compileExpressionOrPlaceholder(instance) + " +  + ";
 	}
+	var maybeDeclaration = this->parseDeclaration(input, Collections.emptyList());
+	if (maybeDeclaration.variant = ?.SomeVariant) {
+		return declaration.generate();
+	}
 	return wrap(stripped);
 }
 char* compileExpressionOrPlaceholder_Main(void* _this, char* input){
@@ -1421,7 +1425,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		var maybeInstance = this->compileExpression(substring);
 		if (maybeInstance.variant = ?.SomeVariant) {
 			var i4 = substring1.indexOf(" < ");
-			/*final String substring2*/;
+			char* substring2;
 			if (i4 >= 0) {
 				substring2 = substring1.substring(0, i4);
 			}
@@ -1442,9 +1446,9 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		if (this->isIdentifier(memberName)) {
 			var maybeInstance = this->compileExpression(instanceString);
 			if (maybeInstance.variant = ?.SomeVariant) {
-				/*final String instance*/;
+				char* instance;
 				instance = value;
-				/*final String generated*/;
+				char* generated;
 				if (instance.equals("this")) {
 					generated = "this->" + memberName;
 				}

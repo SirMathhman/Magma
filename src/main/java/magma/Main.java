@@ -1026,6 +1026,11 @@ public class Main {
 			return this.compileExpressionOrPlaceholder(instance) + "++";
 		}
 
+		final var maybeDeclaration = this.parseDeclaration(input, Collections.emptyList());
+		if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
+			return declaration.generate();
+		}
+
 		return wrap(stripped);
 	}
 
