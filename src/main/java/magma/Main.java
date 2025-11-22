@@ -692,6 +692,19 @@ public class Main {
 			return stripped;
 		}
 
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i1 = substring.indexOf("(");
+			if (i1 >= 0) {
+				final var caller = substring.substring(0, i1);
+				final var arguments = substring.substring(i1 + 1);
+				final var joinedArguments =
+						divide(arguments, Main::foldValue).map(Main::compileExpression).collect(Collectors.joining(", "));
+
+				return compileExpression(caller) + "(" + joinedArguments + ")";
+			}
+		}
+
 		return wrap(stripped);
 	}
 

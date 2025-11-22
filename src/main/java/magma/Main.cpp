@@ -157,7 +157,7 @@ struct Err {
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
 	Err<T, X> this = *((Err<T, X>*) _this);
-	return /*new Err<R, X>(this.error)*/;
+	return /*new Err<R, X>*/(this.error);
 }
 template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _this){
@@ -173,7 +173,7 @@ struct Ok {
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
-	return /*new Ok<R, X>(mapper.apply(this.value))*/;
+	return /*new Ok<R, X>*/(mapper.apply(this.value));
 }
 struct State {
 };
@@ -181,9 +181,9 @@ public State_State(void* _this, char* input){
 	State this = *((State*) _this);
 	this.input = input;
 	this.index = /*0*/;
-	this.buffer = /*new StringBuilder()*/;
+	this.buffer = /*new StringBuilder*/();
 	this.depth = /*0*/;
-	this.segments = /*new ArrayList<String>()*/;
+	this.segments = /*new ArrayList<String>*/();
 }
 boolean isShallow_State(void* _this){
 	State this = *((State*) _this);
@@ -227,7 +227,7 @@ State exit_State(void* _this){
 }
 Stream<char*> stream_State(void* _this){
 	State this = *((State*) _this);
-	return /*this.segments.stream()*/;
+	return this.segments.stream();
 }
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -258,7 +258,7 @@ struct TemplateType {
 };
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
-	/*final var typeArguments*/ = /*this.list.stream().map(Type::generate).collect(Collectors.joining(", "))*/;
+	/*final var typeArguments*/ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /*")*/);
 	return /*this.base + "<" + typeArguments + ">"*/;
 }
 char* toBaseName_TemplateType(void* _this){
@@ -299,11 +299,11 @@ struct Placeholder {
 };
 char* generate_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
-	return /*wrap(this.input)*/;
+	return wrap(this.input);
 }
 char* toBaseName_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
-	return /*wrap(this.input)*/;
+	return wrap(this.input);
 }
 MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
@@ -336,12 +336,12 @@ public Declaration_Declaration(void* _this, char* type, char* name){
 }
 char* generate_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
-	/*var beforeDeclaration*/ = /*generateTemplateString(this.typeParameters())*/;
+	/*var beforeDeclaration*/ = generateTemplateString(this.typeParameters());
 	return /*beforeDeclaration + this.type + " " + this*/.name;
 }
 Declaration mapName_Declaration(void* _this, Function<char*, char*> mapper){
 	Declaration this = *((Declaration*) _this);
-	return /*new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name))*/;
+	return /*new Declaration*/(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 }
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
@@ -349,9 +349,9 @@ void main_Main(void* _this, char** args){
 }
 Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
-	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;
-	/*final var target*/ = /*source.resolveSibling("Main.cpp")*/;
-	/*final var input*/ = /*readString(source).mapValue(Main::compile)*/;
+	/*final var source*/ = Paths.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
+	/*final var target*/ = source.resolveSibling(/*"Main.cpp"*/);
+	/*final var input*/ = readString(/*source).mapValue(Main::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> writeString(target, v.value);
@@ -379,19 +379,19 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 }
 char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	return /*compileStatements(input, Main::compileRootSegment)*/;
+	return compileStatements(input, /*Main::compileRootSegment*/);
 }
 char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
 	Main this = *((Main*) _this);
-	return /*compileAll(input, mapper, Main::foldStatement)*/;
+	return compileAll(input, mapper, /*Main::foldStatement*/);
 }
 char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	return /*divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
+	return divide(input, /*folder)*/.map(/*mapper).collect(Collectors.joining(""*/));
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	/*var current*/ = /*new State(input)*/;
+	/*var current*/ = /*new State*/(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -401,11 +401,11 @@ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character,
 			final var next = maybeNext.get();
 			current = folder.apply(current, next);
 		}*/
-	return /*current.advance().stream()*/;
+	return current.advance(/*).stream(*/);
 }
 State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
-	/*final var appended*/ = /*current.append(next)*/;
+	/*final var appended*/ = current.append(next);
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
@@ -797,6 +797,18 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 		if (isIdentifier(stripped)) {
 			return stripped;
+		}
+
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i1 = substring.indexOf("(");
+			if (i1 >= 0) {
+				final var caller = substring.substring(0, i1);
+				final var arguments = substring.substring(i1 + 1);
+				final var joinedArguments = divide(arguments, Main::foldValue).map(Main::compileExpression).collect(Collectors.joining(", "));
+
+				return compileExpression(caller) + "(" + joinedArguments + ")";
+			}
 		}
 
 		return wrap(stripped);
