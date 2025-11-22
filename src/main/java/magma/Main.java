@@ -121,7 +121,12 @@ public class Main {
 		C fold(C c, T t);
 	}
 
-	private record IOError(IOException e) {
+	private interface IOError {
+		String display();
+	}
+
+	private record JavaIOError(IOException e) implements IOError {
+		@Override
 		public String display() {
 			final var writer = new StringWriter();
 			this.e.printStackTrace(new PrintWriter(writer));
@@ -784,7 +789,7 @@ public class Main {
 				Files.writeString(this.path, output);
 				return new None<IOError>();
 			} catch (IOException e) {
-				return new Some<IOError>(new IOError(e));
+				return new Some<IOError>(new JavaIOError(e));
 			}
 		}
 
@@ -793,7 +798,7 @@ public class Main {
 			try {
 				return new Ok<String, IOError>(Files.readString(this.path));
 			} catch (IOException e) {
-				return new Err<String, IOError>(new IOError(e));
+				return new Err<String, IOError>(new JavaIOError(e));
 			}
 		}
 	}

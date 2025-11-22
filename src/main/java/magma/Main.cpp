@@ -176,7 +176,14 @@ struct Collector {
 	CollectorTable<T, C> table;
 	void* data;
 };
+struct IOErrorTable {
+	char* (*display)(void*);
+};
 struct IOError {
+	IOErrorTable table;
+	void* data;
+};
+struct JavaIOError {
 	IOException e;
 };
 struct StringBuilder {
@@ -331,7 +338,7 @@ R apply_F1R(void* _ref, T0 value);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper);char* generate_Type(void* _ref);char* toBaseName_Type(void* _ref);char* generate_MethodDeclaration(void* _ref);char* generate_StructMember(void* _ref);State apply_Folder(void* _ref, State state, char character);template <typename A, typename B, typename R>
 R apply_F2R(void* _ref, A a, B b);template <typename T, typename C>
 C createInitial_Collector(void* _ref);template <typename T, typename C>
-C fold_Collector(void* _ref, C c, T t);char* display_IOError(void* _ref);public StringBuilder_StringBuilder(void* _ref);StringBuilder appendChar_StringBuilder(void* _ref, char next);StringBuilder clear_StringBuilder(void* _ref);StringBuilder appendString_StringBuilder(void* _ref, char* chars);char* toString_StringBuilder(void* _ref);template <typename T, typename T>
+C fold_Collector(void* _ref, C c, T t);char* display_IOError(void* _ref);char* display_JavaIOError(void* _ref);public StringBuilder_StringBuilder(void* _ref);StringBuilder appendChar_StringBuilder(void* _ref, char next);StringBuilder clear_StringBuilder(void* _ref);StringBuilder appendString_StringBuilder(void* _ref, char* chars);char* toString_StringBuilder(void* _ref);template <typename T, typename T>
 Stream<T> of_Stream(void* _ref, T value);template <typename T, typename T>
 Stream<T> empty_Stream(void* _ref);template <typename R, typename T>
 Stream<R> map_Stream(void* _ref, F1R<T, R> mapper);template <typename R, typename T>
@@ -765,6 +772,19 @@ C fold_Collector(void* _ref, C c, T t){
 }
 char* display_IOError(void* _ref){
 	IOError* _this = (IOError*) _ref;
+	char* _ret;
+	switch (_this->variant) {
+	}
+	return _ret;
+}
+IOError toIOError_JavaIOError(void* _ref){
+	JavaIOError _this = *((JavaIOError*) _ref);
+	IOErrorData data;
+	data.JavaIOError = _this;
+	return { JavaIOErrorVariant, data };
+}
+char* display_JavaIOError(void* _ref){
+	JavaIOError* _this = (JavaIOError*) _ref;
 	var writer = new_StringWriter();
 	_this->e.printStackTrace(new_PrintWriter(writer));
 	return writer.toString();
@@ -1515,7 +1535,7 @@ Option<IOError> writeString_JavaPath(void* _ref, char* output){
 				return new None<IOError>();
 			}*/
 	/*catch (IOException e) {
-				return new Some<IOError>(new IOError(e));
+				return new Some<IOError>(new JavaIOError(e));
 			}*/
 }
 Result<char*, IOError> readString_JavaPath(void* _ref){
@@ -1524,7 +1544,7 @@ Result<char*, IOError> readString_JavaPath(void* _ref){
 				return new Ok<String, IOError>(Files.readString(this.path));
 			}*/
 	/*catch (IOException e) {
-				return new Err<String, IOError>(new IOError(e));
+				return new Err<String, IOError>(new JavaIOError(e));
 			}*/
 }
 public Main_Main(void* _ref){
