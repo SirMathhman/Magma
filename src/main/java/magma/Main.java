@@ -786,7 +786,23 @@ public class Main {
 			}
 		}
 
+		if (this.isNumber(stripped)) {
+			return stripped;
+		}
+
 		return wrap(stripped);
+	}
+
+	private boolean isNumber(String input) {
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			if (Character.isDigit(c)) {
+				continue;
+			}
+			return false;
+		}
+
+		return true;
 	}
 
 	private String compileCaller(String input) {
