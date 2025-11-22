@@ -1032,10 +1032,9 @@ public class Main {
 					return new None<String>();
 				}
 				final var condition = first.substring(0, first.length() - 1);
-				final var withBraces = last;
 
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
+				if (last.startsWith("{") && last.endsWith("}")) {
+					final var content = last.substring(1, last.length() - 1);
 					return Option.of(
 							this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
 							this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
@@ -1056,11 +1055,6 @@ public class Main {
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 		}
 
-		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>(var value)) {
-			return value;
-		}
-
 		final var i = stripped.indexOf("=");
 		if (i >= 0) {
 			final var destination = stripped.substring(0, i);
@@ -1069,6 +1063,11 @@ public class Main {
 								 .compileExpression(destination)
 								 .or(() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
+		}
+
+		final var maybeInvokable = this.compileInvokable(stripped);
+		if (maybeInvokable instanceof Some<String>(var value)) {
+			return value;
 		}
 
 		if (stripped.endsWith("++")) {
@@ -1111,6 +1110,92 @@ public class Main {
 			return Option.of(stripped);
 		}
 
+		final var maybeLambda = this.compileLambda(stripped);
+		if (maybeLambda instanceof Some<String>) {
+			return maybeLambda;
+		}
+
+		final var i3 = stripped.indexOf("instanceof");
+		if (i3 >= 0) {
+			final var substring = stripped.substring(0, i3);
+			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
+			final var maybeInstance = this.compileExpression(substring);
+			if (maybeInstance instanceof Some<String>(var instance)) {
+				final var i4 = substring1.indexOf("<");
+				final String substring2;
+				if (i4 >= 0) {
+					substring2 = substring1.substring(0, i4);
+				} else {
+					substring2 = substring1;
+				}
+
+				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
+			}
+		}
+
+		final var i = stripped.lastIndexOf(".");
+		if (i >= 0) {
+			final var instanceString = stripped.substring(0, i);
+			final var memberName = stripped.substring(i + 1).strip();
+			if (this.isIdentifier(memberName)) {
+				final var maybeInstance = this.compileExpression(instanceString);
+				if (maybeInstance instanceof Some<String>(var value)) {
+					final String instance;
+					instance = value;
+					final String generated;
+					if (instance.equals("this")) {
+						generated = "this->" + memberName;
+					} else {
+						generated = instance + "." + memberName;
+					}
+
+					return Option.of(generated);
+				}
+			}
+		}
+
+		final var maybeInvokable = this.compileInvokable(stripped);
+		if (maybeInvokable instanceof Some<String>) {
+			return maybeInvokable;
+		}
+
+		final var maybeOperator = this
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"))
+				.or(() -> this.compileOperator(stripped, "&&"))
+				.or(() -> this.compileOperator(stripped, "||"))
+				.or(() -> this.compileOperator(stripped, ">="));
+
+		if (maybeOperator instanceof Some<String>) {
+			return maybeOperator;
+		}
+
+		if (this.isIdentifier(stripped)) {
+			return Option.of(stripped);
+		}
+
+		if (stripped.startsWith("!")) {
+			final var substring = stripped.substring(1);
+			final var maybeInstance = this.compileExpression(substring);
+			if (maybeInstance instanceof Some<String>(var instance)) {
+				return new Some<String>("!" + instance);
+			}
+		}
+
+		if (this.isNumber(stripped)) {
+			return Option.of(stripped);
+		}
+
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
+			return Option.of(stripped);
+		}
+
+		return Option.empty();
+	}
+
+	private Option<String> compileLambda(String stripped) {
 		final var i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
 			final var beforeContent = stripped.substring(0, i1).strip();
@@ -1151,83 +1236,6 @@ public class Main {
 													 System.lineSeparator() + "}" + System.lineSeparator());
 				return Option.of(generatedName);
 			}
-		}
-
-		final var i3 = stripped.indexOf("instanceof");
-		if (i3 >= 0) {
-			final var substring = stripped.substring(0, i3);
-			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
-			final var maybeInstance = this.compileExpression(substring);
-			if (maybeInstance instanceof Some<String>(var instance)) {
-				final var i4 = substring1.indexOf("<");
-				final String substring2;
-				if (i4 >= 0) {
-					substring2 = substring1.substring(0, i4);
-				} else {
-					substring2 = substring1;
-				}
-
-				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
-			}
-		}
-
-		final var maybeOperator = this
-				.compileOperator(stripped, "==")
-				.or(() -> this.compileOperator(stripped, "<"))
-				.or(() -> this.compileOperator(stripped, "+"))
-				.or(() -> this.compileOperator(stripped, "-"))
-				.or(() -> this.compileOperator(stripped, "&&"))
-				.or(() -> this.compileOperator(stripped, "||"))
-				.or(() -> this.compileOperator(stripped, ">="));
-
-		if (maybeOperator instanceof Some<String>) {
-			return maybeOperator;
-		}
-
-		final var i = stripped.lastIndexOf(".");
-		if (i >= 0) {
-			final var instanceString = stripped.substring(0, i);
-			final var memberName = stripped.substring(i + 1).strip();
-			if (this.isIdentifier(memberName)) {
-				final var maybeInstance = this.compileExpression(instanceString);
-				if (maybeInstance instanceof Some<String>(var value)) {
-					final String instance;
-					instance = value;
-					final String generated;
-					if (instance.equals("this")) {
-						generated = "this->" + memberName;
-					} else {
-						generated = instance + "." + memberName;
-					}
-
-					return Option.of(generated);
-				}
-			}
-		}
-
-		if (this.isIdentifier(stripped)) {
-			return Option.of(stripped);
-		}
-
-		if (stripped.startsWith("!")) {
-			final var substring = stripped.substring(1);
-			final var maybeInstance = this.compileExpression(substring);
-			if (maybeInstance instanceof Some<String>(var instance)) {
-				return new Some<String>("!" + instance);
-			}
-		}
-
-		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>) {
-			return maybeInvokable;
-		}
-
-		if (this.isNumber(stripped)) {
-			return Option.of(stripped);
-		}
-
-		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-			return Option.of(stripped);
 		}
 
 		return Option.empty();
