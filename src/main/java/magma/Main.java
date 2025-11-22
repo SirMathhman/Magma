@@ -4,8 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Predicate;
@@ -55,6 +53,14 @@ public class Main {
 		List<T> subList(int start, int end);
 
 		List<T> clear();
+	}
+
+	private interface Path {
+		Path resolveSibling(String sibling);
+
+		Option<IOError> writeString(String output);
+
+		Result<String, IOError> readString();
 	}
 
 	private interface FR<T> {
@@ -759,6 +765,39 @@ public class Main {
 		}
 	}
 
+	private static class Paths {
+		@Actual
+		public static Path get(String first, String... more) {
+			return new JavaPath(java.nio.file.Paths.get(first, more));
+		}
+	}
+
+	private record JavaPath(java.nio.file.Path path) implements Path {
+		@Override
+		public Path resolveSibling(String sibling) {
+			return new JavaPath(this.path.resolveSibling(sibling));
+		}
+
+		@Override
+		public Option<IOError> writeString(String output) {
+			try {
+				Files.writeString(this.path, output);
+				return new None<IOError>();
+			} catch (IOException e) {
+				return new Some<IOError>(new IOError(e));
+			}
+		}
+
+		@Override
+		public Result<String, IOError> readString() {
+			try {
+				return new Ok<String, IOError>(Files.readString(this.path));
+			} catch (IOException e) {
+				return new Err<String, IOError>(new IOError(e));
+			}
+		}
+	}
+
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -814,31 +853,12 @@ public class Main {
 	private Option<IOError> run() {
 		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 		final var target = source.resolveSibling("Main.cpp");
-		final var input = this.readString(source).mapValue(this::compile);
+		final var input = source.readString().mapValue(this::compile);
 
 		return switch (input) {
 			case Err<String, IOError> v -> new Some<IOError>(v.error);
-			case Ok<String, IOError> v -> this.writeString(target, v.value);
+			case Ok<String, IOError> v -> target.writeString(v.value);
 		};
-	}
-
-	@Actual
-	private Option<IOError> writeString(Path target, String output) {
-		try {
-			Files.writeString(target, output);
-			return new None<IOError>();
-		} catch (IOException e) {
-			return new Some<IOError>(new IOError(e));
-		}
-	}
-
-	@Actual
-	private Result<String, IOError> readString(Path source) {
-		try {
-			return new Ok<String, IOError>(Files.readString(source));
-		} catch (IOException e) {
-			return new Err<String, IOError>(new IOError(e));
-		}
 	}
 
 	private String compile(String input) {

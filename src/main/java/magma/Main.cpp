@@ -39,6 +39,15 @@ struct List {
 	ListTable<T> table;
 	void* data;
 };
+struct PathTable {
+	Path (*resolveSibling)(void*, char*);
+	Option<IOError> (*writeString)(void*, char*);
+	Result<char*, IOError> (*readString)(void*);
+};
+struct Path {
+	PathTable table;
+	void* data;
+};
 template <typename T>
 struct FRTable {
 	T (*apply)(void*);
@@ -283,6 +292,11 @@ struct Joiner {
 template <typename T>
 struct ListCollector {
 };
+struct Paths {
+};
+struct JavaPath {
+	/*java.nio.file.Path*/ path;
+};
 struct Main {
 	List<char*> functionDeclarations;
 	List<char*> globals;
@@ -293,8 +307,7 @@ struct Main {
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
-Option<IOError> writeString_Main(Path target, char* output);
-Result<char*, IOError> readString_Main(Path source);
+Path get_Paths(char* first, /*String...*/ more);
 Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
@@ -413,6 +426,27 @@ template <typename T>
 List<T> clear_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
+	switch (_this->variant) {
+	}
+	return _ret;
+}
+Path resolveSibling_Path(void* _ref, char* sibling){
+	Path* _this = (Path*) _ref;
+	Path _ret;
+	switch (_this->variant) {
+	}
+	return _ret;
+}
+Option<IOError> writeString_Path(void* _ref, char* output){
+	Path* _this = (Path*) _ref;
+	Option<IOError> _ret;
+	switch (_this->variant) {
+	}
+	return _ret;
+}
+Result<char*, IOError> readString_Path(void* _ref){
+	Path* _this = (Path*) _ref;
+	Result<char*, IOError> _ret;
 	switch (_this->variant) {
 	}
 	return _ret;
@@ -1393,6 +1427,35 @@ List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
 	ListCollector<T>* _this = (ListCollector<T>*) _ref;
 	return tList.addLast(t);
 }
+Path toPath_JavaPath(void* _ref){
+	JavaPath _this = *((JavaPath*) _ref);
+	PathData data;
+	data.JavaPath = _this;
+	return { JavaPathVariant, data };
+}
+Path resolveSibling_JavaPath(void* _ref, char* sibling){
+	JavaPath* _this = (JavaPath*) _ref;
+	return new_JavaPath(_this->path.resolveSibling(sibling));
+}
+Option<IOError> writeString_JavaPath(void* _ref, char* output){
+	JavaPath* _this = (JavaPath*) _ref;
+	/*try {
+				Files.writeString(this.path, output);
+				return new None<IOError>();
+			}*/
+	/*catch (IOException e) {
+				return new Some<IOError>(new IOError(e));
+			}*/
+}
+Result<char*, IOError> readString_JavaPath(void* _ref){
+	JavaPath* _this = (JavaPath*) _ref;
+	/*try {
+				return new Ok<String, IOError>(Files.readString(this.path));
+			}*/
+	/*catch (IOException e) {
+				return new Err<String, IOError>(new IOError(e));
+			}*/
+}
 public Main_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	_this->structures = new_JavaList<char*>();
@@ -1441,7 +1504,7 @@ Option<IOError> run_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");
-	var input = _this->readString(source).mapValue(F? { alloc(this), F?Table { compile }});
+	var input = source.readString().mapValue(F? { alloc(this), F?Table { compile }});
 	return _switch;
 }
 char* compile_Main(void* _ref, char* input){
