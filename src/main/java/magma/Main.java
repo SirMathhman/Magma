@@ -51,7 +51,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface StructMember permits FunctionDeclaration, Placeholder {
+	private sealed interface StructMember permits EmptyStructMember, FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -208,6 +208,13 @@ public class Main {
 		public String generate() {
 			final var joinedParameterTypes = this.parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
 			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
+		}
+	}
+
+	private static final class EmptyStructMember implements StructMember {
+		@Override
+		public String generate() {
+			return "";
 		}
 	}
 
@@ -679,7 +686,7 @@ public class Main {
 			}
 		}
 
-		return Optional.empty();
+		return Optional.of(new EmptyStructMember());
 	}
 
 	private static State foldValue(State state, Character next) {

@@ -56,10 +56,12 @@ struct MethodDeclaration {
 	MethodDeclarationData data;
 };
 enum StructMemberVariant {
+	EmptyStructMemberVariant,
 	FunctionDeclarationVariant,
 	PlaceholderVariant
 };
 union StructMemberData {
+	EmptyStructMemberData EmptyStructMember;
 	FunctionDeclarationData FunctionDeclaration;
 	PlaceholderData Placeholder;
 };
@@ -104,6 +106,8 @@ struct FunctionDeclaration {
 	char* name;
 	List<char*> parameterTypes;
 };
+struct EmptyStructMember {
+};
 struct Main {
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
@@ -113,8 +117,6 @@ Type toType_PrimitiveType(void* _this){
 	TypeData data;
 	data.PrimitiveType = this;
 	return { TypeVariant.PrimitiveTypeVariant, data };
-}
-/*Void*/(){?
 }
 PrimitiveType new_PrimitiveType(char* content){
 	PrimitiveType this;
@@ -254,6 +256,9 @@ char* generate_StructMember(void* _this){
 	StructMember this = *((StructMember*) _this);
 	char* _ret;
 	switch (this.variant) {
+		case StructMemberVariant.EmptyStructMemberVariant:
+			_ret = generate_EmptyStructMember(&this.data.EmptyStructMember);
+			break;
 		case StructMemberVariant.FunctionDeclarationVariant:
 			_ret = generate_FunctionDeclaration(&this.data.FunctionDeclaration);
 			break;
@@ -565,6 +570,21 @@ record FunctionDeclaration_Main(void* _this, char* type, char* name, List<char*>
 	}
 	return _ret;
 }
+StructMember toStructMember_EmptyStructMember(void* _this){
+	EmptyStructMember this = *((EmptyStructMember*) _this);
+	StructMemberData data;
+	data.EmptyStructMember = this;
+	return { StructMemberVariant.EmptyStructMemberVariant, data };
+}
+char* generate_EmptyStructMember(void* _this){
+	EmptyStructMember this = *((EmptyStructMember*) _this);
+	return /*""*/;
+}
+char* generate_Main(void* _this){
+	Main this = *((Main*) _this);
+	return /*""*/;
+	/*}*/
+}
 /*public static final List<String> structures = new ArrayList<String>*/(){?
 }
 /*public static final List<String> functions = new ArrayList<String>*/(){?
@@ -688,7 +708,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		String generate();
 	}
 
-	private sealed interface StructMember permits FunctionDeclaration, Placeholder {
+	private sealed interface StructMember permits EmptyStructMember, FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -845,6 +865,13 @@ State foldStatement_Main(void* _this, State current, Character next){
 		public String generate() {
 			final var joinedParameterTypes = this.parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
 			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
+		}
+	}
+
+	private static final class EmptyStructMember implements StructMember {
+		@Override
+		public String generate() {
+			return "";
 		}
 	}
 
@@ -1288,7 +1315,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			}
 		}
 
-		return Optional.empty();
+		return Optional.of(new EmptyStructMember());
 	}*//*private static State foldValue(State state, Character next) {
 		if (next == ',' && state.isLevel()) {
 			return state.advance();
