@@ -24,7 +24,11 @@ char* toBaseName_PrimitiveType(void* _this){
 	return this.content;
 }
 template <typename T0, typename R>
+struct F1RTable<T0, R>{};
+template <typename T0, typename R>
 struct F1R {
+	F1RTable<T0, R> table;
+	void* data;
 };
 R apply_F1R(void* _this, T0 value){
 	F1R<T0, R> this = *((F1R<T0, R>*) _this);
@@ -510,7 +514,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = joinTypeParameters(typeParameters);
 
-		final String fields;
+		String fields = "";
 		var dependencies = new StringBuilder();
 		for (var implementee : implementees) {
 			final var identifier = implementee.toBaseName();
@@ -529,7 +533,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			dependencies.append(conversionFunction);
 		}
 
-		if (!variants.isEmpty() && modifiersList.contains("sealed")) {
+		if (modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
 
 			final var enumFields = variants
@@ -550,12 +554,19 @@ State foldStatement_Main(void* _this, State current, Character next){
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
 					System.lineSeparator();
 
-			fields = System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
-							 "Data data;";
+			fields += System.lineSeparator() + "\t" + name + "Variant variant;" + System.lineSeparator() + "\t" + name +
+								"Data data;";
 
 			dependencies.append(generatedEnum).append(generatedUnion);
-		} else {
-			fields = "";
+		} else if (type.equals("interface")) {
+			final var table = generateStatement(name + "Table" + joinedTypeParameters + " table");
+			final var data = generateStatement("void* data");
+
+			final var vTable =
+					templateString + "struct " + name + "Table" + joinedTypeParameters + "{};" + System.lineSeparator();
+			
+			dependencies.append(vTable);
+			fields += table + data;
 		}
 
 		final var joinedRecordFields =
