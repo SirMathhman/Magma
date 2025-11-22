@@ -312,7 +312,7 @@ template <typename T>
 Option<T> next_Head(void* _ref){
 	Head<T>* _this = (Head<T>*) _ref;
 	Option<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case HeadVariant.RangeHeadVariant:
 			_ret = next_RangeHead(_this.data.RangeHead);
 			break;
@@ -335,7 +335,7 @@ template <typename T>
 Stream<T> stream_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	Stream<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -343,7 +343,7 @@ template <typename T>
 int isEmpty_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	int _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -351,7 +351,7 @@ template <typename T>
 List<T> addLast_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -359,7 +359,7 @@ template <typename T>
 int contains_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
 	int _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -367,7 +367,7 @@ template <typename T>
 List<T> addFirst_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -375,7 +375,7 @@ template <typename T>
 List<T> addAll_List(void* _ref, List<T> elements){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -383,7 +383,7 @@ template <typename T>
 int size_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	int _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -391,7 +391,7 @@ template <typename T>
 T getFirst_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	T _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -399,7 +399,7 @@ template <typename T>
 List<T> subList_List(void* _ref, int start, int end){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -407,7 +407,7 @@ template <typename T>
 List<T> clear_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
 	List<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -415,7 +415,7 @@ template <typename T>
 T apply_FR(void* _ref){
 	FR<T>* _this = (FR<T>*) _ref;
 	T _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -423,7 +423,7 @@ template <typename R, typename T>
 Option<R> map_Option(void* _ref, F1R<T, R> mapper){
 	Option<T>* _this = (Option<T>*) _ref;
 	Option<R> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = map_None(_this.data.None);
 			break;
@@ -437,7 +437,7 @@ template <typename T>
 T orElse_Option(void* _ref, T other){
 	Option<T>* _this = (Option<T>*) _ref;
 	T _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = orElse_None(_this.data.None);
 			break;
@@ -451,7 +451,7 @@ template <typename R, typename T>
 Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper){
 	Option<T>* _this = (Option<T>*) _ref;
 	Option<R> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = flatMap_None(_this.data.None);
 			break;
@@ -465,7 +465,7 @@ template <typename T>
 T orElseGet_Option(void* _ref, FR<T> other){
 	Option<T>* _this = (Option<T>*) _ref;
 	T _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = orElseGet_None(_this.data.None);
 			break;
@@ -479,7 +479,7 @@ template <typename T>
 Stream<T> stream_Option(void* _ref){
 	Option<T>* _this = (Option<T>*) _ref;
 	Stream<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = stream_None(_this.data.None);
 			break;
@@ -493,7 +493,7 @@ template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	Option<T>* _this = (Option<T>*) _ref;
 	Option<T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = or_None(_this.data.None);
 			break;
@@ -507,7 +507,7 @@ template <typename T>
 Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
 	Option<T>* _this = (Option<T>*) _ref;
 	Tuple<int, T> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case OptionVariant.NoneVariant:
 			_ret = toTuple_None(_this.data.None);
 			break;
@@ -521,7 +521,7 @@ template <typename T0, typename R>
 R apply_F1R(void* _ref, T0 value){
 	F1R<T0, R>* _this = (F1R<T0, R>*) _ref;
 	R _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -529,7 +529,7 @@ template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
 	Result<T, X>* _this = (Result<T, X>*) _ref;
 	Result<R, X> _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case ResultVariant.ErrVariant:
 			_ret = mapValue_Err(_this.data.Err);
 			break;
@@ -542,7 +542,7 @@ Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
 char* generate_Type(void* _ref){
 	Type* _this = (Type*) _ref;
 	char* _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case TypeVariant.IdentifierVariant:
 			_ret = generate_Identifier(_this.data.Identifier);
 			break;
@@ -564,7 +564,7 @@ char* generate_Type(void* _ref){
 char* toBaseName_Type(void* _ref){
 	Type* _this = (Type*) _ref;
 	char* _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case TypeVariant.IdentifierVariant:
 			_ret = toBaseName_Identifier(_this.data.Identifier);
 			break;
@@ -586,7 +586,7 @@ char* toBaseName_Type(void* _ref){
 char* generate_MethodDeclaration(void* _ref){
 	MethodDeclaration* _this = (MethodDeclaration*) _ref;
 	char* _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case MethodDeclarationVariant.ConstructorVariant:
 			_ret = generate_Constructor(_this.data.Constructor);
 			break;
@@ -602,7 +602,7 @@ char* generate_MethodDeclaration(void* _ref){
 char* generate_StructMember(void* _ref){
 	StructMember* _this = (StructMember*) _ref;
 	char* _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 		case StructMemberVariant.DeclarationVariant:
 			_ret = generate_Declaration(_this.data.Declaration);
 			break;
@@ -624,7 +624,7 @@ char* generate_StructMember(void* _ref){
 State apply_Folder(void* _ref, State state, char character){
 	Folder* _this = (Folder*) _ref;
 	State _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -632,7 +632,7 @@ template <typename A, typename B, typename R>
 R apply_F2R(void* _ref, A a, B b){
 	F2R<A, B, R>* _this = (F2R<A, B, R>*) _ref;
 	R _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -640,7 +640,7 @@ template <typename T, typename C>
 C createInitial_Collector(void* _ref){
 	Collector<T, C>* _this = (Collector<T, C>*) _ref;
 	C _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -648,7 +648,7 @@ template <typename T, typename C>
 C fold_Collector(void* _ref, C c, T t){
 	Collector<T, C>* _this = (Collector<T, C>*) _ref;
 	C _ret;
-	switch (_this.variant) {
+	switch (_this->variant) {
 	}
 	return _ret;
 }
@@ -1742,7 +1742,7 @@ auto lambda24(void* _ref, auto variant){
 auto lambda25(void* _ref){
 	var returnValueDefinition = _this->generateStatement(declaration.type + " _ret");
 	var cases = variants.stream().map(lambda24).collect(new_Joiner());
-	return returnValueDefinition + generateIndent(1) + "switch (" + "_this.variant" + ") {" + cases + generateIndent(1) + "}" + this.generateStatement("return _ret");
+	return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + this.generateStatement("return _ret");
 }
 Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
