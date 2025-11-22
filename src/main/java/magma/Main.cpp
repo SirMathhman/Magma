@@ -648,7 +648,7 @@ State apply_ValueFolder(void* _this, State state, Character next){
 	var appended = state.append(next);
 	if (next == '-') {
 		var peeked = appended.peek();
-		if (peeked.variant = ?.SomeVariant && value == '>') {
+		if (peeked.variant = ?.SomeVariant) {
 			return appended.popAndAppendToOption().orElse(appended);
 		}
 		else {
@@ -1394,6 +1394,23 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 			}
 		}
 	}
+	var i3 = stripped.indexOf(".variant = ?."Variant);
+	if (i3 >= 0) {
+		var substring = stripped.substring(0, i3);
+		var substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
+		var maybeInstance = this->compileExpression(substring);
+		if (maybeInstance.variant = ?.SomeVariant) {
+			var i4 = substring1.indexOf(" < ");
+			/*final String substring2*/;
+			if (i4 >= 0) {
+				substring2 = substring1.substring(0, i4);
+			}
+			else {
+				substring2 = substring1;
+			}
+			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant");
+		}
+	}
 	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
 	if (maybeOperator.variant = ?.SomeVariant) {
 		return maybeOperator;
@@ -1426,23 +1443,6 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		var maybeInstance = this->compileExpression(substring);
 		if (maybeInstance.variant = ?.SomeVariant) {
 			return new_Some<char*>("!" + instance);
-		}
-	}
-	var i3 = stripped.indexOf(".variant = ?."Variant);
-	if (i3 >= 0) {
-		var substring = stripped.substring(0, i3);
-		var substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
-		var maybeInstance = this->compileExpression(substring);
-		if (maybeInstance.variant = ?.SomeVariant) {
-			var i4 = substring1.indexOf(" < ");
-			/*final String substring2*/;
-			if (i4 >= 0) {
-				substring2 = substring1.substring(0, i4);
-			}
-			else {
-				substring2 = substring1;
-			}
-			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant");
 		}
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
