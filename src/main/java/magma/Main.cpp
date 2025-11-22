@@ -43,10 +43,10 @@ Result<R, X> mapValue_Result(void* _this, Function<T, R> mapper){
 	Result<R, X> _ret;
 	switch (this.variant) {
 		case ResultVariant.ErrVariant:
-			_ret = mapValue_Result(&this.data.Err);
+			_ret = mapValue_Err(&this.data.Err);
 			break;
 		case ResultVariant.OkVariant:
-			_ret = mapValue_Result(&this.data.Ok);
+			_ret = mapValue_Ok(&this.data.Ok);
 			break;
 	}
 	return _ret;
@@ -69,46 +69,46 @@ struct Type {
 	TypeVariant variant;
 	TypeData data;
 };
-char* generate(void* _this){
+char* generate_Type(void* _this){
 	Type this = *((Type*) _this);
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = generate(&this.data.Identifier);
+			_ret = generate_Identifier(&this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = generate(&this.data.Placeholder);
+			_ret = generate_Placeholder(&this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = generate(&this.data.PointerType);
+			_ret = generate_PointerType(&this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = generate(&this.data.PrimitiveType);
+			_ret = generate_PrimitiveType(&this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = generate(&this.data.TemplateType);
+			_ret = generate_TemplateType(&this.data.TemplateType);
 			break;
 	}
 	return _ret;
 }
-char* toIdentifier(void* _this){
+char* toIdentifier_Type(void* _this){
 	Type this = *((Type*) _this);
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = toIdentifier(&this.data.Identifier);
+			_ret = toIdentifier_Identifier(&this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = toIdentifier(&this.data.Placeholder);
+			_ret = toIdentifier_Placeholder(&this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = toIdentifier(&this.data.PointerType);
+			_ret = toIdentifier_PointerType(&this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = toIdentifier(&this.data.PrimitiveType);
+			_ret = toIdentifier_PrimitiveType(&this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = toIdentifier(&this.data.TemplateType);
+			_ret = toIdentifier_TemplateType(&this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -127,18 +127,18 @@ struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-char* generate(void* _this){
+char* generate_MethodDeclaration(void* _this){
 	MethodDeclaration this = *((MethodDeclaration*) _this);
 	char* _ret;
 	switch (this.variant) {
 		case MethodDeclarationVariant.ConstructorVariant:
-			_ret = generate(&this.data.Constructor);
+			_ret = generate_Constructor(&this.data.Constructor);
 			break;
 		case MethodDeclarationVariant.DeclarationVariant:
-			_ret = generate(&this.data.Declaration);
+			_ret = generate_Declaration(&this.data.Declaration);
 			break;
 		case MethodDeclarationVariant.PlaceholderVariant:
-			_ret = generate(&this.data.Placeholder);
+			_ret = generate_Placeholder(&this.data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -237,7 +237,7 @@ record Constructor_Main(void* _this, char* structName){
 	}
 	return _ret;
 }
-record Declaration_Main(void* _this, List<char*> typeParameter, Optional<char*> beforeType, char* type, char* name){
+record Declaration_Main(void* _this, List<char*> typeParameters, Optional<char*> maybeBeforeType, char* type, char* name){
 	Main this = *((Main*) _this);
 	record _ret;
 	switch (this.variant) {
@@ -513,7 +513,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> parseDeclaration(param, structName, typeParameters))
+						.map(param -> parseDeclaration(param, typeParameters))
 						.flatMap(Optional::stream)
 						.collect(Collectors.toCollection(ArrayList::new));
 
@@ -560,7 +560,13 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "
 				));
 
-				final var header = methodDeclaration.generate() + "(" + compiledParameters + ")";
+				final var modifiedMethodDeclaration = switch (methodDeclaration) {
+					case Constructor constructor -> constructor;
+					case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
+					case Placeholder placeholder -> placeholder;
+				};
+
+				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			}
 		}
@@ -568,12 +574,12 @@ State foldStatement_Main(void* _this, State current, Character next){
 		return wrap(stripped);
 	}*//*private static String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "(&this.data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
 					 generateStatement(3, "break");
 	}*//*private static MethodDeclaration parseMethodDeclaration(String declaration,
 																													String structName,
 																													List<String> typeParameters) {
-		return parseDeclaration(declaration, structName, typeParameters)
+		return parseDeclaration(declaration, typeParameters)
 				.<MethodDeclaration>map(value -> value)
 				.or(() -> parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration));
@@ -671,11 +677,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return wrap(stripped);
-	}*//*private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
-		return compileDeclaration(input, structName, typeParameters).orElseGet(() -> wrap(input));
-	}*//*private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
-		return parseDeclaration(input, structName, typeParameters).map(Declaration::generate);
-	}*//*private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
+	}*//*private static Optional<Declaration> parseDeclaration(String input, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -720,7 +722,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				return Optional.of(new Declaration(copy,
 																					 Optional.of(beforeType),
 																					 compileType(beforeName.substring(typeSeparator + 1)),
-																					 name + "_" + structName));
+																					 name));
 			}
 		}
 

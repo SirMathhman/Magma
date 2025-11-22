@@ -181,7 +181,7 @@ public class Main {
 		}
 	}
 
-	private record Declaration(List<String> typeParameter, Optional<String> beforeType, String type, String name)
+	private record Declaration(List<String> typeParameters, Optional<String> maybeBeforeType, String type, String name)
 			implements MethodDeclaration {
 		public Declaration(String type, String name) {
 			this(Collections.emptyList(), Optional.empty(), type, name);
@@ -189,8 +189,12 @@ public class Main {
 
 		@Override
 		public String generate() {
-			var beforeDeclaration = generateTemplateString(this.typeParameter());
+			var beforeDeclaration = generateTemplateString(this.typeParameters());
 			return beforeDeclaration + this.type + " " + this.name;
+		}
+
+		public Declaration mapName(Function<String, String> mapper) {
+			return new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 		}
 	}
 
@@ -485,7 +489,7 @@ public class Main {
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> parseDeclaration(param, structName, typeParameters))
+						.map(param -> parseDeclaration(param, typeParameters))
 						.flatMap(Optional::stream)
 						.collect(Collectors.toCollection(ArrayList::new));
 
@@ -532,7 +536,13 @@ public class Main {
 				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "
 				));
 
-				final var header = methodDeclaration.generate() + "(" + compiledParameters + ")";
+				final var modifiedMethodDeclaration = switch (methodDeclaration) {
+					case Constructor constructor -> constructor;
+					case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
+					case Placeholder placeholder -> placeholder;
+				};
+
+				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			}
 		}
@@ -542,14 +552,14 @@ public class Main {
 
 	private static String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "(&this.data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
 					 generateStatement(3, "break");
 	}
 
 	private static MethodDeclaration parseMethodDeclaration(String declaration,
 																													String structName,
 																													List<String> typeParameters) {
-		return parseDeclaration(declaration, structName, typeParameters)
+		return parseDeclaration(declaration, typeParameters)
 				.<MethodDeclaration>map(value -> value)
 				.or(() -> parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration));
@@ -661,15 +671,7 @@ public class Main {
 		return wrap(stripped);
 	}
 
-	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
-		return compileDeclaration(input, structName, typeParameters).orElseGet(() -> wrap(input));
-	}
-
-	private static Optional<String> compileDeclaration(String input, String structName, List<String> typeParameters) {
-		return parseDeclaration(input, structName, typeParameters).map(Declaration::generate);
-	}
-
-	private static Optional<Declaration> parseDeclaration(String input, String structName, List<String> typeParameters) {
+	private static Optional<Declaration> parseDeclaration(String input, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -714,7 +716,7 @@ public class Main {
 				return Optional.of(new Declaration(copy,
 																					 Optional.of(beforeType),
 																					 compileType(beforeName.substring(typeSeparator + 1)),
-																					 name + "_" + structName));
+																					 name));
 			}
 		}
 
