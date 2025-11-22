@@ -1037,7 +1037,7 @@ public class Main {
 					System.lineSeparator();
 
 			final var s = name + "Variant variant";
-			final var s1 = name + "Data data";
+			final var s1 = name + "Data" + joinedTypeParameters + " data";
 			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
 			fields = fields.appendString(generatedFields);
 

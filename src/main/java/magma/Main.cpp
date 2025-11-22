@@ -19,7 +19,7 @@ union HeadData {
 template <typename T>
 struct Head {
 	HeadVariant variant;
-	HeadData data;
+	HeadData<T> data;
 };
 template <typename T>
 struct ListTable {
@@ -60,7 +60,7 @@ union OptionData {
 template <typename T>
 struct Option {
 	OptionVariant variant;
-	OptionData data;
+	OptionData<T> data;
 };
 template <typename T0, typename R>
 struct F1RTable {
@@ -83,7 +83,7 @@ union ResultData {
 template <typename T, typename X>
 struct Result {
 	ResultVariant variant;
-	ResultData data;
+	ResultData<T, X> data;
 };
 enum TypeVariant {
 	IdentifierVariant,
@@ -1605,7 +1605,7 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 		var unionFields = variants.stream().map(lambda18).collect(new_Joiner());
 		var generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 		var s = name + "Variant variant";
-		var s1 = name + "Data data";
+		var s1 = name + "Data" + joinedTypeParameters + " data";
 		var generatedFields = this->generateStatement(s) + this.generateStatement(s1);
 		fields = fields.appendString(generatedFields);
 		dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
