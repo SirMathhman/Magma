@@ -292,7 +292,7 @@ Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
 	data.PrimitiveType = _this;
-	return { TypeVariant.PrimitiveTypeVariant, data };
+	return { PrimitiveTypeVariant, data };
 }
 PrimitiveType new_PrimitiveType(char* content){
 	PrimitiveType this;
@@ -726,7 +726,7 @@ Head<Integer> toHead_RangeHead(void* _ref){
 	RangeHead _this = *((RangeHead*) _ref);
 	HeadData data;
 	data.RangeHead = _this;
-	return { HeadVariant.RangeHeadVariant, data };
+	return { RangeHeadVariant, data };
 }
 public RangeHead_RangeHead(void* _ref, int length){
 	RangeHead* this = (RangeHead*) _ref;
@@ -749,7 +749,7 @@ List<T> toList_JavaList(void* _ref){
 	JavaList<T> _this = *((JavaList<T>*) _ref);
 	ListData<T> data;
 	data.JavaList = _this;
-	return { ListVariant.JavaListVariant, data };
+	return { JavaListVariant, data };
 }
 private JavaList_JavaList(void* _ref, java.util.List<T> nativeList){
 	JavaList<T>* this = (JavaList<T>*) _ref;
@@ -817,7 +817,7 @@ Result<T, X> toResult_Err(void* _ref){
 	Err<T, X> _this = *((Err<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.Err = _this;
-	return { ResultVariant.ErrVariant, data };
+	return { ErrVariant, data };
 }
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper){
@@ -829,7 +829,7 @@ Result<T, X> toResult_Ok(void* _ref){
 	Ok<T, X> _this = *((Ok<T, X>*) _ref);
 	ResultData<T, X> data;
 	data.Ok = _this;
-	return { ResultVariant.OkVariant, data };
+	return { OkVariant, data };
 }
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
@@ -914,7 +914,7 @@ Type toType_PointerType(void* _ref){
 	PointerType _this = *((PointerType*) _ref);
 	TypeData data;
 	data.PointerType = _this;
-	return { TypeVariant.PointerTypeVariant, data };
+	return { PointerTypeVariant, data };
 }
 char* generate_PointerType(void* _ref){
 	PointerType* this = (PointerType*) _ref;
@@ -928,7 +928,7 @@ Type toType_TemplateType(void* _ref){
 	TemplateType _this = *((TemplateType*) _ref);
 	TypeData data;
 	data.TemplateType = _this;
-	return { TypeVariant.TemplateTypeVariant, data };
+	return { TemplateTypeVariant, data };
 }
 char* generate_TemplateType(void* _ref){
 	TemplateType* this = (TemplateType*) _ref;
@@ -943,7 +943,7 @@ Type toType_Identifier(void* _ref){
 	Identifier _this = *((Identifier*) _ref);
 	TypeData data;
 	data.Identifier = _this;
-	return { TypeVariant.IdentifierVariant, data };
+	return { IdentifierVariant, data };
 }
 char* generate_Identifier(void* _ref){
 	Identifier* this = (Identifier*) _ref;
@@ -957,19 +957,19 @@ Type toType_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	TypeData data;
 	data.Placeholder = _this;
-	return { TypeVariant.PlaceholderVariant, data };
+	return { PlaceholderVariant, data };
 }
 MethodDeclaration toMethodDeclaration_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	MethodDeclarationData data;
 	data.Placeholder = _this;
-	return { MethodDeclarationVariant.PlaceholderVariant, data };
+	return { PlaceholderVariant, data };
 }
 StructMember toStructMember_Placeholder(void* _ref){
 	Placeholder _this = *((Placeholder*) _ref);
 	StructMemberData data;
 	data.Placeholder = _this;
-	return { StructMemberVariant.PlaceholderVariant, data };
+	return { PlaceholderVariant, data };
 }
 char* generate_Placeholder(void* _ref){
 	Placeholder* this = (Placeholder*) _ref;
@@ -983,7 +983,7 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _ref){
 	Constructor _this = *((Constructor*) _ref);
 	MethodDeclarationData data;
 	data.Constructor = _this;
-	return { MethodDeclarationVariant.ConstructorVariant, data };
+	return { ConstructorVariant, data };
 }
 char* generate_Constructor(void* _ref){
 	Constructor* this = (Constructor*) _ref;
@@ -993,13 +993,13 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _ref){
 	Declaration _this = *((Declaration*) _ref);
 	MethodDeclarationData data;
 	data.Declaration = _this;
-	return { MethodDeclarationVariant.DeclarationVariant, data };
+	return { DeclarationVariant, data };
 }
 StructMember toStructMember_Declaration(void* _ref){
 	Declaration _this = *((Declaration*) _ref);
 	StructMemberData data;
 	data.Declaration = _this;
-	return { StructMemberVariant.DeclarationVariant, data };
+	return { DeclarationVariant, data };
 }
 public Declaration_Declaration(void* _ref, char* type, char* name){
 	Declaration* this = (Declaration*) _ref;
@@ -1018,7 +1018,7 @@ StructMember toStructMember_F1RDeclaration(void* _ref){
 	F1RDeclaration _this = *((F1RDeclaration*) _ref);
 	StructMemberData data;
 	data.F1RDeclaration = _this;
-	return { StructMemberVariant.F1RDeclarationVariant, data };
+	return { F1RDeclarationVariant, data };
 }
 char* generate_F1RDeclaration(void* _ref){
 	F1RDeclaration* this = (F1RDeclaration*) _ref;
@@ -1029,7 +1029,7 @@ StructMember toStructMember_EmptyStructMember(void* _ref){
 	EmptyStructMember _this = *((EmptyStructMember*) _ref);
 	StructMemberData data;
 	data.EmptyStructMember = _this;
-	return { StructMemberVariant.EmptyStructMemberVariant, data };
+	return { EmptyStructMemberVariant, data };
 }
 char* generate_EmptyStructMember(void* _ref){
 	EmptyStructMember* this = (EmptyStructMember*) _ref;
@@ -1039,7 +1039,7 @@ Folder toFolder_EscapedFolder(void* _ref){
 	EscapedFolder _this = *((EscapedFolder*) _ref);
 	FolderData data;
 	data.EscapedFolder = _this;
-	return { FolderVariant.EscapedFolderVariant, data };
+	return { EscapedFolderVariant, data };
 }
 auto lambda5(void* _ref, auto tuple){
 	if (tuple.right == '\\') {
@@ -1077,7 +1077,7 @@ Folder toFolder_ValueFolder(void* _ref){
 	ValueFolder _this = *((ValueFolder*) _ref);
 	FolderData data;
 	data.ValueFolder = _this;
-	return { FolderVariant.ValueFolderVariant, data };
+	return { ValueFolderVariant, data };
 }
 State apply_ValueFolder(void* _ref, State state, char next){
 	ValueFolder* this = (ValueFolder*) _ref;
@@ -1107,7 +1107,7 @@ Option<T> toOption_Some(void* _ref){
 	Some<T> _this = *((Some<T>*) _ref);
 	OptionData<T> data;
 	data.Some = _this;
-	return { OptionVariant.SomeVariant, data };
+	return { SomeVariant, data };
 }
 template <typename T, typename R>
 Option<R> map_Some(void* _ref, F1R<T, R> mapper){
@@ -1149,7 +1149,7 @@ Option<T> toOption_None(void* _ref){
 	None<T> _this = *((None<T>*) _ref);
 	OptionData<T> data;
 	data.None = _this;
-	return { OptionVariant.NoneVariant, data };
+	return { NoneVariant, data };
 }
 template <typename T, typename R>
 Option<R> map_None(void* _ref, F1R<T, R> mapper){
@@ -1190,7 +1190,7 @@ Folder toFolder_ConditionEndLocator(void* _ref){
 	ConditionEndLocator _this = *((ConditionEndLocator*) _ref);
 	FolderData data;
 	data.ConditionEndLocator = _this;
-	return { FolderVariant.ConditionEndLocatorVariant, data };
+	return { ConditionEndLocatorVariant, data };
 }
 State apply_ConditionEndLocator(void* _ref, State state, char c){
 	ConditionEndLocator* this = (ConditionEndLocator*) _ref;
@@ -1210,7 +1210,7 @@ StructMember toStructMember_Field(void* _ref){
 	Field _this = *((Field*) _ref);
 	StructMemberData data;
 	data.Field = _this;
-	return { StructMemberVariant.FieldVariant, data };
+	return { FieldVariant, data };
 }
 char* generate_Field(void* _ref){
 	Field* this = (Field*) _ref;
@@ -1237,7 +1237,7 @@ Head<R> toHead_MapHead(void* _ref){
 	MapHead<T, R> _this = *((MapHead<T, R>*) _ref);
 	HeadData<T, R> data;
 	data.MapHead = _this;
-	return { HeadVariant.MapHeadVariant, data };
+	return { MapHeadVariant, data };
 }
 template <typename T, typename R>
 Option<R> next_MapHead(void* _ref){
@@ -1249,7 +1249,7 @@ Head<T> toHead_SingleHead(void* _ref){
 	SingleHead<T> _this = *((SingleHead<T>*) _ref);
 	HeadData<T> data;
 	data.SingleHead = _this;
-	return { HeadVariant.SingleHeadVariant, data };
+	return { SingleHeadVariant, data };
 }
 public SingleHead_SingleHead(void* _ref, T value){
 	SingleHead<T>* this = (SingleHead<T>*) _ref;
@@ -1269,7 +1269,7 @@ Head<R> toHead_FlatMapHead(void* _ref){
 	FlatMapHead<T, R> _this = *((FlatMapHead<T, R>*) _ref);
 	HeadData<T, R> data;
 	data.FlatMapHead = _this;
-	return { HeadVariant.FlatMapHeadVariant, data };
+	return { FlatMapHeadVariant, data };
 }
 public FlatMapHead_FlatMapHead(void* _ref, Head<T> head, F1R<T, Stream<R>> mapper){
 	FlatMapHead<T, R>* this = (FlatMapHead<T, R>*) _ref;
@@ -1299,7 +1299,7 @@ Head<T> toHead_EmptyHead(void* _ref){
 	EmptyHead<T> _this = *((EmptyHead<T>*) _ref);
 	HeadData<T> data;
 	data.EmptyHead = _this;
-	return { HeadVariant.EmptyHeadVariant, data };
+	return { EmptyHeadVariant, data };
 }
 template <typename T>
 Option<T> next_EmptyHead(void* _ref){
@@ -1311,7 +1311,7 @@ Collector<T, Boolean> toCollector_AnyMatch(void* _ref){
 	AnyMatch<T> _this = *((AnyMatch<T>*) _ref);
 	CollectorData<T> data;
 	data.AnyMatch = _this;
-	return { CollectorVariant.AnyMatchVariant, data };
+	return { AnyMatchVariant, data };
 }
 template <typename T>
 Boolean createInitial_AnyMatch(void* _ref){
@@ -1327,7 +1327,7 @@ Collector<char*, char*> toCollector_Joiner(void* _ref){
 	Joiner _this = *((Joiner*) _ref);
 	CollectorData data;
 	data.Joiner = _this;
-	return { CollectorVariant.JoinerVariant, data };
+	return { JoinerVariant, data };
 }
 public Joiner_Joiner(void* _ref){
 	Joiner* this = (Joiner*) _ref;
@@ -1349,7 +1349,7 @@ Collector<T, List<T>> toCollector_ListCollector(void* _ref){
 	ListCollector<T> _this = *((ListCollector<T>*) _ref);
 	CollectorData<T> data;
 	data.ListCollector = _this;
-	return { CollectorVariant.ListCollectorVariant, data };
+	return { ListCollectorVariant, data };
 }
 template <typename T>
 List<T> createInitial_ListCollector(void* _ref){
@@ -1635,7 +1635,7 @@ char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeP
 	var s = this->generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 	var s1 = this->generateStatement(identifier + "Data" + joinedTypeParameters + " data");
 	var s2 = this->generateStatement("data." + name + " = _this");
-	var s3 = this->generateStatement("return { " + variant + ", data }");
+	var s3 = this->generateStatement("return { " + name + "Variant, data }");
 	var conversionF1RContent = s + s1 + s2 + s3;
 	return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" + conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 }

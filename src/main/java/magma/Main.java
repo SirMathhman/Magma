@@ -1078,7 +1078,7 @@ public class Main {
 		final var s = this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
 		final var s2 = this.generateStatement("data." + name + " = _this");
-		final var s3 = this.generateStatement("return { " + variant + ", data }");
+		final var s3 = this.generateStatement("return { " + name + "Variant, data }");
 		final var conversionF1RContent = s + s1 + s2 + s3;
 		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" +
 					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
