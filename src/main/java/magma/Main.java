@@ -776,6 +776,14 @@ public class Main {
 			}
 		}
 
+		if (stripped.startsWith("else ")) {
+			final var substring = stripped.substring("else ".length()).strip();
+			if (substring.startsWith("{") && substring.endsWith("}")) {
+				final var substring1 = substring.substring(1, substring.length() - 1);
+				return "else {" + this.compileMethodsSegments(substring1) + "}";
+			}
+		}
+
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 

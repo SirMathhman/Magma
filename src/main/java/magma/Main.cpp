@@ -279,10 +279,8 @@ Optional<Character> pop_State(void* _this){
 	if (this.index < this.input.length()) {
 	var value = this.input.charAt(this.index);
 	this.index++;
-	return Optional.of(value);}
-	/*else {
-				return Optional.empty();
-			}*/
+	return Optional.of(value);}else {
+	return Optional.empty();}
 }
 State advance_State(void* _this){
 	State this = *((State*) _this);
@@ -433,13 +431,11 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
 	if (typeParameters.isEmpty()) {
-	templateString = /* ""*/;}
-	/*else {
-			templateString = "template " + typeParameters
+	templateString = /* ""*/;}else {
+	templateString = /* "template " + typeParameters
 					.stream()
 					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
-		}*/
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator()*/;}
 	return templateString;
 }
 char* wrap_Main(void* _this, char* input){
@@ -938,6 +934,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 									 this.compileMethodsSegments(content) + "}";
 					}
 				}
+			}
+		}
+
+		if (stripped.startsWith("else ")) {
+			final var substring = stripped.substring("else ".length()).strip();
+			if (substring.startsWith("{") && substring.endsWith("}")) {
+				final var substring1 = substring.substring(1, substring.length() - 1);
+				return "else {" + this.compileMethodsSegments(substring1) + "}";
 			}
 		}
 
