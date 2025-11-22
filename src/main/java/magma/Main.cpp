@@ -23,7 +23,7 @@ PrimitiveType new_PrimitiveType(char* content){
 /*@Override
 		public*/ char* toIdentifier_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
-	return this.name().toLowerCase();
+	return /*this.name().toLowerCase()*/;
 }
 /*}*/enum ResultVariant {
 	ErrVariant, 
@@ -128,12 +128,12 @@ union MethodDeclarationData {
 	/*}
 
 		private State enter() {
-			this*/.depth = this.depth + 1;
+			this*/.depth = /*this.depth + 1*/;
 	return this;
 	/*}
 
 		private State exit() {
-			this*/.depth = this.depth - 1;
+			this*/.depth = /*this.depth - 1*/;
 	return this;
 	/*}
 
@@ -211,9 +211,9 @@ union MethodDeclarationData {
 }
 /*private static*/ Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
-	/*final var source*/ = Paths.get(".", "src", "main", "java", "magma", "Main.java");
-	/*final var target*/ = source.resolveSibling("Main.cpp");
-	/*final var input*/ = /*readString(source)*/.mapValue(Main::compile);
+	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;
+	/*final var target*/ = /*source.resolveSibling("Main.cpp")*/;
+	/*final var input*/ = /*readString(source).mapValue(Main::compile)*/;
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> writeString(target, v.value);
@@ -249,7 +249,7 @@ union MethodDeclarationData {
 }
 /*private static*/ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	return /*divide(input, folder)*/.map(mapper).collect(Collectors.joining(""));
+	return /*divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
 }
 /*private static*/ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
@@ -263,11 +263,11 @@ union MethodDeclarationData {
 			final var next = maybeNext.get();
 			current = folder.apply(current, next);
 		}*/
-	return current.advance().stream();
+	return /*current.advance().stream()*/;
 }
 /*private static*/ State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
-	/*final var appended*/ = current.append(next);
+	/*final var appended*/ = /*current.append(next)*/;
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
@@ -278,7 +278,7 @@ union MethodDeclarationData {
 			return appended.advance().exit();
 		}*//*if */(void* _this){
 	Main this = *((Main*) _this);
-	return appended.enter();
+	return /*appended.enter()*/;
 	/*}
 
 		if (next == '*/
@@ -613,9 +613,11 @@ union MethodDeclarationData {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
-			final var substring = stripped.substring(0, i);
-			final var substring1 = stripped.substring(i + 1);
-			return compileExpression(substring) + "." + substring1;
+			final var instance = stripped.substring(0, i);
+			final var memberName = stripped.substring(i + 1).strip();
+			if (isIdentifier(memberName)) {
+				return compileExpression(instance) + "." + memberName;
+			}
 		}
 
 		if (isIdentifier(stripped)) {

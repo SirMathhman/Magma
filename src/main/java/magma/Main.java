@@ -609,9 +609,11 @@ public class Main {
 		final var stripped = input.strip();
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
-			final var substring = stripped.substring(0, i);
-			final var substring1 = stripped.substring(i + 1);
-			return compileExpression(substring) + "." + substring1;
+			final var instance = stripped.substring(0, i);
+			final var memberName = stripped.substring(i + 1).strip();
+			if (isIdentifier(memberName)) {
+				return compileExpression(instance) + "." + memberName;
+			}
 		}
 
 		if (isIdentifier(stripped)) {
