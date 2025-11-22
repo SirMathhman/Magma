@@ -8,7 +8,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,6 +32,139 @@ public class Main {
 		public String toBaseName() {
 			return this.content;
 		}
+	}
+
+	private sealed interface Optional<T> permits Optional.None, Optional.Some {
+		record Some<T>(T value) implements Optional<T> {
+			@Override
+			public <R> Optional<R> map(Function<T, R> mapper) {
+				return new Some<R>(mapper.apply(this.value));
+			}
+
+			@Override
+			public T orElse(T other) {
+				return this.value;
+			}
+
+			@Override
+			public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+				return mapper.apply(this.value);
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return false;
+			}
+
+			@Override
+			public T get() {
+				return this.value;
+			}
+
+			@Override
+			public boolean isPresent() {
+				return true;
+			}
+
+			@Override
+			public void ifPresent(Consumer<T> consumer) {
+				consumer.accept(this.value);
+			}
+
+			@Override
+			public T orElseGet(Supplier<T> other) {
+				return this.value;
+			}
+
+			@Override
+			public Stream<T> stream() {
+				return Stream.of(this.value);
+			}
+
+			@Override
+			public Optional<T> or(Supplier<Optional<T>> other) {
+				return this;
+			}
+		}
+
+		final class None<T> implements Optional<T> {
+			@Override
+			public <R> Optional<R> map(Function<T, R> mapper) {
+				return new None<R>();
+			}
+
+			@Override
+			public T orElse(T other) {
+				return other;
+			}
+
+			@Override
+			public <R> Optional<R> flatMap(Function<T, Optional<R>> mapper) {
+				return new None<R>();
+			}
+
+			@Override
+			public boolean isEmpty() {
+				return true;
+			}
+
+			@Override
+			public T get() {
+				return null;
+			}
+
+			@Override
+			public boolean isPresent() {
+				return false;
+			}
+
+			@Override
+			public void ifPresent(Consumer<T> consumer) {
+			}
+
+			@Override
+			public T orElseGet(Supplier<T> other) {
+				return other.get();
+			}
+
+			@Override
+			public Stream<T> stream() {
+				return Stream.empty();
+			}
+
+			@Override
+			public Optional<T> or(Supplier<Optional<T>> other) {
+				return this;
+			}
+		}
+
+		static <T> Optional<T> of(T value) {
+			return new Some<T>(value);
+		}
+
+		static <T> Optional<T> empty() {
+			return new None<T>();
+		}
+
+		<R> Optional<R> map(Function<T, R> mapper);
+
+		T orElse(T other);
+
+		<R> Optional<R> flatMap(Function<T, Optional<R>> mapper);
+
+		boolean isEmpty();
+
+		T get();
+
+		boolean isPresent();
+
+		void ifPresent(Consumer<T> consumer);
+
+		T orElseGet(Supplier<T> other);
+
+		Stream<T> stream();
+
+		Optional<T> or(Supplier<Optional<T>> other);
 	}
 
 	private interface F1R<T0, R> {
@@ -919,7 +1054,9 @@ public class Main {
 					final var generatedName = "lambda" + this.counter;
 					this.counter++;
 
-					this.functions.add("auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
+					this.functions.add(
+							"auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" +
+							System.lineSeparator());
 					return Optional.of(generatedName);
 				}
 			}
