@@ -35,71 +35,7 @@ public class Main {
 		T apply();
 	}
 
-	private sealed interface Option<T> permits Option.None, Option.Some {
-		record Some<T>(T value) implements Option<T> {
-			@Override
-			public <R> Option<R> map(F1R<T, R> mapper) {
-				return new Some<R>(mapper.apply(this.value));
-			}
-
-			@Override
-			public T orElse(T other) {
-				return this.value;
-			}
-
-			@Override
-			public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
-				return mapper.apply(this.value);
-			}
-
-			@Override
-			public T orElseGet(FR<T> other) {
-				return this.value;
-			}
-
-			@Override
-			public Stream<T> stream() {
-				return Stream.of(this.value);
-			}
-
-			@Override
-			public Option<T> or(FR<Option<T>> other) {
-				return this;
-			}
-		}
-
-		final class None<T> implements Option<T> {
-			@Override
-			public <R> Option<R> map(F1R<T, R> mapper) {
-				return new None<R>();
-			}
-
-			@Override
-			public T orElse(T other) {
-				return other;
-			}
-
-			@Override
-			public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
-				return new None<R>();
-			}
-
-			@Override
-			public T orElseGet(FR<T> other) {
-				return other.apply();
-			}
-
-			@Override
-			public Stream<T> stream() {
-				return Stream.empty();
-			}
-
-			@Override
-			public Option<T> or(FR<Option<T>> other) {
-				return other.apply();
-			}
-		}
-
+	private sealed interface Option<T> permits None, Some {
 		static <T> Option<T> of(T value) {
 			return new Some<T>(value);
 		}
@@ -348,7 +284,7 @@ public class Main {
 				var current = state.append(next);
 				while (true) {
 					final var maybeTuple = current.popAndAppendToTuple();
-					if (!(maybeTuple instanceof Option.Some<Tuple<State, Character>>(var value))) {
+					if (!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))) {
 						break;
 					}
 
@@ -381,7 +317,7 @@ public class Main {
 			final var appended = state.append(next);
 			if (next == '-') {
 				final var peeked = appended.peek();
-				if (peeked instanceof Option.Some<Character>(var value) && value == '>') {
+				if (peeked instanceof Some<Character>(var value) && value == '>') {
 					return appended.popAndAppendToOption().orElse(appended);
 				} else {
 					return appended;
@@ -396,6 +332,70 @@ public class Main {
 				return appended.exit();
 			}
 			return appended;
+		}
+	}
+
+	private record Some<T>(T value) implements Option<T> {
+		@Override
+		public <R> Option<R> map(F1R<T, R> mapper) {
+			return new Some<R>(mapper.apply(this.value));
+		}
+
+		@Override
+		public T orElse(T other) {
+			return this.value;
+		}
+
+		@Override
+		public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
+			return mapper.apply(this.value);
+		}
+
+		@Override
+		public T orElseGet(FR<T> other) {
+			return this.value;
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return Stream.of(this.value);
+		}
+
+		@Override
+		public Option<T> or(FR<Option<T>> other) {
+			return this;
+		}
+	}
+
+	private static final class None<T> implements Option<T> {
+		@Override
+		public <R> Option<R> map(F1R<T, R> mapper) {
+			return new None<R>();
+		}
+
+		@Override
+		public T orElse(T other) {
+			return other;
+		}
+
+		@Override
+		public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
+			return new None<R>();
+		}
+
+		@Override
+		public T orElseGet(FR<T> other) {
+			return other.apply();
+		}
+
+		@Override
+		public Stream<T> stream() {
+			return Stream.empty();
+		}
+
+		@Override
+		public Option<T> or(FR<Option<T>> other) {
+			return other.apply();
 		}
 	}
 
@@ -430,7 +430,7 @@ public class Main {
 
 	public static void main(String[] args) {
 		var ioExceptionOption = new Main().run();
-		if (ioExceptionOption instanceof Option.Some<IOException>(
+		if (ioExceptionOption instanceof Some<IOException>(
 				var value
 		)) {
 			//noinspection CallToPrintStackTrace
@@ -487,7 +487,7 @@ public class Main {
 		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
-			if (!(maybeNext instanceof Option.Some<Character>(var value))) {
+			if (!(maybeNext instanceof Some<Character>(var value))) {
 				break;
 			}
 
@@ -736,27 +736,27 @@ public class Main {
 		}
 
 		final var maybeEnum = this.compileStructure("enum", input);
-		if (maybeEnum instanceof Option.Some<StructMember>) {
+		if (maybeEnum instanceof Some<StructMember>) {
 			return maybeEnum;
 		}
 
 		final var maybeInterface = this.compileStructure("interface", input);
-		if (maybeInterface instanceof Option.Some<StructMember>) {
+		if (maybeInterface instanceof Some<StructMember>) {
 			return maybeInterface;
 		}
 
 		final var maybeRecord = this.compileStructure("record", input);
-		if (maybeRecord instanceof Option.Some<StructMember>) {
+		if (maybeRecord instanceof Some<StructMember>) {
 			return maybeRecord;
 		}
 
 		final var maybeClass = this.compileStructure("class", input);
-		if (maybeClass instanceof Option.Some<StructMember>) {
+		if (maybeClass instanceof Some<StructMember>) {
 			return maybeClass;
 		}
 
 		final var maybeEnumValues = this.compileEnumValues(input, structName);
-		if (maybeEnumValues instanceof Option.Some<StructMember>) {
+		if (maybeEnumValues instanceof Some<StructMember>) {
 			return maybeEnumValues;
 		}
 
@@ -918,12 +918,12 @@ public class Main {
 		}
 
 		final var maybeIf = this.compileConditional("if", indent, stripped);
-		if (maybeIf instanceof Option.Some<String>(var result)) {
+		if (maybeIf instanceof Some<String>(var result)) {
 			return result;
 		}
 
 		final var maybeWhile = this.compileConditional("while", indent, stripped);
-		if (maybeWhile instanceof Option.Some<String>(var result)) {
+		if (maybeWhile instanceof Some<String>(var result)) {
 			return result;
 		}
 
@@ -984,7 +984,7 @@ public class Main {
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Option.Some<String>(var value)) {
+		if (maybeInvokable instanceof Some<String>(var value)) {
 			return value;
 		}
 
@@ -1065,7 +1065,7 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, "||"))
 				.or(() -> this.compileOperator(stripped, ">="));
 
-		if (maybeOperator instanceof Option.Some<String>) {
+		if (maybeOperator instanceof Some<String>) {
 			return maybeOperator;
 		}
 
@@ -1075,7 +1075,7 @@ public class Main {
 			final var memberName = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(memberName)) {
 				final var maybeInstance = this.compileExpression(instanceString);
-				if (maybeInstance instanceof Option.Some<String>(var value)) {
+				if (maybeInstance instanceof Some<String>(var value)) {
 					final String instance;
 					instance = value;
 					final String generated;
@@ -1095,7 +1095,7 @@ public class Main {
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Option.Some<String>) {
+		if (maybeInvokable instanceof Some<String>) {
 			return maybeInvokable;
 		}
 
@@ -1121,8 +1121,8 @@ public class Main {
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
-			if (this.compileExpression(leftString) instanceof Option.Some<String>(var leftCompiled)) {
-				if (this.compileExpression(right) instanceof Option.Some<String>(var rightCompiled)) {
+			if (this.compileExpression(leftString) instanceof Some<String>(var leftCompiled)) {
+				if (this.compileExpression(right) instanceof Some<String>(var rightCompiled)) {
 					return Option.of(leftCompiled + " " + operator + " " + rightCompiled);
 				}
 			}
@@ -1160,7 +1160,7 @@ public class Main {
 						.collect(Collectors.joining(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
-				if (maybeCaller instanceof Option.Some<String>(var value)) {
+				if (maybeCaller instanceof Some<String>(var value)) {
 					return Option.of(value + "(" + joinedArguments + ")");
 				}
 			}

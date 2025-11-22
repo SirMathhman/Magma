@@ -9,21 +9,14 @@ struct FR {
 	FRTable<T> table;
 	void* data;
 };
-template <typename T>
-struct Some {
-	T value;
-};
-template <typename T>
-struct None {
-};
 enum OptionVariant {
-	Option.NoneVariant,
-	Option.SomeVariant
+	NoneVariant,
+	SomeVariant
 };
 template <typename T>
 union OptionData {
-	Option.NoneData<T> Option.None;
-	Option.SomeData<T> Option.Some;
+	NoneData<T> None;
+	SomeData<T> Some;
 };
 template <typename T>
 struct Option {
@@ -155,6 +148,13 @@ struct EscapedFolder {
 };
 struct ValueFolder {
 };
+template <typename T>
+struct Some {
+	T value;
+};
+template <typename T>
+struct None {
+};
 struct Main {
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
@@ -185,80 +185,6 @@ T apply_FR(void* _this){
 	}
 	return _ret;
 }
-template <typename T>
-Option<T> toOption_Some(void* _this){
-	Some<T> this = *((Some<T>*) _this);
-	OptionData<T> data;
-	data.Some = this;
-	return { OptionVariant.SomeVariant, data };
-}
-template <typename T, typename R>
-Option<R> map_Some(void* _this, F1R<T, R> mapper){
-	Some<T>* this = (Some<T>*) _this;
-	return new_Some<R>(mapper.apply(this->value));
-}
-template <typename T>
-T orElse_Some(void* _this, T other){
-	Some<T>* this = (Some<T>*) _this;
-	return this->value;
-}
-template <typename T, typename R>
-Option<R> flatMap_Some(void* _this, F1R<T, Option<R>> mapper){
-	Some<T>* this = (Some<T>*) _this;
-	return mapper.apply(this->value);
-}
-template <typename T>
-T orElseGet_Some(void* _this, FR<T> other){
-	Some<T>* this = (Some<T>*) _this;
-	return this->value;
-}
-template <typename T>
-Stream<T> stream_Some(void* _this){
-	Some<T>* this = (Some<T>*) _this;
-	return Stream.of(this->value);
-}
-template <typename T>
-Option<T> or_Some(void* _this, FR<Option<T>> other){
-	Some<T>* this = (Some<T>*) _this;
-	return this;
-}
-template <typename T>
-Option<T> toOption_None(void* _this){
-	None<T> this = *((None<T>*) _this);
-	OptionData<T> data;
-	data.None = this;
-	return { OptionVariant.NoneVariant, data };
-}
-template <typename T, typename R>
-Option<R> map_None(void* _this, F1R<T, R> mapper){
-	None<T>* this = (None<T>*) _this;
-	return new_None<R>();
-}
-template <typename T>
-T orElse_None(void* _this, T other){
-	None<T>* this = (None<T>*) _this;
-	return other;
-}
-template <typename T, typename R>
-Option<R> flatMap_None(void* _this, F1R<T, Option<R>> mapper){
-	None<T>* this = (None<T>*) _this;
-	return new_None<R>();
-}
-template <typename T>
-T orElseGet_None(void* _this, FR<T> other){
-	None<T>* this = (None<T>*) _this;
-	return other.apply();
-}
-template <typename T>
-Stream<T> stream_None(void* _this){
-	None<T>* this = (None<T>*) _this;
-	return Stream.empty();
-}
-template <typename T>
-Option<T> or_None(void* _this, FR<Option<T>> other){
-	None<T>* this = (None<T>*) _this;
-	return other.apply();
-}
 template <typename T, typename T>
 Option<T> of_Option(void* _this, T value){
 	Option<T>* this = (Option<T>*) _this;
@@ -274,11 +200,11 @@ Option<R> map_Option(void* _this, F1R<T, R> mapper){
 	Option<T>* this = (Option<T>*) _this;
 	Option<R> _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = map_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = map_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = map_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = map_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -287,11 +213,11 @@ T orElse_Option(void* _this, T other){
 	Option<T>* this = (Option<T>*) _this;
 	T _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = orElse_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = orElse_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = orElse_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = orElse_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -301,11 +227,11 @@ Option<R> flatMap_Option(void* _this, F1R<T, Option<R>> mapper){
 	Option<T>* this = (Option<T>*) _this;
 	Option<R> _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = flatMap_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = flatMap_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = flatMap_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = flatMap_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -314,11 +240,11 @@ T orElseGet_Option(void* _this, FR<T> other){
 	Option<T>* this = (Option<T>*) _this;
 	T _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = orElseGet_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = orElseGet_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = orElseGet_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = orElseGet_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -327,11 +253,11 @@ Stream<T> stream_Option(void* _this){
 	Option<T>* this = (Option<T>*) _this;
 	Stream<T> _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = stream_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = stream_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = stream_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = stream_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -340,11 +266,11 @@ Option<T> or_Option(void* _this, FR<Option<T>> other){
 	Option<T>* this = (Option<T>*) _this;
 	Option<T> _ret;
 	switch (this.variant) {
-		case OptionVariant.Option.NoneVariant:
-			_ret = or_Option.None(&this.data.Option.None);
+		case OptionVariant.NoneVariant:
+			_ret = or_None(&this.data.None);
 			break;
-		case OptionVariant.Option.SomeVariant:
-			_ret = or_Option.Some(&this.data.Option.Some);
+		case OptionVariant.SomeVariant:
+			_ret = or_Some(&this.data.Some);
 			break;
 	}
 	return _ret;
@@ -692,7 +618,7 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 		var current = state.append(next);
 		while (true) {
 			var maybeTuple = current.popAndAppendToTuple();
-			if (/*!(maybeTuple instanceof Option.Some<Tuple<State, Character>>(var value))*/) {
+			if (/*!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))*/) {
 				/*break*/;
 			}
 			current = value.left;
@@ -722,7 +648,7 @@ State apply_ValueFolder(void* _this, State state, Character next){
 	var appended = state.append(next);
 	if (next == '-') {
 		var peeked = appended.peek();
-		if (/*peeked instanceof Option.Some<Character>(var value) && value == '>'*/) {
+		if (/*peeked instanceof Some<Character>(var value) && value == '>'*/) {
 			return appended.popAndAppendToOption().orElse(appended);
 		}
 		else {
@@ -736,6 +662,80 @@ State apply_ValueFolder(void* _this, State state, Character next){
 				return appended.exit();
 			}*/
 	return appended;
+}
+template <typename T>
+Option<T> toOption_Some(void* _this){
+	Some<T> this = *((Some<T>*) _this);
+	OptionData<T> data;
+	data.Some = this;
+	return { OptionVariant.SomeVariant, data };
+}
+template <typename T, typename R>
+Option<R> map_Some(void* _this, F1R<T, R> mapper){
+	Some<T>* this = (Some<T>*) _this;
+	return new_Some<R>(mapper.apply(this->value));
+}
+template <typename T>
+T orElse_Some(void* _this, T other){
+	Some<T>* this = (Some<T>*) _this;
+	return this->value;
+}
+template <typename T, typename R>
+Option<R> flatMap_Some(void* _this, F1R<T, Option<R>> mapper){
+	Some<T>* this = (Some<T>*) _this;
+	return mapper.apply(this->value);
+}
+template <typename T>
+T orElseGet_Some(void* _this, FR<T> other){
+	Some<T>* this = (Some<T>*) _this;
+	return this->value;
+}
+template <typename T>
+Stream<T> stream_Some(void* _this){
+	Some<T>* this = (Some<T>*) _this;
+	return Stream.of(this->value);
+}
+template <typename T>
+Option<T> or_Some(void* _this, FR<Option<T>> other){
+	Some<T>* this = (Some<T>*) _this;
+	return this;
+}
+template <typename T>
+Option<T> toOption_None(void* _this){
+	None<T> this = *((None<T>*) _this);
+	OptionData<T> data;
+	data.None = this;
+	return { OptionVariant.NoneVariant, data };
+}
+template <typename T, typename R>
+Option<R> map_None(void* _this, F1R<T, R> mapper){
+	None<T>* this = (None<T>*) _this;
+	return new_None<R>();
+}
+template <typename T>
+T orElse_None(void* _this, T other){
+	None<T>* this = (None<T>*) _this;
+	return other;
+}
+template <typename T, typename R>
+Option<R> flatMap_None(void* _this, F1R<T, Option<R>> mapper){
+	None<T>* this = (None<T>*) _this;
+	return new_None<R>();
+}
+template <typename T>
+T orElseGet_None(void* _this, FR<T> other){
+	None<T>* this = (None<T>*) _this;
+	return other.apply();
+}
+template <typename T>
+Stream<T> stream_None(void* _this){
+	None<T>* this = (None<T>*) _this;
+	return Stream.empty();
+}
+template <typename T>
+Option<T> or_None(void* _this, FR<Option<T>> other){
+	None<T>* this = (None<T>*) _this;
+	return other.apply();
 }
 public Main_Main(void* _this){
 	Main* this = (Main*) _this;
@@ -765,7 +765,7 @@ char* wrap_Main(void* _this, char* input){
 void main_Main(void* _this, char** args){
 	Main* this = (Main*) _this;
 	var ioExceptionOption = new_/*Main().run*/();
-	if (/*ioExceptionOption instanceof Option.Some<IOException>(
+	if (/*ioExceptionOption instanceof Some<IOException>(
 				var value
 		)*/) {
 		/*//noinspection CallToPrintStackTrace
@@ -823,7 +823,7 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	var current = new_State(input);
 	while (true) {
 		var maybeNext = current.pop();
-		if (/*!(maybeNext instanceof Option.Some<Character>(var value))*/) {
+		if (/*!(maybeNext instanceof Some<Character>(var value))*/) {
 			/*break*/;
 		}
 		/*final Character next*/;
@@ -1096,23 +1096,23 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 		return Option.empty();
 	}
 	var maybeEnum = this->compileStructure("enum", input);
-	if (/*maybeEnum instanceof Option.Some<StructMember>*/) {
+	if (/*maybeEnum instanceof Some<StructMember>*/) {
 		return maybeEnum;
 	}
 	var maybeInterface = this->compileStructure("interface", input);
-	if (/*maybeInterface instanceof Option.Some<StructMember>*/) {
+	if (/*maybeInterface instanceof Some<StructMember>*/) {
 		return maybeInterface;
 	}
 	var maybeRecord = this->compileStructure("record", input);
-	if (/*maybeRecord instanceof Option.Some<StructMember>*/) {
+	if (/*maybeRecord instanceof Some<StructMember>*/) {
 		return maybeRecord;
 	}
 	var maybeClass = this->compileStructure("class", input);
-	if (/*maybeClass instanceof Option.Some<StructMember>*/) {
+	if (/*maybeClass instanceof Some<StructMember>*/) {
 		return maybeClass;
 	}
 	var maybeEnumValues = this->compileEnumValues(input, structName);
-	if (/*maybeEnumValues instanceof Option.Some<StructMember>*/) {
+	if (/*maybeEnumValues instanceof Some<StructMember>*/) {
 		return maybeEnumValues;
 	}
 	var i = stripped.indexOf("(");
@@ -1276,11 +1276,11 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		return this->generateIndent(indent) + this->compileMethodStatement(substring) + ";";
 	}
 	var maybeIf = this->compileConditional("if", indent, stripped);
-	if (/*maybeIf instanceof Option.Some<String>(var result)*/) {
+	if (/*maybeIf instanceof Some<String>(var result)*/) {
 		return result;
 	}
 	var maybeWhile = this->compileConditional("while", indent, stripped);
-	if (/*maybeWhile instanceof Option.Some<String>(var result)*/) {
+	if (/*maybeWhile instanceof Some<String>(var result)*/) {
 		return result;
 	}
 	if (stripped.startsWith("else ")) {
@@ -1337,7 +1337,7 @@ char* compileMethodStatement_Main(void* _this, char* input){
 		return "return " + this->compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
-	if (/*maybeInvokable instanceof Option.Some<String>(var value)*/) {
+	if (/*maybeInvokable instanceof Some<String>(var value)*/) {
 		return value;
 	}
 	var i = stripped.indexOf("=");
@@ -1394,7 +1394,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		}
 	}
 	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
-	if (/*maybeOperator instanceof Option.Some<String>*/) {
+	if (/*maybeOperator instanceof Some<String>*/) {
 		return maybeOperator;
 	}
 	var i = stripped.lastIndexOf(".");
@@ -1403,7 +1403,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		var memberName = stripped.substring(i + 1).strip();
 		if (this->isIdentifier(memberName)) {
 			var maybeInstance = this->compileExpression(instanceString);
-			if (/*maybeInstance instanceof Option.Some<String>(var value)*/) {
+			if (/*maybeInstance instanceof Some<String>(var value)*/) {
 				/*final String instance*/;
 				instance = value;
 				/*final String generated*/;
@@ -1421,7 +1421,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		return Option.of(stripped);
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
-	if (/*maybeInvokable instanceof Option.Some<String>*/) {
+	if (/*maybeInvokable instanceof Some<String>*/) {
 		return maybeInvokable;
 	}
 	if (this->isNumber(stripped)) {
@@ -1444,8 +1444,8 @@ Option<char*> compileOperator_Main(void* _this, char* input, char* operator){
 	if (i1 >= 0) {
 		var leftString = input.substring(0, i1);
 		var right = input.substring(i1 + operator.length());
-		if (/*this.compileExpression(leftString) instanceof Option.Some<String>(var leftCompiled)*/) {
-			if (/*this.compileExpression(right) instanceof Option.Some<String>(var rightCompiled)*/) {
+		if (/*this.compileExpression(leftString) instanceof Some<String>(var leftCompiled)*/) {
+			if (/*this.compileExpression(right) instanceof Some<String>(var rightCompiled)*/) {
 				return Option.of(leftCompiled + " " + operator + " " + rightCompiled);
 			}
 		}
@@ -1482,7 +1482,7 @@ Option<char*> compileInvokable_Main(void* _this, char* stripped){
 						.collect(Collectors.joining(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
-				if (maybeCaller instanceof Option.Some<String>(var value)) {
+				if (maybeCaller instanceof Some<String>(var value)) {
 					return Option.of(value + "(" + joinedArguments + ")");
 				}
 			}
