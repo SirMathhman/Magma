@@ -547,7 +547,14 @@ public class Main {
 		}
 
 		if (next == '}' && appended.isShallow()) {
-			return appended.advance().exit();
+			final State appended1;
+			if (appended.peek() instanceof Some<Character>(var peek) && peek == ';') {
+				appended1 = appended.popAndAppendToOption().orElse(appended);
+			} else {
+				appended1 = appended;
+			}
+
+			return appended1.advance().exit();
 		}
 
 		if (next == '{' || next == '(') {
@@ -978,7 +985,7 @@ public class Main {
 		}
 
 		if (stripped.startsWith("//")) {
-			return generateIndent(indent) + stripped;
+			return this.generateIndent(indent) + stripped;
 		}
 
 		return System.lineSeparator() + "\t" + wrap(stripped);

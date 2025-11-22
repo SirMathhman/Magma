@@ -801,11 +801,10 @@ Option<IOException> run_Main(void* _this){
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");
 	var input = this->readString(source).mapValue(F? { alloc(this), F?Table { compile }});
-	/*return switch (input) {
+	return /*switch (input) {
 			case Err<String, IOException> v -> Option.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
-		}*/
-	/**/;
+		}*/;
 }
 Option<IOException> writeString_Main(void* _this, Path target, char* output){
 	Main* this = (Main*) _this;
@@ -882,7 +881,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 		return appended.advance();
 	}
 	if (next == '}' && appended.isShallow()) {
-		return appended.advance().exit();
+		State appended1;
+		if (appended.peek().variant = ?.SomeVariant) {
+			appended1 = appended.popAndAppendToOption().orElse(appended);
+		}
+		else {
+			appended1 = appended;
+		}
+		return appended1.advance().exit();
 	}
 	if (next == '{' || next == '(') {
 		return appended.enter();
@@ -1205,22 +1211,20 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 				outputContent = "?";
 			}
 			var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(Collectors.joining(", "));
-	/*final var modifiedMethodDeclaration = switch (methodDeclaration) {
+			var modifiedMethodDeclaration = /* switch (methodDeclaration) {
 					case Constructor constructor -> constructor;
 					case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
 					case Placeholder placeholder -> placeholder;
-				}*/
-			/**/;
+				}*/;
 			var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 			var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			this->functions.add(generated);
 			var parameterTypes = parameters.stream().map(F? { alloc(Declaration), F?Table { type }}).toList();
-	/*return switch (methodDeclaration) {
+			return /*switch (methodDeclaration) {
 					case Constructor _ -> Option.empty();
 					case Declaration member -> Option.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
 					case Placeholder placeholder -> Option.of(placeholder);
-				}*/
-			/**/;
+				}*/;
 		}
 	}
 	return Option.of(new_Placeholder(stripped));
@@ -1337,7 +1341,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		}
 	}
 	if (stripped.startsWith("//")) {
-		return generateIndent(indent) + stripped;
+		return this->generateIndent(indent) + stripped;
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
