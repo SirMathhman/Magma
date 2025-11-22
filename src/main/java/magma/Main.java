@@ -304,7 +304,7 @@ public class Main {
 		if (!withEnd.endsWith("}")) {
 			return Optional.empty();
 		}
-		final var content = withEnd.substring(0, withEnd.length() - 1);
+		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = new ArrayList<String>();
 		final var i2 = beforeContent.indexOf("permits ");
@@ -383,6 +383,17 @@ public class Main {
 			dependencies.append(conversionFunction);
 		}
 
+		final var joinedRecordFields =
+				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
+
+		var finalTypeParameters = typeParameters;
+		List<String> finalVariants = variants;
+		final var outputContent = compileStatements(inputContent,
+																								input1 -> compileClassSegment(input1,
+																																							name,
+																																							finalTypeParameters,
+																																							finalVariants));
+
 		if (modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
 
@@ -419,15 +430,9 @@ public class Main {
 			fields += table + data;
 		}
 
-		final var joinedRecordFields =
-				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
-
-		var finalTypeParameters = typeParameters;
-		List<String> finalVariants = variants;
 		return Optional.of(
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() +
-				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
+				"};" + System.lineSeparator() + outputContent);
 	}
 
 	private static String joinTypeParameters(List<String> typeParameters) {
