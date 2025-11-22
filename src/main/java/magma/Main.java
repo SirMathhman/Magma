@@ -848,7 +848,7 @@ public class Main {
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(1) + "}";
+									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}";
 					}
 				}
 			}

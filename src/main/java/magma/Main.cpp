@@ -522,7 +522,7 @@ State apply_ValueFolder(void* _this, State state, Character next){
 		var peeked = appended.peek();
 		if (peeked.isPresent() && peeked.get() == '>') {
 			return appended.popAndAppendToOption().orElse(appended);
-	}
+		}
 		else {
 			return appended;
 		}
@@ -702,7 +702,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 			beforeContent = beforeContent.substring(0, i3);
 			var substring = substring1.substring(0, substring1.length() - 1);
 			typeParameters = this->splitValues(substring);
-	}
+		}
 	}
 	if (/*!this.isIdentifier(beforeContent)*/) {
 		return Optional.empty();
@@ -841,13 +841,13 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				var inputContent = withBraces.substring(1, withBraces.length() - 1);
 				maybeCompiled = Optional.of(this->compileMethodsSegments(inputContent, 1));
-	}
+			}
 			/*String outputContent*/;
 			if (/*methodDeclaration instanceof Constructor*/) {
 				var compiled = maybeCompiled.orElse("?");
 				outputContent = /*
 							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this")*/;
-	}
+			}
 	/*else if (methodDeclaration instanceof Declaration declaration) {
 					parameters.addFirst(new Declaration("void*", "_this"));
 
@@ -888,7 +888,7 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 					case Placeholder placeholder -> Optional.of(placeholder);
 				}*/
 			/**/;
-	}
+		}
 	}
 	return Optional.of(new_Placeholder(stripped));
 }
@@ -987,7 +987,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(1) + "}";
+									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}";
 					}
 				}
 			}*/
@@ -998,7 +998,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 			var substring1 = substring.substring(1, substring.length() - 1);
 			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 this.generateIndent(indent) + "}";
-	}
+		}
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
@@ -1049,13 +1049,13 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 				/*final String generated*/;
 				if (instance.equals("this")) {
 					generated = "this->" + memberName;
-	}
+				}
 				else {
 					generated = instance + "." + memberName;
 				}
 				return Optional.of(generated);
-	}
-	}
+			}
+		}
 	}
 	if (this->isIdentifier(stripped)) {
 		return Optional.of(stripped);
@@ -1083,8 +1083,8 @@ Optional<char*> compileOperator_Main(void* _this, char* input, char* operator){
 			var rightResult = this->compileExpression(right);
 			if (rightResult.isPresent()) {
 				return Optional.of(/*leftResult.get(*/) + " " + operator + " " + rightResult.get(/*)*/);
-	}
-	}
+			}
+		}
 	}
 	return Optional.empty();
 }
@@ -1168,11 +1168,11 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 			}*/
 		if (/*!this.isIdentifier(name)*/) {
 			return Optional.empty();
-	}
+		}
 		if (typeSeparator < 0) {
 			var type = this->compileType(beforeName);
 			return Optional.of(new_Declaration(type, name));
-	}
+		}
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
 		var copy = new_ArrayList<char*>(typeParameters);
 		if (beforeType.endsWith(">")) {
@@ -1182,11 +1182,11 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 				var substring2 = substring.substring(i + 1);
 				copy.addAll(this->splitValues(substring2));
 				beforeType = substring.substring(0, i);
-	}
-	}
+			}
+		}
 		if (this->isIdentifier(name)) {
 			return Optional.of(new_Declaration(copy, Optional.of(beforeType), this->compileType(beforeName.substring(typeSeparator + 1)), name));
-	}
+		}
 	}
 	return Optional.empty();
 }
@@ -1216,7 +1216,7 @@ Type parseType_Main(void* _this, char* input){
 			var parameters = substring.substring(i + 1);
 			var list = this->divide(parameters, new_ValueFolder()).map(/*this::parseType*/).toList();
 			return new_TemplateType(base, list);
-	}
+		}
 	}
 	if (this->isIdentifier(stripped)) {
 		return new_Identifier(stripped);
