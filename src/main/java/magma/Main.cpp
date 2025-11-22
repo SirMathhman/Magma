@@ -281,6 +281,7 @@ template <typename T>
 struct ListCollector {
 };
 struct Main {
+	List<char*> functionDeclarations;
 	List<char*> globals;
 	List<char*> structures;
 	List<char*> functions;
@@ -289,6 +290,8 @@ struct Main {
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
+Option<IOException> writeString_Main(Path target, char* output);
+Result<char*, IOException> readString_Main(Path source);
 Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
@@ -1384,6 +1387,7 @@ List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
 public Main_Main(void* _ref){
 	Main* _this = (Main*) _ref;
 	_this->structures = new_JavaList<char*>();
+	_this->functionDeclarations = new_JavaList<char*>();
 	_this->functions = new_JavaList<char*>();
 	_this->globals = new_JavaList<char*>();
 	_this->counter = 0;
@@ -1431,15 +1435,14 @@ Option<IOException> run_Main(void* _ref){
 	var input = _this->readString(source).mapValue(F? { alloc(this), F?Table { compile }});
 	return _switch;
 }
-Option<IOException> writeString_Main(Path target, char* output);
-Result<char*, IOException> readString_Main(Path source);
 char* compile_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var all = _this->compileStatements(input, F? { alloc(this), F?Table { compileRootSegment }});
 	var joinedStructures = _this->joinStrings("", _this->structures);
 	var joinedGlobals = _this->joinStrings("", _this->globals);
-	var joinedF1Rs = _this->joinStrings("", _this->functions);
-	return joinedStructures + joinedGlobals + joinedF1Rs + all;
+	var joinedFunctionDeclarations = _this->joinStrings("", _this->functionDeclarations);
+	var joinedFunctions = _this->joinStrings("", _this->functions);
+	return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 }
 char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures){
 	Main* _this = (Main*) _ref;
@@ -1764,7 +1767,7 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
 		var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
 		var modifiedMethodDeclaration = declaration.mapName(lambda23);
-		_this->functions = _this->functions.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+		_this->functionDeclarations = _this->functionDeclarations.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 		return new_Some<StructMember>(new_EmptyStructMember());
 	}
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {

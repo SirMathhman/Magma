@@ -748,7 +748,7 @@ public class Main {
 			return tList.addLast(t);
 		}
 	}
-
+	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
 	private List<String> functions;
@@ -756,7 +756,10 @@ public class Main {
 
 	public Main() {
 		this.structures = new JavaList<String>();
+
+		this.functionDeclarations = new JavaList<String>();
 		this.functions = new JavaList<String>();
+
 		this.globals = new JavaList<String>();
 		this.counter = 0;
 	}
@@ -832,8 +835,10 @@ public class Main {
 
 		final var joinedStructures = this.joinStrings("", this.structures);
 		final var joinedGlobals = this.joinStrings("", this.globals);
-		final var joinedF1Rs = this.joinStrings("", this.functions);
-		return joinedStructures + joinedGlobals + joinedF1Rs + all;
+
+		final var joinedFunctionDeclarations = this.joinStrings("", this.functionDeclarations);
+		final var joinedFunctions = this.joinStrings("", this.functions);
+		return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 	}
 
 	private String joinStrings(String delimiter, List<String> structures) {
@@ -1199,8 +1204,9 @@ public class Main {
 			final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
 
 			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
-			this.functions = this.functions.addLast(
+			this.functionDeclarations = this.functionDeclarations.addLast(
 					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+
 			return new Some<StructMember>(new EmptyStructMember());
 		}
 
@@ -1609,6 +1615,7 @@ public class Main {
 				this.functions = this.functions.addLast(
 						"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
 						System.lineSeparator());
+
 				return new Some<String>(generatedName);
 			} else {
 				final var generatedName = this.generateName();
@@ -1617,6 +1624,7 @@ public class Main {
 						"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
 						this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
 						System.lineSeparator() + "}" + System.lineSeparator());
+
 				return new Some<String>(generatedName);
 			}
 		}
