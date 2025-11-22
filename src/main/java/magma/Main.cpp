@@ -175,32 +175,32 @@ Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
 	return /*new Ok<R, X>(mapper.apply(this.value))*/;
 }
-/*depth;
-
-		public*/ State_Main(void* _this, char* input){
-	Main this = *((Main*) _this);
+struct State {
+};
+public State_State(void* _this, char* input){
+	State this = *((State*) _this);
 	this.input = input;
 	this.index = /*0*/;
 	this.buffer = /*new StringBuilder()*/;
 	this.depth = /*0*/;
 	this.segments = /*new ArrayList<String>()*/;
-	/*}
-
-		private boolean isShallow() {
-			return this*/.depth = /*= 1*/;
-	/*}
-
-		private boolean isLevel() {
-			return this*/.depth = /*= 0*/;
-	/*}
-
-		private State append(Character next) {
-			this.buffer.append(next)*/;
+}
+boolean isShallow_State(void* _this){
+	State this = *((State*) _this);
+	return /*this.depth == 1*/;
+}
+boolean isLevel_State(void* _this){
+	State this = *((State*) _this);
+	return /*this.depth == 0*/;
+}
+State append_State(void* _this, Character next){
+	State this = *((State*) _this);
+	/*this.buffer.append(next)*/;
 	return this;
-	/*}
-
-		private Optional<Character> pop() {
-			if (this.index < this.input.length()) {
+}
+Optional<Character> pop_State(void* _this){
+	State this = *((State*) _this);
+	/*if (this.index < this.input.length()) {
 				final var value = this.input.charAt(this.index);
 				this.index++;
 				return Optional.of(value);
@@ -208,27 +208,26 @@ Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
 	/*else {
 				return Optional.empty();
 			}*/
-	/*}
-
-		private State advance() {
-			this.segments.add(this.buffer.toString())*/;
+}
+State advance_State(void* _this){
+	State this = *((State*) _this);
+	/*this.segments.add(this.buffer.toString())*/;
 	/*this.buffer.setLength(0)*/;
 	return this;
-	/*}
-
-		private State enter() {
-			this*/.depth = /*this.depth + 1*/;
+}
+State enter_State(void* _this){
+	State this = *((State*) _this);
+	this.depth = /*this.depth + 1*/;
 	return this;
-	/*}
-
-		private State exit() {
-			this*/.depth = /*this.depth - 1*/;
+}
+State exit_State(void* _this){
+	State this = *((State*) _this);
+	this.depth = /*this.depth - 1*/;
 	return this;
-	/*}
-
-		private Stream<String> stream() {
-			return this.segments.stream()*/;
-	/*}*/
+}
+Stream<char*> stream_State(void* _this){
+	State this = *((State*) _this);
+	return /*this.segments.stream()*/;
 }
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -616,6 +615,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var maybeRecord = compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
 			return maybeRecord.get();
+		}
+
+		final var maybeClass = compileStructure("class", input);
+		if (maybeClass.isPresent()) {
+			return maybeClass.get();
 		}
 
 		final var maybeEnumValues = compileEnumValues(input, structName);
