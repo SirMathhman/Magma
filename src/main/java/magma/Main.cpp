@@ -612,7 +612,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		String fields = "";
+		var fields = "";
 		var dependencies = new StringBuilder();
 		for (var implementee : implementees) {
 			final var identifier = implementee.toBaseName();
@@ -636,7 +636,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
 
 		var finalTypeParameters = typeParameters;
-		List<String> finalVariants = variants;
+		var finalVariants = variants;
 		final var members = this
 				.divide(inputContent, this::foldStatement)
 				.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))

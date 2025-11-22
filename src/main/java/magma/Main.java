@@ -211,7 +211,7 @@ public class Main {
 		}
 	}
 
-	private final class EmptyStructMember implements StructMember {
+	private static final class EmptyStructMember implements StructMember {
 		@Override
 		public String generate() {
 			return "";
@@ -417,7 +417,7 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		String fields = "";
+		var fields = "";
 		var dependencies = new StringBuilder();
 		for (var implementee : implementees) {
 			final var identifier = implementee.toBaseName();
@@ -441,7 +441,7 @@ public class Main {
 				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
 
 		var finalTypeParameters = typeParameters;
-		List<String> finalVariants = variants;
+		var finalVariants = variants;
 		final var members = this
 				.divide(inputContent, this::foldStatement)
 				.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
