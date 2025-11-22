@@ -473,7 +473,7 @@ Folder toFolder_EscapedFolder(void* _this){
 }
 State apply_EscapedFolder(void* _this, State state, Character next){
 	EscapedFolder* this = (EscapedFolder*) _this;
-	if (/*next == '\''*/) {
+	if (next == '\'') {
 		var appended = state.append(next);
 		return appended.popAndAppendToTuple().map(/*tuple -> {
 					if (tuple.right == '\\') {
@@ -482,7 +482,7 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 					return tuple.left;
 				}*/).flatMap(/*State::popAndAppendToOption*/).orElse(appended);
 	}
-	if (/*next == '\"'*/) {
+	if (next == '\"') {
 		var current = state.append(next);
 	/*while (true) {
 					final var maybeTuple = current.popAndAppendToTuple();
@@ -514,13 +514,13 @@ Folder toFolder_ValueFolder(void* _this){
 }
 State apply_ValueFolder(void* _this, State state, Character next){
 	ValueFolder* this = (ValueFolder*) _this;
-	if (/*next == ',' && state.isLevel()*/) {
+	if (next == ',' && state.isLevel()) {
 		return state.advance();
 	}
 	var appended = state.append(next);
-	if (/*next == '-'*/) {
+	if (next == '-') {
 		var peeked = appended.peek();
-		if (/*peeked.isPresent() && peeked.get() == '>'*/) {
+		if (peeked.isPresent() && peeked.get() == '>') {
 			return appended.popAndAppendToOption().orElse(appended);
 	}
 		else {
@@ -627,10 +627,10 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 State foldStatement_Main(void* _this, State current, Character next){
 	Main* this = (Main*) _this;
 	var appended = current.append(next);
-	if (/*next == ';' && appended.isLevel()*/) {
+	if (next == ';' && appended.isLevel()) {
 		return appended.advance();
 	}
-	if (/*next == '}' && appended.isShallow()*/) {
+	if (next == '}' && appended.isShallow()) {
 		return appended.advance().exit();
 	}
 	/*if (next == '{' || next == '(') {
@@ -838,7 +838,7 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 			var parameters = this->divide(parametersString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).toList().stream().map(/*param -> this.parseDeclaration(param, typeParameters)*/).flatMap(/*Optional::stream*/).collect(Collectors.toCollection(/*ArrayList::new*/));
 			var methodDeclaration = this->parseMethodDeclaration(declarationString, structName, typeParameters);
 			Optional<char*> maybeCompiled = Optional.empty();
-			if (/*withBraces.startsWith("{") && withBraces.endsWith("}")*/) {
+			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				var inputContent = withBraces.substring(1, withBraces.length() - 1);
 				maybeCompiled = Optional.of(this->compileMethodsSegments(inputContent, 1));
 	}
@@ -994,7 +994,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 	}
 	if (stripped.startsWith("else ")) {
 		var substring = stripped.substring("else ".length()).strip();
-		if (/*substring.startsWith("{") && substring.endsWith("}")*/) {
+		if (substring.startsWith("{") && substring.endsWith("}")) {
 			var substring1 = substring.substring(1, substring.length() - 1);
 			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 this.generateIndent(indent) + "}";
@@ -1031,7 +1031,10 @@ char* compileExpressionOrPlaceholder_Main(void* _this, char* input){
 Optional<char*> compileExpression_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
-	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/);
+	if (stripped.startsWith("'") && stripped.endsWith("'")) {
+		return Optional.of(stripped);
+	}
+	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator;
 	}
@@ -1064,7 +1067,7 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 	if (this->isNumber(stripped)) {
 		return Optional.of(stripped);
 	}
-	if (/*stripped.startsWith("\"") && stripped.endsWith("\"")*/) {
+	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
 		return Optional.of(stripped);
 	}
 	return Optional.empty();

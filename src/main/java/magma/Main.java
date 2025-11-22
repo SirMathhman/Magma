@@ -902,11 +902,16 @@ public class Main {
 	private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
 
+		if (stripped.startsWith("'") && stripped.endsWith("'")) {
+			return Optional.of(stripped);
+		}
+
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
 				.or(() -> this.compileOperator(stripped, "<"))
 				.or(() -> this.compileOperator(stripped, "+"))
-				.or(() -> this.compileOperator(stripped, "-"));
+				.or(() -> this.compileOperator(stripped, "-"))
+				.or(() -> this.compileOperator(stripped, "&&"));
 
 		if (maybeOperator.isPresent()) {
 			return maybeOperator;
