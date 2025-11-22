@@ -183,9 +183,6 @@ struct IOError {
 	IOErrorTable table;
 	void* data;
 };
-struct JavaIOError {
-	IOException e;
-};
 struct StringBuilder {
 	List<char> list;
 };
@@ -338,7 +335,7 @@ R apply_F1R(void* _ref, T0 value);template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper);char* generate_Type(void* _ref);char* toBaseName_Type(void* _ref);char* generate_MethodDeclaration(void* _ref);char* generate_StructMember(void* _ref);State apply_Folder(void* _ref, State state, char character);template <typename A, typename B, typename R>
 R apply_F2R(void* _ref, A a, B b);template <typename T, typename C>
 C createInitial_Collector(void* _ref);template <typename T, typename C>
-C fold_Collector(void* _ref, C c, T t);char* display_IOError(void* _ref);char* display_JavaIOError(void* _ref);public StringBuilder_StringBuilder(void* _ref);StringBuilder appendChar_StringBuilder(void* _ref, char next);StringBuilder clear_StringBuilder(void* _ref);StringBuilder appendString_StringBuilder(void* _ref, char* chars);char* toString_StringBuilder(void* _ref);template <typename T, typename T>
+C fold_Collector(void* _ref, C c, T t);char* display_IOError(void* _ref);public StringBuilder_StringBuilder(void* _ref);StringBuilder appendChar_StringBuilder(void* _ref, char next);StringBuilder clear_StringBuilder(void* _ref);StringBuilder appendString_StringBuilder(void* _ref, char* chars);char* toString_StringBuilder(void* _ref);template <typename T, typename T>
 Stream<T> of_Stream(void* _ref, T value);template <typename T, typename T>
 Stream<T> empty_Stream(void* _ref);template <typename R, typename T>
 Stream<R> map_Stream(void* _ref, F1R<T, R> mapper);template <typename R, typename T>
@@ -386,7 +383,7 @@ int createInitial_AnyMatch(void* _ref);template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t);public Joiner_Joiner(void* _ref);char* createInitial_Joiner(void* _ref);char* fold_Joiner(void* _ref, char* current, char* element);template <typename T>
 List<T> createInitial_ListCollector(void* _ref);template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t);Path get_Paths(char* first, /*String...*/ more);
-Path resolveSibling_JavaPath(void* _ref, char* sibling);Option<IOError> writeString_JavaPath(void* _ref, char* output);Result<char*, IOError> readString_JavaPath(void* _ref);public Main_Main(void* _ref);char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);char* wrap_Main(void* _ref, char* input);void main_Main(void* _ref, char** args);char* generateStatement_Main(void* _ref, int depth, char* content);char* generateIndent_Main(void* _ref, int depth);Option<IOError> run_Main(void* _ref);char* compile_Main(void* _ref, char* input);char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper);char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder folder);Stream<char*> divide_Main(void* _ref, char* input, Folder folder);State foldStatement_Main(void* _ref, State current, char next);char* compileRootSegment_Main(void* _ref, char* input);Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped);char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString);char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);char* generateStatement_Main(void* _ref, char* content);List<char*> splitValues_Main(void* _ref, char* input);int isIdentifier_Main(void* _ref, char* input);Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant);MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);MethodDeclaration toInterface_Main(void* _ref, Declaration value);Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName);Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);char* compileMethodSegment_Main(void* _ref, char* input, int indent);Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);char* compileMethodStatement_Main(void* _ref, char* input);Option<char*> post_Main(void* _ref, char* stripped, char* slice);char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);Option<char*> compileExpression_Main(void* _ref, char* input);Option<char*> compileLambda_Main(void* _ref, char* stripped);char* generateName_Main(void* _ref);Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);Option<char*> compileInvokable_Main(void* _ref, char* stripped);int findCallerStart_Main(void* _ref, char* withoutEnd);int isNumber_Main(void* _ref, char* input);int allDigits_Main(void* _ref, char* input);Option<char*> compileCaller_Main(void* _ref, char* input);Option<Declaration> parseDeclaration_Main(void* _ref, char* input);int findTypeSeparator_Main(void* _ref, char* beforeName);char* compileType_Main(void* _ref, char* input);Type parseType_Main(void* _ref, char* input);Type toType_PrimitiveType(void* _ref){
+Path resolveSibling_JavaPath(void* _ref, char* sibling);Option<IOError> writeString_JavaPath(void* _ref, char* output);Result<char*, IOError> readString_JavaPath(void* _ref);public Main_Main(void* _ref);char* generateTemplateString_Main(void* _ref, List<char*> typeParameters);char* wrap_Main(void* _ref, char* input);void main_Main(void* _ref, char** args);char* generateStatement_Main(void* _ref, int depth, char* content);char* generateIndent_Main(void* _ref, int depth);Option<IOError> run_Main(void* _ref);char* compile_Main(void* _ref, char* input);char* joinStrings_Main(void* _ref, char* delimiter, List<char*> structures);char* compileStatements_Main(void* _ref, char* input, F1R<char*, char*> mapper);char* compileAll_Main(void* _ref, char* input, F1R<char*, char*> mapper, Folder folder);Stream<char*> divide_Main(void* _ref, char* input, Folder folder);State foldStatement_Main(void* _ref, State current, char next);char* compileRootSegment_Main(void* _ref, char* input);Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped);char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString);char* joinTypeParameters_Main(void* _ref, List<char*> typeParameters);char* generateStatement_Main(void* _ref, char* content);List<char*> splitValues_Main(void* _ref, char* input);int isIdentifier_Main(void* _ref, char* input);Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant);MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);MethodDeclaration toInterface_Main(void* _ref, Declaration value);Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName);Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName);Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue);char* compileMethodSegment_Main(void* _ref, char* input, int indent);Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input);char* compileMethodStatement_Main(void* _ref, char* input);Option<char*> post_Main(void* _ref, char* stripped, char* slice);char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);Option<char*> compileExpression_Main(void* _ref, char* input);Option<char*> compileLambda_Main(void* _ref, char* stripped);char* generateName_Main(void* _ref);Option<char*> compileOperator_Main(void* _ref, char* input, char* operator);Option<char*> compileInvokable_Main(void* _ref, char* stripped);int findCallerStart_Main(void* _ref, char* withoutEnd);int isNumber_Main(void* _ref, char* input);int allDigits_Main(void* _ref, char* input);Option<char*> compileCaller_Main(void* _ref, char* input);Option<Declaration> parseDeclaration_Main(void* _ref, char* input);List<char*> collectAnnotations_Main(void* _ref, char* input);int findTypeSeparator_Main(void* _ref, char* beforeName);char* compileType_Main(void* _ref, char* input);Type parseType_Main(void* _ref, char* input);Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
 	data.PrimitiveType = _this;
@@ -776,18 +773,6 @@ char* display_IOError(void* _ref){
 	switch (_this->variant) {
 	}
 	return _ret;
-}
-IOError toIOError_JavaIOError(void* _ref){
-	JavaIOError _this = *((JavaIOError*) _ref);
-	IOErrorData data;
-	data.JavaIOError = _this;
-	return { JavaIOErrorVariant, data };
-}
-char* display_JavaIOError(void* _ref){
-	JavaIOError* _this = (JavaIOError*) _ref;
-	var writer = new_StringWriter();
-	_this->e.printStackTrace(new_PrintWriter(writer));
-	return writer.toString();
 }
 public StringBuilder_StringBuilder(void* _ref){
 	StringBuilder* _this = (StringBuilder*) _ref;
@@ -1723,7 +1708,22 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	if (i < 0) {
 		return new_None<StructMember>();
 	}
-	var modifiers = stripped.substring(0, i).strip();
+	var beforeType = stripped.substring(0, i).strip();
+	char* modifiers;
+	List<char*> annotations = new_JavaList<char*>();
+	var i5 = beforeType.lastIndexOf("\n");
+	if (i5 >= 0) {
+		var substring = beforeType.substring(0, i5);
+		var substring1 = beforeType.substring(i5 + 1);
+		annotations = _this->collectAnnotations(substring);
+		modifiers = substring1;
+	}
+	else {
+		modifiers = beforeType;
+	}
+	if (annotations.contains("Actual")) {
+		return new_Some<StructMember>(new_EmptyStructMember());
+	}
 	var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 	var i1 = afterKeyword.indexOf("{");
 	if (i1 < 0) {
@@ -2409,12 +2409,6 @@ Option<char*> compileCaller_Main(void* _ref, char* input){
 	}
 	return new_None<char*>();
 }
-auto lambda46(void* _ref, auto slice){
-	return slice.substring(1);
-}
-auto lambda47(void* _ref, auto slice){
-	return !slice.isEmpty();
-}
 Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
@@ -2444,7 +2438,7 @@ Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 		List<char*> annotations = new_JavaList<char*>();
 		var i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
-			annotations = new_JavaList<char*>(Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda47).map(lambda46).map(F? { alloc(String), F?Table { strip }}).toList());
+			annotations = _this->collectAnnotations(beforeType.substring(0, i));
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if (_this->isIdentifier(name)) {
@@ -2452,6 +2446,16 @@ Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 		}
 	}
 	return new_None<Declaration>();
+}
+auto lambda46(void* _ref, auto slice){
+	return slice.substring(1);
+}
+auto lambda47(void* _ref, auto slice){
+	return !slice.isEmpty();
+}
+List<char*> collectAnnotations_Main(void* _ref, char* input){
+	Main* _this = (Main*) _ref;
+	return Streams.fromObjArray(input.split(Pattern.quote("\n"))).filter(lambda47).map(lambda46).map(F? { alloc(String), F?Table { strip }}).toList();
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;

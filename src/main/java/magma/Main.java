@@ -125,6 +125,7 @@ public class Main {
 		String display();
 	}
 
+	@Actual
 	private record JavaIOError(IOException e) implements IOError {
 		@Override
 		public String display() {
@@ -971,7 +972,25 @@ public class Main {
 		if (i < 0) {
 			return new None<StructMember>();
 		}
-		final var modifiers = stripped.substring(0, i).strip();
+		final var beforeType = stripped.substring(0, i).strip();
+
+		final String modifiers;
+		List<String> annotations = new JavaList<String>();
+
+		final var i5 = beforeType.lastIndexOf("\n");
+		if (i5 >= 0) {
+			final var substring = beforeType.substring(0, i5);
+			final var substring1 = beforeType.substring(i5 + 1);
+			annotations = this.collectAnnotations(substring);
+			modifiers = substring1;
+		} else {
+			modifiers = beforeType;
+		}
+
+		if (annotations.contains("Actual")) {
+			return new Some<StructMember>(new EmptyStructMember());
+		}
+
 		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
 		final var i1 = afterKeyword.indexOf("{");
@@ -1824,12 +1843,7 @@ public class Main {
 			List<String> annotations = new JavaList<String>();
 			final var i = beforeType.lastIndexOf("\n");
 			if (i >= 0) {
-				annotations = new JavaList<String>(Arrays
-																							 .stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
-																							 .filter(slice -> !slice.isEmpty())
-																							 .map(slice -> slice.substring(1))
-																							 .map(String::strip)
-																							 .toList());
+				annotations = this.collectAnnotations(beforeType.substring(0, i));
 
 				beforeType = beforeType.substring(i + 1).strip();
 			}
@@ -1844,6 +1858,15 @@ public class Main {
 		}
 
 		return new None<Declaration>();
+	}
+
+	private List<String> collectAnnotations(String input) {
+		return Streams
+				.fromObjArray(input.split(Pattern.quote("\n")))
+				.filter(slice -> !slice.isEmpty())
+				.map(slice -> slice.substring(1))
+				.map(String::strip)
+				.toList();
 	}
 
 	private int findTypeSeparator(String beforeName) {
