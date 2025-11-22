@@ -257,9 +257,9 @@ public State_State(void* _this, char* input){
 	State this = *((State*) _this);
 	this.input = input;
 	this.index = 0;
-	this.buffer = new_StringBuilder();
+	/*this.buffer = new StringBuilder*/();
 	this.depth = 0;
-	this.segments = new_ArrayList<char*>();
+	/*this.segments = new ArrayList<String>*/();
 }
 boolean isShallow_State(void* _this){
 	State this = *((State*) _this);
@@ -271,7 +271,7 @@ boolean isLevel_State(void* _this){
 }
 State append_State(void* _this, Character next){
 	State this = *((State*) _this);
-	/*this.buffer.append(next)*/;
+	this.buffer.append(next);
 	return this;
 }
 Optional<Character> pop_State(void* _this){
@@ -287,8 +287,8 @@ Optional<Character> pop_State(void* _this){
 }
 State advance_State(void* _this){
 	State this = *((State*) _this);
-	/*this.segments.add(this.buffer.toString())*/;
-	/*this.buffer.setLength(0)*/;
+	this.segments.add(this.buffer.toString());
+	this.buffer.setLength(0);
 	return this;
 }
 State enter_State(void* _this){
@@ -327,7 +327,7 @@ Type toType_TemplateType(void* _this){
 }
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
-	/*final var typeArguments*/ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /*")*/);
+	/*final var typeArguments = this*/.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /*")*/);
 	return /*this.base + "<" + typeArguments + ">"*/;
 }
 char* toBaseName_TemplateType(void* _this){
@@ -392,11 +392,11 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 }
 public Declaration_Declaration(void* _this, char* type, char* name){
 	Declaration this = *((Declaration*) _this);
-	/*this(Collections.emptyList(), Optional.empty(), type, name)*/;
+	this(Collections.emptyList(), Optional.empty(), type, name);
 }
 char* generate_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
-	/*var beforeDeclaration*/ = generateTemplateString(this.typeParameters());
+	/*var beforeDeclaration = generateTemplateString*/(this.typeParameters());
 	return /*beforeDeclaration + this.type + " " + this*/.name;
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
@@ -411,7 +411,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration this = *((FunctionDeclaration*) _this);
-	/*final var joinedParameterTypes*/ = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, /*"*/, /*"("*/, /*")")*/);
+	/*final var joinedParameterTypes = this*/.parameterTypes.stream(/*).collect(Collectors.joining("*/, /*"*/, /*"("*/, /*")")*/);
 	return /*this.type + " (*" + this.name + ")" + joinedParameterTypes*/;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
@@ -426,9 +426,9 @@ char* generate_EmptyStructMember(void* _this){
 }
 public Main_Main(void* _this){
 	Main this = *((Main*) _this);
-	this.structures = new_ArrayList<char*>();
-	this.functions = new_ArrayList<char*>();
-	this.globals = new_ArrayList<char*>();
+	/*this.structures = new ArrayList<String>*/();
+	/*this.functions = new ArrayList<String>*/();
+	/*this.globals = new ArrayList<String>*/();
 }
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
@@ -446,18 +446,18 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 }
 char* wrap_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	/*final var replaced*/ = input.replace(/*"start"*/, /*"start").replace("end"*/, /*"end"*/);
+	/*final var replaced = input*/.replace(/*"start"*/, /*"start").replace("end"*/, /*"end"*/);
 	return /*"start" + replaced + "end"*/;
 }
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
-	/*new Main().run().ifPresent(Throwable::printStackTrace)*/;
+	new_Main(/*).run().ifPresent(Throwable::printStackTrace*/);
 }
 Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
-	/*final var source*/ = Paths.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
-	/*final var target*/ = source.resolveSibling(/*"Main.cpp"*/);
-	/*final var input*/ = this.readString(/*source).mapValue(this::compile*/);
+	/*final var source = Paths*/.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
+	/*final var target = source*/.resolveSibling(/*"Main.cpp"*/);
+	/*final var input = this*/.readString(/*source).mapValue(this::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
@@ -485,10 +485,10 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 }
 char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	/*final var all*/ = this.compileStatements(input, /*this::compileRootSegment*/);
-	/*final var joinedStructures*/ = String.join(/*""*/, this.structures);
-	/*final var joinedGlobals*/ = String.join(/*""*/, this.globals);
-	/*final var joinedFunctions*/ = String.join(/*""*/, this.functions);
+	/*final var all = this*/.compileStatements(input, /*this::compileRootSegment*/);
+	/*final var joinedStructures = String*/.join(/*""*/, this.structures);
+	/*final var joinedGlobals = String*/.join(/*""*/, this.globals);
+	/*final var joinedFunctions = String*/.join(/*""*/, this.functions);
 	return /*joinedStructures + joinedGlobals + joinedFunctions + all*/;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
@@ -501,7 +501,7 @@ char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunc
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	/*var current*/ = new_State(input);
+	/*var current = new State*/(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -515,7 +515,7 @@ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character,
 }
 State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
-	/*final var appended*/ = current.append(next);
+	/*final var appended = current*/.append(next);
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
@@ -915,6 +915,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return "return " + this.compileExpression(stripped.substring("return ".length()));
 		}
 
+		final var maybeInvokable = this.compileInvokable(stripped);
+		if (maybeInvokable.isPresent()) {
+			return maybeInvokable.get();
+		}
+
 		final var i = stripped.indexOf("=");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
@@ -938,17 +943,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return stripped;
 		}
 
-		if (stripped.endsWith(")")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var i1 = substring.indexOf("(");
-			if (i1 >= 0) {
-				final var caller = substring.substring(0, i1);
-				final var arguments = substring.substring(i1 + 1);
-				final var joinedArguments =
-						this.divide(arguments, this::foldValue).map(this::compileExpression).collect(Collectors.joining(", "));
-
-				return this.compileCaller(caller) + "(" + joinedArguments + ")";
-			}
+		final var caller = this.compileInvokable(stripped);
+		if (caller.isPresent()) {
+			return caller.get();
 		}
 
 		if (this.isNumber(stripped)) {
@@ -963,6 +960,21 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return wrap(stripped);
+	}*//*private Optional<String> compileInvokable(String stripped) {
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i1 = substring.indexOf("(");
+			if (i1 >= 0) {
+				final var caller = substring.substring(0, i1);
+				final var arguments = substring.substring(i1 + 1);
+				final var joinedArguments =
+						this.divide(arguments, this::foldValue).map(this::compileExpression).collect(Collectors.joining(", "));
+
+				return Optional.of(this.compileCaller(caller) + "(" + joinedArguments + ")");
+			}
+		}
+
+		return Optional.empty();
 	}*//*private boolean isNumber(String input) {
 		for (var i = 0; i < input.length(); i++) {
 			final var c = input.charAt(i);

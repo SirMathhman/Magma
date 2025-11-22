@@ -748,6 +748,11 @@ public class Main {
 			return "return " + this.compileExpression(stripped.substring("return ".length()));
 		}
 
+		final var maybeInvokable = this.compileInvokable(stripped);
+		if (maybeInvokable.isPresent()) {
+			return maybeInvokable.get();
+		}
+
 		final var i = stripped.indexOf("=");
 		if (i >= 0) {
 			final var substring = stripped.substring(0, i);
@@ -773,17 +778,9 @@ public class Main {
 			return stripped;
 		}
 
-		if (stripped.endsWith(")")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var i1 = substring.indexOf("(");
-			if (i1 >= 0) {
-				final var caller = substring.substring(0, i1);
-				final var arguments = substring.substring(i1 + 1);
-				final var joinedArguments =
-						this.divide(arguments, this::foldValue).map(this::compileExpression).collect(Collectors.joining(", "));
-
-				return this.compileCaller(caller) + "(" + joinedArguments + ")";
-			}
+		final var caller = this.compileInvokable(stripped);
+		if (caller.isPresent()) {
+			return caller.get();
 		}
 
 		if (this.isNumber(stripped)) {
@@ -798,6 +795,23 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private Optional<String> compileInvokable(String stripped) {
+		if (stripped.endsWith(")")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var i1 = substring.indexOf("(");
+			if (i1 >= 0) {
+				final var caller = substring.substring(0, i1);
+				final var arguments = substring.substring(i1 + 1);
+				final var joinedArguments =
+						this.divide(arguments, this::foldValue).map(this::compileExpression).collect(Collectors.joining(", "));
+
+				return Optional.of(this.compileCaller(caller) + "(" + joinedArguments + ")");
+			}
+		}
+
+		return Optional.empty();
 	}
 
 	private boolean isNumber(String input) {
