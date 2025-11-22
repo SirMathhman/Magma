@@ -2,7 +2,7 @@ struct PrimitiveType {
 	char* content;
 };
 template <typename T>
-struct FRTable<T> {
+struct FRTable {
 	T (*apply)(void*);
 };
 template <typename T>
@@ -25,7 +25,7 @@ struct Option {
 	OptionData data;
 };
 template <typename T0, typename R>
-struct F1RTable<T0, R> {
+struct F1RTable {
 	R (*apply)(void*, T0);
 };
 template <typename T0, typename R>
@@ -1053,7 +1053,7 @@ Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripp
 		var table = this->generateStatement(name + "Table" + joinedTypeParameters + " table");
 		var data = this->generateStatement("void* data");
 		var tableMembers = members.stream().map(F? { alloc(StructMember), F?Table { generate }}).map(F? { alloc(this), F?Table { generateStatement }}).collect(Collectors.joining(""));
-		var vTable = templateString + "struct " + name + "Table" + joinedTypeParameters + " {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
+		var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" + System.lineSeparator();
 		dependencies.append(vTable);
 		fields.append(table + data);
 	}

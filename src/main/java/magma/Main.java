@@ -732,7 +732,7 @@ public class Main {
 
 			final var tableMembers =
 					members.stream().map(StructMember::generate).map(this::generateStatement).collect(Collectors.joining(""));
-			final var vTable = templateString + "struct " + name + "Table" + joinedTypeParameters + " {" + tableMembers +
+			final var vTable = templateString + "struct " + name + "Table {" + tableMembers +
 												 System.lineSeparator() + "};" + System.lineSeparator();
 
 			dependencies.append(vTable);
