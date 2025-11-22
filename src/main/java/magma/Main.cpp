@@ -1,4 +1,5 @@
-struct PrimitiveType {/*private final String content;*/
+struct PrimitiveType {
+	char* content;
 };
 template <typename T>
 struct FRTable<T> {
@@ -79,12 +80,16 @@ struct MethodDeclaration {
 	MethodDeclarationData data;
 };
 enum StructMemberVariant {
+	DeclarationVariant,
 	EmptyStructMemberVariant,
+	FieldVariant,
 	FunctionDeclarationVariant,
 	PlaceholderVariant
 };
 union StructMemberData {
+	DeclarationData Declaration;
 	EmptyStructMemberData EmptyStructMember;
+	FieldData Field;
 	FunctionDeclarationData FunctionDeclaration;
 	PlaceholderData Placeholder;
 };
@@ -118,7 +123,12 @@ struct Tuple {
 	A left;
 	B right;
 };
-struct State {/*private final String input;*//*private final ArrayList<String> segments;*//*private final StringBuilder buffer;*//*private int index;*//*private int depth;*/
+struct State {
+	char* input;
+	ArrayList<char*> segments;
+	StringBuilder buffer;
+	int index;
+	int depth;
 };
 struct PointerType {
 	Type type;
@@ -164,7 +174,13 @@ struct None {
 };
 struct ConditionEndLocator {
 };
-struct Main {/*public final List<String> structures;*//*public final List<String> functions;*//*public final List<String> globals;*//*private int counter = 0;*/
+struct Field {
+	Declaration declaration;
+};
+struct Main {
+	List<char*> structures;
+	List<char*> functions;
+	List<char*> globals;/*private int counter = 0;*/
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -369,8 +385,14 @@ char* generate_StructMember(void* _this){
 	StructMember* this = (StructMember*) _this;
 	char* _ret;
 	switch (this.variant) {
+		case StructMemberVariant.DeclarationVariant:
+			_ret = generate_Declaration(&this.data.Declaration);
+			break;
 		case StructMemberVariant.EmptyStructMemberVariant:
 			_ret = generate_EmptyStructMember(&this.data.EmptyStructMember);
+			break;
+		case StructMemberVariant.FieldVariant:
+			_ret = generate_Field(&this.data.Field);
 			break;
 		case StructMemberVariant.FunctionDeclarationVariant:
 			_ret = generate_FunctionDeclaration(&this.data.FunctionDeclaration);
@@ -571,6 +593,12 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	data.Declaration = this;
 	return { MethodDeclarationVariant.DeclarationVariant, data };
 }
+StructMember toStructMember_Declaration(void* _this){
+	Declaration this = *((Declaration*) _this);
+	StructMemberData data;
+	data.Declaration = this;
+	return { StructMemberVariant.DeclarationVariant, data };
+}
 public Declaration_Declaration(void* _this, char* type, char* name){
 	Declaration* this = (Declaration*) _this;
 	this(Collections.emptyList(), Collections.emptyList(), Option.empty(), type, name);
@@ -766,6 +794,16 @@ State apply_ConditionEndLocator(void* _this, State state, Character c){
 	}
 	return appended;
 }
+StructMember toStructMember_Field(void* _this){
+	Field this = *((Field*) _this);
+	StructMemberData data;
+	data.Field = this;
+	return { StructMemberVariant.FieldVariant, data };
+}
+char* generate_Field(void* _this){
+	Field* this = (Field*) _this;
+	return Main.generateStatement(1, this->declaration.generate());
+}
 public Main_Main(void* _this){
 	Main* this = (Main*) _this;
 	this->structures = new_ArrayList<char*>();
@@ -799,6 +837,14 @@ void main_Main(void* _this, char** args){
 		//noinspection CallToPrintStackTrace
 		value.printStackTrace();
 	}
+}
+char* generateStatement_Main(void* _this, int depth, char* content){
+	Main* this = (Main*) _this;
+	return generateIndent(depth) + content + ";";
+}
+char* generateIndent_Main(void* _this, int depth){
+	Main* this = (Main*) _this;
+	return System.lineSeparator() + "\t".repeat(depth);
 }
 Option<IOException> run_Main(void* _this){
 	Main* this = (Main*) _this;
@@ -1038,15 +1084,7 @@ char* joinTypeParameters_Main(void* _this, List<char*> typeParameters){
 }
 char* generateStatement_Main(void* _this, char* content){
 	Main* this = (Main*) _this;
-	return this->generateStatement(1, content);
-}
-char* generateStatement_Main(void* _this, int depth, char* content){
-	Main* this = (Main*) _this;
-	return this->generateIndent(depth) + content + ";";
-}
-char* generateIndent_Main(void* _this, int depth){
-	Main* this = (Main*) _this;
-	return System.lineSeparator() + "\t".repeat(depth);
+	return generateStatement(1, content);
 }
 auto lambda14(void* _this, auto slice){
 	return !slice.isEmpty();
@@ -1102,6 +1140,13 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 	if (maybeEnumValues.variant = ?.SomeVariant) {
 		return maybeEnumValues;
 	}
+	if (stripped.endsWith(";")) {
+		var substring = stripped.substring(0, stripped.length() - 1);
+		var maybeDeclaration = this->parseDeclaration(substring, Collections.emptyList());
+		if (maybeDeclaration.variant = ?.SomeVariant) {
+			return new_Some<StructMember>(new_Field(declaration));
+		}
+	}
 	var i = stripped.indexOf("(");
 	if (i >= 0) {
 		var declarationString = stripped.substring(0, i);
@@ -1145,8 +1190,8 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 								.map(variant -> this.generateCase(structName, declaration, variant))
 								.collect(Collectors.joining());
 
-						return returnValueDefinition + this.generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
-									 this.generateIndent(1) + "}" + this.generateStatement("return _ret");
+						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+									 generateIndent(1) + "}" + this.generateStatement("return _ret");
 					});
 				}*/
 			else {
@@ -1172,9 +1217,9 @@ char* compileMethodsSegments_Main(void* _this, char* inputContent, int indent){
 }
 char* generateCase_Main(void* _this, char* structName, Declaration declaration, char* variant){
 	Main* this = (Main*) _this;
-	return /*this.generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 this.generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
-					 this.generateStatement(3, "break")*/;
+	return /*generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
+					 generateStatement(3, "break")*/;
 }
 auto lambda21(void* _this, auto ()){
 	return new_Placeholder(declaration);
@@ -1282,7 +1327,7 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 	}
 	if (stripped.endsWith(";")) {
 		var substring = stripped.substring(0, stripped.length() - 1);
-		return this->generateIndent(indent) + this->compileMethodStatement(substring) + ";";
+		return generateIndent(indent) + this->compileMethodStatement(substring) + ";";
 	}
 	var maybeIf = this->compileConditional("if", indent, stripped);
 	if (maybeIf.variant = ?.SomeVariant) {
@@ -1296,12 +1341,12 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		var substring = stripped.substring("else ".length()).strip();
 		if (substring.startsWith("{") && substring.endsWith("}")) {
 			var substring1 = substring.substring(1, substring.length() - 1);
-			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-							 this.generateIndent(indent) + "}";
+			return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 generateIndent(indent) + "}";
 		}
 	}
 	if (stripped.startsWith("//")) {
-		return this->generateIndent(indent) + stripped;
+		return generateIndent(indent) + stripped;
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
@@ -1326,8 +1371,8 @@ Option<char*> compileConditional_Main(void* _this, char* type, int indent, char*
 			var condition = first.substring(0, first.length() - 1);
 			if (last.startsWith("{") && last.endsWith("}")) {
 				var content = last.substring(1, last.length() - 1);
-				return Option.of(this->generateIndent(indent) + type + " (" + this->compileExpressionOrPlaceholder(condition) + ") {" +
-							this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
+				return Option.of(generateIndent(indent) + type + " (" + this->compileExpressionOrPlaceholder(condition) + ") {" +
+							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
 		}
 	}

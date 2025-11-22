@@ -76,7 +76,8 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface StructMember permits EmptyStructMember, FunctionDeclaration, Placeholder {
+	private sealed interface StructMember
+			permits Declaration, EmptyStructMember, Field, FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -239,7 +240,7 @@ public class Main {
 	}
 
 	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
-														 String type, String name) implements MethodDeclaration {
+														 String type, String name) implements MethodDeclaration, StructMember {
 		public Declaration(String type, String name) {
 			this(Collections.emptyList(), Collections.emptyList(), Option.empty(), type, name);
 		}
@@ -426,6 +427,13 @@ public class Main {
 		}
 	}
 
+	private record Field(Declaration declaration) implements StructMember {
+		@Override
+		public String generate() {
+			return Main.generateStatement(1, this.declaration.generate());
+		}
+	}
+
 	public final List<String> structures;
 	public final List<String> functions;
 	public final List<String> globals;
@@ -464,6 +472,14 @@ public class Main {
 			//noinspection CallToPrintStackTrace
 			value.printStackTrace();
 		}
+	}
+
+	private static String generateStatement(int depth, String content) {
+		return generateIndent(depth) + content + ";";
+	}
+
+	private static String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private Option<IOException> run() {
@@ -752,15 +768,7 @@ public class Main {
 		return joinedTypeParameters;
 	}
 
-	private String generateStatement(String content) {return this.generateStatement(1, content);}
-
-	private String generateStatement(int depth, String content) {
-		return this.generateIndent(depth) + content + ";";
-	}
-
-	private String generateIndent(int depth) {
-		return System.lineSeparator() + "\t".repeat(depth);
-	}
+	private String generateStatement(String content) {return generateStatement(1, content);}
 
 	private List<String> splitValues(String input) {
 		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
@@ -807,6 +815,14 @@ public class Main {
 		final var maybeEnumValues = this.compileEnumValues(input, structName);
 		if (maybeEnumValues instanceof Some<StructMember>) {
 			return maybeEnumValues;
+		}
+
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			final var maybeDeclaration = this.parseDeclaration(substring, Collections.emptyList());
+			if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
+				return new Some<StructMember>(new Field(declaration));
+			}
 		}
 
 		final var i = stripped.indexOf("(");
@@ -867,8 +883,8 @@ public class Main {
 								.map(variant -> this.generateCase(structName, declaration, variant))
 								.collect(Collectors.joining());
 
-						return returnValueDefinition + this.generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
-									 this.generateIndent(1) + "}" + this.generateStatement("return _ret");
+						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+									 generateIndent(1) + "}" + this.generateStatement("return _ret");
 					});
 				} else {
 					outputContent = "?";
@@ -905,9 +921,9 @@ public class Main {
 	}
 
 	private String generateCase(String structName, Declaration declaration, String variant) {
-		return this.generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 this.generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
-					 this.generateStatement(3, "break");
+		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
+					 generateStatement(3, "break");
 	}
 
 	private MethodDeclaration parseMethodDeclaration(String declaration, String structName,
@@ -985,7 +1001,7 @@ public class Main {
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
+			return generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
 		final var maybeIf = this.compileConditional("if", indent, stripped);
@@ -1002,13 +1018,13 @@ public class Main {
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-							 this.generateIndent(indent) + "}";
+				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 generateIndent(indent) + "}";
 			}
 		}
 
 		if (stripped.startsWith("//")) {
-			return this.generateIndent(indent) + stripped;
+			return generateIndent(indent) + stripped;
 		}
 
 		return System.lineSeparator() + "\t" + wrap(stripped);
@@ -1041,8 +1057,8 @@ public class Main {
 				if (last.startsWith("{") && last.endsWith("}")) {
 					final var content = last.substring(1, last.length() - 1);
 					return Option.of(
-							this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-							this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
+							generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 				}
 			}
 		}
