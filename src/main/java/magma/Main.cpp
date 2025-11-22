@@ -293,12 +293,12 @@ State advance_State(void* _this){
 }
 State enter_State(void* _this){
 	State this = *((State*) _this);
-	this.depth = /* this.depth + 1*/;
+	this.depth = this.depth + 1;
 	return this;
 }
 State exit_State(void* _this){
 	State this = *((State*) _this);
-	this.depth = /* this.depth - 1*/;
+	this.depth = this.depth - 1;
 	return this;
 }
 Stream<char*> stream_State(void* _this){
@@ -489,7 +489,7 @@ char* compile_Main(void* _this, char* input){
 	var joinedStructures = String.join(/*""*/, this.structures);
 	var joinedGlobals = String.join(/*""*/, this.globals);
 	var joinedFunctions = String.join(/*""*/, this.functions);
-	return /*joinedStructures + joinedGlobals + joinedFunctions + all*/;
+	return joinedStructures + joinedGlobals + joinedFunctions + all;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
 	Main this = *((Main*) _this);
@@ -1010,7 +1010,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return Optional.of(stripped);
 		}
 
-		return this.compileOperator(stripped, "==").or(() -> this.compileOperator(stripped, "<"));
+		return this
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"));
 	}*//*private Optional<String> compileOperator(String input, String operator) {
 		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {

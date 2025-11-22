@@ -849,7 +849,11 @@ public class Main {
 			return Optional.of(stripped);
 		}
 
-		return this.compileOperator(stripped, "==").or(() -> this.compileOperator(stripped, "<"));
+		return this
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"));
 	}
 
 	private Optional<String> compileOperator(String input, String operator) {
