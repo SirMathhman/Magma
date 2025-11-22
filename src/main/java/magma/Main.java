@@ -1201,7 +1201,7 @@ public class Main {
 					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 					final var thisInitialization = this.generateStatement(
-							structName + joinedTypeParameters + "* this = (" + structName + joinedTypeParameters + "*) _ref");
+							structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 						final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
