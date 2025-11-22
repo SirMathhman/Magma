@@ -998,6 +998,19 @@ public class Main {
 	private Option<String> compileExpression(String input) {
 		final var stripped = input.strip();
 
+		final var i2 = stripped.lastIndexOf("::");
+		if (i2 >= 0) {
+			final var substring = stripped.substring(0, i2);
+			final var name = stripped.substring(i2 + 2).strip();
+			final var compiled = this.compileExpressionOrPlaceholder(substring);
+			if (this.isIdentifier(name)) {
+				final var functionalInterfaceName = "F?";
+				return Option.of(
+						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
+						" }}");
+			}
+		}
+
 		if (stripped.startsWith("'") && stripped.endsWith("'")) {
 			return Option.of(stripped);
 		}
