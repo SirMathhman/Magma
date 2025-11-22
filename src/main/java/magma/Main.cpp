@@ -1,7 +1,9 @@
-struct PrimitiveType {
+struct PrimitiveType {/*Void*//*private final String content;*/char* (*generate)(void*)char* (*toBaseName)(void*)
 };
 template <typename T0, typename R>
-struct F1RTable<T0, R>{};
+struct F1RTable<T0, R> {
+	R (*apply)(void*, T0);
+};
 template <typename T0, typename R>
 struct F1R {
 	F1RTable<T0, R> table;
@@ -53,39 +55,59 @@ struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
+struct StructMemberTable {
+	char* (*generate)(void*);
+};
+struct StructMember {
+	StructMemberTable table;
+	void* data;
+};
 template <typename T, typename X>
 struct Err {
-	X error;
+	X error;Result<R, X> (*mapValue)(void*, F1R<T, R>)
 };
 template <typename T, typename X>
 struct Ok {
-	T value;
+	T value;Result<R, X> (*mapValue)(void*, F1R<T, R>)
 };
-struct State {
+struct State {/*private final String input;*//*private final ArrayList<String> segments;*//*private final StringBuilder buffer;*//*private int index;*//*private int depth;*/public (*State)(void*, char*)boolean (*isShallow)(void*)boolean (*isLevel)(void*)State (*append)(void*, Character)Optional<Character> (*pop)(void*)State (*advance)(void*)State (*enter)(void*)State (*exit)(void*)Stream<char*> (*stream)(void*)
 };
 struct PointerType {
-	Type type;
+	Type type;char* (*generate)(void*)char* (*toBaseName)(void*)
 };
 struct TemplateType {
 	char* base;
-	List<Type> list;
+	List<Type> list;char* (*generate)(void*)char* (*toBaseName)(void*)
 };
 struct Identifier {
-	char* value;
+	char* value;char* (*generate)(void*)char* (*toBaseName)(void*)
 };
 struct Placeholder {
-	char* input;
+	char* input;char* (*generate)(void*)char* (*toBaseName)(void*)
 };
 struct Constructor {
-	char* structName;
+	char* structName;char* (*generate)(void*)
 };
 struct Declaration {
 	List<char*> typeParameters;
 	Optional<char*> maybeBeforeType;
 	char* type;
-	char* name;
+	char* name;public (*Declaration)(void*, char*, char*)char* (*generate)(void*)Declaration (*mapName)(void*, F1R<char*, char*>)
 };
-struct Main {
+struct FunctionDeclaration {
+	char* type;
+	char* name;
+	List<char*> parameterTypes;char* (*generate)(void*)
+};
+struct Main {/*private enum PrimitiveType implements Type {
+		Void*//*{
+		R*/ (*apply)(void*, T0)Result<R, X> (*mapValue)(void*, F1R<T, R>)/*{
+		String*/ (*generate)(void*)/*{
+		String*/ (*generate)(void*)/*{
+		String*/ (*generate)(void*)/*private record Err<T, X>*//*private record Ok<T, X>*//*depth;
+
+		public*/ (*State)(void*, char*)record (*PointerType)(void*, Type)record (*TemplateType)(void*, char*, List<Type>)record (*Identifier)(void*, char*)record (*Placeholder)(void*, char*)record (*Constructor)(void*, char*)record (*Declaration)(void*, List<char*>, Optional<char*>, char*, char*)record (*FunctionDeclaration)(void*, char*, char*, List<char*>)/*public static final List<String> structures = new ArrayList<String>*//*public static final List<String> functions = new ArrayList<String>*//*public static final List<String> globals = new ArrayList<String>*/void (*main)(void*, char**)Optional<IOException> (*run)(void*)Optional<IOException> (*writeString)(void*, Path, char*)Result<char*, IOException> (*readString)(void*, Path)char* (*compile)(void*, char*)char* (*compileStatements)(void*, char*, F1R<char*, char*>)char* (*compileAll)(void*, char*, F1R<char*, char*>, BiFunction<State, Character, State>)Stream<char*> (*divide)(void*, char*, BiFunction<State, Character, State>)State (*foldStatement)(void*, State, Character)/*' && appended.isShallow*//*if *//*') {
+			return appended.exit*//*return appended;*/
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -94,6 +116,8 @@ Type toType_PrimitiveType(void* _this){
 	TypeData data;
 	data.PrimitiveType = this;
 	return { TypeVariant.PrimitiveTypeVariant, data };
+}
+/*Void*/(){?
 }
 PrimitiveType new_PrimitiveType(char* content){
 	PrimitiveType this;
@@ -108,9 +132,22 @@ char* toBaseName_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
+/*private enum PrimitiveType implements Type {
+		Void*/(){?
+}
 R apply_F1R(void* _this, T0 value){
 	F1R<T0, R> this = *((F1R<T0, R>*) _this);
 	R _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+template <typename T0, typename R>
+/*{
+		R*/ apply_Main(void* _this, T0 value){
+	Main this = *((Main*) _this);
+	/*{
+		R*/ _ret;
 	switch (this.variant) {
 	}
 	return _ret;
@@ -126,6 +163,15 @@ Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
 		case ResultVariant.OkVariant:
 			_ret = mapValue_Ok(&this.data.Ok);
 			break;
+	}
+	return _ret;
+}
+template <typename T, typename X> permits Err, typename Ok {
+		<R>
+Result<R, X> mapValue_Main(void* _this, F1R<T, R> mapper){
+	Main this = *((Main*) _this);
+	Result<R, X> _ret;
+	switch (this.variant) {
 	}
 	return _ret;
 }
@@ -173,6 +219,15 @@ char* toBaseName_Type(void* _this){
 	}
 	return _ret;
 }
+/*{
+		String*/ generate_Main(void* _this){
+	Main this = *((Main*) _this);
+	/*{
+		String*/ _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 char* generate_MethodDeclaration(void* _this){
 	MethodDeclaration this = *((MethodDeclaration*) _this);
 	char* _ret;
@@ -189,6 +244,31 @@ char* generate_MethodDeclaration(void* _this){
 	}
 	return _ret;
 }
+/*{
+		String*/ generate_Main(void* _this){
+	Main this = *((Main*) _this);
+	/*{
+		String*/ _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+char* generate_StructMember(void* _this){
+	StructMember this = *((StructMember*) _this);
+	char* _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+/*{
+		String*/ generate_Main(void* _this){
+	Main this = *((Main*) _this);
+	/*{
+		String*/ _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _this){
 	Err<T, X> this = *((Err<T, X>*) _this);
@@ -201,6 +281,8 @@ Result<R, X> mapValue_Err(void* _this, F1R<T, R> mapper){
 	Err<T, X> this = *((Err<T, X>*) _this);
 	return new_Err<R, X>(this.error);
 }
+/*private record Err<T, X>*/(X error){?
+}
 template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _this){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
@@ -212,6 +294,8 @@ template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
 	return new_Ok<R, X>(mapper.apply(this.value));
+}
+/*private record Ok<T, X>*/(T value){?
 }
 public State_State(void* _this, char* input){
 	State this = *((State*) _this);
@@ -265,6 +349,61 @@ Stream<char*> stream_State(void* _this){
 	State this = *((State*) _this);
 	return this.segments.stream();
 }
+/*depth;
+
+		public*/ State_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
+	this.input = input;
+	this.index = /*0*/;
+	this.buffer = new_StringBuilder();
+	this.depth = /*0*/;
+	this.segments = new_ArrayList<char*>();
+	/*}
+
+		private boolean isShallow() {
+			return this*/.depth = /*= 1*/;
+	/*}
+
+		private boolean isLevel() {
+			return this*/.depth = /*= 0*/;
+	/*}
+
+		private State append(Character next) {
+			this.buffer.append(next)*/;
+	return this;
+	/*}
+
+		private Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				final var value = this.input.charAt(this.index);
+				this.index++;
+				return Optional.of(value);
+			}*/
+	/*else {
+				return Optional.empty();
+			}*/
+	/*}
+
+		private State advance() {
+			this.segments.add(this.buffer.toString())*/;
+	/*this.buffer.setLength(0)*/;
+	return this;
+	/*}
+
+		private State enter() {
+			this*/.depth = /*this.depth + 1*/;
+	return this;
+	/*}
+
+		private State exit() {
+			this*/.depth = /*this.depth - 1*/;
+	return this;
+	/*}
+
+		private Stream<String> stream() {
+			return this.segments.stream()*/;
+	/*}*/
+}
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
 	TypeData data;
@@ -278,6 +417,13 @@ char* generate_PointerType(void* _this){
 char* toBaseName_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
 	return /*this.type.toBaseName() + "_ptr"*/;
+}
+record PointerType_Main(void* _this, Type type){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
 }
 Type toType_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -294,6 +440,13 @@ char* toBaseName_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
 	return this.base;
 }
+record TemplateType_Main(void* _this, char* base, List<Type> list){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 Type toType_Identifier(void* _this){
 	Identifier this = *((Identifier*) _this);
 	TypeData data;
@@ -308,6 +461,13 @@ char* toBaseName_Identifier(void* _this){
 	Identifier this = *((Identifier*) _this);
 	return this.value;
 }
+record Identifier_Main(void* _this, char* value){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 Type toType_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
 	TypeData data;
@@ -320,6 +480,12 @@ MethodDeclaration toMethodDeclaration_Placeholder(void* _this){
 	data.Placeholder = this;
 	return { MethodDeclarationVariant.PlaceholderVariant, data };
 }
+StructMember toStructMember_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	StructMemberData data;
+	data.Placeholder = this;
+	return { StructMemberVariant.PlaceholderVariant, data };
+}
 char* generate_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
 	return wrap(this.input);
@@ -327,6 +493,13 @@ char* generate_Placeholder(void* _this){
 char* toBaseName_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
 	return wrap(this.input);
+}
+record Placeholder_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
 }
 MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
@@ -337,6 +510,13 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 char* generate_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
 	return /*this.structName + " new_" + this*/.structName;
+}
+record Constructor_Main(void* _this, char* structName){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
 }
 MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
@@ -356,6 +536,31 @@ char* generate_Declaration(void* _this){
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 	Declaration this = *((Declaration*) _this);
 	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+}
+record Declaration_Main(void* _this, List<char*> typeParameters, Optional<char*> maybeBeforeType, char* type, char* name){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+StructMember toStructMember_FunctionDeclaration(void* _this){
+	FunctionDeclaration this = *((FunctionDeclaration*) _this);
+	StructMemberData data;
+	data.FunctionDeclaration = this;
+	return { StructMemberVariant.FunctionDeclarationVariant, data };
+}
+char* generate_FunctionDeclaration(void* _this){
+	FunctionDeclaration this = *((FunctionDeclaration*) _this);
+	/*final var joinedParameterTypes*/ = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, /*"*/, /*"("*/, /*")")*/);
+	return /*this.type + " (*" + this.name + ")" + joinedParameterTypes*/;
+}
+record FunctionDeclaration_Main(void* _this, char* type, char* name, List<char*> parameterTypes){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
 }
 /*public static final List<String> structures = new ArrayList<String>*/(){?
 }
@@ -443,14 +648,301 @@ State foldStatement_Main(void* _this, State current, Character next){
 /*') {
 			return appended.exit*/(){?
 }
-/*private static String compileRootSegment(String input) {
+/*public class Main {
+	private enum PrimitiveType implements Type {
+		Void("void"), Char("char");
+
+		private final String content;
+
+		PrimitiveType(String content) {this.content = content;}
+
+		@Override
+		public String generate() {
+			return this.content;
+		}
+
+		@Override
+		public String toBaseName() {
+			return this.content;
+		}
+	}
+
+	private interface F1R<T0, R> {
+		R apply(T0 value);
+	}
+
+	private sealed interface Result<T, X> permits Err, Ok {
+		<R> Result<R, X> mapValue(F1R<T, R> mapper);
+	}
+
+	private sealed interface Type permits Identifier, Placeholder, PointerType, PrimitiveType, TemplateType {
+		String generate();
+
+		String toBaseName();
+	}
+
+	private sealed interface MethodDeclaration permits Constructor, Declaration, Placeholder {
+		String generate();
+	}
+
+	private interface StructMember {
+		String generate();
+	}
+
+	private record Err<T, X>(X error) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
+			return new Err<R, X>(this.error);
+		}
+	}
+
+	private record Ok<T, X>(T value) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
+			return new Ok<R, X>(mapper.apply(this.value));
+		}
+	}
+
+	private static class State {
+		private final String input;
+		private final ArrayList<String> segments;
+		private final StringBuilder buffer;
+		private int index;
+		private int depth;
+
+		public State(String input) {
+			this.input = input;
+			this.index = 0;
+			this.buffer = new StringBuilder();
+			this.depth = 0;
+			this.segments = new ArrayList<String>();
+		}
+
+		private boolean isShallow() {
+			return this.depth == 1;
+		}
+
+		private boolean isLevel() {
+			return this.depth == 0;
+		}
+
+		private State append(Character next) {
+			this.buffer.append(next);
+			return this;
+		}
+
+		private Optional<Character> pop() {
+			if (this.index < this.input.length()) {
+				final var value = this.input.charAt(this.index);
+				this.index++;
+				return Optional.of(value);
+			} else {
+				return Optional.empty();
+			}
+		}
+
+		private State advance() {
+			this.segments.add(this.buffer.toString());
+			this.buffer.setLength(0);
+			return this;
+		}
+
+		private State enter() {
+			this.depth = this.depth + 1;
+			return this;
+		}
+
+		private State exit() {
+			this.depth = this.depth - 1;
+			return this;
+		}
+
+		private Stream<String> stream() {
+			return this.segments.stream();
+		}
+	}
+
+	private record PointerType(Type type) implements Type {
+		@Override
+		public String generate() {
+			return this.type.generate() + "*";
+		}
+
+		@Override
+		public String toBaseName() {
+			return this.type.toBaseName() + "_ptr";
+		}
+	}
+
+	private record TemplateType(String base, List<Type> list) implements Type {
+
+		@Override
+		public String generate() {
+			final var typeArguments = this.list.stream().map(Type::generate).collect(Collectors.joining(", "));
+
+			return this.base + "<" + typeArguments + ">";
+		}
+
+		@Override
+		public String toBaseName() {
+			return this.base;
+		}
+	}
+
+	private record Identifier(String value) implements Type {
+		@Override
+		public String generate() {
+			return this.value;
+		}
+
+		@Override
+		public String toBaseName() {
+			return this.value;
+		}
+	}
+
+	private record Placeholder(String input) implements Type, MethodDeclaration, StructMember {
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+
+		@Override
+		public String toBaseName() {
+			return wrap(this.input);
+		}
+	}
+
+	private record Constructor(String structName) implements MethodDeclaration {
+		@Override
+		public String generate() {
+			return this.structName + " new_" + this.structName;
+		}
+	}
+
+	private record Declaration(List<String> typeParameters, Optional<String> maybeBeforeType, String type, String name)
+			implements MethodDeclaration {
+		public Declaration(String type, String name) {
+			this(Collections.emptyList(), Optional.empty(), type, name);
+		}
+
+		@Override
+		public String generate() {
+			var beforeDeclaration = generateTemplateString(this.typeParameters());
+			return beforeDeclaration + this.type + " " + this.name;
+		}
+
+		public Declaration mapName(F1R<String, String> mapper) {
+			return new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+		}
+	}
+
+	private record FunctionDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
+		@Override
+		public String generate() {
+			final var joinedParameterTypes = this.parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
+			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
+		}
+	}
+
+
+	public static final List<String> structures = new ArrayList<String>();
+	public static final List<String> functions = new ArrayList<String>();
+	public static final List<String> globals = new ArrayList<String>();
+
+	public static void main(String[] args) {
+		run().ifPresent(Throwable::printStackTrace);
+	}
+
+	private static Optional<IOException> run() {
+		final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+		final var target = source.resolveSibling("Main.cpp");
+		final var input = readString(source).mapValue(Main::compile);
+
+		return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> writeString(target, v.value);
+		};
+	}
+
+	private static Optional<IOException> writeString(Path target, String output) {
+		try {
+			Files.writeString(target, output);
+			return Optional.empty();
+		} catch (IOException e) {
+			return Optional.of(e);
+		}
+	}
+
+	private static Result<String, IOException> readString(Path source) {
+		try {
+			return new Ok<String, IOException>(Files.readString(source));
+		} catch (IOException e) {
+			return new Err<String, IOException>(e);
+		}
+	}
+
+	private static String compile(String input) {
+		final var all = compileStatements(input, Main::compileRootSegment);
+
+		final var joinedStructures = String.join("", structures);
+		final var joinedGlobals = String.join("", globals);
+		final var joinedFunctions = String.join("", functions);
+		return joinedStructures + joinedGlobals + joinedFunctions + all;
+	}
+
+	private static String compileStatements(String input, F1R<String, String> mapper) {
+		return compileAll(input, mapper, Main::foldStatement);
+	}
+
+	private static String compileAll(String input,
+																	 F1R<String, String> mapper,
+																	 BiFunction<State, Character, State> folder) {
+		return divide(input, folder).map(mapper::apply).collect(Collectors.joining(""));
+	}
+
+	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
+		var current = new State(input);
+		while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) {
+				break;
+			}
+
+			final var next = maybeNext.get();
+			current = folder.apply(current, next);
+		}
+
+		return current.advance().stream();
+	}
+
+	private static State foldStatement(State current, Character next) {
+		final var appended = current.append(next);
+		if (next == ';' && appended.isLevel()) {
+			return appended.advance();
+		}
+
+		if (next == '}' && appended.isShallow()) {
+			return appended.advance().exit();
+		}
+
+		if (next == '{') {
+			return appended.enter();
+		}
+
+		if (next == '}') {
+			return appended.exit();
+		}
+
+		return appended;
+	}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
 		}
 
-		return compileStructure("class", stripped).orElseGet(() -> wrap(stripped));
-	}*//*private static Optional<String> compileStructure(String type, String stripped) {
+		return compileStructure("class", stripped).map(StructMember::generate).orElseGet(() -> wrap(stripped));
+	}*//*private static Optional<StructMember> compileStructure(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
 		if (i < 0) {return Optional.empty();}
 		final var modifiers = stripped.substring(0, i).strip();
@@ -548,11 +1040,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 		var finalTypeParameters = typeParameters;
 		List<String> finalVariants = variants;
-		final var outputContent = compileStatements(inputContent,
-																								input1 -> compileClassSegment(input1,
-																																							name,
-																																							finalTypeParameters,
-																																							finalVariants));
+		final var members = divide(inputContent, Main::foldStatement)
+				.map(slice -> compileClassSegment(slice, name, finalTypeParameters, finalVariants))
+				.flatMap(Optional::stream)
+				.toList();
 
 		if (modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
@@ -583,19 +1074,23 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var table = generateStatement(name + "Table" + joinedTypeParameters + " table");
 			final var data = generateStatement("void* data");
 
-			final var vTable =
-					templateString + "struct " + name + "Table" + joinedTypeParameters + "{};" + System.lineSeparator();
+			final var tableMembers =
+					members.stream().map(StructMember::generate).map(Main::generateStatement).collect(Collectors.joining(""));
+			final var vTable = templateString + "struct " + name + "Table" + joinedTypeParameters + " {" + tableMembers +
+												 System.lineSeparator() + "};" + System.lineSeparator();
 
 			dependencies.append(vTable);
 			fields += table + data;
+		} else {
+			fields += members.stream().map(StructMember::generate).collect(Collectors.joining(""));
 		}
 
 		final var generated =
-				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
-				System.lineSeparator() + "};" + System.lineSeparator();
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
+				"};" + System.lineSeparator();
 		structures.add(generated);
 
-		return Optional.of("");
+		return Optional.empty();
 	}*//*private static String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -630,39 +1125,39 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return true;
-	}*//*private static String compileClassSegment(String input,
-																						String structName,
-																						List<String> typeParameters,
-																						List<String> variants) {
+	}*//*private static Optional<StructMember> compileClassSegment(String input,
+																														String structName,
+																														List<String> typeParameters,
+																														List<String> variants) {
 		final var stripped = input.strip();
 
 		if (stripped.isEmpty()) {
-			return "";
+			return Optional.empty();
 		}
 
 		final var maybeEnum = compileStructure("enum", input);
 		if (maybeEnum.isPresent()) {
-			return maybeEnum.get();
+			return maybeEnum;
 		}
 
 		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
-			return maybeInterface.get();
+			return maybeInterface;
 		}
 
 		final var maybeRecord = compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
-			return maybeRecord.get();
+			return maybeRecord;
 		}
 
 		final var maybeClass = compileStructure("class", input);
 		if (maybeClass.isPresent()) {
-			return maybeClass.get();
+			return maybeClass;
 		}
 
 		final var maybeEnumValues = compileEnumValues(input, structName);
 		if (maybeEnumValues.isPresent()) {
-			return maybeEnumValues.get();
+			return maybeEnumValues;
 		}
 
 		final var i = stripped.indexOf("(");
@@ -730,11 +1225,18 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				functions.add(generated);
-				return "";
+
+				final var parameterTypes = parameters.stream().map(Declaration::type).toList();
+
+				return switch (methodDeclaration) {
+					case Constructor _ -> Optional.empty();
+					case Declaration member -> Optional.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
+					case Placeholder placeholder -> Optional.of(placeholder);
+				};
 			}
 		}
 
-		return wrap(stripped);
+		return Optional.of(new Placeholder(stripped));
 	}*//*private static String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
 					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
@@ -752,7 +1254,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		} else {
 			return Optional.empty();
 		}
-	}*//*private static Optional<String> compileEnumValues(String input, String structName) {
+	}*//*private static Optional<StructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
 		if (!stripped.endsWith(";")) {
 			return Optional.empty();
@@ -763,7 +1265,6 @@ State foldStatement_Main(void* _this, State current, Character next){
 				.filter(slice -> !slice.isEmpty())
 				.toList();
 
-		String buffer = "";
 		if (!enumValues.isEmpty()) {
 			for (var enumValue : enumValues) {
 				if (enumValue.endsWith(")")) {
@@ -786,7 +1287,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			}
 		}
 
-		return Optional.of(buffer);
+		return Optional.empty();
 	}*//*private static State foldValue(State state, Character next) {
 		if (next == ',' && state.isLevel()) {
 			return state.advance();

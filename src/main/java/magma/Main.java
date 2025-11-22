@@ -51,6 +51,10 @@ public class Main {
 		String generate();
 	}
 
+	private interface StructMember {
+		String generate();
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
@@ -163,7 +167,7 @@ public class Main {
 		}
 	}
 
-	private record Placeholder(String input) implements Type, MethodDeclaration {
+	private record Placeholder(String input) implements Type, MethodDeclaration, StructMember {
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -198,6 +202,15 @@ public class Main {
 			return new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 		}
 	}
+
+	private record FunctionDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
+		@Override
+		public String generate() {
+			final var joinedParameterTypes = this.parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
+			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
+		}
+	}
+
 
 	public static final List<String> structures = new ArrayList<String>();
 	public static final List<String> functions = new ArrayList<String>();
@@ -296,10 +309,10 @@ public class Main {
 			return "";
 		}
 
-		return compileStructure("class", stripped).orElseGet(() -> wrap(stripped));
+		return compileStructure("class", stripped).map(StructMember::generate).orElseGet(() -> wrap(stripped));
 	}
 
-	private static Optional<String> compileStructure(String type, String stripped) {
+	private static Optional<StructMember> compileStructure(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
 		if (i < 0) {return Optional.empty();}
 		final var modifiers = stripped.substring(0, i).strip();
@@ -397,11 +410,10 @@ public class Main {
 
 		var finalTypeParameters = typeParameters;
 		List<String> finalVariants = variants;
-		final var outputContent = compileStatements(inputContent,
-																								input1 -> compileClassSegment(input1,
-																																							name,
-																																							finalTypeParameters,
-																																							finalVariants));
+		final var members = divide(inputContent, Main::foldStatement)
+				.map(slice -> compileClassSegment(slice, name, finalTypeParameters, finalVariants))
+				.flatMap(Optional::stream)
+				.toList();
 
 		if (modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
@@ -432,19 +444,23 @@ public class Main {
 			final var table = generateStatement(name + "Table" + joinedTypeParameters + " table");
 			final var data = generateStatement("void* data");
 
-			final var vTable =
-					templateString + "struct " + name + "Table" + joinedTypeParameters + "{};" + System.lineSeparator();
+			final var tableMembers =
+					members.stream().map(StructMember::generate).map(Main::generateStatement).collect(Collectors.joining(""));
+			final var vTable = templateString + "struct " + name + "Table" + joinedTypeParameters + " {" + tableMembers +
+												 System.lineSeparator() + "};" + System.lineSeparator();
 
 			dependencies.append(vTable);
 			fields += table + data;
+		} else {
+			fields += members.stream().map(StructMember::generate).collect(Collectors.joining(""));
 		}
 
 		final var generated =
-				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
-				System.lineSeparator() + "};" + System.lineSeparator();
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
+				"};" + System.lineSeparator();
 		structures.add(generated);
 
-		return Optional.of("");
+		return Optional.empty();
 	}
 
 	private static String joinTypeParameters(List<String> typeParameters) {
@@ -495,39 +511,39 @@ public class Main {
 		return true;
 	}
 
-	private static String compileClassSegment(String input,
-																						String structName,
-																						List<String> typeParameters,
-																						List<String> variants) {
+	private static Optional<StructMember> compileClassSegment(String input,
+																														String structName,
+																														List<String> typeParameters,
+																														List<String> variants) {
 		final var stripped = input.strip();
 
 		if (stripped.isEmpty()) {
-			return "";
+			return Optional.empty();
 		}
 
 		final var maybeEnum = compileStructure("enum", input);
 		if (maybeEnum.isPresent()) {
-			return maybeEnum.get();
+			return maybeEnum;
 		}
 
 		final var maybeInterface = compileStructure("interface", input);
 		if (maybeInterface.isPresent()) {
-			return maybeInterface.get();
+			return maybeInterface;
 		}
 
 		final var maybeRecord = compileStructure("record", input);
 		if (maybeRecord.isPresent()) {
-			return maybeRecord.get();
+			return maybeRecord;
 		}
 
 		final var maybeClass = compileStructure("class", input);
 		if (maybeClass.isPresent()) {
-			return maybeClass.get();
+			return maybeClass;
 		}
 
 		final var maybeEnumValues = compileEnumValues(input, structName);
 		if (maybeEnumValues.isPresent()) {
-			return maybeEnumValues.get();
+			return maybeEnumValues;
 		}
 
 		final var i = stripped.indexOf("(");
@@ -595,11 +611,18 @@ public class Main {
 				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				functions.add(generated);
-				return "";
+
+				final var parameterTypes = parameters.stream().map(Declaration::type).toList();
+
+				return switch (methodDeclaration) {
+					case Constructor _ -> Optional.empty();
+					case Declaration member -> Optional.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
+					case Placeholder placeholder -> Optional.of(placeholder);
+				};
 			}
 		}
 
-		return wrap(stripped);
+		return Optional.of(new Placeholder(stripped));
 	}
 
 	private static String generateCase(String structName, Declaration declaration, String variant) {
@@ -625,7 +648,7 @@ public class Main {
 		}
 	}
 
-	private static Optional<String> compileEnumValues(String input, String structName) {
+	private static Optional<StructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
 		if (!stripped.endsWith(";")) {
 			return Optional.empty();
@@ -636,7 +659,6 @@ public class Main {
 				.filter(slice -> !slice.isEmpty())
 				.toList();
 
-		String buffer = "";
 		if (!enumValues.isEmpty()) {
 			for (var enumValue : enumValues) {
 				if (enumValue.endsWith(")")) {
@@ -659,7 +681,7 @@ public class Main {
 			}
 		}
 
-		return Optional.of(buffer);
+		return Optional.empty();
 	}
 
 	private static State foldValue(State state, Character next) {
