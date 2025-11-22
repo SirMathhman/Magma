@@ -157,7 +157,7 @@ struct Err {
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
 	Err<T, X> this = *((Err<T, X>*) _this);
-	return /*new Err<R, X>*/(this.error);
+	return new_Err<R, X>(this.error);
 }
 template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _this){
@@ -173,7 +173,7 @@ struct Ok {
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
-	return /*new Ok<R, X>*/(mapper.apply(this.value));
+	return new_Ok<R, X>(mapper.apply(this.value));
 }
 struct State {
 };
@@ -181,9 +181,9 @@ public State_State(void* _this, char* input){
 	State this = *((State*) _this);
 	this.input = input;
 	this.index = /*0*/;
-	this.buffer = /*new StringBuilder*/();
+	this.buffer = new_StringBuilder();
 	this.depth = /*0*/;
-	this.segments = /*new ArrayList<String>*/();
+	this.segments = new_ArrayList<char*>();
 }
 boolean isShallow_State(void* _this){
 	State this = *((State*) _this);
@@ -341,7 +341,7 @@ char* generate_Declaration(void* _this){
 }
 Declaration mapName_Declaration(void* _this, Function<char*, char*> mapper){
 	Declaration this = *((Declaration*) _this);
-	return /*new Declaration*/(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 }
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
@@ -391,7 +391,7 @@ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, B
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	/*var current*/ = /*new State*/(input);
+	/*var current*/ = new_State(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -805,13 +805,22 @@ State foldStatement_Main(void* _this, State current, Character next){
 			if (i1 >= 0) {
 				final var caller = substring.substring(0, i1);
 				final var arguments = substring.substring(i1 + 1);
-				final var joinedArguments = divide(arguments, Main::foldValue).map(Main::compileExpression).collect(Collectors.joining(", "));
+				final var joinedArguments =
+						divide(arguments, Main::foldValue).map(Main::compileExpression).collect(Collectors.joining(", "));
 
-				return compileExpression(caller) + "(" + joinedArguments + ")";
+				return compileCaller(caller) + "(" + joinedArguments + ")";
 			}
 		}
 
 		return wrap(stripped);
+	}*//*private static String compileCaller(String input) {
+		final var stripped = input.strip();
+		if (stripped.startsWith("new ")) {
+			final var type = stripped.substring("new ".length());
+			return "new_" + compileType(type);
+		}
+
+		return compileExpression(stripped);
 	}*//*private static Optional<Declaration> parseDeclaration(String input, List<String> typeParameters) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");

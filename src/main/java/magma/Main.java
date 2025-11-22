@@ -701,11 +701,21 @@ public class Main {
 				final var joinedArguments =
 						divide(arguments, Main::foldValue).map(Main::compileExpression).collect(Collectors.joining(", "));
 
-				return compileExpression(caller) + "(" + joinedArguments + ")";
+				return compileCaller(caller) + "(" + joinedArguments + ")";
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static String compileCaller(String input) {
+		final var stripped = input.strip();
+		if (stripped.startsWith("new ")) {
+			final var type = stripped.substring("new ".length());
+			return "new_" + compileType(type);
+		}
+
+		return compileExpression(stripped);
 	}
 
 	private static Optional<Declaration> parseDeclaration(String input, List<String> typeParameters) {
