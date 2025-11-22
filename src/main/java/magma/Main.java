@@ -29,7 +29,7 @@ public class Main {
 		}
 
 		@Override
-		public String toIdentifier() {
+		public String toBaseName() {
 			return this.content;
 		}
 	}
@@ -41,7 +41,7 @@ public class Main {
 	private sealed interface Type permits Identifier, Placeholder, PointerType, PrimitiveType, TemplateType {
 		String generate();
 
-		String toIdentifier();
+		String toBaseName();
 	}
 
 	private sealed interface MethodDeclaration permits Constructor, Declaration, Placeholder {
@@ -128,8 +128,8 @@ public class Main {
 		}
 
 		@Override
-		public String toIdentifier() {
-			return this.type.toIdentifier() + "_ptr";
+		public String toBaseName() {
+			return this.type.toBaseName() + "_ptr";
 		}
 	}
 
@@ -143,10 +143,8 @@ public class Main {
 		}
 
 		@Override
-		public String toIdentifier() {
-			final var joined = this.list.stream().map(Type::toIdentifier).collect(Collectors.joining("_"));
-
-			return this.base + "_" + joined;
+		public String toBaseName() {
+			return this.base;
 		}
 	}
 
@@ -157,7 +155,7 @@ public class Main {
 		}
 
 		@Override
-		public String toIdentifier() {
+		public String toBaseName() {
 			return this.value;
 		}
 	}
@@ -169,7 +167,7 @@ public class Main {
 		}
 
 		@Override
-		public String toIdentifier() {
+		public String toBaseName() {
 			return wrap(this.input);
 		}
 	}
@@ -353,7 +351,7 @@ public class Main {
 		final String fields;
 		var dependencies = new StringBuilder();
 		for (var implementee : implementees) {
-			final var identifier = implementee.toIdentifier();
+			final var identifier = implementee.toBaseName();
 
 			final var variant = identifier + "Variant" + "." + name + "Variant";
 			final var conversionFunctionContent =

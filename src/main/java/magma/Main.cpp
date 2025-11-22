@@ -19,7 +19,7 @@ char* generate_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
-char* toIdentifier_PrimitiveType(void* _this){
+char* toBaseName_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
@@ -91,24 +91,24 @@ char* generate_Type(void* _this){
 	}
 	return _ret;
 }
-char* toIdentifier_Type(void* _this){
+char* toBaseName_Type(void* _this){
 	Type this = *((Type*) _this);
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = toIdentifier_Identifier(&this.data.Identifier);
+			_ret = toBaseName_Identifier(&this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = toIdentifier_Placeholder(&this.data.Placeholder);
+			_ret = toBaseName_Placeholder(&this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = toIdentifier_PointerType(&this.data.PointerType);
+			_ret = toBaseName_PointerType(&this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = toIdentifier_PrimitiveType(&this.data.PrimitiveType);
+			_ret = toBaseName_PrimitiveType(&this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = toIdentifier_TemplateType(&this.data.TemplateType);
+			_ret = toBaseName_TemplateType(&this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -143,11 +143,11 @@ char* generate_MethodDeclaration(void* _this){
 	}
 	return _ret;
 }
-Result<T, X> toResult_T_X_Err(void* _this){
+Result<T, X> toResult_Err(void* _this){
 	Err this = *((Err*) _this);
-	Result_T_XData data;
+	ResultData data;
 	data.Err = this;
-	return { Result_T_XVariant.ErrVariant, data };
+	return { ResultVariant.ErrVariant, data };
 }
 struct Err {
 };
@@ -156,11 +156,11 @@ Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
 	Err this = *((Err*) _this);
 	return /*new Err<R, X>(this.error)*/;
 }
-Result<T, X> toResult_T_X_Ok(void* _this){
+Result<T, X> toResult_Ok(void* _this){
 	Ok this = *((Ok*) _this);
-	Result_T_XData data;
+	ResultData data;
 	data.Ok = this;
-	return { Result_T_XVariant.OkVariant, data };
+	return { ResultVariant.OkVariant, data };
 }
 struct Ok {
 };
@@ -413,7 +413,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final String fields;
 		var dependencies = new StringBuilder();
 		for (var implementee : implementees) {
-			final var identifier = implementee.toIdentifier();
+			final var identifier = implementee.toBaseName();
 
 			final var variant = identifier + "Variant" + "." + name + "Variant";
 			final var conversionFunctionContent =
