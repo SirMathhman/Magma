@@ -504,7 +504,7 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	return _ret;
 }
 template <typename T>
-Tuple<int, T> toTuple_Option(void* _ref, Supplier<T> other){
+Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
 	Option<T>* _this = (Option<T>*) _ref;
 	Tuple<int, T> _ret;
 	switch (_this.variant) {
@@ -1158,7 +1158,7 @@ Option<T> or_Some(void* _ref, FR<Option<T>> other){
 	return this;
 }
 template <typename T>
-Tuple<int, T> toTuple_Some(void* _ref, Supplier<T> other){
+Tuple<int, T> toTuple_Some(void* _ref, FR<T> other){
 	Some<T>* _this = (Some<T>*) _ref;
 	return new_Tuple<int, T>(true, _this->value);
 }
@@ -1200,9 +1200,9 @@ Option<T> or_None(void* _ref, FR<Option<T>> other){
 	return other.apply();
 }
 template <typename T>
-Tuple<int, T> toTuple_None(void* _ref, Supplier<T> other){
+Tuple<int, T> toTuple_None(void* _ref, FR<T> other){
 	None<T>* _this = (None<T>*) _ref;
-	return new_Tuple<int, T>(false, other.get());
+	return new_Tuple<int, T>(false, other.apply());
 }
 Folder toFolder_ConditionEndLocator(void* _ref){
 	ConditionEndLocator _this = *((ConditionEndLocator*) _ref);

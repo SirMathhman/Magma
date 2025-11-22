@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.IntStream;
 
@@ -73,7 +72,7 @@ public class Main {
 
 		Option<T> or(FR<Option<T>> other);
 
-		Tuple<Boolean, T> toTuple(Supplier<T> other);
+		Tuple<Boolean, T> toTuple(FR<T> other);
 	}
 
 	private interface F1R<T0, R> {
@@ -565,7 +564,7 @@ public class Main {
 		}
 
 		@Override
-		public Tuple<Boolean, T> toTuple(Supplier<T> other) {
+		public Tuple<Boolean, T> toTuple(FR<T> other) {
 			return new Tuple<Boolean, T>(true, this.value);
 		}
 	}
@@ -602,8 +601,8 @@ public class Main {
 		}
 
 		@Override
-		public Tuple<Boolean, T> toTuple(Supplier<T> other) {
-			return new Tuple<Boolean, T>(false, other.get());
+		public Tuple<Boolean, T> toTuple(FR<T> other) {
+			return new Tuple<Boolean, T>(false, other.apply());
 		}
 	}
 
@@ -1255,8 +1254,7 @@ public class Main {
 
 		return switch (methodDeclaration) {
 			case Constructor _ -> new None<StructMember>();
-			case Declaration member ->
-					new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
+			case Declaration member -> new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
 			case Placeholder placeholder -> new Some<StructMember>(placeholder);
 		};
 
