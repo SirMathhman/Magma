@@ -259,7 +259,7 @@ public State_State(void* _this, char* input){
 	this.index = 0;
 	this.buffer = new_StringBuilder();
 	this.depth = 0;
-	/*this.segments = new ArrayList*/ < /*String>*/();
+	this.segments = new_ArrayList<char*>();
 }
 boolean isShallow_State(void* _this){
 	State this = *((State*) _this);
@@ -328,7 +328,7 @@ Type toType_TemplateType(void* _this){
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
 	/*final var typeArguments */ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
-	return /*this.base + "*/ < /*" + typeArguments + ">"*/;
+	return /*this.base + "<" + typeArguments + ">"*/;
 }
 char* toBaseName_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -426,9 +426,9 @@ char* generate_EmptyStructMember(void* _this){
 }
 public Main_Main(void* _this){
 	Main this = *((Main*) _this);
-	/*this.structures = new ArrayList*/ < /*String>*/();
-	/*this.functions = new ArrayList*/ < /*String>*/();
-	/*this.globals = new ArrayList*/ < /*String>*/();
+	this.structures = new_ArrayList<char*>();
+	this.functions = new_ArrayList<char*>();
+	this.globals = new_ArrayList<char*>();
 }
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
@@ -995,10 +995,15 @@ State foldStatement_Main(void* _this, State current, Character next){
 	}*//*private Optional<String> compileOperator(String input, String operator) {
 		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {
-			final var left = input.substring(0, i1);
+			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
-			return Optional.of(this.compileExpressionOrPlaceholder(left) + " " + operator + " " +
-												 this.compileExpressionOrPlaceholder(right));
+			final var leftResult = this.compileExpression(leftString);
+			if (leftResult.isPresent()) {
+				final var rightResult = this.compileExpression(right);
+				if (rightResult.isPresent()) {
+					return Optional.of(leftResult.get() + " " + operator + " " + rightResult.get());
+				}
+			}
 		}
 
 		return Optional.empty();

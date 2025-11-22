@@ -834,10 +834,15 @@ public class Main {
 	private Optional<String> compileOperator(String input, String operator) {
 		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {
-			final var left = input.substring(0, i1);
+			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
-			return Optional.of(this.compileExpressionOrPlaceholder(left) + " " + operator + " " +
-												 this.compileExpressionOrPlaceholder(right));
+			final var leftResult = this.compileExpression(leftString);
+			if (leftResult.isPresent()) {
+				final var rightResult = this.compileExpression(right);
+				if (rightResult.isPresent()) {
+					return Optional.of(leftResult.get() + " " + operator + " " + rightResult.get());
+				}
+			}
 		}
 
 		return Optional.empty();
