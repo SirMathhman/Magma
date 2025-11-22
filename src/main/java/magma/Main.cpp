@@ -327,7 +327,7 @@ Type toType_TemplateType(void* _this){
 }
 char* generate_TemplateType(void* _this){
 	TemplateType* this = (TemplateType*) _this;
-	var typeArguments = this->list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
+	var typeArguments = this->list.stream().map(/*Type::generate*/).collect(/*Collectors.joining("*/, /* ")*/);
 	return this->base + " < " + typeArguments + ">";
 }
 char* toBaseName_TemplateType(void* _this){
@@ -411,7 +411,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration* this = (FunctionDeclaration*) _this;
-	var joinedParameterTypes = this->parameterTypes.stream(/*).collect(Collectors.joining("*/, ", "(", /* ")")*/);
+	var joinedParameterTypes = this->parameterTypes.stream().collect(/*Collectors.joining("*/, ", "(", /* ")")*/);
 	return this->type + " (*" + this->name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
@@ -437,9 +437,10 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 		templateString = "";
 	}
 	else {
-		templateString = "template " + typeParameters.stream(/*)
+		templateString = /* "template " + typeParameters
+					.stream()
 					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<"*/, /* ">")) + System.lineSeparator(*/);
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator()*/;
 	}
 	return templateString;
 }
@@ -450,13 +451,13 @@ char* wrap_Main(void* _this, char* input){
 }
 void main_Main(void* _this, char** args){
 	Main* this = (Main*) _this;
-	new_Main(/*).run().ifPresent(Throwable::printStackTrace*/);
+	new_/*Main().run().ifPresent*/(/*Throwable::printStackTrace*/);
 }
 Optional<IOException> run_Main(void* _this){
 	Main* this = (Main*) _this;
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");
-	var input = this->readString(/*source).mapValue(this::compile*/);
+	var input = this->readString(source).mapValue(/*this::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
@@ -496,7 +497,7 @@ char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper)
 }
 char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main* this = (Main*) _this;
-	return this->divide(input, /* folder).map(mapper::apply).collect(Collectors.joining("")*/);
+	return this->divide(input, folder).map(/*mapper::apply*/).collect(Collectors.joining(""));
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main* this = (Main*) _this;
@@ -510,7 +511,7 @@ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character,
 			final var next = maybeNext.get();
 			current = folder.apply(current, next);
 		}*/
-	return current.advance(/*).stream(*/);
+	return current.advance().stream();
 }
 State foldStatement_Main(void* _this, State current, Character next){
 	Main* this = (Main*) _this;
@@ -1049,11 +1050,27 @@ State foldStatement_Main(void* _this, State current, Character next){
 		return Optional.empty();
 	}*//*private Optional<String> compileInvokable(String stripped) {
 		if (stripped.endsWith(")")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var i1 = substring.indexOf("(");
-			if (i1 >= 0) {
-				final var callerString = substring.substring(0, i1);
-				final var arguments = substring.substring(i1 + 1);
+			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
+
+			int callerStart = -1;
+			var depth = 0;
+			for (var i = 0; i < withoutEnd.length(); i++) {
+				final var c = withoutEnd.charAt(i);
+				if (c == '(') {
+					if (depth == 0) {
+						callerStart = i;
+					}
+
+					depth++;
+				}
+				if (c == ')') {
+					depth--;
+				}
+			}
+
+			if (callerStart >= 0) {
+				final var callerString = withoutEnd.substring(0, callerStart);
+				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
 						.divide(arguments, this::foldValue)
 						.map(this::compileExpressionOrPlaceholder)

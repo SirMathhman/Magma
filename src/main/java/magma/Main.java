@@ -893,11 +893,27 @@ public class Main {
 
 	private Optional<String> compileInvokable(String stripped) {
 		if (stripped.endsWith(")")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var i1 = substring.indexOf("(");
-			if (i1 >= 0) {
-				final var callerString = substring.substring(0, i1);
-				final var arguments = substring.substring(i1 + 1);
+			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
+
+			int callerStart = -1;
+			var depth = 0;
+			for (var i = 0; i < withoutEnd.length(); i++) {
+				final var c = withoutEnd.charAt(i);
+				if (c == '(') {
+					if (depth == 0) {
+						callerStart = i;
+					}
+
+					depth++;
+				}
+				if (c == ')') {
+					depth--;
+				}
+			}
+
+			if (callerStart >= 0) {
+				final var callerString = withoutEnd.substring(0, callerStart);
+				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
 						.divide(arguments, this::foldValue)
 						.map(this::compileExpressionOrPlaceholder)
