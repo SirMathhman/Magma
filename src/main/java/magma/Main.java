@@ -596,7 +596,7 @@ public class Main {
 				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-					maybeCompiled = Optional.of(this.compileStatements(inputContent, this::compileMethodSegment));
+					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent));
 				}
 
 				String outputContent;
@@ -651,6 +651,10 @@ public class Main {
 		}
 
 		return Optional.of(new Placeholder(stripped));
+	}
+
+	private String compileMethodsSegments(String inputContent) {
+		return this.compileStatements(inputContent, this::compileMethodSegment);
 	}
 
 	private String generateCase(String structName, Declaration declaration, String variant) {
@@ -743,9 +747,9 @@ public class Main {
 			final var substring = stripped.substring(2).strip();
 			if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
-				int conditionEnd = -1;
+				var conditionEnd = -1;
 				var depth = 0;
-				for (int i = 0; i < afterConditionStart.length(); i++) {
+				for (var i = 0; i < afterConditionStart.length(); i++) {
 					final var c = afterConditionStart.charAt(i);
 					if (c == '(') {
 						depth++;
@@ -766,7 +770,7 @@ public class Main {
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 wrap(content) + "}";
+									 this.compileMethodsSegments(content) + "}";
 					}
 				}
 			}
@@ -788,9 +792,12 @@ public class Main {
 
 		final var i = stripped.indexOf("=");
 		if (i >= 0) {
-			final var substring = stripped.substring(0, i);
+			final var destination = stripped.substring(0, i);
 			final var substring1 = stripped.substring(i + 1);
-			return this.compileExpressionOrPlaceholder(substring) + " = " + this.compileExpressionOrPlaceholder(substring1);
+			return this
+								 .compileExpression(destination)
+								 .or(() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate))
+								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
 		return wrap(stripped);
@@ -914,7 +921,11 @@ public class Main {
 				}
 			}
 
-			if (typeSeparator < 0 && this.isIdentifier(name)) {
+			if (!this.isIdentifier(name)) {
+				return Optional.empty();
+			}
+
+			if (typeSeparator < 0) {
 				final var type = this.compileType(beforeName);
 				return Optional.of(new Declaration(type, name));
 			}

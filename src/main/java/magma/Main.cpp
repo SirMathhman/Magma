@@ -276,11 +276,10 @@ State append_State(void* _this, Character next){
 }
 Optional<Character> pop_State(void* _this){
 	State this = *((State*) _this);
-	if (this.index < this.input.length()) {/*
-				final var value = this.input.charAt(this.index);
-				this.index++;
-				return Optional.of(value);
-			*/}
+	if (this.index < this.input.length()) {
+	var value = this.input.charAt(this.index);
+	/*this.index++*/;
+	return Optional.of(value);}
 	/*else {
 				return Optional.empty();
 			}*/
@@ -327,7 +326,7 @@ Type toType_TemplateType(void* _this){
 }
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
-	/*final var typeArguments */ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
+	var typeArguments = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
 	return /*this.base + "<" + typeArguments + ">"*/;
 }
 char* toBaseName_TemplateType(void* _this){
@@ -396,7 +395,7 @@ public Declaration_Declaration(void* _this, char* type, char* name){
 }
 char* generate_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
-	/*var beforeDeclaration */ = generateTemplateString(this.typeParameters());
+	var beforeDeclaration = generateTemplateString(this.typeParameters());
 	return /*beforeDeclaration + this.type + " " + this.name*/;
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
@@ -411,7 +410,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration this = *((FunctionDeclaration*) _this);
-	/*final var joinedParameterTypes */ = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, /* "*/, /* "("*/, /* ")")*/);
+	var joinedParameterTypes = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, /* "*/, /* "("*/, /* ")")*/);
 	return /*this.type + " (*" + this.name + ")" + joinedParameterTypes*/;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
@@ -433,9 +432,8 @@ public Main_Main(void* _this){
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
-	if (typeParameters.isEmpty()) {/*
-			templateString = "";
-		*/}
+	if (typeParameters.isEmpty()) {
+	templateString = /* ""*/;}
 	/*else {
 			templateString = "template " + typeParameters
 					.stream()
@@ -446,7 +444,7 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 }
 char* wrap_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	/*final var replaced */ = input.replace(/*"start"*/, /* "start").replace("end"*/, /* "end"*/);
+	var replaced = input.replace(/*"start"*/, /* "start").replace("end"*/, /* "end"*/);
 	return /*"start" + replaced + "end"*/;
 }
 void main_Main(void* _this, char** args){
@@ -455,9 +453,9 @@ void main_Main(void* _this, char** args){
 }
 Optional<IOException> run_Main(void* _this){
 	Main this = *((Main*) _this);
-	/*final var source */ = Paths.get(/*"."*/, /* "src"*/, /* "main"*/, /* "java"*/, /* "magma"*/, /* "Main.java"*/);
-	/*final var target */ = source.resolveSibling(/*"Main.cpp"*/);
-	/*final var input */ = this.readString(/*source).mapValue(this::compile*/);
+	var source = Paths.get(/*"."*/, /* "src"*/, /* "main"*/, /* "java"*/, /* "magma"*/, /* "Main.java"*/);
+	var target = source.resolveSibling(/*"Main.cpp"*/);
+	var input = this.readString(/*source).mapValue(this::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
@@ -485,10 +483,10 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 }
 char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	/*final var all */ = this.compileStatements(input, /* this::compileRootSegment*/);
-	/*final var joinedStructures */ = String.join(/*""*/, this.structures);
-	/*final var joinedGlobals */ = String.join(/*""*/, this.globals);
-	/*final var joinedFunctions */ = String.join(/*""*/, this.functions);
+	var all = this.compileStatements(input, /* this::compileRootSegment*/);
+	var joinedStructures = String.join(/*""*/, this.structures);
+	var joinedGlobals = String.join(/*""*/, this.globals);
+	var joinedFunctions = String.join(/*""*/, this.functions);
 	return /*joinedStructures + joinedGlobals + joinedFunctions + all*/;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
@@ -501,7 +499,7 @@ char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunc
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	/*var current */ = new_State(input);
+	var current = new_State(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -515,7 +513,7 @@ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character,
 }
 State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
-	/*final var appended */ = current.append(next);
+	var appended = current.append(next);
 	/*if (next */ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
@@ -777,7 +775,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-					maybeCompiled = Optional.of(this.compileStatements(inputContent, this::compileMethodSegment));
+					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent));
 				}
 
 				String outputContent;
@@ -832,6 +830,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return Optional.of(new Placeholder(stripped));
+	}*//*private String compileMethodsSegments(String inputContent) {
+		return this.compileStatements(inputContent, this::compileMethodSegment);
 	}*//*private String generateCase(String structName, Declaration declaration, String variant) {
 		return this.generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
 					 this.generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
@@ -912,9 +912,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var substring = stripped.substring(2).strip();
 			if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
-				int conditionEnd = -1;
+				var conditionEnd = -1;
 				var depth = 0;
-				for (int i = 0; i < afterConditionStart.length(); i++) {
+				for (var i = 0; i < afterConditionStart.length(); i++) {
 					final var c = afterConditionStart.charAt(i);
 					if (c == '(') {
 						depth++;
@@ -935,7 +935,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 wrap(content) + "}";
+									 this.compileMethodsSegments(content) + "}";
 					}
 				}
 			}
@@ -955,9 +955,12 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 		final var i = stripped.indexOf("=");
 		if (i >= 0) {
-			final var substring = stripped.substring(0, i);
+			final var destination = stripped.substring(0, i);
 			final var substring1 = stripped.substring(i + 1);
-			return this.compileExpressionOrPlaceholder(substring) + " = " + this.compileExpressionOrPlaceholder(substring1);
+			return this
+								 .compileExpression(destination)
+								 .or(() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate))
+								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
 		return wrap(stripped);
@@ -1067,7 +1070,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 				}
 			}
 
-			if (typeSeparator < 0 && this.isIdentifier(name)) {
+			if (!this.isIdentifier(name)) {
+				return Optional.empty();
+			}
+
+			if (typeSeparator < 0) {
 				final var type = this.compileType(beforeName);
 				return Optional.of(new Declaration(type, name));
 			}
