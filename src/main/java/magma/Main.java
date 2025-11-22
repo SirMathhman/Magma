@@ -739,7 +739,7 @@ public class Main {
 		}
 
 		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - indent);
+			final var substring = stripped.substring(0, stripped.length() - 1);
 			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
@@ -770,7 +770,7 @@ public class Main {
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + "}";
+									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(1) + "}";
 					}
 				}
 			}
@@ -780,7 +780,8 @@ public class Main {
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) + "}";
+				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 this.generateIndent(indent) + "}";
 			}
 		}
 

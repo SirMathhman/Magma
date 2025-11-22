@@ -277,11 +277,13 @@ State append_State(void* _this, Character next){
 Optional<Character> pop_State(void* _this){
 	State this = *((State*) _this);
 	if (this.index < this.input.length()) {
-		var value = /* this.input.charAt(this.index*/;
-		/*this.index+*/;
-		return /*Optional.of(value*/;}
+		var value = this.input.charAt(this.index);
+		this.index++;
+		return Optional.of(value);
+	}
 	else {
-		return /*Optional.empty(*/;}
+		return Optional.empty();
+	}
 }
 State advance_State(void* _this){
 	State this = *((State*) _this);
@@ -432,12 +434,14 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
 	if (typeParameters.isEmpty()) {
-		templateString = /* "*/;}
+		templateString = /* ""*/;
+	}
 	else {
 		templateString = /* "template " + typeParameters
 					.stream()
 					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator(*/;}
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator()*/;
+	}
 	return templateString;
 }
 char* wrap_Main(void* _this, char* input){
@@ -902,7 +906,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - indent);
+			final var substring = stripped.substring(0, stripped.length() - 1);
 			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
@@ -933,7 +937,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
 						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + "}";
+									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(1) + "}";
 					}
 				}
 			}
@@ -943,7 +947,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) + "}";
+				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 this.generateIndent(indent) + "}";
 			}
 		}
 
