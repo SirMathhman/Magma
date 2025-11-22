@@ -18,12 +18,12 @@ PrimitiveType new_PrimitiveType(char* content){
 /*@Override
 		public*/ char* generate_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
-	/*return this.content*/;
+	return this.content;
 }
 /*@Override
 		public*/ char* toIdentifier_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
-	/*return this.name().toLowerCase()*/;
+	return this.name().toLowerCase();
 }
 /*}*/enum ResultVariant {
 	ErrVariant, 
@@ -107,7 +107,7 @@ union MethodDeclarationData {
 
 		private State append(Character next) {
 			this.buffer.append(next)*/;
-	/*return this*/;
+	return this;
 	/*}
 
 		private Optional<Character> pop() {
@@ -124,17 +124,17 @@ union MethodDeclarationData {
 		private State advance() {
 			this.segments.add(this.buffer.toString())*/;
 	/*this.buffer.setLength(0)*/;
-	/*return this*/;
+	return this;
 	/*}
 
 		private State enter() {
 			this*/.depth = this.depth + 1;
-	/*return this*/;
+	return this;
 	/*}
 
 		private State exit() {
 			this*/.depth = this.depth - 1;
-	/*return this*/;
+	return this;
 	/*}
 
 		private Stream<String> stream() {
@@ -241,15 +241,15 @@ union MethodDeclarationData {
 }
 /*private static*/ char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
-	/*return compileStatements(input, Main::compileRootSegment)*/;
+	return /*compileStatements(input, Main::compileRootSegment)*/;
 }
 /*private static*/ char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
 	Main this = *((Main*) _this);
-	/*return compileAll(input, mapper, Main::foldStatement)*/;
+	return /*compileAll(input, mapper, Main::foldStatement)*/;
 }
 /*private static*/ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
+	return /*divide(input, folder)*/.map(mapper).collect(Collectors.joining(""));
 }
 /*private static*/ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
@@ -263,7 +263,7 @@ union MethodDeclarationData {
 			final var next = maybeNext.get();
 			current = folder.apply(current, next);
 		}*/
-	/*return current.advance().stream()*/;
+	return current.advance().stream();
 }
 /*private static*/ State foldStatement_Main(void* _this, State current, Character next){
 	Main this = *((Main*) _this);
@@ -278,7 +278,7 @@ union MethodDeclarationData {
 			return appended.advance().exit();
 		}*//*if */(void* _this){
 	Main this = *((Main*) _this);
-	/*return appended.enter()*/;
+	return appended.enter();
 	/*}
 
 		if (next == '*/
@@ -594,14 +594,19 @@ union MethodDeclarationData {
 	}
 
 	private static String compileMethodStatement(String input) {
-		final var i = input.indexOf("=");
+		final var stripped = input.strip();
+		if (stripped.startsWith("return ")) {
+			return "return " + compileExpression(stripped.substring("return ".length()));
+		}
+
+		final var i = stripped.indexOf("=");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
-			final var substring1 = input.substring(i + 1);
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
 			return compileExpression(substring) + " = " + compileExpression(substring1);
 		}
 
-		return wrap(input);
+		return wrap(stripped);
 	}
 
 	private static String compileExpression(String input) {

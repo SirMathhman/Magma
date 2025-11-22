@@ -590,14 +590,19 @@ public class Main {
 	}
 
 	private static String compileMethodStatement(String input) {
-		final var i = input.indexOf("=");
+		final var stripped = input.strip();
+		if (stripped.startsWith("return ")) {
+			return "return " + compileExpression(stripped.substring("return ".length()));
+		}
+
+		final var i = stripped.indexOf("=");
 		if (i >= 0) {
-			final var substring = input.substring(0, i);
-			final var substring1 = input.substring(i + 1);
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
 			return compileExpression(substring) + " = " + compileExpression(substring1);
 		}
 
-		return wrap(input);
+		return wrap(stripped);
 	}
 
 	private static String compileExpression(String input) {
