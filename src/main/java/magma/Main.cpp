@@ -33,7 +33,6 @@ struct ListTable {
 	T (*getFirst)(void*);
 	List<T> (*subList)(void*, int, int);
 	List<T> (*clear)(void*);
-	List<T> (*copy)(void*);
 };
 template <typename T>
 struct List {
@@ -413,14 +412,6 @@ List<T> clear_List(void* _ref){
 	return _ret;
 }
 template <typename T>
-List<T> copy_List(void* _ref){
-	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (this.variant) {
-	}
-	return _ret;
-}
-template <typename T>
 T apply_FR(void* _ref){
 	FR<T>* _this = (FR<T>*) _ref;
 	T _ret;
@@ -428,19 +419,19 @@ T apply_FR(void* _ref){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T>
+template <typename T, typename T>
 Option<T> of_Option(void* _ref, T value){
-	Option<T, T>* _this = (Option<T, T>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	return new_Some<T>(value);
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T, typename T>
 Option<T> empty_Option(void* _ref){
-	Option<T, T, T, T, T>* _this = (Option<T, T, T, T, T>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	return new_None<T>();
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R>
+template <typename R, typename T>
 Option<R> map_Option(void* _ref, F1R<T, R> mapper){
-	Option<T, T, T, T, T, T, T, T, T, T, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	Option<R> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -452,9 +443,9 @@ Option<R> map_Option(void* _ref, F1R<T, R> mapper){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R>
+template <typename T>
 T orElse_Option(void* _ref, T other){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	T _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -466,9 +457,9 @@ T orElse_Option(void* _ref, T other){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename R, typename T>
 Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	Option<R> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -480,9 +471,9 @@ Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename T>
 T orElseGet_Option(void* _ref, FR<T> other){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	T _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -494,9 +485,9 @@ T orElseGet_Option(void* _ref, FR<T> other){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename T>
 Stream<T> stream_Option(void* _ref){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	Stream<T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -508,9 +499,9 @@ Stream<T> stream_Option(void* _ref){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename T>
 Option<T> or_Option(void* _ref, FR<Option<T>> other){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	Option<T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -522,9 +513,9 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	}
 	return _ret;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename T>
 Tuple<int, T> toTuple_Option(void* _ref, Supplier<T> other){
-	Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Option<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Option<T>* _this = (Option<T>*) _ref;
 	Tuple<int, T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
@@ -544,9 +535,9 @@ R apply_F1R(void* _ref, T0 value){
 	}
 	return _ret;
 }
-template <typename T, typename X, typename R, typename T, typename X, typename R>
+template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
-	Result<T, X, R>* _this = (Result<T, X, R>*) _ref;
+	Result<T, X>* _this = (Result<T, X>*) _ref;
 	Result<R, X> _ret;
 	switch (this.variant) {
 		case ResultVariant.ErrVariant:
@@ -691,19 +682,19 @@ char* toString_StringBuilder(void* _ref){
 	StringBuilder* _this = (StringBuilder*) _ref;
 	return _this->list.stream().map(F? { alloc(String), F?Table { valueOf }}).collect(new_Joiner());
 }
-template <typename T, typename T, typename T, typename T>
+template <typename T, typename T>
 Stream<T> of_Stream(void* _ref, T value){
-	Stream<T, T>* _this = (Stream<T, T>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<T>(new_SingleHead<T>(value));
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T, typename T>
 Stream<T> empty_Stream(void* _ref){
-	Stream<T, T, T, T, T>* _this = (Stream<T, T, T, T, T>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<T>(new_EmptyHead<T>());
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R>
+template <typename R, typename T>
 Stream<R> map_Stream(void* _ref, F1R<T, R> mapper){
-	Stream<T, T, T, T, T, T, T, T, T, T, R>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<R>(new_MapHead<T, R>(_this->head, mapper));
 }
 auto lambda0(void* _ref, auto ()){
@@ -712,9 +703,9 @@ auto lambda0(void* _ref, auto ()){
 auto lambda1(void* _ref, auto element){
 	return folder.apply(finalCurrent, element);
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R>
+template <typename R, typename T>
 R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
-	Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	var current = initial;
 	while (true) {
 		var finalCurrent = current;
@@ -727,14 +718,14 @@ R fold_Stream(void* _ref, R initial, F2R<R, T, R> folder){
 		}
 	}
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C>
+template <typename C, typename T>
 C collect_Stream(void* _ref, Collector<T, C> collector){
-	Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return _this->fold(collector.createInitial(), F? { alloc(collector), F?Table { fold }});
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C>
+template <typename T>
 List<T> toList_Stream(void* _ref){
-	Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return _this->collect(new_ListCollector<T>());
 }
 auto lambda2(void* _ref, auto element){
@@ -743,14 +734,14 @@ auto lambda2(void* _ref, auto element){
 	}
 	return new_Stream<T>(new_EmptyHead<T>());
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C>
+template <typename T>
 Stream<T> filter_Stream(void* _ref, Predicate<T> predicate){
-	Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return _this->flatMap(lambda2);
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename R, typename R, typename C, typename R>
+template <typename R, typename T>
 Stream<R> flatMap_Stream(void* _ref, F1R<T, Stream<R>> mapper){
-	Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, R>* _this = (Stream<T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, T, T, T, T, T, T, T, T, T, T, R, T, T, T, T, T, T, T, T, T, T, R, R, C, R>*) _ref;
+	Stream<T>* _this = (Stream<T>*) _ref;
 	return new_Stream<R>(new_FlatMapHead<T, R>(_this->head, mapper));
 }
 Head<Integer> toHead_RangeHead(void* _ref){
@@ -792,63 +783,58 @@ public JavaList_JavaList(void* _ref){
 	JavaList<T>* _this = (JavaList<T>*) _ref;
 	this(new_ArrayList<T>());
 }
-template <typename T, typename T>
+template <typename T>
 JavaList<T> addLast_JavaList(void* _ref, T element){
 	JavaList<T>* _this = (JavaList<T>*) _ref;
 	_this->nativeList.add(element);
 	return this;
 }
-template <typename T, typename T, typename T, typename T>
+template <typename T>
 Stream<T> stream_JavaList(void* _ref){
-	JavaList<T, T>* _this = (JavaList<T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return new_Stream<Integer>(new_RangeHead(_this->nativeList.size())).map(F? { alloc(_this->nativeList), F?Table { get }});
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 int isEmpty_JavaList(void* _ref){
-	JavaList<T, T, T, T>* _this = (JavaList<T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return _this->nativeList.isEmpty();
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 int contains_JavaList(void* _ref, T element){
-	JavaList<T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return _this->nativeList.contains(element);
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 List<T> addFirst_JavaList(void* _ref, T element){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	_this->nativeList.addFirst(element);
 	return this;
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 List<T> addAll_JavaList(void* _ref, List<T> elements){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return elements.stream().fold(this, F? { alloc(JavaList), F?Table { addLast }});
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 int size_JavaList(void* _ref){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return _this->nativeList.size();
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 T getFirst_JavaList(void* _ref){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return _this->nativeList.getFirst();
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 List<T> subList_JavaList(void* _ref, int start, int end){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	return new_JavaList<T>(_this->nativeList.subList(start, end));
 }
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
+template <typename T>
 List<T> clear_JavaList(void* _ref){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
+	JavaList<T>* _this = (JavaList<T>*) _ref;
 	_this->nativeList.clear();
 	return this;
-}
-template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
-List<T> copy_JavaList(void* _ref){
-	JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T, T>*) _ref;
-	return new_JavaList<T>(new_ArrayList<T>(_this->nativeList));
 }
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _ref){
@@ -857,9 +843,9 @@ Result<T, X> toResult_Err(void* _ref){
 	data.Err = _this;
 	return { ErrVariant, data };
 }
-template <typename T, typename X, typename R, typename T, typename X, typename R>
+template <typename R, typename T, typename X>
 Result<R, X> mapValue_Err(void* _ref, F1R<T, R> mapper){
-	Err<T, X, R>* _this = (Err<T, X, R>*) _ref;
+	Err<T, X>* _this = (Err<T, X>*) _ref;
 	return new_Err<R, X>(_this->error);
 }
 template <typename T, typename X>
@@ -869,9 +855,9 @@ Result<T, X> toResult_Ok(void* _ref){
 	data.Ok = _this;
 	return { OkVariant, data };
 }
-template <typename T, typename X, typename R, typename T, typename X, typename R>
+template <typename R, typename T, typename X>
 Result<R, X> mapValue_Ok(void* _ref, F1R<T, R> mapper){
-	Ok<T, X, R>* _this = (Ok<T, X, R>*) _ref;
+	Ok<T, X>* _this = (Ok<T, X>*) _ref;
 	return new_Ok<R, X>(mapper.apply(_this->value));
 }
 public State_State(void* _ref, char* input){
@@ -1151,39 +1137,39 @@ Option<T> toOption_Some(void* _ref){
 	data.Some = _this;
 	return { SomeVariant, data };
 }
-template <typename T, typename R, typename T, typename R>
+template <typename R, typename T>
 Option<R> map_Some(void* _ref, F1R<T, R> mapper){
-	Some<T, R>* _this = (Some<T, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return new_Some<R>(mapper.apply(_this->value));
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R>
+template <typename T>
 T orElse_Some(void* _ref, T other){
-	Some<T, R, T, R>* _this = (Some<T, R, T, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return _this->value;
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename R, typename T>
 Option<R> flatMap_Some(void* _ref, F1R<T, Option<R>> mapper){
-	Some<T, R, T, R, T, R, T, R, R>* _this = (Some<T, R, T, R, T, R, T, R, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return mapper.apply(_this->value);
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 T orElseGet_Some(void* _ref, FR<T> other){
-	Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return _this->value;
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Stream<T> stream_Some(void* _ref){
-	Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return Stream.of(_this->value);
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Option<T> or_Some(void* _ref, FR<Option<T>> other){
-	Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return this;
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Tuple<int, T> toTuple_Some(void* _ref, Supplier<T> other){
-	Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (Some<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	Some<T>* _this = (Some<T>*) _ref;
 	return new_Tuple<int, T>(true, _this->value);
 }
 template <typename T>
@@ -1193,39 +1179,39 @@ Option<T> toOption_None(void* _ref){
 	data.None = _this;
 	return { NoneVariant, data };
 }
-template <typename T, typename R, typename T, typename R>
+template <typename R, typename T>
 Option<R> map_None(void* _ref, F1R<T, R> mapper){
-	None<T, R>* _this = (None<T, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return new_None<R>();
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R>
+template <typename T>
 T orElse_None(void* _ref, T other){
-	None<T, R, T, R>* _this = (None<T, R, T, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return other;
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename R, typename T>
 Option<R> flatMap_None(void* _ref, F1R<T, Option<R>> mapper){
-	None<T, R, T, R, T, R, T, R, R>* _this = (None<T, R, T, R, T, R, T, R, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return new_None<R>();
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 T orElseGet_None(void* _ref, FR<T> other){
-	None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return other.apply();
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Stream<T> stream_None(void* _ref){
-	None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return Stream.empty();
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Option<T> or_None(void* _ref, FR<Option<T>> other){
-	None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return other.apply();
 }
-template <typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename T, typename R, typename R>
+template <typename T>
 Tuple<int, T> toTuple_None(void* _ref, Supplier<T> other){
-	None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>* _this = (None<T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R, T, R, T, R, T, R, T, R, R>*) _ref;
+	None<T>* _this = (None<T>*) _ref;
 	return new_Tuple<int, T>(false, other.get());
 }
 Folder toFolder_ConditionEndLocator(void* _ref){
@@ -1261,17 +1247,16 @@ char* generate_Field(void* _ref){
 auto lambda6(void* _ref, auto index){
 	return /*elements[index]*/;
 }
-template <typename T, typename T>
+template <typename T>
 Stream<T> fromObjArray_Streams(void* _ref, T* elements){
-	Streams<T>* _this = (Streams<T>*) _ref;
+	Streams* _this = (Streams*) _ref;
 	return new_Stream<Integer>(new_RangeHead(elements.length)).map(lambda6);
 }
 auto lambda7(void* _ref, auto index){
 	return /*array[index]*/;
 }
-template <typename T, typename T, typename T, typename T>
 Stream<char> fromCharArray_Streams(void* _ref, char* array){
-	Streams<T, T>* _this = (Streams<T, T>*) _ref;
+	Streams* _this = (Streams*) _ref;
 	return new_Stream<Integer>(new_RangeHead(array.length)).map(lambda7);
 }
 template <typename T, typename R>
@@ -1281,7 +1266,7 @@ Head<R> toHead_MapHead(void* _ref){
 	data.MapHead = _this;
 	return { MapHeadVariant, data };
 }
-template <typename T, typename R, typename T, typename R>
+template <typename T, typename R>
 Option<R> next_MapHead(void* _ref){
 	MapHead<T, R>* _this = (MapHead<T, R>*) _ref;
 	return _this->head.next().map(_this->mapper);
@@ -1299,7 +1284,7 @@ public SingleHead_SingleHead(void* _ref, T value){
 	_this->value = value;
 	_this->retrieved = false;
 }
-template <typename T, typename T>
+template <typename T>
 Option<T> next_SingleHead(void* _ref){
 	SingleHead<T>* _this = (SingleHead<T>*) _ref;
 	if (_this->retrieved) {
@@ -1322,7 +1307,7 @@ public FlatMapHead_FlatMapHead(void* _ref, Head<T> head, F1R<T, Stream<R>> mappe
 	_this->mapper = mapper;
 	_this->maybeCurrent = Option.empty();
 }
-template <typename T, typename R, typename T, typename R>
+template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref){
 	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
 	while (true) {
@@ -1346,7 +1331,7 @@ Head<T> toHead_EmptyHead(void* _ref){
 	data.EmptyHead = _this;
 	return { EmptyHeadVariant, data };
 }
-template <typename T, typename T>
+template <typename T>
 Option<T> next_EmptyHead(void* _ref){
 	EmptyHead<T>* _this = (EmptyHead<T>*) _ref;
 	return new_None<T>();
@@ -1358,14 +1343,14 @@ Collector<T, int> toCollector_AnyMatch(void* _ref){
 	data.AnyMatch = _this;
 	return { AnyMatchVariant, data };
 }
-template <typename T, typename T>
+template <typename T>
 int createInitial_AnyMatch(void* _ref){
 	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return false;
 }
-template <typename T, typename T, typename T, typename T>
+template <typename T>
 int fold_AnyMatch(void* _ref, int aBoolean, T t){
-	AnyMatch<T, T>* _this = (AnyMatch<T, T>*) _ref;
+	AnyMatch<T>* _this = (AnyMatch<T>*) _ref;
 	return aBoolean || this.predicate.test(t);
 }
 Collector<char*, char*> toCollector_Joiner(void* _ref){
@@ -1396,14 +1381,14 @@ Collector<T, List<T>> toCollector_ListCollector(void* _ref){
 	data.ListCollector = _this;
 	return { ListCollectorVariant, data };
 }
-template <typename T, typename T>
+template <typename T>
 List<T> createInitial_ListCollector(void* _ref){
 	ListCollector<T>* _this = (ListCollector<T>*) _ref;
 	return new_JavaList<T>();
 }
-template <typename T, typename T, typename T, typename T>
+template <typename T>
 List<T> fold_ListCollector(void* _ref, List<T> tList, T t){
-	ListCollector<T, T>* _this = (ListCollector<T, T>*) _ref;
+	ListCollector<T>* _this = (ListCollector<T>*) _ref;
 	return tList.addLast(t);
 }
 public Main_Main(void* _ref){
@@ -1555,28 +1540,25 @@ auto lambda10(void* _ref, auto slice){
 auto lambda11(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda12(void* _ref, auto slice){
-	return _this->parseDeclaration(slice, new_JavaList<char*>());
-}
-auto lambda13(void* _ref, auto (state, character)){
+auto lambda12(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda14(void* _ref, auto slice){
+auto lambda13(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda15(void* _ref, auto implementee){
+auto lambda14(void* _ref, auto implementee){
 	return _this->getString(implementee, name, joinedTypeParameters, templateString);
 }
-auto lambda16(void* _ref, auto slice){
+auto lambda15(void* _ref, auto slice){
 	return _this->compileClassSegment(slice, name, finalTypeParameters, finalVariants);
 }
-auto lambda17(void* _ref, auto variant){
+auto lambda16(void* _ref, auto variant){
 	return System.lineSeparator() + "\t" + variant + "Variant";
 }
-auto lambda18(void* _ref, auto variant){
+auto lambda17(void* _ref, auto variant){
 	return System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";";
 }
-auto lambda19(void* _ref, auto member){
+auto lambda18(void* _ref, auto member){
 	return !(member.variant = ?.F1RDeclarationVariant);
 }
 Option<StructMember> compileStructure_Main(void* _ref, char* type, char* stripped){
@@ -1617,7 +1599,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		var i3 = substring.indexOf("(");
 		if (i3 >= 0) {
 			beforeContent = substring.substring(0, i3);
-			recordFields = _this->divide(substring.substring(i3 + 1), lambda13).map(lambda12).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+			recordFields = _this->divide(substring.substring(i3 + 1), lambda12).map(F? { alloc(this), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 		}
 	}
 	List<char*> typeParameters = new_JavaList<char*>();
@@ -1633,21 +1615,21 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	if (!this.isIdentifier(beforeContent)) {
 		return Option.empty();
 	}
-	var modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda14).toList();
+	var modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda13).toList();
 	var name = beforeContent.strip();
 	var templateString = generateTemplateString(typeParameters);
 	var joinedTypeParameters = _this->joinTypeParameters(typeParameters);
 	var fields = new_StringBuilder();
 	var dependencies = new_StringBuilder();
-	_this->functions = implementees.stream().map(lambda15).fold(_this->functions, F? { alloc(List), F?Table { addLast }});
+	_this->functions = implementees.stream().map(lambda14).fold(_this->functions, F? { alloc(List), F?Table { addLast }});
 	var joinedRecordFields = recordFields.stream().map(F? { alloc(Declaration), F?Table { generate }}).map(F? { alloc(this), F?Table { generateStatement }}).collect(new_Joiner());
 	var finalTypeParameters = typeParameters;
 	var finalVariants = variants;
-	var members = _this->divide(inputContent, new_EscapedFolder(F? { alloc(this), F?Table { foldStatement }})).map(lambda16).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	var members = _this->divide(inputContent, new_EscapedFolder(F? { alloc(this), F?Table { foldStatement }})).map(lambda15).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 	if (modifiersList.contains("sealed")) {
-		var enumFields = variants.stream().map(lambda17).collect(new_Joiner(","));
+		var enumFields = variants.stream().map(lambda16).collect(new_Joiner(","));
 		var generatedEnum = "enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-		var unionFields = variants.stream().map(lambda18).collect(new_Joiner());
+		var unionFields = variants.stream().map(lambda17).collect(new_Joiner());
 		var generatedUnion = templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" + System.lineSeparator();
 		var s = name + "Variant variant";
 		var s1 = name + "Data" + joinedTypeParameters + " data";
@@ -1665,7 +1647,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		fields = fields.appendString(table).appendString(data);
 	}
 	else {
-		var joinedMembers = members.stream().filter(lambda19).map(F? { alloc(StructMember), F?Table { generate }}).collect(new_Joiner());
+		var joinedMembers = members.stream().filter(lambda18).map(F? { alloc(StructMember), F?Table { generate }}).collect(new_Joiner());
 		fields = fields.appendString(joinedMembers);
 	}
 	var generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -1675,7 +1657,6 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
 	var identifier = implementee.toBaseName();
-	var variant = identifier + "Variant" + "." + name + "Variant";
 	var thisType = name + joinedTypeParameters;
 	var s = _this->generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 	var s1 = _this->generateStatement(identifier + "Data" + joinedTypeParameters + " data");
@@ -1699,23 +1680,23 @@ char* generateStatement_Main(void* _ref, char* content){
 	Main* _this = (Main*) _ref;
 	return generateStatement(1, content);
 }
-auto lambda20(void* _ref, auto slice){
+auto lambda19(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 List<char*> splitValues_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var segments = input.split(Pattern.quote(","));
-	var list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda20).toList();
+	var list = Arrays.stream(segments).map(F? { alloc(String), F?Table { strip }}).filter(lambda19).toList();
 	return new_JavaList<char*>(list);
 }
-auto lambda21(void* _ref, auto i){
+auto lambda20(void* _ref, auto i){
 	var c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
 int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
-	return IntStream.range(0, stripped.length()).allMatch(lambda21);
+	return IntStream.range(0, stripped.length()).allMatch(lambda20);
 }
 Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
@@ -1745,7 +1726,7 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 	}
 	if (stripped.endsWith(";")) {
 		var substring = stripped.substring(0, stripped.length() - 1);
-		var maybeDeclaration = _this->parseDeclaration(substring, new_JavaList<char*>());
+		var maybeDeclaration = _this->parseDeclaration(substring);
 		if (maybeDeclaration.variant = ?.SomeVariant) {
 			return new_Some<StructMember>(new_Field(declaration));
 		}
@@ -1756,24 +1737,21 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 	}
 	return Option.of(new_Placeholder(stripped));
 }
-auto lambda22(void* _ref, auto param){
-	return _this->parseDeclaration(param, typeParameters);
-}
-auto lambda23(void* _ref, auto slice){
+auto lambda21(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda24(void* _ref, auto (state, character)){
+auto lambda22(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda25(void* _ref, auto name){
+auto lambda23(void* _ref, auto name){
 	return name + "_" + structName;
 }
-auto lambda26(void* _ref, auto variant){
+auto lambda24(void* _ref, auto variant){
 	return _this->generateCase(structName, declaration, variant);
 }
-auto lambda27(void* _ref){
+auto lambda25(void* _ref){
 	var returnValueDefinition = _this->generateStatement(declaration.type + " _ret");
-	var cases = variants.stream().map(lambda26).collect(new_Joiner());
+	var cases = variants.stream().map(lambda24).collect(new_Joiner());
 	return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases + generateIndent(1) + "}" + this.generateStatement("return _ret");
 }
 Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
@@ -1790,12 +1768,12 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	}
 	var parametersString = substring1.substring(0, i1);
 	var withBraces = substring1.substring(i1 + 1).strip();
-	var parameters = _this->divide(parametersString, lambda24).map(F? { alloc(String), F?Table { strip }}).filter(lambda23).toList().stream().map(lambda22).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
-	var methodDeclaration = _this->parseMethodDeclaration(declarationString, structName, typeParameters);
+	var parameters = _this->divide(parametersString, lambda22).map(F? { alloc(String), F?Table { strip }}).filter(lambda21).toList().stream().map(F? { alloc(this), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	var methodDeclaration = _this->parseMethodDeclaration(declarationString, structName);
 	Option<char*> maybeCompiled = Option.empty();
 	if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
 		var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
-		var modifiedMethodDeclaration = declaration.mapName(lambda25);
+		var modifiedMethodDeclaration = declaration.mapName(lambda23);
 		_this->functions = _this->functions.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 		return new_Some<StructMember>(new_EmptyStructMember());
 	}
@@ -1813,7 +1791,7 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 		parameters = parameters.addFirst(new_Declaration("void*", "_ref"));
 		var joinedTypeParameters = _this->joinTypeParameters(typeParameters);
 		var thisInitialization = _this->generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda27);
+		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda25);
 	}
 	else {
 		outputContent = "?";
@@ -1826,26 +1804,26 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	var parameterTypes = parameters.stream().map(F? { alloc(Declaration), F?Table { type }}).toList();
 	return _switch;
 }
-auto lambda28(void* _ref, auto input){
+auto lambda26(void* _ref, auto input){
 	return _this->compileMethodSegment(input, indent);
 }
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 	Main* _this = (Main*) _ref;
-	return _this->compileStatements(inputContent, lambda28);
+	return _this->compileStatements(inputContent, lambda26);
 }
 char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
 	return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this.data." + variant + ")") + generateStatement(3, "break");
 }
-auto lambda29(void* _ref, auto ()){
+auto lambda27(void* _ref, auto ()){
 	return new_Placeholder(declaration);
 }
-auto lambda30(void* _ref, auto ()){
+auto lambda28(void* _ref, auto ()){
 	return _this->parseConstructor(declaration, structName);
 }
-MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName, List<char*> typeParameters){
+MethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
-	return _this->parseDeclaration(declaration, typeParameters).map(F? { alloc(this), F?Table { toInterface }}).or(lambda30).orElseGet(lambda29);
+	return _this->parseDeclaration(declaration).map(F? { alloc(this), F?Table { toInterface }}).or(lambda28).orElseGet(lambda27);
 }
 MethodDeclaration toInterface_Main(void* _ref, Declaration value){
 	Main* _this = (Main*) _ref;
@@ -1860,16 +1838,16 @@ Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, c
 		return Option.empty();
 	}
 }
-auto lambda31(void* _ref, auto slice){
+auto lambda29(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda32(void* _ref, auto (state, character)){
+auto lambda30(void* _ref, auto (state, character)){
 	return new_ValueFolder().apply(state, character);
 }
-auto lambda33(void* _ref, auto enumValue){
+auto lambda31(void* _ref, auto enumValue){
 	return _this->compileEnumValue(structName, enumValue);
 }
-auto lambda34(void* _ref, auto option){
+auto lambda32(void* _ref, auto option){
 	return option.variant = ?.NoneVariant;
 }
 Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* structName){
@@ -1878,9 +1856,9 @@ Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* struc
 	if (!stripped.endsWith(";")) {
 		return Option.empty();
 	}
-	var enumValues = _this->divide(stripped.substring(0, stripped.length() - 1), lambda32).map(F? { alloc(String), F?Table { strip }}).filter(lambda31).toList();
+	var enumValues = _this->divide(stripped.substring(0, stripped.length() - 1), lambda30).map(F? { alloc(String), F?Table { strip }}).filter(lambda29).toList();
 	if (!enumValues.isEmpty()) {
-		var optionStream = enumValues.stream().map(lambda33);
+		var optionStream = enumValues.stream().map(lambda31);
 		var areAnyInvalid = /*
 					(boolean) optionStream.collect(new AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>))*/;
 		if (areAnyInvalid) {
@@ -1940,7 +1918,7 @@ char* compileMethodSegment_Main(void* _ref, char* input, int indent){
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda35(void* _ref, auto slice){
+auto lambda33(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* input){
@@ -1949,7 +1927,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 		var substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
 			var afterConditionStart = substring.substring(1).strip();
-			var divisions = _this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda35).toList();
+			var divisions = _this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
 			if (divisions.size() < 2) {
 				return Option.empty();
 			}
@@ -1967,11 +1945,11 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 	}
 	return Option.empty();
 }
-auto lambda36(void* _ref, auto ()){
+auto lambda34(void* _ref, auto ()){
 	return wrap(destination);
 }
-auto lambda37(void* _ref, auto ()){
-	return _this->parseDeclaration(destination, new_JavaList<char*>()).map(F? { alloc(Declaration), F?Table { generate }});
+auto lambda35(void* _ref, auto ()){
+	return _this->parseDeclaration(destination).map(F? { alloc(Declaration), F?Table { generate }});
 }
 char* compileMethodStatement_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
@@ -1986,7 +1964,7 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 	if (i >= 0) {
 		var destination = stripped.substring(0, i);
 		var substring1 = stripped.substring(i + 1);
-		return _this->compileExpression(destination).or(lambda37).orElseGet(lambda36) + " = " + this.compileExpressionOrPlaceholder(substring1);
+		return _this->compileExpression(destination).or(lambda35).orElseGet(lambda34) + " = " + this.compileExpressionOrPlaceholder(substring1);
 	}
 	var maybeInvokable = _this->compileInvokable(stripped);
 	if (maybeInvokable.variant = ?.SomeVariant) {
@@ -2000,7 +1978,7 @@ char* compileMethodStatement_Main(void* _ref, char* input){
 	if (instance0.variant = ?.SomeVariant) {
 		return x;
 	}
-	var maybeDeclaration = _this->parseDeclaration(input, new_JavaList<char*>());
+	var maybeDeclaration = _this->parseDeclaration(input);
 	if (maybeDeclaration.variant = ?.SomeVariant) {
 		return declaration.generate();
 	}
@@ -2014,32 +1992,32 @@ Option<char*> post_Main(void* _ref, char* stripped, char* slice){
 	}
 	return new_None<char*>();
 }
-auto lambda38(void* _ref, auto ()){
+auto lambda36(void* _ref, auto ()){
 	return wrap(input);
 }
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return _this->compileExpression(input).orElseGet(lambda38);
+	return _this->compileExpression(input).orElseGet(lambda36);
 }
-auto lambda39(void* _ref, auto ()){
+auto lambda37(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " >= ");
 }
-auto lambda40(void* _ref, auto ()){
+auto lambda38(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " || ");
 }
-auto lambda41(void* _ref, auto ()){
+auto lambda39(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " && ");
 }
-auto lambda42(void* _ref, auto ()){
+auto lambda40(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " - ");
 }
-auto lambda43(void* _ref, auto ()){
+auto lambda41(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " + ");
 }
-auto lambda44(void* _ref, auto ()){
+auto lambda42(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " < ");
 }
-auto lambda45(void* _ref, auto ()){
+auto lambda43(void* _ref, auto ()){
 	return _this->compileOperator(stripped, " != ");
 }
 Option<char*> compileExpression_Main(void* _ref, char* input){
@@ -2106,7 +2084,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	if (maybeInvokable.variant = ?.SomeVariant) {
 		return maybeInvokable;
 	}
-	var maybeOperator = _this->compileOperator(stripped, " == ").or(lambda45).or(lambda44).or(lambda43).or(lambda42).or(lambda41).or(lambda40).or(lambda39);
+	var maybeOperator = _this->compileOperator(stripped, " == ").or(lambda43).or(lambda42).or(lambda41).or(lambda40).or(lambda39).or(lambda38).or(lambda37);
 	if (maybeOperator.variant = ?.SomeVariant) {
 		return maybeOperator;
 	}
@@ -2128,10 +2106,10 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 	}
 	return Option.empty();
 }
-auto lambda46(void* _ref, auto slice){
+auto lambda44(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda47(void* _ref, auto param){
+auto lambda45(void* _ref, auto param){
 	return "auto " + param;
 }
 Option<char*> compileLambda_Main(void* _ref, char* stripped){
@@ -2147,7 +2125,7 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 		else 
 		if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 			var substring = beforeContent.substring(1, beforeContent.length() - 1);
-			params = _this->divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda46).toList();
+			params = _this->divide(substring, new_ValueFolder()).map(F? { alloc(String), F?Table { strip }}).filter(lambda44).toList();
 		}
 		else {
 			return new_None<char*>();
@@ -2156,7 +2134,7 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 			var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 			var compiled = _this->compileMethodsSegments(content, 1);
 			var generatedName = _this->generateName();
-			var paramList = params.stream().map(lambda47).toList().addFirst("void* _ref");
+			var paramList = params.stream().map(lambda45).toList().addFirst("void* _ref");
 			var joined = _this->joinStrings(", ", paramList);
 			_this->functions = _this->functions.addLast("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
 			return Option.of(generatedName);
@@ -2274,13 +2252,13 @@ Option<char*> compileCaller_Main(void* _ref, char* input){
 	}
 	return new_None<char*>();
 }
-auto lambda48(void* _ref, auto slice){
+auto lambda46(void* _ref, auto slice){
 	return slice.substring(1);
 }
-auto lambda49(void* _ref, auto slice){
+auto lambda47(void* _ref, auto slice){
 	return !slice.isEmpty();
 }
-Option<Declaration> parseDeclaration_Main(void* _ref, char* input, List<char*> typeParameters){
+Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	var nameSeparator = stripped.lastIndexOf(" ");
@@ -2296,20 +2274,20 @@ Option<Declaration> parseDeclaration_Main(void* _ref, char* input, List<char*> t
 			return Option.of(new_Declaration(type, name));
 		}
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
-		var copy = typeParameters;
+		List<char*> copy = new_JavaList<char*>();
 		if (beforeType.endsWith(">")) {
 			var substring = beforeType.substring(0, beforeType.length() - 1);
 			var i = substring.indexOf(" < ");
 			if (i >= 0) {
 				var substring2 = substring.substring(i + 1);
-				copy = copy.addAll(_this->splitValues(substring2));
+				copy = _this->splitValues(substring2);
 				beforeType = substring.substring(0, i);
 			}
 		}
 		List<char*> annotations = new_JavaList<char*>();
 		var i = beforeType.lastIndexOf("\n");
 		if (i >= 0) {
-			annotations = new_JavaList<char*>(Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda49).map(lambda48).map(F? { alloc(String), F?Table { strip }}).toList());
+			annotations = new_JavaList<char*>(Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda47).map(lambda46).map(F? { alloc(String), F?Table { strip }}).toList());
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if (_this->isIdentifier(name)) {

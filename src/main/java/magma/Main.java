@@ -54,8 +54,6 @@ public class Main {
 		List<T> subList(int start, int end);
 
 		List<T> clear();
-
-		List<T> copy();
 	}
 
 	private interface FR<T> {
@@ -278,10 +276,6 @@ public class Main {
 			return this;
 		}
 
-		@Override
-		public List<T> copy() {
-			return new JavaList<T>(new ArrayList<T>(this.nativeList));
-		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -986,7 +980,7 @@ public class Main {
 				beforeContent = substring.substring(0, i3);
 				recordFields = this
 						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
-						.map(slice -> this.parseDeclaration(slice, new JavaList<String>()))
+						.map(this::parseDeclaration)
 						.flatMap(Option::stream)
 						.toList();
 			}
@@ -1089,7 +1083,6 @@ public class Main {
 
 	private String getString(Type implementee, String name, String joinedTypeParameters, String templateString) {
 		final var identifier = implementee.toBaseName();
-		final var variant = identifier + "Variant" + "." + name + "Variant";
 		final var thisType = name + joinedTypeParameters;
 		final var s = this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
@@ -1164,7 +1157,7 @@ public class Main {
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var maybeDeclaration = this.parseDeclaration(substring, new JavaList<String>());
+			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 				return new Some<StructMember>(new Field(declaration));
 			}
@@ -1198,11 +1191,11 @@ public class Main {
 				.filter(slice -> !slice.isEmpty())
 				.toList()
 				.stream()
-				.map(param -> this.parseDeclaration(param, typeParameters))
+				.map(this::parseDeclaration)
 				.flatMap(Option::stream)
 				.toList();
 
-		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
+		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
 
 		Option<String> maybeCompiled = Option.empty();
 		if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
@@ -1280,10 +1273,9 @@ public class Main {
 					 generateStatement(3, "break");
 	}
 
-	private MethodDeclaration parseMethodDeclaration(String declaration, String structName,
-																									 List<String> typeParameters) {
+	private MethodDeclaration parseMethodDeclaration(String declaration, String structName) {
 		return this
-				.parseDeclaration(declaration, typeParameters)
+				.parseDeclaration(declaration)
 				.map(this::toInterface)
 				.or(() -> this.parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration));
@@ -1441,7 +1433,7 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			return this
 								 .compileExpression(destination)
-								 .or(() -> this.parseDeclaration(destination, new JavaList<String>()).map(Declaration::generate))
+								 .or(() -> this.parseDeclaration(destination).map(Declaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
@@ -1460,7 +1452,7 @@ public class Main {
 			return x;
 		}
 
-		final var maybeDeclaration = this.parseDeclaration(input, new JavaList<String>());
+		final var maybeDeclaration = this.parseDeclaration(input);
 		if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 			return declaration.generate();
 		}
@@ -1755,7 +1747,7 @@ public class Main {
 		return new None<String>();
 	}
 
-	private Option<Declaration> parseDeclaration(String input, List<String> typeParameters) {
+	private Option<Declaration> parseDeclaration(String input) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -1775,14 +1767,13 @@ public class Main {
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
 
-			var copy = typeParameters;
+			List<String> copy = new JavaList<String>();
 			if (beforeType.endsWith(">")) {
 				final var substring = beforeType.substring(0, beforeType.length() - 1);
 				final var i = substring.indexOf("<");
 				if (i >= 0) {
 					final var substring2 = substring.substring(i + 1);
-					copy = copy.addAll(this.splitValues(substring2));
-
+					copy = this.splitValues(substring2);
 					beforeType = substring.substring(0, i);
 				}
 			}
