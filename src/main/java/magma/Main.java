@@ -451,8 +451,6 @@ public class Main {
 
 			dependencies.append(vTable);
 			fields += table + data;
-		} else {
-			fields += members.stream().map(StructMember::generate).collect(Collectors.joining(""));
 		}
 
 		final var generated =

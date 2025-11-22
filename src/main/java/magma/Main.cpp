@@ -1,4 +1,4 @@
-struct PrimitiveType {/*Void*//*private final String content;*/char* (*generate)(void*)char* (*toBaseName)(void*)
+struct PrimitiveType {
 };
 template <typename T0, typename R>
 struct F1RTable<T0, R> {
@@ -64,50 +64,42 @@ struct StructMember {
 };
 template <typename T, typename X>
 struct Err {
-	X error;Result<R, X> (*mapValue)(void*, F1R<T, R>)
+	X error;
 };
 template <typename T, typename X>
 struct Ok {
-	T value;Result<R, X> (*mapValue)(void*, F1R<T, R>)
+	T value;
 };
-struct State {/*private final String input;*//*private final ArrayList<String> segments;*//*private final StringBuilder buffer;*//*private int index;*//*private int depth;*/public (*State)(void*, char*)boolean (*isShallow)(void*)boolean (*isLevel)(void*)State (*append)(void*, Character)Optional<Character> (*pop)(void*)State (*advance)(void*)State (*enter)(void*)State (*exit)(void*)Stream<char*> (*stream)(void*)
+struct State {
 };
 struct PointerType {
-	Type type;char* (*generate)(void*)char* (*toBaseName)(void*)
+	Type type;
 };
 struct TemplateType {
 	char* base;
-	List<Type> list;char* (*generate)(void*)char* (*toBaseName)(void*)
+	List<Type> list;
 };
 struct Identifier {
-	char* value;char* (*generate)(void*)char* (*toBaseName)(void*)
+	char* value;
 };
 struct Placeholder {
-	char* input;char* (*generate)(void*)char* (*toBaseName)(void*)
+	char* input;
 };
 struct Constructor {
-	char* structName;char* (*generate)(void*)
+	char* structName;
 };
 struct Declaration {
 	List<char*> typeParameters;
 	Optional<char*> maybeBeforeType;
 	char* type;
-	char* name;public (*Declaration)(void*, char*, char*)char* (*generate)(void*)Declaration (*mapName)(void*, F1R<char*, char*>)
+	char* name;
 };
 struct FunctionDeclaration {
 	char* type;
 	char* name;
-	List<char*> parameterTypes;char* (*generate)(void*)
+	List<char*> parameterTypes;
 };
-struct Main {/*private enum PrimitiveType implements Type {
-		Void*//*{
-		R*/ (*apply)(void*, T0)Result<R, X> (*mapValue)(void*, F1R<T, R>)/*{
-		String*/ (*generate)(void*)/*{
-		String*/ (*generate)(void*)/*{
-		String*/ (*generate)(void*)/*private record Err<T, X>*//*private record Ok<T, X>*//*depth;
-
-		public*/ (*State)(void*, char*)record (*PointerType)(void*, Type)record (*TemplateType)(void*, char*, List<Type>)record (*Identifier)(void*, char*)record (*Placeholder)(void*, char*)record (*Constructor)(void*, char*)record (*Declaration)(void*, List<char*>, Optional<char*>, char*, char*)record (*FunctionDeclaration)(void*, char*, char*, List<char*>)/*public static final List<String> structures = new ArrayList<String>*//*public static final List<String> functions = new ArrayList<String>*//*public static final List<String> globals = new ArrayList<String>*/void (*main)(void*, char**)Optional<IOException> (*run)(void*)Optional<IOException> (*writeString)(void*, Path, char*)Result<char*, IOException> (*readString)(void*, Path)char* (*compile)(void*, char*)char* (*compileStatements)(void*, char*, F1R<char*, char*>)char* (*compileAll)(void*, char*, F1R<char*, char*>, BiFunction<State, Character, State>)Stream<char*> (*divide)(void*, char*, BiFunction<State, Character, State>)State (*foldStatement)(void*, State, Character)/*' && appended.isShallow*//*if *//*') {
-			return appended.exit*//*return appended;*/
+struct Main {
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -1081,10 +1073,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 			dependencies.append(vTable);
 			fields += table + data;
-		} else {
-			fields += members.stream().map(StructMember::generate).collect(Collectors.joining(""));
 		}
-
+		
 		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
 				"};" + System.lineSeparator();
