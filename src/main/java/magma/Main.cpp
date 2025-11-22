@@ -277,10 +277,11 @@ State append_State(void* _this, Character next){
 Optional<Character> pop_State(void* _this){
 	State this = *((State*) _this);
 	if (this.index < this.input.length()) {
-	var value = this.input.charAt(this.index);
-	this.index++;
-	return Optional.of(value);}else {
-	return Optional.empty();}
+		var value = /* this.input.charAt(this.index*/;
+		/*this.index+*/;
+		return /*Optional.of(value*/;}
+	else {
+		return /*Optional.empty(*/;}
 }
 State advance_State(void* _this){
 	State this = *((State*) _this);
@@ -431,11 +432,12 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
 	if (typeParameters.isEmpty()) {
-	templateString = /* ""*/;}else {
-	templateString = /* "template " + typeParameters
+		templateString = /* "*/;}
+	else {
+		templateString = /* "template " + typeParameters
 					.stream()
 					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator()*/;}
+					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator(*/;}
 	return templateString;
 }
 char* wrap_Main(void* _this, char* input){
@@ -771,7 +773,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent));
+					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent, 1));
 				}
 
 				String outputContent;
@@ -826,8 +828,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return Optional.of(new Placeholder(stripped));
-	}*//*private String compileMethodsSegments(String inputContent) {
-		return this.compileStatements(inputContent, this::compileMethodSegment);
+	}*//*private String compileMethodsSegments(String inputContent, int indent) {
+		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}*//*private String generateCase(String structName, Declaration declaration, String variant) {
 		return this.generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
 					 this.generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
@@ -893,15 +895,15 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return appended.exit();
 		}
 		return appended;
-	}*//*private String compileMethodSegment(String input) {
+	}*//*private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return "";
 		}
 
 		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			return System.lineSeparator() + "\t" + this.compileMethodStatement(substring) + ";";
+			final var substring = stripped.substring(0, stripped.length() - indent);
+			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
 		if (stripped.startsWith("if")) {
@@ -930,8 +932,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return this.generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content) + "}";
+						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+									 this.compileMethodsSegments(content, indent + 1) + "}";
 					}
 				}
 			}
@@ -941,7 +943,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return "else {" + this.compileMethodsSegments(substring1) + "}";
+				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) + "}";
 			}
 		}
 

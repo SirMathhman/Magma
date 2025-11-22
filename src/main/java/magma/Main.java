@@ -596,7 +596,7 @@ public class Main {
 				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent));
+					maybeCompiled = Optional.of(this.compileMethodsSegments(inputContent, 1));
 				}
 
 				String outputContent;
@@ -653,8 +653,8 @@ public class Main {
 		return Optional.of(new Placeholder(stripped));
 	}
 
-	private String compileMethodsSegments(String inputContent) {
-		return this.compileStatements(inputContent, this::compileMethodSegment);
+	private String compileMethodsSegments(String inputContent, int indent) {
+		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}
 
 	private String generateCase(String structName, Declaration declaration, String variant) {
@@ -732,15 +732,15 @@ public class Main {
 		return appended;
 	}
 
-	private String compileMethodSegment(String input) {
+	private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
 			return "";
 		}
 
 		if (stripped.endsWith(";")) {
-			final var substring = stripped.substring(0, stripped.length() - 1);
-			return System.lineSeparator() + "\t" + this.compileMethodStatement(substring) + ";";
+			final var substring = stripped.substring(0, stripped.length() - indent);
+			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
 		if (stripped.startsWith("if")) {
@@ -769,8 +769,8 @@ public class Main {
 					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return this.generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content) + "}";
+						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+									 this.compileMethodsSegments(content, indent + 1) + "}";
 					}
 				}
 			}
@@ -780,7 +780,7 @@ public class Main {
 			final var substring = stripped.substring("else ".length()).strip();
 			if (substring.startsWith("{") && substring.endsWith("}")) {
 				final var substring1 = substring.substring(1, substring.length() - 1);
-				return "else {" + this.compileMethodsSegments(substring1) + "}";
+				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) + "}";
 			}
 		}
 
