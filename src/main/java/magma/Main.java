@@ -409,11 +409,14 @@ public class Main {
 			fields = "";
 		}
 
+		final var joinedRecordFields =
+				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
+
 		var finalTypeParameters = typeParameters;
 		List<String> finalVariants = variants;
 		return Optional.of(
-				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
-				System.lineSeparator() +
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
+				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
 	}
 

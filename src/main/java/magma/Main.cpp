@@ -152,6 +152,7 @@ Result<T, X> toResult_Err(void* _this){
 }
 template <typename T, typename X>
 struct Err {
+	X error;
 };
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
@@ -167,6 +168,7 @@ Result<T, X> toResult_Ok(void* _this){
 }
 template <typename T, typename X>
 struct Ok {
+	T value;
 };
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
@@ -235,6 +237,7 @@ Type toType_PointerType(void* _this){
 	return { TypeVariant.PointerTypeVariant, data };
 }
 struct PointerType {
+	Type type;
 };
 char* generate_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -251,6 +254,8 @@ Type toType_TemplateType(void* _this){
 	return { TypeVariant.TemplateTypeVariant, data };
 }
 struct TemplateType {
+	char* base;
+	List<Type> list;
 };
 char* generate_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -268,6 +273,7 @@ Type toType_Identifier(void* _this){
 	return { TypeVariant.IdentifierVariant, data };
 }
 struct Identifier {
+	char* value;
 };
 char* generate_Identifier(void* _this){
 	Identifier this = *((Identifier*) _this);
@@ -290,6 +296,7 @@ MethodDeclaration toMethodDeclaration_Placeholder(void* _this){
 	return { MethodDeclarationVariant.PlaceholderVariant, data };
 }
 struct Placeholder {
+	char* input;
 };
 char* generate_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
@@ -306,6 +313,7 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 	return { MethodDeclarationVariant.ConstructorVariant, data };
 }
 struct Constructor {
+	char* structName;
 };
 char* generate_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
@@ -318,6 +326,10 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	return { MethodDeclarationVariant.DeclarationVariant, data };
 }
 struct Declaration {
+	List<char*> typeParameters;
+	Optional<char*> maybeBeforeType;
+	char* type;
+	char* name;
 };
 public Declaration_Declaration(void* _this, char* type, char* name){
 	Declaration this = *((Declaration*) _this);
@@ -537,11 +549,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 			fields = "";
 		}
 
+		final var joinedRecordFields =
+				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
+
 		var finalTypeParameters = typeParameters;
 		List<String> finalVariants = variants;
 		return Optional.of(
-				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
-				System.lineSeparator() +
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
+				"};" + System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
 	}*//*private static String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
