@@ -1305,7 +1305,7 @@ public class Main {
 
 	private String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this->data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") +
 					 generateStatement(3, "break");
 	}
 
