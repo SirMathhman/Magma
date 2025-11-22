@@ -1194,7 +1194,7 @@ public class Main {
 				if (methodDeclaration instanceof Constructor) {
 					final var compiled = maybeCompiled.orElse("?");
 					outputContent =
-							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this");
+							this.generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
 				} else if (methodDeclaration instanceof Declaration declaration) {
 					parameters = parameters.addFirst(new Declaration("void*", "_ref"));
 
@@ -1511,7 +1511,7 @@ public class Main {
 					instance = value;
 					final String generated;
 					if (instance.equals("this")) {
-						generated = "this->" + memberName;
+						generated = "_this->" + memberName;
 					} else {
 						generated = instance + "." + memberName;
 					}
