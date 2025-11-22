@@ -419,16 +419,6 @@ T apply_FR(void* _ref){
 	}
 	return _ret;
 }
-template <typename T, typename T>
-Option<T> of_Option(void* _ref, T value){
-	Option<T>* _this = (Option<T>*) _ref;
-	return new_Some<T>(value);
-}
-template <typename T, typename T>
-Option<T> empty_Option(void* _ref){
-	Option<T>* _this = (Option<T>*) _ref;
-	return new_None<T>();
-}
 template <typename R, typename T>
 Option<R> map_Option(void* _ref, F1R<T, R> mapper){
 	Option<T>* _this = (Option<T>*) _ref;
@@ -886,10 +876,10 @@ Option<char> pop_State(void* _ref){
 	if (_this->index < this.input.length()) {
 		var value = _this->input.charAt(_this->index);
 		_this->index++;
-		return Option.of(value);
+		return new_Some<char>(value);
 	}
 	else {
-		return Option.empty();
+		return new_None<char>();
 	}
 }
 State advance_State(void* _ref){
@@ -930,9 +920,9 @@ Option<State> popAndAppendToOption_State(void* _ref){
 Option<char> peek_State(void* _ref){
 	State* _this = (State*) _ref;
 	if (_this->index < this.input.length()) {
-		return Option.of(_this->input.charAt(_this->index));
+		return new_Some<char>(_this->input.charAt(_this->index));
 	}
-	return Option.empty();
+	return new_None<char>();
 }
 Type toType_PointerType(void* _ref){
 	PointerType _this = *((PointerType*) _ref);
@@ -1027,7 +1017,7 @@ StructMember toStructMember_Declaration(void* _ref){
 }
 public Declaration_Declaration(void* _ref, char* type, char* name){
 	Declaration* _this = (Declaration*) _ref;
-	this(new_JavaList<char*>(), new_JavaList<char*>(), Option.empty(), type, name);
+	this(new_JavaList<char*>(), new_JavaList<char*>(), new_None<char*>(), type, name);
 }
 char* generate_Declaration(void* _ref){
 	Declaration* _this = (Declaration*) _ref;
@@ -1305,7 +1295,7 @@ public FlatMapHead_FlatMapHead(void* _ref, Head<T> head, F1R<T, Stream<R>> mappe
 	FlatMapHead<T, R>* _this = (FlatMapHead<T, R>*) _ref;
 	_this->head = head;
 	_this->mapper = mapper;
-	_this->maybeCurrent = Option.empty();
+	_this->maybeCurrent = new_None<Stream<R>>();
 }
 template <typename T, typename R>
 Option<R> next_FlatMapHead(void* _ref){
@@ -1319,7 +1309,7 @@ Option<R> next_FlatMapHead(void* _ref){
 		}
 		var maybeNext = _this->head.next();
 		if (maybeNext.variant = ?.NoneVariant) {
-			return Option.empty();
+			return new_None<R>();
 		}
 		_this->maybeCurrent = maybeNext.map(_this->mapper);
 	}
@@ -1565,18 +1555,18 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	Main* _this = (Main*) _ref;
 	var i = stripped.indexOf(type + " ");
 	if (i < 0) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var modifiers = stripped.substring(0, i).strip();
 	var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 	var i1 = afterKeyword.indexOf("{");
 	if (i1 < 0) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var beforeContent = afterKeyword.substring(0, i1).strip();
 	var withEnd = afterKeyword.substring(i1 + 1).strip();
 	if (!withEnd.endsWith("}")) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = new_JavaList<char*>();
@@ -1613,7 +1603,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 		}
 	}
 	if (!this.isIdentifier(beforeContent)) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var modifiersList = Streams.fromObjArray(modifiers.split(Pattern.quote(" "))).map(F? { alloc(String), F?Table { strip }}).filter(lambda13).toList();
 	var name = beforeContent.strip();
@@ -1652,7 +1642,7 @@ Option<StructMember> compileStructure_Main(void* _ref, char* type, char* strippe
 	}
 	var generated = dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() + "};" + System.lineSeparator();
 	_this->structures = _this->structures.addLast(generated);
-	return Option.of(new_EmptyStructMember());
+	return new_Some<StructMember>(new_EmptyStructMember());
 }
 char* getString_Main(void* _ref, Type implementee, char* name, char* joinedTypeParameters, char* templateString){
 	Main* _this = (Main*) _ref;
@@ -1702,7 +1692,7 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	if (stripped.isEmpty()) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var maybeEnum = _this->compileStructure("enum", input);
 	if (maybeEnum.variant = ?.SomeVariant) {
@@ -1735,7 +1725,7 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 	if (maybeMethod.variant = ?.SomeVariant) {
 		return maybeMethod;
 	}
-	return Option.of(new_Placeholder(stripped));
+	return new_Some<StructMember>(new_Placeholder(stripped));
 }
 auto lambda21(void* _ref, auto slice){
 	return !slice.isEmpty();
@@ -1770,7 +1760,7 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	var withBraces = substring1.substring(i1 + 1).strip();
 	var parameters = _this->divide(parametersString, lambda22).map(F? { alloc(String), F?Table { strip }}).filter(lambda21).toList().stream().map(F? { alloc(this), F?Table { parseDeclaration }}).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
 	var methodDeclaration = _this->parseMethodDeclaration(declarationString, structName);
-	Option<char*> maybeCompiled = Option.empty();
+	Option<char*> maybeCompiled = new_None<char*>();
 	if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
 		var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
 		var modifiedMethodDeclaration = declaration.mapName(lambda23);
@@ -1779,7 +1769,7 @@ Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*
 	}
 	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 		var inputContent = withBraces.substring(1, withBraces.length() - 1);
-		maybeCompiled = Option.of(_this->compileMethodsSegments(inputContent, 1));
+		maybeCompiled = new_Some<char*>(_this->compileMethodsSegments(inputContent, 1));
 	}
 	char* outputContent;
 	if (methodDeclaration.variant = ?.ConstructorVariant) {
@@ -1832,10 +1822,10 @@ MethodDeclaration toInterface_Main(void* _ref, Declaration value){
 Option<MethodDeclaration> parseConstructor_Main(void* _ref, char* declaration, char* structName){
 	Main* _this = (Main*) _ref;
 	if (declaration.strip().equals(structName)) {
-		return Option.of(new_Constructor(structName));
+		return new_Some<MethodDeclaration>(new_Constructor(structName));
 	}
 	else {
-		return Option.empty();
+		return new_None<MethodDeclaration>();
 	}
 }
 auto lambda29(void* _ref, auto slice){
@@ -1854,7 +1844,7 @@ Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* struc
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	if (!stripped.endsWith(";")) {
-		return Option.empty();
+		return new_None<StructMember>();
 	}
 	var enumValues = _this->divide(stripped.substring(0, stripped.length() - 1), lambda30).map(F? { alloc(String), F?Table { strip }}).filter(lambda29).toList();
 	if (!enumValues.isEmpty()) {
@@ -1865,7 +1855,7 @@ Option<StructMember> compileEnumValues_Main(void* _ref, char* input, char* struc
 			return new_None<StructMember>();
 		}
 	}
-	return Option.of(new_EmptyStructMember());
+	return new_Some<StructMember>(new_EmptyStructMember());
 }
 Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* enumValue){
 	Main* _this = (Main*) _ref;
@@ -1875,12 +1865,12 @@ Option<StructMember> compileEnumValue_Main(void* _ref, char* structName, char* e
 		if (i >= 0) {
 			var name = substring.substring(0, i);
 			if (!this.isIdentifier(name)) {
-				return Option.empty();
+				return new_None<StructMember>();
 			}
 			var substring2 = substring.substring(i + 1);
 			var generated = structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" + System.lineSeparator();
 			_this->globals = _this->globals.addLast(generated);
-			return Option.of(new_EmptyStructMember());
+			return new_Some<StructMember>(new_EmptyStructMember());
 		}
 	}
 	return new_None<StructMember>();
@@ -1929,7 +1919,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 			var afterConditionStart = substring.substring(1).strip();
 			var divisions = _this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList();
 			if (divisions.size() < 2) {
-				return Option.empty();
+				return new_None<char*>();
 			}
 			var first = divisions.getFirst();
 			var last = _this->joinStrings("", divisions.subList(1, divisions.size()));
@@ -1939,11 +1929,11 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 			var condition = first.substring(0, first.length() - 1);
 			if (last.startsWith("{") && last.endsWith("}")) {
 				var content = last.substring(1, last.length() - 1);
-				return Option.of(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + _this->compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
+				return new_Some<char*>(generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" + _this->compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 			}
 		}
 	}
-	return Option.empty();
+	return new_None<char*>();
 }
 auto lambda34(void* _ref, auto ()){
 	return wrap(destination);
@@ -2033,11 +2023,11 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 		if (_this->isIdentifier(name)) {
 			var compiled = _this->compileExpressionOrPlaceholder(substring);
 			var functionalInterfaceName = "F?";
-			return Option.of(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}");
+			return new_Some<char*>(functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name + " }}");
 		}
 	}
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
-		return Option.of(stripped);
+		return new_Some<char*>(stripped);
 	}
 	var maybeLambda = _this->compileLambda(stripped);
 	if (maybeLambda.variant = ?.SomeVariant) {
@@ -2076,7 +2066,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 				else {
 					generated = instance + "." + memberName;
 				}
-				return Option.of(generated);
+				return new_Some<char*>(generated);
 			}
 		}
 	}
@@ -2089,7 +2079,7 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 		return maybeOperator;
 	}
 	if (_this->isIdentifier(stripped)) {
-		return Option.of(stripped);
+		return new_Some<char*>(stripped);
 	}
 	if (stripped.startsWith("!")) {
 		var substring = stripped.substring(1);
@@ -2099,12 +2089,12 @@ Option<char*> compileExpression_Main(void* _ref, char* input){
 		}
 	}
 	if (_this->isNumber(stripped)) {
-		return Option.of(stripped);
+		return new_Some<char*>(stripped);
 	}
 	if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-		return Option.of(stripped);
+		return new_Some<char*>(stripped);
 	}
-	return Option.empty();
+	return new_None<char*>();
 }
 auto lambda44(void* _ref, auto slice){
 	return !slice.isEmpty();
@@ -2137,15 +2127,15 @@ Option<char*> compileLambda_Main(void* _ref, char* stripped){
 			var paramList = params.stream().map(lambda45).toList().addFirst("void* _ref");
 			var joined = _this->joinStrings(", ", paramList);
 			_this->functions = _this->functions.addLast("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
-			return Option.of(generatedName);
+			return new_Some<char*>(generatedName);
 		}
 		else {
 			var generatedName = _this->generateName();
 			_this->functions = _this->functions.addLast("auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" + _this->generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) + System.lineSeparator() + "}" + System.lineSeparator());
-			return Option.of(generatedName);
+			return new_Some<char*>(generatedName);
 		}
 	}
-	return Option.empty();
+	return new_None<char*>();
 }
 char* generateName_Main(void* _ref){
 	Main* _this = (Main*) _ref;
@@ -2185,11 +2175,11 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 		var right = input.substring(i1 + operator.length());
 		if (_this->compileExpression(leftString).variant = ?.SomeVariant) {
 			if (_this->compileExpression(right).variant = ?.SomeVariant) {
-				return Option.of(leftCompiled + " " + operator + " " + rightCompiled);
+				return new_Some<char*>(leftCompiled + " " + operator + " " + rightCompiled);
 			}
 		}
 	}
-	return Option.empty();
+	return new_None<char*>();
 }
 Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
@@ -2202,11 +2192,11 @@ Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 			var joinedArguments = _this->divide(arguments, new_EscapedFolder(new_ValueFolder())).map(F? { alloc(this), F?Table { compileExpressionOrPlaceholder }}).collect(new_Joiner(", "));
 			var maybeCaller = _this->compileCaller(callerString);
 			if (maybeCaller.variant = ?.SomeVariant) {
-				return Option.of(value + "(" + joinedArguments + ")");
+				return new_Some<char*>(value + "(" + joinedArguments + ")");
 			}
 		}
 	}
-	return Option.empty();
+	return new_None<char*>();
 }
 int findCallerStart_Main(void* _ref, char* withoutEnd){
 	Main* _this = (Main*) _ref;
@@ -2248,7 +2238,7 @@ Option<char*> compileCaller_Main(void* _ref, char* input){
 	}
 	if (stripped.startsWith("new ")) {
 		var type = stripped.substring("new ".length());
-		return Option.of("new_" + this.compileType(type));
+		return new_Some<char*>("new_" + this.compileType(type));
 	}
 	return new_None<char*>();
 }
@@ -2267,11 +2257,11 @@ Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 		var name = stripped.substring(nameSeparator + 1).strip();
 		var typeSeparator = _this->findTypeSeparator(beforeName);
 		if (!this.isIdentifier(name)) {
-			return Option.empty();
+			return new_None<Declaration>();
 		}
 		if (typeSeparator < 0) {
 			var type = _this->compileType(beforeName);
-			return Option.of(new_Declaration(type, name));
+			return new_Some<Declaration>(new_Declaration(type, name));
 		}
 		var beforeType = beforeName.substring(0, typeSeparator).strip();
 		List<char*> copy = new_JavaList<char*>();
@@ -2291,10 +2281,10 @@ Option<Declaration> parseDeclaration_Main(void* _ref, char* input){
 			beforeType = beforeType.substring(i + 1).strip();
 		}
 		if (_this->isIdentifier(name)) {
-			return Option.of(new_Declaration(annotations, copy, Option.of(beforeType), _this->compileType(beforeName.substring(typeSeparator + 1)), name));
+			return new_Some<Declaration>(new_Declaration(annotations, copy, new_Some<char*>(beforeType), _this->compileType(beforeName.substring(typeSeparator + 1)), name));
 		}
 	}
-	return Option.empty();
+	return new_None<Declaration>();
 }
 int findTypeSeparator_Main(void* _ref, char* beforeName){
 	Main* _this = (Main*) _ref;

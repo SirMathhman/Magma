@@ -61,14 +61,6 @@ public class Main {
 	}
 
 	private sealed interface Option<T> permits None, Some {
-		static <T> Option<T> of(T value) {
-			return new Some<T>(value);
-		}
-
-		static <T> Option<T> empty() {
-			return new None<T>();
-		}
-
 		<R> Option<R> map(F1R<T, R> mapper);
 
 		T orElse(T other);
@@ -326,9 +318,9 @@ public class Main {
 			if (this.index < this.input.length()) {
 				final var value = this.input.charAt(this.index);
 				this.index++;
-				return Option.of(value);
+				return new Some<Character>(value);
 			} else {
-				return Option.empty();
+				return new None<Character>();
 			}
 		}
 
@@ -365,10 +357,10 @@ public class Main {
 
 		public Option<Character> peek() {
 			if (this.index < this.input.length()) {
-				return Option.of(this.input.charAt(this.index));
+				return new Some<Character>(this.input.charAt(this.index));
 			}
 
-			return Option.empty();
+			return new None<Character>();
 		}
 	}
 
@@ -432,7 +424,7 @@ public class Main {
 	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 														 String type, String name) implements MethodDeclaration, StructMember {
 		public Declaration(String type, String name) {
-			this(new JavaList<String>(), new JavaList<String>(), Option.empty(), type, name);
+			this(new JavaList<String>(), new JavaList<String>(), new None<String>(), type, name);
 		}
 
 		@Override
@@ -686,7 +678,7 @@ public class Main {
 		public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
 			this.head = head;
 			this.mapper = mapper;
-			this.maybeCurrent = Option.empty();
+			this.maybeCurrent = new None<Stream<R>>();
 		}
 
 		@Override
@@ -701,7 +693,7 @@ public class Main {
 
 				final var maybeNext = this.head.next();
 				if (maybeNext instanceof None<T>) {
-					return Option.empty();
+					return new None<R>();
 				}
 				this.maybeCurrent = maybeNext.map(this.mapper);
 			}
@@ -812,7 +804,7 @@ public class Main {
 		final var input = this.readString(source).mapValue(this::compile);
 
 		return switch (input) {
-			case Err<String, IOException> v -> Option.of(v.error);
+			case Err<String, IOException> v -> new Some<IOException>(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
 		};
 	}
@@ -821,9 +813,9 @@ public class Main {
 	private Option<IOException> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
-			return Option.empty();
+			return new None<IOException>();
 		} catch (IOException e) {
-			return Option.of(e);
+			return new Some<IOException>(e);
 		}
 	}
 
@@ -936,17 +928,21 @@ public class Main {
 
 	private Option<StructMember> compileStructure(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
-		if (i < 0) {return Option.empty();}
+		if (i < 0) {
+			return new None<StructMember>();
+		}
 		final var modifiers = stripped.substring(0, i).strip();
 		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
 		final var i1 = afterKeyword.indexOf("{");
-		if (i1 < 0) {return Option.empty();}
+		if (i1 < 0) {
+			return new None<StructMember>();
+		}
 		var beforeContent = afterKeyword.substring(0, i1).strip();
 
 		final var withEnd = afterKeyword.substring(i1 + 1).strip();
 		if (!withEnd.endsWith("}")) {
-			return Option.empty();
+			return new None<StructMember>();
 		}
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
@@ -997,7 +993,9 @@ public class Main {
 			}
 		}
 
-		if (!this.isIdentifier(beforeContent)) {return Option.empty();}
+		if (!this.isIdentifier(beforeContent)) {
+			return new None<StructMember>();
+		}
 
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
@@ -1078,7 +1076,7 @@ public class Main {
 				"};" + System.lineSeparator();
 		this.structures = this.structures.addLast(generated);
 
-		return Option.of(new EmptyStructMember());
+		return new Some<StructMember>(new EmptyStructMember());
 	}
 
 	private String getString(Type implementee, String name, String joinedTypeParameters, String templateString) {
@@ -1127,7 +1125,7 @@ public class Main {
 		final var stripped = input.strip();
 
 		if (stripped.isEmpty()) {
-			return Option.empty();
+			return new None<StructMember>();
 		}
 
 		final var maybeEnum = this.compileStructure("enum", input);
@@ -1168,7 +1166,7 @@ public class Main {
 			return maybeMethod;
 		}
 
-		return Option.of(new Placeholder(stripped));
+		return new Some<StructMember>(new Placeholder(stripped));
 	}
 
 	private Option<StructMember> compileMethod(String structName,
@@ -1197,7 +1195,7 @@ public class Main {
 
 		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
 
-		Option<String> maybeCompiled = Option.empty();
+		Option<String> maybeCompiled = new None<String>();
 		if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
 			final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
 
@@ -1209,7 +1207,7 @@ public class Main {
 
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-			maybeCompiled = Option.of(this.compileMethodsSegments(inputContent, 1));
+			maybeCompiled = new Some<String>(this.compileMethodsSegments(inputContent, 1));
 		}
 
 		String outputContent;
@@ -1256,9 +1254,10 @@ public class Main {
 		final var parameterTypes = parameters.stream().map(Declaration::type).toList();
 
 		return switch (methodDeclaration) {
-			case Constructor _ -> Option.empty();
-			case Declaration member -> Option.of(new F1RDeclaration(member.type, member.name, parameterTypes));
-			case Placeholder placeholder -> Option.of(placeholder);
+			case Constructor _ -> new None<StructMember>();
+			case Declaration member ->
+					new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
+			case Placeholder placeholder -> new Some<StructMember>(placeholder);
 		};
 
 	}
@@ -1287,16 +1286,16 @@ public class Main {
 
 	private Option<MethodDeclaration> parseConstructor(String declaration, String structName) {
 		if (declaration.strip().equals(structName)) {
-			return Option.of(new Constructor(structName));
+			return new Some<MethodDeclaration>(new Constructor(structName));
 		} else {
-			return Option.empty();
+			return new None<MethodDeclaration>();
 		}
 	}
 
 	private Option<StructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
 		if (!stripped.endsWith(";")) {
-			return Option.empty();
+			return new None<StructMember>();
 		}
 
 		final var enumValues = this
@@ -1316,7 +1315,7 @@ public class Main {
 			}
 		}
 
-		return Option.of(new EmptyStructMember());
+		return new Some<StructMember>(new EmptyStructMember());
 	}
 
 	private Option<StructMember> compileEnumValue(String structName, String enumValue) {
@@ -1326,7 +1325,7 @@ public class Main {
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
 				if (!this.isIdentifier(name)) {
-					return Option.empty();
+					return new None<StructMember>();
 				}
 
 				final var substring2 = substring.substring(i + 1);
@@ -1335,7 +1334,7 @@ public class Main {
 						System.lineSeparator();
 
 				this.globals = this.globals.addLast(generated);
-				return Option.of(new EmptyStructMember());
+				return new Some<StructMember>(new EmptyStructMember());
 			}
 		}
 
@@ -1394,7 +1393,7 @@ public class Main {
 						.toList();
 
 				if (divisions.size() < 2) {
-					return Option.empty();
+					return new None<String>();
 				}
 
 				final var first = divisions.getFirst();
@@ -1407,14 +1406,14 @@ public class Main {
 
 				if (last.startsWith("{") && last.endsWith("}")) {
 					final var content = last.substring(1, last.length() - 1);
-					return Option.of(
+					return new Some<String>(
 							generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
 							this.compileMethodsSegments(content, indent + 1) + generateIndent(indent) + "}");
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private String compileMethodStatement(String input) {
@@ -1486,14 +1485,14 @@ public class Main {
 			if (this.isIdentifier(name)) {
 				final var compiled = this.compileExpressionOrPlaceholder(substring);
 				final var functionalInterfaceName = "F?";
-				return Option.of(
+				return new Some<String>(
 						functionalInterfaceName + " { alloc(" + compiled + "), " + functionalInterfaceName + "Table { " + name +
 						" }}");
 			}
 		}
 
 		if (stripped.startsWith("'") && stripped.endsWith("'")) {
-			return Option.of(stripped);
+			return new Some<String>(stripped);
 		}
 
 		final var maybeLambda = this.compileLambda(stripped);
@@ -1535,7 +1534,7 @@ public class Main {
 						generated = instance + "." + memberName;
 					}
 
-					return Option.of(generated);
+					return new Some<String>(generated);
 				}
 			}
 		}
@@ -1560,7 +1559,7 @@ public class Main {
 		}
 
 		if (this.isIdentifier(stripped)) {
-			return Option.of(stripped);
+			return new Some<String>(stripped);
 		}
 
 		if (stripped.startsWith("!")) {
@@ -1572,14 +1571,14 @@ public class Main {
 		}
 
 		if (this.isNumber(stripped)) {
-			return Option.of(stripped);
+			return new Some<String>(stripped);
 		}
 
 		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-			return Option.of(stripped);
+			return new Some<String>(stripped);
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private Option<String> compileLambda(String stripped) {
@@ -1612,7 +1611,7 @@ public class Main {
 				this.functions = this.functions.addLast(
 						"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
 						System.lineSeparator());
-				return Option.of(generatedName);
+				return new Some<String>(generatedName);
 			} else {
 				final var generatedName = this.generateName();
 
@@ -1620,11 +1619,11 @@ public class Main {
 						"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
 						this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
 						System.lineSeparator() + "}" + System.lineSeparator());
-				return Option.of(generatedName);
+				return new Some<String>(generatedName);
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private String generateName() {
@@ -1668,12 +1667,12 @@ public class Main {
 			final var right = input.substring(i1 + operator.length());
 			if (this.compileExpression(leftString) instanceof Some<String>(var leftCompiled)) {
 				if (this.compileExpression(right) instanceof Some<String>(var rightCompiled)) {
-					return Option.of(leftCompiled + " " + operator + " " + rightCompiled);
+					return new Some<String>(leftCompiled + " " + operator + " " + rightCompiled);
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private Option<String> compileInvokable(String stripped) {
@@ -1692,12 +1691,12 @@ public class Main {
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller instanceof Some<String>(var value)) {
-					return Option.of(value + "(" + joinedArguments + ")");
+					return new Some<String>(value + "(" + joinedArguments + ")");
 				}
 			}
 		}
 
-		return Option.empty();
+		return new None<String>();
 	}
 
 	private int findCallerStart(String withoutEnd) {
@@ -1741,7 +1740,7 @@ public class Main {
 
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
-			return Option.of("new_" + this.compileType(type));
+			return new Some<String>("new_" + this.compileType(type));
 		}
 
 		return new None<String>();
@@ -1757,12 +1756,12 @@ public class Main {
 			final var typeSeparator = this.findTypeSeparator(beforeName);
 
 			if (!this.isIdentifier(name)) {
-				return Option.empty();
+				return new None<Declaration>();
 			}
 
 			if (typeSeparator < 0) {
 				final var type = this.compileType(beforeName);
-				return Option.of(new Declaration(type, name));
+				return new Some<Declaration>(new Declaration(type, name));
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -1792,15 +1791,15 @@ public class Main {
 			}
 
 			if (this.isIdentifier(name)) {
-				return Option.of(new Declaration(annotations,
-																				 copy,
-																				 Option.of(beforeType),
-																				 this.compileType(beforeName.substring(typeSeparator + 1)),
-																				 name));
+				return new Some<Declaration>(new Declaration(annotations,
+																										 copy,
+																										 new Some<String>(beforeType),
+																										 this.compileType(beforeName.substring(typeSeparator + 1)),
+																										 name));
 			}
 		}
 
-		return Option.empty();
+		return new None<Declaration>();
 	}
 
 	private int findTypeSeparator(String beforeName) {
