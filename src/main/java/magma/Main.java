@@ -917,8 +917,31 @@ public class Main {
 			return this.generateIndent(indent) + this.compileMethodStatement(substring) + ";";
 		}
 
-		if (stripped.startsWith("if")) {
-			final var substring = stripped.substring(2).strip();
+		final var maybeIf = this.compileConditional("if", indent, stripped);
+		if (maybeIf instanceof Option.Some<String>(var result)) {
+			return result;
+		}
+
+		final var maybeWhile = this.compileConditional("while", indent, stripped);
+		if (maybeWhile instanceof Option.Some<String>(var result)) {
+			return result;
+		}
+
+		if (stripped.startsWith("else ")) {
+			final var substring = stripped.substring("else ".length()).strip();
+			if (substring.startsWith("{") && substring.endsWith("}")) {
+				final var substring1 = substring.substring(1, substring.length() - 1);
+				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 this.generateIndent(indent) + "}";
+			}
+		}
+
+		return System.lineSeparator() + "\t" + wrap(stripped);
+	}
+
+	private Option<String> compileConditional(String type, int indent, String input) {
+		if (input.startsWith(type)) {
+			final var substring = input.substring(type.length()).strip();
 			if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
 				var conditionEnd = -1;
@@ -943,23 +966,15 @@ public class Main {
 					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}";
+						return Option.of(
+								this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+								this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
 					}
 				}
 			}
 		}
 
-		if (stripped.startsWith("else ")) {
-			final var substring = stripped.substring("else ".length()).strip();
-			if (substring.startsWith("{") && substring.endsWith("}")) {
-				final var substring1 = substring.substring(1, substring.length() - 1);
-				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-							 this.generateIndent(indent) + "}";
-			}
-		}
-
-		return System.lineSeparator() + "\t" + wrap(stripped);
+		return Option.empty();
 	}
 
 	private String compileMethodStatement(String input) {

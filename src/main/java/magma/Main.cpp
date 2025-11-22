@@ -690,23 +690,20 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 	}
 	if (next == '\"') {
 		var current = state.append(next);
-	/*while (true) {
-					final var maybeTuple = current.popAndAppendToTuple();
-					if (!(maybeTuple instanceof Option.Some<Tuple<State, Character>>(var value))) {
-						break;
-					}
-
-					current = value.left;
-
-					final var right = value.right;
-					if (right == '\\') {
-						current = current.popAndAppendToOption().orElse(current);
-					}
-
-					if (right == '\"') {
-						break;
-					}
-				}*/
+		while (true) {
+			var maybeTuple = current.popAndAppendToTuple();
+			if (/*!(maybeTuple instanceof Option.Some<Tuple<State, Character>>(var value))*/) {
+				/*break*/;
+			}
+			current = value.left;
+			var right = value.right;
+			if (right == '\\') {
+				current = current.popAndAppendToOption().orElse(current);
+			}
+			if (right == '\"') {
+				/*break*/;
+			}
+		}
 		return current;
 	}
 	return this->folder.apply(state, next);
@@ -824,16 +821,15 @@ char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, Folder
 Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	Main* this = (Main*) _this;
 	var current = new_State(input);
-	/*while (true) {
-			final var maybeNext = current.pop();
-			if (!(maybeNext instanceof Option.Some<Character>(var value))) {
-				break;
-			}
-
-			final Character next;
-			next = value;
-			current = folder.apply(current, next);
-		}*/
+	while (true) {
+		var maybeNext = current.pop();
+		if (/*!(maybeNext instanceof Option.Some<Character>(var value))*/) {
+			/*break*/;
+		}
+		/*final Character next*/;
+		next = value;
+		current = folder.apply(current, next);
+	}
 	return current.advance().stream();
 }
 State foldStatement_Main(void* _this, State current, Character next){
@@ -1279,8 +1275,28 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		var substring = stripped.substring(0, stripped.length() - 1);
 		return this->generateIndent(indent) + this->compileMethodStatement(substring) + ";";
 	}
-	if (stripped.startsWith("if")) {
-		var substring = stripped.substring(2).strip();
+	var maybeIf = this->compileConditional("if", indent, stripped);
+	if (/*maybeIf instanceof Option.Some<String>(var result)*/) {
+		return result;
+	}
+	var maybeWhile = this->compileConditional("while", indent, stripped);
+	if (/*maybeWhile instanceof Option.Some<String>(var result)*/) {
+		return result;
+	}
+	if (stripped.startsWith("else ")) {
+		var substring = stripped.substring("else ".length()).strip();
+		if (substring.startsWith("{") && substring.endsWith("}")) {
+			var substring1 = substring.substring(1, substring.length() - 1);
+			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
+							 this.generateIndent(indent) + "}";
+		}
+	}
+	return System.lineSeparator() + "\t" + wrap(stripped);
+}
+Option<char*> compileConditional_Main(void* _this, char* type, int indent, char* input){
+	Main* this = (Main*) _this;
+	if (input.startsWith(type)) {
+		var substring = input.substring(type.length()).strip();
 	/*if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
 				var conditionEnd = -1;
@@ -1305,21 +1321,14 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return this.generateIndent(indent) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-									 this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}";
+						return Option.of(
+								this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+								this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
 					}
 				}
 			}*/
 	}
-	if (stripped.startsWith("else ")) {
-		var substring = stripped.substring("else ".length()).strip();
-		if (substring.startsWith("{") && substring.endsWith("}")) {
-			var substring1 = substring.substring(1, substring.length() - 1);
-			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
-							 this.generateIndent(indent) + "}";
-		}
-	}
-	return System.lineSeparator() + "\t" + wrap(stripped);
+	return Option.empty();
 }
 char* compileMethodStatement_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
