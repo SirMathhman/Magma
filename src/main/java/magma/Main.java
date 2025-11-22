@@ -466,7 +466,7 @@ public class Main {
 
 		final var i = stripped.indexOf("(");
 		if (i >= 0) {
-			final var declaration = stripped.substring(0, i);
+			final var declarationString = stripped.substring(0, i);
 			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
@@ -481,24 +481,33 @@ public class Main {
 						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
 						.collect(Collectors.joining(", "));
 
-				final var header =
-						parseMethodDeclaration(structName, typeParameters, declaration).generate() + "(" + compiledParameters + ")";
+				final var declaration = parseMethodDeclaration(declarationString, structName, typeParameters);
+				final var header = declaration.generate() + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
+					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
 
-					return header + "{" + compileStatements(content, Main::compileMethodSegment) + System.lineSeparator() + "}" +
-								 System.lineSeparator();
-				} else {
-					return header + ";" + System.lineSeparator();
+					final var compiled = compileStatements(inputContent, Main::compileMethodSegment);
+					final String outputContent;
+					if (declaration instanceof Constructor) {
+						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
+					} else {
+						outputContent = compiled;
+					}
+
+					return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				}
+
+				return header + ";" + System.lineSeparator();
 			}
 		}
 
 		return wrap(stripped);
 	}
 
-	private static MethodDeclaration parseMethodDeclaration(String structName, List<String> typeParameters, String declaration) {
+	private static MethodDeclaration parseMethodDeclaration(String declaration,
+																													String structName,
+																													List<String> typeParameters) {
 		return parseDeclaration(declaration, structName, typeParameters)
 				.<MethodDeclaration>map(value -> value)
 				.or(() -> parseConstructor(declaration, structName))
