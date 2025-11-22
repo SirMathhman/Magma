@@ -24,9 +24,9 @@ struct Head {
 template <typename T>
 struct ListTable {
 	Stream<T> (*stream)(void*);
-	boolean (*isEmpty)(void*);
+	int (*isEmpty)(void*);
 	List<T> (*addLast)(void*, T);
-	boolean (*contains)(void*, T);
+	int (*contains)(void*, T);
 	List<T> (*addFirst)(void*, T);
 	List<T> (*addAll)(void*, List<T>);
 	int (*size)(void*);
@@ -259,7 +259,7 @@ struct MapHead {
 template <typename T>
 struct SingleHead {
 	T value;
-	/*=*/ false;
+	int retrieved;
 };
 template <typename T, typename R>
 struct FlatMapHead {
@@ -288,6 +288,7 @@ struct Main {
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
+PrimitiveType PrimitiveTypeInt = new_PrimitiveType("int");
 Type toType_PrimitiveType(void* _ref){
 	PrimitiveType _this = *((PrimitiveType*) _ref);
 	TypeData data;
@@ -339,9 +340,9 @@ Stream<T> stream_List(void* _ref){
 	return _ret;
 }
 template <typename T>
-boolean isEmpty_List(void* _ref){
+int isEmpty_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	boolean _ret;
+	int _ret;
 	switch (this.variant) {
 	}
 	return _ret;
@@ -355,9 +356,9 @@ List<T> addLast_List(void* _ref, T element){
 	return _ret;
 }
 template <typename T>
-boolean contains_List(void* _ref, T element){
+int contains_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
-	boolean _ret;
+	int _ret;
 	switch (this.variant) {
 	}
 	return _ret;
@@ -794,12 +795,12 @@ Stream<T> stream_JavaList(void* _ref){
 	return new_Stream<Integer>(new_RangeHead(_this->nativeList.size())).map(F? { alloc(_this->nativeList), F?Table { get }});
 }
 template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
-boolean isEmpty_JavaList(void* _ref){
+int isEmpty_JavaList(void* _ref){
 	JavaList<T, T, T, T>* _this = (JavaList<T, T, T, T>*) _ref;
 	return _this->nativeList.isEmpty();
 }
 template <typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T, typename T>
-boolean contains_JavaList(void* _ref, T element){
+int contains_JavaList(void* _ref, T element){
 	JavaList<T, T, T, T, T, T, T, T>* _this = (JavaList<T, T, T, T, T, T, T, T>*) _ref;
 	return _this->nativeList.contains(element);
 }
@@ -867,11 +868,11 @@ public State_State(void* _ref, char* input){
 	_this->depth = 0;
 	_this->segments = new_JavaList<char*>();
 }
-boolean isShallow_State(void* _ref){
+int isShallow_State(void* _ref){
 	State* _this = (State*) _ref;
 	return _this->depth == 1;
 }
-boolean isLevel_State(void* _ref){
+int isLevel_State(void* _ref){
 	State* _this = (State*) _ref;
 	return _this->depth == 0;
 }
@@ -1282,6 +1283,7 @@ template <typename T>
 public SingleHead_SingleHead(void* _ref, T value){
 	SingleHead<T>* _this = (SingleHead<T>*) _ref;
 	_this->value = value;
+	_this->retrieved = false;
 }
 template <typename T, typename T>
 Option<T> next_SingleHead(void* _ref){
@@ -1696,7 +1698,7 @@ auto lambda21(void* _ref, auto i){
 	var c = stripped.charAt(i);
 	return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
 }
-boolean isIdentifier_Main(void* _ref, char* input){
+int isIdentifier_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
 	return IntStream.range(0, stripped.length()).allMatch(lambda21);
@@ -2234,14 +2236,14 @@ int findCallerStart_Main(void* _ref, char* withoutEnd){
 	}
 	return callerStart;
 }
-boolean isNumber_Main(void* _ref, char* input){
+int isNumber_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	if (input.startsWith(" - ")) {
 		return _this->allDigits(input.substring(1));
 	}
 	return _this->allDigits(input);
 }
-boolean allDigits_Main(void* _ref, char* input){
+int allDigits_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	return IntStream.range(0, input.length()).mapToObj(F? { alloc(input), F?Table { charAt }}).allMatch(F? { alloc(Character), F?Table { isDigit }});
 }
@@ -2329,6 +2331,9 @@ char* compileType_Main(void* _ref, char* input){
 Type parseType_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
+	if (stripped.equals("boolean")) {
+		return PrimitiveType.Int;
+	}
 	if (stripped.equals("void")) {
 		return PrimitiveType.Void;
 	}

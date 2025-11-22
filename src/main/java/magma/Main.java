@@ -13,7 +13,7 @@ import java.util.stream.IntStream;
 
 public class Main {
 	private enum PrimitiveType implements Type {
-		Void("void"), Char("char");
+		Void("void"), Char("char"), Int("int");
 
 		private final String content;
 
@@ -660,10 +660,11 @@ public class Main {
 
 	private static final class SingleHead<T> implements Head<T> {
 		private final T value;
-		private boolean retrieved = false;
+		private boolean retrieved;
 
 		public SingleHead(T value) {
 			this.value = value;
+			this.retrieved = false;
 		}
 
 		@Override
@@ -1830,6 +1831,10 @@ public class Main {
 
 	private Type parseType(String input) {
 		final var stripped = input.strip();
+		if (stripped.equals("boolean")) {
+			return PrimitiveType.Int;
+		}
+
 		if (stripped.equals("void")) {
 			return PrimitiveType.Void;
 		}
