@@ -1102,10 +1102,18 @@ public class Main {
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
 			final var substring = stripped.substring(0, i3);
-			final var substring1 = stripped.substring(i3 + "instanceof".length());
+			final var substring1 = stripped.substring(i3 + "instanceof".length()).strip();
 			final var maybeInstance = this.compileExpression(substring);
 			if (maybeInstance instanceof Some<String>(var instance)) {
-				return new Some<String>(instance + ".variant = ?");
+				final var i4 = substring1.indexOf("<");
+				final String substring2;
+				if (i4 >= 0) {
+					substring2 = substring1.substring(0, i4);
+				} else {
+					substring2 = substring1;
+				}
+
+				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
 			}
 		}
 

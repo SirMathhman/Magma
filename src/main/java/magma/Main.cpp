@@ -618,7 +618,7 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 		var current = state.append(next);
 		while (true) {
 			var maybeTuple = current.popAndAppendToTuple();
-			if (!(maybeTuple.variant = ?)) {
+			if (!(maybeTuple.variant = ?.SomeVariant)) {
 				/*break*/;
 			}
 			current = value.left;
@@ -648,7 +648,7 @@ State apply_ValueFolder(void* _this, State state, Character next){
 	var appended = state.append(next);
 	if (next == '-') {
 		var peeked = appended.peek();
-		if (peeked.variant = ? && value == '>') {
+		if (peeked.variant = ?.SomeVariant && value == '>') {
 			return appended.popAndAppendToOption().orElse(appended);
 		}
 		else {
@@ -765,7 +765,7 @@ char* wrap_Main(void* _this, char* input){
 void main_Main(void* _this, char** args){
 	Main* this = (Main*) _this;
 	var ioExceptionOption = new_/*Main().run*/();
-	if (ioExceptionOption.variant = ?) {
+	if (ioExceptionOption.variant = ?.SomeVariant) {
 		/*//noinspection CallToPrintStackTrace
 			value.printStackTrace()*/;
 	}
@@ -821,7 +821,7 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	var current = new_State(input);
 	while (true) {
 		var maybeNext = current.pop();
-		if (!(maybeNext.variant = ?)) {
+		if (!(maybeNext.variant = ?.SomeVariant)) {
 			/*break*/;
 		}
 		/*final Character next*/;
@@ -916,10 +916,10 @@ auto lambda22(void* _this, auto variant){
 	return System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " + variant + ";";
 }
 auto lambda23(void* _this, auto member){
-	return !(member.variant = ?);
+	return !(member.variant = ?.FunctionDeclarationVariant);
 }
 auto lambda24(void* _this, auto member){
-	return !(member.variant = ?);
+	return !(member.variant = ?.FunctionDeclarationVariant);
 }
 Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripped){
 	Main* this = (Main*) _this;
@@ -1094,23 +1094,23 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 		return Option.empty();
 	}
 	var maybeEnum = this->compileStructure("enum", input);
-	if (maybeEnum.variant = ?) {
+	if (maybeEnum.variant = ?.SomeVariant) {
 		return maybeEnum;
 	}
 	var maybeInterface = this->compileStructure("interface", input);
-	if (maybeInterface.variant = ?) {
+	if (maybeInterface.variant = ?.SomeVariant) {
 		return maybeInterface;
 	}
 	var maybeRecord = this->compileStructure("record", input);
-	if (maybeRecord.variant = ?) {
+	if (maybeRecord.variant = ?.SomeVariant) {
 		return maybeRecord;
 	}
 	var maybeClass = this->compileStructure("class", input);
-	if (maybeClass.variant = ?) {
+	if (maybeClass.variant = ?.SomeVariant) {
 		return maybeClass;
 	}
 	var maybeEnumValues = this->compileEnumValues(input, structName);
-	if (maybeEnumValues.variant = ?) {
+	if (maybeEnumValues.variant = ?.SomeVariant) {
 		return maybeEnumValues;
 	}
 	var i = stripped.indexOf("(");
@@ -1129,7 +1129,7 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 				maybeCompiled = Option.of(this->compileMethodsSegments(inputContent, 1));
 			}
 			/*String outputContent*/;
-			if (methodDeclaration.variant = ?) {
+			if (methodDeclaration.variant = ?.ConstructorVariant) {
 				var compiled = maybeCompiled.orElse("?");
 				outputContent = /*
 							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this")*/;
@@ -1274,11 +1274,11 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 		return this->generateIndent(indent) + this->compileMethodStatement(substring) + ";";
 	}
 	var maybeIf = this->compileConditional("if", indent, stripped);
-	if (maybeIf.variant = ?) {
+	if (maybeIf.variant = ?.SomeVariant) {
 		return result;
 	}
 	var maybeWhile = this->compileConditional("while", indent, stripped);
-	if (maybeWhile.variant = ?) {
+	if (maybeWhile.variant = ?.SomeVariant) {
 		return result;
 	}
 	if (stripped.startsWith("else ")) {
@@ -1335,7 +1335,7 @@ char* compileMethodStatement_Main(void* _this, char* input){
 		return "return " + this->compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
-	if (maybeInvokable.variant = ?) {
+	if (maybeInvokable.variant = ?.SomeVariant) {
 		return value;
 	}
 	var i = stripped.indexOf("=");
@@ -1392,7 +1392,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		}
 	}
 	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
-	if (maybeOperator.variant = ?) {
+	if (maybeOperator.variant = ?.SomeVariant) {
 		return maybeOperator;
 	}
 	var i = stripped.lastIndexOf(".");
@@ -1401,7 +1401,7 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		var memberName = stripped.substring(i + 1).strip();
 		if (this->isIdentifier(memberName)) {
 			var maybeInstance = this->compileExpression(instanceString);
-			if (maybeInstance.variant = ?) {
+			if (maybeInstance.variant = ?.SomeVariant) {
 				/*final String instance*/;
 				instance = value;
 				/*final String generated*/;
@@ -1422,17 +1422,25 @@ Option<char*> compileExpression_Main(void* _this, char* input){
 		var substring = stripped.substring(1);
 		return new_Some<char*>("!" + this->compileExpressionOrPlaceholder(substring));
 	}
-	var i3 = stripped.indexOf(".variant = ?);
+	var i3 = stripped.indexOf(".variant = ?."Variant);
 	if (i3 >= 0) {
 		var substring = stripped.substring(0, i3);
-		var substring1 = stripped.substring(i3 + ".variant = ?);
+		var substring1 = stripped.substring(i3 + ".variant = ?.".length()Variant).strip();
 		var maybeInstance = this->compileExpression(substring);
-		if (maybeInstance.variant = ?) {
-			return new_Some<char*>(instance + ".variant = ?");
+		if (maybeInstance.variant = ?.SomeVariant) {
+			var i4 = substring1.indexOf(" < ");
+			/*final String substring2*/;
+			if (i4 >= 0) {
+				substring2 = substring1.substring(0, i4);
+			}
+			else {
+				substring2 = substring1;
+			}
+			return new_Some<char*>(instance + ".variant = ?." + substring2 + "Variant");
 		}
 	}
 	var maybeInvokable = this->compileInvokable(stripped);
-	if (maybeInvokable.variant = ?) {
+	if (maybeInvokable.variant = ?.SomeVariant) {
 		return maybeInvokable;
 	}
 	if (this->isNumber(stripped)) {
@@ -1455,8 +1463,8 @@ Option<char*> compileOperator_Main(void* _this, char* input, char* operator){
 	if (i1 >= 0) {
 		var leftString = input.substring(0, i1);
 		var right = input.substring(i1 + operator.length());
-		if (this->compileExpression(leftString).variant = ?) {
-			if (this->compileExpression(right).variant = ?) {
+		if (this->compileExpression(leftString).variant = ?.SomeVariant) {
+			if (this->compileExpression(right).variant = ?.SomeVariant) {
 				return Option.of(leftCompiled + " " + operator + " " + rightCompiled);
 			}
 		}
