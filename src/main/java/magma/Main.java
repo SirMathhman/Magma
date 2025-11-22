@@ -359,6 +359,7 @@ public class Main {
 		var name = beforeContent.strip();
 
 		final var templateString = generateTemplateString(typeParameters);
+		final var joinedTypeParameters = joinTypeParameters(typeParameters);
 
 		final String fields;
 		var dependencies = new StringBuilder();
@@ -366,9 +367,11 @@ public class Main {
 			final var identifier = implementee.toBaseName();
 
 			final var variant = identifier + "Variant" + "." + name + "Variant";
-			final var conversionFunctionContent =
-					generateStatement(name + " this = *((" + name + "*) _this)") + generateStatement(identifier + "Data data") +
-					generateStatement("data." + name + " = this") + generateStatement("return { " + variant + ", data }");
+			final var thisType = name + joinedTypeParameters;
+			final var conversionFunctionContent = generateStatement(thisType + " this = *((" + thisType + "*) _this)") +
+																						generateStatement(identifier + "Data" + joinedTypeParameters + " data") +
+																						generateStatement("data." + name + " = this") +
+																						generateStatement("return { " + variant + ", data }");
 
 			final var conversionFunction =
 					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
@@ -387,13 +390,6 @@ public class Main {
 
 			final var generatedEnum =
 					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
-
-			final String joinedTypeParameters;
-			if (typeParameters.isEmpty()) {
-				joinedTypeParameters = "";
-			} else {
-				joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
-			}
 
 			final var unionFields = variants
 					.stream()
@@ -419,6 +415,16 @@ public class Main {
 				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
 				System.lineSeparator() +
 				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
+	}
+
+	private static String joinTypeParameters(List<String> typeParameters) {
+		final String joinedTypeParameters;
+		if (typeParameters.isEmpty()) {
+			joinedTypeParameters = "";
+		} else {
+			joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
+		}
+		return joinedTypeParameters;
 	}
 
 	private static String generateStatement(String content) {return generateStatement(1, content);}
@@ -523,12 +529,7 @@ public class Main {
 				} else if (methodDeclaration instanceof Declaration declaration) {
 					parameters.addFirst(new Declaration("void*", "_this"));
 
-					final String joinedTypeParameters;
-					if (typeParameters.isEmpty()) {
-						joinedTypeParameters = "";
-					} else {
-						joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
-					}
+					final var joinedTypeParameters = joinTypeParameters(typeParameters);
 
 					final var thisInitialization = generateStatement(
 							structName + joinedTypeParameters + " this = *((" + structName + joinedTypeParameters + "*) _this)");
