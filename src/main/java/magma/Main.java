@@ -1094,6 +1094,16 @@ public class Main {
 			return Option.of(stripped);
 		}
 
+		final var i3 = stripped.indexOf("instanceof");
+		if (i3 >= 0) {
+			final var substring = stripped.substring(0, i3);
+			final var substring1 = stripped.substring(i3 + "instanceof".length());
+			final var maybeInstance = this.compileExpression(substring);
+			if (maybeInstance instanceof Some<String>(var instance)) {
+				return new Some<String>(instance + ".variant = ?");
+			}
+		}
+
 		final var maybeInvokable = this.compileInvokable(stripped);
 		if (maybeInvokable instanceof Some<String>) {
 			return maybeInvokable;
