@@ -16,11 +16,11 @@ PrimitiveType new_PrimitiveType(char* content){
 	return this;
 }
 /*@Override
-		public*/ char* generate_PrimitiveType(){
+		public*/ char* generate_PrimitiveType(void* _this){
 	/*return this.content*/;
 }
 /*@Override
-		public*/ char* toIdentifier_PrimitiveType(){
+		public*/ char* toIdentifier_PrimitiveType(void* _this){
 	/*return this.name().toLowerCase()*/;
 }
 /*}*/enum ResultVariant {
@@ -37,9 +37,7 @@ template <typename T, typename X>
 	ResultVariant variant;
 	ResultData data;
 };
-template <typename T, typename X, typename R>
-/**/ Result<R, X> mapValue_Result(Function<T, R> mapper);
-/*}*/enum TypeVariant {
+/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//*}*/enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
@@ -57,9 +55,7 @@ union TypeData {
 	TypeVariant variant;
 	TypeData data;
 };
-char* generate();
-char* toIdentifier();
-/*}*/enum MethodDeclarationVariant {
+/*String generate();*//*String toIdentifier();*//*}*/enum MethodDeclarationVariant {
 	ConstructorVariant, 
 	DeclarationVariant, 
 	PlaceholderVariant
@@ -73,17 +69,24 @@ union MethodDeclarationData {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-char* generate();
-/*}*//*private record Err<T, X>*/(X error);
-/*private record Ok<T, X>*/(T value);
-/*private static class State {
+/*String generate();*//*}*//*private record Err<T, X>(X error) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+			return new Err<R, X>(this.error);
+		}
+	}*//*private record Ok<T, X>(T value) implements Result<T, X> {
+		@Override
+		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+			return new Ok<R, X>(mapper.apply(this.value));
+		}
+	}*//*private static class State {
 		private final String input;
 		private final ArrayList<String> segments;
 		private final StringBuilder buffer;
 		private int index;
 		private int*/ /*depth;
 
-		public*/ State_Main(char* input){
+		public*/ State_Main(void* _this, char* input){
 	this.input = input;
 	this.index = /*0*/;
 	this.buffer = /*new StringBuilder()*/;
@@ -135,16 +138,74 @@ char* generate();
 			return this.segments.stream()*/;
 	/*}*/
 }
-/*private*/ record PointerType_Main(Type type);
-/*private*/ record TemplateType_Main(char* base, List<Type> list);
-/*private*/ record Identifier_Main(char* value);
-/*private*/ record Placeholder_Main(char* input);
-/*private*/ record Constructor_Main(char* structName);
-/*private*/ record Declaration_Main(List<char*> typeParameter, Optional<char*> beforeType, char* type, char* name);
-/*public static*/ void main_Main(char** args){
+/*private record PointerType(Type type) implements Type {
+		@Override
+		public String generate() {
+			return this.type.generate() + "*";
+		}
+
+		@Override
+		public String toIdentifier() {
+			return this.type.toIdentifier() + "_ptr";
+		}
+	}*//*private record TemplateType(String base, List<Type> list) implements Type {
+
+		@Override
+		public String generate() {
+			final var typeArguments = this.list.stream().map(Type::generate).collect(Collectors.joining(", "));
+
+			return this.base + "<" + typeArguments + ">";
+		}
+
+		@Override
+		public String toIdentifier() {
+			final var joined = this.list.stream().map(Type::toIdentifier).collect(Collectors.joining("_"));
+
+			return this.base + "_" + joined;
+		}
+	}*//*private record Identifier(String value) implements Type {
+		@Override
+		public String generate() {
+			return this.value;
+		}
+
+		@Override
+		public String toIdentifier() {
+			return this.value;
+		}
+	}*//*private record Placeholder(String input) implements Type, MethodDeclaration {
+		@Override
+		public String generate() {
+			return wrap(this.input);
+		}
+
+		@Override
+		public String toIdentifier() {
+			return wrap(this.input);
+		}
+	}*//*private record Constructor(String structName) implements MethodDeclaration {
+		@Override
+		public String generate() {
+			return this.structName + " new_" + this.structName;
+		}
+	}*//*private record Declaration(List<String> typeParameter, Optional<String> beforeType, String type, String name)
+			implements MethodDeclaration {
+		public Declaration(String type, String name) {
+			this(Collections.emptyList(), Optional.empty(), type, name);
+		}
+
+		@Override
+		public String generate() {
+			var beforeDeclaration = generateTemplateString(this.typeParameter());
+
+			final String beforeTypeOutput = this.beforeType.map(Main::wrap).map(slice -> slice + " ").orElse("");
+
+			return beforeDeclaration + beforeTypeOutput + this.type() + " " + this.name();
+		}
+	}*//*public static*/ void main_Main(void* _this, char** args){
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
-/*private static*/ Optional<IOException> run_Main(){
+/*private static*/ Optional<IOException> run_Main(void* _this){
 	/*final var source*/ = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	/*final var target*/ = source.resolveSibling("Main.cpp");
 	/*final var input*/ = /*readString(source)*/.mapValue(Main::compile);
@@ -154,7 +215,7 @@ char* generate();
 		}*/
 	/**/;
 }
-/*private static*/ Optional<IOException> writeString_Main(Path target, char* output){
+/*private static*/ Optional<IOException> writeString_Main(void* _this, Path target, char* output){
 	/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -163,7 +224,7 @@ char* generate();
 			return Optional.of(e);
 		}*/
 }
-/*private static*/ Result<char*, IOException> readString_Main(Path source){
+/*private static*/ Result<char*, IOException> readString_Main(void* _this, Path source){
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*/
@@ -171,16 +232,16 @@ char* generate();
 			return new Err<String, IOException>(e);
 		}*/
 }
-/*private static*/ char* compile_Main(char* input){
+/*private static*/ char* compile_Main(void* _this, char* input){
 	/*return compileStatements(input, Main::compileRootSegment)*/;
 }
-/*private static*/ char* compileStatements_Main(char* input, Function<char*, char*> mapper){
+/*private static*/ char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
 	/*return compileAll(input, mapper, Main::foldStatement)*/;
 }
-/*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
+/*private static*/ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
 }
-/*private static*/ Stream<char*> divide_Main(char* input, BiFunction<State, Character, State> folder){
+/*private static*/ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	/*var current*/ = /*new State(input)*/;
 	/*while (true) {
 			final var maybeNext = current.pop();
@@ -193,7 +254,7 @@ char* generate();
 		}*/
 	/*return current.advance().stream()*/;
 }
-/*private static*/ State foldStatement_Main(State current, Character next){
+/*private static*/ State foldStatement_Main(void* _this, State current, Character next){
 	/*final var appended*/ = current.append(next);
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
@@ -201,16 +262,17 @@ char* generate();
 		}*/
 	/*if (next == '*/
 }
-/*' && appended.isShallow*/();
-/*if */(/*next == '{'*/){
+/*' && appended.isShallow()) {
+			return appended.advance().exit();
+		}*//*if */(void* _this){
 	/*return appended.enter()*/;
 	/*}
 
 		if (next == '*/
 }
 /*') {
-			return appended.exit*/();
-/*}*//*private static String compileRootSegment(String input) {
+			return appended.exit();
+		}*//*}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -399,19 +461,19 @@ char* generate();
 			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
-				final var parameters = substring1.substring(0, i1);
+				final var parametersString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var compiledParameters = divide(parameters, Main::foldValue)
+				final var parameters = divide(parametersString, Main::foldValue)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
-						.collect(Collectors.joining(", "));
+						.map(param -> parseDeclaration(param, structName, typeParameters))
+						.flatMap(Optional::stream)
+						.collect(Collectors.toCollection(ArrayList::new));
 
 				final var declaration = parseMethodDeclaration(declarationString, structName, typeParameters);
-				final var header = declaration.generate() + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
@@ -421,13 +483,16 @@ char* generate();
 					if (declaration instanceof Constructor) {
 						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
 					} else {
+						parameters.addFirst(new Declaration("void*", "_this"));
 						outputContent = compiled;
 					}
 
+					final var compiledParameters =
+							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+
+					final var header = declaration.generate() + "(" + compiledParameters + ")";
 					return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				}
-
-				return header + ";" + System.lineSeparator();
 			}
 		}
 

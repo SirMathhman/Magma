@@ -470,19 +470,19 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			final var i1 = substring1.indexOf(")");
 			if (i1 >= 0) {
-				final var parameters = substring1.substring(0, i1);
+				final var parametersString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var compiledParameters = divide(parameters, Main::foldValue)
+				final var parameters = divide(parametersString, Main::foldValue)
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.toList()
 						.stream()
-						.map(param -> compileDeclarationOrPlaceholder(param, structName, typeParameters))
-						.collect(Collectors.joining(", "));
+						.map(param -> parseDeclaration(param, structName, typeParameters))
+						.flatMap(Optional::stream)
+						.collect(Collectors.toCollection(ArrayList::new));
 
 				final var declaration = parseMethodDeclaration(declarationString, structName, typeParameters);
-				final var header = declaration.generate() + "(" + compiledParameters + ")";
 
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
@@ -492,13 +492,16 @@ public class Main {
 					if (declaration instanceof Constructor) {
 						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
 					} else {
+						parameters.addFirst(new Declaration("void*", "_this"));
 						outputContent = compiled;
 					}
 
+					final var compiledParameters =
+							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+
+					final var header = declaration.generate() + "(" + compiledParameters + ")";
 					return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				}
-
-				return header + ";" + System.lineSeparator();
 			}
 		}
 
