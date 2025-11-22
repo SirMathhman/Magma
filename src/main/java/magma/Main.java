@@ -521,6 +521,26 @@ public class Main {
 	}
 
 	private State foldStatement(State current, Character next) {
+		if (next == '/' && current.isLevel()) {
+			final var maybePeeked = current.peek();
+			if (maybePeeked instanceof Some<Character>(var peek) && peek == '/') {
+				var withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
+				while (true) {
+					final var maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
+					if (maybeTuple instanceof Some<Tuple<State, Character>>(var tuple)) {
+						withoutLineCommentPrefix = tuple.left;
+
+						final var right = tuple.right;
+						if (right == '\r' || right == '\n') {
+							withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
+						}
+					} else {
+						return withoutLineCommentPrefix;
+					}
+				}
+			}
+		}
+
 		final var appended = current.append(next);
 		if (next == ';' && appended.isLevel()) {
 			return appended.advance();
@@ -955,6 +975,10 @@ public class Main {
 				return this.generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 this.generateIndent(indent) + "}";
 			}
+		}
+
+		if (stripped.startsWith("//")) {
+			return generateIndent(indent) + stripped;
 		}
 
 		return System.lineSeparator() + "\t" + wrap(stripped);

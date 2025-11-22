@@ -792,8 +792,8 @@ void main_Main(void* _this, char** args){
 	Main* this = (Main*) _this;
 	var ioExceptionOption = new_Main().run();
 	if (ioExceptionOption.variant = ?.SomeVariant) {
-		/*//noinspection CallToPrintStackTrace
-			value.printStackTrace()*/;
+		//noinspection CallToPrintStackTrace
+		value.printStackTrace();
 	}
 }
 Option<IOException> run_Main(void* _this){
@@ -858,6 +858,25 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 }
 State foldStatement_Main(void* _this, State current, Character next){
 	Main* this = (Main*) _this;
+	if (next == '/' && current.isLevel()) {
+		var maybePeeked = current.peek();
+		if (maybePeeked.variant = ?.SomeVariant) {
+			var withoutLineCommentPrefix = current.append('/').popAndAppendToOption().orElse(current);
+			while (true) {
+				var maybeTuple = withoutLineCommentPrefix.popAndAppendToTuple();
+				if (maybeTuple.variant = ?.SomeVariant) {
+					withoutLineCommentPrefix = tuple.left;
+					var right = tuple.right;
+					if (right == '\r' || right == '\n') {
+						withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
+					}
+				}
+				else {
+					return withoutLineCommentPrefix;
+				}
+			}
+		}
+	}
 	var appended = current.append(next);
 	if (next == ';' && appended.isLevel()) {
 		return appended.advance();
@@ -1316,6 +1335,9 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 			return this->generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 this.generateIndent(indent) + "}";
 		}
+	}
+	if (stripped.startsWith("//")) {
+		return generateIndent(indent) + stripped;
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
