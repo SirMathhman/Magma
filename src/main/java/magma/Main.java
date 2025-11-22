@@ -54,6 +54,8 @@ public class Main {
 		List<T> subList(int start, int end);
 
 		List<T> clear();
+
+		List<T> copy();
 	}
 
 	private interface FR<T> {
@@ -274,6 +276,11 @@ public class Main {
 		public List<T> clear() {
 			this.nativeList.clear();
 			return this;
+		}
+
+		@Override
+		public List<T> copy() {
+			return new JavaList<T>(new ArrayList<T>(this.nativeList));
 		}
 	}
 
@@ -1831,7 +1838,7 @@ public class Main {
 
 	private Type parseType(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("boolean")) {
+		if (stripped.equals("boolean") || stripped.equals("Boolean")) {
 			return PrimitiveType.Int;
 		}
 
