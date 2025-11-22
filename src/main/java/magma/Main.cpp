@@ -3,7 +3,7 @@ struct Main {
 Type toType_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	TypeData data;
-	data.primitivetype = this;
+	data.PrimitiveType = this;
 	return { TypeVariant.PrimitiveTypeVariant, data };
 }
 struct PrimitiveType {
@@ -29,15 +29,29 @@ enum ResultVariant {
 };
 template <typename T, typename X>
 union ResultData {
-	ErrData<T, X> err;
-	OkData<T, X> ok;
+	ErrData<T, X> Err;
+	OkData<T, X> Ok;
 };
 template <typename T, typename X>
 struct Result {
 	ResultVariant variant;
 	ResultData data;
 };
-/*<R> Result<R, X> mapValue(Function<T, R> mapper);*/enum TypeVariant {
+template <typename T, typename X, typename R>
+Result<R, X> mapValue_Result(void* _this, Function<T, R> mapper){
+	Result<T, X> this = *((Result<T, X>*) _this);
+	Result<R, X> _ret;
+	switch (this.variant) {
+		case ResultVariant.ErrVariant:
+			_ret = mapValue_Result(this.data.Err);
+			break;
+		case ResultVariant.OkVariant:
+			_ret = mapValue_Result(this.data.Ok);
+			break;
+	}
+	return _ret;
+}
+enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
@@ -45,41 +59,95 @@ struct Result {
 	TemplateTypeVariant
 };
 union TypeData {
-	IdentifierData identifier;
-	PlaceholderData placeholder;
-	PointerTypeData pointertype;
-	PrimitiveTypeData primitivetype;
-	TemplateTypeData templatetype;
+	IdentifierData Identifier;
+	PlaceholderData Placeholder;
+	PointerTypeData PointerType;
+	PrimitiveTypeData PrimitiveType;
+	TemplateTypeData TemplateType;
 };
 struct Type {
 	TypeVariant variant;
 	TypeData data;
 };
-/*String generate();*//*String toIdentifier();*/enum MethodDeclarationVariant {
+char* generate(void* _this){
+	Type this = *((Type*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case TypeVariant.IdentifierVariant:
+			_ret = generate(this.data.Identifier);
+			break;
+		case TypeVariant.PlaceholderVariant:
+			_ret = generate(this.data.Placeholder);
+			break;
+		case TypeVariant.PointerTypeVariant:
+			_ret = generate(this.data.PointerType);
+			break;
+		case TypeVariant.PrimitiveTypeVariant:
+			_ret = generate(this.data.PrimitiveType);
+			break;
+		case TypeVariant.TemplateTypeVariant:
+			_ret = generate(this.data.TemplateType);
+			break;
+	}
+	return _ret;
+}
+char* toIdentifier(void* _this){
+	Type this = *((Type*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case TypeVariant.IdentifierVariant:
+			_ret = toIdentifier(this.data.Identifier);
+			break;
+		case TypeVariant.PlaceholderVariant:
+			_ret = toIdentifier(this.data.Placeholder);
+			break;
+		case TypeVariant.PointerTypeVariant:
+			_ret = toIdentifier(this.data.PointerType);
+			break;
+		case TypeVariant.PrimitiveTypeVariant:
+			_ret = toIdentifier(this.data.PrimitiveType);
+			break;
+		case TypeVariant.TemplateTypeVariant:
+			_ret = toIdentifier(this.data.TemplateType);
+			break;
+	}
+	return _ret;
+}
+enum MethodDeclarationVariant {
 	ConstructorVariant, 
 	DeclarationVariant, 
 	PlaceholderVariant
 };
 union MethodDeclarationData {
-	ConstructorData constructor;
-	DeclarationData declaration;
-	PlaceholderData placeholder;
+	ConstructorData Constructor;
+	DeclarationData Declaration;
+	PlaceholderData Placeholder;
 };
 struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-/*String generate();*//*private record Err<T, X>(X error) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-			return new Err<R, X>(this.error);
-		}
-	}*//*private record Ok<T, X>(T value) implements Result<T, X> {
-		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
-			return new Ok<R, X>(mapper.apply(this.value));
-		}
-	}*//*depth;
+char* generate(void* _this){
+	MethodDeclaration this = *((MethodDeclaration*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case MethodDeclarationVariant.ConstructorVariant:
+			_ret = generate(this.data.Constructor);
+			break;
+		case MethodDeclarationVariant.DeclarationVariant:
+			_ret = generate(this.data.Declaration);
+			break;
+		case MethodDeclarationVariant.PlaceholderVariant:
+			_ret = generate(this.data.Placeholder);
+			break;
+	}
+	return _ret;
+}
+/*private record Err<T, X>*/(X error){?
+}
+/*private record Ok<T, X>*/(T value){?
+}
+/*depth;
 
 		public*/ State_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
@@ -134,68 +202,49 @@ struct MethodDeclaration {
 			return this.segments.stream()*/;
 	/*}*/
 }
-/*private record PointerType(Type type) implements Type {
-		@Override
-		public String generate() {
-			return this.type.generate() + "*";
-		}
-
-		@Override
-		public String toIdentifier() {
-			return this.type.toIdentifier() + "_ptr";
-		}
-	}*//*private record TemplateType(String base, List<Type> list) implements Type {
-
-		@Override
-		public String generate() {
-			final var typeArguments = this.list.stream().map(Type::generate).collect(Collectors.joining(", "));
-
-			return this.base + "<" + typeArguments + ">";
-		}
-
-		@Override
-		public String toIdentifier() {
-			final var joined = this.list.stream().map(Type::toIdentifier).collect(Collectors.joining("_"));
-
-			return this.base + "_" + joined;
-		}
-	}*//*private record Identifier(String value) implements Type {
-		@Override
-		public String generate() {
-			return this.value;
-		}
-
-		@Override
-		public String toIdentifier() {
-			return this.value;
-		}
-	}*//*private record Placeholder(String input) implements Type, MethodDeclaration {
-		@Override
-		public String generate() {
-			return wrap(this.input);
-		}
-
-		@Override
-		public String toIdentifier() {
-			return wrap(this.input);
-		}
-	}*//*private record Constructor(String structName) implements MethodDeclaration {
-		@Override
-		public String generate() {
-			return this.structName + " new_" + this.structName;
-		}
-	}*//*private record Declaration(List<String> typeParameter, Optional<String> beforeType, String type, String name)
-			implements MethodDeclaration {
-		public Declaration(String type, String name) {
-			this(Collections.emptyList(), Optional.empty(), type, name);
-		}
-
-		@Override
-		public String generate() {
-			var beforeDeclaration = generateTemplateString(this.typeParameter());
-			return beforeDeclaration + this.type + " " + this.name;
-		}
-	}*/void main_Main(void* _this, char** args){
+record PointerType_Main(void* _this, Type type){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+record TemplateType_Main(void* _this, char* base, List<Type> list){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+record Identifier_Main(void* _this, char* value){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+record Placeholder_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+record Constructor_Main(void* _this, char* structName){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+record Declaration_Main(void* _this, List<char*> typeParameter, Optional<char*> beforeType, char* type, char* name){
+	Main this = *((Main*) _this);
+	record _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
@@ -264,18 +313,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}*/
 	/*if (next == '*/
 }
-/*' && appended.isShallow()) {
-			return appended.advance().exit();
-		}*//*if */(void* _this){
-	Main this = *((Main*) _this);
-	return /*appended.enter()*/;
-	/*}
-
-		if (next == '*/
+/*' && appended.isShallow*/(){?
+}
+/*if */(){?
 }
 /*') {
-			return appended.exit();
-		}*//*private static String compileRootSegment(String input) {
+			return appended.exit*/(){?
+}
+/*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -351,8 +396,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var variant = identifier + "Variant" + "." + name + "Variant";
 			final var conversionFunctionContent =
 					generateStatement(name + " this = *((" + name + "*) _this)") + generateStatement(identifier + "Data data") +
-					generateStatement("data." + name.toLowerCase() + " = this") +
-					generateStatement("return { " + variant + ", data }");
+					generateStatement("data." + name + " = this") + generateStatement("return { " + variant + ", data }");
 
 			final var conversionFunction =
 					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
@@ -381,8 +425,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 			final var unionFields = variants
 					.stream()
-					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " +
-													variant.toLowerCase() + ";")
+					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " + variant +
+													";")
 					.collect(Collectors.joining());
 
 			final var generatedUnion =
@@ -398,12 +442,15 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		var finalTypeParameters = typeParameters;
+		List<String> finalVariants = variants;
 		return Optional.of(
 				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
 				System.lineSeparator() +
-				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
-	}*//*private static String generateStatement(String content) {
-		return System.lineSeparator() + "\t" + content + ";";
+				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
+	}*//*private static String generateStatement(String content) {return generateStatement(1, content);}*//*private static String generateStatement(int depth, String content) {
+		return generateIndent(depth) + content + ";";
+	}*//*private static String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}*//*private static List<String> splitValues(String input) {
 		return Arrays.stream(input.split(Pattern.quote(","))).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 	}*//*private static String generateTemplateString(List<String> typeParameters) {
@@ -427,7 +474,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return true;
-	}*//*private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
+	}*//*private static String compileClassSegment(String input,
+																						String structName,
+																						List<String> typeParameters,
+																						List<String> variants) {
 		final var stripped = input.strip();
 
 		if (stripped.isEmpty()) {
@@ -467,30 +517,59 @@ State foldStatement_Main(void* _this, State current, Character next){
 						.flatMap(Optional::stream)
 						.collect(Collectors.toCollection(ArrayList::new));
 
-				final var declaration = parseMethodDeclaration(declarationString, structName, typeParameters);
+				final var methodDeclaration = parseMethodDeclaration(declarationString, structName, typeParameters);
 
+				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
+					maybeCompiled = Optional.of(compileStatements(inputContent, Main::compileMethodSegment));
+				}
 
-					final var compiled = compileStatements(inputContent, Main::compileMethodSegment);
-					final String outputContent;
-					if (declaration instanceof Constructor) {
-						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
+				String outputContent;
+				if (methodDeclaration instanceof Constructor) {
+					final var compiled = maybeCompiled.orElse("?");
+					outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
+				} else if (methodDeclaration instanceof Declaration declaration) {
+					parameters.addFirst(new Declaration("void*", "_this"));
+
+					final String joinedTypeParameters;
+					if (typeParameters.isEmpty()) {
+						joinedTypeParameters = "";
 					} else {
-						parameters.addFirst(new Declaration("void*", "_this"));
-						outputContent = generateStatement(structName + " this = *((" + structName + "*) _this)") + compiled;
+						joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
 					}
 
-					final var compiledParameters =
-							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+					final var thisInitialization = generateStatement(
+							structName + joinedTypeParameters + " this = *((" + structName + joinedTypeParameters + "*) _this)");
 
-					final var header = declaration.generate() + "(" + compiledParameters + ")";
-					return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
+						final var returnValueDefinition = generateStatement(declaration.type + " _ret");
+
+						final var cases = variants
+								.stream()
+								.map(variant -> generateCase(structName, declaration, variant))
+								.collect(Collectors.joining());
+
+						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+									 generateIndent(1) + "}" + generateStatement("return _ret");
+					});
+				} else {
+					outputContent = "?";
 				}
+
+				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "
+				));
+
+				final var header = methodDeclaration.generate() + "(" + compiledParameters + ")";
+				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			}
 		}
 
 		return wrap(stripped);
+	}*//*private static String generateCase(String structName, Declaration declaration, String variant) {
+		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
+					 generateStatement(3, "_ret = " + declaration.name + "(this.data." + variant + ")") +
+					 generateStatement(3, "break");
 	}*//*private static MethodDeclaration parseMethodDeclaration(String declaration,
 																													String structName,
 																													List<String> typeParameters) {

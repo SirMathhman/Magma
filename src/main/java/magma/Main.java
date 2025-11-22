@@ -354,8 +354,7 @@ public class Main {
 			final var variant = identifier + "Variant" + "." + name + "Variant";
 			final var conversionFunctionContent =
 					generateStatement(name + " this = *((" + name + "*) _this)") + generateStatement(identifier + "Data data") +
-					generateStatement("data." + name.toLowerCase() + " = this") +
-					generateStatement("return { " + variant + ", data }");
+					generateStatement("data." + name + " = this") + generateStatement("return { " + variant + ", data }");
 
 			final var conversionFunction =
 					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
@@ -384,8 +383,8 @@ public class Main {
 
 			final var unionFields = variants
 					.stream()
-					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " +
-													variant.toLowerCase() + ";")
+					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " + variant +
+													";")
 					.collect(Collectors.joining());
 
 			final var generatedUnion =
@@ -401,14 +400,21 @@ public class Main {
 		}
 
 		var finalTypeParameters = typeParameters;
+		List<String> finalVariants = variants;
 		return Optional.of(
 				dependencies + templateString + "struct " + name + " {" + fields + System.lineSeparator() + "};" +
 				System.lineSeparator() +
-				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters)));
+				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
 	}
 
-	private static String generateStatement(String content) {
-		return System.lineSeparator() + "\t" + content + ";";
+	private static String generateStatement(String content) {return generateStatement(1, content);}
+
+	private static String generateStatement(int depth, String content) {
+		return generateIndent(depth) + content + ";";
+	}
+
+	private static String generateIndent(int depth) {
+		return System.lineSeparator() + "\t".repeat(depth);
 	}
 
 	private static List<String> splitValues(String input) {
@@ -440,7 +446,10 @@ public class Main {
 		return true;
 	}
 
-	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
+	private static String compileClassSegment(String input,
+																						String structName,
+																						List<String> typeParameters,
+																						List<String> variants) {
 		final var stripped = input.strip();
 
 		if (stripped.isEmpty()) {
@@ -480,30 +489,61 @@ public class Main {
 						.flatMap(Optional::stream)
 						.collect(Collectors.toCollection(ArrayList::new));
 
-				final var declaration = parseMethodDeclaration(declarationString, structName, typeParameters);
+				final var methodDeclaration = parseMethodDeclaration(declarationString, structName, typeParameters);
 
+				Optional<String> maybeCompiled = Optional.empty();
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
+					maybeCompiled = Optional.of(compileStatements(inputContent, Main::compileMethodSegment));
+				}
 
-					final var compiled = compileStatements(inputContent, Main::compileMethodSegment);
-					final String outputContent;
-					if (declaration instanceof Constructor) {
-						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
+				String outputContent;
+				if (methodDeclaration instanceof Constructor) {
+					final var compiled = maybeCompiled.orElse("?");
+					outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
+				} else if (methodDeclaration instanceof Declaration declaration) {
+					parameters.addFirst(new Declaration("void*", "_this"));
+
+					final String joinedTypeParameters;
+					if (typeParameters.isEmpty()) {
+						joinedTypeParameters = "";
 					} else {
-						parameters.addFirst(new Declaration("void*", "_this"));
-						outputContent = generateStatement(structName + " this = *((" + structName + "*) _this)") + compiled;
+						joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
 					}
 
-					final var compiledParameters =
-							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+					final var thisInitialization = generateStatement(
+							structName + joinedTypeParameters + " this = *((" + structName + joinedTypeParameters + "*) _this)");
 
-					final var header = declaration.generate() + "(" + compiledParameters + ")";
-					return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
+						final var returnValueDefinition = generateStatement(declaration.type + " _ret");
+
+						final var cases = variants
+								.stream()
+								.map(variant -> generateCase(structName, declaration, variant))
+								.collect(Collectors.joining());
+
+						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+									 generateIndent(1) + "}" + generateStatement("return _ret");
+					});
+				} else {
+					outputContent = "?";
 				}
+
+				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "
+				));
+
+				final var header = methodDeclaration.generate() + "(" + compiledParameters + ")";
+				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			}
 		}
 
 		return wrap(stripped);
+	}
+
+	private static String generateCase(String structName, Declaration declaration, String variant) {
+		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
+					 generateStatement(3, "_ret = " + declaration.name + "(this.data." + variant + ")") +
+					 generateStatement(3, "break");
 	}
 
 	private static MethodDeclaration parseMethodDeclaration(String declaration,
