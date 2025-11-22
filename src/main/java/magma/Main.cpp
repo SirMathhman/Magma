@@ -1,28 +1,7 @@
-struct Main {
-};
-Type toType_PrimitiveType(void* _this){
-	PrimitiveType this = *((PrimitiveType*) _this);
-	TypeData data;
-	data.PrimitiveType = this;
-	return { TypeVariant.PrimitiveTypeVariant, data };
-}
-struct PrimitiveType {
-};
-PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
+struct Main {struct PrimitiveType {PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
-PrimitiveType new_PrimitiveType(char* content){
-	PrimitiveType this;
-	this.content = content;
-	return this;
-}
-char* generate_PrimitiveType(void* _this){
-	PrimitiveType this = *((PrimitiveType*) _this);
-	return this.content;
-}
-char* toBaseName_PrimitiveType(void* _this){
-	PrimitiveType this = *((PrimitiveType*) _this);
-	return this.content;
-}
+
+};
 template <typename T0, typename R>
 struct F1RTable<T0, R>{};
 template <typename T0, typename R>
@@ -30,13 +9,6 @@ struct F1R {
 	F1RTable<T0, R> table;
 	void* data;
 };
-R apply_F1R(void* _this, T0 value){
-	F1R<T0, R> this = *((F1R<T0, R>*) _this);
-	R _ret;
-	switch (this.variant) {
-	}
-	return _ret;
-}
 enum ResultVariant {
 	ErrVariant, 
 	OkVariant
@@ -51,20 +23,6 @@ struct Result {
 	ResultVariant variant;
 	ResultData data;
 };
-template <typename T, typename X, typename R>
-Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
-	Result<T, X> this = *((Result<T, X>*) _this);
-	Result<R, X> _ret;
-	switch (this.variant) {
-		case ResultVariant.ErrVariant:
-			_ret = mapValue_Err(&this.data.Err);
-			break;
-		case ResultVariant.OkVariant:
-			_ret = mapValue_Ok(&this.data.Ok);
-			break;
-	}
-	return _ret;
-}
 enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
@@ -83,50 +41,6 @@ struct Type {
 	TypeVariant variant;
 	TypeData data;
 };
-char* generate_Type(void* _this){
-	Type this = *((Type*) _this);
-	char* _ret;
-	switch (this.variant) {
-		case TypeVariant.IdentifierVariant:
-			_ret = generate_Identifier(&this.data.Identifier);
-			break;
-		case TypeVariant.PlaceholderVariant:
-			_ret = generate_Placeholder(&this.data.Placeholder);
-			break;
-		case TypeVariant.PointerTypeVariant:
-			_ret = generate_PointerType(&this.data.PointerType);
-			break;
-		case TypeVariant.PrimitiveTypeVariant:
-			_ret = generate_PrimitiveType(&this.data.PrimitiveType);
-			break;
-		case TypeVariant.TemplateTypeVariant:
-			_ret = generate_TemplateType(&this.data.TemplateType);
-			break;
-	}
-	return _ret;
-}
-char* toBaseName_Type(void* _this){
-	Type this = *((Type*) _this);
-	char* _ret;
-	switch (this.variant) {
-		case TypeVariant.IdentifierVariant:
-			_ret = toBaseName_Identifier(&this.data.Identifier);
-			break;
-		case TypeVariant.PlaceholderVariant:
-			_ret = toBaseName_Placeholder(&this.data.Placeholder);
-			break;
-		case TypeVariant.PointerTypeVariant:
-			_ret = toBaseName_PointerType(&this.data.PointerType);
-			break;
-		case TypeVariant.PrimitiveTypeVariant:
-			_ret = toBaseName_PrimitiveType(&this.data.PrimitiveType);
-			break;
-		case TypeVariant.TemplateTypeVariant:
-			_ret = toBaseName_TemplateType(&this.data.TemplateType);
-			break;
-	}
-	return _ret;
-}
 enum MethodDeclarationVariant {
 	ConstructorVariant, 
 	DeclarationVariant, 
@@ -141,298 +55,40 @@ struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-char* generate_MethodDeclaration(void* _this){
-	MethodDeclaration this = *((MethodDeclaration*) _this);
-	char* _ret;
-	switch (this.variant) {
-		case MethodDeclarationVariant.ConstructorVariant:
-			_ret = generate_Constructor(&this.data.Constructor);
-			break;
-		case MethodDeclarationVariant.DeclarationVariant:
-			_ret = generate_Declaration(&this.data.Declaration);
-			break;
-		case MethodDeclarationVariant.PlaceholderVariant:
-			_ret = generate_Placeholder(&this.data.Placeholder);
-			break;
-	}
-	return _ret;
-}
-template <typename T, typename X>
-Result<T, X> toResult_Err(void* _this){
-	Err<T, X> this = *((Err<T, X>*) _this);
-	ResultData<T, X> data;
-	data.Err = this;
-	return { ResultVariant.ErrVariant, data };
-}
 template <typename T, typename X>
 struct Err {
 	X error;
 };
-template <typename T, typename X, typename R>
-Result<R, X> mapValue_Err(void* _this, F1R<T, R> mapper){
-	Err<T, X> this = *((Err<T, X>*) _this);
-	return new_Err<R, X>(this.error);
-}
-template <typename T, typename X>
-Result<T, X> toResult_Ok(void* _this){
-	Ok<T, X> this = *((Ok<T, X>*) _this);
-	ResultData<T, X> data;
-	data.Ok = this;
-	return { ResultVariant.OkVariant, data };
-}
 template <typename T, typename X>
 struct Ok {
 	T value;
 };
-template <typename T, typename X, typename R>
-Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
-	Ok<T, X> this = *((Ok<T, X>*) _this);
-	return new_Ok<R, X>(mapper.apply(this.value));
-}
 struct State {
 };
-public State_State(void* _this, char* input){
-	State this = *((State*) _this);
-	this.input = input;
-	this.index = /*0*/;
-	this.buffer = new_StringBuilder();
-	this.depth = /*0*/;
-	this.segments = new_ArrayList<char*>();
-}
-boolean isShallow_State(void* _this){
-	State this = *((State*) _this);
-	return /*this.depth == 1*/;
-}
-boolean isLevel_State(void* _this){
-	State this = *((State*) _this);
-	return /*this.depth == 0*/;
-}
-State append_State(void* _this, Character next){
-	State this = *((State*) _this);
-	/*this.buffer.append(next)*/;
-	return this;
-}
-Optional<Character> pop_State(void* _this){
-	State this = *((State*) _this);
-	/*if (this.index < this.input.length()) {
-				final var value = this.input.charAt(this.index);
-				this.index++;
-				return Optional.of(value);
-			}*/
-	/*else {
-				return Optional.empty();
-			}*/
-}
-State advance_State(void* _this){
-	State this = *((State*) _this);
-	/*this.segments.add(this.buffer.toString())*/;
-	/*this.buffer.setLength(0)*/;
-	return this;
-}
-State enter_State(void* _this){
-	State this = *((State*) _this);
-	this.depth = /*this.depth + 1*/;
-	return this;
-}
-State exit_State(void* _this){
-	State this = *((State*) _this);
-	this.depth = /*this.depth - 1*/;
-	return this;
-}
-Stream<char*> stream_State(void* _this){
-	State this = *((State*) _this);
-	return this.segments.stream();
-}
-Type toType_PointerType(void* _this){
-	PointerType this = *((PointerType*) _this);
-	TypeData data;
-	data.PointerType = this;
-	return { TypeVariant.PointerTypeVariant, data };
-}
 struct PointerType {
 	Type type;
 };
-char* generate_PointerType(void* _this){
-	PointerType this = *((PointerType*) _this);
-	return /*this.type.generate() + "*"*/;
-}
-char* toBaseName_PointerType(void* _this){
-	PointerType this = *((PointerType*) _this);
-	return /*this.type.toBaseName() + "_ptr"*/;
-}
-Type toType_TemplateType(void* _this){
-	TemplateType this = *((TemplateType*) _this);
-	TypeData data;
-	data.TemplateType = this;
-	return { TypeVariant.TemplateTypeVariant, data };
-}
 struct TemplateType {
 	char* base;
 	List<Type> list;
 };
-char* generate_TemplateType(void* _this){
-	TemplateType this = *((TemplateType*) _this);
-	/*final var typeArguments*/ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /*")*/);
-	return /*this.base + "<" + typeArguments + ">"*/;
-}
-char* toBaseName_TemplateType(void* _this){
-	TemplateType this = *((TemplateType*) _this);
-	return this.base;
-}
-Type toType_Identifier(void* _this){
-	Identifier this = *((Identifier*) _this);
-	TypeData data;
-	data.Identifier = this;
-	return { TypeVariant.IdentifierVariant, data };
-}
 struct Identifier {
 	char* value;
 };
-char* generate_Identifier(void* _this){
-	Identifier this = *((Identifier*) _this);
-	return this.value;
-}
-char* toBaseName_Identifier(void* _this){
-	Identifier this = *((Identifier*) _this);
-	return this.value;
-}
-Type toType_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	TypeData data;
-	data.Placeholder = this;
-	return { TypeVariant.PlaceholderVariant, data };
-}
-MethodDeclaration toMethodDeclaration_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	MethodDeclarationData data;
-	data.Placeholder = this;
-	return { MethodDeclarationVariant.PlaceholderVariant, data };
-}
 struct Placeholder {
 	char* input;
 };
-char* generate_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	return wrap(this.input);
-}
-char* toBaseName_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	return wrap(this.input);
-}
-MethodDeclaration toMethodDeclaration_Constructor(void* _this){
-	Constructor this = *((Constructor*) _this);
-	MethodDeclarationData data;
-	data.Constructor = this;
-	return { MethodDeclarationVariant.ConstructorVariant, data };
-}
 struct Constructor {
 	char* structName;
 };
-char* generate_Constructor(void* _this){
-	Constructor this = *((Constructor*) _this);
-	return /*this.structName + " new_" + this*/.structName;
-}
-MethodDeclaration toMethodDeclaration_Declaration(void* _this){
-	Declaration this = *((Declaration*) _this);
-	MethodDeclarationData data;
-	data.Declaration = this;
-	return { MethodDeclarationVariant.DeclarationVariant, data };
-}
 struct Declaration {
 	List<char*> typeParameters;
 	Optional<char*> maybeBeforeType;
 	char* type;
 	char* name;
 };
-public Declaration_Declaration(void* _this, char* type, char* name){
-	Declaration this = *((Declaration*) _this);
-	/*this(Collections.emptyList(), Optional.empty(), type, name)*/;
-}
-char* generate_Declaration(void* _this){
-	Declaration this = *((Declaration*) _this);
-	/*var beforeDeclaration*/ = generateTemplateString(this.typeParameters());
-	return /*beforeDeclaration + this.type + " " + this*/.name;
-}
-Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
-	Declaration this = *((Declaration*) _this);
-	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
-}
-void main_Main(void* _this, char** args){
-	Main this = *((Main*) _this);
-	/*run().ifPresent(Throwable::printStackTrace)*/;
-}
-Optional<IOException> run_Main(void* _this){
-	Main this = *((Main*) _this);
-	/*final var source*/ = Paths.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
-	/*final var target*/ = source.resolveSibling(/*"Main.cpp"*/);
-	/*final var input*/ = readString(/*source).mapValue(Main::compile*/);
-	/*return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
-			case Ok<String, IOException> v -> writeString(target, v.value);
-		}*/
-	/**/;
-}
-Optional<IOException> writeString_Main(void* _this, Path target, char* output){
-	Main this = *((Main*) _this);
-	/*try {
-			Files.writeString(target, output);
-			return Optional.empty();
-		}*/
-	/*catch (IOException e) {
-			return Optional.of(e);
-		}*/
-}
-Result<char*, IOException> readString_Main(void* _this, Path source){
-	Main this = *((Main*) _this);
-	/*try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*/
-	/*catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*/
-}
-char* compile_Main(void* _this, char* input){
-	Main this = *((Main*) _this);
-	return compileStatements(input, /*Main::compileRootSegment*/);
-}
-char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
-	Main this = *((Main*) _this);
-	return compileAll(input, mapper, /*Main::foldStatement*/);
-}
-char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
-	Main this = *((Main*) _this);
-	return divide(input, /*folder)*/.map(/*mapper::apply).collect(Collectors.joining(""*/));
-}
-Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
-	Main this = *((Main*) _this);
-	/*var current*/ = new_State(input);
-	/*while (true) {
-			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) {
-				break;
-			}
 
-			final var next = maybeNext.get();
-			current = folder.apply(current, next);
-		}*/
-	return current.advance(/*).stream(*/);
-}
-State foldStatement_Main(void* _this, State current, Character next){
-	Main this = *((Main*) _this);
-	/*final var appended*/ = current.append(next);
-	/*if (next*/ = /*= '*/;
-	/*' && appended.isLevel()) {
-			return appended.advance();
-		}*/
-	/*if (next == '*/
-}
-/*' && appended.isShallow*/(){?
-}
-/*if */(){?
-}
-/*') {
-			return appended.exit*/(){?
-}
+};
 /*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -454,7 +110,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		if (!withEnd.endsWith("}")) {
 			return Optional.empty();
 		}
-		final var content = withEnd.substring(0, withEnd.length() - 1);
+		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = new ArrayList<String>();
 		final var i2 = beforeContent.indexOf("permits ");
@@ -530,8 +186,19 @@ State foldStatement_Main(void* _this, State current, Character next){
 					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
 					conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
 
-			dependencies.append(conversionFunction);
+			functions.add(conversionFunction);
 		}
+
+		final var joinedRecordFields =
+				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
+
+		var finalTypeParameters = typeParameters;
+		List<String> finalVariants = variants;
+		final var outputContent = compileStatements(inputContent,
+																								input1 -> compileClassSegment(input1,
+																																							name,
+																																							finalTypeParameters,
+																																							finalVariants));
 
 		if (modifiersList.contains("sealed")) {
 			modifiersList.remove("sealed");
@@ -564,20 +231,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 			final var vTable =
 					templateString + "struct " + name + "Table" + joinedTypeParameters + "{};" + System.lineSeparator();
-			
+
 			dependencies.append(vTable);
 			fields += table + data;
 		}
 
-		final var joinedRecordFields =
-				recordFields.stream().map(Declaration::generate).map(Main::generateStatement).collect(Collectors.joining());
-
-		var finalTypeParameters = typeParameters;
-		List<String> finalVariants = variants;
 		return Optional.of(
-				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() +
-				compileStatements(content, input1 -> compileClassSegment(input1, name, finalTypeParameters, finalVariants)));
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
+				System.lineSeparator() + "};" + System.lineSeparator());
 	}*//*private static String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -710,7 +371,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 				};
 
 				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
-				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+				functions.add(generated);
+				return "";
 			}
 		}
 
@@ -930,4 +593,352 @@ State foldStatement_Main(void* _this, State current, Character next){
 	}*//*private static String wrap(String input) {
 		final var replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
-	}*//*}*/
+	}*//*}*/Type toType_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
+	TypeData data;
+	data.PrimitiveType = this;
+	return { TypeVariant.PrimitiveTypeVariant, data };
+}
+PrimitiveType new_PrimitiveType(char* content){
+	PrimitiveType this;
+	this.content = content;
+	return this;
+}
+char* generate_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
+	return this.content;
+}
+char* toBaseName_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
+	return this.content;
+}
+R apply_F1R(void* _this, T0 value){
+	F1R<T0, R> this = *((F1R<T0, R>*) _this);
+	R _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
+template <typename T, typename X, typename R>
+Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
+	Result<T, X> this = *((Result<T, X>*) _this);
+	Result<R, X> _ret;
+	switch (this.variant) {
+		case ResultVariant.ErrVariant:
+			_ret = mapValue_Err(&this.data.Err);
+			break;
+		case ResultVariant.OkVariant:
+			_ret = mapValue_Ok(&this.data.Ok);
+			break;
+	}
+	return _ret;
+}
+char* generate_Type(void* _this){
+	Type this = *((Type*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case TypeVariant.IdentifierVariant:
+			_ret = generate_Identifier(&this.data.Identifier);
+			break;
+		case TypeVariant.PlaceholderVariant:
+			_ret = generate_Placeholder(&this.data.Placeholder);
+			break;
+		case TypeVariant.PointerTypeVariant:
+			_ret = generate_PointerType(&this.data.PointerType);
+			break;
+		case TypeVariant.PrimitiveTypeVariant:
+			_ret = generate_PrimitiveType(&this.data.PrimitiveType);
+			break;
+		case TypeVariant.TemplateTypeVariant:
+			_ret = generate_TemplateType(&this.data.TemplateType);
+			break;
+	}
+	return _ret;
+}
+char* toBaseName_Type(void* _this){
+	Type this = *((Type*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case TypeVariant.IdentifierVariant:
+			_ret = toBaseName_Identifier(&this.data.Identifier);
+			break;
+		case TypeVariant.PlaceholderVariant:
+			_ret = toBaseName_Placeholder(&this.data.Placeholder);
+			break;
+		case TypeVariant.PointerTypeVariant:
+			_ret = toBaseName_PointerType(&this.data.PointerType);
+			break;
+		case TypeVariant.PrimitiveTypeVariant:
+			_ret = toBaseName_PrimitiveType(&this.data.PrimitiveType);
+			break;
+		case TypeVariant.TemplateTypeVariant:
+			_ret = toBaseName_TemplateType(&this.data.TemplateType);
+			break;
+	}
+	return _ret;
+}
+char* generate_MethodDeclaration(void* _this){
+	MethodDeclaration this = *((MethodDeclaration*) _this);
+	char* _ret;
+	switch (this.variant) {
+		case MethodDeclarationVariant.ConstructorVariant:
+			_ret = generate_Constructor(&this.data.Constructor);
+			break;
+		case MethodDeclarationVariant.DeclarationVariant:
+			_ret = generate_Declaration(&this.data.Declaration);
+			break;
+		case MethodDeclarationVariant.PlaceholderVariant:
+			_ret = generate_Placeholder(&this.data.Placeholder);
+			break;
+	}
+	return _ret;
+}
+template <typename T, typename X>
+Result<T, X> toResult_Err(void* _this){
+	Err<T, X> this = *((Err<T, X>*) _this);
+	ResultData<T, X> data;
+	data.Err = this;
+	return { ResultVariant.ErrVariant, data };
+}
+template <typename T, typename X, typename R>
+Result<R, X> mapValue_Err(void* _this, F1R<T, R> mapper){
+	Err<T, X> this = *((Err<T, X>*) _this);
+	return new_Err<R, X>(this.error);
+}
+template <typename T, typename X>
+Result<T, X> toResult_Ok(void* _this){
+	Ok<T, X> this = *((Ok<T, X>*) _this);
+	ResultData<T, X> data;
+	data.Ok = this;
+	return { ResultVariant.OkVariant, data };
+}
+template <typename T, typename X, typename R>
+Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
+	Ok<T, X> this = *((Ok<T, X>*) _this);
+	return new_Ok<R, X>(mapper.apply(this.value));
+}
+public State_State(void* _this, char* input){
+	State this = *((State*) _this);
+	this.input = input;
+	this.index = /*0*/;
+	this.buffer = new_StringBuilder();
+	this.depth = /*0*/;
+	this.segments = new_ArrayList<char*>();
+}
+boolean isShallow_State(void* _this){
+	State this = *((State*) _this);
+	return /*this.depth == 1*/;
+}
+boolean isLevel_State(void* _this){
+	State this = *((State*) _this);
+	return /*this.depth == 0*/;
+}
+State append_State(void* _this, Character next){
+	State this = *((State*) _this);
+	/*this.buffer.append(next)*/;
+	return this;
+}
+Optional<Character> pop_State(void* _this){
+	State this = *((State*) _this);
+	/*if (this.index < this.input.length()) {
+				final var value = this.input.charAt(this.index);
+				this.index++;
+				return Optional.of(value);
+			}*/
+	/*else {
+				return Optional.empty();
+			}*/
+}
+State advance_State(void* _this){
+	State this = *((State*) _this);
+	/*this.segments.add(this.buffer.toString())*/;
+	/*this.buffer.setLength(0)*/;
+	return this;
+}
+State enter_State(void* _this){
+	State this = *((State*) _this);
+	this.depth = /*this.depth + 1*/;
+	return this;
+}
+State exit_State(void* _this){
+	State this = *((State*) _this);
+	this.depth = /*this.depth - 1*/;
+	return this;
+}
+Stream<char*> stream_State(void* _this){
+	State this = *((State*) _this);
+	return this.segments.stream();
+}
+Type toType_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	TypeData data;
+	data.PointerType = this;
+	return { TypeVariant.PointerTypeVariant, data };
+}
+char* generate_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	return /*this.type.generate() + "*"*/;
+}
+char* toBaseName_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	return /*this.type.toBaseName() + "_ptr"*/;
+}
+Type toType_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	TypeData data;
+	data.TemplateType = this;
+	return { TypeVariant.TemplateTypeVariant, data };
+}
+char* generate_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	/*final var typeArguments*/ = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /*")*/);
+	return /*this.base + "<" + typeArguments + ">"*/;
+}
+char* toBaseName_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	return this.base;
+}
+Type toType_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	TypeData data;
+	data.Identifier = this;
+	return { TypeVariant.IdentifierVariant, data };
+}
+char* generate_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	return this.value;
+}
+char* toBaseName_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	return this.value;
+}
+Type toType_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	TypeData data;
+	data.Placeholder = this;
+	return { TypeVariant.PlaceholderVariant, data };
+}
+MethodDeclaration toMethodDeclaration_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	MethodDeclarationData data;
+	data.Placeholder = this;
+	return { MethodDeclarationVariant.PlaceholderVariant, data };
+}
+char* generate_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	return wrap(this.input);
+}
+char* toBaseName_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	return wrap(this.input);
+}
+MethodDeclaration toMethodDeclaration_Constructor(void* _this){
+	Constructor this = *((Constructor*) _this);
+	MethodDeclarationData data;
+	data.Constructor = this;
+	return { MethodDeclarationVariant.ConstructorVariant, data };
+}
+char* generate_Constructor(void* _this){
+	Constructor this = *((Constructor*) _this);
+	return /*this.structName + " new_" + this*/.structName;
+}
+MethodDeclaration toMethodDeclaration_Declaration(void* _this){
+	Declaration this = *((Declaration*) _this);
+	MethodDeclarationData data;
+	data.Declaration = this;
+	return { MethodDeclarationVariant.DeclarationVariant, data };
+}
+public Declaration_Declaration(void* _this, char* type, char* name){
+	Declaration this = *((Declaration*) _this);
+	/*this(Collections.emptyList(), Optional.empty(), type, name)*/;
+}
+char* generate_Declaration(void* _this){
+	Declaration this = *((Declaration*) _this);
+	/*var beforeDeclaration*/ = generateTemplateString(this.typeParameters());
+	return /*beforeDeclaration + this.type + " " + this*/.name;
+}
+Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
+	Declaration this = *((Declaration*) _this);
+	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+}
+/*public static final List<String> structures = new ArrayList<String>*/(){?
+}
+/*public static final List<String> functions = new ArrayList<String>*/(){?
+}
+void main_Main(void* _this, char** args){
+	Main this = *((Main*) _this);
+	/*run().ifPresent(Throwable::printStackTrace)*/;
+}
+Optional<IOException> run_Main(void* _this){
+	Main this = *((Main*) _this);
+	/*final var source*/ = Paths.get(/*"."*/, /*"src"*/, /*"main"*/, /*"java"*/, /*"magma"*/, /*"Main.java"*/);
+	/*final var target*/ = source.resolveSibling(/*"Main.cpp"*/);
+	/*final var input*/ = readString(/*source).mapValue(Main::compile*/);
+	/*return switch (input) {
+			case Err<String, IOException> v -> Optional.of(v.error);
+			case Ok<String, IOException> v -> writeString(target, v.value);
+		}*/
+	/**/;
+}
+Optional<IOException> writeString_Main(void* _this, Path target, char* output){
+	Main this = *((Main*) _this);
+	/*try {
+			Files.writeString(target, output);
+			return Optional.empty();
+		}*/
+	/*catch (IOException e) {
+			return Optional.of(e);
+		}*/
+}
+Result<char*, IOException> readString_Main(void* _this, Path source){
+	Main this = *((Main*) _this);
+	/*try {
+			return new Ok<String, IOException>(Files.readString(source));
+		}*/
+	/*catch (IOException e) {
+			return new Err<String, IOException>(e);
+		}*/
+}
+char* compile_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
+	/*final var all*/ = compileStatements(input, /*Main::compileRootSegment*/);
+	return /*all + String*/.join(/*""*/, functions);
+}
+char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
+	Main this = *((Main*) _this);
+	return compileAll(input, mapper, /*Main::foldStatement*/);
+}
+char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
+	Main this = *((Main*) _this);
+	return divide(input, /*folder)*/.map(/*mapper::apply).collect(Collectors.joining(""*/));
+}
+Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
+	Main this = *((Main*) _this);
+	/*var current*/ = new_State(input);
+	/*while (true) {
+			final var maybeNext = current.pop();
+			if (maybeNext.isEmpty()) {
+				break;
+			}
+
+			final var next = maybeNext.get();
+			current = folder.apply(current, next);
+		}*/
+	return current.advance(/*).stream(*/);
+}
+State foldStatement_Main(void* _this, State current, Character next){
+	Main this = *((Main*) _this);
+	/*final var appended*/ = current.append(next);
+	/*if (next*/ = /*= '*/;
+	/*' && appended.isLevel()) {
+			return appended.advance();
+		}*/
+	/*if (next == '*/
+}
+/*' && appended.isShallow*/(){?
+}
+/*if */(){?
+}
+/*') {
+			return appended.exit*/(){?
+}

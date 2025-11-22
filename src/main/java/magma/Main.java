@@ -199,6 +199,9 @@ public class Main {
 		}
 	}
 
+	public static final List<String> structures = new ArrayList<String>();
+	public static final List<String> functions = new ArrayList<String>();
+
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
 	}
@@ -232,7 +235,8 @@ public class Main {
 	}
 
 	private static String compile(String input) {
-		return compileStatements(input, Main::compileRootSegment);
+		final var all = compileStatements(input, Main::compileRootSegment);
+		return all + String.join("", functions);
 	}
 
 	private static String compileStatements(String input, F1R<String, String> mapper) {
@@ -380,7 +384,7 @@ public class Main {
 					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
 					conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
 
-			dependencies.append(conversionFunction);
+			functions.add(conversionFunction);
 		}
 
 		final var joinedRecordFields =
@@ -431,8 +435,8 @@ public class Main {
 		}
 
 		return Optional.of(
-				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
-				"};" + System.lineSeparator() + outputContent);
+				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
+				System.lineSeparator() + "};" + System.lineSeparator());
 	}
 
 	private static String joinTypeParameters(List<String> typeParameters) {
@@ -581,7 +585,9 @@ public class Main {
 				};
 
 				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
-				return header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+				functions.add(generated);
+				return "";
 			}
 		}
 
