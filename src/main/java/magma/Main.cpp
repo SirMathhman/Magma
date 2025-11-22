@@ -669,14 +669,14 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 	var inputContent = withEnd.substring(0, withEnd.length() - 1);
 	List<char*> variants = new_ArrayList<char*>();
 	var i2 = beforeContent.indexOf("permits ");
-	if (/*i2 >= 0*/) {
+	if (i2 >= 0) {
 		var substring1 = beforeContent.substring(i2 + "permits ".length());
 		beforeContent = beforeContent.substring(0, i2);
 		variants = this->splitValues(substring1);
 	}
 	List<Type> implementees = new_ArrayList<Type>();
 	var i4 = beforeContent.indexOf("implements ");
-	if (/*i4 >= 0*/) {
+	if (i4 >= 0) {
 		var implementeesString = beforeContent.substring(i4 + "implements ".length());
 		beforeContent = beforeContent.substring(0, i4).strip();
 		implementees = this->divide(implementeesString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).map(/*this::parseType*/).toList();
@@ -696,7 +696,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 		}*/
 	List<char*> typeParameters = new_ArrayList<char*>();
 	var i3 = beforeContent.indexOf(" < ");
-	if (/*i3 >= 0*/) {
+	if (i3 >= 0) {
 		var substring1 = beforeContent.substring(i3 + 1).strip();
 		if (substring1.endsWith(">")) {
 			beforeContent = beforeContent.substring(0, i3);
@@ -828,11 +828,11 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 		return maybeEnumValues;
 	}
 	var i = stripped.indexOf("(");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		var declarationString = stripped.substring(0, i);
 		var substring1 = stripped.substring(i + 1);
 		var i1 = substring1.indexOf(")");
-		if (/*i1 >= 0*/) {
+		if (i1 >= 0) {
 			var parametersString = substring1.substring(0, i1);
 			var withBraces = substring1.substring(i1 + 1).strip();
 			var parameters = this->divide(parametersString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).toList().stream().map(/*param -> this.parseDeclaration(param, typeParameters)*/).flatMap(/*Optional::stream*/).collect(Collectors.toCollection(/*ArrayList::new*/));
@@ -1013,7 +1013,7 @@ char* compileMethodStatement_Main(void* _this, char* input){
 		return maybeInvokable.get();
 	}
 	var i = stripped.indexOf("=");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		var destination = stripped.substring(0, i);
 		var substring1 = stripped.substring(i + 1);
 		return this->compileExpression(destination).or(/*() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate)*/).orElseGet(/*() -> wrap(destination)*/) + " = " + this->compileExpressionOrPlaceholder(substring1);
@@ -1034,12 +1034,12 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return Optional.of(stripped);
 	}
-	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/);
+	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
 	if (maybeOperator.isPresent()) {
 		return maybeOperator;
 	}
 	var i = stripped.lastIndexOf(".");
-	if (/*i >= 0*/) {
+	if (i >= 0) {
 		var instanceString = stripped.substring(0, i);
 		var memberName = stripped.substring(i + 1).strip();
 		if (this->isIdentifier(memberName)) {
@@ -1075,7 +1075,7 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 Optional<char*> compileOperator_Main(void* _this, char* input, char* operator){
 	Main* this = (Main*) _this;
 	var i1 = input.indexOf(operator);
-	if (/*i1 >= 0*/) {
+	if (i1 >= 0) {
 		var leftString = input.substring(0, i1);
 		var right = input.substring(i1 + operator.length());
 		var leftResult = this->compileExpression(leftString);
@@ -1149,7 +1149,7 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
 	var nameSeparator = stripped.lastIndexOf(" ");
-	if (/*nameSeparator >= 0*/) {
+	if (nameSeparator >= 0) {
 		var beforeName = stripped.substring(0, nameSeparator).strip();
 		var name = stripped.substring(nameSeparator + 1).strip();
 		var typeSeparator =  - 1;
@@ -1178,7 +1178,7 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 		if (beforeType.endsWith(">")) {
 			var substring = beforeType.substring(0, beforeType.length() - 1);
 			var i = substring.indexOf(" < ");
-			if (/*i >= 0*/) {
+			if (i >= 0) {
 				var substring2 = substring.substring(i + 1);
 				copy.addAll(this->splitValues(substring2));
 				beforeType = substring.substring(0, i);
@@ -1211,7 +1211,7 @@ Type parseType_Main(void* _this, char* input){
 	if (stripped.endsWith(">")) {
 		var substring = stripped.substring(0, stripped.length() - 1);
 		var i = substring.indexOf(" < ");
-		if (/*i >= 0*/) {
+		if (i >= 0) {
 			var base = substring.substring(0, i);
 			var parameters = substring.substring(i + 1);
 			var list = this->divide(parameters, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*this::parseType*/).toList();
