@@ -245,6 +245,16 @@ public class Main {
 	private record EscapedFolder(Folder folder) implements Folder {
 		@Override
 		public State apply(State state, Character next) {
+			if (next == '\'') {
+				final var appended = state.append(next);
+				return appended.popAndAppendToTuple().map(tuple -> {
+					if (tuple.right == '\\') {
+						return tuple.left.popAndAppendToOption().orElse(tuple.left);
+					}
+					return tuple.left;
+				}).flatMap(State::popAndAppendToOption).orElse(appended);
+			}
+
 			if (next == '\"') {
 				var current = state.append(next);
 				while (true) {
@@ -371,7 +381,7 @@ public class Main {
 	}
 
 	private String compileStatements(String input, F1R<String, String> mapper) {
-		return this.compileAll(input, mapper, this::foldStatement);
+		return this.compileAll(input, mapper, new EscapedFolder(this::foldStatement));
 	}
 
 	private String compileAll(String input, F1R<String, String> mapper, Folder folder) {
@@ -525,7 +535,7 @@ public class Main {
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
 		final var members = this
-				.divide(inputContent, this::foldStatement)
+				.divide(inputContent, new EscapedFolder(this::foldStatement))
 				.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
 				.flatMap(Optional::stream)
 				.toList();
