@@ -9,7 +9,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -55,6 +54,10 @@ public class Main {
 		String generate();
 	}
 
+	private interface Folder {
+		State apply(State state, Character character);
+	}
+
 	private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
@@ -68,6 +71,8 @@ public class Main {
 			return new Ok<R, X>(mapper.apply(this.value));
 		}
 	}
+
+	private record Tuple<A, B>(A left, B right) {}
 
 	private static class State {
 		private final String input;
@@ -125,6 +130,17 @@ public class Main {
 
 		private Stream<String> stream() {
 			return this.segments.stream();
+		}
+
+		public Optional<Tuple<State, Character>> popAndAppendToTuple() {
+			return this.pop().map(popped -> {
+				final var appended = this.append(popped);
+				return new Tuple<State, Character>(appended, popped);
+			});
+		}
+
+		public Optional<State> popAndAppendToOption() {
+			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
 	}
 
@@ -218,6 +234,54 @@ public class Main {
 		}
 	}
 
+	private record EscapedFolder(Folder folder) implements Folder {
+		@Override
+		public State apply(State state, Character next) {
+			if (next == '\"') {
+				var current = state.append(next);
+				while (true) {
+					final var maybeTuple = current.popAndAppendToTuple();
+					if (maybeTuple.isEmpty()) {
+						break;
+					}
+
+					final var tuple = maybeTuple.get();
+					current = tuple.left;
+
+					final var right = tuple.right;
+					if (right == '\\') {
+						current = current.popAndAppendToOption().orElse(current);
+					}
+
+					if (right == '\"') {
+						break;
+					}
+				}
+
+				return current;
+			}
+
+			return this.folder.apply(state, next);
+		}
+	}
+
+	private static class ValueFolder implements Folder {
+		@Override
+		public State apply(State state, Character next) {
+			if (next == ',' && state.isLevel()) {
+				return state.advance();
+			}
+
+			final var appended = state.append(next);
+			if (next == '<') {
+				return appended.enter();
+			}
+			if (next == '>') {
+				return appended.exit();
+			}
+			return appended;
+		}
+	}
 
 	public final List<String> structures;
 	public final List<String> functions;
@@ -292,11 +356,11 @@ public class Main {
 		return this.compileAll(input, mapper, this::foldStatement);
 	}
 
-	private String compileAll(String input, F1R<String, String> mapper, BiFunction<State, Character, State> folder) {
+	private String compileAll(String input, F1R<String, String> mapper, Folder folder) {
 		return this.divide(input, folder).map(mapper::apply).collect(Collectors.joining(""));
 	}
 
-	private Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
+	private Stream<String> divide(String input, Folder folder) {
 		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
@@ -372,7 +436,7 @@ public class Main {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = this
-					.divide(implementeesString, this::foldValue)
+					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
 					.map(this::parseType)
@@ -386,7 +450,7 @@ public class Main {
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
 				recordFields = this
-						.divide(substring.substring(i3 + 1), this::foldValue)
+						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
 						.map(slice -> this.parseDeclaration(slice, Collections.emptyList()))
 						.flatMap(Optional::stream)
 						.toList();
@@ -582,7 +646,7 @@ public class Main {
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
 				final var parameters = this
-						.divide(parametersString, this::foldValue)
+						.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.toList()
@@ -687,7 +751,8 @@ public class Main {
 		}
 
 		final var enumValues = this
-				.divide(stripped.substring(0, stripped.length() - 1), this::foldValue)
+				.divide(stripped.substring(0, stripped.length() - 1),
+								(state, character) -> new ValueFolder().apply(state, character))
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList();
@@ -715,21 +780,6 @@ public class Main {
 		}
 
 		return Optional.of(new EmptyStructMember());
-	}
-
-	private State foldValue(State state, Character next) {
-		if (next == ',' && state.isLevel()) {
-			return state.advance();
-		}
-
-		final var appended = state.append(next);
-		if (next == '<') {
-			return appended.enter();
-		}
-		if (next == '>') {
-			return appended.exit();
-		}
-		return appended;
 	}
 
 	private String compileMethodSegment(String input, int indent) {
@@ -895,7 +945,7 @@ public class Main {
 		if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 
-			int callerStart = -1;
+			var callerStart = -1;
 			var depth = 0;
 			for (var i = 0; i < withoutEnd.length(); i++) {
 				final var c = withoutEnd.charAt(i);
@@ -915,7 +965,7 @@ public class Main {
 				final var callerString = withoutEnd.substring(0, callerStart);
 				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
-						.divide(arguments, this::foldValue)
+						.divide(arguments, new EscapedFolder((state, character) -> new ValueFolder().apply(state, character)))
 						.map(this::compileExpressionOrPlaceholder)
 						.collect(Collectors.joining(", "));
 
@@ -1034,7 +1084,10 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = this.divide(parameters, this::foldValue).map(this::parseType).toList();
+				final var list = this
+						.divide(parameters, (state, character) -> new ValueFolder().apply(state, character))
+						.map(this::parseType)
+						.toList();
 
 				return new TemplateType(base, list);
 			}

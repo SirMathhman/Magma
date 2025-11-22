@@ -69,6 +69,13 @@ struct StructMember {
 	StructMemberVariant variant;
 	StructMemberData data;
 };
+struct FolderTable {
+	;
+};
+struct Folder {
+	FolderTable table;
+	void* data;
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -76,6 +83,11 @@ struct Err {
 template <typename T, typename X>
 struct Ok {
 	T value;
+};
+template <typename A, typename B>
+struct Tuple {
+	A left;
+	B right;
 };
 struct State {
 };
@@ -107,6 +119,11 @@ struct FunctionDeclaration {
 	List<char*> parameterTypes;
 };
 struct EmptyStructMember {
+};
+struct EscapedFolder {
+	Folder folder;
+};
+struct ValueFolder {
 };
 struct Main {/*' && appended.isShallow*//*if *//*') {
 			return appended.exit*/
@@ -305,6 +322,18 @@ Stream<char*> stream_State(void* _this){
 	State* this = (State*) _this;
 	return this->segments.stream();
 }
+Optional<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
+	State* this = (State*) _this;
+	/*return this.pop().map(popped -> {
+				final var appended = this.append(popped);
+				return new Tuple<State, Character>(appended, popped);
+			}*/
+	/*)*/;
+}
+Optional<State> popAndAppendToOption_State(void* _this){
+	State* this = (State*) _this;
+	return this->popAndAppendToTuple().map(/*tuple -> tuple.left*/);
+}
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
 	TypeData data;
@@ -327,7 +356,7 @@ Type toType_TemplateType(void* _this){
 }
 char* generate_TemplateType(void* _this){
 	TemplateType* this = (TemplateType*) _this;
-	var typeArguments = this->list.stream().map(/*Type::generate*/).collect(/*Collectors.joining("*/, /* ")*/);
+	var typeArguments = this->list.stream().map(/*Type::generate*/).collect(Collectors.joining(", "));
 	return this->base + " < " + typeArguments + ">";
 }
 char* toBaseName_TemplateType(void* _this){
@@ -411,7 +440,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration* this = (FunctionDeclaration*) _this;
-	var joinedParameterTypes = this->parameterTypes.stream().collect(/*Collectors.joining("*/, ", "(", /* ")")*/);
+	var joinedParameterTypes = this->parameterTypes.stream().collect(/*Collectors.joining(", "*/, "(", /* ")")*/);
 	return this->type + " (*" + this->name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
@@ -423,6 +452,58 @@ StructMember toStructMember_EmptyStructMember(void* _this){
 char* generate_EmptyStructMember(void* _this){
 	EmptyStructMember* this = (EmptyStructMember*) _this;
 	return "";
+}
+Folder toFolder_EscapedFolder(void* _this){
+	EscapedFolder this = *((EscapedFolder*) _this);
+	FolderData data;
+	data.EscapedFolder = this;
+	return { FolderVariant.EscapedFolderVariant, data };
+}
+State apply_EscapedFolder(void* _this, State state, Character next){
+	EscapedFolder* this = (EscapedFolder*) _this;
+	if (/*next == '\"'*/) {
+		var current = state.append(next);
+	/*while (true) {
+					final var maybeTuple = current.popAndAppendToTuple();
+					if (maybeTuple.isEmpty()) {
+						break;
+					}
+
+					final var tuple = maybeTuple.get();
+					current = tuple.left;
+
+					final var right = tuple.right;
+					if (right == '\\') {
+						current = current.popAndAppendToOption().orElse(current);
+					}
+
+					if (right == '\"') {
+						break;
+					}
+				}*/
+		return current;
+	}
+	return this->folder.apply(state, next);
+}
+Folder toFolder_ValueFolder(void* _this){
+	ValueFolder this = *((ValueFolder*) _this);
+	FolderData data;
+	data.ValueFolder = this;
+	return { FolderVariant.ValueFolderVariant, data };
+}
+State apply_ValueFolder(void* _this, State state, Character next){
+	ValueFolder* this = (ValueFolder*) _this;
+	if (/*next == ',' && state.isLevel()*/) {
+		return state.advance();
+	}
+	var appended = state.append(next);
+	if (/*next == '<'*/) {
+		return appended.enter();
+	}
+	if (/*next == '>'*/) {
+		return appended.exit();
+	}
+	return appended;
 }
 public Main_Main(void* _this){
 	Main* this = (Main*) _this;
@@ -495,11 +576,11 @@ char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper)
 	Main* this = (Main*) _this;
 	return this->compileAll(input, mapper, /* this::foldStatement*/);
 }
-char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
+char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, Folder folder){
 	Main* this = (Main*) _this;
 	return this->divide(input, folder).map(/*mapper::apply*/).collect(Collectors.joining(""));
 }
-Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
+Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	Main* this = (Main*) _this;
 	var current = new_State(input);
 	/*while (true) {
@@ -567,7 +648,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = this
-					.divide(implementeesString, this::foldValue)
+					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
 					.map(this::parseType)
@@ -581,7 +662,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
 				recordFields = this
-						.divide(substring.substring(i3 + 1), this::foldValue)
+						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
 						.map(slice -> this.parseDeclaration(slice, Collections.emptyList()))
 						.flatMap(Optional::stream)
 						.toList();
@@ -763,7 +844,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
 				final var parameters = this
-						.divide(parametersString, this::foldValue)
+						.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
 						.toList()
@@ -858,7 +939,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		final var enumValues = this
-				.divide(stripped.substring(0, stripped.length() - 1), this::foldValue)
+				.divide(stripped.substring(0, stripped.length() - 1),
+								(state, character) -> new ValueFolder().apply(state, character))
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList();
@@ -886,19 +968,6 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return Optional.of(new EmptyStructMember());
-	}*//*private State foldValue(State state, Character next) {
-		if (next == ',' && state.isLevel()) {
-			return state.advance();
-		}
-
-		final var appended = state.append(next);
-		if (next == '<') {
-			return appended.enter();
-		}
-		if (next == '>') {
-			return appended.exit();
-		}
-		return appended;
 	}*//*private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
 		if (stripped.isEmpty()) {
@@ -1052,7 +1121,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 
-			int callerStart = -1;
+			var callerStart = -1;
 			var depth = 0;
 			for (var i = 0; i < withoutEnd.length(); i++) {
 				final var c = withoutEnd.charAt(i);
@@ -1072,7 +1141,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var callerString = withoutEnd.substring(0, callerStart);
 				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
-						.divide(arguments, this::foldValue)
+						.divide(arguments, new EscapedFolder((state, character) -> new ValueFolder().apply(state, character)))
 						.map(this::compileExpressionOrPlaceholder)
 						.collect(Collectors.joining(", "));
 
@@ -1181,7 +1250,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = this.divide(parameters, this::foldValue).map(this::parseType).toList();
+				final var list = this
+						.divide(parameters, (state, character) -> new ValueFolder().apply(state, character))
+						.map(this::parseType)
+						.toList();
 
 				return new TemplateType(base, list);
 			}
