@@ -43,10 +43,10 @@ Result<R, X> mapValue_Result(void* _this, Function<T, R> mapper){
 	Result<R, X> _ret;
 	switch (this.variant) {
 		case ResultVariant.ErrVariant:
-			_ret = mapValue_Result(this.data.Err);
+			_ret = mapValue_Result(&this.data.Err);
 			break;
 		case ResultVariant.OkVariant:
-			_ret = mapValue_Result(this.data.Ok);
+			_ret = mapValue_Result(&this.data.Ok);
 			break;
 	}
 	return _ret;
@@ -74,19 +74,19 @@ char* generate(void* _this){
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = generate(this.data.Identifier);
+			_ret = generate(&this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = generate(this.data.Placeholder);
+			_ret = generate(&this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = generate(this.data.PointerType);
+			_ret = generate(&this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = generate(this.data.PrimitiveType);
+			_ret = generate(&this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = generate(this.data.TemplateType);
+			_ret = generate(&this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -96,19 +96,19 @@ char* toIdentifier(void* _this){
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = toIdentifier(this.data.Identifier);
+			_ret = toIdentifier(&this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = toIdentifier(this.data.Placeholder);
+			_ret = toIdentifier(&this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = toIdentifier(this.data.PointerType);
+			_ret = toIdentifier(&this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = toIdentifier(this.data.PrimitiveType);
+			_ret = toIdentifier(&this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = toIdentifier(this.data.TemplateType);
+			_ret = toIdentifier(&this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -132,13 +132,13 @@ char* generate(void* _this){
 	char* _ret;
 	switch (this.variant) {
 		case MethodDeclarationVariant.ConstructorVariant:
-			_ret = generate(this.data.Constructor);
+			_ret = generate(&this.data.Constructor);
 			break;
 		case MethodDeclarationVariant.DeclarationVariant:
-			_ret = generate(this.data.Declaration);
+			_ret = generate(&this.data.Declaration);
 			break;
 		case MethodDeclarationVariant.PlaceholderVariant:
-			_ret = generate(this.data.Placeholder);
+			_ret = generate(&this.data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -568,7 +568,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		return wrap(stripped);
 	}*//*private static String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "(this.data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "(&this.data." + variant + ")") +
 					 generateStatement(3, "break");
 	}*//*private static MethodDeclaration parseMethodDeclaration(String declaration,
 																													String structName,

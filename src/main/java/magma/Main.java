@@ -542,7 +542,7 @@ public class Main {
 
 	private static String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "(this.data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "(&this.data." + variant + ")") +
 					 generateStatement(3, "break");
 	}
 
