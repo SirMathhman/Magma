@@ -143,30 +143,34 @@ char* generate_MethodDeclaration(void* _this){
 	}
 	return _ret;
 }
+template <typename T, typename X>
 Result<T, X> toResult_Err(void* _this){
 	Err this = *((Err*) _this);
 	ResultData data;
 	data.Err = this;
 	return { ResultVariant.ErrVariant, data };
 }
+template <typename T, typename X>
 struct Err {
 };
-template <typename R>
+template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
-	Err this = *((Err*) _this);
+	Err<T, X> this = *((Err<T, X>*) _this);
 	return /*new Err<R, X>(this.error)*/;
 }
+template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _this){
 	Ok this = *((Ok*) _this);
 	ResultData data;
 	data.Ok = this;
 	return { ResultVariant.OkVariant, data };
 }
+template <typename T, typename X>
 struct Ok {
 };
-template <typename R>
+template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
-	Ok this = *((Ok*) _this);
+	Ok<T, X> this = *((Ok<T, X>*) _this);
 	return /*new Ok<R, X>(mapper.apply(this.value))*/;
 }
 /*depth;
@@ -224,47 +228,109 @@ Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
 			return this.segments.stream()*/;
 	/*}*/
 }
-record PointerType_Main(void* _this, Type type){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+Type toType_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	TypeData data;
+	data.PointerType = this;
+	return { TypeVariant.PointerTypeVariant, data };
 }
-record TemplateType_Main(void* _this, char* base, List<Type> list){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+struct PointerType {
+};
+char* generate_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	return /*this.type.generate() + "*"*/;
 }
-record Identifier_Main(void* _this, char* value){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+char* toBaseName_PointerType(void* _this){
+	PointerType this = *((PointerType*) _this);
+	return /*this.type.toBaseName() + "_ptr"*/;
 }
-record Placeholder_Main(void* _this, char* input){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+Type toType_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	TypeData data;
+	data.TemplateType = this;
+	return { TypeVariant.TemplateTypeVariant, data };
 }
-record Constructor_Main(void* _this, char* structName){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+struct TemplateType {
+};
+char* generate_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	/*final var typeArguments*/ = /*this.list.stream().map(Type::generate).collect(Collectors.joining(", "))*/;
+	return /*this.base + "<" + typeArguments + ">"*/;
 }
-record Declaration_Main(void* _this, List<char*> typeParameters, Optional<char*> maybeBeforeType, char* type, char* name){
-	Main this = *((Main*) _this);
-	record _ret;
-	switch (this.variant) {
-	}
-	return _ret;
+char* toBaseName_TemplateType(void* _this){
+	TemplateType this = *((TemplateType*) _this);
+	return this.base;
+}
+Type toType_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	TypeData data;
+	data.Identifier = this;
+	return { TypeVariant.IdentifierVariant, data };
+}
+struct Identifier {
+};
+char* generate_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	return this.value;
+}
+char* toBaseName_Identifier(void* _this){
+	Identifier this = *((Identifier*) _this);
+	return this.value;
+}
+Type toType_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	TypeData data;
+	data.Placeholder = this;
+	return { TypeVariant.PlaceholderVariant, data };
+}
+MethodDeclaration toMethodDeclaration_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	MethodDeclarationData data;
+	data.Placeholder = this;
+	return { MethodDeclarationVariant.PlaceholderVariant, data };
+}
+struct Placeholder {
+};
+char* generate_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	return /*wrap(this.input)*/;
+}
+char* toBaseName_Placeholder(void* _this){
+	Placeholder this = *((Placeholder*) _this);
+	return /*wrap(this.input)*/;
+}
+MethodDeclaration toMethodDeclaration_Constructor(void* _this){
+	Constructor this = *((Constructor*) _this);
+	MethodDeclarationData data;
+	data.Constructor = this;
+	return { MethodDeclarationVariant.ConstructorVariant, data };
+}
+struct Constructor {
+};
+char* generate_Constructor(void* _this){
+	Constructor this = *((Constructor*) _this);
+	return /*this.structName + " new_" + this*/.structName;
+}
+MethodDeclaration toMethodDeclaration_Declaration(void* _this){
+	Declaration this = *((Declaration*) _this);
+	MethodDeclarationData data;
+	data.Declaration = this;
+	return { MethodDeclarationVariant.DeclarationVariant, data };
+}
+struct Declaration {
+};
+public Declaration_Declaration(void* _this, char* type, char* name){
+	Declaration this = *((Declaration*) _this);
+	/*this(Collections.emptyList(), Optional.empty(), type, name)*/;
+}
+char* generate_Declaration(void* _this){
+	Declaration this = *((Declaration*) _this);
+	/*var beforeDeclaration*/ = /*generateTemplateString(this.typeParameters())*/;
+	return /*beforeDeclaration + this.type + " " + this*/.name;
+}
+Declaration mapName_Declaration(void* _this, Function<char*, char*> mapper){
+	Declaration this = *((Declaration*) _this);
+	return /*new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name))*/;
 }
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
@@ -378,8 +444,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
-			beforeContent = beforeContent.substring(0, i4);
-
+			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = divide(implementeesString, Main::foldValue)
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
@@ -387,12 +452,25 @@ State foldStatement_Main(void* _this, State current, Character next){
 					.toList();
 		}
 
+		List<Declaration> recordFields = Collections.emptyList();
+		if (beforeContent.endsWith(")")) {
+			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
+			final var i3 = substring.indexOf("(");
+			if (i3 >= 0) {
+				beforeContent = substring.substring(0, i3);
+				recordFields = divide(substring.substring(i3 + 1), Main::foldValue)
+						.map(slice -> parseDeclaration(slice, Collections.emptyList()))
+						.flatMap(Optional::stream)
+						.toList();
+			}
+		}
+
 		List<String> typeParameters = new ArrayList<String>();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
-			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
+				beforeContent = beforeContent.substring(0, i3);
 				final var substring = substring1.substring(0, substring1.length() - 1);
 				typeParameters = splitValues(substring);
 			}
@@ -421,8 +499,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 					generateStatement("data." + name + " = this") + generateStatement("return { " + variant + ", data }");
 
 			final var conversionFunction =
-					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
-					System.lineSeparator() + "}" + System.lineSeparator();
+					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
+					conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
 
 			dependencies.append(conversionFunction);
 		}

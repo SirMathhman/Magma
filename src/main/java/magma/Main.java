@@ -316,8 +316,7 @@ public class Main {
 		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
-			beforeContent = beforeContent.substring(0, i4);
-
+			beforeContent = beforeContent.substring(0, i4).strip();
 			implementees = divide(implementeesString, Main::foldValue)
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
@@ -325,12 +324,25 @@ public class Main {
 					.toList();
 		}
 
+		List<Declaration> recordFields = Collections.emptyList();
+		if (beforeContent.endsWith(")")) {
+			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
+			final var i3 = substring.indexOf("(");
+			if (i3 >= 0) {
+				beforeContent = substring.substring(0, i3);
+				recordFields = divide(substring.substring(i3 + 1), Main::foldValue)
+						.map(slice -> parseDeclaration(slice, Collections.emptyList()))
+						.flatMap(Optional::stream)
+						.toList();
+			}
+		}
+
 		List<String> typeParameters = new ArrayList<String>();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
-			beforeContent = beforeContent.substring(0, i3);
 			if (substring1.endsWith(">")) {
+				beforeContent = beforeContent.substring(0, i3);
 				final var substring = substring1.substring(0, substring1.length() - 1);
 				typeParameters = splitValues(substring);
 			}
@@ -359,8 +371,8 @@ public class Main {
 					generateStatement("data." + name + " = this") + generateStatement("return { " + variant + ", data }");
 
 			final var conversionFunction =
-					implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" + conversionFunctionContent +
-					System.lineSeparator() + "}" + System.lineSeparator();
+					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
+					conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
 
 			dependencies.append(conversionFunction);
 		}
