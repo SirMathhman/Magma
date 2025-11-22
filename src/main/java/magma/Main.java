@@ -4,11 +4,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 public class Main {
 	private enum PrimitiveType implements Type {
@@ -29,6 +30,10 @@ public class Main {
 		}
 	}
 
+	private interface Head<T> {
+		Option<T> next();
+	}
+
 	private interface List<T> {
 		Stream<T> stream();
 
@@ -41,6 +46,12 @@ public class Main {
 		List<T> addFirst(T element);
 
 		List<T> addAll(List<T> elements);
+
+		int size();
+
+		T getFirst();
+
+		List<T> subList(int start, int end);
 	}
 
 	private interface FR<T> {
@@ -67,6 +78,8 @@ public class Main {
 		Stream<T> stream();
 
 		Option<T> or(FR<Option<T>> other);
+
+		Tuple<Boolean, T> toTuple(Supplier<T> other);
 	}
 
 	private interface F1R<T0, R> {
@@ -87,8 +100,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface StructMember
-			permits Declaration, EmptyStructMember, Field, FunctionDeclaration, Placeholder {
+	private sealed interface StructMember permits Declaration, EmptyStructMember, Field, F1RDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -96,24 +108,179 @@ public class Main {
 		State apply(State state, Character character);
 	}
 
+	private interface F2R<A, B, R> {
+		R apply(A a, B b);
+	}
+
 	private @interface Actual {}
 
-	private record ArrayList<T>(java.util.List<T> nativeList) implements List<T> {
-		private ArrayList(java.util.List<T> nativeList) {
-			this.nativeList = new java.util.ArrayList<T>(nativeList);
+	private interface Collector<T, C> {
+		C createInitial();
+
+		C fold(C c, T t);
+	}
+
+	private record Stream<T>(Head<T> head) {
+		private record MapHead<T, R>(Head<T> head, F1R<T, R> mapper) implements Head<R> {
+			@Override
+			public Option<R> next() {
+				return this.head.next().map(this.mapper);
+			}
 		}
 
-		public ArrayList() {
-			this(new java.util.ArrayList<T>());
+		private static class SingleHead<T> implements Head<T> {
+			private final T value;
+			private boolean retrieved = false;
+
+			public SingleHead(T value) {
+				this.value = value;
+			}
+
+			@Override
+			public Option<T> next() {
+				if (this.retrieved) {
+					return new None<T>();
+				}
+				this.retrieved = true;
+				return new Some<T>(this.value);
+			}
 		}
 
-		public ArrayList<T> addLast(T element) {
+		private static class FlatMapHead<T, R> implements Head<R> {
+			private final Head<T> head;
+			private final F1R<T, Stream<R>> mapper;
+			private Option<Stream<R>> maybeCurrent = Option.empty();
+
+			public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
+				this.head = head;
+				this.mapper = mapper;
+			}
+
+			@Override
+			public Option<R> next() {
+				while (true) {
+					if (this.maybeCurrent instanceof Some<Stream<R>>(var current)) {
+						final var next = current.head.next();
+						if (next instanceof Some<R>) {
+							return next;
+						}
+					}
+
+					final var maybeNext = this.head.next();
+					if (maybeNext instanceof None<T>) {
+						return Option.empty();
+					}
+					this.maybeCurrent = maybeNext.map(this.mapper);
+				}
+			}
+		}
+
+		private static class EmptyHead<T> implements Head<T> {
+			@Override
+			public Option<T> next() {
+				return new None<T>();
+			}
+		}
+
+		private record AnyMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+			@Override
+			public Boolean createInitial() {
+				return false;
+			}
+
+			@Override
+			public Boolean fold(Boolean aBoolean, T t) {
+				return aBoolean || this.predicate.test(t);
+			}
+		}
+
+		public static <T> Stream<T> of(T value) {
+			return new Stream<T>(new SingleHead<T>(value));
+		}
+
+		public static <T> Stream<T> empty() {
+			return new Stream<T>(new EmptyHead<T>());
+		}
+
+		public <R> Stream<R> map(F1R<T, R> mapper) {
+			return new Stream<R>(new MapHead<T, R>(this.head, mapper));
+		}
+
+		public <R> R fold(R initial, F2R<R, T, R> folder) {
+			var current = initial;
+			while (true) {
+				var finalCurrent = current;
+				final var tuple =
+						this.head.next().map(element -> folder.apply(finalCurrent, element)).toTuple(() -> finalCurrent);
+				if (tuple.left) {
+					current = tuple.right;
+				} else {
+					return current;
+				}
+			}
+		}
+
+		public <C> C collect(Collector<T, C> collector) {
+			return this.fold(collector.createInitial(), collector::fold);
+		}
+
+		public List<T> toList() {
+			return this.collect(new Collectors.ListCollector<T>());
+		}
+
+		public Stream<T> filter(Predicate<T> predicate) {
+			return this.flatMap(element -> {
+				if (predicate.test(element)) {
+					return new Stream<T>(new SingleHead<T>(element));
+				}
+				return new Stream<T>(new EmptyHead<T>());
+			});
+		}
+
+		private <R> Stream<R> flatMap(F1R<T, Stream<R>> mapper) {
+			return new Stream<R>(new FlatMapHead<T, R>(this.head, mapper));
+		}
+	}
+
+	private static class RangeHead implements Head<Integer> {
+		private final int length;
+		private int counter;
+
+		public RangeHead(int length) {
+			this.length = length;
+			this.counter = 0;
+		}
+
+		@Override
+		public Option<Integer> next() {
+			if (this.counter < this.length) {
+				final var value = this.counter;
+				this.counter++;
+				return new Some<Integer>(value);
+			} else {
+				return new None<Integer>();
+			}
+		}
+	}
+
+	private record JavaList<T>(java.util.List<T> nativeList) implements List<T> {
+
+		private JavaList(java.util.List<T> nativeList) {
+			this.nativeList = new ArrayList<T>(nativeList);
+		}
+
+		public JavaList() {
+			this(new ArrayList<T>());
+		}
+
+		public JavaList<T> addLast(T element) {
 			this.nativeList.add(element);
 			return this;
 		}
 
+		@Override
 		public Stream<T> stream() {
-			return this.nativeList.stream();
+			return new Stream<Integer>(new RangeHead(this.nativeList.size())).map(this.nativeList::get);
 		}
 
 		@Override
@@ -133,7 +300,22 @@ public class Main {
 
 		@Override
 		public List<T> addAll(List<T> elements) {
-			return elements.stream().reduce(this, ArrayList::addLast, (_, next) -> next);
+			return elements.stream().fold(this, JavaList::addLast);
+		}
+
+		@Override
+		public int size() {
+			return this.nativeList.size();
+		}
+
+		@Override
+		public T getFirst() {
+			return this.nativeList.getFirst();
+		}
+
+		@Override
+		public List<T> subList(int start, int end) {
+			return new JavaList<T>(this.nativeList.subList(start, end));
 		}
 	}
 
@@ -165,7 +347,7 @@ public class Main {
 			this.index = 0;
 			this.buffer = new StringBuilder();
 			this.depth = 0;
-			this.segments = new ArrayList<String>();
+			this.segments = new JavaList<String>();
 		}
 
 		private boolean isShallow() {
@@ -243,11 +425,44 @@ public class Main {
 		}
 	}
 
+	private static class Collectors {
+		private static class ListCollector<T> implements Collector<T, List<T>> {
+			@Override
+			public List<T> createInitial() {
+				return new JavaList<T>();
+			}
+
+			@Override
+			public List<T> fold(List<T> tList, T t) {
+				return tList.addLast(t);
+			}
+		}
+
+		private record Joiner(String delimiter) implements Collector<String, String> {
+			public Joiner() {
+				this("");
+			}
+
+			@Override
+			public String createInitial() {
+				return "";
+			}
+
+			@Override
+			public String fold(String current, String element) {
+				if (current.isEmpty()) {
+					return element;
+				}
+				return current + this.delimiter + element;
+			}
+		}
+	}
+
 	private record TemplateType(String base, List<Type> list) implements Type {
 
 		@Override
 		public String generate() {
-			final var typeArguments = this.list.stream().map(Type::generate).collect(Collectors.joining(", "));
+			final var typeArguments = this.list.stream().map(Type::generate).collect(new Collectors.Joiner(", "));
 
 			return this.base + "<" + typeArguments + ">";
 		}
@@ -292,7 +507,7 @@ public class Main {
 	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
 														 String type, String name) implements MethodDeclaration, StructMember {
 		public Declaration(String type, String name) {
-			this(new ArrayList<String>(), new ArrayList<String>(), Option.empty(), type, name);
+			this(new JavaList<String>(), new JavaList<String>(), Option.empty(), type, name);
 		}
 
 		@Override
@@ -310,10 +525,10 @@ public class Main {
 		}
 	}
 
-	private record FunctionDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
+	private record F1RDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
 		@Override
 		public String generate() {
-			final var joinedParameterTypes = this.parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
+			final var joinedParameterTypes = "(" + this.parameterTypes.stream().collect(new Collectors.Joiner(", ")) + ")";
 			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
 		}
 	}
@@ -423,6 +638,11 @@ public class Main {
 		public Option<T> or(FR<Option<T>> other) {
 			return this;
 		}
+
+		@Override
+		public Tuple<Boolean, T> toTuple(Supplier<T> other) {
+			return new Tuple<Boolean, T>(true, this.value);
+		}
 	}
 
 	private static final class None<T> implements Option<T> {
@@ -455,6 +675,11 @@ public class Main {
 		public Option<T> or(FR<Option<T>> other) {
 			return other.apply();
 		}
+
+		@Override
+		public Tuple<Boolean, T> toTuple(Supplier<T> other) {
+			return new Tuple<Boolean, T>(false, other.get());
+		}
 	}
 
 	private static class ConditionEndLocator implements Folder {
@@ -484,15 +709,21 @@ public class Main {
 		}
 	}
 
+	private static class Streams {
+		public static <T> Stream<T> fromArray(T[] elements) {
+			return new Stream<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
+		}
+	}
+
 	private List<String> globals;
 	private List<String> structures;
 	private List<String> functions;
 	private int counter;
 
 	public Main() {
-		this.structures = new ArrayList<String>();
-		this.functions = new ArrayList<String>();
-		this.globals = new ArrayList<String>();
+		this.structures = new JavaList<String>();
+		this.functions = new JavaList<String>();
+		this.globals = new JavaList<String>();
 		this.counter = 0;
 	}
 
@@ -502,10 +733,9 @@ public class Main {
 			templateString = "";
 		} else {
 			final var typeNames =
-					typeParameters.stream().map(typeParam -> "typename " + typeParam).collect(Collectors.joining(", ", "<",
-																																																			 ">"));
+					typeParameters.stream().map(typeParam -> "typename " + typeParam).collect(new Collectors.Joiner(", "));
 
-			templateString = "template " + typeNames + System.lineSeparator();
+			templateString = "template <" + typeNames + ">" + System.lineSeparator();
 		}
 		return templateString;
 	}
@@ -568,12 +798,12 @@ public class Main {
 
 		final var joinedStructures = this.joinStrings("", this.structures);
 		final var joinedGlobals = this.joinStrings("", this.globals);
-		final var joinedFunctions = this.joinStrings("", this.functions);
-		return joinedStructures + joinedGlobals + joinedFunctions + all;
+		final var joinedF1Rs = this.joinStrings("", this.functions);
+		return joinedStructures + joinedGlobals + joinedF1Rs + all;
 	}
 
 	private String joinStrings(String delimiter, List<String> structures) {
-		return String.join(delimiter, structures.stream().toList());
+		return structures.stream().collect(new Collectors.Joiner(delimiter));
 	}
 
 	private String compileStatements(String input, F1R<String, String> mapper) {
@@ -581,7 +811,7 @@ public class Main {
 	}
 
 	private String compileAll(String input, F1R<String, String> mapper, Folder folder) {
-		return this.divide(input, folder).map(mapper::apply).collect(Collectors.joining(""));
+		return this.divide(input, folder).map(mapper).collect(new Collectors.Joiner(""));
 	}
 
 	private Stream<String> divide(String input, Folder folder) {
@@ -677,7 +907,7 @@ public class Main {
 		}
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
-		List<String> variants = new ArrayList<String>();
+		List<String> variants = new JavaList<String>();
 		final var i2 = beforeContent.indexOf("permits ");
 		if (i2 >= 0) {
 			final var substring1 = beforeContent.substring(i2 + "permits ".length());
@@ -686,37 +916,34 @@ public class Main {
 			variants = this.splitValues(substring1);
 		}
 
-		List<Type> implementees = new ArrayList<Type>();
+		List<Type> implementees = new JavaList<Type>();
 		final var i4 = beforeContent.indexOf("implements ");
 		if (i4 >= 0) {
 			final var implementeesString = beforeContent.substring(i4 + "implements ".length());
 			beforeContent = beforeContent.substring(0, i4).strip();
-			implementees = new ArrayList<Type>(this
-																						 .divide(implementeesString,
-																										 (state, character) -> new ValueFolder().apply(state, character))
-																						 .map(String::strip)
-																						 .filter(slice -> !slice.isEmpty())
-																						 .map(this::parseType)
-																						 .toList());
+			implementees = this
+					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
+					.map(String::strip)
+					.filter(slice -> !slice.isEmpty())
+					.map(this::parseType)
+					.toList();
 		}
 
-		List<Declaration> recordFields = new ArrayList<Declaration>();
+		List<Declaration> recordFields = new JavaList<Declaration>();
 		if (beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
 			final var i3 = substring.indexOf("(");
 			if (i3 >= 0) {
 				beforeContent = substring.substring(0, i3);
-				final var list = this
+				recordFields = this
 						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
-						.map(slice -> this.parseDeclaration(slice, new ArrayList<String>()))
+						.map(slice -> this.parseDeclaration(slice, new JavaList<String>()))
 						.flatMap(Option::stream)
 						.toList();
-
-				recordFields = new ArrayList<Declaration>(list);
 			}
 		}
 
-		List<String> typeParameters = new ArrayList<String>();
+		List<String> typeParameters = new JavaList<String>();
 		final var i3 = beforeContent.indexOf("<");
 		if (i3 >= 0) {
 			final var substring1 = beforeContent.substring(i3 + 1).strip();
@@ -729,11 +956,11 @@ public class Main {
 
 		if (!this.isIdentifier(beforeContent)) {return Option.empty();}
 
-		var modifiersList = new ArrayList<String>(Arrays
-																									.stream(modifiers.split(Pattern.quote(" ")))
-																									.map(String::strip)
-																									.filter(slice -> !slice.isEmpty())
-																									.collect(Collectors.toCollection(java.util.ArrayList::new)));
+		var modifiersList = Streams
+				.fromArray(modifiers.split(Pattern.quote(" ")))
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.toList();
 
 		var name = beforeContent.strip();
 
@@ -745,10 +972,10 @@ public class Main {
 		this.functions = implementees
 				.stream()
 				.map(implementee -> this.getString(implementee, name, joinedTypeParameters, templateString))
-				.reduce(this.functions, List::addLast, (_, next) -> next);
+				.fold(this.functions, List::addLast);
 
 		final var joinedRecordFields =
-				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
+				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(new Collectors.Joiner());
 
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
@@ -762,7 +989,7 @@ public class Main {
 			final var enumFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
-					.collect(Collectors.joining(","));
+					.collect(new Collectors.Joiner(","));
 
 			final var generatedEnum =
 					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -770,7 +997,7 @@ public class Main {
 			final var unionFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";")
-					.collect(Collectors.joining());
+					.collect(new Collectors.Joiner());
 
 			final var generatedUnion =
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
@@ -787,7 +1014,7 @@ public class Main {
 			final var data = this.generateStatement("void* data");
 
 			final var tableMembers =
-					members.stream().map(StructMember::generate).map(this::generateStatement).collect(Collectors.joining(""));
+					members.stream().map(StructMember::generate).map(this::generateStatement).collect(new Collectors.Joiner(""));
 			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
 												 System.lineSeparator();
 
@@ -796,9 +1023,9 @@ public class Main {
 		} else {
 			final var joinedMembers = members
 					.stream()
-					.filter(member -> !(member instanceof FunctionDeclaration))
+					.filter(member -> !(member instanceof F1RDeclaration))
 					.map(StructMember::generate)
-					.collect(Collectors.joining());
+					.collect(new Collectors.Joiner());
 
 			fields.append(joinedMembers);
 		}
@@ -819,9 +1046,9 @@ public class Main {
 		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
 		final var s2 = this.generateStatement("data." + name + " = this");
 		final var s3 = this.generateStatement("return { " + variant + ", data }");
-		final var conversionFunctionContent = s + s1 + s2 + s3;
+		final var conversionF1RContent = s + s1 + s2 + s3;
 		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
-					 conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
+					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
 	private String joinTypeParameters(List<String> typeParameters) {
@@ -829,8 +1056,9 @@ public class Main {
 		if (typeParameters.isEmpty()) {
 			joinedTypeParameters = "";
 		} else {
-			joinedTypeParameters = typeParameters.stream().collect(Collectors.joining(", ", "<", ">"));
+			joinedTypeParameters = "<" + typeParameters.stream().collect(new Collectors.Joiner(", ")) + ">";
 		}
+
 		return joinedTypeParameters;
 	}
 
@@ -839,7 +1067,7 @@ public class Main {
 	private List<String> splitValues(String input) {
 		final var segments = input.split(Pattern.quote(","));
 		final var list = Arrays.stream(segments).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-		return new ArrayList<String>(list);
+		return new JavaList<String>(list);
 	}
 
 	private boolean isIdentifier(String input) {
@@ -887,7 +1115,7 @@ public class Main {
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
-			final var maybeDeclaration = this.parseDeclaration(substring, new ArrayList<String>());
+			final var maybeDeclaration = this.parseDeclaration(substring, new JavaList<String>());
 			if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 				return new Some<StructMember>(new Field(declaration));
 			}
@@ -902,7 +1130,7 @@ public class Main {
 				final var parametersString = substring1.substring(0, i1);
 				final var withBraces = substring1.substring(i1 + 1).strip();
 
-				final var collect = this
+				var parameters = this
 						.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
 						.map(String::strip)
 						.filter(slice -> !slice.isEmpty())
@@ -910,14 +1138,14 @@ public class Main {
 						.stream()
 						.map(param -> this.parseDeclaration(param, typeParameters))
 						.flatMap(Option::stream)
-						.collect(Collectors.toCollection(java.util.ArrayList::new));
-				List<Declaration> parameters = new ArrayList<Declaration>(collect);
+						.toList();
+
 				final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
 
 				Option<String> maybeCompiled = Option.empty();
 				if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
 					final var compiledParameters =
-							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+							parameters.stream().map(Declaration::generate).collect(new Collectors.Joiner(", "));
 
 					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
 					this.functions = this.functions.addLast(
@@ -949,7 +1177,7 @@ public class Main {
 						final var cases = variants
 								.stream()
 								.map(variant -> this.generateCase(structName, declaration, variant))
-								.collect(Collectors.joining());
+								.collect(new Collectors.Joiner());
 
 						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
 									 generateIndent(1) + "}" + this.generateStatement("return _ret");
@@ -958,8 +1186,8 @@ public class Main {
 					outputContent = "?";
 				}
 
-				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "
-				));
+				final var compiledParameters =
+						parameters.stream().map(Declaration::generate).collect(new Collectors.Joiner(", "));
 
 				final var modifiedMethodDeclaration = switch (methodDeclaration) {
 					case Constructor constructor -> constructor;
@@ -971,11 +1199,11 @@ public class Main {
 				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 				this.functions = this.functions.addLast(generated);
 
-				final var parameterTypes = new ArrayList<String>(parameters.stream().map(Declaration::type).toList());
+				final var parameterTypes = parameters.stream().map(Declaration::type).toList();
 
 				return switch (methodDeclaration) {
 					case Constructor _ -> Option.empty();
-					case Declaration member -> Option.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
+					case Declaration member -> Option.of(new F1RDeclaration(member.type, member.name, parameterTypes));
 					case Placeholder placeholder -> Option.of(placeholder);
 				};
 			}
@@ -1029,10 +1257,9 @@ public class Main {
 				.toList();
 
 		if (!enumValues.isEmpty()) {
-			final var areAnyInvalid = enumValues
-					.stream()
-					.map(enumValue -> this.compileEnumValue(structName, enumValue))
-					.anyMatch(option -> option instanceof None<StructMember>);
+			var optionStream = enumValues.stream().map(enumValue -> this.compileEnumValue(structName, enumValue));
+			final var areAnyInvalid =
+					(boolean) optionStream.collect(new Stream.AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>));
 
 			if (areAnyInvalid) {
 				return new None<StructMember>();
@@ -1121,7 +1348,7 @@ public class Main {
 				}
 
 				final var first = divisions.getFirst();
-				final var last = this.joinStrings("", new ArrayList<String>(divisions.subList(1, divisions.size())));
+				final var last = this.joinStrings("", divisions.subList(1, divisions.size()));
 
 				if (!first.endsWith(")")) {
 					return new None<String>();
@@ -1156,7 +1383,7 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			return this
 								 .compileExpression(destination)
-								 .or(() -> this.parseDeclaration(destination, new ArrayList<String>()).map(Declaration::generate))
+								 .or(() -> this.parseDeclaration(destination, new JavaList<String>()).map(Declaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
@@ -1175,7 +1402,7 @@ public class Main {
 			return x;
 		}
 
-		final var maybeDeclaration = this.parseDeclaration(input, new ArrayList<String>());
+		final var maybeDeclaration = this.parseDeclaration(input, new JavaList<String>());
 		if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
 			return declaration.generate();
 		}
@@ -1313,14 +1540,11 @@ public class Main {
 
 			List<String> params;
 			if (this.isIdentifier(beforeContent)) {
-				params = new ArrayList<String>().addLast(beforeContent);
+				params = new JavaList<String>().addLast(beforeContent);
 			} else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
 				final var substring = beforeContent.substring(1, beforeContent.length() - 1);
-				params = new ArrayList<String>(this
-																					 .divide(substring, new ValueFolder())
-																					 .map(String::strip)
-																					 .filter(slice -> !slice.isEmpty())
-																					 .toList());
+				params =
+						this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
 			} else {
 				return new None<String>();
 			}
@@ -1331,12 +1555,7 @@ public class Main {
 
 				final var generatedName = this.generateName();
 
-				List<String> paramList = new ArrayList<String>(params
-																													 .stream()
-																													 .map(param -> "auto " + param)
-																													 .collect(Collectors.toCollection(java.util.ArrayList::new)));
-
-				paramList = paramList.addFirst("void* _this");
+				var paramList = params.stream().map(param -> "auto " + param).toList().addFirst("void* _this");
 
 				final var joined = this.joinStrings(", ", paramList);
 
@@ -1419,7 +1638,7 @@ public class Main {
 				final var joinedArguments = this
 						.divide(arguments, new EscapedFolder(new ValueFolder()))
 						.map(this::compileExpressionOrPlaceholder)
-						.collect(Collectors.joining(", "));
+						.collect(new Collectors.Joiner(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller instanceof Some<String>(var value)) {
@@ -1510,15 +1729,15 @@ public class Main {
 				}
 			}
 
-			List<String> annotations = new ArrayList<String>();
+			List<String> annotations = new JavaList<String>();
 			final var i = beforeType.lastIndexOf("\n");
 			if (i >= 0) {
-				annotations = new ArrayList<String>(Arrays
-																								.stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
-																								.filter(slice -> !slice.isEmpty())
-																								.map(slice -> slice.substring(1))
-																								.map(String::strip)
-																								.toList());
+				annotations = new JavaList<String>(Arrays
+																							 .stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
+																							 .filter(slice -> !slice.isEmpty())
+																							 .map(slice -> slice.substring(1))
+																							 .map(String::strip)
+																							 .toList());
 
 				beforeType = beforeType.substring(i + 1).strip();
 			}
@@ -1582,7 +1801,7 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = new ArrayList<Type>(this.divide(parameters, new ValueFolder()).map(this::parseType).toList());
+				final var list = this.divide(parameters, new ValueFolder()).map(this::parseType).toList();
 				return new TemplateType(base, list);
 			}
 		}
