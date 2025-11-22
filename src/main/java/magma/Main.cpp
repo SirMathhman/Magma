@@ -7,19 +7,19 @@ struct Some {
 template <typename T>
 struct None {
 };
-enum OptionalVariant {
-	Optional.NoneVariant,
-	Optional.SomeVariant
+enum OptionVariant {
+	Option.NoneVariant,
+	Option.SomeVariant
 };
 template <typename T>
-union OptionalData {
-	Optional.NoneData<T> Optional.None;
-	Optional.SomeData<T> Optional.Some;
+union OptionData {
+	Option.NoneData<T> Option.None;
+	Option.SomeData<T> Option.Some;
 };
 template <typename T>
-struct Optional {
-	OptionalVariant variant;
-	OptionalData data;
+struct Option {
+	OptionVariant variant;
+	OptionData data;
 };
 template <typename T0, typename R>
 struct F1RTable<T0, R> {
@@ -130,7 +130,7 @@ struct Constructor {
 };
 struct Declaration {
 	List<char*> typeParameters;
-	Optional<char*> maybeBeforeType;
+	Option<char*> maybeBeforeType;
 	char* type;
 	char* name;
 };
@@ -167,14 +167,14 @@ char* toBaseName_PrimitiveType(void* _this){
 	return this->content;
 }
 template <typename T>
-Optional<T> toOptional_Some(void* _this){
+Option<T> toOption_Some(void* _this){
 	Some<T> this = *((Some<T>*) _this);
-	OptionalData<T> data;
+	OptionData<T> data;
 	data.Some = this;
-	return { OptionalVariant.SomeVariant, data };
+	return { OptionVariant.SomeVariant, data };
 }
 template <typename T, typename R>
-Optional<R> map_Some(void* _this, Function<T, R> mapper){
+Option<R> map_Some(void* _this, Function<T, R> mapper){
 	Some<T>* this = (Some<T>*) _this;
 	return new_Some<R>(mapper.apply(this->value));
 }
@@ -184,29 +184,9 @@ T orElse_Some(void* _this, T other){
 	return this->value;
 }
 template <typename T, typename R>
-Optional<R> flatMap_Some(void* _this, Function<T, Optional<R>> mapper){
+Option<R> flatMap_Some(void* _this, Function<T, Option<R>> mapper){
 	Some<T>* this = (Some<T>*) _this;
 	return mapper.apply(this->value);
-}
-template <typename T>
-boolean isEmpty_Some(void* _this){
-	Some<T>* this = (Some<T>*) _this;
-	return false;
-}
-template <typename T>
-T get_Some(void* _this){
-	Some<T>* this = (Some<T>*) _this;
-	return this->value;
-}
-template <typename T>
-boolean isPresent_Some(void* _this){
-	Some<T>* this = (Some<T>*) _this;
-	return true;
-}
-template <typename T>
-void ifPresent_Some(void* _this, Consumer<T> consumer){
-	Some<T>* this = (Some<T>*) _this;
-	consumer.accept(this->value);
 }
 template <typename T>
 T orElseGet_Some(void* _this, Supplier<T> other){
@@ -219,19 +199,19 @@ Stream<T> stream_Some(void* _this){
 	return Stream.of(this->value);
 }
 template <typename T>
-Optional<T> or_Some(void* _this, Supplier<Optional<T>> other){
+Option<T> or_Some(void* _this, Supplier<Option<T>> other){
 	Some<T>* this = (Some<T>*) _this;
 	return this;
 }
 template <typename T>
-Optional<T> toOptional_None(void* _this){
+Option<T> toOption_None(void* _this){
 	None<T> this = *((None<T>*) _this);
-	OptionalData<T> data;
+	OptionData<T> data;
 	data.None = this;
-	return { OptionalVariant.NoneVariant, data };
+	return { OptionVariant.NoneVariant, data };
 }
 template <typename T, typename R>
-Optional<R> map_None(void* _this, Function<T, R> mapper){
+Option<R> map_None(void* _this, Function<T, R> mapper){
 	None<T>* this = (None<T>*) _this;
 	return new_None<R>();
 }
@@ -241,28 +221,9 @@ T orElse_None(void* _this, T other){
 	return other;
 }
 template <typename T, typename R>
-Optional<R> flatMap_None(void* _this, Function<T, Optional<R>> mapper){
+Option<R> flatMap_None(void* _this, Function<T, Option<R>> mapper){
 	None<T>* this = (None<T>*) _this;
 	return new_None<R>();
-}
-template <typename T>
-boolean isEmpty_None(void* _this){
-	None<T>* this = (None<T>*) _this;
-	return true;
-}
-template <typename T>
-T get_None(void* _this){
-	None<T>* this = (None<T>*) _this;
-	return null;
-}
-template <typename T>
-boolean isPresent_None(void* _this){
-	None<T>* this = (None<T>*) _this;
-	return false;
-}
-template <typename T>
-void ifPresent_None(void* _this, Consumer<T> consumer){
-	None<T>* this = (None<T>*) _this;
 }
 template <typename T>
 T orElseGet_None(void* _this, Supplier<T> other){
@@ -275,148 +236,96 @@ Stream<T> stream_None(void* _this){
 	return Stream.empty();
 }
 template <typename T>
-Optional<T> or_None(void* _this, Supplier<Optional<T>> other){
+Option<T> or_None(void* _this, Supplier<Option<T>> other){
 	None<T>* this = (None<T>*) _this;
 	return this;
 }
 template <typename T, typename T>
-Optional<T> of_Optional(void* _this, T value){
-	Optional<T>* this = (Optional<T>*) _this;
+Option<T> of_Option(void* _this, T value){
+	Option<T>* this = (Option<T>*) _this;
 	return new_Some<T>(value);
 }
 template <typename T, typename T>
-Optional<T> empty_Optional(void* _this){
-	Optional<T>* this = (Optional<T>*) _this;
+Option<T> empty_Option(void* _this){
+	Option<T>* this = (Option<T>*) _this;
 	return new_None<T>();
 }
 template <typename T, typename R>
-Optional<R> map_Optional(void* _this, Function<T, R> mapper){
-	Optional<T>* this = (Optional<T>*) _this;
-	Optional<R> _ret;
+Option<R> map_Option(void* _this, Function<T, R> mapper){
+	Option<T>* this = (Option<T>*) _this;
+	Option<R> _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = map_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = map_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = map_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = map_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
 }
-T orElse_Optional(void* _this, T other){
-	Optional<T>* this = (Optional<T>*) _this;
+T orElse_Option(void* _this, T other){
+	Option<T>* this = (Option<T>*) _this;
 	T _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = orElse_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = orElse_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = orElse_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = orElse_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
 }
 template <typename T, typename R>
-Optional<R> flatMap_Optional(void* _this, Function<T, Optional<R>> mapper){
-	Optional<T>* this = (Optional<T>*) _this;
-	Optional<R> _ret;
+Option<R> flatMap_Option(void* _this, Function<T, Option<R>> mapper){
+	Option<T>* this = (Option<T>*) _this;
+	Option<R> _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = flatMap_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = flatMap_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = flatMap_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = flatMap_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
 }
-boolean isEmpty_Optional(void* _this){
-	Optional<T>* this = (Optional<T>*) _this;
-	boolean _ret;
-	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = isEmpty_Optional.None(&this.data.Optional.None);
-			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = isEmpty_Optional.Some(&this.data.Optional.Some);
-			break;
-	}
-	return _ret;
-}
-T get_Optional(void* _this){
-	Optional<T>* this = (Optional<T>*) _this;
+T orElseGet_Option(void* _this, Supplier<T> other){
+	Option<T>* this = (Option<T>*) _this;
 	T _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = get_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = orElseGet_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = get_Optional.Some(&this.data.Optional.Some);
-			break;
-	}
-	return _ret;
-}
-boolean isPresent_Optional(void* _this){
-	Optional<T>* this = (Optional<T>*) _this;
-	boolean _ret;
-	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = isPresent_Optional.None(&this.data.Optional.None);
-			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = isPresent_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = orElseGet_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
 }
-void ifPresent_Optional(void* _this, Consumer<T> consumer){
-	Optional<T>* this = (Optional<T>*) _this;
-	void _ret;
-	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = ifPresent_Optional.None(&this.data.Optional.None);
-			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = ifPresent_Optional.Some(&this.data.Optional.Some);
-			break;
-	}
-	return _ret;
-}
-T orElseGet_Optional(void* _this, Supplier<T> other){
-	Optional<T>* this = (Optional<T>*) _this;
-	T _ret;
-	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = orElseGet_Optional.None(&this.data.Optional.None);
-			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = orElseGet_Optional.Some(&this.data.Optional.Some);
-			break;
-	}
-	return _ret;
-}
-Stream<T> stream_Optional(void* _this){
-	Optional<T>* this = (Optional<T>*) _this;
+Stream<T> stream_Option(void* _this){
+	Option<T>* this = (Option<T>*) _this;
 	Stream<T> _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = stream_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = stream_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = stream_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = stream_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
 }
-Optional<T> or_Optional(void* _this, Supplier<Optional<T>> other){
-	Optional<T>* this = (Optional<T>*) _this;
-	Optional<T> _ret;
+Option<T> or_Option(void* _this, Supplier<Option<T>> other){
+	Option<T>* this = (Option<T>*) _this;
+	Option<T> _ret;
 	switch (this.variant) {
-		case OptionalVariant.Optional.NoneVariant:
-			_ret = or_Optional.None(&this.data.Optional.None);
+		case OptionVariant.Option.NoneVariant:
+			_ret = or_Option.None(&this.data.Option.None);
 			break;
-		case OptionalVariant.Optional.SomeVariant:
-			_ret = or_Optional.Some(&this.data.Optional.Some);
+		case OptionVariant.Option.SomeVariant:
+			_ret = or_Option.Some(&this.data.Option.Some);
 			break;
 	}
 	return _ret;
@@ -570,15 +479,15 @@ State append_State(void* _this, Character next){
 	this->buffer.append(next);
 	return this;
 }
-Optional<Character> pop_State(void* _this){
+Option<Character> pop_State(void* _this){
 	State* this = (State*) _this;
 	if (/*this.index < this.input.length()*/) {
 		/*final var value */ = this->input.charAt(this->index);
 		this->index++;
-		return Optional.of(value);
+		return Option.of(value);
 	}
 	else {
-		return Optional.empty();
+		return Option.empty();
 	}
 }
 State advance_State(void* _this){
@@ -605,20 +514,20 @@ auto lambda0(void* _this, auto popped){
 	/*final var appended */ = this->append(popped);
 	return new_Tuple<State, Character>(appended, popped);
 }
-Optional<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
+Option<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
 	State* this = (State*) _this;
 	return this->pop().map(lambda0);
 }
-Optional<State> popAndAppendToOption_State(void* _this){
+Option<State> popAndAppendToOption_State(void* _this){
 	State* this = (State*) _this;
 	return this->popAndAppendToTuple().map(/*tuple -> tuple.left*/);
 }
-Optional<Character> peek_State(void* _this){
+Option<Character> peek_State(void* _this){
 	State* this = (State*) _this;
 	if (/*this.index < this.input.length()*/) {
-		return Optional.of(this->input.charAt(this->index));
+		return Option.of(this->input.charAt(this->index));
 	}
-	return Optional.empty();
+	return Option.empty();
 }
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -707,7 +616,7 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 }
 public Declaration_Declaration(void* _this, char* type, char* name){
 	Declaration* this = (Declaration*) _this;
-	this(Collections.emptyList(), Optional.empty(), type, name);
+	this(Collections.emptyList(), Option.empty(), type, name);
 }
 char* generate_Declaration(void* _this){
 	Declaration* this = (Declaration*) _this;
@@ -761,14 +670,13 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 		/*var current */ = state.append(next);
 	/*while (true) {
 					final var maybeTuple = current.popAndAppendToTuple();
-					if (maybeTuple.isEmpty()) {
+					if (!(maybeTuple instanceof Option.Some<Tuple<State, Character>>(var value))) {
 						break;
 					}
 
-					final var tuple = maybeTuple.get();
-					current = tuple.left;
+					current = value.left;
 
-					final var right = tuple.right;
+					final var right = value.right;
 					if (right == '\\') {
 						current = current.popAndAppendToOption().orElse(current);
 					}
@@ -795,7 +703,7 @@ State apply_ValueFolder(void* _this, State state, Character next){
 	/*final var appended */ = state.append(next);
 	if (next == '-') {
 		/*final var peeked */ = appended.peek();
-		if (/*peeked.isPresent() && peeked.get() == '>'*/) {
+		if (/*peeked instanceof Option.Some<Character>(var value) && value == '>'*/) {
 			return appended.popAndAppendToOption().orElse(appended);
 		}
 		else {
@@ -837,27 +745,33 @@ char* wrap_Main(void* _this, char* input){
 }
 void main_Main(void* _this, char** args){
 	Main* this = (Main*) _this;
-	new_/*Main().run().ifPresent*/(/*Throwable::printStackTrace*/);
+	/*var ioExceptionOption */ = new_/*Main().run*/();
+	if (/*ioExceptionOption instanceof Option.Some<IOException>(
+				var value
+		)*/) {
+		/*//noinspection CallToPrintStackTrace
+			value.printStackTrace()*/;
+	}
 }
-Optional<IOException> run_Main(void* _this){
+Option<IOException> run_Main(void* _this){
 	Main* this = (Main*) _this;
 	/*final var source */ = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	/*final var target */ = source.resolveSibling("Main.cpp");
 	/*final var input */ = this->readString(source).mapValue(/*this::compile*/);
 	/*return switch (input) {
-			case Err<String, IOException> v -> Optional.of(v.error);
+			case Err<String, IOException> v -> Option.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
 		}*/
 	/**/;
 }
-Optional<IOException> writeString_Main(void* _this, Path target, char* output){
+Option<IOException> writeString_Main(void* _this, Path target, char* output){
 	Main* this = (Main*) _this;
 	/*try {
 			Files.writeString(target, output);
-			return Optional.empty();
+			return Option.empty();
 		}*/
 	/*catch (IOException e) {
-			return Optional.of(e);
+			return Option.of(e);
 		}*/
 }
 Result<char*, IOException> readString_Main(void* _this, Path source){
@@ -890,11 +804,12 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	/*var current */ = new_State(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
-			if (maybeNext.isEmpty()) {
+			if (!(maybeNext instanceof Option.Some<Character>(var value))) {
 				break;
 			}
 
-			final var next = maybeNext.get();
+			final Character next;
+			next = value;
 			current = folder.apply(current, next);
 		}*/
 	return current.advance().stream();
@@ -924,22 +839,22 @@ char* compileRootSegment_Main(void* _this, char* input){
 	}
 	return this->compileStructure("class", stripped).map(/*StructMember::generate*/).orElseGet(/*() -> wrap(stripped)*/);
 }
-Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stripped){
+Option<StructMember> compileStructure_Main(void* _this, char* type, char* stripped){
 	Main* this = (Main*) _this;
 	/*final var i */ = stripped.indexOf(/*type + " "*/);
 	if (/*i < 0*/) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*final var modifiers */ = stripped.substring(0, i).strip();
 	/*final var afterKeyword */ = stripped.substring(/*i + (type + " ").length()*/).strip();
 	/*final var i1 */ = afterKeyword.indexOf("{");
 	if (/*i1 < 0*/) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*var beforeContent */ = afterKeyword.substring(0, i1).strip();
 	/*final var withEnd */ = afterKeyword.substring(/*i1 + 1*/).strip();
 	if (/*!withEnd.endsWith("}")*/) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*final var inputContent */ = withEnd.substring(0, /* withEnd.length() - 1*/);
 	/*List<String> variants */ = new_ArrayList<char*>();
@@ -965,7 +880,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 				recordFields = this
 						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
 						.map(slice -> this.parseDeclaration(slice, Collections.emptyList()))
-						.flatMap(Optional::stream)
+						.flatMap(Option::stream)
 						.toList();
 			}
 		}*/
@@ -980,7 +895,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 		}
 	}
 	if (/*!this.isIdentifier(beforeContent)*/) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*final var modifiersList */ = Arrays.stream(modifiers.split(Pattern.quote(" "))).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).collect(Collectors.toCollection(/*ArrayList::new*/));
 	/*var name */ = beforeContent.strip();
@@ -1008,7 +923,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 	/*final var joinedRecordFields */ = recordFields.stream().map(/*Declaration::generate*/).map(/*this::generateStatement*/).collect(Collectors.joining());
 	/*var finalTypeParameters */ = typeParameters;
 	/*var finalVariants */ = variants;
-	/*final var members */ = this->divide(inputContent, new_EscapedFolder(/*this::foldStatement*/)).map(/*slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants)*/).flatMap(/*Optional::stream*/).toList();
+	/*final var members */ = this->divide(inputContent, new_EscapedFolder(/*this::foldStatement*/)).map(/*slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants)*/).flatMap(/*Option::stream*/).toList();
 	if (modifiersList.contains("sealed")) {
 		modifiersList.remove("sealed");
 		/*final var enumFields */ = variants.stream().map(/*variant -> System.lineSeparator() + "\t" + variant + "Variant"*/).collect(Collectors.joining(","));
@@ -1043,7 +958,7 @@ Optional<StructMember> compileStructure_Main(void* _this, char* type, char* stri
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
 				"};" + System.lineSeparator()*/;
 	this->structures.add(generated);
-	return Optional.of(new_EmptyStructMember());
+	return Option.of(new_EmptyStructMember());
 }
 char* joinTypeParameters_Main(void* _this, List<char*> typeParameters){
 	Main* this = (Main*) _this;
@@ -1082,30 +997,30 @@ boolean isIdentifier_Main(void* _this, char* input){
 		}*/
 	return true;
 }
-Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
+Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* this = (Main*) _this;
 	/*final var stripped */ = input.strip();
 	if (stripped.isEmpty()) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*final var maybeEnum */ = this->compileStructure("enum", input);
-	if (maybeEnum.isPresent()) {
+	if (/*maybeEnum instanceof Option.Some<StructMember>*/) {
 		return maybeEnum;
 	}
 	/*final var maybeInterface */ = this->compileStructure("interface", input);
-	if (maybeInterface.isPresent()) {
+	if (/*maybeInterface instanceof Option.Some<StructMember>*/) {
 		return maybeInterface;
 	}
 	/*final var maybeRecord */ = this->compileStructure("record", input);
-	if (maybeRecord.isPresent()) {
+	if (/*maybeRecord instanceof Option.Some<StructMember>*/) {
 		return maybeRecord;
 	}
 	/*final var maybeClass */ = this->compileStructure("class", input);
-	if (maybeClass.isPresent()) {
+	if (/*maybeClass instanceof Option.Some<StructMember>*/) {
 		return maybeClass;
 	}
 	/*final var maybeEnumValues */ = this->compileEnumValues(input, structName);
-	if (maybeEnumValues.isPresent()) {
+	if (/*maybeEnumValues instanceof Option.Some<StructMember>*/) {
 		return maybeEnumValues;
 	}
 	/*final var i */ = stripped.indexOf("(");
@@ -1116,12 +1031,12 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 		if (/*i1 >= 0*/) {
 			/*final var parametersString */ = substring1.substring(0, i1);
 			/*final var withBraces */ = substring1.substring(/*i1 + 1*/).strip();
-			/*final var parameters */ = this->divide(parametersString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).toList().stream().map(/*param -> this.parseDeclaration(param, typeParameters)*/).flatMap(/*Optional::stream*/).collect(Collectors.toCollection(/*ArrayList::new*/));
+			/*final var parameters */ = this->divide(parametersString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).toList().stream().map(/*param -> this.parseDeclaration(param, typeParameters)*/).flatMap(/*Option::stream*/).collect(Collectors.toCollection(/*ArrayList::new*/));
 			/*final var methodDeclaration */ = this->parseMethodDeclaration(declarationString, structName, typeParameters);
-			/*Optional<String> maybeCompiled */ = Optional.empty();
+			/*Option<String> maybeCompiled */ = Option.empty();
 			if (/*withBraces.startsWith("{") && withBraces.endsWith("}")*/) {
 				/*final var inputContent */ = withBraces.substring(1, /* withBraces.length() - 1*/);
-				maybeCompiled = Optional.of(this->compileMethodsSegments(inputContent, 1));
+				maybeCompiled = Option.of(this->compileMethodsSegments(inputContent, 1));
 			}
 			/*String outputContent*/;
 			if (/*methodDeclaration instanceof Constructor*/) {
@@ -1164,14 +1079,14 @@ Optional<StructMember> compileClassSegment_Main(void* _this, char* input, char* 
 			this->functions.add(generated);
 			/*final var parameterTypes */ = parameters.stream().map(/*Declaration::type*/).toList();
 	/*return switch (methodDeclaration) {
-					case Constructor _ -> Optional.empty();
-					case Declaration member -> Optional.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
-					case Placeholder placeholder -> Optional.of(placeholder);
+					case Constructor _ -> Option.empty();
+					case Declaration member -> Option.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
+					case Placeholder placeholder -> Option.of(placeholder);
 				}*/
 			/**/;
 		}
 	}
-	return Optional.of(new_Placeholder(stripped));
+	return Option.of(new_Placeholder(stripped));
 }
 char* compileMethodsSegments_Main(void* _this, char* inputContent, int indent){
 	Main* this = (Main*) _this;
@@ -1191,20 +1106,20 @@ MethodDeclaration parseMethodDeclaration_Main(void* _this, char* declaration, ch
 				.or(() -> this.parseConstructor(declaration, structName))
 				.orElseGet(() -> new Placeholder(declaration))*/;
 }
-Optional<MethodDeclaration> parseConstructor_Main(void* _this, char* declaration, char* structName){
+Option<MethodDeclaration> parseConstructor_Main(void* _this, char* declaration, char* structName){
 	Main* this = (Main*) _this;
 	if (declaration.strip().equals(structName)) {
-		return Optional.of(new_Constructor(structName));
+		return Option.of(new_Constructor(structName));
 	}
 	else {
-		return Optional.empty();
+		return Option.empty();
 	}
 }
-Optional<StructMember> compileEnumValues_Main(void* _this, char* input, char* structName){
+Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* structName){
 	Main* this = (Main*) _this;
 	/*final var stripped */ = input.strip();
 	if (/*!stripped.endsWith(";")*/) {
-		return Optional.empty();
+		return Option.empty();
 	}
 	/*final var enumValues */ = this->divide(stripped.substring(0, /* stripped.length() - 1*/), /*
 								(state, character) -> new ValueFolder().apply(state, character)*/).map(/*String::strip*/).filter(/*slice -> !slice.isEmpty()*/).toList();
@@ -1216,7 +1131,7 @@ Optional<StructMember> compileEnumValues_Main(void* _this, char* input, char* st
 					if (i >= 0) {
 						final var name = substring.substring(0, i);
 						if (!this.isIdentifier(name)) {
-							return Optional.empty();
+							return Option.empty();
 						}
 
 						final var substring2 = substring.substring(i + 1);
@@ -1229,7 +1144,7 @@ Optional<StructMember> compileEnumValues_Main(void* _this, char* input, char* st
 				}
 			}*/
 	}
-	return Optional.of(new_EmptyStructMember());
+	return Option.of(new_EmptyStructMember());
 }
 char* compileMethodSegment_Main(void* _this, char* input, int indent){
 	Main* this = (Main*) _this;
@@ -1290,8 +1205,8 @@ char* compileMethodStatement_Main(void* _this, char* input){
 		return /*"return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()))*/;
 	}
 	/*final var maybeInvokable */ = this->compileInvokable(stripped);
-	if (maybeInvokable.isPresent()) {
-		return maybeInvokable.get();
+	if (/*maybeInvokable instanceof Option.Some<String>(var value)*/) {
+		return value;
 	}
 	/*final var i */ = stripped.indexOf("=");
 	if (/*i >= 0*/) {
@@ -1312,11 +1227,11 @@ char* compileExpressionOrPlaceholder_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	return this->compileExpression(input).orElseGet(/*() -> wrap(input)*/);
 }
-Optional<char*> compileExpression_Main(void* _this, char* input){
+Option<char*> compileExpression_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	/*final var stripped */ = input.strip();
 	if (/*stripped.startsWith("'") && stripped.endsWith("'")*/) {
-		return Optional.of(stripped);
+		return Option.of(stripped);
 	}
 	/*final var i1 */ = stripped.indexOf("->");
 	if (/*i1 >= 0*/) {
@@ -1331,12 +1246,12 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 				this->functions.add(/*
 							"auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" +
 							System.lineSeparator()*/);
-				return Optional.of(generatedName);
+				return Option.of(generatedName);
 			}
 		}
 	}
 	/*final var maybeOperator */ = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
-	if (maybeOperator.isPresent()) {
+	if (/*maybeOperator instanceof Option.Some<String>*/) {
 		return maybeOperator;
 	}
 	/*final var i */ = stripped.lastIndexOf(".");
@@ -1345,8 +1260,9 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 		/*final var memberName */ = stripped.substring(/*i + 1*/).strip();
 		if (this->isIdentifier(memberName)) {
 			/*final var maybeInstance */ = this->compileExpression(instanceString);
-			if (maybeInstance.isPresent()) {
-				/*final var instance */ = maybeInstance.get();
+			if (/*maybeInstance instanceof Option.Some<String>(var value)*/) {
+				/*final String instance*/;
+				instance = value;
 				/*final String generated*/;
 				if (instance.equals("this")) {
 					generated = /* "this->" + memberName*/;
@@ -1354,42 +1270,40 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 				else {
 					generated = /* instance + "." + memberName*/;
 				}
-				return Optional.of(generated);
+				return Option.of(generated);
 			}
 		}
 	}
 	if (this->isIdentifier(stripped)) {
-		return Optional.of(stripped);
+		return Option.of(stripped);
 	}
 	/*final var maybeInvokable */ = this->compileInvokable(stripped);
-	if (maybeInvokable.isPresent()) {
+	if (/*maybeInvokable instanceof Option.Some<String>*/) {
 		return maybeInvokable;
 	}
 	if (this->isNumber(stripped)) {
-		return Optional.of(stripped);
+		return Option.of(stripped);
 	}
 	if (/*stripped.startsWith("\"") && stripped.endsWith("\"")*/) {
-		return Optional.of(stripped);
+		return Option.of(stripped);
 	}
-	return Optional.empty();
+	return Option.empty();
 }
-Optional<char*> compileOperator_Main(void* _this, char* input, char* operator){
+Option<char*> compileOperator_Main(void* _this, char* input, char* operator){
 	Main* this = (Main*) _this;
 	/*final var i1 */ = input.indexOf(operator);
 	if (/*i1 >= 0*/) {
 		/*final var leftString */ = input.substring(0, i1);
 		/*final var right */ = input.substring(/*i1 + operator.length()*/);
-		/*final var leftResult */ = this->compileExpression(leftString);
-		if (leftResult.isPresent()) {
-			/*final var rightResult */ = this->compileExpression(right);
-			if (rightResult.isPresent()) {
-				return Optional.of(/*leftResult.get() + " " + operator + " " + rightResult.get()*/);
+		if (/*this.compileExpression(leftString) instanceof Option.Some<String>(var leftCompiled)*/) {
+			if (/*this.compileExpression(right) instanceof Option.Some<String>(var rightCompiled)*/) {
+				return Option.of(/*leftCompiled + " " + operator + " " + rightCompiled*/);
 			}
 		}
 	}
-	return Optional.empty();
+	return Option.empty();
 }
-Optional<char*> compileInvokable_Main(void* _this, char* stripped){
+Option<char*> compileInvokable_Main(void* _this, char* stripped){
 	Main* this = (Main*) _this;
 	/*if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
@@ -1419,12 +1333,12 @@ Optional<char*> compileInvokable_Main(void* _this, char* stripped){
 						.collect(Collectors.joining(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
-				if (maybeCaller.isPresent()) {
-					return Optional.of(maybeCaller.get() + "(" + joinedArguments + ")");
+				if (maybeCaller instanceof Option.Some<String>(var value)) {
+					return Option.of(value + "(" + joinedArguments + ")");
 				}
 			}
 		}*/
-	return Optional.empty();
+	return Option.empty();
 }
 boolean isNumber_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
@@ -1437,16 +1351,16 @@ boolean isNumber_Main(void* _this, char* input){
 		}*/
 	return true;
 }
-Optional<char*> compileCaller_Main(void* _this, char* input){
+Option<char*> compileCaller_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	/*final var stripped */ = input.strip();
 	if (stripped.startsWith("new ")) {
 		/*final var type */ = stripped.substring("new ".length());
-		return Optional.of(/*"new_" + this.compileType(type)*/);
+		return Option.of(/*"new_" + this.compileType(type)*/);
 	}
 	return this->compileExpression(stripped);
 }
-Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> typeParameters){
+Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> typeParameters){
 	Main* this = (Main*) _this;
 	/*final var stripped */ = input.strip();
 	/*final var nameSeparator */ = stripped.lastIndexOf(" ");
@@ -1468,11 +1382,11 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 				}
 			}*/
 		if (/*!this.isIdentifier(name)*/) {
-			return Optional.empty();
+			return Option.empty();
 		}
 		if (/*typeSeparator < 0*/) {
 			/*final var type */ = this->compileType(beforeName);
-			return Optional.of(new_Declaration(type, name));
+			return Option.of(new_Declaration(type, name));
 		}
 		/*var beforeType */ = beforeName.substring(0, typeSeparator).strip();
 		/*final var copy */ = new_ArrayList<char*>(typeParameters);
@@ -1486,10 +1400,10 @@ Optional<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*
 			}
 		}
 		if (this->isIdentifier(name)) {
-			return Optional.of(new_Declaration(copy, Optional.of(beforeType), this->compileType(beforeName.substring(/*typeSeparator + 1*/)), name));
+			return Option.of(new_Declaration(copy, Option.of(beforeType), this->compileType(beforeName.substring(/*typeSeparator + 1*/)), name));
 		}
 	}
-	return Optional.empty();
+	return Option.empty();
 }
 char* compileType_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
