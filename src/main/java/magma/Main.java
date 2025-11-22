@@ -493,7 +493,7 @@ public class Main {
 						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
 					} else {
 						parameters.addFirst(new Declaration("void*", "_this"));
-						outputContent = compiled;
+						outputContent = generateStatement(structName + " this = *((" + structName + "*) _this)") + compiled;
 					}
 
 					final var compiledParameters =

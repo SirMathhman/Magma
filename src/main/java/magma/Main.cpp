@@ -17,10 +17,12 @@ PrimitiveType new_PrimitiveType(char* content){
 }
 /*@Override
 		public*/ char* generate_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
 	/*return this.content*/;
 }
 /*@Override
 		public*/ char* toIdentifier_PrimitiveType(void* _this){
+	PrimitiveType this = *((PrimitiveType*) _this);
 	/*return this.name().toLowerCase()*/;
 }
 /*}*/enum ResultVariant {
@@ -87,6 +89,7 @@ union MethodDeclarationData {
 		private int*/ /*depth;
 
 		public*/ State_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
 	this.input = input;
 	this.index = /*0*/;
 	this.buffer = /*new StringBuilder()*/;
@@ -203,9 +206,11 @@ union MethodDeclarationData {
 			return beforeDeclaration + beforeTypeOutput + this.type() + " " + this.name();
 		}
 	}*//*public static*/ void main_Main(void* _this, char** args){
+	Main this = *((Main*) _this);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
 /*private static*/ Optional<IOException> run_Main(void* _this){
+	Main this = *((Main*) _this);
 	/*final var source*/ = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	/*final var target*/ = source.resolveSibling("Main.cpp");
 	/*final var input*/ = /*readString(source)*/.mapValue(Main::compile);
@@ -216,6 +221,7 @@ union MethodDeclarationData {
 	/**/;
 }
 /*private static*/ Optional<IOException> writeString_Main(void* _this, Path target, char* output){
+	Main this = *((Main*) _this);
 	/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -225,6 +231,7 @@ union MethodDeclarationData {
 		}*/
 }
 /*private static*/ Result<char*, IOException> readString_Main(void* _this, Path source){
+	Main this = *((Main*) _this);
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*/
@@ -233,15 +240,19 @@ union MethodDeclarationData {
 		}*/
 }
 /*private static*/ char* compile_Main(void* _this, char* input){
+	Main this = *((Main*) _this);
 	/*return compileStatements(input, Main::compileRootSegment)*/;
 }
 /*private static*/ char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
+	Main this = *((Main*) _this);
 	/*return compileAll(input, mapper, Main::foldStatement)*/;
 }
 /*private static*/ char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
+	Main this = *((Main*) _this);
 	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
 }
 /*private static*/ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
+	Main this = *((Main*) _this);
 	/*var current*/ = /*new State(input)*/;
 	/*while (true) {
 			final var maybeNext = current.pop();
@@ -255,6 +266,7 @@ union MethodDeclarationData {
 	/*return current.advance().stream()*/;
 }
 /*private static*/ State foldStatement_Main(void* _this, State current, Character next){
+	Main this = *((Main*) _this);
 	/*final var appended*/ = current.append(next);
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
@@ -265,6 +277,7 @@ union MethodDeclarationData {
 /*' && appended.isShallow()) {
 			return appended.advance().exit();
 		}*//*if */(void* _this){
+	Main this = *((Main*) _this);
 	/*return appended.enter()*/;
 	/*}
 
@@ -484,7 +497,7 @@ union MethodDeclarationData {
 						outputContent = generateStatement(structName + " this") + compiled + generateStatement("return this");
 					} else {
 						parameters.addFirst(new Declaration("void*", "_this"));
-						outputContent = compiled;
+						outputContent = generateStatement(structName + " this = *((" + structName + "*) _this)") + compiled;
 					}
 
 					final var compiledParameters =
