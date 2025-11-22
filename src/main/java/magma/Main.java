@@ -1075,12 +1075,12 @@ public class Main {
 		final var identifier = implementee.toBaseName();
 		final var variant = identifier + "Variant" + "." + name + "Variant";
 		final var thisType = name + joinedTypeParameters;
-		final var s = this.generateStatement(thisType + " this = *((" + thisType + "*) _this)");
+		final var s = this.generateStatement(thisType + " _this = *((" + thisType + "*) _ref)");
 		final var s1 = this.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
-		final var s2 = this.generateStatement("data." + name + " = this");
+		final var s2 = this.generateStatement("data." + name + " = _this");
 		final var s3 = this.generateStatement("return { " + variant + ", data }");
 		final var conversionF1RContent = s + s1 + s2 + s3;
-		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
+		return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _ref){" +
 					 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
 	}
 
@@ -1196,12 +1196,12 @@ public class Main {
 					outputContent =
 							this.generateStatement(structName + " this") + compiled + this.generateStatement("return this");
 				} else if (methodDeclaration instanceof Declaration declaration) {
-					parameters = parameters.addFirst(new Declaration("void*", "_this"));
+					parameters = parameters.addFirst(new Declaration("void*", "_ref"));
 
 					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 					final var thisInitialization = this.generateStatement(
-							structName + joinedTypeParameters + "* this = (" + structName + joinedTypeParameters + "*) _this");
+							structName + joinedTypeParameters + "* this = (" + structName + joinedTypeParameters + "*) _ref");
 
 					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 						final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
@@ -1586,7 +1586,7 @@ public class Main {
 
 				final var generatedName = this.generateName();
 
-				var paramList = params.stream().map(param -> "auto " + param).toList().addFirst("void* _this");
+				var paramList = params.stream().map(param -> "auto " + param).toList().addFirst("void* _ref");
 
 				final var joined = this.joinStrings(", ", paramList);
 
@@ -1598,7 +1598,7 @@ public class Main {
 				final var generatedName = this.generateName();
 
 				this.functions = this.functions.addLast(
-						"auto " + generatedName + "(void* _this, auto " + beforeContent + ")" + "{" +
+						"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
 						this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
 						System.lineSeparator() + "}" + System.lineSeparator());
 				return Option.of(generatedName);
