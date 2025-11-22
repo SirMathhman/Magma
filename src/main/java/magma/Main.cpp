@@ -276,7 +276,7 @@ State append_State(void* _this, Character next){
 }
 Optional<Character> pop_State(void* _this){
 	State* this = (State*) _this;
-	if (this->index < this.input.length()) {
+	if (this->index < this->input.length()) {
 		var value = this->input.charAt(this->index);
 		this->index++;
 		return Optional.of(value);
@@ -382,7 +382,7 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 }
 char* generate_Constructor(void* _this){
 	Constructor* this = (Constructor*) _this;
-	return this->structName + " new_" + this.structName;
+	return this->structName + " new_" + this->structName;
 }
 MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
@@ -397,7 +397,7 @@ public Declaration_Declaration(void* _this, char* type, char* name){
 char* generate_Declaration(void* _this){
 	Declaration* this = (Declaration*) _this;
 	var beforeDeclaration = generateTemplateString(this->typeParameters());
-	return beforeDeclaration + this->type + " " + this.name;
+	return beforeDeclaration + this->type + " " + this->name;
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 	Declaration* this = (Declaration*) _this;
@@ -984,6 +984,16 @@ State foldStatement_Main(void* _this, State current, Character next){
 	}*//*private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
 
+		final var maybeOperator = this
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"));
+
+		if (maybeOperator.isPresent()) {
+			return maybeOperator;
+		}
+
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var instanceString = stripped.substring(0, i);
@@ -998,7 +1008,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 					} else {
 						generated = instance + "." + memberName;
 					}
-					
+
 					return Optional.of(generated);
 				}
 			}
@@ -1021,11 +1031,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return Optional.of(stripped);
 		}
 
-		return this
-				.compileOperator(stripped, "==")
-				.or(() -> this.compileOperator(stripped, "<"))
-				.or(() -> this.compileOperator(stripped, "+"))
-				.or(() -> this.compileOperator(stripped, "-"));
+		return Optional.empty();
 	}*//*private Optional<String> compileOperator(String input, String operator) {
 		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {

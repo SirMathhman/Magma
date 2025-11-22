@@ -824,6 +824,16 @@ public class Main {
 	private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
 
+		final var maybeOperator = this
+				.compileOperator(stripped, "==")
+				.or(() -> this.compileOperator(stripped, "<"))
+				.or(() -> this.compileOperator(stripped, "+"))
+				.or(() -> this.compileOperator(stripped, "-"));
+
+		if (maybeOperator.isPresent()) {
+			return maybeOperator;
+		}
+
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
 			final var instanceString = stripped.substring(0, i);
@@ -861,11 +871,7 @@ public class Main {
 			return Optional.of(stripped);
 		}
 
-		return this
-				.compileOperator(stripped, "==")
-				.or(() -> this.compileOperator(stripped, "<"))
-				.or(() -> this.compileOperator(stripped, "+"))
-				.or(() -> this.compileOperator(stripped, "-"));
+		return Optional.empty();
 	}
 
 	private Optional<String> compileOperator(String input, String operator) {
