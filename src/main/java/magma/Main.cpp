@@ -11,7 +11,7 @@ Type toType_PrimitiveType(void* _this){
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType new_PrimitiveType(char* content){
-	/*this.content*/ = /*content*/;
+	this.content = content;
 }
 /*@Override
 		public*/ char* generate_PrimitiveType(){
@@ -67,19 +67,19 @@ char* toIdentifier();
 		private int*/ /*depth;
 
 		public*/ State_Main(char* input){
-	/*this.input*/ = /*input*/;
-	/*this.index*/ = /*0*/;
-	/*this.buffer*/ = /*new StringBuilder()*/;
-	/*this.depth*/ = /*0*/;
-	/*this.segments*/ = /*new ArrayList<String>()*/;
+	this.input = input;
+	this.index = /*0*/;
+	this.buffer = /*new StringBuilder()*/;
+	this.depth = /*0*/;
+	this.segments = /*new ArrayList<String>()*/;
 	/*}
 
 		private boolean isShallow() {
-			return this.depth*/ = /*= 1*/;
+			return this*/.depth = /*= 1*/;
 	/*}
 
 		private boolean isLevel() {
-			return this.depth*/ = /*= 0*/;
+			return this*/.depth = /*= 0*/;
 	/*}
 
 		private State append(Character next) {
@@ -105,12 +105,12 @@ char* toIdentifier();
 	/*}
 
 		private State enter() {
-			this.depth*/ = /*this.depth + 1*/;
+			this*/.depth = this.depth + 1;
 	/*return this*/;
 	/*}
 
 		private State exit() {
-			this.depth*/ = /*this.depth - 1*/;
+			this*/.depth = this.depth - 1;
 	/*return this*/;
 	/*}
 
@@ -126,9 +126,9 @@ char* toIdentifier();
 	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
 /*private static*/ Optional<IOException> run_Main(){
-	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;
-	/*final var target*/ = /*source.resolveSibling("Main.cpp")*/;
-	/*final var input*/ = /*readString(source).mapValue(Main::compile)*/;
+	/*final var source*/ = Paths.get(".", "src", "main", "java", "magma", "Main.java");
+	/*final var target*/ = source.resolveSibling("Main.cpp");
+	/*final var input*/ = /*readString(source)*/.mapValue(Main::compile);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> writeString(target, v.value);
@@ -175,7 +175,7 @@ char* toIdentifier();
 	/*return current.advance().stream()*/;
 }
 /*private static*/ State foldStatement_Main(State current, Character next){
-	/*final var appended*/ = /*current.append(next)*/;
+	/*final var appended*/ = current.append(next);
 	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
@@ -493,7 +493,19 @@ char* toIdentifier();
 	}
 
 	private static String compileExpression(String input) {
-		return wrap(input.strip());
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(".");
+		if (i >= 0) {
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
+			return compileExpression(substring) + "." + substring1;
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
+		}
+
+		return wrap(stripped);
 	}
 
 	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {

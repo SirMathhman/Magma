@@ -555,7 +555,19 @@ public class Main {
 	}
 
 	private static String compileExpression(String input) {
-		return wrap(input.strip());
+		final var stripped = input.strip();
+		final var i = stripped.lastIndexOf(".");
+		if (i >= 0) {
+			final var substring = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
+			return compileExpression(substring) + "." + substring1;
+		}
+
+		if (isIdentifier(stripped)) {
+			return stripped;
+		}
+
+		return wrap(stripped);
 	}
 
 	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
