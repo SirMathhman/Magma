@@ -458,6 +458,14 @@ public class Main {
 
 			dependencies.append(vTable);
 			fields += table + data;
+		} else {
+			final var joinedMembers = members
+					.stream()
+					.filter(member -> !(member instanceof FunctionDeclaration))
+					.map(StructMember::generate)
+					.collect(Collectors.joining());
+
+			fields += joinedMembers;
 		}
 
 		final var generated =

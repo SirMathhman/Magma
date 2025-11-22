@@ -108,7 +108,8 @@ struct FunctionDeclaration {
 };
 struct EmptyStructMember {
 };
-struct Main {
+struct Main {/*public static final List<String> structures = new ArrayList<String>*//*public static final List<String> functions = new ArrayList<String>*//*public static final List<String> globals = new ArrayList<String>*//*' && appended.isShallow*//*if *//*') {
+			return appended.exit*/
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -655,6 +656,14 @@ State foldStatement_Main(void* _this, State current, Character next){
 
 			dependencies.append(vTable);
 			fields += table + data;
+		} else {
+			final var joinedMembers = members
+					.stream()
+					.filter(member -> !(member instanceof FunctionDeclaration))
+					.map(StructMember::generate)
+					.collect(Collectors.joining());
+
+			fields += joinedMembers;
 		}
 
 		final var generated =
