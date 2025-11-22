@@ -52,6 +52,8 @@ public class Main {
 		T getFirst();
 
 		List<T> subList(int start, int end);
+
+		List<T> clear();
 	}
 
 	private interface FR<T> {
@@ -120,6 +122,29 @@ public class Main {
 		C fold(C c, T t);
 	}
 
+	private record StringBuilder(List<Character> list) {
+		public StringBuilder() {
+			this(new JavaList<Character>());
+		}
+
+		public StringBuilder appendChar(char next) {
+			return new StringBuilder(this.list.addLast(next));
+		}
+
+		public StringBuilder clear() {
+			return new StringBuilder(this.list.clear());
+		}
+
+		public StringBuilder appendString(String chars) {
+			return Streams.fromCharArray(chars.toCharArray()).fold(this, StringBuilder::appendChar);
+		}
+
+		@Override
+		public String toString() {
+			return this.list.stream().map(String::valueOf).collect(new Joiner());
+		}
+	}
+
 	private record Stream<T>(Head<T> head) {
 		public static <T> Stream<T> of(T value) {
 			return new Stream<T>(new SingleHead<T>(value));
@@ -152,7 +177,7 @@ public class Main {
 		}
 
 		public List<T> toList() {
-			return this.collect(new Collectors.ListCollector<T>());
+			return this.collect(new ListCollector<T>());
 		}
 
 		public Stream<T> filter(Predicate<T> predicate) {
@@ -244,6 +269,12 @@ public class Main {
 		public List<T> subList(int start, int end) {
 			return new JavaList<T>(this.nativeList.subList(start, end));
 		}
+
+		@Override
+		public List<T> clear() {
+			this.nativeList.clear();
+			return this;
+		}
 	}
 
 	private record Err<T, X>(X error) implements Result<T, X> {
@@ -264,7 +295,7 @@ public class Main {
 
 	private static class State {
 		private final String input;
-		private final StringBuilder buffer;
+		private StringBuilder buffer;
 		private List<String> segments;
 		private int index;
 		private int depth;
@@ -286,7 +317,7 @@ public class Main {
 		}
 
 		private State append(Character next) {
-			this.buffer.append(next);
+			this.buffer = this.buffer.appendChar(next);
 			return this;
 		}
 
@@ -302,7 +333,7 @@ public class Main {
 
 		private State advance() {
 			this.segments = this.segments.addLast(this.buffer.toString());
-			this.buffer.setLength(0);
+			this.buffer = this.buffer.clear();
 			return this;
 		}
 
@@ -352,44 +383,10 @@ public class Main {
 		}
 	}
 
-	private static class Collectors {
-		private static class ListCollector<T> implements Collector<T, List<T>> {
-			@Override
-			public List<T> createInitial() {
-				return new JavaList<T>();
-			}
-
-			@Override
-			public List<T> fold(List<T> tList, T t) {
-				return tList.addLast(t);
-			}
-		}
-
-		private record Joiner(String delimiter) implements Collector<String, String> {
-			public Joiner() {
-				this("");
-			}
-
-			@Override
-			public String createInitial() {
-				return "";
-			}
-
-			@Override
-			public String fold(String current, String element) {
-				if (current.isEmpty()) {
-					return element;
-				}
-				return current + this.delimiter + element;
-			}
-		}
-	}
-
 	private record TemplateType(String base, List<Type> list) implements Type {
-
 		@Override
 		public String generate() {
-			final var typeArguments = this.list.stream().map(Type::generate).collect(new Collectors.Joiner(", "));
+			final var typeArguments = this.list.stream().map(Type::generate).collect(new Joiner(", "));
 
 			return this.base + "<" + typeArguments + ">";
 		}
@@ -455,7 +452,7 @@ public class Main {
 	private record F1RDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
 		@Override
 		public String generate() {
-			final var joinedParameterTypes = "(" + this.parameterTypes.stream().collect(new Collectors.Joiner(", ")) + ")";
+			final var joinedParameterTypes = "(" + this.parameterTypes.stream().collect(new Joiner(", ")) + ")";
 			return this.type + " (*" + this.name + ")" + joinedParameterTypes;
 		}
 	}
@@ -637,8 +634,12 @@ public class Main {
 	}
 
 	private static class Streams {
-		public static <T> Stream<T> fromArray(T[] elements) {
+		public static <T> Stream<T> fromObjArray(T[] elements) {
 			return new Stream<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
+		}
+
+		public static Stream<Character> fromCharArray(char[] array) {
+			return new Stream<Integer>(new RangeHead(array.length)).map(index -> array[index]);
 		}
 	}
 
@@ -716,6 +717,37 @@ public class Main {
 		}
 	}
 
+	private record Joiner(String delimiter) implements Collector<String, String> {
+		public Joiner() {
+			this("");
+		}
+
+		@Override
+		public String createInitial() {
+			return "";
+		}
+
+		@Override
+		public String fold(String current, String element) {
+			if (current.isEmpty()) {
+				return element;
+			}
+			return current + this.delimiter + element;
+		}
+	}
+
+	private static class ListCollector<T> implements Collector<T, List<T>> {
+		@Override
+		public List<T> createInitial() {
+			return new JavaList<T>();
+		}
+
+		@Override
+		public List<T> fold(List<T> tList, T t) {
+			return tList.addLast(t);
+		}
+	}
+
 	private List<String> globals;
 	private List<String> structures;
 	private List<String> functions;
@@ -733,8 +765,8 @@ public class Main {
 		if (typeParameters.isEmpty()) {
 			templateString = "";
 		} else {
-			final var typeNames =
-					typeParameters.stream().map(typeParam -> "typename " + typeParam).collect(new Collectors.Joiner(", "));
+			final var typeNames = typeParameters.stream().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "
+			));
 
 			templateString = "template <" + typeNames + ">" + System.lineSeparator();
 		}
@@ -804,7 +836,7 @@ public class Main {
 	}
 
 	private String joinStrings(String delimiter, List<String> structures) {
-		return structures.stream().collect(new Collectors.Joiner(delimiter));
+		return structures.stream().collect(new Joiner(delimiter));
 	}
 
 	private String compileStatements(String input, F1R<String, String> mapper) {
@@ -812,7 +844,7 @@ public class Main {
 	}
 
 	private String compileAll(String input, F1R<String, String> mapper, Folder folder) {
-		return this.divide(input, folder).map(mapper).collect(new Collectors.Joiner(""));
+		return this.divide(input, folder).map(mapper).collect(new Joiner(""));
 	}
 
 	private Stream<String> divide(String input, Folder folder) {
@@ -958,7 +990,7 @@ public class Main {
 		if (!this.isIdentifier(beforeContent)) {return Option.empty();}
 
 		var modifiersList = Streams
-				.fromArray(modifiers.split(Pattern.quote(" ")))
+				.fromObjArray(modifiers.split(Pattern.quote(" ")))
 				.map(String::strip)
 				.filter(slice -> !slice.isEmpty())
 				.toList();
@@ -976,7 +1008,7 @@ public class Main {
 				.fold(this.functions, List::addLast);
 
 		final var joinedRecordFields =
-				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(new Collectors.Joiner());
+				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(new Joiner());
 
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
@@ -990,7 +1022,7 @@ public class Main {
 			final var enumFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
-					.collect(new Collectors.Joiner(","));
+					.collect(new Joiner(","));
 
 			final var generatedEnum =
 					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -998,7 +1030,7 @@ public class Main {
 			final var unionFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";")
-					.collect(new Collectors.Joiner());
+					.collect(new Joiner());
 
 			final var generatedUnion =
 					templateString + "union " + name + "Data {" + unionFields + System.lineSeparator() + "};" +
@@ -1007,28 +1039,28 @@ public class Main {
 			final var s = name + "Variant variant";
 			final var s1 = name + "Data data";
 			final var generatedFields = this.generateStatement(s) + this.generateStatement(s1);
-			fields = fields.append(generatedFields);
+			fields = fields.appendString(generatedFields);
 
-			dependencies.append(generatedEnum).append(generatedUnion);
+			dependencies = dependencies.appendString(generatedEnum).appendString(generatedUnion);
 		} else if (type.equals("interface")) {
 			final var table = this.generateStatement(name + "Table" + joinedTypeParameters + " table");
 			final var data = this.generateStatement("void* data");
 
 			final var tableMembers =
-					members.stream().map(StructMember::generate).map(this::generateStatement).collect(new Collectors.Joiner(""));
+					members.stream().map(StructMember::generate).map(this::generateStatement).collect(new Joiner(""));
 			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
 												 System.lineSeparator();
 
-			dependencies.append(vTable);
-			fields = fields.append(table).append(data);
+			dependencies = dependencies.appendString(vTable);
+			fields = fields.appendString(table).appendString(data);
 		} else {
 			final var joinedMembers = members
 					.stream()
 					.filter(member -> !(member instanceof F1RDeclaration))
 					.map(StructMember::generate)
-					.collect(new Collectors.Joiner());
+					.collect(new Joiner());
 
-			fields.append(joinedMembers);
+			fields = fields.appendString(joinedMembers);
 		}
 
 		final var generated =
@@ -1057,7 +1089,7 @@ public class Main {
 		if (typeParameters.isEmpty()) {
 			joinedTypeParameters = "";
 		} else {
-			joinedTypeParameters = "<" + typeParameters.stream().collect(new Collectors.Joiner(", ")) + ">";
+			joinedTypeParameters = "<" + typeParameters.stream().collect(new Joiner(", ")) + ">";
 		}
 
 		return joinedTypeParameters;
@@ -1145,8 +1177,7 @@ public class Main {
 
 				Option<String> maybeCompiled = Option.empty();
 				if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
-					final var compiledParameters =
-							parameters.stream().map(Declaration::generate).collect(new Collectors.Joiner(", "));
+					final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
 
 					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
 					this.functions = this.functions.addLast(
@@ -1178,7 +1209,7 @@ public class Main {
 						final var cases = variants
 								.stream()
 								.map(variant -> this.generateCase(structName, declaration, variant))
-								.collect(new Collectors.Joiner());
+								.collect(new Joiner());
 
 						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
 									 generateIndent(1) + "}" + this.generateStatement("return _ret");
@@ -1187,8 +1218,7 @@ public class Main {
 					outputContent = "?";
 				}
 
-				final var compiledParameters =
-						parameters.stream().map(Declaration::generate).collect(new Collectors.Joiner(", "));
+				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
 
 				final var modifiedMethodDeclaration = switch (methodDeclaration) {
 					case Constructor constructor -> constructor;
@@ -1639,7 +1669,7 @@ public class Main {
 				final var joinedArguments = this
 						.divide(arguments, new EscapedFolder(new ValueFolder()))
 						.map(this::compileExpressionOrPlaceholder)
-						.collect(new Collectors.Joiner(", "));
+						.collect(new Joiner(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller instanceof Some<String>(var value)) {
