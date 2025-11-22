@@ -1072,6 +1072,9 @@ public class Main {
 
 	private Option<String> compileExpression(String input) {
 		final var stripped = input.strip();
+		if(stripped.startsWith("switch ")) {
+			return new Some<String>("_switch");
+		}
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {

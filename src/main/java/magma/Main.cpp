@@ -801,10 +801,7 @@ Option<IOException> run_Main(void* _this){
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");
 	var input = this->readString(source).mapValue(F? { alloc(this), F?Table { compile }});
-	return /*switch (input) {
-			case Err<String, IOException> v -> Option.of(v.error);
-			case Ok<String, IOException> v -> this.writeString(target, v.value);
-		}*/;
+	return _switch;
 }
 Option<IOException> writeString_Main(void* _this, Path target, char* output){
 	Main* this = (Main*) _this;
@@ -1211,20 +1208,12 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 				outputContent = "?";
 			}
 			var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(Collectors.joining(", "));
-			var modifiedMethodDeclaration = /* switch (methodDeclaration) {
-					case Constructor constructor -> constructor;
-					case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
-					case Placeholder placeholder -> placeholder;
-				}*/;
+			var modifiedMethodDeclaration = _switch;
 			var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
 			var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 			this->functions.add(generated);
 			var parameterTypes = parameters.stream().map(F? { alloc(Declaration), F?Table { type }}).toList();
-			return /*switch (methodDeclaration) {
-					case Constructor _ -> Option.empty();
-					case Declaration member -> Option.of(new FunctionDeclaration(member.type, member.name, parameterTypes));
-					case Placeholder placeholder -> Option.of(placeholder);
-				}*/;
+			return _switch;
 		}
 	}
 	return Option.of(new_Placeholder(stripped));
@@ -1414,6 +1403,9 @@ char* compileExpressionOrPlaceholder_Main(void* _this, char* input){
 Option<char*> compileExpression_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
+	if (stripped.startsWith("switch ")) {
+		return new_Some<char*>("_switch");
+	}
 	var i2 = stripped.lastIndexOf("::");
 	if (i2 >= 0) {
 		var substring = stripped.substring(0, i2);
