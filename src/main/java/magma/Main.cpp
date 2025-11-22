@@ -99,6 +99,12 @@ struct Folder {
 	FolderTable table;
 	void* data;
 };
+struct ActualTable {
+};
+struct Actual {
+	ActualTable table;
+	void* data;
+};
 template <typename T, typename X>
 struct Err {
 	X error;
@@ -131,6 +137,7 @@ struct Constructor {
 	char* structName;
 };
 struct Declaration {
+	List<char*> annotations;
 	List<char*> typeParameters;
 	Option<char*> maybeBeforeType;
 	char* type;
@@ -566,7 +573,7 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 }
 public Declaration_Declaration(void* _this, char* type, char* name){
 	Declaration* this = (Declaration*) _this;
-	this(Collections.emptyList(), Option.empty(), type, name);
+	this(Collections.emptyList(), Collections.emptyList(), Option.empty(), type, name);
 }
 char* generate_Declaration(void* _this){
 	Declaration* this = (Declaration*) _this;
@@ -575,7 +582,7 @@ char* generate_Declaration(void* _this){
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 	Declaration* this = (Declaration*) _this;
-	return new_Declaration(this->typeParameters, this->maybeBeforeType, this->type, mapper.apply(this->name));
+	return new_Declaration(this->annotations, this->typeParameters, this->maybeBeforeType, this->type, mapper.apply(this->name));
 }
 StructMember toStructMember_FunctionDeclaration(void* _this){
 	FunctionDeclaration this = *((FunctionDeclaration*) _this);
@@ -803,25 +810,8 @@ Option<IOException> run_Main(void* _this){
 	var input = this->readString(source).mapValue(F? { alloc(this), F?Table { compile }});
 	return _switch;
 }
-Option<IOException> writeString_Main(void* _this, Path target, char* output){
-	Main* this = (Main*) _this;
-	/*try {
-			Files.writeString(target, output);
-			return Option.empty();
-		}*/
-	/*catch (IOException e) {
-			return Option.of(e);
-		}*/
-}
-Result<char*, IOException> readString_Main(void* _this, Path source){
-	Main* this = (Main*) _this;
-	/*try {
-			return new Ok<String, IOException>(Files.readString(source));
-		}*/
-	/*catch (IOException e) {
-			return new Err<String, IOException>(e);
-		}*/
-}
+Option<IOException> writeString_Main(Path target, char* output);
+Result<char*, IOException> readString_Main(Path source);
 char* compile_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var all = this->compileStatements(input, F? { alloc(this), F?Table { compileRootSegment }});
@@ -1137,6 +1127,12 @@ auto lambda32(void* _this, auto param){
 auto lambda33(void* _this, auto slice){
 	return !slice.isEmpty();
 }
+auto lambda34(void* _this, auto name){
+	return name + "_" + structName;
+}
+auto lambda35(void* _this, auto name){
+	return name + "_" + structName;
+}
 Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
@@ -1174,6 +1170,12 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 			var parameters = this->divide(parametersString, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(F? { alloc(String), F?Table { strip }}).filter(lambda33).toList().stream().map(lambda32).flatMap(F? { alloc(Option), F?Table { stream }}).collect(Collectors.toCollection(F? { alloc(ArrayList), F?Table { new }}));
 			var methodDeclaration = this->parseMethodDeclaration(declarationString, structName, typeParameters);
 			Option<char*> maybeCompiled = Option.empty();
+			if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
+				var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(Collectors.joining(", "));
+				var modifiedMethodDeclaration = declaration.mapName(lambda35);
+				this->functions.add(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+				return new_Some<StructMember>(new_EmptyStructMember());
+			}
 			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 				var inputContent = withBraces.substring(1, withBraces.length() - 1);
 				maybeCompiled = Option.of(this->compileMethodsSegments(inputContent, 1));
@@ -1218,24 +1220,18 @@ Option<StructMember> compileClassSegment_Main(void* _this, char* input, char* st
 	}
 	return Option.of(new_Placeholder(stripped));
 }
-auto lambda34(void* _this, auto input){
+auto lambda36(void* _this, auto input){
 	return this->compileMethodSegment(input, indent);
 }
 char* compileMethodsSegments_Main(void* _this, char* inputContent, int indent){
 	Main* this = (Main*) _this;
-	return this->compileStatements(inputContent, lambda34);
+	return this->compileStatements(inputContent, lambda36);
 }
 char* generateCase_Main(void* _this, char* structName, Declaration declaration, char* variant){
 	Main* this = (Main*) _this;
 	return /*this.generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
 					 this.generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
 					 this.generateStatement(3, "break")*/;
-}
-auto lambda35(void* _this, auto value){
-	return value;
-}
-auto lambda36(void* _this, auto value){
-	return value;
 }
 auto lambda37(void* _this, auto value){
 	return value;
@@ -1247,6 +1243,12 @@ auto lambda39(void* _this, auto value){
 	return value;
 }
 auto lambda40(void* _this, auto value){
+	return value;
+}
+auto lambda41(void* _this, auto value){
+	return value;
+}
+auto lambda42(void* _this, auto value){
 	return value;
 }
 MethodDeclaration parseMethodDeclaration_Main(void* _this, char* declaration, char* structName, List<char*> typeParameters){
@@ -1266,10 +1268,10 @@ Option<MethodDeclaration> parseConstructor_Main(void* _this, char* declaration, 
 		return Option.empty();
 	}
 }
-auto lambda41(void* _this, auto slice){
+auto lambda43(void* _this, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda42(void* _this, auto slice){
+auto lambda44(void* _this, auto slice){
 	return !slice.isEmpty();
 }
 Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* structName){
@@ -1279,7 +1281,7 @@ Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* stru
 		return Option.empty();
 	}
 	var enumValues = this->divide(stripped.substring(0, stripped.length() - 1), /*
-								(state, character) -> new ValueFolder().apply(state, character)*/).map(F? { alloc(String), F?Table { strip }}).filter(lambda42).toList();
+								(state, character) -> new ValueFolder().apply(state, character)*/).map(F? { alloc(String), F?Table { strip }}).filter(lambda44).toList();
 	if (!enumValues.isEmpty()) {
 	/*for (var enumValue : enumValues) {
 				if (enumValue.endsWith(")")) {
@@ -1334,10 +1336,10 @@ char* compileMethodSegment_Main(void* _this, char* input, int indent){
 	}
 	return System.lineSeparator() + "\t" + wrap(stripped);
 }
-auto lambda43(void* _this, auto slice){
+auto lambda45(void* _this, auto slice){
 	return !slice.isEmpty();
 }
-auto lambda44(void* _this, auto slice){
+auto lambda46(void* _this, auto slice){
 	return !slice.isEmpty();
 }
 Option<char*> compileConditional_Main(void* _this, char* type, int indent, char* input){
@@ -1346,7 +1348,7 @@ Option<char*> compileConditional_Main(void* _this, char* type, int indent, char*
 		var substring = input.substring(type.length()).strip();
 		if (substring.startsWith("(")) {
 			var afterConditionStart = substring.substring(1).strip();
-			var divisions = this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda44).toList();
+			var divisions = this->divide(afterConditionStart, new_EscapedFolder(new_ConditionEndLocator())).map(F? { alloc(String), F?Table { strip }}).filter(lambda46).toList();
 			if (divisions.size() < 2) {
 				return Option.empty();
 			}
@@ -1578,6 +1580,18 @@ Option<char*> compileCaller_Main(void* _this, char* input){
 	}
 	return new_None<char*>();
 }
+auto lambda47(void* _this, auto slice){
+	return slice.substring(1);
+}
+auto lambda48(void* _this, auto slice){
+	return !slice.isEmpty();
+}
+auto lambda49(void* _this, auto slice){
+	return slice.substring(1);
+}
+auto lambda50(void* _this, auto slice){
+	return !slice.isEmpty();
+}
 Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> typeParameters){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
@@ -1617,8 +1631,14 @@ Option<Declaration> parseDeclaration_Main(void* _this, char* input, List<char*> 
 				beforeType = substring.substring(0, i);
 			}
 		}
+		List<char*> annotations = new_ArrayList<char*>();
+		var i = beforeType.lastIndexOf("\n");
+		if (i >= 0) {
+			annotations = Arrays.stream(beforeType.substring(0, i).split(Pattern.quote("\n"))).filter(lambda50).map(lambda49).map(F? { alloc(String), F?Table { strip }}).toList();
+			beforeType = beforeType.substring(i + 1).strip();
+		}
 		if (this->isIdentifier(name)) {
-			return Option.of(new_Declaration(copy, Option.of(beforeType), this->compileType(beforeName.substring(typeSeparator + 1)), name));
+			return Option.of(new_Declaration(annotations, copy, Option.of(beforeType), this->compileType(beforeName.substring(typeSeparator + 1)), name));
 		}
 	}
 	return Option.empty();

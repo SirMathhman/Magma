@@ -83,6 +83,8 @@ public class Main {
 		State apply(State state, Character character);
 	}
 
+	private @interface Actual {}
+
 	private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
@@ -235,10 +237,10 @@ public class Main {
 		}
 	}
 
-	private record Declaration(List<String> typeParameters, Option<String> maybeBeforeType, String type, String name)
-			implements MethodDeclaration {
+	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
+														 String type, String name) implements MethodDeclaration {
 		public Declaration(String type, String name) {
-			this(Collections.emptyList(), Option.empty(), type, name);
+			this(Collections.emptyList(), Collections.emptyList(), Option.empty(), type, name);
 		}
 
 		@Override
@@ -248,7 +250,11 @@ public class Main {
 		}
 
 		public Declaration mapName(F1R<String, String> mapper) {
-			return new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+			return new Declaration(this.annotations,
+														 this.typeParameters,
+														 this.maybeBeforeType,
+														 this.type,
+														 mapper.apply(this.name));
 		}
 	}
 
@@ -470,6 +476,7 @@ public class Main {
 		};
 	}
 
+	@Actual
 	private Option<IOException> writeString(Path target, String output) {
 		try {
 			Files.writeString(target, output);
@@ -479,6 +486,7 @@ public class Main {
 		}
 	}
 
+	@Actual
 	private Result<String, IOException> readString(Path source) {
 		try {
 			return new Ok<String, IOException>(Files.readString(source));
@@ -830,6 +838,15 @@ public class Main {
 				final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
 
 				Option<String> maybeCompiled = Option.empty();
+				if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
+					final var compiledParameters =
+							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
+
+					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
+					this.functions.add(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+					return new Some<StructMember>(new EmptyStructMember());
+				}
+
 				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
 					maybeCompiled = Option.of(this.compileMethodsSegments(inputContent, 1));
@@ -1072,7 +1089,7 @@ public class Main {
 
 	private Option<String> compileExpression(String input) {
 		final var stripped = input.strip();
-		if(stripped.startsWith("switch ")) {
+		if (stripped.startsWith("switch ")) {
 			return new Some<String>("_switch");
 		}
 
@@ -1330,8 +1347,22 @@ public class Main {
 				}
 			}
 
+			List<String> annotations = new ArrayList<String>();
+			final var i = beforeType.lastIndexOf("\n");
+			if (i >= 0) {
+				annotations = Arrays
+						.stream(beforeType.substring(0, i).split(Pattern.quote("\n")))
+						.filter(slice -> !slice.isEmpty())
+						.map(slice -> slice.substring(1))
+						.map(String::strip)
+						.toList();
+
+				beforeType = beforeType.substring(i + 1).strip();
+			}
+
 			if (this.isIdentifier(name)) {
-				return Option.of(new Declaration(copy,
+				return Option.of(new Declaration(annotations,
+																				 copy,
 																				 Option.of(beforeType),
 																				 this.compileType(beforeName.substring(typeSeparator + 1)),
 																				 name));
