@@ -765,7 +765,8 @@ public class Main {
 					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
 					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
 						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" + wrap(content) + "}";
+						return this.generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+									 wrap(content) + "}";
 					}
 				}
 			}
@@ -801,12 +802,16 @@ public class Main {
 
 	private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
+
 		final var i = stripped.lastIndexOf(".");
 		if (i >= 0) {
-			final var instance = stripped.substring(0, i);
+			final var instanceString = stripped.substring(0, i);
 			final var memberName = stripped.substring(i + 1).strip();
 			if (this.isIdentifier(memberName)) {
-				return Optional.of(this.compileExpressionOrPlaceholder(instance) + "." + memberName);
+				final var maybeInstance = this.compileExpression(instanceString);
+				if (maybeInstance.isPresent()) {
+					return Optional.of(maybeInstance.get() + "." + memberName);
+				}
 			}
 		}
 
@@ -823,12 +828,16 @@ public class Main {
 			return Optional.of(stripped);
 		}
 
-		final var i1 = stripped.indexOf("==");
+		return this.compileOperator(stripped, "==").or(() -> this.compileOperator(stripped, "<"));
+	}
+
+	private Optional<String> compileOperator(String input, String operator) {
+		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {
-			final var left = stripped.substring(0, i1);
-			final var right = stripped.substring(i1 + 2);
-			return Optional.of(
-					this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
+			final var left = input.substring(0, i1);
+			final var right = input.substring(i1 + operator.length());
+			return Optional.of(this.compileExpressionOrPlaceholder(left) + " " + operator + " " +
+												 this.compileExpressionOrPlaceholder(right));
 		}
 
 		return Optional.empty();
