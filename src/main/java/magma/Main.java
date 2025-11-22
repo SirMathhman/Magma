@@ -10,7 +10,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.BiFunction;
-import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -34,8 +33,12 @@ public class Main {
 		}
 	}
 
+	private interface F1R<T0, R> {
+		R apply(T0 value);
+	}
+
 	private sealed interface Result<T, X> permits Err, Ok {
-		<R> Result<R, X> mapValue(Function<T, R> mapper);
+		<R> Result<R, X> mapValue(F1R<T, R> mapper);
 	}
 
 	private sealed interface Type permits Identifier, Placeholder, PointerType, PrimitiveType, TemplateType {
@@ -50,14 +53,14 @@ public class Main {
 
 	private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
 			return new Err<R, X>(this.error);
 		}
 	}
 
 	private record Ok<T, X>(T value) implements Result<T, X> {
 		@Override
-		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
+		public <R> Result<R, X> mapValue(F1R<T, R> mapper) {
 			return new Ok<R, X>(mapper.apply(this.value));
 		}
 	}
@@ -191,7 +194,7 @@ public class Main {
 			return beforeDeclaration + this.type + " " + this.name;
 		}
 
-		public Declaration mapName(Function<String, String> mapper) {
+		public Declaration mapName(F1R<String, String> mapper) {
 			return new Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 		}
 	}
@@ -232,14 +235,14 @@ public class Main {
 		return compileStatements(input, Main::compileRootSegment);
 	}
 
-	private static String compileStatements(String input, Function<String, String> mapper) {
+	private static String compileStatements(String input, F1R<String, String> mapper) {
 		return compileAll(input, mapper, Main::foldStatement);
 	}
 
 	private static String compileAll(String input,
-																	 Function<String, String> mapper,
+																	 F1R<String, String> mapper,
 																	 BiFunction<State, Character, State> folder) {
-		return divide(input, folder).map(mapper).collect(Collectors.joining(""));
+		return divide(input, folder).map(mapper::apply).collect(Collectors.joining(""));
 	}
 
 	private static Stream<String> divide(String input, BiFunction<State, Character, State> folder) {
@@ -461,9 +464,8 @@ public class Main {
 		final var stripped = input.strip();
 		for (var i = 0; i < stripped.length(); i++) {
 			final var c = stripped.charAt(i);
-			if (!Character.isLetter(c)) {
-				return false;
-			}
+			if (Character.isLetter(c) || (i != 0 && Character.isDigit(c))) {continue;}
+			return false;
 		}
 
 		return true;

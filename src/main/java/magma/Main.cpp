@@ -23,6 +23,16 @@ char* toBaseName_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
+template <typename T0, typename R>
+struct F1R {
+};
+R apply_F1R(void* _this, T0 value){
+	F1R<T0, R> this = *((F1R<T0, R>*) _this);
+	R _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 enum ResultVariant {
 	ErrVariant, 
 	OkVariant
@@ -38,7 +48,7 @@ struct Result {
 	ResultData data;
 };
 template <typename T, typename X, typename R>
-Result<R, X> mapValue_Result(void* _this, Function<T, R> mapper){
+Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
 	Result<T, X> this = *((Result<T, X>*) _this);
 	Result<R, X> _ret;
 	switch (this.variant) {
@@ -155,7 +165,7 @@ struct Err {
 	X error;
 };
 template <typename T, typename X, typename R>
-Result<R, X> mapValue_Err(void* _this, Function<T, R> mapper){
+Result<R, X> mapValue_Err(void* _this, F1R<T, R> mapper){
 	Err<T, X> this = *((Err<T, X>*) _this);
 	return new_Err<R, X>(this.error);
 }
@@ -171,7 +181,7 @@ struct Ok {
 	T value;
 };
 template <typename T, typename X, typename R>
-Result<R, X> mapValue_Ok(void* _this, Function<T, R> mapper){
+Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
 	Ok<T, X> this = *((Ok<T, X>*) _this);
 	return new_Ok<R, X>(mapper.apply(this.value));
 }
@@ -339,7 +349,7 @@ char* generate_Declaration(void* _this){
 	/*var beforeDeclaration*/ = generateTemplateString(this.typeParameters());
 	return /*beforeDeclaration + this.type + " " + this*/.name;
 }
-Declaration mapName_Declaration(void* _this, Function<char*, char*> mapper){
+Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 	Declaration this = *((Declaration*) _this);
 	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
 }
@@ -381,13 +391,13 @@ char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
 	return compileStatements(input, /*Main::compileRootSegment*/);
 }
-char* compileStatements_Main(void* _this, char* input, Function<char*, char*> mapper){
+char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
 	Main this = *((Main*) _this);
 	return compileAll(input, mapper, /*Main::foldStatement*/);
 }
-char* compileAll_Main(void* _this, char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
+char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
-	return divide(input, /*folder)*/.map(/*mapper).collect(Collectors.joining(""*/));
+	return divide(input, /*folder)*/.map(/*mapper::apply).collect(Collectors.joining(""*/));
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
 	Main this = *((Main*) _this);
@@ -586,9 +596,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 		final var stripped = input.strip();
 		for (var i = 0; i < stripped.length(); i++) {
 			final var c = stripped.charAt(i);
-			if (!Character.isLetter(c)) {
-				return false;
-			}
+			if (Character.isLetter(c) || (i != 0 && Character.isDigit(c))) {continue;}
+			return false;
 		}
 
 		return true;
