@@ -619,7 +619,7 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 		while (true) {
 			var maybeTuple = current.popAndAppendToTuple();
 			if (!(maybeTuple.variant = ?.SomeVariant)) {
-				/*break*/;
+				break;
 			}
 			current = value.left;
 			var right = value.right;
@@ -627,7 +627,7 @@ State apply_EscapedFolder(void* _this, State state, Character next){
 				current = current.popAndAppendToOption().orElse(current);
 			}
 			if (right == '\"') {
-				/*break*/;
+				break;
 			}
 		}
 		return current;
@@ -822,7 +822,7 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 	while (true) {
 		var maybeNext = current.pop();
 		if (!(maybeNext.variant = ?.SomeVariant)) {
-			/*break*/;
+			break;
 		}
 		/*final Character next*/;
 		next = value;
@@ -1331,6 +1331,9 @@ Option<char*> compileConditional_Main(void* _this, char* type, int indent, char*
 char* compileMethodStatement_Main(void* _this, char* input){
 	Main* this = (Main*) _this;
 	var stripped = input.strip();
+	if (stripped.equals("break")) {
+		return "break";
+	}
 	if (stripped.startsWith("return ")) {
 		return "return " + this->compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 	}

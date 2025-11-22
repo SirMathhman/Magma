@@ -979,6 +979,10 @@ public class Main {
 
 	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
+		if (stripped.equals("break")) {
+			return "break";
+		}
+
 		if (stripped.startsWith("return ")) {
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 		}
