@@ -1,6 +1,15 @@
 struct PrimitiveType {/*PrimitiveType*/
 };
 template <typename T>
+struct FRTable<T> {
+	T (*apply)(void*);
+};
+template <typename T>
+struct FR {
+	FRTable<T> table;
+	void* data;
+};
+template <typename T>
 struct Some {
 	T value;
 };
@@ -166,6 +175,13 @@ char* toBaseName_PrimitiveType(void* _this){
 	PrimitiveType* this = (PrimitiveType*) _this;
 	return this->content;
 }
+T apply_FR(void* _this){
+	FR<T>* this = (FR<T>*) _this;
+	T _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 template <typename T>
 Option<T> toOption_Some(void* _this){
 	Some<T> this = *((Some<T>*) _this);
@@ -174,7 +190,7 @@ Option<T> toOption_Some(void* _this){
 	return { OptionVariant.SomeVariant, data };
 }
 template <typename T, typename R>
-Option<R> map_Some(void* _this, Function<T, R> mapper){
+Option<R> map_Some(void* _this, F1R<T, R> mapper){
 	Some<T>* this = (Some<T>*) _this;
 	return new_Some<R>(mapper.apply(this->value));
 }
@@ -184,12 +200,12 @@ T orElse_Some(void* _this, T other){
 	return this->value;
 }
 template <typename T, typename R>
-Option<R> flatMap_Some(void* _this, Function<T, Option<R>> mapper){
+Option<R> flatMap_Some(void* _this, F1R<T, Option<R>> mapper){
 	Some<T>* this = (Some<T>*) _this;
 	return mapper.apply(this->value);
 }
 template <typename T>
-T orElseGet_Some(void* _this, Supplier<T> other){
+T orElseGet_Some(void* _this, FR<T> other){
 	Some<T>* this = (Some<T>*) _this;
 	return this->value;
 }
@@ -199,7 +215,7 @@ Stream<T> stream_Some(void* _this){
 	return Stream.of(this->value);
 }
 template <typename T>
-Option<T> or_Some(void* _this, Supplier<Option<T>> other){
+Option<T> or_Some(void* _this, FR<Option<T>> other){
 	Some<T>* this = (Some<T>*) _this;
 	return this;
 }
@@ -211,7 +227,7 @@ Option<T> toOption_None(void* _this){
 	return { OptionVariant.NoneVariant, data };
 }
 template <typename T, typename R>
-Option<R> map_None(void* _this, Function<T, R> mapper){
+Option<R> map_None(void* _this, F1R<T, R> mapper){
 	None<T>* this = (None<T>*) _this;
 	return new_None<R>();
 }
@@ -221,14 +237,14 @@ T orElse_None(void* _this, T other){
 	return other;
 }
 template <typename T, typename R>
-Option<R> flatMap_None(void* _this, Function<T, Option<R>> mapper){
+Option<R> flatMap_None(void* _this, F1R<T, Option<R>> mapper){
 	None<T>* this = (None<T>*) _this;
 	return new_None<R>();
 }
 template <typename T>
-T orElseGet_None(void* _this, Supplier<T> other){
+T orElseGet_None(void* _this, FR<T> other){
 	None<T>* this = (None<T>*) _this;
-	return other.get();
+	return other.apply();
 }
 template <typename T>
 Stream<T> stream_None(void* _this){
@@ -236,7 +252,7 @@ Stream<T> stream_None(void* _this){
 	return Stream.empty();
 }
 template <typename T>
-Option<T> or_None(void* _this, Supplier<Option<T>> other){
+Option<T> or_None(void* _this, FR<Option<T>> other){
 	None<T>* this = (None<T>*) _this;
 	return this;
 }
@@ -251,7 +267,7 @@ Option<T> empty_Option(void* _this){
 	return new_None<T>();
 }
 template <typename T, typename R>
-Option<R> map_Option(void* _this, Function<T, R> mapper){
+Option<R> map_Option(void* _this, F1R<T, R> mapper){
 	Option<T>* this = (Option<T>*) _this;
 	Option<R> _ret;
 	switch (this.variant) {
@@ -278,7 +294,7 @@ T orElse_Option(void* _this, T other){
 	return _ret;
 }
 template <typename T, typename R>
-Option<R> flatMap_Option(void* _this, Function<T, Option<R>> mapper){
+Option<R> flatMap_Option(void* _this, F1R<T, Option<R>> mapper){
 	Option<T>* this = (Option<T>*) _this;
 	Option<R> _ret;
 	switch (this.variant) {
@@ -291,7 +307,7 @@ Option<R> flatMap_Option(void* _this, Function<T, Option<R>> mapper){
 	}
 	return _ret;
 }
-T orElseGet_Option(void* _this, Supplier<T> other){
+T orElseGet_Option(void* _this, FR<T> other){
 	Option<T>* this = (Option<T>*) _this;
 	T _ret;
 	switch (this.variant) {
@@ -317,7 +333,7 @@ Stream<T> stream_Option(void* _this){
 	}
 	return _ret;
 }
-Option<T> or_Option(void* _this, Supplier<Option<T>> other){
+Option<T> or_Option(void* _this, FR<Option<T>> other){
 	Option<T>* this = (Option<T>*) _this;
 	Option<T> _ret;
 	switch (this.variant) {

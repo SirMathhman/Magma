@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.function.Function;
-import java.util.function.Supplier;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,10 +31,14 @@ public class Main {
 		}
 	}
 
+	private interface FR<T> {
+		T apply();
+	}
+
 	private sealed interface Option<T> permits Option.None, Option.Some {
 		record Some<T>(T value) implements Option<T> {
 			@Override
-			public <R> Option<R> map(Function<T, R> mapper) {
+			public <R> Option<R> map(F1R<T, R> mapper) {
 				return new Some<R>(mapper.apply(this.value));
 			}
 
@@ -46,12 +48,12 @@ public class Main {
 			}
 
 			@Override
-			public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+			public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
 				return mapper.apply(this.value);
 			}
 
 			@Override
-			public T orElseGet(Supplier<T> other) {
+			public T orElseGet(FR<T> other) {
 				return this.value;
 			}
 
@@ -61,14 +63,14 @@ public class Main {
 			}
 
 			@Override
-			public Option<T> or(Supplier<Option<T>> other) {
+			public Option<T> or(FR<Option<T>> other) {
 				return this;
 			}
 		}
 
 		final class None<T> implements Option<T> {
 			@Override
-			public <R> Option<R> map(Function<T, R> mapper) {
+			public <R> Option<R> map(F1R<T, R> mapper) {
 				return new None<R>();
 			}
 
@@ -78,13 +80,13 @@ public class Main {
 			}
 
 			@Override
-			public <R> Option<R> flatMap(Function<T, Option<R>> mapper) {
+			public <R> Option<R> flatMap(F1R<T, Option<R>> mapper) {
 				return new None<R>();
 			}
 
 			@Override
-			public T orElseGet(Supplier<T> other) {
-				return other.get();
+			public T orElseGet(FR<T> other) {
+				return other.apply();
 			}
 
 			@Override
@@ -93,7 +95,7 @@ public class Main {
 			}
 
 			@Override
-			public Option<T> or(Supplier<Option<T>> other) {
+			public Option<T> or(FR<Option<T>> other) {
 				return this;
 			}
 		}
@@ -106,17 +108,17 @@ public class Main {
 			return new None<T>();
 		}
 
-		<R> Option<R> map(Function<T, R> mapper);
+		<R> Option<R> map(F1R<T, R> mapper);
 
 		T orElse(T other);
 
-		<R> Option<R> flatMap(Function<T, Option<R>> mapper);
+		<R> Option<R> flatMap(F1R<T, Option<R>> mapper);
 
-		T orElseGet(Supplier<T> other);
+		T orElseGet(FR<T> other);
 
 		Stream<T> stream();
 
-		Option<T> or(Supplier<Option<T>> other);
+		Option<T> or(FR<Option<T>> other);
 	}
 
 	private interface F1R<T0, R> {
