@@ -1094,6 +1094,11 @@ public class Main {
 			return Option.of(stripped);
 		}
 
+		if (stripped.startsWith("!")) {
+			final var substring = stripped.substring(1);
+			return new Some<String>("!" + this.compileExpressionOrPlaceholder(substring));
+		}
+
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
 			final var substring = stripped.substring(0, i3);
