@@ -30,7 +30,7 @@ public class Main {
 		}
 	}
 
-	private interface Head<T> {
+	private sealed interface Head<T> permits RangeHead, EmptyHead, FlatMapHead, MapHead, SingleHead {
 		Option<T> next();
 	}
 
@@ -121,79 +121,6 @@ public class Main {
 	}
 
 	private record Stream<T>(Head<T> head) {
-		private record MapHead<T, R>(Head<T> head, F1R<T, R> mapper) implements Head<R> {
-			@Override
-			public Option<R> next() {
-				return this.head.next().map(this.mapper);
-			}
-		}
-
-		private static class SingleHead<T> implements Head<T> {
-			private final T value;
-			private boolean retrieved = false;
-
-			public SingleHead(T value) {
-				this.value = value;
-			}
-
-			@Override
-			public Option<T> next() {
-				if (this.retrieved) {
-					return new None<T>();
-				}
-				this.retrieved = true;
-				return new Some<T>(this.value);
-			}
-		}
-
-		private static class FlatMapHead<T, R> implements Head<R> {
-			private final Head<T> head;
-			private final F1R<T, Stream<R>> mapper;
-			private Option<Stream<R>> maybeCurrent = Option.empty();
-
-			public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
-				this.head = head;
-				this.mapper = mapper;
-			}
-
-			@Override
-			public Option<R> next() {
-				while (true) {
-					if (this.maybeCurrent instanceof Some<Stream<R>>(var current)) {
-						final var next = current.head.next();
-						if (next instanceof Some<R>) {
-							return next;
-						}
-					}
-
-					final var maybeNext = this.head.next();
-					if (maybeNext instanceof None<T>) {
-						return Option.empty();
-					}
-					this.maybeCurrent = maybeNext.map(this.mapper);
-				}
-			}
-		}
-
-		private static class EmptyHead<T> implements Head<T> {
-			@Override
-			public Option<T> next() {
-				return new None<T>();
-			}
-		}
-
-		private record AnyMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
-			@Override
-			public Boolean createInitial() {
-				return false;
-			}
-
-			@Override
-			public Boolean fold(Boolean aBoolean, T t) {
-				return aBoolean || this.predicate.test(t);
-			}
-		}
-
 		public static <T> Stream<T> of(T value) {
 			return new Stream<T>(new SingleHead<T>(value));
 		}
@@ -242,7 +169,7 @@ public class Main {
 		}
 	}
 
-	private static class RangeHead implements Head<Integer> {
+	private static final class RangeHead implements Head<Integer> {
 		private final int length;
 		private int counter;
 
@@ -712,6 +639,80 @@ public class Main {
 	private static class Streams {
 		public static <T> Stream<T> fromArray(T[] elements) {
 			return new Stream<Integer>(new RangeHead(elements.length)).map(index -> elements[index]);
+		}
+	}
+
+	private record MapHead<T, R>(Head<T> head, F1R<T, R> mapper) implements Head<R> {
+		@Override
+		public Option<R> next() {
+			return this.head.next().map(this.mapper);
+		}
+	}
+
+	private static final class SingleHead<T> implements Head<T> {
+		private final T value;
+		private boolean retrieved = false;
+
+		public SingleHead(T value) {
+			this.value = value;
+		}
+
+		@Override
+		public Option<T> next() {
+			if (this.retrieved) {
+				return new None<T>();
+			}
+			this.retrieved = true;
+			return new Some<T>(this.value);
+		}
+	}
+
+	private static final class FlatMapHead<T, R> implements Head<R> {
+		private final Head<T> head;
+		private final F1R<T, Stream<R>> mapper;
+		private Option<Stream<R>> maybeCurrent;
+
+		public FlatMapHead(Head<T> head, F1R<T, Stream<R>> mapper) {
+			this.head = head;
+			this.mapper = mapper;
+			this.maybeCurrent = Option.empty();
+		}
+
+		@Override
+		public Option<R> next() {
+			while (true) {
+				if (this.maybeCurrent instanceof Some<Stream<R>>(var current)) {
+					final var next = current.head.next();
+					if (next instanceof Some<R>) {
+						return next;
+					}
+				}
+
+				final var maybeNext = this.head.next();
+				if (maybeNext instanceof None<T>) {
+					return Option.empty();
+				}
+				this.maybeCurrent = maybeNext.map(this.mapper);
+			}
+		}
+	}
+
+	private static final class EmptyHead<T> implements Head<T> {
+		@Override
+		public Option<T> next() {
+			return new None<T>();
+		}
+	}
+
+	private record AnyMatch<T>(Predicate<T> predicate) implements Collector<T, Boolean> {
+		@Override
+		public Boolean createInitial() {
+			return false;
+		}
+
+		@Override
+		public Boolean fold(Boolean aBoolean, T t) {
+			return aBoolean || this.predicate.test(t);
 		}
 	}
 
@@ -1259,7 +1260,7 @@ public class Main {
 		if (!enumValues.isEmpty()) {
 			var optionStream = enumValues.stream().map(enumValue -> this.compileEnumValue(structName, enumValue));
 			final var areAnyInvalid =
-					(boolean) optionStream.collect(new Stream.AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>));
+					(boolean) optionStream.collect(new AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>));
 
 			if (areAnyInvalid) {
 				return new None<StructMember>();

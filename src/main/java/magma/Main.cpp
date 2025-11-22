@@ -1,14 +1,25 @@
 struct PrimitiveType {
 	char* content;
 };
+enum HeadVariant {
+	RangeHeadVariant,
+	EmptyHeadVariant,
+	FlatMapHeadVariant,
+	MapHeadVariant,
+	SingleHeadVariant
+};
 template <typename T>
-struct HeadTable {
-	Option<T> (*next)(void*);
+union HeadData {
+	RangeHead<T> RangeHead;
+	EmptyHead<T> EmptyHead;
+	FlatMapHead<T> FlatMapHead;
+	MapHead<T> MapHead;
+	SingleHead<T> SingleHead;
 };
 template <typename T>
 struct Head {
-	HeadTable<T> table;
-	void* data;
+	HeadVariant variant;
+	HeadData data;
 };
 template <typename T>
 struct ListTable {
@@ -155,28 +166,6 @@ struct Collector {
 	CollectorTable<T, C> table;
 	void* data;
 };
-template <typename T, typename R>
-struct MapHead {
-	Head<T> head;
-	F1R<T, R> mapper;
-};
-template <typename T>
-struct SingleHead {
-	T value;
-	/*=*/ false;
-};
-template <typename T, typename R>
-struct FlatMapHead {
-	Head<T> head;
-	F1R<T, Stream<R>> mapper;/*private Option<Stream<R>> maybeCurrent = Option.empty*/
-};
-template <typename T>
-struct EmptyHead {
-};
-template <typename T>
-struct AnyMatch {
-	Predicate<T> predicate;
-};
 template <typename T>
 struct Stream {
 	Head<T> head;
@@ -261,6 +250,29 @@ struct Field {
 };
 struct Streams {
 };
+template <typename T, typename R>
+struct MapHead {
+	Head<T> head;
+	F1R<T, R> mapper;
+};
+template <typename T>
+struct SingleHead {
+	T value;
+	/*=*/ false;
+};
+template <typename T, typename R>
+struct FlatMapHead {
+	Head<T> head;
+	F1R<T, Stream<R>> mapper;
+	Option<Stream<R>> maybeCurrent;
+};
+template <typename T>
+struct EmptyHead {
+};
+template <typename T>
+struct AnyMatch {
+	Predicate<T> predicate;
+};
 struct Main {
 	List<char*> globals;
 	List<char*> structures;
@@ -292,6 +304,21 @@ Option<T> next_Head(void* _this){
 	Head<T>* this = (Head<T>*) _this;
 	Option<T> _ret;
 	switch (this.variant) {
+		case HeadVariant.RangeHeadVariant:
+			_ret = next_RangeHead(&this.data.RangeHead);
+			break;
+		case HeadVariant.EmptyHeadVariant:
+			_ret = next_EmptyHead(&this.data.EmptyHead);
+			break;
+		case HeadVariant.FlatMapHeadVariant:
+			_ret = next_FlatMapHead(&this.data.FlatMapHead);
+			break;
+		case HeadVariant.MapHeadVariant:
+			_ret = next_MapHead(&this.data.MapHead);
+			break;
+		case HeadVariant.SingleHeadVariant:
+			_ret = next_SingleHead(&this.data.SingleHead);
+			break;
 	}
 	return _ret;
 }
@@ -598,98 +625,6 @@ C fold_Collector(void* _this, C c, T t){
 	switch (this.variant) {
 	}
 	return _ret;
-}
-template <typename T, typename R>
-Head<R> toHead_MapHead(void* _this){
-	MapHead<T, R> this = *((MapHead<T, R>*) _this);
-	HeadData<T, R> data;
-	data.MapHead = this;
-	return { HeadVariant.MapHeadVariant, data };
-}
-template <typename T, typename R>
-Option<R> next_MapHead(void* _this){
-	MapHead<T, R>* this = (MapHead<T, R>*) _this;
-	return this->head.next().map(this->mapper);
-}
-template <typename T>
-Head<T> toHead_SingleHead(void* _this){
-	SingleHead<T> this = *((SingleHead<T>*) _this);
-	HeadData<T> data;
-	data.SingleHead = this;
-	return { HeadVariant.SingleHeadVariant, data };
-}
-public SingleHead_SingleHead(void* _this, T value){
-	SingleHead<T>* this = (SingleHead<T>*) _this;
-	this->value = value;
-}
-template <typename T>
-Option<T> next_SingleHead(void* _this){
-	SingleHead<T>* this = (SingleHead<T>*) _this;
-	if (this->retrieved) {
-		return new_None<T>();
-	}
-	this->retrieved = true;
-	return new_Some<T>(this->value);
-}
-template <typename T, typename R>
-Head<R> toHead_FlatMapHead(void* _this){
-	FlatMapHead<T, R> this = *((FlatMapHead<T, R>*) _this);
-	HeadData<T, R> data;
-	data.FlatMapHead = this;
-	return { HeadVariant.FlatMapHeadVariant, data };
-}
-/*private Option<Stream<R>> maybeCurrent = Option.empty*/(){?
-}
-public FlatMapHead_FlatMapHead(void* _this, Head<T> head, F1R<T, Stream<R>> mapper){
-	FlatMapHead<T, R>* this = (FlatMapHead<T, R>*) _this;
-	this->head = head;
-	this->mapper = mapper;
-}
-template <typename T, typename R>
-Option<R> next_FlatMapHead(void* _this){
-	FlatMapHead<T, R>* this = (FlatMapHead<T, R>*) _this;
-	while (true) {
-		if (this->maybeCurrent.variant = ?.SomeVariant) {
-			var next = current.head.next();
-			if (next.variant = ?.SomeVariant) {
-				return next;
-			}
-		}
-		var maybeNext = this->head.next();
-		if (maybeNext.variant = ?.NoneVariant) {
-			return Option.empty();
-		}
-		this->maybeCurrent = maybeNext.map(this->mapper);
-	}
-}
-template <typename T>
-Head<T> toHead_EmptyHead(void* _this){
-	EmptyHead<T> this = *((EmptyHead<T>*) _this);
-	HeadData<T> data;
-	data.EmptyHead = this;
-	return { HeadVariant.EmptyHeadVariant, data };
-}
-template <typename T>
-Option<T> next_EmptyHead(void* _this){
-	EmptyHead<T>* this = (EmptyHead<T>*) _this;
-	return new_None<T>();
-}
-template <typename T>
-Collector<T, Boolean> toCollector_AnyMatch(void* _this){
-	AnyMatch<T> this = *((AnyMatch<T>*) _this);
-	CollectorData<T> data;
-	data.AnyMatch = this;
-	return { CollectorVariant.AnyMatchVariant, data };
-}
-template <typename T>
-Boolean createInitial_AnyMatch(void* _this){
-	AnyMatch<T>* this = (AnyMatch<T>*) _this;
-	return false;
-}
-template <typename T>
-Boolean fold_AnyMatch(void* _this, Boolean aBoolean, T t){
-	AnyMatch<T>* this = (AnyMatch<T>*) _this;
-	return aBoolean || this.predicate.test(t);
 }
 template <typename T, typename T>
 Stream<T> of_Stream(void* _this, T value){
@@ -1270,6 +1205,97 @@ Stream<T> fromArray_Streams(void* _this, T* elements){
 	Streams<T>* this = (Streams<T>*) _this;
 	return new_Stream<Integer>(new_RangeHead(elements.length)).map(lambda6);
 }
+template <typename T, typename R>
+Head<R> toHead_MapHead(void* _this){
+	MapHead<T, R> this = *((MapHead<T, R>*) _this);
+	HeadData<T, R> data;
+	data.MapHead = this;
+	return { HeadVariant.MapHeadVariant, data };
+}
+template <typename T, typename R>
+Option<R> next_MapHead(void* _this){
+	MapHead<T, R>* this = (MapHead<T, R>*) _this;
+	return this->head.next().map(this->mapper);
+}
+template <typename T>
+Head<T> toHead_SingleHead(void* _this){
+	SingleHead<T> this = *((SingleHead<T>*) _this);
+	HeadData<T> data;
+	data.SingleHead = this;
+	return { HeadVariant.SingleHeadVariant, data };
+}
+public SingleHead_SingleHead(void* _this, T value){
+	SingleHead<T>* this = (SingleHead<T>*) _this;
+	this->value = value;
+}
+template <typename T>
+Option<T> next_SingleHead(void* _this){
+	SingleHead<T>* this = (SingleHead<T>*) _this;
+	if (this->retrieved) {
+		return new_None<T>();
+	}
+	this->retrieved = true;
+	return new_Some<T>(this->value);
+}
+template <typename T, typename R>
+Head<R> toHead_FlatMapHead(void* _this){
+	FlatMapHead<T, R> this = *((FlatMapHead<T, R>*) _this);
+	HeadData<T, R> data;
+	data.FlatMapHead = this;
+	return { HeadVariant.FlatMapHeadVariant, data };
+}
+public FlatMapHead_FlatMapHead(void* _this, Head<T> head, F1R<T, Stream<R>> mapper){
+	FlatMapHead<T, R>* this = (FlatMapHead<T, R>*) _this;
+	this->head = head;
+	this->mapper = mapper;
+	this->maybeCurrent = Option.empty();
+}
+template <typename T, typename R>
+Option<R> next_FlatMapHead(void* _this){
+	FlatMapHead<T, R>* this = (FlatMapHead<T, R>*) _this;
+	while (true) {
+		if (this->maybeCurrent.variant = ?.SomeVariant) {
+			var next = current.head.next();
+			if (next.variant = ?.SomeVariant) {
+				return next;
+			}
+		}
+		var maybeNext = this->head.next();
+		if (maybeNext.variant = ?.NoneVariant) {
+			return Option.empty();
+		}
+		this->maybeCurrent = maybeNext.map(this->mapper);
+	}
+}
+template <typename T>
+Head<T> toHead_EmptyHead(void* _this){
+	EmptyHead<T> this = *((EmptyHead<T>*) _this);
+	HeadData<T> data;
+	data.EmptyHead = this;
+	return { HeadVariant.EmptyHeadVariant, data };
+}
+template <typename T>
+Option<T> next_EmptyHead(void* _this){
+	EmptyHead<T>* this = (EmptyHead<T>*) _this;
+	return new_None<T>();
+}
+template <typename T>
+Collector<T, Boolean> toCollector_AnyMatch(void* _this){
+	AnyMatch<T> this = *((AnyMatch<T>*) _this);
+	CollectorData<T> data;
+	data.AnyMatch = this;
+	return { CollectorVariant.AnyMatchVariant, data };
+}
+template <typename T>
+Boolean createInitial_AnyMatch(void* _this){
+	AnyMatch<T>* this = (AnyMatch<T>*) _this;
+	return false;
+}
+template <typename T>
+Boolean fold_AnyMatch(void* _this, Boolean aBoolean, T t){
+	AnyMatch<T>* this = (AnyMatch<T>*) _this;
+	return aBoolean || this.predicate.test(t);
+}
 public Main_Main(void* _this){
 	Main* this = (Main*) _this;
 	this->structures = new_JavaList<char*>();
@@ -1737,7 +1763,7 @@ Option<StructMember> compileEnumValues_Main(void* _this, char* input, char* stru
 	if (!enumValues.isEmpty()) {
 		var optionStream = enumValues.stream().map(lambda32);
 		var areAnyInvalid = /*
-					(boolean) optionStream.collect(new Stream.AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>))*/;
+					(boolean) optionStream.collect(new AnyMatch<Option<StructMember>>(option -> option instanceof None<StructMember>))*/;
 		if (areAnyInvalid) {
 			return new_None<StructMember>();
 		}
