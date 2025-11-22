@@ -1005,18 +1005,24 @@ public class Main {
 		final var i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
 			final var name = stripped.substring(0, i1).strip();
-			final var withBraces = stripped.substring(i1 + 2).strip();
+			final var maybeWithBraces = stripped.substring(i1 + 2).strip();
 			if (this.isIdentifier(name)) {
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var content = withBraces.substring(1, withBraces.length() - 1);
+				if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+					final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
 					final var compiled = this.compileMethodsSegments(content, 1);
 
-					final var generatedName = "lambda" + this.counter;
-					this.counter++;
+					final var generatedName = this.generateName();
 
 					this.functions.add(
 							"auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" +
 							System.lineSeparator());
+					return Option.of(generatedName);
+				} else {
+					final var generatedName = this.generateName();
+
+					this.functions.add("auto " + generatedName + "(void* _this, auto " + name + "){" +
+														 this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+														 System.lineSeparator() + "}" + System.lineSeparator());
 					return Option.of(generatedName);
 				}
 			}
@@ -1074,6 +1080,12 @@ public class Main {
 		}
 
 		return Option.empty();
+	}
+
+	private String generateName() {
+		final var generatedName = "lambda" + this.counter;
+		this.counter++;
+		return generatedName;
 	}
 
 	private Option<String> compileOperator(String input, String operator) {
