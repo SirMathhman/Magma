@@ -98,7 +98,7 @@ struct StructMember {
 	StructMemberData data;
 };
 struct FolderTable {
-	State (*apply)(void*, State, Character);
+	State (*apply)(void*, State, char);
 };
 struct Folder {
 	FolderTable table;
@@ -404,7 +404,7 @@ char* generate_StructMember(void* _this){
 	}
 	return _ret;
 }
-State apply_Folder(void* _this, State state, Character character){
+State apply_Folder(void* _this, State state, char character){
 	Folder* this = (Folder*) _this;
 	State _ret;
 	switch (this.variant) {
@@ -451,12 +451,12 @@ boolean isLevel_State(void* _this){
 	State* this = (State*) _this;
 	return this->depth == 0;
 }
-State append_State(void* _this, Character next){
+State append_State(void* _this, char next){
 	State* this = (State*) _this;
 	this->buffer.append(next);
 	return this;
 }
-Option<Character> pop_State(void* _this){
+Option<char> pop_State(void* _this){
 	State* this = (State*) _this;
 	if (this->index < this.input.length()) {
 		var value = this->input.charAt(this->index);
@@ -489,9 +489,9 @@ Stream<char*> stream_State(void* _this){
 }
 auto lambda0(void* _this, auto popped){
 	var appended = this->append(popped);
-	return new_Tuple<State, Character>(appended, popped);
+	return new_Tuple<State, char>(appended, popped);
 }
-Option<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
+Option<Tuple<State, char>> popAndAppendToTuple_State(void* _this){
 	State* this = (State*) _this;
 	return this->pop().map(lambda0);
 }
@@ -502,7 +502,7 @@ Option<State> popAndAppendToOption_State(void* _this){
 	State* this = (State*) _this;
 	return this->popAndAppendToTuple().map(lambda1);
 }
-Option<Character> peek_State(void* _this){
+Option<char> peek_State(void* _this){
 	State* this = (State*) _this;
 	if (this->index < this.input.length()) {
 		return Option.of(this->input.charAt(this->index));
@@ -646,7 +646,7 @@ auto lambda2(void* _this, auto tuple){
 	}
 	return tuple.left;
 }
-State apply_EscapedFolder(void* _this, State state, Character next){
+State apply_EscapedFolder(void* _this, State state, char next){
 	EscapedFolder* this = (EscapedFolder*) _this;
 	if (next == '\'') {
 		var appended = state.append(next);
@@ -678,7 +678,7 @@ Folder toFolder_ValueFolder(void* _this){
 	data.ValueFolder = this;
 	return { FolderVariant.ValueFolderVariant, data };
 }
-State apply_ValueFolder(void* _this, State state, Character next){
+State apply_ValueFolder(void* _this, State state, char next){
 	ValueFolder* this = (ValueFolder*) _this;
 	if (next == ',' && state.isLevel()) {
 		return state.advance();
@@ -781,7 +781,7 @@ Folder toFolder_ConditionEndLocator(void* _this){
 	data.ConditionEndLocator = this;
 	return { FolderVariant.ConditionEndLocatorVariant, data };
 }
-State apply_ConditionEndLocator(void* _this, State state, Character c){
+State apply_ConditionEndLocator(void* _this, State state, char c){
 	ConditionEndLocator* this = (ConditionEndLocator*) _this;
 	var appended = state.append(c);
 	if (c == '(') {
@@ -881,13 +881,13 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 		if (!(maybeNext.variant = ?.SomeVariant)) {
 			break;
 		}
-		Character next;
+		char next;
 		next = value;
 		current = folder.apply(current, next);
 	}
 	return current.advance().stream();
 }
-State foldStatement_Main(void* _this, State current, Character next){
+State foldStatement_Main(void* _this, State current, char next){
 	Main* this = (Main*) _this;
 	if (next == '/' && current.isLevel()) {
 		var maybePeeked = current.peek();
@@ -1754,6 +1754,9 @@ Type parseType_Main(void* _this, char* input){
 			var list = this->divide(parameters, new_ValueFolder()).map(F? { alloc(this), F?Table { parseType }}).toList();
 			return new_TemplateType(base, list);
 		}
+	}
+	if (stripped.equals("Character")) {
+		return PrimitiveType.Char;
 	}
 	if (this->isIdentifier(stripped)) {
 		return new_Identifier(stripped);

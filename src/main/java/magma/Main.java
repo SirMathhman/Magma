@@ -714,8 +714,7 @@ public class Main {
 
 			final var unionFields = variants
 					.stream()
-					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant +
-													";")
+					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";")
 					.collect(Collectors.joining());
 
 			final var generatedUnion =
@@ -732,8 +731,8 @@ public class Main {
 
 			final var tableMembers =
 					members.stream().map(StructMember::generate).map(this::generateStatement).collect(Collectors.joining(""));
-			final var vTable = templateString + "struct " + name + "Table {" + tableMembers +
-												 System.lineSeparator() + "};" + System.lineSeparator();
+			final var vTable = templateString + "struct " + name + "Table {" + tableMembers + System.lineSeparator() + "};" +
+												 System.lineSeparator();
 
 			dependencies.append(vTable);
 			fields.append(table + data);
@@ -1528,6 +1527,10 @@ public class Main {
 
 				return new TemplateType(base, list);
 			}
+		}
+
+		if (stripped.equals("Character")) {
+			return PrimitiveType.Char;
 		}
 
 		if (this.isIdentifier(stripped)) {
