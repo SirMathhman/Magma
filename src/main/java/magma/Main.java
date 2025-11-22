@@ -10,6 +10,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Main {
@@ -663,9 +664,8 @@ public class Main {
 
 		var fields = "";
 		var dependencies = new StringBuilder();
-		for (var implementee : implementees) {
+		implementees.stream().map(implementee -> {
 			final var identifier = implementee.toBaseName();
-
 			final var variant = identifier + "Variant" + "." + name + "Variant";
 			final var thisType = name + joinedTypeParameters;
 			final var conversionFunctionContent = this.generateStatement(thisType + " this = *((" + thisType + "*) _this)") +
@@ -673,13 +673,9 @@ public class Main {
 																								identifier + "Data" + joinedTypeParameters + " data") +
 																						this.generateStatement("data." + name + " = this") +
 																						this.generateStatement("return { " + variant + ", data }");
-
-			final var conversionFunction =
-					templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
-					conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
-
-			this.functions.add(conversionFunction);
-		}
+			return templateString + implementee.generate() + " to" + identifier + "_" + name + "(void* _this){" +
+						 conversionFunctionContent + System.lineSeparator() + "}" + System.lineSeparator();
+		}).forEach(this.functions::add);
 
 		final var joinedRecordFields =
 				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(Collectors.joining());
@@ -772,13 +768,10 @@ public class Main {
 
 	private boolean isIdentifier(String input) {
 		final var stripped = input.strip();
-		for (var i = 0; i < stripped.length(); i++) {
+		return IntStream.range(0, stripped.length()).allMatch(i -> {
 			final var c = stripped.charAt(i);
-			if (Character.isLetter(c) || (i != 0 && Character.isDigit(c))) {continue;}
-			return false;
-		}
-
-		return true;
+			return Character.isLetter(c) || (i != 0 && Character.isDigit(c));
+		});
 	}
 
 	private Option<StructMember> compileClassSegment(String input,
@@ -948,28 +941,40 @@ public class Main {
 				.toList();
 
 		if (!enumValues.isEmpty()) {
-			for (var enumValue : enumValues) {
-				if (enumValue.endsWith(")")) {
-					final var substring = enumValue.substring(0, enumValue.length() - 1);
-					final var i = substring.indexOf("(");
-					if (i >= 0) {
-						final var name = substring.substring(0, i);
-						if (!this.isIdentifier(name)) {
-							return Option.empty();
-						}
+			final var areAnyInvalid = enumValues
+					.stream()
+					.map(enumValue -> this.compileEnumValue(structName, enumValue))
+					.anyMatch(option -> option instanceof None<StructMember>);
 
-						final var substring2 = substring.substring(i + 1);
-						final var generated =
-								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
-								System.lineSeparator();
-
-						this.globals.add(generated);
-					}
-				}
+			if (areAnyInvalid) {
+				return new None<StructMember>();
 			}
 		}
 
 		return Option.of(new EmptyStructMember());
+	}
+
+	private Option<StructMember> compileEnumValue(String structName, String enumValue) {
+		if (enumValue.endsWith(")")) {
+			final var substring = enumValue.substring(0, enumValue.length() - 1);
+			final var i = substring.indexOf("(");
+			if (i >= 0) {
+				final var name = substring.substring(0, i);
+				if (!this.isIdentifier(name)) {
+					return Option.empty();
+				}
+
+				final var substring2 = substring.substring(i + 1);
+				final var generated =
+						structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
+						System.lineSeparator();
+
+				this.globals.add(generated);
+				return Option.of(new EmptyStructMember());
+			}
+		}
+
+		return new None<StructMember>();
 	}
 
 	private String compileMethodSegment(String input, int indent) {
@@ -1266,21 +1271,7 @@ public class Main {
 		if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 
-			var callerStart = -1;
-			var depth = 0;
-			for (var i = 0; i < withoutEnd.length(); i++) {
-				final var c = withoutEnd.charAt(i);
-				if (c == '(') {
-					if (depth == 0) {
-						callerStart = i;
-					}
-
-					depth++;
-				}
-				if (c == ')') {
-					depth--;
-				}
-			}
+			final var callerStart = this.findCallerStart(withoutEnd);
 
 			if (callerStart >= 0) {
 				final var callerString = withoutEnd.substring(0, callerStart);
@@ -1300,16 +1291,29 @@ public class Main {
 		return Option.empty();
 	}
 
-	private boolean isNumber(String input) {
-		for (var i = 0; i < input.length(); i++) {
-			final var c = input.charAt(i);
-			if (Character.isDigit(c)) {
-				continue;
-			}
-			return false;
-		}
+	private int findCallerStart(String withoutEnd) {
+		var callerStart = -1;
+		var depth = 0;
+		var i = 0;
+		while (i < withoutEnd.length()) {
+			final var c = withoutEnd.charAt(i);
+			if (c == '(') {
+				if (depth == 0) {
+					callerStart = i;
+				}
 
-		return true;
+				depth++;
+			}
+			if (c == ')') {
+				depth--;
+			}
+			i++;
+		}
+		return callerStart;
+	}
+
+	private boolean isNumber(String input) {
+		return IntStream.range(0, input.length()).mapToObj(input::charAt).allMatch(Character::isDigit);
 	}
 
 	private Option<String> compileCaller(String input) {
@@ -1334,20 +1338,7 @@ public class Main {
 			final var beforeName = stripped.substring(0, nameSeparator).strip();
 			final var name = stripped.substring(nameSeparator + 1).strip();
 
-			var typeSeparator = -1;
-			var depth = 0;
-			for (var i = 0; i < beforeName.length(); i++) {
-				final var c = beforeName.charAt(i);
-				if (c == ' ' && depth == 0) {
-					typeSeparator = i;
-				}
-				if (c == '<') {
-					depth++;
-				}
-				if (c == '>') {
-					depth--;
-				}
-			}
+			final var typeSeparator = this.findTypeSeparator(beforeName);
 
 			if (!this.isIdentifier(name)) {
 				return Option.empty();
@@ -1395,6 +1386,26 @@ public class Main {
 		}
 
 		return Option.empty();
+	}
+
+	private int findTypeSeparator(String beforeName) {
+		var typeSeparator = -1;
+		var depth = 0;
+		var i = 0;
+		while (i < beforeName.length()) {
+			final var c = beforeName.charAt(i);
+			if (c == ' ' && depth == 0) {
+				typeSeparator = i;
+			}
+			if (c == '<') {
+				depth++;
+			}
+			if (c == '>') {
+				depth--;
+			}
+			i++;
+		}
+		return typeSeparator;
 	}
 
 	private String compileType(String input) {
