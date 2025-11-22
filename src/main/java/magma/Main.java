@@ -1154,93 +1154,103 @@ public class Main {
 			}
 		}
 
-		final var i = stripped.indexOf("(");
-		if (i >= 0) {
-			final var declarationString = stripped.substring(0, i);
-			final var substring1 = stripped.substring(i + 1);
-			final var i1 = substring1.indexOf(")");
-			if (i1 >= 0) {
-				final var parametersString = substring1.substring(0, i1);
-				final var withBraces = substring1.substring(i1 + 1).strip();
-
-				var parameters = this
-						.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
-						.map(String::strip)
-						.filter(slice -> !slice.isEmpty())
-						.toList()
-						.stream()
-						.map(param -> this.parseDeclaration(param, typeParameters))
-						.flatMap(Option::stream)
-						.toList();
-
-				final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
-
-				Option<String> maybeCompiled = Option.empty();
-				if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
-					final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
-
-					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
-					this.functions = this.functions.addLast(
-							modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
-					return new Some<StructMember>(new EmptyStructMember());
-				}
-
-				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-					final var inputContent = withBraces.substring(1, withBraces.length() - 1);
-					maybeCompiled = Option.of(this.compileMethodsSegments(inputContent, 1));
-				}
-
-				String outputContent;
-				if (methodDeclaration instanceof Constructor) {
-					final var compiled = maybeCompiled.orElse("?");
-					outputContent =
-							this.generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
-				} else if (methodDeclaration instanceof Declaration declaration) {
-					parameters = parameters.addFirst(new Declaration("void*", "_ref"));
-
-					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
-
-					final var thisInitialization = this.generateStatement(
-							structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-
-					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
-						final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
-
-						final var cases = variants
-								.stream()
-								.map(variant -> this.generateCase(structName, declaration, variant))
-								.collect(new Joiner());
-
-						return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
-									 generateIndent(1) + "}" + this.generateStatement("return _ret");
-					});
-				} else {
-					outputContent = "?";
-				}
-
-				final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
-
-				final var modifiedMethodDeclaration = switch (methodDeclaration) {
-					case Constructor constructor -> constructor;
-					case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
-					case Placeholder placeholder -> placeholder;
-				};
-
-				final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
-				final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
-				this.functions = this.functions.addLast(generated);
-
-				final var parameterTypes = parameters.stream().map(Declaration::type).toList();
-
-				return switch (methodDeclaration) {
-					case Constructor _ -> Option.empty();
-					case Declaration member -> Option.of(new F1RDeclaration(member.type, member.name, parameterTypes));
-					case Placeholder placeholder -> Option.of(placeholder);
-				};
-			}
+		final var maybeMethod = this.compileMethod(structName, typeParameters, variants, stripped);
+		if (maybeMethod instanceof Some<StructMember>) {
+			return maybeMethod;
 		}
 
 		return Option.of(new Placeholder(stripped));
+	}
+
+	private Option<StructMember> compileMethod(String structName,
+																						 List<String> typeParameters,
+																						 List<String> variants,
+																						 String input) {
+		final var i = input.indexOf("(");
+		if (i < 0) {return new None<StructMember>();}
+
+		final var declarationString = input.substring(0, i);
+		final var substring1 = input.substring(i + 1);
+		final var i1 = substring1.indexOf(")");
+		if (i1 < 0) {return new None<StructMember>();}
+		final var parametersString = substring1.substring(0, i1);
+		final var withBraces = substring1.substring(i1 + 1).strip();
+
+		var parameters = this
+				.divide(parametersString, (state, character) -> new ValueFolder().apply(state, character))
+				.map(String::strip)
+				.filter(slice -> !slice.isEmpty())
+				.toList()
+				.stream()
+				.map(param -> this.parseDeclaration(param, typeParameters))
+				.flatMap(Option::stream)
+				.toList();
+
+		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName, typeParameters);
+
+		Option<String> maybeCompiled = Option.empty();
+		if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
+			final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
+
+			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
+			this.functions = this.functions.addLast(
+					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+			return new Some<StructMember>(new EmptyStructMember());
+		}
+
+		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+			final var inputContent = withBraces.substring(1, withBraces.length() - 1);
+			maybeCompiled = Option.of(this.compileMethodsSegments(inputContent, 1));
+		}
+
+		String outputContent;
+		if (methodDeclaration instanceof Constructor) {
+			final var compiled = maybeCompiled.orElse("?");
+			outputContent =
+					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
+		} else if (methodDeclaration instanceof Declaration declaration) {
+			parameters = parameters.addFirst(new Declaration("void*", "_ref"));
+
+			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
+
+			final var thisInitialization = this.generateStatement(
+					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+
+			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
+				final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
+
+				final var cases = variants
+						.stream()
+						.map(variant -> this.generateCase(structName, declaration, variant))
+						.collect(new Joiner());
+
+				return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+							 generateIndent(1) + "}" + this.generateStatement("return _ret");
+			});
+		} else {
+			outputContent = "?";
+		}
+
+		final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
+
+		final var modifiedMethodDeclaration = switch (methodDeclaration) {
+			case Constructor constructor -> constructor;
+			case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
+			case Placeholder placeholder -> placeholder;
+		};
+
+		final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
+		final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+		this.functions = this.functions.addLast(generated);
+
+		final var parameterTypes = parameters.stream().map(Declaration::type).toList();
+
+		return switch (methodDeclaration) {
+			case Constructor _ -> Option.empty();
+			case Declaration member -> Option.of(new F1RDeclaration(member.type, member.name, parameterTypes));
+			case Placeholder placeholder -> Option.of(placeholder);
+		};
+
 	}
 
 	private String compileMethodsSegments(String inputContent, int indent) {
@@ -1249,7 +1259,7 @@ public class Main {
 
 	private String generateCase(String structName, Declaration declaration, String variant) {
 		return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" +
-					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") +
+					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this.data." + variant + ")") +
 					 generateStatement(3, "break");
 	}
 

@@ -1,5 +1,5 @@
 struct PrimitiveType {
-	char* content;
+	char* content;/*PrimitiveType(String content) {this.content = content;}*/
 };
 enum HeadVariant {
 	RangeHeadVariant,
@@ -312,19 +312,19 @@ Option<T> next_Head(void* _ref){
 	Option<T> _ret;
 	switch (this.variant) {
 		case HeadVariant.RangeHeadVariant:
-			_ret = next_RangeHead(&this.data.RangeHead);
+			_ret = next_RangeHead(_this.data.RangeHead);
 			break;
 		case HeadVariant.EmptyHeadVariant:
-			_ret = next_EmptyHead(&this.data.EmptyHead);
+			_ret = next_EmptyHead(_this.data.EmptyHead);
 			break;
 		case HeadVariant.FlatMapHeadVariant:
-			_ret = next_FlatMapHead(&this.data.FlatMapHead);
+			_ret = next_FlatMapHead(_this.data.FlatMapHead);
 			break;
 		case HeadVariant.MapHeadVariant:
-			_ret = next_MapHead(&this.data.MapHead);
+			_ret = next_MapHead(_this.data.MapHead);
 			break;
 		case HeadVariant.SingleHeadVariant:
-			_ret = next_SingleHead(&this.data.SingleHead);
+			_ret = next_SingleHead(_this.data.SingleHead);
 			break;
 	}
 	return _ret;
@@ -422,10 +422,10 @@ Option<R> map_Option(void* _ref, F1R<T, R> mapper){
 	Option<R> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = map_None(&this.data.None);
+			_ret = map_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = map_Some(&this.data.Some);
+			_ret = map_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -435,10 +435,10 @@ T orElse_Option(void* _ref, T other){
 	T _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = orElse_None(&this.data.None);
+			_ret = orElse_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = orElse_Some(&this.data.Some);
+			_ret = orElse_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -449,10 +449,10 @@ Option<R> flatMap_Option(void* _ref, F1R<T, Option<R>> mapper){
 	Option<R> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = flatMap_None(&this.data.None);
+			_ret = flatMap_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = flatMap_Some(&this.data.Some);
+			_ret = flatMap_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -462,10 +462,10 @@ T orElseGet_Option(void* _ref, FR<T> other){
 	T _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = orElseGet_None(&this.data.None);
+			_ret = orElseGet_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = orElseGet_Some(&this.data.Some);
+			_ret = orElseGet_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -475,10 +475,10 @@ Stream<T> stream_Option(void* _ref){
 	Stream<T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = stream_None(&this.data.None);
+			_ret = stream_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = stream_Some(&this.data.Some);
+			_ret = stream_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -488,10 +488,10 @@ Option<T> or_Option(void* _ref, FR<Option<T>> other){
 	Option<T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = or_None(&this.data.None);
+			_ret = or_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = or_Some(&this.data.Some);
+			_ret = or_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -501,10 +501,10 @@ Tuple<Boolean, T> toTuple_Option(void* _ref, Supplier<T> other){
 	Tuple<Boolean, T> _ret;
 	switch (this.variant) {
 		case OptionVariant.NoneVariant:
-			_ret = toTuple_None(&this.data.None);
+			_ret = toTuple_None(_this.data.None);
 			break;
 		case OptionVariant.SomeVariant:
-			_ret = toTuple_Some(&this.data.Some);
+			_ret = toTuple_Some(_this.data.Some);
 			break;
 	}
 	return _ret;
@@ -522,10 +522,10 @@ Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
 	Result<R, X> _ret;
 	switch (this.variant) {
 		case ResultVariant.ErrVariant:
-			_ret = mapValue_Err(&this.data.Err);
+			_ret = mapValue_Err(_this.data.Err);
 			break;
 		case ResultVariant.OkVariant:
-			_ret = mapValue_Ok(&this.data.Ok);
+			_ret = mapValue_Ok(_this.data.Ok);
 			break;
 	}
 	return _ret;
@@ -535,19 +535,19 @@ char* generate_Type(void* _ref){
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = generate_Identifier(&this.data.Identifier);
+			_ret = generate_Identifier(_this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = generate_Placeholder(&this.data.Placeholder);
+			_ret = generate_Placeholder(_this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = generate_PointerType(&this.data.PointerType);
+			_ret = generate_PointerType(_this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = generate_PrimitiveType(&this.data.PrimitiveType);
+			_ret = generate_PrimitiveType(_this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = generate_TemplateType(&this.data.TemplateType);
+			_ret = generate_TemplateType(_this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -557,19 +557,19 @@ char* toBaseName_Type(void* _ref){
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
-			_ret = toBaseName_Identifier(&this.data.Identifier);
+			_ret = toBaseName_Identifier(_this.data.Identifier);
 			break;
 		case TypeVariant.PlaceholderVariant:
-			_ret = toBaseName_Placeholder(&this.data.Placeholder);
+			_ret = toBaseName_Placeholder(_this.data.Placeholder);
 			break;
 		case TypeVariant.PointerTypeVariant:
-			_ret = toBaseName_PointerType(&this.data.PointerType);
+			_ret = toBaseName_PointerType(_this.data.PointerType);
 			break;
 		case TypeVariant.PrimitiveTypeVariant:
-			_ret = toBaseName_PrimitiveType(&this.data.PrimitiveType);
+			_ret = toBaseName_PrimitiveType(_this.data.PrimitiveType);
 			break;
 		case TypeVariant.TemplateTypeVariant:
-			_ret = toBaseName_TemplateType(&this.data.TemplateType);
+			_ret = toBaseName_TemplateType(_this.data.TemplateType);
 			break;
 	}
 	return _ret;
@@ -579,13 +579,13 @@ char* generate_MethodDeclaration(void* _ref){
 	char* _ret;
 	switch (this.variant) {
 		case MethodDeclarationVariant.ConstructorVariant:
-			_ret = generate_Constructor(&this.data.Constructor);
+			_ret = generate_Constructor(_this.data.Constructor);
 			break;
 		case MethodDeclarationVariant.DeclarationVariant:
-			_ret = generate_Declaration(&this.data.Declaration);
+			_ret = generate_Declaration(_this.data.Declaration);
 			break;
 		case MethodDeclarationVariant.PlaceholderVariant:
-			_ret = generate_Placeholder(&this.data.Placeholder);
+			_ret = generate_Placeholder(_this.data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -595,19 +595,19 @@ char* generate_StructMember(void* _ref){
 	char* _ret;
 	switch (this.variant) {
 		case StructMemberVariant.DeclarationVariant:
-			_ret = generate_Declaration(&this.data.Declaration);
+			_ret = generate_Declaration(_this.data.Declaration);
 			break;
 		case StructMemberVariant.EmptyStructMemberVariant:
-			_ret = generate_EmptyStructMember(&this.data.EmptyStructMember);
+			_ret = generate_EmptyStructMember(_this.data.EmptyStructMember);
 			break;
 		case StructMemberVariant.FieldVariant:
-			_ret = generate_Field(&this.data.Field);
+			_ret = generate_Field(_this.data.Field);
 			break;
 		case StructMemberVariant.F1RDeclarationVariant:
-			_ret = generate_F1RDeclaration(&this.data.F1RDeclaration);
+			_ret = generate_F1RDeclaration(_this.data.F1RDeclaration);
 			break;
 		case StructMemberVariant.PlaceholderVariant:
-			_ret = generate_Placeholder(&this.data.Placeholder);
+			_ret = generate_Placeholder(_this.data.Placeholder);
 			break;
 	}
 	return _ret;
@@ -1672,26 +1672,6 @@ boolean isIdentifier_Main(void* _ref, char* input){
 	var stripped = input.strip();
 	return IntStream.range(0, stripped.length()).allMatch(lambda21);
 }
-auto lambda22(void* _ref, auto param){
-	return _this->parseDeclaration(param, typeParameters);
-}
-auto lambda23(void* _ref, auto slice){
-	return !slice.isEmpty();
-}
-auto lambda24(void* _ref, auto (state, character)){
-	return new_ValueFolder().apply(state, character);
-}
-auto lambda25(void* _ref, auto name){
-	return name + "_" + structName;
-}
-auto lambda26(void* _ref, auto variant){
-	return _this->generateCase(structName, declaration, variant);
-}
-auto lambda27(void* _ref){
-	var returnValueDefinition = _this->generateStatement(declaration.type + " _ret");
-	var cases = variants.stream().map(lambda26).collect(new_Joiner());
-	return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases + generateIndent(1) + "}" + this.generateStatement("return _ret");
-}
 Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants){
 	Main* _this = (Main*) _ref;
 	var stripped = input.strip();
@@ -1725,52 +1705,81 @@ Option<StructMember> compileClassSegment_Main(void* _ref, char* input, char* str
 			return new_Some<StructMember>(new_Field(declaration));
 		}
 	}
-	var i = stripped.indexOf("(");
-	if (i >= 0) {
-		var declarationString = stripped.substring(0, i);
-		var substring1 = stripped.substring(i + 1);
-		var i1 = substring1.indexOf(")");
-		if (i1 >= 0) {
-			var parametersString = substring1.substring(0, i1);
-			var withBraces = substring1.substring(i1 + 1).strip();
-			var parameters = _this->divide(parametersString, lambda24).map(F? { alloc(String), F?Table { strip }}).filter(lambda23).toList().stream().map(lambda22).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
-			var methodDeclaration = _this->parseMethodDeclaration(declarationString, structName, typeParameters);
-			Option<char*> maybeCompiled = Option.empty();
-			if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
-				var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
-				var modifiedMethodDeclaration = declaration.mapName(lambda25);
-				_this->functions = _this->functions.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
-				return new_Some<StructMember>(new_EmptyStructMember());
-			}
-			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-				var inputContent = withBraces.substring(1, withBraces.length() - 1);
-				maybeCompiled = Option.of(_this->compileMethodsSegments(inputContent, 1));
-			}
-			char* outputContent;
-			if (methodDeclaration.variant = ?.ConstructorVariant) {
-				var compiled = maybeCompiled.orElse("?");
-				outputContent = _this->generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
-			}
-			else 
-			if (methodDeclaration.variant = ?.Declaration declarationVariant) {
-				parameters = parameters.addFirst(new_Declaration("void*", "_ref"));
-				var joinedTypeParameters = _this->joinTypeParameters(typeParameters);
-				var thisInitialization = _this->generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
-				outputContent = thisInitialization + maybeCompiled.orElseGet(lambda27);
-			}
-			else {
-				outputContent = "?";
-			}
-			var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
-			var modifiedMethodDeclaration = _switch;
-			var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
-			var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
-			_this->functions = _this->functions.addLast(generated);
-			var parameterTypes = parameters.stream().map(F? { alloc(Declaration), F?Table { type }}).toList();
-			return _switch;
-		}
+	var maybeMethod = _this->compileMethod(structName, typeParameters, variants, stripped);
+	if (maybeMethod.variant = ?.SomeVariant) {
+		return maybeMethod;
 	}
 	return Option.of(new_Placeholder(stripped));
+}
+auto lambda22(void* _ref, auto param){
+	return _this->parseDeclaration(param, typeParameters);
+}
+auto lambda23(void* _ref, auto slice){
+	return !slice.isEmpty();
+}
+auto lambda24(void* _ref, auto (state, character)){
+	return new_ValueFolder().apply(state, character);
+}
+auto lambda25(void* _ref, auto name){
+	return name + "_" + structName;
+}
+auto lambda26(void* _ref, auto variant){
+	return _this->generateCase(structName, declaration, variant);
+}
+auto lambda27(void* _ref){
+	var returnValueDefinition = _this->generateStatement(declaration.type + " _ret");
+	var cases = variants.stream().map(lambda26).collect(new_Joiner());
+	return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases + generateIndent(1) + "}" + this.generateStatement("return _ret");
+}
+Option<StructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
+	Main* _this = (Main*) _ref;
+	var i = input.indexOf("(");
+	if (i < 0) {
+		return new_None<StructMember>();
+	}
+	var declarationString = input.substring(0, i);
+	var substring1 = input.substring(i + 1);
+	var i1 = substring1.indexOf(")");
+	if (i1 < 0) {
+		return new_None<StructMember>();
+	}
+	var parametersString = substring1.substring(0, i1);
+	var withBraces = substring1.substring(i1 + 1).strip();
+	var parameters = _this->divide(parametersString, lambda24).map(F? { alloc(String), F?Table { strip }}).filter(lambda23).toList().stream().map(lambda22).flatMap(F? { alloc(Option), F?Table { stream }}).toList();
+	var methodDeclaration = _this->parseMethodDeclaration(declarationString, structName, typeParameters);
+	Option<char*> maybeCompiled = Option.empty();
+	if (methodDeclaration.variant = ?.Declaration declaration && declaration.annotations.contains("Actual")Variant) {
+		var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
+		var modifiedMethodDeclaration = declaration.mapName(lambda25);
+		_this->functions = _this->functions.addLast(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+		return new_Some<StructMember>(new_EmptyStructMember());
+	}
+	if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+		var inputContent = withBraces.substring(1, withBraces.length() - 1);
+		maybeCompiled = Option.of(_this->compileMethodsSegments(inputContent, 1));
+	}
+	char* outputContent;
+	if (methodDeclaration.variant = ?.ConstructorVariant) {
+		var compiled = maybeCompiled.orElse("?");
+		outputContent = _this->generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
+	}
+	else 
+	if (methodDeclaration.variant = ?.Declaration declarationVariant) {
+		parameters = parameters.addFirst(new_Declaration("void*", "_ref"));
+		var joinedTypeParameters = _this->joinTypeParameters(typeParameters);
+		var thisInitialization = _this->generateStatement(structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
+		outputContent = thisInitialization + maybeCompiled.orElseGet(lambda27);
+	}
+	else {
+		outputContent = "?";
+	}
+	var compiledParameters = parameters.stream().map(F? { alloc(Declaration), F?Table { generate }}).collect(new_Joiner(", "));
+	var modifiedMethodDeclaration = _switch;
+	var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
+	var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
+	_this->functions = _this->functions.addLast(generated);
+	var parameterTypes = parameters.stream().map(F? { alloc(Declaration), F?Table { type }}).toList();
+	return _switch;
 }
 auto lambda28(void* _ref, auto input){
 	return _this->compileMethodSegment(input, indent);
@@ -1781,7 +1790,7 @@ char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent){
 }
 char* generateCase_Main(void* _ref, char* structName, Declaration declaration, char* variant){
 	Main* _this = (Main*) _ref;
-	return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&this.data." + variant + ")") + generateStatement(3, "break");
+	return generateIndent(2) + "case " + structName + "Variant." + variant + "Variant:" + generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(_this.data." + variant + ")") + generateStatement(3, "break");
 }
 auto lambda29(void* _ref, auto ()){
 	return new_Placeholder(declaration);
