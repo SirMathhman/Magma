@@ -30,7 +30,7 @@ public class Main {
 
 		@Override
 		public String toIdentifier() {
-			return this.name().toLowerCase();
+			return this.content;
 		}
 	}
 

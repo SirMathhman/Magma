@@ -23,7 +23,7 @@ PrimitiveType new_PrimitiveType(char* content){
 /*@Override
 		public*/ char* toIdentifier_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
-	return /*this.name().toLowerCase()*/;
+	return this.content;
 }
 /*}*/enum ResultVariant {
 	ErrVariant, 
