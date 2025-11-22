@@ -51,7 +51,7 @@ public class Main {
 		String generate();
 	}
 
-	private interface StructMember {
+	private sealed interface StructMember permits FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -421,7 +421,7 @@ public class Main {
 			final var enumFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
-					.collect(Collectors.joining(", "));
+					.collect(Collectors.joining(","));
 
 			final var generatedEnum =
 					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();

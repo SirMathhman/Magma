@@ -10,7 +10,7 @@ struct F1R {
 	void* data;
 };
 enum ResultVariant {
-	ErrVariant, 
+	ErrVariant,
 	OkVariant
 };
 template <typename T, typename X>
@@ -24,10 +24,10 @@ struct Result {
 	ResultData data;
 };
 enum TypeVariant {
-	IdentifierVariant, 
-	PlaceholderVariant, 
-	PointerTypeVariant, 
-	PrimitiveTypeVariant, 
+	IdentifierVariant,
+	PlaceholderVariant,
+	PointerTypeVariant,
+	PrimitiveTypeVariant,
 	TemplateTypeVariant
 };
 union TypeData {
@@ -42,8 +42,8 @@ struct Type {
 	TypeData data;
 };
 enum MethodDeclarationVariant {
-	ConstructorVariant, 
-	DeclarationVariant, 
+	ConstructorVariant,
+	DeclarationVariant,
 	PlaceholderVariant
 };
 union MethodDeclarationData {
@@ -55,12 +55,17 @@ struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-struct StructMemberTable {
-	char* (*generate)(void*);
+enum StructMemberVariant {
+	FunctionDeclarationVariant,
+	PlaceholderVariant
+};
+union StructMemberData {
+	FunctionDeclarationData FunctionDeclaration;
+	PlaceholderData Placeholder;
 };
 struct StructMember {
-	StructMemberTable table;
-	void* data;
+	StructMemberVariant variant;
+	StructMemberData data;
 };
 template <typename T, typename X>
 struct Err {
@@ -249,6 +254,12 @@ char* generate_StructMember(void* _this){
 	StructMember this = *((StructMember*) _this);
 	char* _ret;
 	switch (this.variant) {
+		case StructMemberVariant.FunctionDeclarationVariant:
+			_ret = generate_FunctionDeclaration(&this.data.FunctionDeclaration);
+			break;
+		case StructMemberVariant.PlaceholderVariant:
+			_ret = generate_Placeholder(&this.data.Placeholder);
+			break;
 	}
 	return _ret;
 }
@@ -677,7 +688,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 		String generate();
 	}
 
-	private interface StructMember {
+	private sealed interface StructMember permits FunctionDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -1043,7 +1054,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			final var enumFields = variants
 					.stream()
 					.map(variant -> System.lineSeparator() + "\t" + variant + "Variant")
-					.collect(Collectors.joining(", "));
+					.collect(Collectors.joining(","));
 
 			final var generatedEnum =
 					"enum " + name + "Variant {" + enumFields + System.lineSeparator() + "};" + System.lineSeparator();
@@ -1074,7 +1085,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 			dependencies.append(vTable);
 			fields += table + data;
 		}
-		
+
 		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + System.lineSeparator() +
 				"};" + System.lineSeparator();
