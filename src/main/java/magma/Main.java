@@ -1229,7 +1229,7 @@ public class Main {
 				final var cases =
 						variants.stream().map(variant -> this.generateCase(structName, declaration, variant)).collect(new Joiner());
 
-				return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
+				return returnValueDefinition + generateIndent(1) + "switch (" + "_this.variant" + ") {" + cases +
 							 generateIndent(1) + "}" + this.generateStatement("return _ret");
 			});
 		} else {
