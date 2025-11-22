@@ -238,9 +238,10 @@ public class Main {
 	private static String compile(String input) {
 		final var all = compileStatements(input, Main::compileRootSegment);
 
+		final var joinedStructures = String.join("", structures);
 		final var joinedGlobals = String.join("", globals);
 		final var joinedFunctions = String.join("", functions);
-		return all + joinedGlobals + joinedFunctions;
+		return joinedStructures + joinedGlobals + joinedFunctions + all;
 	}
 
 	private static String compileStatements(String input, F1R<String, String> mapper) {
