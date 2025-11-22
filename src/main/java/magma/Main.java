@@ -399,6 +399,26 @@ public class Main {
 		}
 	}
 
+	private static class ConditionEndLocator implements Folder {
+		@Override
+		public State apply(State state, Character c) {
+			final var appended = state.append(c);
+			if (c == '(') {
+				return appended.enter();
+			}
+
+			if (c == ')') {
+				if (appended.isLevel()) {
+					return appended.advance();
+				}
+
+				return appended.exit();
+			}
+
+			return appended;
+		}
+	}
+
 	public final List<String> structures;
 	public final List<String> functions;
 	public final List<String> globals;
@@ -944,32 +964,31 @@ public class Main {
 			final var substring = input.substring(type.length()).strip();
 			if (substring.startsWith("(")) {
 				final var afterConditionStart = substring.substring(1).strip();
-				var conditionEnd = -1;
-				var depth = 0;
-				for (var i = 0; i < afterConditionStart.length(); i++) {
-					final var c = afterConditionStart.charAt(i);
-					if (c == '(') {
-						depth++;
-					}
-					if (c == ')') {
-						if (depth == 0) {
-							conditionEnd = i;
-							break;
-						}
 
-						depth--;
-					}
+				final var divisions = this
+						.divide(afterConditionStart, new EscapedFolder(new ConditionEndLocator()))
+						.map(String::strip)
+						.filter(slice -> !slice.isEmpty())
+						.toList();
+
+				if (divisions.size() < 2) {
+					return Option.empty();
 				}
 
-				if (conditionEnd >= 0) {
-					final var condition = afterConditionStart.substring(0, conditionEnd);
-					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
-					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
-						final var content = withBraces.substring(1, withBraces.length() - 1);
-						return Option.of(
-								this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
-								this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
-					}
+				final var first = divisions.getFirst();
+				final var last = String.join("", divisions.subList(1, divisions.size()));
+
+				if (!first.endsWith(")")) {
+					return new None<String>();
+				}
+				final var condition = first.substring(0, first.length() - 1);
+				final var withBraces = last;
+
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					return Option.of(
+							this.generateIndent(indent) + type + " (" + this.compileExpressionOrPlaceholder(condition) + ") {" +
+							this.compileMethodsSegments(content, indent + 1) + this.generateIndent(indent) + "}");
 				}
 			}
 		}
