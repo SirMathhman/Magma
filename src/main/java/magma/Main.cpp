@@ -1,92 +1,3 @@
-struct Main {struct PrimitiveType {
-};
-template <typename T0, typename R>
-struct F1RTable<T0, R>{};
-template <typename T0, typename R>
-struct F1R {
-	F1RTable<T0, R> table;
-	void* data;
-};
-enum ResultVariant {
-	ErrVariant, 
-	OkVariant
-};
-template <typename T, typename X>
-union ResultData {
-	ErrData<T, X> Err;
-	OkData<T, X> Ok;
-};
-template <typename T, typename X>
-struct Result {
-	ResultVariant variant;
-	ResultData data;
-};
-enum TypeVariant {
-	IdentifierVariant, 
-	PlaceholderVariant, 
-	PointerTypeVariant, 
-	PrimitiveTypeVariant, 
-	TemplateTypeVariant
-};
-union TypeData {
-	IdentifierData Identifier;
-	PlaceholderData Placeholder;
-	PointerTypeData PointerType;
-	PrimitiveTypeData PrimitiveType;
-	TemplateTypeData TemplateType;
-};
-struct Type {
-	TypeVariant variant;
-	TypeData data;
-};
-enum MethodDeclarationVariant {
-	ConstructorVariant, 
-	DeclarationVariant, 
-	PlaceholderVariant
-};
-union MethodDeclarationData {
-	ConstructorData Constructor;
-	DeclarationData Declaration;
-	PlaceholderData Placeholder;
-};
-struct MethodDeclaration {
-	MethodDeclarationVariant variant;
-	MethodDeclarationData data;
-};
-template <typename T, typename X>
-struct Err {
-	X error;
-};
-template <typename T, typename X>
-struct Ok {
-	T value;
-};
-struct State {
-};
-struct PointerType {
-	Type type;
-};
-struct TemplateType {
-	char* base;
-	List<Type> list;
-};
-struct Identifier {
-	char* value;
-};
-struct Placeholder {
-	char* input;
-};
-struct Constructor {
-	char* structName;
-};
-struct Declaration {
-	List<char*> typeParameters;
-	Optional<char*> maybeBeforeType;
-	char* type;
-	char* name;
-};
-
-};
 /*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
@@ -234,9 +145,12 @@ struct Declaration {
 			fields += table + data;
 		}
 
-		return Optional.of(
+		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
-				System.lineSeparator() + "};" + System.lineSeparator());
+				System.lineSeparator() + "};" + System.lineSeparator();
+		structures.add(generated);
+
+		return Optional.of("");
 	}*//*private static String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
 		if (typeParameters.isEmpty()) {
@@ -420,6 +334,7 @@ struct Declaration {
 						final var generated =
 								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
 								System.lineSeparator();
+
 						globals.add(generated);
 					}
 				}

@@ -438,9 +438,12 @@ public class Main {
 			fields += table + data;
 		}
 
-		return Optional.of(
+		final var generated =
 				dependencies + templateString + "struct " + name + " {" + joinedRecordFields + fields + outputContent +
-				System.lineSeparator() + "};" + System.lineSeparator());
+				System.lineSeparator() + "};" + System.lineSeparator();
+		structures.add(generated);
+
+		return Optional.of("");
 	}
 
 	private static String joinTypeParameters(List<String> typeParameters) {
