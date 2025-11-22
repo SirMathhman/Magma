@@ -201,6 +201,7 @@ public class Main {
 
 	public static final List<String> structures = new ArrayList<String>();
 	public static final List<String> functions = new ArrayList<String>();
+	public static final List<String> globals = new ArrayList<String>();
 
 	public static void main(String[] args) {
 		run().ifPresent(Throwable::printStackTrace);
@@ -236,7 +237,10 @@ public class Main {
 
 	private static String compile(String input) {
 		final var all = compileStatements(input, Main::compileRootSegment);
-		return all + String.join("", functions);
+
+		final var joinedGlobals = String.join("", globals);
+		final var joinedFunctions = String.join("", functions);
+		return all + joinedGlobals + joinedFunctions;
 	}
 
 	private static String compileStatements(String input, F1R<String, String> mapper) {
@@ -628,7 +632,7 @@ public class Main {
 				.filter(slice -> !slice.isEmpty())
 				.toList();
 
-		final var buffer = new StringBuilder();
+		String buffer = "";
 		if (!enumValues.isEmpty()) {
 			for (var enumValue : enumValues) {
 				if (enumValue.endsWith(")")) {
@@ -641,15 +645,17 @@ public class Main {
 						}
 
 						final var substring2 = substring.substring(i + 1);
-						buffer.append(
+						final var generated =
 								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
-								System.lineSeparator());
+								System.lineSeparator();
+
+						globals.add(generated);
 					}
 				}
 			}
 		}
 
-		return Optional.of(buffer.toString());
+		return Optional.of(buffer);
 	}
 
 	private static State foldValue(State state, Character next) {

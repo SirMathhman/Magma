@@ -1,6 +1,4 @@
-struct Main {struct PrimitiveType {PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
-PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
-
+struct Main {struct PrimitiveType {
 };
 template <typename T0, typename R>
 struct F1RTable<T0, R>{};
@@ -406,7 +404,7 @@ struct Declaration {
 				.filter(slice -> !slice.isEmpty())
 				.toList();
 
-		final var buffer = new StringBuilder();
+		String buffer = "";
 		if (!enumValues.isEmpty()) {
 			for (var enumValue : enumValues) {
 				if (enumValue.endsWith(")")) {
@@ -419,15 +417,16 @@ struct Declaration {
 						}
 
 						final var substring2 = substring.substring(i + 1);
-						buffer.append(
+						final var generated =
 								structName + " " + structName + name + " = " + "new_" + structName + "(" + substring2 + ")" + ";" +
-								System.lineSeparator());
+								System.lineSeparator();
+						globals.add(generated);
 					}
 				}
 			}
 		}
 
-		return Optional.of(buffer.toString());
+		return Optional.of(buffer);
 	}*//*private static State foldValue(State state, Character next) {
 		if (next == ',' && state.isLevel()) {
 			return state.advance();
@@ -593,7 +592,9 @@ struct Declaration {
 	}*//*private static String wrap(String input) {
 		final var replaced = input.replace("start", "start").replace("end", "end");
 		return "start" + replaced + "end";
-	}*//*}*/Type toType_PrimitiveType(void* _this){
+	}*//*}*/PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
+PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
+Type toType_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	TypeData data;
 	data.PrimitiveType = this;
@@ -865,6 +866,8 @@ Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
 }
 /*public static final List<String> functions = new ArrayList<String>*/(){?
 }
+/*public static final List<String> globals = new ArrayList<String>*/(){?
+}
 void main_Main(void* _this, char** args){
 	Main this = *((Main*) _this);
 	/*run().ifPresent(Throwable::printStackTrace)*/;
@@ -902,7 +905,9 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 char* compile_Main(void* _this, char* input){
 	Main this = *((Main*) _this);
 	/*final var all*/ = compileStatements(input, /*Main::compileRootSegment*/);
-	return /*all + String*/.join(/*""*/, functions);
+	/*final var joinedGlobals*/ = String.join(/*""*/, globals);
+	/*final var joinedFunctions*/ = String.join(/*""*/, functions);
+	return /*all + joinedGlobals + joinedFunctions*/;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
 	Main this = *((Main*) _this);
