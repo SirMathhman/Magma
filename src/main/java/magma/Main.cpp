@@ -121,19 +121,19 @@ Type toType_PrimitiveType(void* _this){
 }
 PrimitiveType new_PrimitiveType(char* content){
 	PrimitiveType this;
-	this.content = content;
+	this->content = content;
 	return this;
 }
 char* generate_PrimitiveType(void* _this){
-	PrimitiveType this = *((PrimitiveType*) _this);
-	return this.content;
+	PrimitiveType* this = (PrimitiveType*) _this;
+	return this->content;
 }
 char* toBaseName_PrimitiveType(void* _this){
-	PrimitiveType this = *((PrimitiveType*) _this);
-	return this.content;
+	PrimitiveType* this = (PrimitiveType*) _this;
+	return this->content;
 }
 R apply_F1R(void* _this, T0 value){
-	F1R<T0, R> this = *((F1R<T0, R>*) _this);
+	F1R<T0, R>* this = (F1R<T0, R>*) _this;
 	R _ret;
 	switch (this.variant) {
 	}
@@ -141,7 +141,7 @@ R apply_F1R(void* _this, T0 value){
 }
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
-	Result<T, X> this = *((Result<T, X>*) _this);
+	Result<T, X>* this = (Result<T, X>*) _this;
 	Result<R, X> _ret;
 	switch (this.variant) {
 		case ResultVariant.ErrVariant:
@@ -154,7 +154,7 @@ Result<R, X> mapValue_Result(void* _this, F1R<T, R> mapper){
 	return _ret;
 }
 char* generate_Type(void* _this){
-	Type this = *((Type*) _this);
+	Type* this = (Type*) _this;
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
@@ -176,7 +176,7 @@ char* generate_Type(void* _this){
 	return _ret;
 }
 char* toBaseName_Type(void* _this){
-	Type this = *((Type*) _this);
+	Type* this = (Type*) _this;
 	char* _ret;
 	switch (this.variant) {
 		case TypeVariant.IdentifierVariant:
@@ -198,7 +198,7 @@ char* toBaseName_Type(void* _this){
 	return _ret;
 }
 char* generate_MethodDeclaration(void* _this){
-	MethodDeclaration this = *((MethodDeclaration*) _this);
+	MethodDeclaration* this = (MethodDeclaration*) _this;
 	char* _ret;
 	switch (this.variant) {
 		case MethodDeclarationVariant.ConstructorVariant:
@@ -214,7 +214,7 @@ char* generate_MethodDeclaration(void* _this){
 	return _ret;
 }
 char* generate_StructMember(void* _this){
-	StructMember this = *((StructMember*) _this);
+	StructMember* this = (StructMember*) _this;
 	char* _ret;
 	switch (this.variant) {
 		case StructMemberVariant.EmptyStructMemberVariant:
@@ -238,8 +238,8 @@ Result<T, X> toResult_Err(void* _this){
 }
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Err(void* _this, F1R<T, R> mapper){
-	Err<T, X> this = *((Err<T, X>*) _this);
-	return new_Err<R, X>(this.error);
+	Err<T, X>* this = (Err<T, X>*) _this;
+	return new_Err<R, X>(this->error);
 }
 template <typename T, typename X>
 Result<T, X> toResult_Ok(void* _this){
@@ -250,35 +250,35 @@ Result<T, X> toResult_Ok(void* _this){
 }
 template <typename T, typename X, typename R>
 Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
-	Ok<T, X> this = *((Ok<T, X>*) _this);
-	return new_Ok<R, X>(mapper.apply(this.value));
+	Ok<T, X>* this = (Ok<T, X>*) _this;
+	return new_Ok<R, X>(mapper.apply(this->value));
 }
 public State_State(void* _this, char* input){
-	State this = *((State*) _this);
-	this.input = input;
-	this.index = 0;
-	this.buffer = new_StringBuilder();
-	this.depth = 0;
-	this.segments = new_ArrayList<char*>();
+	State* this = (State*) _this;
+	this->input = input;
+	this->index = 0;
+	this->buffer = new_StringBuilder();
+	this->depth = 0;
+	this->segments = new_ArrayList<char*>();
 }
 boolean isShallow_State(void* _this){
-	State this = *((State*) _this);
-	return this.depth == 1;
+	State* this = (State*) _this;
+	return this->depth == 1;
 }
 boolean isLevel_State(void* _this){
-	State this = *((State*) _this);
-	return this.depth == 0;
+	State* this = (State*) _this;
+	return this->depth == 0;
 }
 State append_State(void* _this, Character next){
-	State this = *((State*) _this);
-	this.buffer.append(next);
+	State* this = (State*) _this;
+	this->buffer.append(next);
 	return this;
 }
 Optional<Character> pop_State(void* _this){
-	State this = *((State*) _this);
-	if (this.index < this.input.length()) {
-		var value = this.input.charAt(this.index);
-		this.index++;
+	State* this = (State*) _this;
+	if (this->index < this.input.length()) {
+		var value = this->input.charAt(this->index);
+		this->index++;
 		return Optional.of(value);
 	}
 	else {
@@ -286,24 +286,24 @@ Optional<Character> pop_State(void* _this){
 	}
 }
 State advance_State(void* _this){
-	State this = *((State*) _this);
-	this.segments.add(this.buffer.toString());
-	this.buffer.setLength(0);
+	State* this = (State*) _this;
+	this->segments.add(this->buffer.toString());
+	this->buffer.setLength(0);
 	return this;
 }
 State enter_State(void* _this){
-	State this = *((State*) _this);
-	this.depth = this.depth + 1;
+	State* this = (State*) _this;
+	this->depth = this->depth + 1;
 	return this;
 }
 State exit_State(void* _this){
-	State this = *((State*) _this);
-	this.depth = this.depth - 1;
+	State* this = (State*) _this;
+	this->depth = this->depth - 1;
 	return this;
 }
 Stream<char*> stream_State(void* _this){
-	State this = *((State*) _this);
-	return this.segments.stream();
+	State* this = (State*) _this;
+	return this->segments.stream();
 }
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -312,12 +312,12 @@ Type toType_PointerType(void* _this){
 	return { TypeVariant.PointerTypeVariant, data };
 }
 char* generate_PointerType(void* _this){
-	PointerType this = *((PointerType*) _this);
-	return this.type.generate() + "*";
+	PointerType* this = (PointerType*) _this;
+	return this->type.generate() + "*";
 }
 char* toBaseName_PointerType(void* _this){
-	PointerType this = *((PointerType*) _this);
-	return this.type.toBaseName() + "_ptr";
+	PointerType* this = (PointerType*) _this;
+	return this->type.toBaseName() + "_ptr";
 }
 Type toType_TemplateType(void* _this){
 	TemplateType this = *((TemplateType*) _this);
@@ -326,13 +326,13 @@ Type toType_TemplateType(void* _this){
 	return { TypeVariant.TemplateTypeVariant, data };
 }
 char* generate_TemplateType(void* _this){
-	TemplateType this = *((TemplateType*) _this);
-	var typeArguments = this.list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
-	return this.base + " < " + typeArguments + ">";
+	TemplateType* this = (TemplateType*) _this;
+	var typeArguments = this->list.stream(/*).map(Type::generate).collect(Collectors.joining("*/, /* ")*/);
+	return this->base + " < " + typeArguments + ">";
 }
 char* toBaseName_TemplateType(void* _this){
-	TemplateType this = *((TemplateType*) _this);
-	return this.base;
+	TemplateType* this = (TemplateType*) _this;
+	return this->base;
 }
 Type toType_Identifier(void* _this){
 	Identifier this = *((Identifier*) _this);
@@ -341,12 +341,12 @@ Type toType_Identifier(void* _this){
 	return { TypeVariant.IdentifierVariant, data };
 }
 char* generate_Identifier(void* _this){
-	Identifier this = *((Identifier*) _this);
-	return this.value;
+	Identifier* this = (Identifier*) _this;
+	return this->value;
 }
 char* toBaseName_Identifier(void* _this){
-	Identifier this = *((Identifier*) _this);
-	return this.value;
+	Identifier* this = (Identifier*) _this;
+	return this->value;
 }
 Type toType_Placeholder(void* _this){
 	Placeholder this = *((Placeholder*) _this);
@@ -367,12 +367,12 @@ StructMember toStructMember_Placeholder(void* _this){
 	return { StructMemberVariant.PlaceholderVariant, data };
 }
 char* generate_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	return wrap(this.input);
+	Placeholder* this = (Placeholder*) _this;
+	return wrap(this->input);
 }
 char* toBaseName_Placeholder(void* _this){
-	Placeholder this = *((Placeholder*) _this);
-	return wrap(this.input);
+	Placeholder* this = (Placeholder*) _this;
+	return wrap(this->input);
 }
 MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 	Constructor this = *((Constructor*) _this);
@@ -381,8 +381,8 @@ MethodDeclaration toMethodDeclaration_Constructor(void* _this){
 	return { MethodDeclarationVariant.ConstructorVariant, data };
 }
 char* generate_Constructor(void* _this){
-	Constructor this = *((Constructor*) _this);
-	return this.structName + " new_" + this.structName;
+	Constructor* this = (Constructor*) _this;
+	return this->structName + " new_" + this.structName;
 }
 MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	Declaration this = *((Declaration*) _this);
@@ -391,17 +391,17 @@ MethodDeclaration toMethodDeclaration_Declaration(void* _this){
 	return { MethodDeclarationVariant.DeclarationVariant, data };
 }
 public Declaration_Declaration(void* _this, char* type, char* name){
-	Declaration this = *((Declaration*) _this);
+	Declaration* this = (Declaration*) _this;
 	this(Collections.emptyList(), Optional.empty(), type, name);
 }
 char* generate_Declaration(void* _this){
-	Declaration this = *((Declaration*) _this);
-	var beforeDeclaration = generateTemplateString(this.typeParameters());
-	return beforeDeclaration + this.type + " " + this.name;
+	Declaration* this = (Declaration*) _this;
+	var beforeDeclaration = generateTemplateString(this->typeParameters());
+	return beforeDeclaration + this->type + " " + this.name;
 }
 Declaration mapName_Declaration(void* _this, F1R<char*, char*> mapper){
-	Declaration this = *((Declaration*) _this);
-	return new_Declaration(this.typeParameters, this.maybeBeforeType, this.type, mapper.apply(this.name));
+	Declaration* this = (Declaration*) _this;
+	return new_Declaration(this->typeParameters, this->maybeBeforeType, this->type, mapper.apply(this->name));
 }
 StructMember toStructMember_FunctionDeclaration(void* _this){
 	FunctionDeclaration this = *((FunctionDeclaration*) _this);
@@ -410,9 +410,9 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 	return { StructMemberVariant.FunctionDeclarationVariant, data };
 }
 char* generate_FunctionDeclaration(void* _this){
-	FunctionDeclaration this = *((FunctionDeclaration*) _this);
-	var joinedParameterTypes = this.parameterTypes.stream(/*).collect(Collectors.joining("*/, ", "(", /* ")")*/);
-	return this.type + " (*" + this.name + ")" + joinedParameterTypes;
+	FunctionDeclaration* this = (FunctionDeclaration*) _this;
+	var joinedParameterTypes = this->parameterTypes.stream(/*).collect(Collectors.joining("*/, ", "(", /* ")")*/);
+	return this->type + " (*" + this->name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
 	EmptyStructMember this = *((EmptyStructMember*) _this);
@@ -421,17 +421,17 @@ StructMember toStructMember_EmptyStructMember(void* _this){
 	return { StructMemberVariant.EmptyStructMemberVariant, data };
 }
 char* generate_EmptyStructMember(void* _this){
-	EmptyStructMember this = *((EmptyStructMember*) _this);
+	EmptyStructMember* this = (EmptyStructMember*) _this;
 	return "";
 }
 public Main_Main(void* _this){
-	Main this = *((Main*) _this);
-	this.structures = new_ArrayList<char*>();
-	this.functions = new_ArrayList<char*>();
-	this.globals = new_ArrayList<char*>();
+	Main* this = (Main*) _this;
+	this->structures = new_ArrayList<char*>();
+	this->functions = new_ArrayList<char*>();
+	this->globals = new_ArrayList<char*>();
 }
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	/*final String templateString*/;
 	if (typeParameters.isEmpty()) {
 		templateString = "";
@@ -444,19 +444,19 @@ char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	return templateString;
 }
 char* wrap_Main(void* _this, char* input){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	var replaced = input.replace("/*", "start").replace("*/", "end");
 	return "/*" + replaced + "*/";
 }
 void main_Main(void* _this, char** args){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	new_Main(/*).run().ifPresent(Throwable::printStackTrace*/);
 }
 Optional<IOException> run_Main(void* _this){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");
 	var target = source.resolveSibling("Main.cpp");
-	var input = this.readString(/*source).mapValue(this::compile*/);
+	var input = this->readString(/*source).mapValue(this::compile*/);
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> this.writeString(target, v.value);
@@ -464,7 +464,7 @@ Optional<IOException> run_Main(void* _this){
 	/**/;
 }
 Optional<IOException> writeString_Main(void* _this, Path target, char* output){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	/*try {
 			Files.writeString(target, output);
 			return Optional.empty();
@@ -474,7 +474,7 @@ Optional<IOException> writeString_Main(void* _this, Path target, char* output){
 		}*/
 }
 Result<char*, IOException> readString_Main(void* _this, Path source){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	/*try {
 			return new Ok<String, IOException>(Files.readString(source));
 		}*/
@@ -483,23 +483,23 @@ Result<char*, IOException> readString_Main(void* _this, Path source){
 		}*/
 }
 char* compile_Main(void* _this, char* input){
-	Main this = *((Main*) _this);
-	var all = this.compileStatements(input, /* this::compileRootSegment*/);
-	var joinedStructures = String.join("", this.structures);
-	var joinedGlobals = String.join("", this.globals);
-	var joinedFunctions = String.join("", this.functions);
+	Main* this = (Main*) _this;
+	var all = this->compileStatements(input, /* this::compileRootSegment*/);
+	var joinedStructures = String.join("", this->structures);
+	var joinedGlobals = String.join("", this->globals);
+	var joinedFunctions = String.join("", this->functions);
 	return joinedStructures + joinedGlobals + joinedFunctions + all;
 }
 char* compileStatements_Main(void* _this, char* input, F1R<char*, char*> mapper){
-	Main this = *((Main*) _this);
-	return this.compileAll(input, mapper, /* this::foldStatement*/);
+	Main* this = (Main*) _this;
+	return this->compileAll(input, mapper, /* this::foldStatement*/);
 }
 char* compileAll_Main(void* _this, char* input, F1R<char*, char*> mapper, BiFunction<State, Character, State> folder){
-	Main this = *((Main*) _this);
-	return this.divide(input, /* folder).map(mapper::apply).collect(Collectors.joining("")*/);
+	Main* this = (Main*) _this;
+	return this->divide(input, /* folder).map(mapper::apply).collect(Collectors.joining("")*/);
 }
 Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character, State> folder){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	var current = new_State(input);
 	/*while (true) {
 			final var maybeNext = current.pop();
@@ -513,7 +513,7 @@ Stream<char*> divide_Main(void* _this, char* input, BiFunction<State, Character,
 	return current.advance(/*).stream(*/);
 }
 State foldStatement_Main(void* _this, State current, Character next){
-	Main this = *((Main*) _this);
+	Main* this = (Main*) _this;
 	var appended = current.append(next);
 	/*if (next */ = /*= '*/;
 	/*' && appended.isLevel()) {
@@ -790,7 +790,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 					final var thisInitialization = this.generateStatement(
-							structName + joinedTypeParameters + " this = *((" + structName + joinedTypeParameters + "*) _this)");
+							structName + joinedTypeParameters + "* this = (" + structName + joinedTypeParameters + "*) _this");
 
 					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 						final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
@@ -991,7 +991,15 @@ State foldStatement_Main(void* _this, State current, Character next){
 			if (this.isIdentifier(memberName)) {
 				final var maybeInstance = this.compileExpression(instanceString);
 				if (maybeInstance.isPresent()) {
-					return Optional.of(maybeInstance.get() + "." + memberName);
+					final var instance = maybeInstance.get();
+					final String generated;
+					if (instance.equals("this")) {
+						generated = "this->" + memberName;
+					} else {
+						generated = instance + "." + memberName;
+					}
+					
+					return Optional.of(generated);
 				}
 			}
 		}

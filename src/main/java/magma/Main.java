@@ -610,7 +610,7 @@ public class Main {
 					final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
 					final var thisInitialization = this.generateStatement(
-							structName + joinedTypeParameters + " this = *((" + structName + joinedTypeParameters + "*) _this)");
+							structName + joinedTypeParameters + "* this = (" + structName + joinedTypeParameters + "*) _this");
 
 					outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 						final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
@@ -831,7 +831,15 @@ public class Main {
 			if (this.isIdentifier(memberName)) {
 				final var maybeInstance = this.compileExpression(instanceString);
 				if (maybeInstance.isPresent()) {
-					return Optional.of(maybeInstance.get() + "." + memberName);
+					final var instance = maybeInstance.get();
+					final String generated;
+					if (instance.equals("this")) {
+						generated = "this->" + memberName;
+					} else {
+						generated = instance + "." + memberName;
+					}
+
+					return Optional.of(generated);
 				}
 			}
 		}
