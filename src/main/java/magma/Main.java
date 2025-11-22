@@ -435,10 +435,11 @@ public class Main {
 		if (typeParameters.isEmpty()) {
 			templateString = "";
 		} else {
-			templateString = "template " + typeParameters
-					.stream()
-					.map(typeParam -> "typename " + typeParam)
-					.collect(Collectors.joining(", ", "<", ">")) + System.lineSeparator();
+			final var typeNames =
+					typeParameters.stream().map(typeParam -> "typename " + typeParam).collect(Collectors.joining(", ", "<",
+																																																			 ">"));
+
+			templateString = "template " + typeNames + System.lineSeparator();
 		}
 		return templateString;
 	}
@@ -1237,12 +1238,17 @@ public class Main {
 
 	private Option<String> compileCaller(String input) {
 		final var stripped = input.strip();
+		final var maybeExpression = this.compileExpression(stripped);
+		if (maybeExpression instanceof Some<String>) {
+			return maybeExpression;
+		}
+
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
 			return Option.of("new_" + this.compileType(type));
 		}
 
-		return this.compileExpression(stripped);
+		return new None<String>();
 	}
 
 	private Option<Declaration> parseDeclaration(String input, List<String> typeParameters) {
