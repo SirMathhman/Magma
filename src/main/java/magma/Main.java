@@ -739,6 +739,38 @@ public class Main {
 			return System.lineSeparator() + "\t" + this.compileMethodStatement(substring) + ";";
 		}
 
+		if (stripped.startsWith("if")) {
+			final var substring = stripped.substring(2).strip();
+			if (substring.startsWith("(")) {
+				final var afterConditionStart = substring.substring(1).strip();
+				int conditionEnd = -1;
+				var depth = 0;
+				for (int i = 0; i < afterConditionStart.length(); i++) {
+					final var c = afterConditionStart.charAt(i);
+					if (c == '(') {
+						depth++;
+					}
+					if (c == ')') {
+						if (depth == 0) {
+							conditionEnd = i;
+							break;
+						}
+
+						depth--;
+					}
+				}
+
+				if (conditionEnd >= 0) {
+					final var condition = afterConditionStart.substring(0, conditionEnd);
+					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
+					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+						final var content = withBraces.substring(1, withBraces.length() - 1);
+						return generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" + wrap(content) + "}";
+					}
+				}
+			}
+		}
+
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
 
@@ -795,7 +827,8 @@ public class Main {
 		if (i1 >= 0) {
 			final var left = stripped.substring(0, i1);
 			final var right = stripped.substring(i1 + 2);
-			return Optional.of(this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
+			return Optional.of(
+					this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
 		}
 
 		return Optional.empty();
@@ -808,8 +841,10 @@ public class Main {
 			if (i1 >= 0) {
 				final var callerString = substring.substring(0, i1);
 				final var arguments = substring.substring(i1 + 1);
-				final var joinedArguments =
-						this.divide(arguments, this::foldValue).map(this::compileExpressionOrPlaceholder).collect(Collectors.joining(", "));
+				final var joinedArguments = this
+						.divide(arguments, this::foldValue)
+						.map(this::compileExpressionOrPlaceholder)
+						.collect(Collectors.joining(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller.isPresent()) {

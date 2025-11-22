@@ -276,11 +276,11 @@ State append_State(void* _this, Character next){
 }
 Optional<Character> pop_State(void* _this){
 	State this = *((State*) _this);
-	/*if (this.index < this.input.length()) {
+	if (/*this.index < this*/.input.length()) {/*
 				final var value = this.input.charAt(this.index);
 				this.index++;
 				return Optional.of(value);
-			}*/
+			*/}
 	/*else {
 				return Optional.empty();
 			}*/
@@ -433,9 +433,9 @@ public Main_Main(void* _this){
 char* generateTemplateString_Main(void* _this, List<char*> typeParameters){
 	Main this = *((Main*) _this);
 	/*final String templateString*/;
-	/*if (typeParameters.isEmpty()) {
+	if (typeParameters.isEmpty()) {/*
 			templateString = "";
-		}*/
+		*/}
 	/*else {
 			templateString = "template " + typeParameters
 					.stream()
@@ -908,6 +908,38 @@ State foldStatement_Main(void* _this, State current, Character next){
 			return System.lineSeparator() + "\t" + this.compileMethodStatement(substring) + ";";
 		}
 
+		if (stripped.startsWith("if")) {
+			final var substring = stripped.substring(2).strip();
+			if (substring.startsWith("(")) {
+				final var afterConditionStart = substring.substring(1).strip();
+				int conditionEnd = -1;
+				var depth = 0;
+				for (int i = 0; i < afterConditionStart.length(); i++) {
+					final var c = afterConditionStart.charAt(i);
+					if (c == '(') {
+						depth++;
+					}
+					if (c == ')') {
+						if (depth == 0) {
+							conditionEnd = i;
+							break;
+						}
+
+						depth--;
+					}
+				}
+
+				if (conditionEnd >= 0) {
+					final var condition = afterConditionStart.substring(0, conditionEnd);
+					final var withBraces = afterConditionStart.substring(conditionEnd + 1).strip();
+					if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+						final var content = withBraces.substring(1, withBraces.length() - 1);
+						return generateIndent(1) + "if (" + this.compileExpressionOrPlaceholder(condition) + ") {" + wrap(content) + "}";
+					}
+				}
+			}
+		}
+
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}*//*private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
@@ -958,7 +990,8 @@ State foldStatement_Main(void* _this, State current, Character next){
 		if (i1 >= 0) {
 			final var left = stripped.substring(0, i1);
 			final var right = stripped.substring(i1 + 2);
-			return Optional.of(this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
+			return Optional.of(
+					this.compileExpressionOrPlaceholder(left) + " == " + this.compileExpressionOrPlaceholder(right));
 		}
 
 		return Optional.empty();
@@ -969,8 +1002,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 			if (i1 >= 0) {
 				final var callerString = substring.substring(0, i1);
 				final var arguments = substring.substring(i1 + 1);
-				final var joinedArguments =
-						this.divide(arguments, this::foldValue).map(this::compileExpressionOrPlaceholder).collect(Collectors.joining(", "));
+				final var joinedArguments = this
+						.divide(arguments, this::foldValue)
+						.map(this::compileExpressionOrPlaceholder)
+						.collect(Collectors.joining(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
 				if (maybeCaller.isPresent()) {
