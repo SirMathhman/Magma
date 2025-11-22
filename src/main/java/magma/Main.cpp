@@ -70,7 +70,7 @@ struct StructMember {
 	StructMemberData data;
 };
 struct FolderTable {
-	;
+	State (*apply)(void*, State, Character);
 };
 struct Folder {
 	FolderTable table;
@@ -125,8 +125,7 @@ struct EscapedFolder {
 };
 struct ValueFolder {
 };
-struct Main {/*' && appended.isShallow*//*if *//*') {
-			return appended.exit*/
+struct Main {/*if */
 };
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
@@ -246,6 +245,13 @@ char* generate_StructMember(void* _this){
 	}
 	return _ret;
 }
+State apply_Folder(void* _this, State state, Character character){
+	Folder* this = (Folder*) _this;
+	State _ret;
+	switch (this.variant) {
+	}
+	return _ret;
+}
 template <typename T, typename X>
 Result<T, X> toResult_Err(void* _this){
 	Err<T, X> this = *((Err<T, X>*) _this);
@@ -324,15 +330,21 @@ Stream<char*> stream_State(void* _this){
 }
 Optional<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
 	State* this = (State*) _this;
-	/*return this.pop().map(popped -> {
+	return this->pop().map(/*popped -> {
 				final var appended = this.append(popped);
 				return new Tuple<State, Character>(appended, popped);
-			}*/
-	/*)*/;
+			}*/);
 }
 Optional<State> popAndAppendToOption_State(void* _this){
 	State* this = (State*) _this;
 	return this->popAndAppendToTuple().map(/*tuple -> tuple.left*/);
+}
+Optional<Character> peek_State(void* _this){
+	State* this = (State*) _this;
+	if (this->index < this->input.length()) {
+		return Optional.of(this->input.charAt(this->index));
+	}
+	return Optional.empty();
 }
 Type toType_PointerType(void* _this){
 	PointerType this = *((PointerType*) _this);
@@ -440,7 +452,7 @@ StructMember toStructMember_FunctionDeclaration(void* _this){
 }
 char* generate_FunctionDeclaration(void* _this){
 	FunctionDeclaration* this = (FunctionDeclaration*) _this;
-	var joinedParameterTypes = this->parameterTypes.stream().collect(/*Collectors.joining(", "*/, "(", /* ")")*/);
+	var joinedParameterTypes = this->parameterTypes.stream().collect(Collectors.joining(", ", "(", ")"));
 	return this->type + " (*" + this->name + ")" + joinedParameterTypes;
 }
 StructMember toStructMember_EmptyStructMember(void* _this){
@@ -497,10 +509,20 @@ State apply_ValueFolder(void* _this, State state, Character next){
 		return state.advance();
 	}
 	var appended = state.append(next);
-	if (/*next == '<'*/) {
-		return appended.enter();
+	if (/*next == '-'*/) {
+		var peeked = appended.peek();
+		if (/*peeked.isPresent() && peeked.get() == '>'*/) {
+			return appended.popAndAppendToOption().orElse(appended);
 	}
-	if (/*next == '>'*/) {
+		else {
+			return appended;
+		}
+	}
+	if (/*next == '<' || next == '(') {
+				return appended.enter();
+			}
+
+			if (next == '>' || next == ')'*/) {
 		return appended.exit();
 	}
 	return appended;
@@ -597,18 +619,14 @@ Stream<char*> divide_Main(void* _this, char* input, Folder folder){
 State foldStatement_Main(void* _this, State current, Character next){
 	Main* this = (Main*) _this;
 	var appended = current.append(next);
-	/*if (next */ = /*= '*/;
-	/*' && appended.isLevel()) {
-			return appended.advance();
-		}*/
-	/*if (next == '*/
-}
-/*' && appended.isShallow*/(){?
+	if (/*next == ';' && appended.isLevel()*/) {
+		return appended.advance();
+	}
+	/*if (next == '}*/
+	/*' && appended.isShallow()) {
+			return appended.advance().exit()*/;
 }
 /*if */(){?
-}
-/*') {
-			return appended.exit*/(){?
 }
 /*private String compileRootSegment(String input) {
 		final var stripped = input.strip();
@@ -1022,7 +1040,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return System.lineSeparator() + "\t" + wrap(stripped);
-	}*//*private String compileMethodStatement(String input) {
+	}
+
+	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("return ")) {
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
@@ -1049,9 +1069,13 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return wrap(stripped);
-	}*//*private String compileExpressionOrPlaceholder(String input) {
+	}
+
+	private String compileExpressionOrPlaceholder(String input) {
 		return this.compileExpression(input).orElseGet(() -> wrap(input));
-	}*//*private Optional<String> compileExpression(String input) {
+	}
+
+	private Optional<String> compileExpression(String input) {
 		final var stripped = input.strip();
 
 		final var maybeOperator = this
@@ -1102,7 +1126,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return Optional.empty();
-	}*//*private Optional<String> compileOperator(String input, String operator) {
+	}
+
+	private Optional<String> compileOperator(String input, String operator) {
 		final var i1 = input.indexOf(operator);
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
@@ -1117,7 +1143,9 @@ State foldStatement_Main(void* _this, State current, Character next){
 		}
 
 		return Optional.empty();
-	}*//*private Optional<String> compileInvokable(String stripped) {
+	}
+
+	private Optional<String> compileInvokable(String stripped) {
 		if (stripped.endsWith(")")) {
 			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
 
@@ -1141,7 +1169,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 				final var callerString = withoutEnd.substring(0, callerStart);
 				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
-						.divide(arguments, new EscapedFolder((state, character) -> new ValueFolder().apply(state, character)))
+						.divide(arguments, new EscapedFolder(new ValueFolder()))
 						.map(this::compileExpressionOrPlaceholder)
 						.collect(Collectors.joining(", "));
 

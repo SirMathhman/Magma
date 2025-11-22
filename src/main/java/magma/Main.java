@@ -142,6 +142,14 @@ public class Main {
 		public Optional<State> popAndAppendToOption() {
 			return this.popAndAppendToTuple().map(tuple -> tuple.left);
 		}
+
+		public Optional<Character> peek() {
+			if (this.index < this.input.length()) {
+				return Optional.of(this.input.charAt(this.index));
+			}
+
+			return Optional.empty();
+		}
 	}
 
 	private record PointerType(Type type) implements Type {
@@ -273,10 +281,20 @@ public class Main {
 			}
 
 			final var appended = state.append(next);
-			if (next == '<') {
+			if (next == '-') {
+				final var peeked = appended.peek();
+				if (peeked.isPresent() && peeked.get() == '>') {
+					return appended.popAndAppendToOption().orElse(appended);
+				} else {
+					return appended;
+				}
+			}
+
+			if (next == '<' || next == '(') {
 				return appended.enter();
 			}
-			if (next == '>') {
+
+			if (next == '>' || next == ')') {
 				return appended.exit();
 			}
 			return appended;
@@ -385,11 +403,11 @@ public class Main {
 			return appended.advance().exit();
 		}
 
-		if (next == '{') {
+		if (next == '{' || next == '(') {
 			return appended.enter();
 		}
 
-		if (next == '}') {
+		if (next == '}' || next == ')') {
 			return appended.exit();
 		}
 
@@ -965,7 +983,7 @@ public class Main {
 				final var callerString = withoutEnd.substring(0, callerStart);
 				final var arguments = withoutEnd.substring(callerStart + 1);
 				final var joinedArguments = this
-						.divide(arguments, new EscapedFolder((state, character) -> new ValueFolder().apply(state, character)))
+						.divide(arguments, new EscapedFolder(new ValueFolder()))
 						.map(this::compileExpressionOrPlaceholder)
 						.collect(Collectors.joining(", "));
 
