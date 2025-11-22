@@ -535,7 +535,27 @@ public class Main {
 			return "";
 		}
 
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return System.lineSeparator() + "\t" + compileMethodStatement(substring) + ";";
+		}
+
 		return System.lineSeparator() + "\t" + wrap(stripped);
+	}
+
+	private static String compileMethodStatement(String input) {
+		final var i = input.indexOf("=");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			return compileExpression(substring) + " = " + compileExpression(substring1);
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileExpression(String input) {
+		return wrap(input.strip());
 	}
 
 	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {

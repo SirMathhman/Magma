@@ -11,15 +11,15 @@ Type toType_PrimitiveType(void* _this){
 PrimitiveType PrimitiveTypeVoid = new_PrimitiveType("void");
 PrimitiveType PrimitiveTypeChar = new_PrimitiveType("char");
 PrimitiveType new_PrimitiveType(char* content){
-	/*this.content = content;*/
+	/*this.content*/ = /*content*/;
 }
 /*@Override
 		public*/ char* generate_PrimitiveType(){
-	/*return this.content;*/
+	/*return this.content*/;
 }
 /*@Override
 		public*/ char* toIdentifier_PrimitiveType(){
-	/*return this.name().toLowerCase();*/
+	/*return this.name().toLowerCase()*/;
 }
 /*}*/enum ResultVariant {
 	ErrVariant, 
@@ -67,24 +67,24 @@ char* toIdentifier();
 		private int*/ /*depth;
 
 		public*/ State_Main(char* input){
-	/*this.input = input;*/
-	/*this.index = 0;*/
-	/*this.buffer = new StringBuilder();*/
-	/*this.depth = 0;*/
-	/*this.segments = new ArrayList<String>();*/
+	/*this.input*/ = /*input*/;
+	/*this.index*/ = /*0*/;
+	/*this.buffer*/ = /*new StringBuilder()*/;
+	/*this.depth*/ = /*0*/;
+	/*this.segments*/ = /*new ArrayList<String>()*/;
 	/*}
 
 		private boolean isShallow() {
-			return this.depth == 1;*/
+			return this.depth*/ = /*= 1*/;
 	/*}
 
 		private boolean isLevel() {
-			return this.depth == 0;*/
+			return this.depth*/ = /*= 0*/;
 	/*}
 
 		private State append(Character next) {
-			this.buffer.append(next);*/
-	/*return this;*/
+			this.buffer.append(next)*/;
+	/*return this*/;
 	/*}
 
 		private Optional<Character> pop() {
@@ -99,23 +99,23 @@ char* toIdentifier();
 	/*}
 
 		private State advance() {
-			this.segments.add(this.buffer.toString());*/
-	/*this.buffer.setLength(0);*/
-	/*return this;*/
+			this.segments.add(this.buffer.toString())*/;
+	/*this.buffer.setLength(0)*/;
+	/*return this*/;
 	/*}
 
 		private State enter() {
-			this.depth = this.depth + 1;*/
-	/*return this;*/
+			this.depth*/ = /*this.depth + 1*/;
+	/*return this*/;
 	/*}
 
 		private State exit() {
-			this.depth = this.depth - 1;*/
-	/*return this;*/
+			this.depth*/ = /*this.depth - 1*/;
+	/*return this*/;
 	/*}
 
 		private Stream<String> stream() {
-			return this.segments.stream();*/
+			return this.segments.stream()*/;
 	/*}*/
 }
 /*private*/ record PointerType_Main(Type type);
@@ -123,17 +123,17 @@ char* toIdentifier();
 /*private*/ record Identifier_Main(char* value);
 /*private*/ record Placeholder_Main(char* input);
 /*public static*/ void main_Main(char** args){
-	/*run().ifPresent(Throwable::printStackTrace);*/
+	/*run().ifPresent(Throwable::printStackTrace)*/;
 }
 /*private static*/ Optional<IOException> run_Main(){
-	/*final var source = Paths.get(".", "src", "main", "java", "magma", "Main.java");*/
-	/*final var target = source.resolveSibling("Main.cpp");*/
-	/*final var input = readString(source).mapValue(Main::compile);*/
+	/*final var source*/ = /*Paths.get(".", "src", "main", "java", "magma", "Main.java")*/;
+	/*final var target*/ = /*source.resolveSibling("Main.cpp")*/;
+	/*final var input*/ = /*readString(source).mapValue(Main::compile)*/;
 	/*return switch (input) {
 			case Err<String, IOException> v -> Optional.of(v.error);
 			case Ok<String, IOException> v -> writeString(target, v.value);
 		}*/
-	/*;*/
+	/**/;
 }
 /*private static*/ Optional<IOException> writeString_Main(Path target, char* output){
 	/*try {
@@ -153,16 +153,16 @@ char* toIdentifier();
 		}*/
 }
 /*private static*/ char* compile_Main(char* input){
-	/*return compileStatements(input, Main::compileRootSegment);*/
+	/*return compileStatements(input, Main::compileRootSegment)*/;
 }
 /*private static*/ char* compileStatements_Main(char* input, Function<char*, char*> mapper){
-	/*return compileAll(input, mapper, Main::foldStatement);*/
+	/*return compileAll(input, mapper, Main::foldStatement)*/;
 }
 /*private static*/ char* compileAll_Main(char* input, Function<char*, char*> mapper, BiFunction<State, Character, State> folder){
-	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""));*/
+	/*return divide(input, folder).map(mapper).collect(Collectors.joining(""))*/;
 }
 /*private static*/ Stream<char*> divide_Main(char* input, BiFunction<State, Character, State> folder){
-	/*var current = new State(input);*/
+	/*var current*/ = /*new State(input)*/;
 	/*while (true) {
 			final var maybeNext = current.pop();
 			if (maybeNext.isEmpty()) {
@@ -172,11 +172,11 @@ char* toIdentifier();
 			final var next = maybeNext.get();
 			current = folder.apply(current, next);
 		}*/
-	/*return current.advance().stream();*/
+	/*return current.advance().stream()*/;
 }
 /*private static*/ State foldStatement_Main(State current, Character next){
-	/*final var appended = current.append(next);*/
-	/*if (next == ';*/
+	/*final var appended*/ = /*current.append(next)*/;
+	/*if (next*/ = /*= '*/;
 	/*' && appended.isLevel()) {
 			return appended.advance();
 		}*/
@@ -184,7 +184,7 @@ char* toIdentifier();
 }
 /*' && appended.isShallow*/();
 /*if */(/*next == '{'*/){
-	/*return appended.enter();*/
+	/*return appended.enter()*/;
 	/*}
 
 		if (next == '*/
@@ -409,8 +409,7 @@ char* toIdentifier();
 		return wrap(stripped);
 	}
 
-	private static Optional<String> compileConstructor(String declaration,
-																										 String structName) {
+	private static Optional<String> compileConstructor(String declaration, String structName) {
 		if (declaration.strip().equals(structName)) {
 			return Optional.of(structName + " new_" + structName);
 		} else {
@@ -474,7 +473,27 @@ char* toIdentifier();
 			return "";
 		}
 
+		if (stripped.endsWith(";")) {
+			final var substring = stripped.substring(0, stripped.length() - 1);
+			return System.lineSeparator() + "\t" + compileMethodStatement(substring) + ";";
+		}
+
 		return System.lineSeparator() + "\t" + wrap(stripped);
+	}
+
+	private static String compileMethodStatement(String input) {
+		final var i = input.indexOf("=");
+		if (i >= 0) {
+			final var substring = input.substring(0, i);
+			final var substring1 = input.substring(i + 1);
+			return compileExpression(substring) + " = " + compileExpression(substring1);
+		}
+
+		return wrap(input);
+	}
+
+	private static String compileExpression(String input) {
+		return wrap(input.strip());
 	}
 
 	private static String compileDeclarationOrPlaceholder(String input, String structName, List<String> typeParameters) {
