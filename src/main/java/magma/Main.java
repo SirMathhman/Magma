@@ -447,6 +447,14 @@ public class Main {
 														 this.type,
 														 mapper.apply(this.name));
 		}
+
+		public Declaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return new Declaration(this.annotations,
+														 mapper.apply(this.typeParameters),
+														 this.maybeBeforeType,
+														 this.type,
+														 this.name);
+		}
 	}
 
 	private record F1RDeclaration(String type, String name, List<String> parameterTypes) implements StructMember {
@@ -1207,7 +1215,7 @@ public class Main {
 		if (methodDeclaration instanceof Constructor) {
 			final var compiled = maybeCompiled.orElse("?");
 			outputContent =
-					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return _this");
+					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return " + "_this");
 		} else if (methodDeclaration instanceof Declaration declaration) {
 			parameters = parameters.addFirst(new Declaration("void*", "_ref"));
 
@@ -1219,10 +1227,8 @@ public class Main {
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 				final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
 
-				final var cases = variants
-						.stream()
-						.map(variant -> this.generateCase(structName, declaration, variant))
-						.collect(new Joiner());
+				final var cases =
+						variants.stream().map(variant -> this.generateCase(structName, declaration, variant)).collect(new Joiner());
 
 				return returnValueDefinition + generateIndent(1) + "switch (" + "this.variant" + ") {" + cases +
 							 generateIndent(1) + "}" + this.generateStatement("return _ret");
@@ -1235,7 +1241,10 @@ public class Main {
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case Constructor constructor -> constructor;
-			case Declaration declaration -> declaration.mapName(name -> name + "_" + structName);
+			case Declaration declaration -> declaration
+					.mapTypeParameters(typeParameters0 -> typeParameters0.addAll(typeParameters))
+					.mapName(name -> name + "_" + structName);
+
 			case Placeholder placeholder -> placeholder;
 		};
 
