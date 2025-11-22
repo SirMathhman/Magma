@@ -16,8 +16,8 @@ enum OptionVariant {
 };
 template <typename T>
 union OptionData {
-	NoneData<T> None;
-	SomeData<T> Some;
+	None<T> None;
+	Some<T> Some;
 };
 template <typename T>
 struct Option {
@@ -39,8 +39,8 @@ enum ResultVariant {
 };
 template <typename T, typename X>
 union ResultData {
-	ErrData<T, X> Err;
-	OkData<T, X> Ok;
+	Err<T, X> Err;
+	Ok<T, X> Ok;
 };
 template <typename T, typename X>
 struct Result {
@@ -55,11 +55,11 @@ enum TypeVariant {
 	TemplateTypeVariant
 };
 union TypeData {
-	IdentifierData Identifier;
-	PlaceholderData Placeholder;
-	PointerTypeData PointerType;
-	PrimitiveTypeData PrimitiveType;
-	TemplateTypeData TemplateType;
+	Identifier Identifier;
+	Placeholder Placeholder;
+	PointerType PointerType;
+	PrimitiveType PrimitiveType;
+	TemplateType TemplateType;
 };
 struct Type {
 	TypeVariant variant;
@@ -71,9 +71,9 @@ enum MethodDeclarationVariant {
 	PlaceholderVariant
 };
 union MethodDeclarationData {
-	ConstructorData Constructor;
-	DeclarationData Declaration;
-	PlaceholderData Placeholder;
+	Constructor Constructor;
+	Declaration Declaration;
+	Placeholder Placeholder;
 };
 struct MethodDeclaration {
 	MethodDeclarationVariant variant;
@@ -87,11 +87,11 @@ enum StructMemberVariant {
 	PlaceholderVariant
 };
 union StructMemberData {
-	DeclarationData Declaration;
-	EmptyStructMemberData EmptyStructMember;
-	FieldData Field;
-	FunctionDeclarationData FunctionDeclaration;
-	PlaceholderData Placeholder;
+	Declaration Declaration;
+	EmptyStructMember EmptyStructMember;
+	Field Field;
+	FunctionDeclaration FunctionDeclaration;
+	Placeholder Placeholder;
 };
 struct StructMember {
 	StructMemberVariant variant;
@@ -969,7 +969,7 @@ auto lambda12(void* _this, auto variant){
 	return System.lineSeparator() + "\t" + variant + "Variant";
 }
 auto lambda13(void* _this, auto variant){
-	return System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " + variant + ";";
+	return System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant + ";";
 }
 auto lambda14(void* _this, auto member){
 	return !(member.variant = ?.FunctionDeclarationVariant);

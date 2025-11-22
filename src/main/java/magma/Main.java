@@ -714,7 +714,7 @@ public class Main {
 
 			final var unionFields = variants
 					.stream()
-					.map(variant -> System.lineSeparator() + "\t" + variant + "Data" + joinedTypeParameters + " " + variant +
+					.map(variant -> System.lineSeparator() + "\t" + variant + joinedTypeParameters + " " + variant +
 													";")
 					.collect(Collectors.joining());
 
