@@ -1119,10 +1119,7 @@ public class Main {
 				final var base = substring.substring(0, i);
 				final var parameters = substring.substring(i + 1);
 
-				final var list = this
-						.divide(parameters, (state, character) -> new ValueFolder().apply(state, character))
-						.map(this::parseType)
-						.toList();
+				final var list = this.divide(parameters, new ValueFolder()).map(this::parseType).toList();
 
 				return new TemplateType(base, list);
 			}

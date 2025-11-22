@@ -1214,7 +1214,7 @@ Type parseType_Main(void* _this, char* input){
 		if (i >= 0) {
 			var base = substring.substring(0, i);
 			var parameters = substring.substring(i + 1);
-			var list = this->divide(parameters, /* (state, character) -> new ValueFolder().apply(state, character)*/).map(/*this::parseType*/).toList();
+			var list = this->divide(parameters, new_ValueFolder()).map(/*this::parseType*/).toList();
 			return new_TemplateType(base, list);
 	}
 	}
