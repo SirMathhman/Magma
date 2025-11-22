@@ -328,12 +328,13 @@ Stream<char*> stream_State(void* _this){
 	State* this = (State*) _this;
 	return this->segments.stream();
 }
+auto lambda0(void* _this, auto popped){
+	var appended = this->append(popped);
+	return new_Tuple<State, Character>(appended, popped);
+}
 Optional<Tuple<State, Character>> popAndAppendToTuple_State(void* _this){
 	State* this = (State*) _this;
-	return this->pop().map(/*popped -> {
-				final var appended = this.append(popped);
-				return new Tuple<State, Character>(appended, popped);
-			}*/);
+	return this->pop().map(lambda0);
 }
 Optional<State> popAndAppendToOption_State(void* _this){
 	State* this = (State*) _this;
@@ -471,16 +472,17 @@ Folder toFolder_EscapedFolder(void* _this){
 	data.EscapedFolder = this;
 	return { FolderVariant.EscapedFolderVariant, data };
 }
+auto lambda1(void* _this, auto tuple){
+	if (tuple.right == '\\') {
+		return tuple.left.popAndAppendToOption().orElse(tuple.left);
+	}
+	return tuple.left;
+}
 State apply_EscapedFolder(void* _this, State state, Character next){
 	EscapedFolder* this = (EscapedFolder*) _this;
 	if (next == '\'') {
 		var appended = state.append(next);
-		return appended.popAndAppendToTuple().map(/*tuple -> {
-					if (tuple.right == '\\') {
-						return tuple.left.popAndAppendToOption().orElse(tuple.left);
-					}
-					return tuple.left;
-				}*/).flatMap(/*State::popAndAppendToOption*/).orElse(appended);
+		return appended.popAndAppendToTuple().map(lambda1).flatMap(/*State::popAndAppendToOption*/).orElse(appended);
 	}
 	if (next == '\"') {
 		var current = state.append(next);
@@ -1033,6 +1035,21 @@ Optional<char*> compileExpression_Main(void* _this, char* input){
 	var stripped = input.strip();
 	if (stripped.startsWith("'") && stripped.endsWith("'")) {
 		return Optional.of(stripped);
+	}
+	var i1 = stripped.indexOf("->");
+	if (i1 >= 0) {
+		var name = stripped.substring(0, i1).strip();
+		var withBraces = stripped.substring(i1 + 2).strip();
+		if (this->isIdentifier(name)) {
+			if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+				var content = withBraces.substring(1, withBraces.length() - 1);
+				var compiled = this->compileMethodsSegments(content, 1);
+				var generatedName = "lambda" + this->counter;
+				this->counter++;
+				this->functions.add("auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
+				return Optional.of(generatedName);
+			}
+		}
 	}
 	var maybeOperator = this->compileOperator(stripped, " == ").or(/*() -> this.compileOperator(stripped, "<")*/).or(/*() -> this.compileOperator(stripped, "+")*/).or(/*() -> this.compileOperator(stripped, "-")*/).or(/*() -> this.compileOperator(stripped, "&&")*/).or(/*() -> this.compileOperator(stripped, "||")*/).or(/*() -> this.compileOperator(stripped, ">=")*/);
 	if (maybeOperator.isPresent()) {

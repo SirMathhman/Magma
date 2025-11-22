@@ -314,6 +314,7 @@ public class Main {
 	public final List<String> structures;
 	public final List<String> functions;
 	public final List<String> globals;
+	private int counter = 0;
 
 	public Main() {
 		this.structures = new ArrayList<String>();
@@ -904,6 +905,24 @@ public class Main {
 
 		if (stripped.startsWith("'") && stripped.endsWith("'")) {
 			return Optional.of(stripped);
+		}
+
+		final var i1 = stripped.indexOf("->");
+		if (i1 >= 0) {
+			final var name = stripped.substring(0, i1).strip();
+			final var withBraces = stripped.substring(i1 + 2).strip();
+			if (this.isIdentifier(name)) {
+				if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
+					final var content = withBraces.substring(1, withBraces.length() - 1);
+					final var compiled = this.compileMethodsSegments(content, 1);
+
+					final var generatedName = "lambda" + this.counter;
+					this.counter++;
+
+					this.functions.add("auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" + System.lineSeparator());
+					return Optional.of(generatedName);
+				}
+			}
 		}
 
 		final var maybeOperator = this
