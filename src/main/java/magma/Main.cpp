@@ -256,18 +256,18 @@ Result<R, X> mapValue_Ok(void* _this, F1R<T, R> mapper){
 public State_State(void* _this, char* input){
 	State this = *((State*) _this);
 	this.input = input;
-	this.index = /*0*/;
+	this.index = 0;
 	this.buffer = new_StringBuilder();
-	this.depth = /*0*/;
+	this.depth = 0;
 	this.segments = new_ArrayList<char*>();
 }
 boolean isShallow_State(void* _this){
 	State this = *((State*) _this);
-	return /*this.depth == 1*/;
+	return this.depth == 1;
 }
 boolean isLevel_State(void* _this){
 	State this = *((State*) _this);
-	return /*this.depth == 0*/;
+	return this.depth == 0;
 }
 State append_State(void* _this, Character next){
 	State this = *((State*) _this);
@@ -951,7 +951,28 @@ State foldStatement_Main(void* _this, State current, Character next){
 			}
 		}
 
+		if (this.isNumber(stripped)) {
+			return stripped;
+		}
+
+		final var i1 = stripped.indexOf("==");
+		if (i1 >= 0) {
+			final var left = stripped.substring(0, i1);
+			final var right = stripped.substring(i1 + 2);
+			return this.compileExpression(left) + " == " + this.compileExpression(right);
+		}
+
 		return wrap(stripped);
+	}*//*private boolean isNumber(String input) {
+		for (var i = 0; i < input.length(); i++) {
+			final var c = input.charAt(i);
+			if (Character.isDigit(c)) {
+				continue;
+			}
+			return false;
+		}
+
+		return true;
 	}*//*private String compileCaller(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("new ")) {

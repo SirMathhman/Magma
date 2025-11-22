@@ -790,6 +790,13 @@ public class Main {
 			return stripped;
 		}
 
+		final var i1 = stripped.indexOf("==");
+		if (i1 >= 0) {
+			final var left = stripped.substring(0, i1);
+			final var right = stripped.substring(i1 + 2);
+			return this.compileExpression(left) + " == " + this.compileExpression(right);
+		}
+
 		return wrap(stripped);
 	}
 
