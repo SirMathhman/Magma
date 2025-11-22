@@ -800,6 +800,11 @@ public class Main {
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
+		if (stripped.endsWith("++")) {
+			final var instance = stripped.substring(0, stripped.length() - 2);
+			return this.compileExpressionOrPlaceholder(instance) + "++";
+		}
+
 		return wrap(stripped);
 	}
 

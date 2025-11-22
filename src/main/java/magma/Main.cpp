@@ -278,7 +278,7 @@ Optional<Character> pop_State(void* _this){
 	State this = *((State*) _this);
 	if (this.index < this.input.length()) {
 	var value = this.input.charAt(this.index);
-	/*this.index++*/;
+	this.index++;
 	return Optional.of(value);}
 	/*else {
 				return Optional.empty();
@@ -961,6 +961,11 @@ State foldStatement_Main(void* _this, State current, Character next){
 								 .compileExpression(destination)
 								 .or(() -> this.parseDeclaration(destination, Collections.emptyList()).map(Declaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
+		}
+
+		if (stripped.endsWith("++")) {
+			final var instance = stripped.substring(0, stripped.length() - 2);
+			return this.compileExpressionOrPlaceholder(instance) + "++";
 		}
 
 		return wrap(stripped);
