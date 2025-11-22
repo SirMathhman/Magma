@@ -465,7 +465,7 @@ public class Main {
 				"};" + System.lineSeparator();
 		structures.add(generated);
 
-		return Optional.empty();
+		return Optional.of(new EmptyStructMember());
 	}
 
 	private static String joinTypeParameters(List<String> typeParameters) {
