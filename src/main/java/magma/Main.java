@@ -843,7 +843,8 @@ public class Main {
 							parameters.stream().map(Declaration::generate).collect(Collectors.joining(", "));
 
 					final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
-					this.functions.add(modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
+					this.functions.add(
+							modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 					return new Some<StructMember>(new EmptyStructMember());
 				}
 
@@ -1112,27 +1113,43 @@ public class Main {
 
 		final var i1 = stripped.indexOf("->");
 		if (i1 >= 0) {
-			final var name = stripped.substring(0, i1).strip();
+			final var beforeContent = stripped.substring(0, i1).strip();
 			final var maybeWithBraces = stripped.substring(i1 + 2).strip();
-			if (this.isIdentifier(name)) {
-				if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-					final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-					final var compiled = this.compileMethodsSegments(content, 1);
 
-					final var generatedName = this.generateName();
+			List<String> params;
+			if (this.isIdentifier(beforeContent)) {
+				params = Collections.singletonList(beforeContent);
+			} else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
+				final var substring = beforeContent.substring(1, beforeContent.length() - 1);
+				params =
+						this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+			} else {
+				return new None<String>();
+			}
 
-					this.functions.add(
-							"auto " + generatedName + "(void* _this, auto " + name + "){" + compiled + System.lineSeparator() + "}" +
-							System.lineSeparator());
-					return Option.of(generatedName);
-				} else {
-					final var generatedName = this.generateName();
+			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+				final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+				final var compiled = this.compileMethodsSegments(content, 1);
 
-					this.functions.add("auto " + generatedName + "(void* _this, auto " + name + "){" +
-														 this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-														 System.lineSeparator() + "}" + System.lineSeparator());
-					return Option.of(generatedName);
-				}
+				final var generatedName = this.generateName();
+
+				final var paramList =
+						params.stream().map(param -> "auto " + param).collect(Collectors.toCollection(ArrayList::new));
+
+				paramList.addFirst("void* _this");
+
+				final var joined = String.join(", ", paramList);
+
+				this.functions.add("auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
+													 System.lineSeparator());
+				return Option.of(generatedName);
+			} else {
+				final var generatedName = this.generateName();
+
+				this.functions.add("auto " + generatedName + "(void* _this, auto " + beforeContent + "){" +
+													 this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+													 System.lineSeparator() + "}" + System.lineSeparator());
+				return Option.of(generatedName);
 			}
 		}
 
