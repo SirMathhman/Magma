@@ -23,7 +23,7 @@ char* toIdentifier_PrimitiveType(void* _this){
 	PrimitiveType this = *((PrimitiveType*) _this);
 	return this.content;
 }
-/**/enum ResultVariant {
+enum ResultVariant {
 	ErrVariant, 
 	OkVariant
 };
@@ -37,7 +37,7 @@ struct Result {
 	ResultVariant variant;
 	ResultData data;
 };
-/*<R> Result<R, X> mapValue(Function<T, R> mapper);*//**/enum TypeVariant {
+/*<R> Result<R, X> mapValue(Function<T, R> mapper);*/enum TypeVariant {
 	IdentifierVariant, 
 	PlaceholderVariant, 
 	PointerTypeVariant, 
@@ -55,7 +55,7 @@ struct Type {
 	TypeVariant variant;
 	TypeData data;
 };
-/*String generate();*//*String toIdentifier();*//**/enum MethodDeclarationVariant {
+/*String generate();*//*String toIdentifier();*/enum MethodDeclarationVariant {
 	ConstructorVariant, 
 	DeclarationVariant, 
 	PlaceholderVariant
@@ -69,7 +69,7 @@ struct MethodDeclaration {
 	MethodDeclarationVariant variant;
 	MethodDeclarationData data;
 };
-/*String generate();*//**//*private record Err<T, X>(X error) implements Result<T, X> {
+/*String generate();*//*private record Err<T, X>(X error) implements Result<T, X> {
 		@Override
 		public <R> Result<R, X> mapValue(Function<T, R> mapper) {
 			return new Err<R, X>(this.error);
@@ -275,7 +275,7 @@ State foldStatement_Main(void* _this, State current, Character next){
 }
 /*') {
 			return appended.exit();
-		}*//**//*private static String compileRootSegment(String input) {
+		}*//*private static String compileRootSegment(String input) {
 		final var stripped = input.strip();
 		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
 			return "";
@@ -429,6 +429,10 @@ State foldStatement_Main(void* _this, State current, Character next){
 		return true;
 	}*//*private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
+
+		if (stripped.isEmpty()) {
+			return "";
+		}
 
 		final var maybeEnum = compileStructure("enum", input);
 		if (maybeEnum.isPresent()) {

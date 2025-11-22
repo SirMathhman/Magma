@@ -443,6 +443,10 @@ public class Main {
 	private static String compileClassSegment(String input, String structName, List<String> typeParameters) {
 		final var stripped = input.strip();
 
+		if (stripped.isEmpty()) {
+			return "";
+		}
+
 		final var maybeEnum = compileStructure("enum", input);
 		if (maybeEnum.isPresent()) {
 			return maybeEnum.get();
