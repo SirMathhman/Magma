@@ -30,7 +30,7 @@ public class Main {
 
 	private enum JPrimitiveType implements JType {
 		Int(CPrimitiveType.Int), Void(CPrimitiveType.Void), Boolean(CPrimitiveType.Void),
-		String(new CPointerType(CPrimitiveType.Char)), Char(CPrimitiveType.Char);
+		String(new CPointerType(CPrimitiveType.Char)), Char(CPrimitiveType.Char), Var(null);
 
 		private final CType type;
 
@@ -524,6 +524,10 @@ public class Main {
 
 		private CAssignable toCAssignable() {
 			return this.toCDeclaration();
+		}
+
+		public JDeclaration withType(JType type) {
+			return new JDeclaration(this.annotations, this.typeParameters, this.maybeBeforeType, type, this.name);
 		}
 	}
 
@@ -1676,16 +1680,23 @@ public class Main {
 			final var maybeSource = this.parseCExpression(substring1);
 
 			if (maybeSource instanceof Some<CExpression>(var source)) {
-				return new Some<String>(this.transformAssignable(assignable).generate() + " = " + source.generate());
+				return new Some<String>(this.transformAssignable(assignable, source).generate() + " = " + source.generate());
 			}
 		}
 
 		return new None<String>();
 	}
 
-	private CAssignable transformAssignable(JAssignable assignable) {
+	private CAssignable transformAssignable(JAssignable assignable, CExpression source) {
 		return switch (assignable) {
-			case JDeclaration jDeclaration -> jDeclaration.toCAssignable();
+			case JDeclaration jDeclaration -> {
+				if (jDeclaration.type.equals(JPrimitiveType.Var)) {
+					yield jDeclaration.withType(new Placeholder(source.content)).toCAssignable();
+				}
+
+				yield jDeclaration.toCAssignable();
+			}
+
 			case JExpression jExpression -> jExpression.toCAssignable();
 			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
@@ -2099,6 +2110,9 @@ public class Main {
 			}
 			case "Character" -> {
 				return JPrimitiveType.Char;
+			}
+			case "var" -> {
+				return JPrimitiveType.Var;
 			}
 		}
 
