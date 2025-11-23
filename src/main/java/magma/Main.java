@@ -175,7 +175,7 @@ public class Main {
 		String generate();
 	}
 
-	private sealed interface CRootSegment permits CStructure, JEnum, JUnion {
+	private sealed interface CRootSegment permits CStructure, CEnum, JUnion {
 		String generate();
 	}
 
@@ -1102,7 +1102,7 @@ public class Main {
 		}
 	}
 
-	private record JEnum(String name, List<String> variants) implements CRootSegment {
+	private record CEnum(String name, List<String> variants) implements CRootSegment {
 		@Override
 		public String generate() {
 			final var enumFields = this
@@ -1396,7 +1396,7 @@ public class Main {
 		final var templateString = generateTemplateString(typeParameters);
 		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
-		var dependencies = new JavaList<CRootSegment>();
+		List<CRootSegment> dependencies = new JavaList<CRootSegment>();
 		this.functions = implementees
 				.iter()
 				.map(implementee -> this.generate(implementee, name, joinedTypeParameters, templateString))
@@ -1426,22 +1426,12 @@ public class Main {
 		var members = within.right;
 
 		if (modifiersList.contains("sealed")) {
-			final var jEnum = new JEnum(name, variants);
+			final var elements = this.flattenSealedStructure(name, typeParameters, variants);
 
-			final var generatedUnion = new JUnion(typeParameters,
-																						name,
-																						variants
-																								.iter()
-																								.map(variant -> variant + joinedTypeParameters + " " + variant)
-																								.toList());
-
-			final var s = name + "Variant";
-			final var s1 = name + "Data" + joinedTypeParameters;
 			fields = fields
-					.addLast(new CDeclaration(new Identifier(s), "variant"))
-					.addLast(new CDeclaration(new Identifier(s1), "data"));
-
-			dependencies = dependencies.addLast(jEnum).addLast(generatedUnion);
+					.addLast(new CDeclaration(new Identifier(name + "Variant"), "variant"))
+					.addLast(new CDeclaration(new Identifier(name + "Data" + joinedTypeParameters), "data"));
+			dependencies = dependencies.addAllLast(elements);
 		} else if (type.equals("interface")) {
 			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
 			final var cStructure = new CStructure(typeParameters, name + "Table", list);
@@ -1455,8 +1445,18 @@ public class Main {
 		}
 
 		final var s = new CStructure(typeParameters, name, fields);
-		this.rootSegments = this.rootSegments.addAllLast(dependencies.addLast(s));
+		final var elements = dependencies.addLast(s);
+		this.rootSegments = this.rootSegments.addAllLast(elements);
 		return new Some<CStructMember>(new EmptyStructMember());
+	}
+
+	private List<CRootSegment> flattenSealedStructure(String name, List<String> typeParameters, List<String> variants) {
+		final var jEnum = new CEnum(name, variants);
+
+		final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
+		final var unionMembers = variants.iter().map(variant -> variant + joinedTypeParameters + " " + variant).toList();
+		final var union = new JUnion(typeParameters, name, unionMembers);
+		return Lists.of(jEnum, union);
 	}
 
 	private Option<CDefinable> retainDefinables(CStructMember member) {
