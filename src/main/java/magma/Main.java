@@ -1328,7 +1328,7 @@ public class Main {
 			final var thisInitialization = this.generateStatement(
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
-			List<JDeclaration> finalParameters = parameters;
+			var finalParameters = parameters;
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
 				if (variants.isEmpty()) {
 					final var joinedParameters = finalParameters
