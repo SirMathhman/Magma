@@ -243,7 +243,8 @@ struct CPointerType {
 };
 struct CTemplateType {
 	char* base;
-	List<CType> list;
+	List<CType> list;/*private CTemplateType {
+			assert !list.isEmpty*/
 };
 struct Identifier {
 	char* value;
@@ -463,6 +464,8 @@ Option<State> popAndAppendToOption_State(void* _ref);
 Option<char> peek_State(void* _ref);
 char* generate_CPointerType(void* _ref);
 char* toBaseName_CPointerType(void* _ref);
+/*private CTemplateType {
+			assert !list.isEmpty*/();
 char* generate_CTemplateType(void* _ref);
 char* toBaseName_CTemplateType(void* _ref);
 char* generate_Identifier(void* _ref);
@@ -569,6 +572,7 @@ List<char*> splitValues_Main(void* _ref, char* input);
 void isIdentifier_Main(void* _ref, char* input);
 Option<CStructMember> compileClassSegment_Main(void* _ref, char* input, char* structName, List<char*> typeParameters, List<char*> variants);
 Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
+CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters);
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant);
 JMethodDeclaration parseMethodDeclaration_Main(void* _ref, char* declaration, char* structName);
@@ -1161,6 +1165,9 @@ CType toCType_CTemplateType(void* _ref){
 	data.CTemplateType = _this;
 	return { CTemplateTypeVariant, data };
 }
+/*private CTemplateType {
+			assert !list.isEmpty*/(){?
+}
 char* generate_CTemplateType(void* _ref){
 	CTemplateType* _this = (CTemplateType*) _ref;
 	var typeArguments = (*_this).list.iter().map(F? { alloc(CType), F?Table { generate }}).collect(new_Joiner(", "));
@@ -1749,8 +1756,7 @@ char* wrap_Main(void* _ref, char* input){
 }
 void main_Main(void* _ref, char** args){
 	Main* _this = (Main*) _ref;
-	var ioExceptionOption = new_Main().run();
-	if (ioExceptionOption.variant = ?.SomeVariant) {
+	if (new_Main().run().variant = ?.SomeVariant) {
 		System.err.println(value.display());
 	}
 }
@@ -2166,6 +2172,14 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 	(*_this).functions = (*_this).functions.addLast(generated);
 	var parameterTypes = parameters.iter().map(F? { alloc(CDeclaration), F?Table { type }}).toList();
 	return _switch;
+}
+CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters){
+	Main* _this = (Main*) _ref;
+	if (base.isEmpty()) {
+		return new_Identifier(base);
+	}
+	/*final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList()*/;
+	return new_CTemplateType(base, typeArguments);
 }
 auto lambda30(void* _ref, auto input){
 	return (*_this).compileMethodSegment(input, indent);

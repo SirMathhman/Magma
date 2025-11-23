@@ -156,9 +156,7 @@ public class Main {
 		CType toCType();
 	}
 
-	private interface JAssignable {
-		CAssignable toCAssignable();
-	}
+	private sealed interface JAssignable permits JDeclaration, JExpression, Placeholder {}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -451,7 +449,6 @@ public class Main {
 		@Override
 		public String generate() {
 			final var typeArguments = this.list.iter().map(CType::generate).collect(new Joiner(", "));
-
 			return this.base + "<" + typeArguments + ">";
 		}
 
@@ -495,8 +492,7 @@ public class Main {
 			return wrap(this.input);
 		}
 
-		@Override
-		public CAssignable toCAssignable() {
+		private CAssignable toCAssignable() {
 			return this;
 		}
 
@@ -526,8 +522,7 @@ public class Main {
 			return new CDeclaration(this.typeParameters, this.type.toCType(), this.name);
 		}
 
-		@Override
-		public CAssignable toCAssignable() {
+		private CAssignable toCAssignable() {
 			return this.toCDeclaration();
 		}
 	}
@@ -895,8 +890,7 @@ public class Main {
 			return new CExpression(this.content);
 		}
 
-		@Override
-		public CAssignable toCAssignable() {
+		private CAssignable toCAssignable() {
 			return new CExpression(this.content);
 		}
 	}
@@ -957,8 +951,7 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		var ioExceptionOption = new Main().run();
-		if (ioExceptionOption instanceof Some<IOError>(
+		if (new Main().run() instanceof Some<IOError>(
 				var value
 		)) {
 			System.err.println(value.display());
@@ -1435,8 +1428,8 @@ public class Main {
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
 			case JConstructor constructor -> {
-				final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
-				yield (CFunctionDeclaration) new CDeclaration(new CTemplateType(constructor.type, typeArguments), "new");
+				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
+				yield (CFunctionDeclaration) new CDeclaration(type, "new");
 			}
 			case JDeclaration declaration -> declaration.toCDeclaration();
 			case Placeholder placeholder -> placeholder;
@@ -1463,6 +1456,15 @@ public class Main {
 			}
 			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
 		};
+	}
+
+	private CType toConstructorReturnType(String base, List<String> typeParameters) {
+		if (base.isEmpty()) {
+			return new Identifier(base);
+		}
+
+		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
+		return new CTemplateType(base, typeArguments);
 	}
 
 	private String compileMethodsSegments(String inputContent, int indent) {
@@ -1674,11 +1676,19 @@ public class Main {
 			final var maybeSource = this.parseCExpression(substring1);
 
 			if (maybeSource instanceof Some<CExpression>(var source)) {
-				return new Some<String>(assignable.toCAssignable().generate() + " = " + source.generate());
+				return new Some<String>(this.transformAssignable(assignable).generate() + " = " + source.generate());
 			}
 		}
 
 		return new None<String>();
+	}
+
+	private CAssignable transformAssignable(JAssignable assignable) {
+		return switch (assignable) {
+			case JDeclaration jDeclaration -> jDeclaration.toCAssignable();
+			case JExpression jExpression -> jExpression.toCAssignable();
+			case Placeholder placeholder -> placeholder.toCAssignable();
+		};
 	}
 
 	private JAssignable parseAssignable(String input) {
