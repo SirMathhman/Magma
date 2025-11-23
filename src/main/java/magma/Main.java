@@ -79,7 +79,7 @@ public class Main {
 
 		T orElseGet(FR<T> other);
 
-		Stream<T> stream();
+		Stream<T> iter();
 
 		Option<T> or(FR<Option<T>> other);
 
@@ -615,7 +615,7 @@ public class Main {
 		}
 
 		@Override
-		public Stream<T> stream() {
+		public Stream<T> iter() {
 			return Stream.of(this.value);
 		}
 
@@ -652,7 +652,7 @@ public class Main {
 		}
 
 		@Override
-		public Stream<T> stream() {
+		public Stream<T> iter() {
 			return Stream.empty();
 		}
 
@@ -1130,7 +1130,7 @@ public class Main {
 				recordFields = this
 						.divide(substring.substring(i3 + 1), (state, character) -> new ValueFolder().apply(state, character))
 						.map(this::parseDeclaration)
-						.flatMap(Option::stream)
+						.flatMap(Option::iter)
 						.toList();
 			}
 		}
@@ -1178,7 +1178,7 @@ public class Main {
 		final var members = this
 				.divide(inputContent, new EscapedFolder(this::foldStatement))
 				.map(slice -> this.compileClassSegment(slice, name, finalTypeParameters, finalVariants))
-				.flatMap(Option::stream)
+				.flatMap(Option::iter)
 				.toList();
 
 		if (modifiersList.contains("sealed")) {
@@ -1324,7 +1324,7 @@ public class Main {
 				.toList()
 				.iter()
 				.map(this::parseDeclaration)
-				.flatMap(Option::stream)
+				.flatMap(Option::iter)
 				.toList();
 
 		this.environment = this.environment.addLast(parameters);
@@ -1840,25 +1840,36 @@ public class Main {
 	}
 
 	private Option<String> compileInvokable(String stripped) {
-		if (stripped.endsWith(")")) {
-			final var stripped1 = stripped;
-			final var length = stripped.length();
-			final var withoutEnd = stripped1.substring(0, length - 1);
+		return getStringOption(stripped);
+	}
 
-			final var callerStart = this.findCallerStart(withoutEnd);
+	private Option<String> getStringOption(String stripped) {
+		if (!stripped.endsWith(")")) return new None<String>();
 
-			if (callerStart >= 0) {
-				final var callerString = withoutEnd.substring(0, callerStart);
-				final var arguments = withoutEnd.substring(callerStart + 1);
-				final var joinedArguments = this
-						.divide(arguments, new EscapedFolder(new ValueFolder()))
-						.map(this::compileExpressionOrPlaceholder)
-						.collect(new Joiner(", "));
+		final var stripped1 = stripped;
+		final var length = stripped.length();
+		final var withoutEnd = stripped1.substring(0, length - 1);
 
-				final var maybeCaller = this.compileCaller(callerString);
-				if (maybeCaller instanceof Some<String>(var value))
-					return new Some<String>(value + "(" + joinedArguments + ")");
-			}
+		final var callerStart = this.findCallerStart(withoutEnd);
+
+		if (callerStart >= 0) {
+			final var callerString = withoutEnd.substring(0, callerStart);
+			final var argumentsString = withoutEnd.substring(callerStart + 1);
+			final var arguments = this
+					.divide(argumentsString, new EscapedFolder(new ValueFolder()))
+					.map(this::parseExpression)
+					.flatMap(Option::iter)
+					.toList();
+
+			final var cArguments = arguments.iter().map(JExpression::toCExpression).toList();
+
+			final var joinedArguments = cArguments
+					.iter()
+					.map(CAssignable::generate)
+					.collect(new Joiner(", "));
+
+			final var maybeCaller = this.compileCaller(callerString);
+			if (maybeCaller instanceof Some<String>(var value)) return new Some<String>(value + "(" + joinedArguments + ")");
 		}
 
 		return new None<String>();
