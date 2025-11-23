@@ -1137,12 +1137,12 @@ public class Main {
 			return this.recordFields.iter().map(JDeclaration::toCDeclaration).<CDefinable>map(value -> value).toList();
 		}
 
-		private List<String> createConversionFunctions() {
+		private List<CFunction> createConversionFunctions() {
 			return this.implementees().iter().map(this::createConversionType).toList();
 		}
 
 		// TODO: This return type needs to be a CFunction
-		private String createConversionType(CType implementee) {
+		private CFunction createConversionType(CType implementee) {
 			var joinedTypeParameters = Main.joinTypeParameters(this.typeParameters());
 			var templateString = generateTemplateString(this.typeParameters());
 			//TODO: turn this into proper AST generation
@@ -1153,14 +1153,31 @@ public class Main {
 			final var s1 = Main.generateStatement(identifier + "Data" + joinedTypeParameters + " data");
 			final var s2 = Main.generateStatement("data." + this.name + " = _this");
 			final var s3 = Main.generateStatement("return { " + this.name + "Variant, data }");
-			final var conversionF1RContent = s + s1 + s2 + s3;
-			return templateString + implementee.generate() + " to" + identifier + "_" + this.name + "(void* _ref){" +
-						 conversionF1RContent + System.lineSeparator() + "}" + System.lineSeparator();
+			final var content = s + s1 + s2 + s3;
+
+			final var conversionFunctionName = "to" + identifier + "_" + this.name;
+			final var parameters = Lists.of(new CDeclaration(new CPointerType(CPrimitiveType.Void), "_ref"));
+			final var header = new CFunctionHeader(new CDeclaration(implementee, conversionFunctionName), parameters);
+
+			return new CFunction(header, content);
 		}
 	}
 
 	@Deprecated
 	private record JObjectMemberPrototypeWrapper(CStructMember member) implements JObjectMemberPrototype {}
+
+	public record CFunctionHeader(CFunctionDeclaration definition, List<CDeclaration> parameters) {
+		private String generate() {
+			final var compiledParameters = this.parameters().iter().map(CDeclaration::generate).collect(new Joiner(", "));
+			return this.definition().generate() + "(" + compiledParameters + ")";
+		}
+	}
+
+	public record CFunction(CFunctionHeader header, String content) {
+		private String generate() {
+			return this.header().generate() + "{" + this.content() + System.lineSeparator() + "}" + System.lineSeparator();
+		}
+	}
 
 	private static final JType StringType = JRecursiveType.create(StringType -> {
 		// We don't need parameter types for now, we don't validate them yet
@@ -1177,7 +1194,7 @@ public class Main {
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<CRootSegment> rootSegments;
-	private List<String> functions;
+	private List<CFunction> functions;
 	private int counter;
 
 	public Main() {
@@ -1273,7 +1290,8 @@ public class Main {
 		final var joinedGlobals = this.joinStrings("", this.globals);
 
 		final var joinedFunctionDeclarations = this.joinStrings("", this.functionDeclarations);
-		final var joinedFunctions = this.joinStrings("", this.functions);
+		final var joinedFunctions = this.functions.iter().map(CFunction::generate).collect(new Joiner());
+
 		return joinedStructures + joinedGlobals + joinedFunctionDeclarations + joinedFunctions + all;
 	}
 
@@ -1672,29 +1690,27 @@ public class Main {
 			});
 		} else outputContent = "?";
 
-		final var compiledParameters = cParameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
+		final var mapped = this.transformMethodDeclaration(structName, typeParameters, methodDeclaration);
+		return this.getJObjectMemberPrototypeOption(mapped, methodDeclaration, cParameters, outputContent);
+	}
 
-		final var modifiedMethodDeclaration = switch (methodDeclaration) {
-			case JConstructor constructor -> {
-				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
-				yield (CFunctionDeclaration) new CDeclaration(type, "new");
-			}
-			case JDeclaration declaration -> declaration.toCDeclaration();
-			case Placeholder placeholder -> placeholder;
-		};
+	private Option<JObjectMemberPrototype> getJObjectMemberPrototypeOption(CFunctionDeclaration mapped,
+																																				 JMethodDeclaration methodDeclaration,
+																																				 List<CDeclaration> cParameters,
+																																				 String outputContent) {
+		final var header = new CFunctionHeader(mapped, cParameters);
+		final var cFunction = new CFunction(header, outputContent);
 
-		final var mapped = modifiedMethodDeclaration
-				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
-				.mapName(name -> name + "_" + structName);
-
-		final var header = mapped.generate() + "(" + compiledParameters + ")";
-		final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
-
-		this.functionDeclarations = this.functionDeclarations.addLast(header + ";" + System.lineSeparator());
-		this.functions = this.functions.addLast(generated);
+		this.functionDeclarations = this.functionDeclarations.addLast(header.generate() + ";" + System.lineSeparator());
+		this.functions = this.functions.addLast(cFunction);
 
 		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
 
+		return this.getJObjectMemberPrototypeOption(methodDeclaration, parameterTypes);
+	}
+
+	private Option<JObjectMemberPrototype> getJObjectMemberPrototypeOption(JMethodDeclaration methodDeclaration,
+																																				 List<CType> parameterTypes) {
 		return switch (methodDeclaration) {
 			case JConstructor _ -> new Some<JObjectMemberPrototype>(new EmptyStructMember());
 			case JDeclaration member -> {
@@ -1703,6 +1719,27 @@ public class Main {
 				yield new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(f1RDeclaration));
 			}
 			case Placeholder placeholder -> new Some<JObjectMemberPrototype>(placeholder);
+		};
+	}
+
+	private CFunctionDeclaration transformMethodDeclaration(String structName,
+																													List<String> typeParameters,
+																													JMethodDeclaration methodDeclaration) {
+		return this
+				.convertToFunctionDeclarations(typeParameters, methodDeclaration)
+				.mapTypeParameters(typeParameters0 -> typeParameters0.addAllLast(typeParameters))
+				.mapName(name -> name + "_" + structName);
+	}
+
+	private CFunctionDeclaration convertToFunctionDeclarations(List<String> typeParameters,
+																														 JMethodDeclaration methodDeclaration) {
+		return switch (methodDeclaration) {
+			case JConstructor constructor -> {
+				final var type = this.toConstructorReturnType(constructor.type, typeParameters);
+				yield new CDeclaration(type, "new");
+			}
+			case JDeclaration declaration -> declaration.toCDeclaration();
+			case Placeholder placeholder -> placeholder;
 		};
 	}
 
