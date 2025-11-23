@@ -200,11 +200,8 @@ public class Main {
 				var finalCurrent = current;
 				final var tuple =
 						this.head.next().map(element -> folder.apply(finalCurrent, element)).toTuple(() -> finalCurrent);
-				if (tuple.left) {
-					current = tuple.right;
-				} else {
-					return current;
-				}
+				if (tuple.left) current = tuple.right;
+				else return current;
 			}
 		}
 
@@ -218,9 +215,7 @@ public class Main {
 
 		public Stream<T> filter(F1R<T, Boolean> predicate) {
 			return this.flatMap(element -> {
-				if (predicate.apply(element)) {
-					return new Stream<T>(new SingleHead<T>(element));
-				}
+				if (predicate.apply(element)) return new Stream<T>(new SingleHead<T>(element));
 				return new Stream<T>(new EmptyHead<T>());
 			});
 		}
@@ -245,9 +240,7 @@ public class Main {
 				final var value = this.counter;
 				this.counter++;
 				return new Some<Integer>(value);
-			} else {
-				return new None<Integer>();
-			}
+			} else return new None<Integer>();
 		}
 	}
 
@@ -376,9 +369,7 @@ public class Main {
 				final var value = this.input.charAt(this.index);
 				this.index++;
 				return new Some<Character>(value);
-			} else {
-				return new None<Character>();
-			}
+			} else return new None<Character>();
 		}
 
 		private State advance() {
@@ -413,9 +404,7 @@ public class Main {
 		}
 
 		public Option<Character> peek() {
-			if (this.index < this.input.length()) {
-				return new Some<Character>(this.input.charAt(this.index));
-			}
+			if (this.index < this.input.length()) return new Some<Character>(this.input.charAt(this.index));
 
 			return new None<Character>();
 		}
@@ -539,9 +528,7 @@ public class Main {
 			if (next == '\'') {
 				final var appended = state.append(next);
 				return appended.popAndAppendToTuple().map(tuple -> {
-					if (tuple.right == '\\') {
-						return tuple.left.popAndAppendToOption().orElse(tuple.left);
-					}
+					if (tuple.right == '\\') return tuple.left.popAndAppendToOption().orElse(tuple.left);
 					return tuple.left;
 				}).flatMap(State::popAndAppendToOption).orElse(appended);
 			}
@@ -550,20 +537,14 @@ public class Main {
 				var current = state.append(next);
 				while (true) {
 					final var maybeTuple = current.popAndAppendToTuple();
-					if (!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))) {
-						break;
-					}
+					if (!(maybeTuple instanceof Some<Tuple<State, Character>>(var value))) break;
 
 					current = value.left;
 
 					final var right = value.right;
-					if (right == '\\') {
-						current = current.popAndAppendToOption().orElse(current);
-					}
+					if (right == '\\') current = current.popAndAppendToOption().orElse(current);
 
-					if (right == '\"') {
-						break;
-					}
+					if (right == '\"') break;
 				}
 
 				return current;
@@ -576,27 +557,19 @@ public class Main {
 	private static class ValueFolder implements Folder {
 		@Override
 		public State apply(State state, Character next) {
-			if (next == ',' && state.isLevel()) {
-				return state.advance();
-			}
+			if (next == ',' && state.isLevel()) return state.advance();
 
 			final var appended = state.append(next);
 			if (next == '-') {
 				final var peeked = appended.peek();
-				if (peeked instanceof Some<Character>(var value) && value == '>') {
+				if (peeked instanceof Some<Character>(var value) && value == '>')
 					return appended.popAndAppendToOption().orElse(appended);
-				} else {
-					return appended;
-				}
+				else return appended;
 			}
 
-			if (next == '<' || next == '(') {
-				return appended.enter();
-			}
+			if (next == '<' || next == '(') return appended.enter();
 
-			if (next == '>' || next == ')') {
-				return appended.exit();
-			}
+			if (next == '>' || next == ')') return appended.exit();
 			return appended;
 		}
 	}
@@ -679,14 +652,10 @@ public class Main {
 		@Override
 		public State apply(State state, Character c) {
 			final var appended = state.append(c);
-			if (c == '(') {
-				return appended.enter();
-			}
+			if (c == '(') return appended.enter();
 
 			if (c == ')') {
-				if (appended.isLevel()) {
-					return appended.advance();
-				}
+				if (appended.isLevel()) return appended.advance();
 
 				return appended.exit();
 			}
@@ -730,9 +699,7 @@ public class Main {
 
 		@Override
 		public Option<T> next() {
-			if (this.retrieved) {
-				return new None<T>();
-			}
+			if (this.retrieved) return new None<T>();
 			this.retrieved = true;
 			return new Some<T>(this.value);
 		}
@@ -754,15 +721,11 @@ public class Main {
 			while (true) {
 				if (this.maybeCurrent instanceof Some<Stream<R>>(var current)) {
 					final var next = current.head.next();
-					if (next instanceof Some<R>) {
-						return next;
-					}
+					if (next instanceof Some<R>) return next;
 				}
 
 				final var maybeNext = this.head.next();
-				if (maybeNext instanceof None<T>) {
-					return new None<R>();
-				}
+				if (maybeNext instanceof None<T>) return new None<R>();
 				this.maybeCurrent = maybeNext.map(this.mapper);
 			}
 		}
@@ -799,9 +762,7 @@ public class Main {
 
 		@Override
 		public String fold(String current, String element) {
-			if (current.isEmpty()) {
-				return element;
-			}
+			if (current.isEmpty()) return element;
 			return current + this.delimiter + element;
 		}
 	}
@@ -923,9 +884,8 @@ public class Main {
 
 	private static String generateTemplateString(List<String> typeParameters) {
 		final String templateString;
-		if (typeParameters.isEmpty()) {
-			templateString = "";
-		} else {
+		if (typeParameters.isEmpty()) templateString = "";
+		else {
 			final var typeNames = typeParameters.iter().map(typeParam -> "typename " + typeParam).collect(new Joiner(", "));
 
 			templateString = "template <" + typeNames + ">" + System.lineSeparator();
@@ -941,9 +901,7 @@ public class Main {
 	public static void main(String[] args) {
 		if (new Main().run() instanceof Some<IOError>(
 				var value
-		)) {
-			System.err.println(value.display());
-		}
+		)) System.err.println(value.display());
 	}
 
 	private static String generateStatement(int depth, String content) {
@@ -1012,9 +970,7 @@ public class Main {
 		var current = new State(input);
 		while (true) {
 			final var maybeNext = current.pop();
-			if (!(maybeNext instanceof Some<Character>(var value))) {
-				break;
-			}
+			if (!(maybeNext instanceof Some<Character>(var value))) break;
 
 			final Character next;
 			next = value;
@@ -1035,61 +991,43 @@ public class Main {
 						withoutLineCommentPrefix = tuple.left;
 
 						final var right = tuple.right;
-						if (right == '\r' || right == '\n') {
-							withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
-						}
-					} else {
-						return withoutLineCommentPrefix;
-					}
+						if (right == '\r' || right == '\n') withoutLineCommentPrefix = withoutLineCommentPrefix.advance();
+					} else return withoutLineCommentPrefix;
 				}
 			}
 		}
 
 		final var appended = current.append(next);
-		if (next == ';' && appended.isLevel()) {
-			return appended.advance();
-		}
+		if (next == ';' && appended.isLevel()) return appended.advance();
 
 		if (next == '}' && appended.isShallow()) {
 			final State appended1;
-			if (appended.peek() instanceof Some<Character>(var peek) && peek == ';') {
+			if (appended.peek() instanceof Some<Character>(var peek) && peek == ';')
 				appended1 = appended.popAndAppendToOption().orElse(appended);
-			} else {
-				appended1 = appended;
-			}
+			else appended1 = appended;
 
 			return appended1.advance().exit();
 		}
 
-		if (next == '{' || next == '(') {
-			return appended.enter();
-		}
+		if (next == '{' || next == '(') return appended.enter();
 
-		if (next == '}' || next == ')') {
-			return appended.exit();
-		}
+		if (next == '}' || next == ')') return appended.exit();
 
 		return appended;
 	}
 
 	private String compileRootSegment(String input) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) {
-			return "";
-		}
+		if (stripped.isEmpty()) return "";
 
-		if (stripped.startsWith("package ") || stripped.startsWith("import ")) {
-			return "";
-		}
+		if (stripped.startsWith("package ") || stripped.startsWith("import ")) return "";
 
 		return this.compileStructure("class", stripped).map(CStructMember::generate).orElseGet(() -> wrap(stripped));
 	}
 
 	private Option<CStructMember> compileStructure(String type, String stripped) {
 		final var i = stripped.indexOf(type + " ");
-		if (i < 0) {
-			return new None<CStructMember>();
-		}
+		if (i < 0) return new None<CStructMember>();
 		final var beforeType = stripped.substring(0, i).strip();
 
 		final String modifiers;
@@ -1101,26 +1039,18 @@ public class Main {
 			final var substring1 = beforeType.substring(i5 + 1);
 			annotations = this.collectAnnotations(substring);
 			modifiers = substring1;
-		} else {
-			modifiers = beforeType;
-		}
+		} else modifiers = beforeType;
 
-		if (annotations.contains("Actual")) {
-			return new Some<CStructMember>(new EmptyStructMember());
-		}
+		if (annotations.contains("Actual")) return new Some<CStructMember>(new EmptyStructMember());
 
 		final var afterKeyword = stripped.substring(i + (type + " ").length()).strip();
 
 		final var i1 = afterKeyword.indexOf("{");
-		if (i1 < 0) {
-			return new None<CStructMember>();
-		}
+		if (i1 < 0) return new None<CStructMember>();
 		var beforeContent = afterKeyword.substring(0, i1).strip();
 
 		final var withEnd = afterKeyword.substring(i1 + 1).strip();
-		if (!withEnd.endsWith("}")) {
-			return new None<CStructMember>();
-		}
+		if (!withEnd.endsWith("}")) return new None<CStructMember>();
 		final var inputContent = withEnd.substring(0, withEnd.length() - 1);
 
 		List<String> variants = Lists.empty();
@@ -1170,9 +1100,7 @@ public class Main {
 			}
 		}
 
-		if (!this.isIdentifier(beforeContent)) {
-			return new None<CStructMember>();
-		}
+		if (!this.isIdentifier(beforeContent)) return new None<CStructMember>();
 
 		var modifiersList = Streams
 				.fromObjArray(modifiers.split(Pattern.quote(" ")))
@@ -1272,11 +1200,8 @@ public class Main {
 
 	private String joinTypeParameters(List<String> typeParameters) {
 		final String joinedTypeParameters;
-		if (typeParameters.isEmpty()) {
-			joinedTypeParameters = "";
-		} else {
-			joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
-		}
+		if (typeParameters.isEmpty()) joinedTypeParameters = "";
+		else joinedTypeParameters = "<" + typeParameters.iter().collect(new Joiner(", ")) + ">";
 
 		return joinedTypeParameters;
 	}
@@ -1303,47 +1228,32 @@ public class Main {
 																										List<String> variants) {
 		final var stripped = input.strip();
 
-		if (stripped.isEmpty()) {
-			return new None<CStructMember>();
-		}
+		if (stripped.isEmpty()) return new None<CStructMember>();
 
 		final var maybeEnum = this.compileStructure("enum", input);
-		if (maybeEnum instanceof Some<CStructMember>) {
-			return maybeEnum;
-		}
+		if (maybeEnum instanceof Some<CStructMember>) return maybeEnum;
 
 		final var maybeInterface = this.compileStructure("interface", input);
-		if (maybeInterface instanceof Some<CStructMember>) {
-			return maybeInterface;
-		}
+		if (maybeInterface instanceof Some<CStructMember>) return maybeInterface;
 
 		final var maybeRecord = this.compileStructure("record", input);
-		if (maybeRecord instanceof Some<CStructMember>) {
-			return maybeRecord;
-		}
+		if (maybeRecord instanceof Some<CStructMember>) return maybeRecord;
 
 		final var maybeClass = this.compileStructure("class", input);
-		if (maybeClass instanceof Some<CStructMember>) {
-			return maybeClass;
-		}
+		if (maybeClass instanceof Some<CStructMember>) return maybeClass;
 
 		final var maybeEnumValues = this.compileEnumValues(input, structName);
-		if (maybeEnumValues instanceof Some<CStructMember>) {
-			return maybeEnumValues;
-		}
+		if (maybeEnumValues instanceof Some<CStructMember>) return maybeEnumValues;
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
-			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
+			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
 				return new Some<CStructMember>(new CField(declaration.toCDeclaration()));
-			}
 		}
 
 		final var maybeMethod = this.compileMethod(structName, typeParameters, variants, stripped);
-		if (maybeMethod instanceof Some<CStructMember>) {
-			return maybeMethod;
-		}
+		if (maybeMethod instanceof Some<CStructMember>) return maybeMethod;
 
 		return new Some<CStructMember>(new Placeholder(stripped));
 	}
@@ -1353,12 +1263,12 @@ public class Main {
 																							List<String> variants,
 																							String input) {
 		final var i = input.indexOf("(");
-		if (i < 0) {return new None<CStructMember>();}
+		if (i < 0) return new None<CStructMember>();
 
 		final var declarationString = input.substring(0, i);
 		final var substring1 = input.substring(i + 1);
 		final var i1 = substring1.indexOf(")");
-		if (i1 < 0) {return new None<CStructMember>();}
+		if (i1 < 0) return new None<CStructMember>();
 		final var parametersString = substring1.substring(0, i1);
 		final var withBraces = substring1.substring(i1 + 1).strip();
 
@@ -1429,9 +1339,7 @@ public class Main {
 								 generateIndent(1) + "}" + this.generateStatement("return _ret");
 				}
 			});
-		} else {
-			outputContent = "?";
-		}
+		} else outputContent = "?";
 
 		final var compiledParameters = parameters.iter().map(CDeclaration::generate).collect(new Joiner(", "));
 
@@ -1468,9 +1376,7 @@ public class Main {
 	}
 
 	private CType toConstructorReturnType(String base, List<String> typeParameters) {
-		if (base.isEmpty()) {
-			return new Identifier(base);
-		}
+		if (base.isEmpty()) return new Identifier(base);
 
 		final var typeArguments = typeParameters.iter().<CType>map(Identifier::new).toList();
 		return new CTemplateType(base, typeArguments);
@@ -1499,16 +1405,12 @@ public class Main {
 
 	private Option<JMethodDeclaration> parseConstructor(String declaration, String structName) {
 		final var stripped = declaration.strip();
-		if (stripped.equals(structName)) {
-			return new Some<JMethodDeclaration>(new JConstructor(structName));
-		}
+		if (stripped.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
 
 		final var i = stripped.lastIndexOf(" ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + 1).strip();
-			if (substring.equals(structName)) {
-				return new Some<JMethodDeclaration>(new JConstructor(structName));
-			}
+			if (substring.equals(structName)) return new Some<JMethodDeclaration>(new JConstructor(structName));
 		}
 
 		return new None<JMethodDeclaration>();
@@ -1516,9 +1418,7 @@ public class Main {
 
 	private Option<CStructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
-		if (!stripped.endsWith(";")) {
-			return new None<CStructMember>();
-		}
+		if (!stripped.endsWith(";")) return new None<CStructMember>();
 
 		final var enumValues = this
 				.divide(stripped.substring(0, stripped.length() - 1),
@@ -1532,9 +1432,7 @@ public class Main {
 			final var areAnyInvalid =
 					(boolean) optionStream.collect(new AnyMatch<Option<CStructMember>>(option -> option instanceof None<CStructMember>));
 
-			if (areAnyInvalid) {
-				return new None<CStructMember>();
-			}
+			if (areAnyInvalid) return new None<CStructMember>();
 		}
 
 		return new Some<CStructMember>(new EmptyStructMember());
@@ -1546,9 +1444,7 @@ public class Main {
 			final var i = substring.indexOf("(");
 			if (i >= 0) {
 				final var name = substring.substring(0, i);
-				if (!this.isIdentifier(name)) {
-					return new None<CStructMember>();
-				}
+				if (!this.isIdentifier(name)) return new None<CStructMember>();
 
 				final var substring2 = substring.substring(i + 1);
 				final var generated =
@@ -1565,9 +1461,7 @@ public class Main {
 
 	private String compileMethodSegment(String input, int indent) {
 		final var stripped = input.strip();
-		if (stripped.isEmpty()) {
-			return "";
-		}
+		if (stripped.isEmpty()) return "";
 
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
@@ -1575,14 +1469,10 @@ public class Main {
 		}
 
 		final var maybeIf = this.compileConditional("if", indent, stripped);
-		if (maybeIf instanceof Some<String>(var result)) {
-			return result;
-		}
+		if (maybeIf instanceof Some<String>(var result)) return result;
 
 		final var maybeWhile = this.compileConditional("while", indent, stripped);
-		if (maybeWhile instanceof Some<String>(var result)) {
-			return result;
-		}
+		if (maybeWhile instanceof Some<String>(var result)) return result;
 
 		if (stripped.startsWith("else ")) {
 			final var substring = stripped.substring("else ".length()).strip();
@@ -1590,14 +1480,10 @@ public class Main {
 				final var substring1 = substring.substring(1, substring.length() - 1);
 				return generateIndent(indent) + "else {" + this.compileMethodsSegments(substring1, indent + 1) +
 							 generateIndent(indent) + "}";
-			} else {
-				return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
-			}
+			} else return generateIndent(indent) + "else " + this.compileMethodSegment(substring, indent);
 		}
 
-		if (stripped.startsWith("//")) {
-			return generateIndent(indent) + stripped;
-		}
+		if (stripped.startsWith("//")) return generateIndent(indent) + stripped;
 
 		return System.lineSeparator() + "\t" + wrap(stripped);
 	}
@@ -1614,16 +1500,12 @@ public class Main {
 						.filter(slice -> !slice.isEmpty())
 						.toList();
 
-				if (divisions.size() < 2) {
-					return new None<String>();
-				}
+				if (divisions.size() < 2) return new None<String>();
 
 				final var first = divisions.getFirst();
 				final var last = this.joinStrings("", divisions.subList(1, divisions.size()));
 
-				if (!first.endsWith(")")) {
-					return new None<String>();
-				}
+				if (!first.endsWith(")")) return new None<String>();
 				final var condition = first.substring(0, first.length() - 1);
 
 				if (last.startsWith("{") && last.endsWith("}")) {
@@ -1640,38 +1522,25 @@ public class Main {
 
 	private String compileMethodStatement(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("break")) {
-			return "break";
-		}
+		if (stripped.equals("break")) return "break";
 
-		if (stripped.startsWith("return ")) {
+		if (stripped.startsWith("return "))
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
-		}
 
 		final var maybeAssignment = this.compileAssignment(stripped);
-		if (maybeAssignment instanceof Some<String>(var assignment)) {
-			return assignment;
-		}
+		if (maybeAssignment instanceof Some<String>(var assignment)) return assignment;
 
 		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>(var value)) {
-			return value;
-		}
+		if (maybeInvokable instanceof Some<String>(var value)) return value;
 
 		final var instance = this.post(stripped, "++");
-		if (instance instanceof Some<String>(var x)) {
-			return x;
-		}
+		if (instance instanceof Some<String>(var x)) return x;
 
 		final var instance0 = this.post(stripped, "--");
-		if (instance0 instanceof Some<String>(var x)) {
-			return x;
-		}
+		if (instance0 instanceof Some<String>(var x)) return x;
 
 		final var maybeDeclaration = this.parseDeclaration(input);
-		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
-			return declaration.toCDeclaration().generate();
-		}
+		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) return declaration.toCDeclaration().generate();
 
 		return wrap(stripped);
 	}
@@ -1684,9 +1553,8 @@ public class Main {
 			final var assignable = this.parseAssignable(destination);
 			final var maybeSource = this.parseCExpression(substring1);
 
-			if (maybeSource instanceof Some<CExpression>(var source)) {
+			if (maybeSource instanceof Some<CExpression>(var source))
 				return new Some<String>(this.transformAssignable(assignable, source).generate() + " = " + source.generate());
-			}
 		}
 
 		return new None<String>();
@@ -1695,9 +1563,8 @@ public class Main {
 	private CAssignable transformAssignable(JAssignable assignable, CExpression source) {
 		return switch (assignable) {
 			case JDeclaration jDeclaration -> {
-				if (jDeclaration.type.equals(JPrimitiveType.Var)) {
+				if (jDeclaration.type.equals(JPrimitiveType.Var))
 					yield jDeclaration.withType(new Placeholder(source.content)).toCAssignable();
-				}
 
 				yield jDeclaration.toCAssignable();
 			}
@@ -1738,13 +1605,9 @@ public class Main {
 
 	private Option<String> getStringOption(String input) {
 		final var stripped = input.strip();
-		if (stripped.equals("this")) {
-			return new Some<String>("(*_this)");
-		}
+		if (stripped.equals("this")) return new Some<String>("(*_this)");
 
-		if (stripped.startsWith("switch ")) {
-			return new Some<String>("_switch");
-		}
+		if (stripped.startsWith("switch ")) return new Some<String>("_switch");
 
 		final var i2 = stripped.lastIndexOf("::");
 		if (i2 >= 0) {
@@ -1759,14 +1622,10 @@ public class Main {
 			}
 		}
 
-		if (stripped.startsWith("'") && stripped.endsWith("'")) {
-			return new Some<String>(stripped);
-		}
+		if (stripped.startsWith("'") && stripped.endsWith("'")) return new Some<String>(stripped);
 
 		final var maybeLambda = this.compileLambda(stripped);
-		if (maybeLambda instanceof Some<String>) {
-			return maybeLambda;
-		}
+		if (maybeLambda instanceof Some<String>) return maybeLambda;
 
 		final var i3 = stripped.indexOf("instanceof");
 		if (i3 >= 0) {
@@ -1776,11 +1635,8 @@ public class Main {
 			if (maybeInstance instanceof Some<String>(var instance)) {
 				final var i4 = substring1.indexOf("<");
 				final String substring2;
-				if (i4 >= 0) {
-					substring2 = substring1.substring(0, i4);
-				} else {
-					substring2 = substring1;
-				}
+				if (i4 >= 0) substring2 = substring1.substring(0, i4);
+				else substring2 = substring1;
 
 				return new Some<String>(instance + ".variant = ?." + substring2 + "Variant");
 			}
@@ -1796,11 +1652,8 @@ public class Main {
 					final String instance;
 					instance = value;
 					final String generated;
-					if (instance.equals("this")) {
-						generated = "_this->" + memberName;
-					} else {
-						generated = instance + "." + memberName;
-					}
+					if (instance.equals("this")) generated = "_this->" + memberName;
+					else generated = instance + "." + memberName;
 
 					return new Some<String>(generated);
 				}
@@ -1808,9 +1661,7 @@ public class Main {
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
-		if (maybeInvokable instanceof Some<String>) {
-			return maybeInvokable;
-		}
+		if (maybeInvokable instanceof Some<String>) return maybeInvokable;
 
 		final var maybeOperator = this
 				.compileOperator(stripped, "==")
@@ -1822,78 +1673,62 @@ public class Main {
 				.or(() -> this.compileOperator(stripped, "||"))
 				.or(() -> this.compileOperator(stripped, ">="));
 
-		if (maybeOperator instanceof Some<String>) {
-			return maybeOperator;
-		}
+		if (maybeOperator instanceof Some<String>) return maybeOperator;
 
-		if (this.isIdentifier(stripped)) {
-			return new Some<String>(stripped);
-		}
+		if (this.isIdentifier(stripped)) return new Some<String>(stripped);
 
 		if (stripped.startsWith("!")) {
 			final var substring = stripped.substring(1);
 			final var maybeInstance = this.parseCExpression(substring).map(CExpression::generate);
-			if (maybeInstance instanceof Some<String>(var instance)) {
-				return new Some<String>("!" + instance);
-			}
+			if (maybeInstance instanceof Some<String>(var instance)) return new Some<String>("!" + instance);
 		}
 
-		if (this.isNumber(stripped)) {
-			return new Some<String>(stripped);
-		}
+		if (this.isNumber(stripped)) return new Some<String>(stripped);
 
-		if (stripped.startsWith("\"") && stripped.endsWith("\"")) {
-			return new Some<String>(stripped);
-		}
+		if (stripped.startsWith("\"") && stripped.endsWith("\"")) return new Some<String>(stripped);
 
 		return new None<String>();
 	}
 
-	private Option<String> compileLambda(String stripped) {
-		final var i1 = stripped.indexOf("->");
-		if (i1 >= 0) {
-			final var beforeContent = stripped.substring(0, i1).strip();
-			final var maybeWithBraces = stripped.substring(i1 + 2).strip();
+	private Option<String> compileLambda(String input) {
+		final var index = input.indexOf("->");
+		if (index < 0) return new None<String>();
 
-			List<String> params;
-			if (this.isIdentifier(beforeContent)) {
-				params = Lists.of(beforeContent);
-			} else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
-				final var substring = beforeContent.substring(1, beforeContent.length() - 1);
-				params =
-						this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
-			} else {
-				return new None<String>();
-			}
+		final var beforeContent = input.substring(0, index).strip();
+		final var maybeWithBraces = input.substring(index + 2).strip();
 
-			if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
-				final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
-				final var compiled = this.compileMethodsSegments(content, 1);
+		List<String> params;
+		if (this.isIdentifier(beforeContent)) params = Lists.of(beforeContent);
+		else if (beforeContent.startsWith("(") && beforeContent.endsWith(")")) {
+			final var substring = beforeContent.substring(1, beforeContent.length() - 1);
+			params = this.divide(substring, new ValueFolder()).map(String::strip).filter(slice -> !slice.isEmpty()).toList();
+		} else return new None<String>();
 
-				final var generatedName = this.generateName();
+		if (maybeWithBraces.startsWith("{") && maybeWithBraces.endsWith("}")) {
+			final var content = maybeWithBraces.substring(1, maybeWithBraces.length() - 1);
+			final var compiled = this.compileMethodsSegments(content, 1);
 
-				var paramList = params.iter().map(param -> "auto " + param).toList().addFirst("void* _ref");
+			final var generatedName = this.generateName();
 
-				final var joined = this.joinStrings(", ", paramList);
+			var paramList = params.iter().map(param -> "auto " + param).toList().addFirst("void* _ref");
 
-				this.functions = this.functions.addLast(
-						"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
-						System.lineSeparator());
+			final var joined = this.joinStrings(", ", paramList);
 
-				return new Some<String>(generatedName);
-			} else {
-				final var generatedName = this.generateName();
+			this.functions = this.functions.addLast(
+					"auto " + generatedName + "(" + joined + "){" + compiled + System.lineSeparator() + "}" +
+					System.lineSeparator());
 
-				this.functions = this.functions.addLast(
-						"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
-						this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
-						System.lineSeparator() + "}" + System.lineSeparator());
+			return new Some<String>(generatedName);
+		} else {
+			final var generatedName = this.generateName();
 
-				return new Some<String>(generatedName);
-			}
+			this.functions = this.functions.addLast(
+					"auto " + generatedName + "(void* _ref, auto " + beforeContent + ")" + "{" +
+					this.generateStatement("return " + this.compileExpressionOrPlaceholder(maybeWithBraces)) +
+					System.lineSeparator() + "}" + System.lineSeparator());
+
+			return new Some<String>(generatedName);
 		}
-
-		return new None<String>();
 	}
 
 	private String generateName() {
@@ -1903,43 +1738,30 @@ public class Main {
 	}
 
 	private Option<String> compileOperator(String input, String operator) {
-		if (input.length() < 3) {
-			return new None<String>();
-		}
-
-		if (!input.contains(operator)) {
-			return new None<String>();
-		}
+		if (input.length() < 3) return new None<String>();
+		if (!input.contains(operator)) return new None<String>();
 
 		var i1 = -1;
 		var depth = 0;
 		var i = 0;
 		while (i < input.length() - 1) {
 			final var c = input.charAt(i);
-			if (c == operator.charAt(0)) {
-				if (depth == 0) {
-					i1 = i;
-					break;
-				}
+			if (c == operator.charAt(0)) if (depth == 0) {
+				i1 = i;
+				break;
 			}
 
-			if (c == '(') {
-				depth++;
-			}
-			if (c == ')') {
-				depth--;
-			}
+			if (c == '(') depth++;
+			if (c == ')') depth--;
 			i++;
 		}
 
 		if (i1 >= 0) {
 			final var leftString = input.substring(0, i1);
 			final var right = input.substring(i1 + operator.length());
-			if (this.parseCExpression(leftString).map(CExpression::generate) instanceof Some<String>(var leftCompiled)) {
-				if (this.parseCExpression(right).map(CExpression::generate) instanceof Some<String>(var rightCompiled)) {
+			if (this.parseCExpression(leftString).map(CExpression::generate) instanceof Some<String>(var leftCompiled))
+				if (this.parseCExpression(right).map(CExpression::generate) instanceof Some<String>(var rightCompiled))
 					return new Some<String>(leftCompiled + " " + operator + " " + rightCompiled);
-				}
-			}
 		}
 
 		return new None<String>();
@@ -1960,9 +1782,8 @@ public class Main {
 						.collect(new Joiner(", "));
 
 				final var maybeCaller = this.compileCaller(callerString);
-				if (maybeCaller instanceof Some<String>(var value)) {
+				if (maybeCaller instanceof Some<String>(var value))
 					return new Some<String>(value + "(" + joinedArguments + ")");
-				}
 			}
 		}
 
@@ -1976,24 +1797,18 @@ public class Main {
 		while (i < withoutEnd.length()) {
 			final var c = withoutEnd.charAt(i);
 			if (c == '(') {
-				if (depth == 0) {
-					callerStart = i;
-				}
+				if (depth == 0) callerStart = i;
 
 				depth++;
 			}
-			if (c == ')') {
-				depth--;
-			}
+			if (c == ')') depth--;
 			i++;
 		}
 		return callerStart;
 	}
 
 	private boolean isNumber(String input) {
-		if (input.startsWith("-")) {
-			return this.allDigits(input.substring(1));
-		}
+		if (input.startsWith("-")) return this.allDigits(input.substring(1));
 		return this.allDigits(input);
 	}
 
@@ -2004,9 +1819,7 @@ public class Main {
 	private Option<String> compileCaller(String input) {
 		final var stripped = input.strip();
 		final var maybeExpression = this.parseCExpression(stripped).map(CExpression::generate);
-		if (maybeExpression instanceof Some<String>) {
-			return maybeExpression;
-		}
+		if (maybeExpression instanceof Some<String>) return maybeExpression;
 
 		if (stripped.startsWith("new ")) {
 			final var type = stripped.substring("new ".length());
@@ -2025,9 +1838,7 @@ public class Main {
 
 			final var typeSeparator = this.findTypeSeparator(beforeName);
 
-			if (!this.isIdentifier(name)) {
-				return new None<JDeclaration>();
-			}
+			if (!this.isIdentifier(name)) return new None<JDeclaration>();
 
 			if (typeSeparator < 0) {
 				final var type = this.parseType(beforeName);
@@ -2080,15 +1891,9 @@ public class Main {
 		var i = 0;
 		while (i < beforeName.length()) {
 			final var c = beforeName.charAt(i);
-			if (c == ' ' && depth == 0) {
-				typeSeparator = i;
-			}
-			if (c == '<') {
-				depth++;
-			}
-			if (c == '>') {
-				depth--;
-			}
+			if (c == ' ' && depth == 0) typeSeparator = i;
+			if (c == '<') depth++;
+			if (c == '>') depth--;
 			i++;
 		}
 		return typeSeparator;
@@ -2140,9 +1945,7 @@ public class Main {
 			}
 		}
 
-		if (this.isIdentifier(stripped)) {
-			return new Identifier(stripped);
-		}
+		if (this.isIdentifier(stripped)) return new Identifier(stripped);
 
 		return new Placeholder(stripped);
 	}
