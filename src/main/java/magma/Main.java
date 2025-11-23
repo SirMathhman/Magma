@@ -1425,22 +1425,31 @@ public class Main {
 		this.environment = within.left;
 		var members = within.right;
 
-		if (modifiersList.contains("sealed")) {
+		if (type.equals("interface")) if (modifiersList.contains("sealed")) {
 			final var elements = this.flattenSealedStructure(name, typeParameters, variants);
 
 			fields = fields
 					.addLast(new CDeclaration(new Identifier(name + "Variant"), "variant"))
 					.addLast(new CDeclaration(new Identifier(name + "Data" + joinedTypeParameters), "data"));
+
 			dependencies = dependencies.addAllLast(elements);
-		} else if (type.equals("interface")) {
+		} else {
 			final var list = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
 			final var cStructure = new CStructure(typeParameters, name + "Table", list);
+
 			dependencies = dependencies.addLast(cStructure);
 			fields = fields
 					.addLast(new CDeclaration(new Identifier(name + "Table" + joinedTypeParameters), "table"))
 					.addFirst(new CDeclaration(new CPointerType(CPrimitiveType.Void), "data"));
-		} else {
-			final var joinedMembers = members.iter().map(this::retainDefinables).flatMap(Option::iter).toList();
+		}
+		else {
+			final var joinedMembers = members
+					.iter()
+					.map(this::retainDefinables)
+					.flatMap(Option::iter)
+					.filter(member -> !(member instanceof CFunctionDeclaration declaration))
+					.toList();
+
 			fields = fields.addAllLast(joinedMembers);
 		}
 
