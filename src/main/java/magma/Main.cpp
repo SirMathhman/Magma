@@ -209,11 +209,13 @@ struct JType {
 enum JAssignableVariant {
 	JDeclarationVariant,
 	JExpressionVariant,
+	JExpressionWrapperVariant,
 	PlaceholderVariant
 };
 union JAssignableData {
 	JDeclaration JDeclaration;
 	JExpression JExpression;
+	JExpressionWrapper JExpressionWrapper;
 	Placeholder Placeholder;
 };
 struct JAssignable {
@@ -340,10 +342,10 @@ struct CDeclaration {
 	CType type;
 	char* name;
 };
-struct JExpression {
+struct JExpressionWrapper {
 	char* content;
 };
-struct CExpression {
+struct CExpressionWrapper {
 	char* content;
 };
 struct JArrayType {
@@ -353,7 +355,7 @@ struct JGenericType {
 	char* base;
 	List<JType> typeArguments;
 };
-struct Main {
+struct Main {/*private interface CExpression extends CAssignable {}*/
 	List<char*> functionDeclarations;
 	List<char*> globals;
 	List<char*> structures;
@@ -426,6 +428,8 @@ CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List
 CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> mapper);
 char* generate_CFunctionDeclaration(void* _ref);
 char* generate_CAssignable(void* _ref);
+/*{
+		CAssignable*/ toCAssignable_Main(void* _ref);
 StringBuilder empty_StringBuilders(void* _ref);
 StringBuilder appendChar_StringBuilder(void* _ref, char next);
 StringBuilder clear_StringBuilder(void* _ref);
@@ -551,9 +555,9 @@ CDeclaration<> new_CDeclaration(CType type, char* name);
 CFunctionDeclaration mapName_CDeclaration(void* _ref, F1R<char*, char*> mapper);
 CFunctionDeclaration mapTypeParameters_CDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper);
 char* generate_CDeclaration(void* _ref);
-CExpression toCExpression_JExpression(void* _ref);
-CAssignable toCAssignable_JExpression(void* _ref);
-char* generate_CExpression(void* _ref);
+CExpression toCExpression_JExpressionWrapper(void* _ref);
+CAssignable toCAssignable_JExpressionWrapper(void* _ref);
+char* generate_CExpressionWrapper(void* _ref);
 CType toCType_JArrayType(void* _ref);
 CType toCType_JGenericType(void* _ref);
 Main<> new_Main();
@@ -593,6 +597,7 @@ Option<char*> compileConditional_Main(void* _ref, char* type, int indent, char* 
 char* compileMethodStatement_Main(void* _ref, char* input);
 Option<char*> compileAssignment_Main(void* _ref, char* stripped);
 CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, CExpression source);
+Placeholder resolve_Main(void* _ref, CExpression source);
 JAssignable parseAssignable_Main(void* _ref, char* input);
 Option<char*> post_Main(void* _ref, char* stripped, char* slice);
 char* compileExpressionOrPlaceholder_Main(void* _ref, char* input);
@@ -927,6 +932,11 @@ char* generate_CFunctionDeclaration(void* _ref){
 char* generate_CAssignable(void* _ref){
 	CAssignable* _this = (CAssignable*) _ref;
 	return _this->table.generate(_this->data);
+}
+/*{
+		CAssignable*/ toCAssignable_Main(void* _ref){
+	Main* _this = (Main*) _ref;
+	return _this->table.toCAssignable(_this->data);
 }
 StringBuilder empty_StringBuilders(void* _ref){
 	StringBuilders* _this = (StringBuilders*) _ref;
@@ -1648,28 +1658,34 @@ char* generate_CDeclaration(void* _ref){
 	/*generateTemplateString((*_this).typeParameters)*/ template = generateTemplateString((*_this).typeParameters);
 	return template + (*_this).type.generate() + " " + (*_this).name;
 }
-JAssignable toJAssignable_JExpression(void* _ref){
-	JExpression _this = *((JExpression*) _ref);
+JExpression toJExpression_JExpressionWrapper(void* _ref){
+	JExpressionWrapper _this = *((JExpressionWrapper*) _ref);
+	JExpressionData data;
+	data.JExpressionWrapper = _this;
+	return { JExpressionWrapperVariant, data };
+}
+JAssignable toJAssignable_JExpressionWrapper(void* _ref){
+	JExpressionWrapper _this = *((JExpressionWrapper*) _ref);
 	JAssignableData data;
-	data.JExpression = _this;
-	return { JExpressionVariant, data };
+	data.JExpressionWrapper = _this;
+	return { JExpressionWrapperVariant, data };
 }
-CExpression toCExpression_JExpression(void* _ref){
-	JExpression* _this = (JExpression*) _ref;
-	return new_CExpression((*_this).content);
+CExpression toCExpression_JExpressionWrapper(void* _ref){
+	JExpressionWrapper* _this = (JExpressionWrapper*) _ref;
+	return new_CExpressionWrapper((*_this).content);
 }
-CAssignable toCAssignable_JExpression(void* _ref){
-	JExpression* _this = (JExpression*) _ref;
-	return new_CExpression((*_this).content);
+CAssignable toCAssignable_JExpressionWrapper(void* _ref){
+	JExpressionWrapper* _this = (JExpressionWrapper*) _ref;
+	return new_CExpressionWrapper((*_this).content);
 }
-CAssignable toCAssignable_CExpression(void* _ref){
-	CExpression _this = *((CExpression*) _ref);
-	CAssignableData data;
-	data.CExpression = _this;
-	return { CExpressionVariant, data };
+CExpression toCExpression_CExpressionWrapper(void* _ref){
+	CExpressionWrapper _this = *((CExpressionWrapper*) _ref);
+	CExpressionData data;
+	data.CExpressionWrapper = _this;
+	return { CExpressionWrapperVariant, data };
 }
-char* generate_CExpression(void* _ref){
-	CExpression* _this = (CExpression*) _ref;
+char* generate_CExpressionWrapper(void* _ref){
+	CExpressionWrapper* _this = (CExpressionWrapper*) _ref;
 	return (*_this).content;
 }
 JType toJType_JArrayType(void* _ref){
@@ -2299,6 +2315,10 @@ CAssignable transformAssignable_Main(void* _ref, JAssignable assignable, CExpres
 	Main* _this = (Main*) _ref;
 	return _switch;
 }
+Placeholder resolve_Main(void* _ref, CExpression source){
+	Main* _this = (Main*) _ref;
+	return new_Placeholder(source.generate());
+}
 auto lambda39(void* _ref, auto ()){
 	return new_Placeholder(input);
 }
@@ -2376,7 +2396,7 @@ Option<CExpression> parseCExpression_Main(void* _ref, char* input){
 }
 Option<JExpression> parseExpression_Main(void* _ref, char* input){
 	Main* _this = (Main*) _ref;
-	return (*_this).getStringOption(input).map(F? { alloc(JExpression), F?Table { new }});
+	return (*_this).getStringOption(input).map(F? { alloc(JExpressionWrapper), F?Table { new }});
 }
 auto lambda56(void* _ref, auto ()){
 	return (*_this).compileOperator(stripped, " >= ");
@@ -2549,7 +2569,9 @@ Option<char*> compileOperator_Main(void* _ref, char* input, char* operator){
 Option<char*> compileInvokable_Main(void* _ref, char* stripped){
 	Main* _this = (Main*) _ref;
 	if (stripped.endsWith(")")) {
-		/*stripped.substring(0, stripped.length() - 1)*/ withoutEnd = stripped.substring(0, stripped.length() - 1);
+		/*stripped*/ stripped1 = stripped;
+		/*stripped.length()*/ length = stripped.length();
+		/*stripped1.substring(0, length - 1)*/ withoutEnd = stripped1.substring(0, length - 1);
 		/*(*_this).findCallerStart(withoutEnd)*/ callerStart = (*_this).findCallerStart(withoutEnd);
 		if (callerStart >= 0) {
 			/*withoutEnd.substring(0, callerStart)*/ callerString = withoutEnd.substring(0, callerStart);

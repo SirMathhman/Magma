@@ -144,7 +144,15 @@ public class Main {
 
 	private sealed interface JType permits Identifier, JArrayType, JGenericType, JPrimitiveType, Placeholder {}
 
-	private sealed interface JAssignable permits JDeclaration, JExpression, Placeholder {}
+	private sealed interface JAssignable permits JDeclaration, JExpression, JExpressionWrapper, Placeholder {}
+
+	sealed private interface JExpression extends JAssignable permits JExpressionWrapper {
+		CAssignable toCAssignable();
+
+		CExpression toCExpression();
+	}
+
+	private interface CExpression extends CAssignable {}
 
 	@Actual
 	private record JavaIOError(IOException e) implements IOError {
@@ -836,17 +844,19 @@ public class Main {
 		}
 	}
 
-	private record JExpression(String content) implements JAssignable {
+	private record JExpressionWrapper(String content) implements JExpression, JAssignable {
+		@Override
 		public CExpression toCExpression() {
-			return new CExpression(this.content);
+			return new CExpressionWrapper(this.content);
 		}
 
-		private CAssignable toCAssignable() {
-			return new CExpression(this.content);
+		@Override
+		public CAssignable toCAssignable() {
+			return new CExpressionWrapper(this.content);
 		}
 	}
 
-	private record CExpression(String content) implements CAssignable {
+	private record CExpressionWrapper(String content) implements CExpression {
 		@Override
 		public String generate() {
 			return this.content;
@@ -1567,7 +1577,7 @@ public class Main {
 		return switch (assignable) {
 			case JDeclaration jDeclaration -> {
 				if (jDeclaration.type.equals(JPrimitiveType.Var))
-					yield jDeclaration.withType(new Placeholder(source.content)).toCAssignable();
+					yield jDeclaration.withType(this.resolve(source)).toCAssignable();
 
 				yield jDeclaration.toCAssignable();
 			}
@@ -1575,6 +1585,10 @@ public class Main {
 			case JExpression jExpression -> jExpression.toCAssignable();
 			case Placeholder placeholder -> placeholder.toCAssignable();
 		};
+	}
+
+	private Placeholder resolve(CExpression source) {
+		return new Placeholder(source.generate());
 	}
 
 	private JAssignable parseAssignable(String input) {
@@ -1603,7 +1617,7 @@ public class Main {
 	}
 
 	private Option<JExpression> parseExpression(String input) {
-		return this.getStringOption(input).map(JExpression::new);
+		return this.getStringOption(input).map(JExpressionWrapper::new);
 	}
 
 	private Option<String> getStringOption(String input) {
@@ -1772,7 +1786,9 @@ public class Main {
 
 	private Option<String> compileInvokable(String stripped) {
 		if (stripped.endsWith(")")) {
-			final var withoutEnd = stripped.substring(0, stripped.length() - 1);
+			final var stripped1 = stripped;
+			final var length = stripped.length();
+			final var withoutEnd = stripped1.substring(0, length - 1);
 
 			final var callerStart = this.findCallerStart(withoutEnd);
 
