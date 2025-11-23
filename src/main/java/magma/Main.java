@@ -1558,16 +1558,9 @@ public class Main {
 			return "return " + this.compileExpressionOrPlaceholder(stripped.substring("return ".length()));
 		}
 
-		final var i = stripped.indexOf("=");
-		if (i >= 0) {
-			final var destination = stripped.substring(0, i);
-			final var substring1 = stripped.substring(i + 1);
-			final var assignable = this.parseExpression(destination)
-																 .map(CExpression::generate)
-																 .or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
-																 .orElseGet(() -> wrap(destination));
-
-			return assignable + " = " + this.compileExpressionOrPlaceholder(substring1);
+		final var maybeAssignment = this.compileAssignment(stripped);
+		if (maybeAssignment instanceof Some<String>(var assignment)) {
+			return assignment;
 		}
 
 		final var maybeInvokable = this.compileInvokable(stripped);
@@ -1591,6 +1584,23 @@ public class Main {
 		}
 
 		return wrap(stripped);
+	}
+
+	private Option<String> compileAssignment(String stripped) {
+		final var i = stripped.indexOf("=");
+		if (i >= 0) {
+			final var destination = stripped.substring(0, i);
+			final var substring1 = stripped.substring(i + 1);
+			final var assignable = this
+					.parseExpression(destination)
+					.map(CExpression::generate)
+					.or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
+					.orElseGet(() -> wrap(destination));
+
+			return new Some<String>(assignable + " = " + this.compileExpressionOrPlaceholder(substring1));
+		}
+
+		return new None<String>();
 	}
 
 	private Option<String> post(String stripped, String slice) {
