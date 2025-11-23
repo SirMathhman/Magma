@@ -589,119 +589,74 @@ char* toBaseName_PrimitiveType(void* _ref){
 template <typename T>
 Option<T> next_Head(void* _ref){
 	Head<T>* _this = (Head<T>*) _ref;
-	Option<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.next(_this->data);
 }
 template <typename T>
 Stream<T> stream_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	Stream<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.stream(_this->data);
 }
 template <typename T>
 int isEmpty_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	int _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.isEmpty(_this->data);
 }
 template <typename T>
 List<T> addLast_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.addLast(_this->data);
 }
 template <typename T>
 int contains_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
-	int _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.contains(_this->data);
 }
 template <typename T>
 List<T> addFirst_List(void* _ref, T element){
 	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.addFirst(_this->data);
 }
 template <typename T>
 List<T> addAll_List(void* _ref, List<T> elements){
 	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.addAll(_this->data);
 }
 template <typename T>
 int size_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	int _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.size(_this->data);
 }
 template <typename T>
 T getFirst_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	T _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.getFirst(_this->data);
 }
 template <typename T>
 List<T> subList_List(void* _ref, int start, int end){
 	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.subList(_this->data);
 }
 template <typename T>
 List<T> clear_List(void* _ref){
 	List<T>* _this = (List<T>*) _ref;
-	List<T> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.clear(_this->data);
 }
 Path resolveSibling_Path(void* _ref, char* sibling){
 	Path* _this = (Path*) _ref;
-	Path _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.resolveSibling(_this->data);
 }
 Option<IOError> writeString_Path(void* _ref, char* output){
 	Path* _this = (Path*) _ref;
-	Option<IOError> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.writeString(_this->data);
 }
 Result<char*, IOError> readString_Path(void* _ref){
 	Path* _this = (Path*) _ref;
-	Result<char*, IOError> _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.readString(_this->data);
 }
 template <typename T>
 T apply_FR(void* _ref){
 	FR<T>* _this = (FR<T>*) _ref;
-	T _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.apply(_this->data);
 }
 template <typename R, typename T>
 Option<R> map_Option(void* _ref, F1R<T, R> mapper){
@@ -804,10 +759,7 @@ Tuple<int, T> toTuple_Option(void* _ref, FR<T> other){
 template <typename T0, typename R>
 R apply_F1R(void* _ref, T0 value){
 	F1R<T0, R>* _this = (F1R<T0, R>*) _ref;
-	R _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.apply(_this->data);
 }
 template <typename R, typename T, typename X>
 Result<R, X> mapValue_Result(void* _ref, F1R<T, R> mapper){
@@ -891,41 +843,26 @@ char* generate_StructMember(void* _ref){
 }
 State apply_Folder(void* _ref, State state, char character){
 	Folder* _this = (Folder*) _ref;
-	State _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.apply(_this->data);
 }
 template <typename A, typename B, typename R>
 R apply_F2R(void* _ref, A a, B b){
 	F2R<A, B, R>* _this = (F2R<A, B, R>*) _ref;
-	R _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.apply(_this->data);
 }
 template <typename T, typename C>
 C createInitial_Collector(void* _ref){
 	Collector<T, C>* _this = (Collector<T, C>*) _ref;
-	C _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.createInitial(_this->data);
 }
 template <typename T, typename C>
 C fold_Collector(void* _ref, C c, T t){
 	Collector<T, C>* _this = (Collector<T, C>*) _ref;
-	C _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.fold(_this->data);
 }
 char* display_IOError(void* _ref){
 	IOError* _this = (IOError*) _ref;
-	char* _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.display(_this->data);
 }
 CFunctionDeclaration mapTypeParameters_CFunctionDeclaration(void* _ref, F1R<List<char*>, List<char*>> mapper){
 	CFunctionDeclaration* _this = (CFunctionDeclaration*) _ref;
@@ -937,10 +874,7 @@ CFunctionDeclaration mapName_CFunctionDeclaration(void* _ref, F1R<char*, char*> 
 }
 char* generate_CFunctionDeclaration(void* _ref){
 	CFunctionDeclaration* _this = (CFunctionDeclaration*) _ref;
-	char* _ret;
-	switch (_this->variant) {
-	}
-	return _ret;
+	return _this->table.generate(_this->data);
 }
 StringBuilder new_StringBuilder_StringBuilder(){
 	StringBuilder _this;
@@ -2016,9 +1950,14 @@ auto lambda24(void* _ref, auto variant){
 	return *_this.generateCase(declaration, variant);
 }
 auto lambda25(void* _ref){
-	var returnValueDefinition = *_this.generateStatement(declaration.type + " _ret");
-	var cases = variants.stream().map(lambda24).collect(new_Joiner());
-	return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + *_this.generateStatement("return _ret");
+	if (variants.isEmpty()) {
+		return *_this.generateStatement("return _this->table." + declaration.name + "(_this->data)");
+	}
+	else {
+		var returnValueDefinition = *_this.generateStatement(declaration.type + " _ret");
+		var cases = variants.stream().map(lambda24).collect(new_Joiner());
+		return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases + generateIndent(1) + "}" + *_this.generateStatement("return _ret");
+	}
 }
 auto lambda26(void* _ref, auto name){
 	return name + "_" + structName;

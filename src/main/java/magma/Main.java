@@ -1318,13 +1318,17 @@ public class Main {
 					structName + joinedTypeParameters + "* _this = (" + structName + joinedTypeParameters + "*) _ref");
 
 			outputContent = thisInitialization + maybeCompiled.orElseGet(() -> {
-				final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
+				if (variants.isEmpty()) {
+					return this.generateStatement("return _this->table." + declaration.name + "(_this->data)");
+				} else {
+					final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
 
-				final var cases =
-						variants.stream().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
+					final var cases =
+							variants.stream().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
 
-				return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
-							 generateIndent(1) + "}" + this.generateStatement("return _ret");
+					return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
+								 generateIndent(1) + "}" + this.generateStatement("return _ret");
+				}
 			});
 		} else {
 			outputContent = "?";
