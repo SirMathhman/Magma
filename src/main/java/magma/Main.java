@@ -96,11 +96,9 @@ public class Main {
 		String toBaseName();
 	}
 
-	private sealed interface MethodDeclaration permits Constructor, Declaration, Placeholder {
-		String generate();
-	}
+	private sealed interface JMethodDeclaration permits JConstructor, JDeclaration, Placeholder {}
 
-	private sealed interface StructMember permits Declaration, EmptyStructMember, Field, F1RDeclaration, Placeholder {
+	private sealed interface StructMember permits JDeclaration, EmptyStructMember, Field, F1RDeclaration, Placeholder {
 		String generate();
 	}
 
@@ -122,6 +120,18 @@ public class Main {
 
 	private interface IOError {
 		String display();
+	}
+
+	private interface CFunctionDeclaration {
+		default CFunctionDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return this;
+		}
+
+		default CFunctionDeclaration mapName(F1R<String, String> mapper) {
+			return this;
+		}
+
+		String generate();
 	}
 
 	@Actual
@@ -422,7 +432,7 @@ public class Main {
 		}
 	}
 
-	private record Placeholder(String input) implements Type, MethodDeclaration, StructMember {
+	private record Placeholder(String input) implements Type, JMethodDeclaration, StructMember, CFunctionDeclaration {
 		@Override
 		public String generate() {
 			return wrap(this.input);
@@ -434,17 +444,20 @@ public class Main {
 		}
 	}
 
-	private record Constructor(String structName) implements MethodDeclaration {
-		@Override
-		public String generate() {
-			return this.structName + " new_" + this.structName;
+	private record JConstructor(String type) implements JMethodDeclaration {
+		public CFunctionDeclaration toCDeclaration() {
+			return new CDeclaration(this.type, "new_" + this.type);
 		}
 	}
 
-	private record Declaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
-														 String type, String name) implements MethodDeclaration, StructMember {
-		public Declaration(String type, String name) {
+	private record JDeclaration(List<String> annotations, List<String> typeParameters, Option<String> maybeBeforeType,
+															String type, String name) implements JMethodDeclaration, StructMember {
+		public JDeclaration(String type, String name) {
 			this(new JavaList<String>(), new JavaList<String>(), new None<String>(), type, name);
+		}
+
+		private CDeclaration toCDeclaration() {
+			return new CDeclaration(this.typeParameters, this.type, this.name);
 		}
 
 		@Override
@@ -453,20 +466,20 @@ public class Main {
 			return beforeDeclaration + this.type + " " + this.name;
 		}
 
-		public Declaration mapName(F1R<String, String> mapper) {
-			return new Declaration(this.annotations,
-														 this.typeParameters,
-														 this.maybeBeforeType,
-														 this.type,
-														 mapper.apply(this.name));
+		public JDeclaration mapName(F1R<String, String> mapper) {
+			return new JDeclaration(this.annotations,
+															this.typeParameters,
+															this.maybeBeforeType,
+															this.type,
+															mapper.apply(this.name));
 		}
 
-		public Declaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
-			return new Declaration(this.annotations,
-														 mapper.apply(this.typeParameters),
-														 this.maybeBeforeType,
-														 this.type,
-														 this.name);
+		public JDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return new JDeclaration(this.annotations,
+															mapper.apply(this.typeParameters),
+															this.maybeBeforeType,
+															this.type,
+															this.name);
 		}
 	}
 
@@ -647,7 +660,7 @@ public class Main {
 		}
 	}
 
-	private record Field(Declaration declaration) implements StructMember {
+	private record Field(JDeclaration declaration) implements StructMember {
 		@Override
 		public String generate() {
 			return Main.generateStatement(1, this.declaration.generate());
@@ -804,6 +817,28 @@ public class Main {
 		}
 	}
 
+	private record CDeclaration(List<String> typeParameters, String type, String name) implements CFunctionDeclaration {
+		public CDeclaration(String type, String name) {
+			this(new JavaList<String>(), type, name);
+		}
+
+		@Override
+		public CFunctionDeclaration mapName(F1R<String, String> mapper) {
+			return new CDeclaration(this.typeParameters, this.type, mapper.apply(this.name));
+		}
+
+		@Override
+		public CFunctionDeclaration mapTypeParameters(F1R<List<String>, List<String>> mapper) {
+			return new CDeclaration(mapper.apply(this.typeParameters), this.type, this.name);
+		}
+
+		@Override
+		public String generate() {
+			final var template = generateTemplateString(this.typeParameters);
+			return template + this.type + " " + this.name;
+		}
+	}
+
 	private List<String> functionDeclarations;
 	private List<String> globals;
 	private List<String> structures;
@@ -843,7 +878,6 @@ public class Main {
 		if (ioExceptionOption instanceof Some<IOError>(
 				var value
 		)) {
-			//noinspection CallToPrintStackTrace
 			System.err.println(value.display());
 		}
 	}
@@ -1027,7 +1061,7 @@ public class Main {
 					.toList();
 		}
 
-		List<Declaration> recordFields = new JavaList<Declaration>();
+		List<JDeclaration> recordFields = new JavaList<JDeclaration>();
 		if (beforeContent.endsWith(")")) {
 			final var substring = beforeContent.substring(0, beforeContent.length() - 1);
 			final var i3 = substring.indexOf("(");
@@ -1075,7 +1109,7 @@ public class Main {
 				.fold(this.functions, List::addLast);
 
 		final var joinedRecordFields =
-				recordFields.stream().map(Declaration::generate).map(this::generateStatement).collect(new Joiner());
+				recordFields.stream().map(JDeclaration::generate).map(this::generateStatement).collect(new Joiner());
 
 		var finalTypeParameters = typeParameters;
 		var finalVariants = variants;
@@ -1215,7 +1249,7 @@ public class Main {
 		if (stripped.endsWith(";")) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
-			if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
+			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
 				return new Some<StructMember>(new Field(declaration));
 			}
 		}
@@ -1255,8 +1289,8 @@ public class Main {
 		final var methodDeclaration = this.parseMethodDeclaration(declarationString, structName);
 
 		Option<String> maybeCompiled = new None<String>();
-		if (methodDeclaration instanceof Declaration declaration && declaration.annotations.contains("Actual")) {
-			final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
+		if (methodDeclaration instanceof JDeclaration declaration && declaration.annotations.contains("Actual")) {
+			final var compiledParameters = parameters.stream().map(JDeclaration::generate).collect(new Joiner(", "));
 
 			final var modifiedMethodDeclaration = declaration.mapName(name -> name + "_" + structName);
 			this.functionDeclarations = this.functionDeclarations.addLast(
@@ -1271,12 +1305,12 @@ public class Main {
 		}
 
 		String outputContent;
-		if (methodDeclaration instanceof Constructor) {
+		if (methodDeclaration instanceof JConstructor) {
 			final var compiled = maybeCompiled.orElse("?");
 			outputContent =
 					this.generateStatement(structName + " _this") + compiled + this.generateStatement("return " + "_this");
-		} else if (methodDeclaration instanceof Declaration declaration) {
-			parameters = parameters.addFirst(new Declaration("void*", "_ref"));
+		} else if (methodDeclaration instanceof JDeclaration declaration) {
+			parameters = parameters.addFirst(new JDeclaration("void*", "_ref"));
 
 			final var joinedTypeParameters = this.joinTypeParameters(typeParameters);
 
@@ -1287,7 +1321,7 @@ public class Main {
 				final var returnValueDefinition = this.generateStatement(declaration.type + " _ret");
 
 				final var cases =
-						variants.stream().map(variant -> this.generateCase(structName, declaration, variant)).collect(new Joiner());
+						variants.stream().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
 
 				return returnValueDefinition + generateIndent(1) + "switch (" + "_this->variant" + ") {" + cases +
 							 generateIndent(1) + "}" + this.generateStatement("return _ret");
@@ -1296,69 +1330,69 @@ public class Main {
 			outputContent = "?";
 		}
 
-		final var compiledParameters = parameters.stream().map(Declaration::generate).collect(new Joiner(", "));
+		final var compiledParameters = parameters.stream().map(JDeclaration::generate).collect(new Joiner(", "));
 
 		final var modifiedMethodDeclaration = switch (methodDeclaration) {
-			case Constructor constructor -> constructor;
-			case Declaration declaration -> declaration
-					.mapTypeParameters(typeParameters0 -> typeParameters0.addAll(typeParameters))
-					.mapName(name -> name + "_" + structName);
-
+			case JConstructor constructor -> constructor.toCDeclaration();
+			case JDeclaration declaration -> declaration.toCDeclaration();
 			case Placeholder placeholder -> placeholder;
 		};
 
-		final var header = modifiedMethodDeclaration.generate() + "(" + compiledParameters + ")";
+		final var mapped = modifiedMethodDeclaration
+				.mapTypeParameters(typeParameters0 -> typeParameters0.addAll(typeParameters))
+				.mapName(name -> name + "_" + structName);
+
+		final var header = mapped.generate() + "(" + compiledParameters + ")";
 		final var generated = header + "{" + outputContent + System.lineSeparator() + "}" + System.lineSeparator();
 
 		this.functionDeclarations = this.functionDeclarations.addLast(header + ";" + System.lineSeparator());
 		this.functions = this.functions.addLast(generated);
 
-		final var parameterTypes = parameters.stream().map(Declaration::type).toList();
+		final var parameterTypes = parameters.stream().map(JDeclaration::type).toList();
 
 		return switch (methodDeclaration) {
-			case Constructor _ -> new None<StructMember>();
-			case Declaration member -> new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
+			case JConstructor _ -> new None<StructMember>();
+			case JDeclaration member -> new Some<StructMember>(new F1RDeclaration(member.type, member.name, parameterTypes));
 			case Placeholder placeholder -> new Some<StructMember>(placeholder);
 		};
-
 	}
 
 	private String compileMethodsSegments(String inputContent, int indent) {
 		return this.compileStatements(inputContent, input -> this.compileMethodSegment(input, indent));
 	}
 
-	private String generateCase(String structName, Declaration declaration, String variant) {
+	private String generateCase(JDeclaration declaration, String variant) {
 		return generateIndent(2) + "case " + variant + "Variant:" +
 					 generateStatement(3, "_ret = " + declaration.name + "_" + variant + "(&(_this->data." + variant + "))") +
 					 generateStatement(3, "break");
 	}
 
-	private MethodDeclaration parseMethodDeclaration(String declaration, String structName) {
+	private JMethodDeclaration parseMethodDeclaration(String declaration, String structName) {
 		return this
 				.parseConstructor(declaration, structName)
 				.or(() -> this.parseDeclaration(declaration).map(this::toInterface))
 				.orElseGet(() -> new Placeholder(declaration));
 	}
 
-	private MethodDeclaration toInterface(Declaration value) {
+	private JMethodDeclaration toInterface(JDeclaration value) {
 		return value;
 	}
 
-	private Option<MethodDeclaration> parseConstructor(String declaration, String structName) {
+	private Option<JMethodDeclaration> parseConstructor(String declaration, String structName) {
 		final var stripped = declaration.strip();
 		if (stripped.equals(structName)) {
-			return new Some<MethodDeclaration>(new Constructor(structName));
+			return new Some<JMethodDeclaration>(new JConstructor(structName));
 		}
 
 		final var i = stripped.lastIndexOf(" ");
 		if (i >= 0) {
 			final var substring = stripped.substring(i + 1).strip();
 			if (substring.equals(structName)) {
-				return new Some<MethodDeclaration>(new Constructor(structName));
+				return new Some<JMethodDeclaration>(new JConstructor(structName));
 			}
 		}
 
-		return new None<MethodDeclaration>();
+		return new None<JMethodDeclaration>();
 	}
 
 	private Option<StructMember> compileEnumValues(String input, String structName) {
@@ -1501,7 +1535,7 @@ public class Main {
 			final var substring1 = stripped.substring(i + 1);
 			return this
 								 .compileExpression(destination)
-								 .or(() -> this.parseDeclaration(destination).map(Declaration::generate))
+								 .or(() -> this.parseDeclaration(destination).map(JDeclaration::generate))
 								 .orElseGet(() -> wrap(destination)) + " = " + this.compileExpressionOrPlaceholder(substring1);
 		}
 
@@ -1521,7 +1555,7 @@ public class Main {
 		}
 
 		final var maybeDeclaration = this.parseDeclaration(input);
-		if (maybeDeclaration instanceof Some<Declaration>(var declaration)) {
+		if (maybeDeclaration instanceof Some<JDeclaration>(var declaration)) {
 			return declaration.generate();
 		}
 
@@ -1817,7 +1851,7 @@ public class Main {
 		return new None<String>();
 	}
 
-	private Option<Declaration> parseDeclaration(String input) {
+	private Option<JDeclaration> parseDeclaration(String input) {
 		final var stripped = input.strip();
 		final var nameSeparator = stripped.lastIndexOf(" ");
 		if (nameSeparator >= 0) {
@@ -1827,12 +1861,12 @@ public class Main {
 			final var typeSeparator = this.findTypeSeparator(beforeName);
 
 			if (!this.isIdentifier(name)) {
-				return new None<Declaration>();
+				return new None<JDeclaration>();
 			}
 
 			if (typeSeparator < 0) {
 				final var type = this.compileType(beforeName);
-				return new Some<Declaration>(new Declaration(type, name));
+				return new Some<JDeclaration>(new JDeclaration(type, name));
 			}
 
 			var beforeType = beforeName.substring(0, typeSeparator).strip();
@@ -1857,15 +1891,15 @@ public class Main {
 			}
 
 			if (this.isIdentifier(name)) {
-				return new Some<Declaration>(new Declaration(annotations,
-																										 copy,
-																										 new Some<String>(beforeType),
-																										 this.compileType(beforeName.substring(typeSeparator + 1)),
-																										 name));
+				return new Some<JDeclaration>(new JDeclaration(annotations,
+																											 copy,
+																											 new Some<String>(beforeType),
+																											 this.compileType(beforeName.substring(typeSeparator + 1)),
+																											 name));
 			}
 		}
 
-		return new None<Declaration>();
+		return new None<JDeclaration>();
 	}
 
 	private List<String> collectAnnotations(String input) {
