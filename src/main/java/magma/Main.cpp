@@ -606,7 +606,7 @@ struct Main {
 	List<char*> (*splitValues)(void*, char*);
 	int (*isIdentifier)(void*, char*);
 	Option<CStructMember> (*transformObjectMember)(void*, JObjectMemberPrototype);
-	Option<CStructMember> (*compileMethod)(void*, char*, List<char*>, List<char*>, char*);
+	Option<JObjectMemberPrototype> (*compileMethod)(void*, char*, List<char*>, List<char*>, char*);
 	CType (*toConstructorReturnType)(void*, char*, List<char*>);
 	char* (*compileMethodsSegments)(void*, char*, int);
 	char* (*generateCase)(void*, JDeclaration, char*);
@@ -924,7 +924,7 @@ Option<CDefinable> retainDefinables_Main(void* _ref, CStructMember member);
 List<char*> splitValues_Main(void* _ref, char* input);
 int isIdentifier_Main(void* _ref, char* input);
 Option<CStructMember> transformObjectMember_Main(void* _ref, JObjectMemberPrototype wrapper);
-Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
+Option<JObjectMemberPrototype> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input);
 CType toConstructorReturnType_Main(void* _ref, char* base, List<char*> typeParameters);
 char* compileMethodsSegments_Main(void* _ref, char* inputContent, int indent);
 char* generateCase_Main(void* _ref, JDeclaration declaration, char* variant);
@@ -1743,6 +1743,12 @@ char* generate_FunctionDeclaration(void* _ref){
 CStructMember toCStructMember_EmptyStructMember(void* _ref){
 	EmptyStructMember _this = *((EmptyStructMember*) _ref);
 	CStructMemberData data;
+	data.EmptyStructMember = _this;
+	return { EmptyStructMemberVariant, data };
+}
+JObjectMemberPrototype toJObjectMemberPrototype_EmptyStructMember(void* _ref){
+	EmptyStructMember _this = *((EmptyStructMember*) _ref);
+	JObjectMemberPrototypeData data;
 	data.EmptyStructMember = _this;
 	return { EmptyStructMemberVariant, data };
 }
@@ -2736,7 +2742,7 @@ Option<JObjectMemberPrototype> partiallyParseObjectMember_Main(void* _ref, JObje
 	}
 	/*Not a functional type: Placeholder[input=Member 'compileMethod' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@7de26db8]']*/ maybeMethod = _this->compileMethod((*_this).name((*_this)), (*_this).typeParameters((*_this)), (*_this).variants((*_this)), (*_this));
 	if ((*_this).variant = ?.SomeVariant) 
-		return new_Some<JObjectMemberPrototype>(new_JObjectMemberPrototypeWrapper((*_this)));
+		return new_Some<JObjectMemberPrototype>((*_this));
 	return new_Some<JObjectMemberPrototype>(new_Placeholder((*_this)));
 }
 auto lambda23(void* _ref, auto member){
@@ -2823,16 +2829,16 @@ auto lambda34(void* _ref, auto typeParameters0){
 auto lambda35(void* _ref, auto name){
 	return (*_this) + "_" + (*_this);
 }
-Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
+Option<JObjectMemberPrototype> compileMethod_Main(void* _ref, char* structName, List<char*> typeParameters, List<char*> variants, char* input){
 	Main* _this = (Main*) _ref;
 	int i = (*_this).indexOf("(");
 	if ((*_this) < 0) 
-		return new_None<CStructMember>((*_this));
+		return new_None<JObjectMemberPrototype>((*_this));
 	char* declarationString = (*_this).substring(0, (*_this));
 	char* substring1 = (*_this).substring((*_this) + 1);
 	int i1 = (*_this).indexOf(")");
 	if ((*_this) < 0) 
-		return new_None<CStructMember>((*_this));
+		return new_None<JObjectMemberPrototype>((*_this));
 	char* parametersString = (*_this).substring(0, (*_this));
 	char* withBraces = (*_this).substring((*_this) + 1).strip((*_this));
 	/*Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@7de26db8]']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ parameters = _this->divide((*_this), new_ValueFolder((*_this))).map(F? { alloc((*_this)), F?Table { strip }}).filter(lambda27).toList((*_this)).iter((*_this)).map(F? { alloc((*_this)), F?Table { parseDeclaration }}).flatMap(F? { alloc((*_this)), F?Table { iter }}).toList((*_this));
@@ -2843,7 +2849,7 @@ Option<CStructMember> compileMethod_Main(void* _ref, char* structName, List<char
 		/*Not a functional type: Placeholder[input=Cannot access member 'collect' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'flatMap' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'iter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'toList' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'filter' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'map' in 'Placeholder[input=Not a functional type: Placeholder[input=Member 'divide' not defined in 'JObjectType[name=Main, members=magma.Main$JavaList@7de26db8]']]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]]', not an object.]*/ compiledParameters = (*_this).iter((*_this)).map(F? { alloc((*_this)), F?Table { generate }}).collect(new_Joiner(", "));
 		/*Not a functional type: Placeholder[input=Cannot access member 'toCDeclaration' in 'Placeholder[input=Not a functional type: Placeholder[input=Cannot access member 'mapName' in 'Placeholder[input=Undefined identifier: declaration]', not an object.]]', not an object.]*/ modifiedMethodDeclaration = (*_this).mapName(lambda28).toCDeclaration((*_this));
 		_this->functionDeclarations = _this->functionDeclarations.addLast((*_this).generate((*_this)) + "(" + compiledParameters + ");" + (*_this).lineSeparator((*_this)));
-		return new_Some<CStructMember>(new_EmptyStructMember((*_this)));
+		return new_Some<JObjectMemberPrototype>(new_EmptyStructMember((*_this)));
 	}
 	if ((*_this).startsWith("{") && (*_this).endsWith("}")) {
 		char* inputContent = (*_this).substring(1, (*_this).length((*_this)) - 1);

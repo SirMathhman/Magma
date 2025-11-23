@@ -591,7 +591,7 @@ public class Main {
 		}
 	}
 
-	private static final class EmptyStructMember implements CStructMember {
+	private static final class EmptyStructMember implements CStructMember, JObjectMemberPrototype {
 		@Override
 		public String generate() {
 			return "";
@@ -1532,8 +1532,7 @@ public class Main {
 		}
 
 		final var maybeMethod = this.compileMethod(object.name(), object.typeParameters(), object.variants(), stripped);
-		if (maybeMethod instanceof Some<CStructMember>(var temp))
-			return new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(temp));
+		if (maybeMethod instanceof Some<JObjectMemberPrototype>(var temp)) return new Some<JObjectMemberPrototype>(temp);
 
 		return new Some<JObjectMemberPrototype>(new Placeholder(stripped));
 	}
@@ -1581,17 +1580,17 @@ public class Main {
 		else return new None<CStructMember>();
 	}
 
-	private Option<CStructMember> compileMethod(String structName,
-																							List<String> typeParameters,
-																							List<String> variants,
-																							String input) {
+	private Option<JObjectMemberPrototype> compileMethod(String structName,
+																											 List<String> typeParameters,
+																											 List<String> variants,
+																											 String input) {
 		final var i = input.indexOf("(");
-		if (i < 0) return new None<CStructMember>();
+		if (i < 0) return new None<JObjectMemberPrototype>();
 
 		final var declarationString = input.substring(0, i);
 		final var substring1 = input.substring(i + 1);
 		final var i1 = substring1.indexOf(")");
-		if (i1 < 0) return new None<CStructMember>();
+		if (i1 < 0) return new None<JObjectMemberPrototype>();
 		final var parametersString = substring1.substring(0, i1);
 		final var withBraces = substring1.substring(i1 + 1).strip();
 
@@ -1618,7 +1617,7 @@ public class Main {
 			this.functionDeclarations = this.functionDeclarations.addLast(
 					modifiedMethodDeclaration.generate() + "(" + compiledParameters + ");" + System.lineSeparator());
 
-			return new Some<CStructMember>(new EmptyStructMember());
+			return new Some<JObjectMemberPrototype>(new EmptyStructMember());
 		}
 
 		if (withBraces.startsWith("{") && withBraces.endsWith("}")) {
@@ -1697,13 +1696,13 @@ public class Main {
 		final var parameterTypes = cParameters.iter().map(CDeclaration::type).toList();
 
 		return switch (methodDeclaration) {
-			case JConstructor _ -> new Some<CStructMember>(new EmptyStructMember());
+			case JConstructor _ -> new Some<JObjectMemberPrototype>(new EmptyStructMember());
 			case JDeclaration member -> {
 				final var cDeclaration = member.toCDeclaration();
 				final var f1RDeclaration = new FunctionDeclaration(cDeclaration.type, cDeclaration.name, parameterTypes);
-				yield new Some<CStructMember>(f1RDeclaration);
+				yield new Some<JObjectMemberPrototype>(new JObjectMemberPrototypeWrapper(f1RDeclaration));
 			}
-			case Placeholder placeholder -> new Some<CStructMember>(placeholder);
+			case Placeholder placeholder -> new Some<JObjectMemberPrototype>(placeholder);
 		};
 	}
 
