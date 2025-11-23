@@ -29,17 +29,7 @@ public class Main {
 	}
 
 	private enum JPrimitiveType implements JType {
-		Int(CPrimitiveType.Int), Void(CPrimitiveType.Void), Boolean(CPrimitiveType.Void),
-		String(new CPointerType(CPrimitiveType.Char)), Char(CPrimitiveType.Char), Var(null);
-
-		private final CType type;
-
-		JPrimitiveType(CType type) {this.type = type;}
-
-		@Override
-		public CType toCType() {
-			return this.type;
-		}
+		Int, Void, Boolean, String, Char, Var
 	}
 
 	private interface Head<T> {
@@ -152,9 +142,7 @@ public class Main {
 		String generate();
 	}
 
-	private interface JType {
-		CType toCType();
-	}
+	private sealed interface JType permits Identifier, JArrayType, JGenericType, JPrimitiveType, Placeholder {}
 
 	private sealed interface JAssignable permits JDeclaration, JExpression, Placeholder {}
 
@@ -474,7 +462,6 @@ public class Main {
 			return this.value;
 		}
 
-		@Override
 		public CType toCType() {
 			return this;
 		}
@@ -496,7 +483,6 @@ public class Main {
 			return this;
 		}
 
-		@Override
 		public CType toCType() {
 			return this;
 		}
@@ -519,7 +505,7 @@ public class Main {
 		}
 
 		public CDeclaration toCDeclaration() {
-			return new CDeclaration(this.typeParameters, this.type.toCType(), this.name);
+			return new CDeclaration(this.typeParameters, transformType(this.type), this.name);
 		}
 
 		private CAssignable toCAssignable() {
@@ -907,16 +893,14 @@ public class Main {
 	}
 
 	private record JArrayType(JType type) implements JType {
-		@Override
 		public CType toCType() {
-			return new CPointerType(this.type.toCType());
+			return new CPointerType(transformType(this.type));
 		}
 	}
 
 	private record JGenericType(String base, List<JType> typeArguments) implements JType {
-		@Override
 		public CType toCType() {
-			final var newTypeArguments = this.typeArguments.iter().map(JType::toCType).toList();
+			final var newTypeArguments = this.typeArguments.iter().map(Main::transformType).toList();
 			return new CTemplateType(this.base, newTypeArguments);
 		}
 	}
@@ -968,6 +952,26 @@ public class Main {
 
 	private static String generateIndent(int depth) {
 		return System.lineSeparator() + "\t".repeat(depth);
+	}
+
+	private static CType transformType(JType jType) {
+		return switch (jType) {
+			case Identifier identifier -> identifier.toCType();
+			case JArrayType jArrayType -> jArrayType.toCType();
+			case JGenericType jGenericType -> jGenericType.toCType();
+			case JPrimitiveType jPrimitiveType -> transformPrimitiveType(jPrimitiveType);
+			case Placeholder placeholder -> placeholder.toCType();
+		};
+	}
+
+	private static CType transformPrimitiveType(JPrimitiveType type) {
+		return switch (type) {
+			case Int, Boolean -> CPrimitiveType.Int;
+			case Void -> CPrimitiveType.Void;
+			case String -> new CPointerType(CPrimitiveType.Char);
+			case Char -> CPrimitiveType.Char;
+			case Var -> new Placeholder("var");
+		};
 	}
 
 	private Option<IOError> run() {
@@ -1137,7 +1141,7 @@ public class Main {
 					.divide(implementeesString, (state, character) -> new ValueFolder().apply(state, character))
 					.map(String::strip)
 					.filter(slice -> !slice.isEmpty())
-					.map(input -> this.parseType(input).toCType())
+					.map(input -> transformType(this.parseType(input)))
 					.toList();
 		}
 
@@ -1415,7 +1419,8 @@ public class Main {
 
 					return this.generateStatement("return _this->table." + declaration.name + "(" + joinedParameters + ")");
 				} else {
-					final var returnValueDefinition = this.generateStatement(declaration.type.toCType().generate() + " _ret");
+					final var returnValueDefinition =
+							this.generateStatement(transformType(declaration.type).generate() + " _ret");
 
 					final var cases =
 							variants.iter().map(variant -> this.generateCase(declaration, variant)).collect(new Joiner());
@@ -2090,7 +2095,7 @@ public class Main {
 	}
 
 	private String compileType(String input) {
-		return this.parseType(input).toCType().generate();
+		return transformType(this.parseType(input)).generate();
 	}
 
 	private JType parseType(String input) {
