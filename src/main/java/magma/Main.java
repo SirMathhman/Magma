@@ -1276,7 +1276,7 @@ public class Main {
 		final var maybeEnumValues = this.compileEnumValues(input, structName);
 		if (maybeEnumValues instanceof Some<CStructMember>) return maybeEnumValues;
 
-		if (stripped.endsWith(Strings.from(""))) {
+		if (stripped.endsWith(Strings.from(";"))) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			final var maybeDeclaration = this.parseDeclaration(substring);
 			if (maybeDeclaration instanceof Some<JDeclaration>(var declaration))
@@ -1471,7 +1471,7 @@ public class Main {
 
 	private Option<CStructMember> compileEnumValues(String input, String structName) {
 		final var stripped = input.strip();
-		if (!stripped.endsWith(Strings.from(""))) return new None<CStructMember>();
+		if (!stripped.endsWith(Strings.from(";"))) return new None<CStructMember>();
 
 		final var enumValues = this
 				.divide(stripped.substring(0, stripped.length() - 1),
@@ -1522,7 +1522,7 @@ public class Main {
 		final var maybeWhile = this.compileConditional(Strings.from("while"), indent, stripped);
 		if (maybeWhile instanceof Some<String>(var result)) return result;
 
-		if (stripped.endsWith(Strings.from(""))) {
+		if (stripped.endsWith(Strings.from(";"))) {
 			final var substring = stripped.substring(0, stripped.length() - 1);
 			return generateIndent(indent) + this.compileMethodStatement(substring) + Strings.from("");
 		}
