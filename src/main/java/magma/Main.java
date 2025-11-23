@@ -1341,8 +1341,8 @@ public class Main {
 		return this.compileStructure("class", stripped).map(CStructMember::generate).orElseGet(() -> wrap(stripped));
 	}
 
-	private Option<CStructMember> compileStructure(String type, String stripped) {
-		return this.partiallyParseObject(type, stripped).flatMap(this::transformObject);
+	private Option<CStructMember> compileStructure(String type, String input) {
+		return this.partiallyParseObject(type, input).flatMap(this::transformObject);
 	}
 
 	private Option<JObjectPrototype> partiallyParseObject(String type, String stripped) {
@@ -1428,16 +1428,18 @@ public class Main {
 
 		var name = beforeContent.strip();
 
-		final var object = new JObjectPrototype(type,
-																						annotations,
-																						modifiersList,
-																						name,
-																						typeParameters,
-																						recordFields,
-																						implementees,
-																						variants,
-																						inputContent);
-		return new Some<JObjectPrototype>(object);
+		// TODO: replace with the builder pattern
+		final var prototype = new JObjectPrototype(type,
+																							 annotations,
+																							 modifiersList,
+																							 name,
+																							 typeParameters,
+																							 recordFields,
+																							 implementees,
+																							 variants,
+																							 inputContent);
+
+		return new Some<JObjectPrototype>(prototype);
 	}
 
 	private Option<CStructMember> transformObject(JObjectPrototype object) {
